@@ -1,0 +1,74 @@
+services:
+  api: &main_app
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    image: ovos_plugin_arena:${OVOS_PLUGIN_ARENA_VERSION:-latest}
+    restart: always
+    env_file:
+      - path: .env
+        required: false
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rmq:
+        condition: service_healthy
+    environment:
+      OVOS_PLUGIN_ARENA_HOST: 0.0.0.0
+      OVOS_PLUGIN_ARENA_DB_HOST: ovos_plugin_arena-db
+      OVOS_PLUGIN_ARENA_DB_PORT: 5432
+      OVOS_PLUGIN_ARENA_DB_USER: ovos_plugin_arena
+      OVOS_PLUGIN_ARENA_DB_PASS: ovos_plugin_arena
+      OVOS_PLUGIN_ARENA_DB_BASE: ovos_plugin_arena
+      OVOS_PLUGIN_ARENA_RABBIT_HOST: ovos_plugin_arena-rmq
+      OVOS_PLUGIN_ARENA_REDIS_HOST: ovos_plugin_arena-redis
+
+  db:
+    image: postgres:18.1-bookworm
+    hostname: ovos_plugin_arena-db
+    environment:
+      POSTGRES_PASSWORD: "ovos_plugin_arena"
+      POSTGRES_USER: "ovos_plugin_arena"
+      POSTGRES_DB: "ovos_plugin_arena"
+    volumes:
+      - ovos_plugin_arena-db-data:/var/lib/postgresql
+    restart: always
+    healthcheck:
+      test: pg_isready -U ovos_plugin_arena
+      interval: 2s
+      timeout: 3s
+      retries: 40
+
+  redis:
+    image: redis:8.4.0
+    hostname: "ovos_plugin_arena-redis"
+    restart: always
+    environment:
+      ALLOW_EMPTY_PASSWORD: "yes"
+    healthcheck:
+      test: redis-cli ping
+      interval: 1s
+      timeout: 3s
+      retries: 50
+
+  rmq:
+    image: rabbitmq:4.2.1-management-alpine
+    hostname: "ovos_plugin_arena-rmq"
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: "guest"
+      RABBITMQ_DEFAULT_PASS: "guest"
+      RABBITMQ_DEFAULT_VHOST: "/"
+    healthcheck:
+      test: rabbitmq-diagnostics check_running -q
+      interval: 3s
+      timeout: 3s
+      retries: 50
+
+
+
+volumes:
+  ovos_plugin_arena-db-data:
+    name: ovos_plugin_arena-db-data
