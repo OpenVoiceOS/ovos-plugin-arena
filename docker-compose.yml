@@ -13,8 +13,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-      rmq:
-        condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
     environment:
       OVOS_PLUGIN_ARENA_HOST: 0.0.0.0
       OVOS_PLUGIN_ARENA_DB_HOST: ovos_plugin_arena-db
@@ -22,8 +22,15 @@ services:
       OVOS_PLUGIN_ARENA_DB_USER: ovos_plugin_arena
       OVOS_PLUGIN_ARENA_DB_PASS: ovos_plugin_arena
       OVOS_PLUGIN_ARENA_DB_BASE: ovos_plugin_arena
-      OVOS_PLUGIN_ARENA_RABBIT_HOST: ovos_plugin_arena-rmq
       OVOS_PLUGIN_ARENA_REDIS_HOST: ovos_plugin_arena-redis
+
+  taskiq-worker:
+    <<: *main_app
+    labels: []
+    command:
+      - taskiq
+      - worker
+      - ovos_plugin_arena.tkq:broker
 
   db:
     image: postgres:18.1-bookworm
@@ -41,6 +48,14 @@ services:
       timeout: 3s
       retries: 40
 
+  migrator:
+    <<: *main_app
+    restart: "no"
+    command: alembic upgrade head
+    depends_on:
+      db:
+        condition: service_healthy
+
   redis:
     image: redis:8.4.0
     hostname: "ovos_plugin_arena-redis"
@@ -50,20 +65,6 @@ services:
     healthcheck:
       test: redis-cli ping
       interval: 1s
-      timeout: 3s
-      retries: 50
-
-  rmq:
-    image: rabbitmq:4.2.1-management-alpine
-    hostname: "ovos_plugin_arena-rmq"
-    restart: always
-    environment:
-      RABBITMQ_DEFAULT_USER: "guest"
-      RABBITMQ_DEFAULT_PASS: "guest"
-      RABBITMQ_DEFAULT_VHOST: "/"
-    healthcheck:
-      test: rabbitmq-diagnostics check_running -q
-      interval: 3s
       timeout: 3s
       retries: 50
 

@@ -17,12 +17,16 @@ dependencies = [
   "yarl >=1.22.0,<2",
   "ujson >=5.11.0,<6",
   "SQLAlchemy[asyncio] >=2.0.44,<3",
+  "alembic >=1.17.2,<2",
   "asyncpg >=0.31.0,<1",
   "redis[hiredis] >=6,<7",
   "httptools >=0.7.1,<1",
   "pymongo >=4.15.4,<5",
-  "aio-pika >=9.5.8,<10",
   "loguru >=0.7.3,<1",
+  "taskiq >=0.12.0,<1",
+  "taskiq-fastapi >=0.3.6,<1",
+  "taskiq-redis >=1.1.2,<2",
+  "pyzmq >=27.1.0,<28",
 ]
 
 [dependency-groups]
@@ -36,6 +40,7 @@ dev = [
   "pytest-env >=1.2.0,<2",
   "fakeredis >=2.32.1,<3",
   "httpx >=0.28.1,<1",
+  "taskiq[reload] >=0.12.0,<1",
 ]
 
 
@@ -149,6 +154,8 @@ allow-magic-value-types = ["int", "str", "float", "bytes"]
 
 [tool.ruff.lint.flake8-bugbear]
 extend-immutable-calls = [
+  "taskiq_dependencies.Depends",
+  "taskiq.TaskiqDepends",
   "fastapi.Depends",
   "fastapi.Query",
 ]
@@ -157,10 +164,10 @@ extend-immutable-calls = [
 project_name = "ovos_plugin_arena"
 api_type = "rest"
 enable_redis = "True"
-enable_rmq = "True"
+enable_rmq = "None"
 ci_type = "github"
-enable_migrations = "None"
-enable_taskiq = "None"
+enable_migrations = "True"
+enable_taskiq = "True"
 enable_routers = "True"
 enable_kafka = "None"
 enable_loguru = "True"

@@ -4,11 +4,9 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from ovos_plugin_arena.db.meta import meta
-from ovos_plugin_arena.db.models import load_all_models
-from ovos_plugin_arena.services.rabbit.lifespan import init_rabbit, shutdown_rabbit
 from ovos_plugin_arena.services.redis.lifespan import init_redis, shutdown_redis
 from ovos_plugin_arena.settings import settings
+from ovos_plugin_arena.tkq import broker
 
 
 def _setup_db(app: FastAPI) -> None:  # pragma: no cover
@@ -30,15 +28,6 @@ def _setup_db(app: FastAPI) -> None:  # pragma: no cover
     app.state.db_session_factory = session_factory
 
 
-async def _create_tables() -> None:  # pragma: no cover
-    """Populates tables in the database."""
-    load_all_models()
-    engine = create_async_engine(str(settings.db_url))
-    async with engine.begin() as connection:
-        await connection.run_sync(meta.create_all)
-    await engine.dispose()
-
-
 @asynccontextmanager
 async def lifespan_setup(
     app: FastAPI,
@@ -54,14 +43,15 @@ async def lifespan_setup(
     """
 
     app.middleware_stack = None
+    if not broker.is_worker_process:
+        await broker.startup()
     _setup_db(app)
-    await _create_tables()
     init_redis(app)
-    init_rabbit(app)
     app.middleware_stack = app.build_middleware_stack()
 
     yield
+    if not broker.is_worker_process:
+        await broker.shutdown()
     await app.state.db_engine.dispose()
 
     await shutdown_redis(app)
-    await shutdown_rabbit(app)

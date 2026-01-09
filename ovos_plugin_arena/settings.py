@@ -55,16 +55,6 @@ class Settings(BaseSettings):
     redis_pass: str | None = None
     redis_base: int | None = None
 
-    # Variables for RabbitMQ
-    rabbit_host: str = "ovos_plugin_arena-rmq"
-    rabbit_port: int = 5672
-    rabbit_user: str = "guest"
-    rabbit_pass: str = "guest"  # noqa: S105
-    rabbit_vhost: str = "/"
-
-    rabbit_pool_size: int = 2
-    rabbit_channel_pool_size: int = 10
-
     @property
     def db_url(self) -> URL:
         """
@@ -98,22 +88,6 @@ class Settings(BaseSettings):
             user=self.redis_user,
             password=self.redis_pass,
             path=path,
-        )
-
-    @property
-    def rabbit_url(self) -> URL:
-        """
-        Assemble RabbitMQ URL from settings.
-
-        :return: rabbit URL.
-        """
-        return URL.build(
-            scheme="amqp",
-            host=self.rabbit_host,
-            port=self.rabbit_port,
-            user=self.rabbit_user,
-            password=self.rabbit_pass,
-            path=self.rabbit_vhost,
         )
 
     model_config = SettingsConfigDict(

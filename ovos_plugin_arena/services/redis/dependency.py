@@ -2,10 +2,11 @@ from collections.abc import AsyncGenerator
 
 from redis.asyncio import Redis
 from starlette.requests import Request
+from taskiq import TaskiqDepends
 
 
 async def get_redis_pool(
-    request: Request,
+    request: Request = TaskiqDepends(),
 ) -> AsyncGenerator[Redis]:  # pragma: no cover
     """
     Returns connection pool.

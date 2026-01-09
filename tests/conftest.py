@@ -1,12 +1,7 @@
-import uuid
 from collections.abc import AsyncGenerator
 from typing import Any
-from unittest.mock import Mock
 
 import pytest
-from aio_pika import Channel
-from aio_pika.abc import AbstractExchange, AbstractQueue
-from aio_pika.pool import Pool
 from fakeredis import FakeServer
 from fakeredis.aioredis import FakeConnection
 from fastapi import FastAPI
@@ -21,8 +16,6 @@ from sqlalchemy.ext.asyncio import (
 
 from ovos_plugin_arena.db.dependencies import get_db_session
 from ovos_plugin_arena.db.utils import create_database, drop_database
-from ovos_plugin_arena.services.rabbit.dependencies import get_rmq_channel_pool
-from ovos_plugin_arena.services.rabbit.lifespan import init_rabbit, shutdown_rabbit
 from ovos_plugin_arena.services.redis.dependency import get_redis_pool
 from ovos_plugin_arena.settings import settings
 from ovos_plugin_arena.web.application import get_app
@@ -94,86 +87,6 @@ async def dbsession(
 
 
 @pytest.fixture
-async def test_rmq_pool() -> AsyncGenerator[Channel]:
-    """
-    Create rabbitMQ pool.
-
-    :yield: channel pool.
-    """
-    app_mock = Mock()
-    init_rabbit(app_mock)
-    yield app_mock.state.rmq_channel_pool
-    await shutdown_rabbit(app_mock)
-
-
-@pytest.fixture
-async def test_exchange_name() -> str:
-    """
-    Name of an exchange to use in tests.
-
-    :return: name of an exchange.
-    """
-    return uuid.uuid4().hex
-
-
-@pytest.fixture
-async def test_routing_key() -> str:
-    """
-    Name of routing key to use while binding test queue.
-
-    :return: key string.
-    """
-    return uuid.uuid4().hex
-
-
-@pytest.fixture
-async def test_exchange(
-    test_exchange_name: str,
-    test_rmq_pool: Pool[Channel],
-) -> AsyncGenerator[AbstractExchange]:
-    """
-    Creates test exchange.
-
-    :param test_exchange_name: name of an exchange to create.
-    :param test_rmq_pool: channel pool for rabbitmq.
-    :yield: created exchange.
-    """
-    async with test_rmq_pool.acquire() as conn:
-        exchange = await conn.declare_exchange(
-            name=test_exchange_name,
-            auto_delete=True,
-        )
-        yield exchange
-
-        await exchange.delete(if_unused=False)
-
-
-@pytest.fixture
-async def test_queue(
-    test_exchange: AbstractExchange,
-    test_rmq_pool: Pool[Channel],
-    test_routing_key: str,
-) -> AsyncGenerator[AbstractQueue]:
-    """
-    Creates queue connected to exchange.
-
-    :param test_exchange: exchange to bind queue to.
-    :param test_rmq_pool: channel pool for rabbitmq.
-    :param test_routing_key: routing key to use while binding.
-    :yield: queue binded to test exchange.
-    """
-    async with test_rmq_pool.acquire() as conn:
-        queue = await conn.declare_queue(name=uuid.uuid4().hex)
-        await queue.bind(
-            exchange=test_exchange,
-            routing_key=test_routing_key,
-        )
-        yield queue
-
-        await queue.delete(if_unused=False, if_empty=False)
-
-
-@pytest.fixture
 async def fake_redis_pool() -> AsyncGenerator[ConnectionPool]:
     """
     Get instance of a fake redis.
@@ -193,7 +106,6 @@ async def fake_redis_pool() -> AsyncGenerator[ConnectionPool]:
 def fastapi_app(
     dbsession: AsyncSession,
     fake_redis_pool: ConnectionPool,
-    test_rmq_pool: Pool[Channel],
 ) -> FastAPI:
     """
     Fixture for creating FastAPI app.
@@ -203,7 +115,6 @@ def fastapi_app(
     application = get_app()
     application.dependency_overrides[get_db_session] = lambda: dbsession
     application.dependency_overrides[get_redis_pool] = lambda: fake_redis_pool
-    application.dependency_overrides[get_rmq_channel_pool] = lambda: test_rmq_pool
     return application
 
 

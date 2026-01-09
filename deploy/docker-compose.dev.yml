@@ -11,3 +11,13 @@ services:
     environment:
       # Enables autoreload.
       OVOS_PLUGIN_ARENA_RELOAD: "True"
+
+  taskiq-worker:
+    volumes:
+      # Adds current directory as volume.
+      - .:/app/src/
+    command:
+      - taskiq
+      - worker
+      - ovos_plugin_arena.tkq:broker
+      - --reload
