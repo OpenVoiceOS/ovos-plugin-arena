@@ -1,75 +1,89 @@
 services:
-  api: &main_app
-    build:
-      context: .
-      dockerfile: ./Dockerfile
-    image: ovos_plugin_arena:${OVOS_PLUGIN_ARENA_VERSION:-latest}
-    restart: always
-    env_file:
-      - path: .env
-        required: false
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      migrator:
-        condition: service_completed_successfully
-    environment:
-      OVOS_PLUGIN_ARENA_HOST: 0.0.0.0
-      OVOS_PLUGIN_ARENA_DB_HOST: ovos_plugin_arena-db
-      OVOS_PLUGIN_ARENA_DB_PORT: 5432
-      OVOS_PLUGIN_ARENA_DB_USER: ovos_plugin_arena
-      OVOS_PLUGIN_ARENA_DB_PASS: ovos_plugin_arena
-      OVOS_PLUGIN_ARENA_DB_BASE: ovos_plugin_arena
-      OVOS_PLUGIN_ARENA_REDIS_HOST: ovos_plugin_arena-redis
-
-  taskiq-worker:
-    <<: *main_app
-    labels: []
-    command:
-      - taskiq
-      - worker
-      - ovos_plugin_arena.tkq:broker
 
   db:
-    image: postgres:18.1-bookworm
-    hostname: ovos_plugin_arena-db
-    environment:
-      POSTGRES_PASSWORD: "ovos_plugin_arena"
-      POSTGRES_USER: "ovos_plugin_arena"
-      POSTGRES_DB: "ovos_plugin_arena"
-    volumes:
-      - ovos_plugin_arena-db-data:/var/lib/postgresql
-    restart: always
+    image: postgres:17
+    restart: no
     healthcheck:
-      test: pg_isready -U ovos_plugin_arena
-      interval: 2s
-      timeout: 3s
-      retries: 40
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+    volumes:
+      - app-db-data:/var/lib/postgresql/data/pgdata
+    env_file:
+      - .env
+    environment:
+      - PGDATA=/var/lib/postgresql/data/pgdata
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
+      - POSTGRES_USER=${POSTGRES_USER?Variable not set}
+      - POSTGRES_DB=${POSTGRES_DB?Variable not set}
+    ports:
+      - "5432:5432"
 
-  migrator:
-    <<: *main_app
-    restart: "no"
-    command: alembic upgrade head
+  backend:
+    image: '${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}'
+    restart: no
     depends_on:
       db:
         condition: service_healthy
-
-  redis:
-    image: redis:8.4.0
-    hostname: "ovos_plugin_arena-redis"
-    restart: always
+        restart: true
     environment:
-      ALLOW_EMPTY_PASSWORD: "yes"
+      - DOMAIN=${DOMAIN}
+      - FRONTEND_HOST=${FRONTEND_HOST?Variable not set}
+      - ENVIRONMENT=${ENVIRONMENT}
+      - PROJECT_NAME=Open Voice OS Beta
+      - BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS}
+      - SECRET_KEY=${SECRET_KEY?Variable not set}
+      - FIRST_SUPERUSER=${FIRST_SUPERUSER?Variable not set}
+      - FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD?Variable not set}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - EMAILS_FROM_EMAIL=${EMAILS_FROM_EMAIL}
+      - POSTGRES_SERVER=db
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER?Variable not set}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD?Variable not set}
+      - SENTRY_DSN=${SENTRY_DSN}
+      - SMTP_HOST=mailcatcher
+      - SMTP_PORT=1025
+      - SMTP_TLS=false
+      - EMAILS_FROM_EMAIL=noreply@example.com
     healthcheck:
-      test: redis-cli ping
-      interval: 1s
-      timeout: 3s
-      retries: 50
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/utils/health-check/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    build:
+      context: ./backend
+    command: sh -c "python app/backend_pre_start.py && alembic -c /app/alembic.ini upgrade head && python app/initial_data.py && fastapi run --reload app/main.py"
+    develop:
+      watch:
+        - path: ./backend
+          action: sync
+          target: /app
+          ignore:
+            - ./backend/.venv
+            - .venv
+        - path: ./backend/pyproject.toml
+          action: rebuild
+    volumes:
+      - ./backend/htmlcov:/app/htmlcov
+    ports:
+      - "8000:8000"
 
-
+  frontend:
+    image: '${DOCKER_IMAGE_FRONTEND?Variable not set}:${TAG-latest}'
+    restart: no
+    build:
+      context: ./frontend
+      args:
+        - VITE_API_URL=http://localhost:8000
+        - NODE_ENV=development
+    ports:
+      - "5173:80"
 
 volumes:
-  ovos_plugin_arena-db-data:
-    name: ovos_plugin_arena-db-data
+  app-db-data:
