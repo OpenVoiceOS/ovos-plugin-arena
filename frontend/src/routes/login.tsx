@@ -20,7 +20,6 @@ import {
 import { Input } from "@/components/ui/input"
 import { LoadingButton } from "@/components/ui/loading-button"
 import { PasswordInput } from "@/components/ui/password-input"
-import { Badge } from "@/components/ui/badge"
 import useAuth, { isLoggedIn } from "@/hooks/useAuth"
 
 const formSchema = z.object({
@@ -77,7 +76,7 @@ function Login() {
           className="flex flex-col gap-6"
         >
           <div className="flex flex-col items-center gap-2 text-center">
-            <h1 className="text-2xl font-bold">Open Voice OS <Badge>Beta</Badge></h1>
+            <h1 className="text-2xl font-bold">Plugin Areana</h1>
             <p className="text-sm text-muted-foreground">Login to your account</p>
           </div>
 
