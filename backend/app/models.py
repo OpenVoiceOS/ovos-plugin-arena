@@ -3,12 +3,14 @@ import uuid
 from pydantic import EmailStr
 from sqlmodel import Field, Relationship, SQLModel
 
+from app.models_arena import UserRoleEnum
+
 
 # Shared properties
 class UserBase(SQLModel):
     email: EmailStr = Field(unique=True, index=True, max_length=255)
     is_active: bool = True
-    is_superuser: bool = False
+    role: UserRoleEnum = Field(default=UserRoleEnum.VOTER)
     full_name: str | None = Field(default=None, max_length=255)
 
 

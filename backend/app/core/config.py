@@ -92,6 +92,49 @@ class Settings(BaseSettings):
     FIRST_SUPERUSER: EmailStr
     FIRST_SUPERUSER_PASSWORD: str
 
+    # ========================================================================
+    # KAFKA CONFIGURATION
+    # ========================================================================
+    KAFKA_BOOTSTRAP_SERVERS: str = "kafka:9092"
+    KAFKA_TOPIC_BATTLE_EXECUTION: str = "battle.execution.requested"
+    KAFKA_TOPIC_BATTLE_COMPLETED: str = "battle.execution.completed"
+    KAFKA_TOPIC_BATTLE_FAILED: str = "battle.execution.failed"
+    KAFKA_TOPIC_VOTE_SUBMITTED: str = "vote.submitted"
+    KAFKA_TOPIC_ELO_UPDATE: str = "elo.update.requested"
+
+    # Maximum retries for failed battles
+    MAX_BATTLE_RETRIES: int = 3
+
+    # ========================================================================
+    # ARENA BATTLE INPUT DATASETS (Placeholder for MinIO integration)
+    # ========================================================================
+    # These will be replaced with MinIO/S3 dataset references in production
+    BATTLE_INPUT_DATASETS: dict[str, list[str]] = {
+        "tts": [
+            "The weather today will be sunny with a high of 75 degrees.",
+            "Please remind me to call mom at 3 PM.",
+            "What's the capital of France?",
+            "Turn on the living room lights.",
+            "Set a timer for 10 minutes.",
+        ],
+        "stt": [
+            "dataset/audio/sample_001.wav",
+            "dataset/audio/sample_002.wav",
+            "dataset/audio/sample_003.wav",
+        ],
+        "wake_word": [
+            "dataset/wakeword/positive_001.wav",
+            "dataset/wakeword/positive_002.wav",
+            "dataset/wakeword/negative_001.wav",
+        ],
+        "intent": [
+            "Turn on the kitchen lights",
+            "What's the weather like today",
+            "Play some jazz music",
+            "Set an alarm for 7 AM",
+        ],
+    }
+
     def _check_default_secret(self, var_name: str, value: str | None) -> None:
         if value == "changethis":
             message = (

@@ -1,11 +1,19 @@
 import { FaGithub, FaLinkedinIn } from "react-icons/fa"
-import { SiMatrix, SiMastodon } from "react-icons/si"
+import { SiMastodon, SiMatrix } from "react-icons/si"
 
 const socialLinks = [
   { icon: FaGithub, href: "https://github.com/OpenVoiceOS", label: "GitHub" },
-  { icon: SiMatrix, href: "https://matrix.to/#/#openvoiceos:matrix.org", label: "Matrix" },
+  {
+    icon: SiMatrix,
+    href: "https://matrix.to/#/#openvoiceos:matrix.org",
+    label: "Matrix",
+  },
   { icon: SiMastodon, href: "https://fosstodon.org/@ovos", label: "Mastodon" },
-  { icon: FaLinkedinIn, href: "https://www.linkedin.com/company/openvoiceos/", label: "LinkedIn" },
+  {
+    icon: FaLinkedinIn,
+    href: "https://www.linkedin.com/company/openvoiceos/",
+    label: "LinkedIn",
+  },
 ]
 
 export function Footer() {

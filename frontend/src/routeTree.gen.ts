@@ -19,6 +19,9 @@ import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
 import { Route as LayoutItemsRouteImport } from './routes/_layout/items'
 import { Route as LayoutDashboardRouteImport } from './routes/_layout/dashboard'
 import { Route as LayoutAdminRouteImport } from './routes/_layout/admin'
+import { Route as LayoutLeaderboardsIndexRouteImport } from './routes/_layout/leaderboards/index'
+import { Route as LayoutLeaderboardsPluginRouteImport } from './routes/_layout/leaderboards/$plugin'
+import { Route as LayoutBattlesTypeRouteImport } from './routes/_layout/battles/$type'
 
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
@@ -69,6 +72,22 @@ const LayoutAdminRoute = LayoutAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutLeaderboardsIndexRoute = LayoutLeaderboardsIndexRouteImport.update({
+  id: '/leaderboards/',
+  path: '/leaderboards/',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutLeaderboardsPluginRoute =
+  LayoutLeaderboardsPluginRouteImport.update({
+    id: '/leaderboards/$plugin',
+    path: '/leaderboards/$plugin',
+    getParentRoute: () => LayoutRoute,
+  } as any)
+const LayoutBattlesTypeRoute = LayoutBattlesTypeRouteImport.update({
+  id: '/battles/$type',
+  path: '/battles/$type',
+  getParentRoute: () => LayoutRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -80,6 +99,9 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof LayoutDashboardRoute
   '/items': typeof LayoutItemsRoute
   '/settings': typeof LayoutSettingsRoute
+  '/battles/$type': typeof LayoutBattlesTypeRoute
+  '/leaderboards/$plugin': typeof LayoutLeaderboardsPluginRoute
+  '/leaderboards': typeof LayoutLeaderboardsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -91,6 +113,9 @@ export interface FileRoutesByTo {
   '/dashboard': typeof LayoutDashboardRoute
   '/items': typeof LayoutItemsRoute
   '/settings': typeof LayoutSettingsRoute
+  '/battles/$type': typeof LayoutBattlesTypeRoute
+  '/leaderboards/$plugin': typeof LayoutLeaderboardsPluginRoute
+  '/leaderboards': typeof LayoutLeaderboardsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -104,6 +129,9 @@ export interface FileRoutesById {
   '/_layout/dashboard': typeof LayoutDashboardRoute
   '/_layout/items': typeof LayoutItemsRoute
   '/_layout/settings': typeof LayoutSettingsRoute
+  '/_layout/battles/$type': typeof LayoutBattlesTypeRoute
+  '/_layout/leaderboards/$plugin': typeof LayoutLeaderboardsPluginRoute
+  '/_layout/leaderboards/': typeof LayoutLeaderboardsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -117,6 +145,9 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/items'
     | '/settings'
+    | '/battles/$type'
+    | '/leaderboards/$plugin'
+    | '/leaderboards'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -128,6 +159,9 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/items'
     | '/settings'
+    | '/battles/$type'
+    | '/leaderboards/$plugin'
+    | '/leaderboards'
   id:
     | '__root__'
     | '/'
@@ -140,6 +174,9 @@ export interface FileRouteTypes {
     | '/_layout/dashboard'
     | '/_layout/items'
     | '/_layout/settings'
+    | '/_layout/battles/$type'
+    | '/_layout/leaderboards/$plugin'
+    | '/_layout/leaderboards/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -223,6 +260,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutAdminRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/leaderboards/': {
+      id: '/_layout/leaderboards/'
+      path: '/leaderboards'
+      fullPath: '/leaderboards'
+      preLoaderRoute: typeof LayoutLeaderboardsIndexRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/leaderboards/$plugin': {
+      id: '/_layout/leaderboards/$plugin'
+      path: '/leaderboards/$plugin'
+      fullPath: '/leaderboards/$plugin'
+      preLoaderRoute: typeof LayoutLeaderboardsPluginRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/battles/$type': {
+      id: '/_layout/battles/$type'
+      path: '/battles/$type'
+      fullPath: '/battles/$type'
+      preLoaderRoute: typeof LayoutBattlesTypeRouteImport
+      parentRoute: typeof LayoutRoute
+    }
   }
 }
 
@@ -231,6 +289,9 @@ interface LayoutRouteChildren {
   LayoutDashboardRoute: typeof LayoutDashboardRoute
   LayoutItemsRoute: typeof LayoutItemsRoute
   LayoutSettingsRoute: typeof LayoutSettingsRoute
+  LayoutBattlesTypeRoute: typeof LayoutBattlesTypeRoute
+  LayoutLeaderboardsPluginRoute: typeof LayoutLeaderboardsPluginRoute
+  LayoutLeaderboardsIndexRoute: typeof LayoutLeaderboardsIndexRoute
 }
 
 const LayoutRouteChildren: LayoutRouteChildren = {
@@ -238,6 +299,9 @@ const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutDashboardRoute: LayoutDashboardRoute,
   LayoutItemsRoute: LayoutItemsRoute,
   LayoutSettingsRoute: LayoutSettingsRoute,
+  LayoutBattlesTypeRoute: LayoutBattlesTypeRoute,
+  LayoutLeaderboardsPluginRoute: LayoutLeaderboardsPluginRoute,
+  LayoutLeaderboardsIndexRoute: LayoutLeaderboardsIndexRoute,
 }
 
 const LayoutRouteWithChildren =

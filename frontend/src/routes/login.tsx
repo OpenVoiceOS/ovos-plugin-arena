@@ -67,7 +67,6 @@ function Login() {
     loginMutation.mutate(data)
   }
 
-
   return (
     <AuthLayout>
       <Form {...form}>
@@ -77,7 +76,9 @@ function Login() {
         >
           <div className="flex flex-col items-center gap-2 text-center">
             <h1 className="text-2xl font-bold">Plugin Areana</h1>
-            <p className="text-sm text-muted-foreground">Login to your account</p>
+            <p className="text-sm text-muted-foreground">
+              Login to your account
+            </p>
           </div>
 
           <div className="grid gap-4">
