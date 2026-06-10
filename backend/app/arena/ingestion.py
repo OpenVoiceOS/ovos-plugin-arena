@@ -33,8 +33,10 @@ Compatibility note (§3.2):
 from __future__ import annotations
 
 import logging
+import sys
 import uuid
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from app.arena.models import (
@@ -139,6 +141,29 @@ def _compute_wer(reference: Optional[str], prediction: Optional[str]) -> Optiona
     return round(dp[m] / n, 4)
 
 
+def _resolve_competitor_id(
+    plugin_id: str,
+    modality: PluginFamily,
+    registry_root: Optional[Path] = None,
+) -> str:
+    """Re-key a legacy ``plugin_id`` to a ``competitor_id`` via the registry.
+
+    If the registry is not available or no match is found, returns
+    ``plugin_id`` unchanged (backward-compat).
+    """
+    try:
+        rr = registry_root or (Path(__file__).parent.parent.parent.parent.parent / "registry")
+        if str(rr.parent) not in sys.path:
+            sys.path.insert(0, str(rr.parent))
+        from registry.loaders import get_competitor_by_alias
+        comp = get_competitor_by_alias(modality.value, plugin_id)
+        if comp is not None:
+            return comp.competitor_id
+    except Exception:
+        pass
+    return plugin_id
+
+
 def ingest_dataset(
     hf_dataset: str,
     modality: PluginFamily,
@@ -146,6 +171,7 @@ def ingest_dataset(
     revision: str = "main",
     max_rows: Optional[int] = None,
     streaming: bool = True,
+    registry_root: Optional[Path] = None,
 ) -> PredictionSource:
     """Pull *hf_dataset* and ingest predictions into the arena database.
 
@@ -199,6 +225,8 @@ def ingest_dataset(
 
         sample_id = norm["sample_id"]
         plugin_id_str = norm["plugin_id"]
+        # Re-key legacy plugin_id to competitor_id via registry alias lookup
+        plugin_id_str = _resolve_competitor_id(plugin_id_str, modality, registry_root)
         plugin_version = norm["plugin_version"]
         prediction_text = norm["prediction"]
         reference_text = norm.get("reference")
@@ -245,6 +273,136 @@ def ingest_dataset(
 
     logger.info(
         "Ingestion complete: %d rows ingested, %d errors, %d plugins registered",
+        ingested,
+        errors,
+        len(plugin_registry),
+    )
+    return source
+
+
+def ingest_jsonl(
+    jsonl_path: Path,
+    modality: PluginFamily,
+    lang: str,
+    registry_root: Optional[Path] = None,
+) -> PredictionSource:
+    """Ingest a per-competitor JSONL file (``predictions/<competitor_id>.jsonl``).
+
+    This is the companion to ``ingest_dataset`` for the declarative registry
+    workflow: instead of pulling from HuggingFace directly, it ingests rows
+    already written by the runner to a local JSONL file.
+
+    The JSONL file MUST contain rows matching the §3.2 contract — specifically:
+    ``competitor_id``, ``sample_id``, ``dataset_id``, ``lang``, ``plugin_id``,
+    ``plugin_version``, ``prediction``, and modality-specific fields.
+
+    Returns the updated PredictionSource.
+    """
+    import json as _json
+
+    competitor_id = jsonl_path.stem  # filename without .jsonl
+    rows: List[dict] = []
+    with jsonl_path.open(encoding="utf-8") as fh:
+        for line in fh:
+            line = line.strip()
+            if line:
+                try:
+                    rows.append(_json.loads(line))
+                except _json.JSONDecodeError:
+                    pass
+
+    if not rows:
+        raise IngestionError(f"Empty or unreadable JSONL: {jsonl_path}")
+
+    # Derive dataset_id from first row; all rows must share the same dataset
+    dataset_id = rows[0].get("dataset_id", competitor_id)
+    hf_dataset = f"local:{jsonl_path}"
+    revision = "local"
+
+    source = arena_db.get_prediction_source_by_dataset(hf_dataset, revision)
+    if source is None:
+        source = PredictionSource(
+            hf_dataset=hf_dataset,
+            revision=revision,
+            modality=modality,
+            lang=lang,
+        )
+    source.lang = lang
+    source.modality = modality
+    arena_db.upsert_prediction_source(source)
+
+    ingested = 0
+    errors = 0
+    plugin_registry: Dict[str, Plugin] = {}
+
+    for i, raw_row in enumerate(rows):
+        # Build a normalized row from the §3.2 intent/STT JSONL layout
+        # competitor JSONL rows already use spec column names; map them
+        # into the common alias mapping used by validate_row.
+        compat_row = dict(raw_row)
+        # intent rows use 'utterance' as input; map to 'prediction' for general compat
+        if modality == PluginFamily.INTENT:
+            compat_row.setdefault("sample_id", raw_row.get("sample_id", f"row_{i}"))
+            compat_row.setdefault("plugin_id", raw_row.get("plugin_id", competitor_id))
+            compat_row.setdefault("plugin_version", raw_row.get("plugin_version", competitor_id))
+            compat_row.setdefault("prediction", raw_row.get("prediction") or "")
+
+        try:
+            norm = validate_row(compat_row, modality)
+        except IngestionError as exc:
+            logger.warning("Row %d skipped: %s", i, exc)
+            errors += 1
+            continue
+
+        sample_id = norm["sample_id"]
+        plugin_id_str = norm["plugin_id"]
+        plugin_version = norm["plugin_version"]
+        prediction_text = norm["prediction"]
+        reference_text = norm.get("reference")
+        extra_metrics = norm.get("_extra_metrics", {})
+
+        wer = norm.get("wer")
+        if wer is None and modality == PluginFamily.STT:
+            wer = _compute_wer(reference_text, prediction_text)
+
+        pred = IngestedPrediction(
+            source_id=source.id,
+            sample_id=sample_id,
+            plugin_id=plugin_id_str,
+            plugin_version=plugin_version,
+            prediction=prediction_text,
+            reference=reference_text,
+            wer=wer,
+            metrics={
+                **extra_metrics,
+                **({"exact_match": int(raw_row.get("exact_match", False))}
+                   if modality == PluginFamily.INTENT else {}),
+            },
+            hf_row_ref=f"local:{jsonl_path}/{i}",
+            ingested_at=datetime.utcnow(),
+        )
+        arena_db.upsert_ingested_prediction(pred)
+        ingested += 1
+
+        if plugin_id_str not in plugin_registry:
+            existing = arena_db.get_plugin_by_name(plugin_id_str)
+            if existing is None:
+                plugin = Plugin(
+                    plugin_name=plugin_id_str,
+                    display_name=plugin_id_str,
+                    family=modality,
+                    lang=lang,
+                )
+                arena_db.upsert_plugin(plugin)
+            plugin_registry[plugin_id_str] = existing or arena_db.get_plugin_by_name(plugin_id_str)
+
+    source.row_count = ingested
+    source.ingested_at = datetime.utcnow()
+    arena_db.upsert_prediction_source(source)
+
+    logger.info(
+        "JSONL ingestion complete (%s): %d rows, %d errors, %d plugins",
+        jsonl_path.name,
         ingested,
         errors,
         len(plugin_registry),
