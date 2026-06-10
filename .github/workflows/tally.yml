@@ -1,0 +1,57 @@
+name: Tally votes
+
+on:
+  schedule:
+    # Run hourly to process vote issues and update leaderboards.
+    - cron: '17 * * * *'
+  workflow_dispatch: {}
+
+jobs:
+  tally:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: dev
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install backend dependencies
+        run: |
+          cd backend
+          pip install -e ".[dev]" --quiet 2>&1 | tail -5
+
+      - name: Tally votes and regenerate leaderboards
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          python -m arena.cli tally \
+            --data-dir frontend-static/public/data \
+            --output frontend-static/public/data \
+            --repo "${GITHUB_REPOSITORY}"
+
+      - name: Update data index
+        run: |
+          python -m arena.cli export-index \
+            --data-dir frontend-static/public/data \
+            --output frontend-static/public/data/index.json
+
+      - name: Commit updated leaderboards
+        run: |
+          git config user.name "JarbasAi"
+          git config user.email "jarbasai@mailfence.com"
+          git add frontend-static/public/data/
+          if git diff --cached --quiet; then
+            echo "No leaderboard changes."
+          else
+            git commit -m "chore(data): update leaderboards from vote tally [skip ci]"
+            git push origin dev
+          fi

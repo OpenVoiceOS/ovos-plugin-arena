@@ -1,0 +1,48 @@
+name: "Arena Vote"
+description: "Cast a vote in the OVOS Plugin Arena blind battle. Do not modify the title — it is machine-parsed."
+labels:
+  - vote
+title: "vote|<battle_id>|<a|b|tie|both_wrong>"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **How this works:**
+        The arena UI pre-fills the title in the format `vote|<battle_id>|<choice>`.
+        A scheduled GitHub Action reads all vote issues, deduplicates, replays ELO, and updates the leaderboards.
+        Do **not** change the issue title — it is machine-parsed.
+  - type: input
+    id: battle_id
+    attributes:
+      label: Battle ID
+      description: Pre-filled by the arena UI. Do not change.
+      placeholder: "e.g. stt-pt-PT-plugin1-vs-plugin2-sample42"
+    validations:
+      required: true
+  - type: dropdown
+    id: choice
+    attributes:
+      label: My vote
+      description: Pre-filled by the arena UI. Do not change.
+      options:
+        - a
+        - b
+        - tie
+        - both_wrong
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Battle context (auto-filled)
+      description: Human-readable summary of the battle, filled by the arena UI.
+      render: markdown
+    validations:
+      required: false
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: Confirmation
+      options:
+        - label: I listened to / read both outputs before voting.
+          required: true
