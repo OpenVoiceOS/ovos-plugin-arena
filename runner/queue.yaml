@@ -1,0 +1,81 @@
+# Arena prediction-runner queue
+#
+# Each job = one (plugin × dataset) pair.
+# The runner processes jobs sequentially, checkpointing each sample.
+# Add new jobs here; the daemon picks them up on the next cycle.
+#
+# hf_output_dataset: target HF dataset to append rows to.
+#   Convention: OpenVoiceOS/ovos-stt-bench-<lang>
+#
+# max_samples: 0 = all samples; set to a positive integer for a capped first
+#   cycle (useful for a quick smoke-test run).
+
+jobs:
+
+  # -----------------------------------------------------------------------
+  # pt-PT  ×  ovos-stt-plugin-fasterwhisper  (small)
+  # -----------------------------------------------------------------------
+  - plugin:
+      plugin_name: ovos-stt-plugin-fasterwhisper
+      model_name: small
+      lang: pt-PT
+      extra_config:
+        compute_type: int8
+        cpu_threads: 1
+        beam_size: 3
+
+    dataset:
+      hf_repo: PolyAI/minds14
+      subset: pt-PT
+      split: train
+      ground_truth_key: transcription
+      audio_key: audio
+      max_samples: 200   # first cycle cap; set to 0 for full run
+
+    hf_output_dataset: OpenVoiceOS/ovos-stt-bench-pt-PT
+
+  # -----------------------------------------------------------------------
+  # pt-PT  ×  ovos-stt-plugin-fasterwhisper  (base)
+  # -----------------------------------------------------------------------
+  - plugin:
+      plugin_name: ovos-stt-plugin-fasterwhisper
+      model_name: base
+      lang: pt-PT
+      extra_config:
+        compute_type: int8
+        cpu_threads: 1
+        beam_size: 3
+
+    dataset:
+      hf_repo: PolyAI/minds14
+      subset: pt-PT
+      split: train
+      ground_truth_key: transcription
+      audio_key: audio
+      max_samples: 200   # first cycle cap; set to 0 for full run
+
+    hf_output_dataset: OpenVoiceOS/ovos-stt-bench-pt-PT
+
+  # -----------------------------------------------------------------------
+  # pt-PT  ×  ovos-stt-plugin-vosk  (pt model)
+  # vosk model for pt-PT: vosk-model-small-pt-0.3
+  # -----------------------------------------------------------------------
+  - plugin:
+      plugin_name: ovos-stt-plugin-vosk
+      # vosk-model-small-pt-0.3 is the default model auto-selected for "pt"
+      # model_name here is passed as config["model"] to the plugin; leaving
+      # it empty causes the plugin to auto-select via LANG2MODEL["pt"]
+      model_name: vosk-model-small-pt-0.3
+      lang: pt-PT
+      extra_config:
+        model: vosk-model-small-pt-0.3
+
+    dataset:
+      hf_repo: PolyAI/minds14
+      subset: pt-PT
+      split: train
+      ground_truth_key: transcription
+      audio_key: audio
+      max_samples: 200   # first cycle cap; set to 0 for full run
+
+    hf_output_dataset: OpenVoiceOS/ovos-stt-bench-pt-PT
