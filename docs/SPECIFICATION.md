@@ -72,6 +72,13 @@ The arena is the *voting and rating* venue. It is **not** an execution venue.
 - Reference tooling lives in the OVOS ecosystem (`ovos-stt-bench-*` datasets
   already exist; `tts-benchmarks`, `ww-benchmarks`, `ovos-intent-benchmark`
   are the metric sources to converge on).
+- `ovos-intent-benchmark` is the **intent prediction-runner**: it runs the
+  intent pipelines over labelled utterance datasets and publishes
+  `ovos-intent-bench-<dataset>-<lang>` prediction datasets in the §3.2
+  contract (see its issue #1); the arena seeds auto-battles from
+  `exact_match` and runs human battles on samples multiple pipelines got
+  wrong. Blocked on the intents eval dataset cleanup (HF `ovos-intents-*`
+  family is WIP).
 
 ### 3.2 HF dataset contract
 
