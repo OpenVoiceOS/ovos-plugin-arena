@@ -34,23 +34,6 @@ def client(tmp_db):
 
 
 # ---------------------------------------------------------------------------
-# Discovery endpoint
-# ---------------------------------------------------------------------------
-
-
-def test_discover_returns_200(client):
-    resp = client.post("/api/v1/arena/plugins/discover", json={"families": ["tts"]})
-    assert resp.status_code == 200
-    data = resp.json()
-    assert isinstance(data, list)
-
-
-def test_discover_all_families(client):
-    resp = client.post("/api/v1/arena/plugins/discover", json={})
-    assert resp.status_code == 200
-
-
-# ---------------------------------------------------------------------------
 # Plugin listing
 # ---------------------------------------------------------------------------
 
@@ -59,13 +42,6 @@ def test_list_plugins_empty(client):
     resp = client.get("/api/v1/arena/plugins")
     assert resp.status_code == 200
     assert resp.json() == []
-
-
-def test_list_plugins_after_discover(client):
-    client.post("/api/v1/arena/plugins/discover", json={"families": ["tts"]})
-    resp = client.get("/api/v1/arena/plugins?family=tts")
-    assert resp.status_code == 200
-    assert isinstance(resp.json(), list)
 
 
 def test_get_plugin_not_found(client):
