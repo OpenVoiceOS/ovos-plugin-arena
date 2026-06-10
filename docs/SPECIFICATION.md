@@ -246,7 +246,88 @@ HF from the arena service.
    seeded at its predecessor's rating; the predecessor's history is frozen,
    never merged.
 
-## 9. Relationship to existing code
+## 9. Deployment modes
+
+### Mode A — Docker (self-host)
+
+A multi-stage Docker image bundles the FastAPI backend alongside the built
+static frontend (served by the API under `/`).  A `docker-compose.yml`
+provides a complete single-host stack (backend + SQLite volume).
+
+**When to use:** self-hosted community instances, private forks with
+local-network voting, integration testing.
+
+### Mode B — Static read-only mirror (GitHub Pages)
+
+The frontend is deployed to GitHub Pages as a fully static site.  Leaderboard
+and battle data are pre-rendered to `frontend-static/public/data/*.json` by a
+scheduled GitHub Action (`assemble.yml` + `tally.yml`) and committed to the
+repo; Pages deploys the updated static build automatically.
+
+Voting is **disabled** in this mode; the site is a public read-only window
+onto the current rankings and battle pool.  No server is required — the JSON
+files are the database.
+
+**When to use:** the canonical OpenVoiceOS leaderboard mirror — zero infra
+cost, survives backend outages, always publicly accessible.
+
+### Mode C — GitHub-native (preferred, zero servers)
+
+The static UI is the same as Mode B, but voting is enabled via GitHub Issues:
+
+1. A voter clicks a vote button in the UI.
+2. The browser opens a **prefilled GitHub issue** URL with:
+   - `labels=vote`
+   - structured title: `vote|<battle_id>|<a|b|tie|both_wrong>`
+   - body pre-filled with human-readable battle context.
+3. The voter submits the issue (requires a GitHub account — free, no arena
+   account).
+4. A scheduled Action (`tally.yml`) runs on cron (e.g. hourly):
+   - Lists all open issues labelled `vote` via `gh api`.
+   - Validates each: parses the title, checks the battle_id exists, dedupes
+     (one vote per `(author, battle_id)` pair — later votes by the same user
+     on the same battle are silently ignored).
+   - Replays ELO **deterministically from the full ordered issue history**
+     (issue number = order proxy; `created_at` as tiebreak) — this is the
+     spec's P5 replayability: the vote log IS the issue history.
+   - Regenerates `frontend-static/public/data/leaderboard-*.json`.
+   - Commits the updated JSON; Pages redeploys automatically.
+   - Closes each processed issue with a thank-you comment, moves it to the
+     `processed` label.
+5. Any fork with GitHub Pages + Actions enabled becomes a working arena for
+   whatever HF prediction datasets it configures — **forkable with zero
+   server infrastructure**.
+
+**Comparison to backend Mode A:** Mode C trades real-time vote confirmation
+for zero infrastructure.  The vote is public on GitHub (transparency), the
+ELO history is auditable (replayable from public issues), and the leaderboard
+updates hourly at no cost.
+
+**End-to-end vote-issue flow (Mode C):**
+
+```
+Voter opens static page → clicks vote (e.g. "A is better")
+  → browser navigates to:
+    https://github.com/OpenVoiceOS/ovos-plugin-arena/issues/new
+      ?template=vote.yml
+      &labels=vote
+      &title=vote%7Cbattle_001%7Ca
+  → voter submits GitHub issue (logs in if needed)
+  → issue #N created with label "vote"
+
+Hourly tally Action:
+  gh api /repos/.../issues?labels=vote&state=open (paginated)
+  → parse & validate each issue title
+  → dedupe: skip if (author, battle_id) already seen
+  → replay ELO from all valid votes (ordered by issue number)
+  → write frontend-static/public/data/leaderboard-stt-pt-PT.json (etc.)
+  → git commit && git push
+  → gh issue comment #N "Thanks! Your vote has been counted."
+  → gh issue close #N --comment "" (with "processed" label)
+  → Pages picks up new commit → redeploys → live in ~30s
+```
+
+## 10. Relationship to existing code
 
 - `main`/`dev` (Suvan): FastAPI template, alembic auth, frontend scaffold,
   `docs/models.sql` — the base this spec builds on.
