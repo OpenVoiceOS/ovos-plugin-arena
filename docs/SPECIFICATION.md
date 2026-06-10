@@ -72,6 +72,91 @@ The arena is the *voting and rating* venue. It is **not** an execution venue.
 - Reference tooling lives in the OVOS ecosystem (`ovos-stt-bench-*` datasets
   already exist; `tts-benchmarks`, `ww-benchmarks`, `ovos-intent-benchmark`
   are the metric sources to converge on).
+
+#### Declarative evaluation registry
+
+Competitors and datasets are declared as JSON files in the repository instead
+of being inlined in scripts or queue files:
+
+```
+registry/
+  competitors/<modality>/<competitor_id>.json   — one plugin + one config
+  datasets/<modality>/<dataset_id>.json         — one benchmark corpus
+```
+
+**Competitors** (`registry/competitors/<modality>/<id>.json`):
+
+```json
+{
+  "competitor_id": "fasterwhisper-small-pt",
+  "modality": "stt",
+  "plugin": "ovos-stt-plugin-fasterwhisper",
+  "config": {"model": "small", "compute_type": "int8"},
+  "langs": ["pt-PT"],
+  "alias": ["ovos-stt-plugin-fasterwhisper"],
+  "notes": "..."
+}
+```
+
+The same plugin entry point with a different model or config is a *different
+competitor*.  `competitor_id` is the stable key for battles, ELO, and
+leaderboards.  The `alias` list provides backward-compatibility: if legacy
+prediction rows carry the bare `plugin_name` (e.g. `ovos-stt-plugin-fasterwhisper`)
+the ingestion layer re-keys them to the matching `competitor_id` so old data
+remains valid.
+
+**Datasets** (`registry/datasets/<modality>/<id>.json`):
+
+```json
+{
+  "dataset_id": "minds14-pt-PT",
+  "modality": "stt",
+  "source": {"type": "huggingface", "hf_id": "PolyAI/minds14",
+             "revision": "main", "split": "train", "subset": "pt-PT"},
+  "reference_fields": {"audio": "audio", "ground_truth": "transcription"},
+  "lang": "pt-PT",
+  "license": "cc-by-4.0",
+  "role": "eval"
+}
+```
+
+`role: eval` marks held-out sets used for leaderboard metrics; `role: unrestricted`
+marks openly available training/development data.
+
+**Queue.yaml backward-compatibility**: `runner/queue.yaml` jobs may reference
+registry files (`competitor:` + `dataset_ref:`) or keep the original inline
+`plugin:` + `dataset:` blocks — both formats are accepted in the same file.
+
+#### Predictions as per-competitor JSONL
+
+Runner output is written to `predictions/<competitor_id>.jsonl` (one file per
+competitor, one row per sample).  All rows MUST include `competitor_id` in
+addition to the §3.2 minimum columns.  The ingestion layer accepts this layout
+alongside the legacy HF dataset alias (`ovos-stt-bench-*`).
+
+#### Intent modality — fairness via pipeline plugin
+
+Intent modality predictions run end-to-end through the OVOS pipeline plugin's
+`match_intent` method (full keyword/ML matching logic).  The runner is
+`runner/intent_runner.py`; a demo with `ovos-adapt-pipeline-plugin` over a
+small slice produces real JSONL rows.  Full ovoscope e2e routing (listener-loop
+fairness) is gated on TigreGotico/ovoscope#64.
+
+#### Auto-metric leaderboards
+
+`backend/app/arena/leaderboard.py` builds leaderboard tables straight from
+`predictions/*.jsonl` files without touching the arena DB:
+
+| Modality   | Primary metric        | Secondary metric |
+|------------|-----------------------|-----------------|
+| STT        | WER mean ↓            | WER median      |
+| Intent     | Accuracy ↑            | Macro F1 ↑      |
+| Wake word  | FAR + FRR ↓           |                 |
+
+Output: `frontend-static/public/data/leaderboard-<mod>-<lang>.json` — same
+path consumed by the static frontend in Mode B/C.  Runs standalone (no DB);
+the GitHub Actions `tally.yml` workflow calls it after pulling fresh prediction
+JSONLs.
 - `ovos-intent-benchmark` is the **intent prediction-runner**: it runs the
   intent pipelines over labelled utterance datasets and publishes
   `ovos-intent-bench-<dataset>-<lang>` prediction datasets in the §3.2
