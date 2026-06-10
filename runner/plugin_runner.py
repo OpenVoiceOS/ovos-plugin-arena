@@ -51,43 +51,145 @@ def _entry_id(sample: dict, audio_key: str, entry_id_key: Optional[str]) -> str:
     return str(audio)
 
 
+def _decode_audio_bytes(raw_bytes: bytes, target_sr: int = 16000):
+    """
+    Decode raw audio bytes to a float32 numpy array resampled to *target_sr*.
+    Handles WAV, MP3, and other formats via soundfile (falling back to av/pydub).
+    Returns (array, sample_rate).
+    """
+    import io
+    import numpy as np
+    import soundfile as sf
+
+    buf = io.BytesIO(raw_bytes)
+    try:
+        array, sr = sf.read(buf, dtype="float32", always_2d=False)
+    except Exception:
+        # Try with av (installed as part of fasterwhisper deps)
+        try:
+            import av
+            buf.seek(0)
+            container = av.open(buf)
+            stream = next(s for s in container.streams if s.type == "audio")
+            sr = stream.rate
+            frames = []
+            for frame in container.decode(stream):
+                frames.append(frame.to_ndarray())
+            array = np.concatenate(frames, axis=-1).astype(np.float32)
+            if array.ndim > 1:
+                array = array.mean(axis=0)
+            array /= max(np.abs(array).max(), 1e-6)
+        except Exception as e:
+            raise RuntimeError(f"Cannot decode audio: {e}") from e
+
+    # Resample if needed
+    if sr != target_sr:
+        try:
+            from faster_whisper.audio import decode_audio
+            buf.seek(0)
+            array = decode_audio(buf, sampling_rate=target_sr)
+            sr = target_sr
+        except Exception:
+            pass  # Keep original sr; plugin will handle it
+
+    return array, sr
+
+
+def _list_parquet_files(hf_repo: str, subset: Optional[str], split: str) -> list:
+    """Return list of parquet file paths for a HF dataset split."""
+    from huggingface_hub import HfApi
+    api = HfApi()
+    try:
+        files = list(api.list_repo_files(hf_repo, repo_type="dataset"))
+    except Exception as e:
+        raise RuntimeError(f"Cannot list files in {hf_repo}: {e}") from e
+
+    # Try prefix patterns: subset/split-*.parquet or data/split-*.parquet
+    candidates = []
+    for pattern_prefix in [
+        f"{subset}/{split}-" if subset else f"{split}-",
+        f"data/{split}-",
+        f"{split}-",
+    ]:
+        candidates = [f for f in files if f.startswith(pattern_prefix) and f.endswith(".parquet")]
+        if candidates:
+            break
+
+    if not candidates:
+        # Fallback: any parquet file
+        candidates = [f for f in files if f.endswith(".parquet")]
+
+    return sorted(candidates)
+
+
 def _stream_dataset(spec: DatasetSpec) -> Iterator[Tuple[str, str, object, int]]:
     """
     Yield (entry_id, ground_truth, audio_array, sample_rate) per sample.
+
+    Uses direct parquet + huggingface_hub download to avoid dill/datasets
+    incompatibility on Python 3.14.
     """
-    from datasets import load_dataset
+    import io
+    import pyarrow.parquet as pq
+    from huggingface_hub import hf_hub_download
 
-    kwargs: dict = dict(split=spec.split, streaming=True)
-    if spec.subset:
-        kwargs["name"] = spec.subset
-    if spec.trust_remote_code:
-        kwargs["trust_remote_code"] = True
-
-    ds = load_dataset(spec.hf_repo, **kwargs)
-    sample_rate: Optional[int] = None
+    parquet_files = _list_parquet_files(spec.hf_repo, spec.subset, spec.split)
+    if not parquet_files:
+        raise RuntimeError(
+            f"No parquet files found for {spec.hf_repo} subset={spec.subset} split={spec.split}"
+        )
 
     count = 0
-    for sample in ds:
-        if spec.max_samples and count >= spec.max_samples:
-            break
+    for pfile in parquet_files:
+        local_path = hf_hub_download(spec.hf_repo, pfile, repo_type="dataset")
+        table = pq.read_table(local_path)
 
-        ground_truth = sample.get(spec.ground_truth_key, "")
-        if not ground_truth:
-            continue
+        for batch in table.to_batches(max_chunksize=64):
+            rows = batch.to_pydict()
+            n = len(rows.get(spec.ground_truth_key, []))
+            for i in range(n):
+                if spec.max_samples and count >= spec.max_samples:
+                    return
 
-        audio = sample.get(spec.audio_key, {})
-        if not isinstance(audio, dict):
-            continue
-        array = audio.get("array")
-        if array is None:
-            continue
+                ground_truth = (rows.get(spec.ground_truth_key) or [None])[i]
+                if not ground_truth:
+                    continue
 
-        if sample_rate is None:
-            sample_rate = audio.get("sampling_rate", 16000)
+                audio_cell = (rows.get(spec.audio_key) or [None])[i]
+                if audio_cell is None:
+                    continue
 
-        entry_id = _entry_id(sample, spec.audio_key, spec.entry_id_key)
-        yield entry_id, ground_truth, array, sample_rate
-        count += 1
+                # audio_cell may be dict(bytes=..., path=...) or dict(array=..., sampling_rate=...)
+                if isinstance(audio_cell, dict):
+                    raw_bytes = audio_cell.get("bytes")
+                    path_hint = audio_cell.get("path", f"sample_{count}.wav")
+                    array = audio_cell.get("array")
+                    sr = audio_cell.get("sampling_rate", 16000)
+                    if array is None and raw_bytes:
+                        try:
+                            array, sr = _decode_audio_bytes(raw_bytes, target_sr=16000)
+                        except Exception as e:
+                            logger.warning("audio decode error on %s: %s", path_hint, e)
+                            continue
+                    elif array is None:
+                        continue
+                else:
+                    continue
+
+                if spec.entry_id_key and spec.entry_id_key in rows:
+                    entry_id = str(rows[spec.entry_id_key][i])
+                else:
+                    entry_id = path_hint or f"sample_{count}.wav"
+
+                import numpy as np
+                if not isinstance(array, np.ndarray):
+                    try:
+                        array = np.array(array, dtype=np.float32)
+                    except Exception:
+                        continue
+
+                yield entry_id, ground_truth, array, sr
+                count += 1
 
 
 # ---------------------------------------------------------------------------
@@ -207,10 +309,10 @@ def run_job(
                 lang=plugin.lang,
             )
             fh.write(row.to_jsonl() + "\n")
+            fh.flush()  # flush every row so output is visible immediately
             written += 1
 
             if written % flush_every == 0:
-                fh.flush()
                 manifest.save(base_dir)
                 logger.info("flushed %d rows (job %s)", written, job_key)
 
