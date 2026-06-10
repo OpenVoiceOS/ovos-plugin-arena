@@ -142,3 +142,9 @@ python -m pytest tests/ -q
 | GitHub issue template: vote.yml | Done |
 | Docker multi-stage build | Done |
 | Tests: tally logic (parse, dedupe, ELO replay, JSON shape) | Done (+31 new) |
+
+## Credits
+
+Funded by [NGI0 Commons Fund](https://nlnet.nl/project/OpenVoiceOS) / [NLnet](https://nlnet.nl)
+under grant agreement No [101135429](https://cordis.europa.eu/project/id/101135429),
+through the European Commission's [Next Generation Internet](https://ngi.eu) programme.
