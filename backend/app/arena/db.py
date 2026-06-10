@@ -23,14 +23,17 @@ from typing import Generator, List, Optional
 from app.arena.models import (
     EvalRun,
     EvalStatus,
+    IngestedPrediction,
     LeaderboardEntry,
     Matchup,
     Plugin,
     PluginFamily,
+    PredictionSource,
     RatingSnapshot,
     Sample,
     Vote,
     VoteOutcome,
+    VoteSource,
 )
 
 _lock = threading.Lock()
@@ -114,8 +117,8 @@ CREATE TABLE IF NOT EXISTS matchups (
     id          TEXT PRIMARY KEY,
     family      TEXT NOT NULL,
     input_ref   TEXT NOT NULL,
-    sample_a_id TEXT NOT NULL REFERENCES samples(id),
-    sample_b_id TEXT NOT NULL REFERENCES samples(id),
+    sample_a_id TEXT NOT NULL,
+    sample_b_id TEXT NOT NULL,
     plugin_a_id TEXT NOT NULL REFERENCES plugins(id),
     plugin_b_id TEXT NOT NULL REFERENCES plugins(id),
     status      TEXT NOT NULL DEFAULT 'pending',
@@ -123,13 +126,41 @@ CREATE TABLE IF NOT EXISTS matchups (
 );
 
 CREATE TABLE IF NOT EXISTS votes (
+    id           TEXT PRIMARY KEY,
+    matchup_id   TEXT NOT NULL REFERENCES matchups(id),
+    outcome      TEXT NOT NULL,
+    voter_id     TEXT,
+    voter_source TEXT NOT NULL DEFAULT 'human',
+    automated    INTEGER NOT NULL DEFAULT 0,
+    note         TEXT,
+    cast_at      TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS prediction_sources (
     id          TEXT PRIMARY KEY,
-    matchup_id  TEXT NOT NULL REFERENCES matchups(id),
-    outcome     TEXT NOT NULL,
-    voter_id    TEXT,
-    automated   INTEGER NOT NULL DEFAULT 0,
-    note        TEXT,
-    cast_at     TEXT NOT NULL
+    hf_dataset  TEXT NOT NULL,
+    revision    TEXT NOT NULL DEFAULT 'main',
+    modality    TEXT NOT NULL,
+    lang        TEXT NOT NULL,
+    ingested_at TEXT,
+    row_count   INTEGER NOT NULL DEFAULT 0,
+    meta        TEXT NOT NULL DEFAULT '{}',
+    UNIQUE(hf_dataset, revision)
+);
+
+CREATE TABLE IF NOT EXISTS ingested_predictions (
+    id              TEXT PRIMARY KEY,
+    source_id       TEXT NOT NULL REFERENCES prediction_sources(id),
+    sample_id       TEXT NOT NULL,
+    plugin_id       TEXT NOT NULL,
+    plugin_version  TEXT NOT NULL,
+    prediction      TEXT NOT NULL,
+    reference       TEXT,
+    wer             REAL,
+    metrics         TEXT NOT NULL DEFAULT '{}',
+    hf_row_ref      TEXT NOT NULL DEFAULT '',
+    ingested_at     TEXT NOT NULL,
+    UNIQUE(source_id, sample_id, plugin_version)
 );
 
 CREATE TABLE IF NOT EXISTS rating_snapshots (
@@ -456,11 +487,13 @@ def mark_matchup_voted(matchup_id: uuid.UUID) -> None:
 
 
 def _vote_from_row(row: sqlite3.Row) -> Vote:
+    keys = row.keys()
     return Vote(
         id=uuid.UUID(row["id"]),
         matchup_id=uuid.UUID(row["matchup_id"]),
         outcome=VoteOutcome(row["outcome"]),
         voter_id=row["voter_id"],
+        voter_source=VoteSource(row["voter_source"]) if "voter_source" in keys and row["voter_source"] else VoteSource.HUMAN,
         automated=bool(row["automated"]),
         note=row["note"],
         cast_at=datetime.fromisoformat(row["cast_at"]),
@@ -471,13 +504,14 @@ def create_vote(vote: Vote) -> Vote:
     with get_conn() as conn:
         conn.execute(
             """INSERT INTO votes
-               (id, matchup_id, outcome, voter_id, automated, note, cast_at)
-               VALUES (?,?,?,?,?,?,?)""",
+               (id, matchup_id, outcome, voter_id, voter_source, automated, note, cast_at)
+               VALUES (?,?,?,?,?,?,?,?)""",
             (
                 str(vote.id),
                 str(vote.matchup_id),
                 vote.outcome.value,
                 vote.voter_id,
+                vote.voter_source.value,
                 1 if vote.automated else 0,
                 vote.note,
                 vote.cast_at.isoformat(),
@@ -672,3 +706,166 @@ def count_plugins(family: PluginFamily, lang: Optional[str] = None) -> int:
             f"SELECT COUNT(*) FROM plugins WHERE family=?{lang_clause}", params
         ).fetchone()
     return row[0] if row else 0
+
+
+# ---------------------------------------------------------------------------
+# PredictionSource CRUD (§5)
+# ---------------------------------------------------------------------------
+
+
+def _source_from_row(row: sqlite3.Row) -> PredictionSource:
+    return PredictionSource(
+        id=uuid.UUID(row["id"]),
+        hf_dataset=row["hf_dataset"],
+        revision=row["revision"],
+        modality=PluginFamily(row["modality"]),
+        lang=row["lang"],
+        ingested_at=datetime.fromisoformat(row["ingested_at"]) if row["ingested_at"] else None,
+        row_count=row["row_count"],
+        meta=json.loads(row["meta"]),
+    )
+
+
+def upsert_prediction_source(source: PredictionSource) -> PredictionSource:
+    with get_conn() as conn:
+        conn.execute(
+            """INSERT INTO prediction_sources
+               (id, hf_dataset, revision, modality, lang, ingested_at, row_count, meta)
+               VALUES (?,?,?,?,?,?,?,?)
+               ON CONFLICT(hf_dataset, revision) DO UPDATE SET
+                   modality=excluded.modality,
+                   lang=excluded.lang,
+                   ingested_at=excluded.ingested_at,
+                   row_count=excluded.row_count,
+                   meta=excluded.meta""",
+            (
+                str(source.id),
+                source.hf_dataset,
+                source.revision,
+                source.modality.value,
+                source.lang,
+                source.ingested_at.isoformat() if source.ingested_at else None,
+                source.row_count,
+                json.dumps(source.meta),
+            ),
+        )
+    return source
+
+
+def get_prediction_source(source_id: uuid.UUID) -> Optional[PredictionSource]:
+    with get_conn() as conn:
+        row = conn.execute(
+            "SELECT * FROM prediction_sources WHERE id=?", (str(source_id),)
+        ).fetchone()
+    return _source_from_row(row) if row else None
+
+
+def get_prediction_source_by_dataset(hf_dataset: str, revision: str = "main") -> Optional[PredictionSource]:
+    with get_conn() as conn:
+        row = conn.execute(
+            "SELECT * FROM prediction_sources WHERE hf_dataset=? AND revision=?",
+            (hf_dataset, revision),
+        ).fetchone()
+    return _source_from_row(row) if row else None
+
+
+def list_prediction_sources(modality: Optional[PluginFamily] = None) -> List[PredictionSource]:
+    q = "SELECT * FROM prediction_sources WHERE 1=1"
+    params: list = []
+    if modality:
+        q += " AND modality=?"
+        params.append(modality.value)
+    with get_conn() as conn:
+        rows = conn.execute(q, params).fetchall()
+    return [_source_from_row(r) for r in rows]
+
+
+# ---------------------------------------------------------------------------
+# IngestedPrediction CRUD (§P3)
+# ---------------------------------------------------------------------------
+
+
+def _pred_from_row(row: sqlite3.Row) -> IngestedPrediction:
+    return IngestedPrediction(
+        id=uuid.UUID(row["id"]),
+        source_id=uuid.UUID(row["source_id"]),
+        sample_id=row["sample_id"],
+        plugin_id=row["plugin_id"],
+        plugin_version=row["plugin_version"],
+        prediction=row["prediction"],
+        reference=row["reference"],
+        wer=row["wer"],
+        metrics=json.loads(row["metrics"]),
+        hf_row_ref=row["hf_row_ref"],
+        ingested_at=datetime.fromisoformat(row["ingested_at"]),
+    )
+
+
+def upsert_ingested_prediction(pred: IngestedPrediction) -> IngestedPrediction:
+    with get_conn() as conn:
+        conn.execute(
+            """INSERT INTO ingested_predictions
+               (id, source_id, sample_id, plugin_id, plugin_version,
+                prediction, reference, wer, metrics, hf_row_ref, ingested_at)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?)
+               ON CONFLICT(source_id, sample_id, plugin_version) DO UPDATE SET
+                   prediction=excluded.prediction,
+                   reference=excluded.reference,
+                   wer=excluded.wer,
+                   metrics=excluded.metrics,
+                   hf_row_ref=excluded.hf_row_ref,
+                   ingested_at=excluded.ingested_at""",
+            (
+                str(pred.id),
+                str(pred.source_id),
+                pred.sample_id,
+                pred.plugin_id,
+                pred.plugin_version,
+                pred.prediction,
+                pred.reference,
+                pred.wer,
+                json.dumps(pred.metrics),
+                pred.hf_row_ref,
+                pred.ingested_at.isoformat(),
+            ),
+        )
+    return pred
+
+
+def list_predictions_for_source(
+    source_id: uuid.UUID,
+    plugin_id: Optional[str] = None,
+) -> List[IngestedPrediction]:
+    q = "SELECT * FROM ingested_predictions WHERE source_id=?"
+    params: list = [str(source_id)]
+    if plugin_id:
+        q += " AND plugin_id=?"
+        params.append(plugin_id)
+    with get_conn() as conn:
+        rows = conn.execute(q, params).fetchall()
+    return [_pred_from_row(r) for r in rows]
+
+
+def get_predictions_by_sample(
+    source_id: uuid.UUID,
+    sample_id: str,
+) -> List[IngestedPrediction]:
+    with get_conn() as conn:
+        rows = conn.execute(
+            "SELECT * FROM ingested_predictions WHERE source_id=? AND sample_id=?",
+            (str(source_id), sample_id),
+        ).fetchall()
+    return [_pred_from_row(r) for r in rows]
+
+
+def list_sample_ids_with_multiple_plugins(source_id: uuid.UUID) -> List[str]:
+    """Return sample_ids that have predictions from at least 2 distinct plugin_versions."""
+    with get_conn() as conn:
+        rows = conn.execute(
+            """SELECT sample_id FROM ingested_predictions
+               WHERE source_id=?
+               GROUP BY sample_id
+               HAVING COUNT(DISTINCT plugin_version) >= 2""",
+            (str(source_id),),
+        ).fetchall()
+    return [r["sample_id"] for r in rows]

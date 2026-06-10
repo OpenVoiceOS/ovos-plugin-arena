@@ -48,6 +48,13 @@ class VoteOutcome(str, enum.Enum):
     BOTH_WRONG = "both_wrong"
 
 
+class VoteSource(str, enum.Enum):
+    """Whether a vote was cast by a human or an auto-battle system."""
+
+    HUMAN = "human"
+    AUTO_WER = "system:wer"  # §4 R5 — auto-battle seeding via WER metric
+
+
 # ---------------------------------------------------------------------------
 # Core domain models
 # ---------------------------------------------------------------------------
@@ -119,8 +126,9 @@ class Vote(BaseModel):
     id: uuid.UUID = Field(default_factory=uuid.uuid4)
     matchup_id: uuid.UUID
     outcome: VoteOutcome
-    voter_id: Optional[str] = None  # anonymous if None
-    automated: bool = False  # True for metric-derived votes
+    voter_id: Optional[str] = None  # anonymous if None; "system:wer" for auto
+    voter_source: VoteSource = VoteSource.HUMAN  # §4 R5 — human|auto
+    automated: bool = False  # True for metric-derived votes (legacy compat)
     note: Optional[str] = None
     cast_at: datetime = Field(default_factory=datetime.utcnow)
 
@@ -135,6 +143,49 @@ class RatingSnapshot(BaseModel):
     elo_after: float
     delta: float
     snapshot_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+# ---------------------------------------------------------------------------
+# M2 — Prediction sources (§5)
+# ---------------------------------------------------------------------------
+
+
+class PredictionSource(BaseModel):
+    """A registered HuggingFace prediction dataset.
+
+    Registered by admin before (or during) ingestion.  Pins the exact
+    revision so every battle assembled from this source is reproducible.
+    """
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4)
+    hf_dataset: str  # e.g. "OpenVoiceOS/ovos-stt-bench-pt-PT"
+    revision: str = "main"  # git ref or commit SHA
+    modality: PluginFamily
+    lang: str  # BCP-47
+    ingested_at: Optional[datetime] = None
+    row_count: int = 0  # updated after each ingest
+    meta: Dict[str, Any] = Field(default_factory=dict)
+
+
+class IngestedPrediction(BaseModel):
+    """One cached prediction row pulled from an HF dataset.
+
+    Only battle-relevant fields are stored (§P3 — no blobs).
+    The ``hf_row_ref`` identifies the exact row in the source dataset for
+    full reproducibility without storing audio/large artifacts.
+    """
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4)
+    source_id: uuid.UUID  # → PredictionSource
+    sample_id: str  # dataset_entry_id in the real schema
+    plugin_id: str  # plugin_name (OPM entry-point name)
+    plugin_version: str  # model_id in the real schema (composite key)
+    prediction: str  # prediction_transcript for STT
+    reference: Optional[str] = None  # transcript / reference_text
+    wer: Optional[float] = None  # computed on ingest if reference present
+    metrics: Dict[str, float] = Field(default_factory=dict)  # cer, rtf, etc.
+    hf_row_ref: str = ""  # serialized row identifier for re-fetch
+    ingested_at: datetime = Field(default_factory=datetime.utcnow)
 
 
 # ---------------------------------------------------------------------------
