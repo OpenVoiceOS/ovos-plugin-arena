@@ -1,0 +1,195 @@
+---
+export interface Props {
+  title: string;
+  description?: string;
+}
+const { title, description = 'OVOS Plugin Arena — blind A/B plugin evaluation with ELO leaderboards' } = Astro.props;
+const base = import.meta.env.BASE_URL;
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <title>{title} — OVOS Plugin Arena</title>
+    <link rel="icon" href={`${base}favicon.svg`} type="image/svg+xml" />
+    <style>
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      :root {
+        --bg: #0d1117;
+        --surface: #161b22;
+        --border: #30363d;
+        --text: #e6edf3;
+        --muted: #8b949e;
+        --accent: #58a6ff;
+        --accent-hover: #79c0ff;
+        --win: #3fb950;
+        --loss: #f85149;
+        --tie: #d29922;
+        --radius: 6px;
+        --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      }
+
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--font);
+        font-size: 16px;
+        line-height: 1.5;
+        min-height: 100vh;
+      }
+
+      a { color: var(--accent); text-decoration: none; }
+      a:hover { color: var(--accent-hover); text-decoration: underline; }
+      a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+      header {
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+        padding: 0 1.5rem;
+      }
+      header nav {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        gap: 2rem;
+        height: 56px;
+      }
+      header .logo {
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: var(--text);
+        text-decoration: none;
+        white-space: nowrap;
+      }
+      header .logo:hover { text-decoration: none; color: var(--accent-hover); }
+      header nav ul {
+        display: flex;
+        gap: 1.5rem;
+        list-style: none;
+      }
+      header nav ul a { font-size: 0.9rem; color: var(--muted); }
+      header nav ul a:hover, header nav ul a.active { color: var(--text); }
+
+      main {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1.5rem;
+      }
+
+      h1 { font-size: 1.75rem; margin-bottom: 0.5rem; }
+      h2 { font-size: 1.3rem; margin-bottom: 0.75rem; margin-top: 1.5rem; }
+      p { margin-bottom: 1rem; color: var(--muted); }
+
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 1.25rem 1.5rem;
+        margin-bottom: 1rem;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+      }
+      th {
+        text-align: left;
+        padding: 0.6rem 0.75rem;
+        border-bottom: 1px solid var(--border);
+        color: var(--muted);
+        font-weight: 600;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      td {
+        padding: 0.6rem 0.75rem;
+        border-bottom: 1px solid var(--border);
+      }
+      tr:last-child td { border-bottom: none; }
+      tr:hover td { background: rgba(255,255,255,0.02); }
+
+      .badge {
+        display: inline-block;
+        padding: 0.15rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+      }
+      .badge-stt { background: #1f3a5f; color: #58a6ff; }
+      .badge-tts { background: #1f3d2f; color: #3fb950; }
+      .badge-ww  { background: #3d2a1f; color: #d29922; }
+      .badge-intent { background: #2d1f3d; color: #bc8cff; }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.5rem 1rem;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--surface);
+        color: var(--text);
+        font-size: 0.9rem;
+        cursor: pointer;
+        text-decoration: none;
+        transition: background 0.15s, border-color 0.15s;
+      }
+      .btn:hover { background: rgba(255,255,255,0.05); border-color: var(--muted); text-decoration: none; }
+      .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+      .btn-primary { background: var(--accent); color: #0d1117; border-color: var(--accent); font-weight: 600; }
+      .btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+
+      footer {
+        text-align: center;
+        padding: 2rem 1.5rem;
+        color: var(--muted);
+        font-size: 0.85rem;
+        border-top: 1px solid var(--border);
+        margin-top: 4rem;
+      }
+
+      .sr-only {
+        position: absolute;
+        width: 1px; height: 1px;
+        padding: 0; margin: -1px;
+        overflow: hidden; clip: rect(0,0,0,0);
+        white-space: nowrap; border-width: 0;
+      }
+
+      @media (max-width: 640px) {
+        header nav ul { gap: 1rem; }
+        main { padding: 0 1rem; }
+        h1 { font-size: 1.4rem; }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <nav aria-label="Main navigation">
+        <a class="logo" href={base}>OVOS Plugin Arena</a>
+        <ul role="list">
+          <li><a href={`${base}`}>Home</a></li>
+          <li><a href={`${base}leaderboard/`}>Leaderboards</a></li>
+          <li><a href={`${base}battle/`}>Battle</a></li>
+          <li><a href="https://github.com/OpenVoiceOS/ovos-plugin-arena" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+        </ul>
+      </nav>
+    </header>
+    <main>
+      <slot />
+    </main>
+    <footer>
+      <p>
+        OVOS Plugin Arena — <a href="https://github.com/OpenVoiceOS/ovos-plugin-arena">open source</a> ·
+        Votes via GitHub Issues · Data refreshed hourly by GitHub Actions
+      </p>
+    </footer>
+  </body>
+</html>

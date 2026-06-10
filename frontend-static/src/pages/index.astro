@@ -1,0 +1,46 @@
+---
+import Base from '../layouts/Base.astro';
+const base = import.meta.env.BASE_URL;
+---
+<Base title="Home">
+  <section>
+    <h1>OVOS Plugin Arena</h1>
+    <p>
+      Blind A/B plugin evaluation for the OpenVoiceOS ecosystem — STT, TTS, wake-word, and intent.
+      Cast your vote, see the ELO leaderboards, and help the community find the best plugins.
+    </p>
+
+    <div style="display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));margin-top:1.5rem;">
+      <div class="card">
+        <h2 style="margin-top:0">Leaderboards</h2>
+        <p>ELO standings per modality and language, updated hourly from community votes.</p>
+        <a class="btn btn-primary" href={`${base}leaderboard/`}>View leaderboards</a>
+      </div>
+      <div class="card">
+        <h2 style="margin-top:0">Battle</h2>
+        <p>Pick the better plugin output in a blind A/B comparison. No account needed — votes go through GitHub Issues.</p>
+        <a class="btn btn-primary" href={`${base}battle/`}>Start voting</a>
+      </div>
+      <div class="card">
+        <h2 style="margin-top:0">Fork your arena</h2>
+        <p>Fork this repo, enable GitHub Pages + Actions, point it at your own HF prediction datasets — you have a working arena for zero cost.</p>
+        <a class="btn" href="https://github.com/OpenVoiceOS/ovos-plugin-arena" target="_blank" rel="noopener noreferrer">Fork on GitHub</a>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:1.5rem">
+      <h2 style="margin-top:0">How votes work (Mode C — GitHub-native)</h2>
+      <ol style="padding-left:1.4rem;color:var(--muted);line-height:2">
+        <li>Open a battle page and listen or read both plugin outputs.</li>
+        <li>Click a vote button (A / B / Tie / Both wrong).</li>
+        <li>A prefilled GitHub issue opens — submit it (free GitHub account required).</li>
+        <li>A scheduled Action runs hourly: it parses all vote issues, dedupes, replays ELO, commits updated leaderboards.</li>
+        <li>The leaderboard updates within ~30 seconds of the Action finishing.</li>
+      </ol>
+      <p style="margin-top:0.75rem;margin-bottom:0">
+        All votes are public and auditable — the vote log <em>is</em> the issue history.
+        ELO is fully replayable from that history at any time.
+      </p>
+    </div>
+  </section>
+</Base>

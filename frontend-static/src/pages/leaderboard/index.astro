@@ -1,0 +1,146 @@
+---
+import Base from '../../layouts/Base.astro';
+const base = import.meta.env.BASE_URL;
+---
+<Base title="Leaderboards" description="ELO leaderboards for OVOS plugins — STT, TTS, wake-word, intent — per language.">
+  <h1>Leaderboards</h1>
+  <p>ELO standings per modality and language. Loaded from <code>data/</code> JSON files committed by GitHub Actions.</p>
+
+  <div id="lb-filters" class="card" style="display:flex;gap:1rem;flex-wrap:wrap;align-items:center;margin-bottom:1.5rem">
+    <label for="sel-modality" style="color:var(--muted);font-size:0.9rem">Modality</label>
+    <select id="sel-modality" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:0.35rem 0.6rem">
+      <option value="">All</option>
+      <option value="stt">STT</option>
+      <option value="tts">TTS</option>
+      <option value="wake_word">Wake Word</option>
+      <option value="intent">Intent</option>
+    </select>
+    <label for="sel-lang" style="color:var(--muted);font-size:0.9rem">Language</label>
+    <select id="sel-lang" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:0.35rem 0.6rem">
+      <option value="">All</option>
+    </select>
+  </div>
+
+  <div id="lb-loading" class="card" aria-live="polite">Loading leaderboard data…</div>
+  <div id="lb-empty" class="card" style="display:none">
+    No leaderboard data found. Run the <code>assemble.yml</code> + <code>tally.yml</code> GitHub Actions to generate data.
+  </div>
+  <div id="lb-tables" style="display:none"></div>
+
+  <script>
+    const BASE = import.meta.env.BASE_URL;
+    const GITHUB_REPO = import.meta.env.VITE_GITHUB_REPO || 'OpenVoiceOS/ovos-plugin-arena';
+
+    const MODALITY_LABELS = { stt: 'STT', tts: 'TTS', wake_word: 'Wake Word', intent: 'Intent' };
+    const BADGE_CLASS = { stt: 'badge-stt', tts: 'badge-tts', wake_word: 'badge-ww', intent: 'badge-intent' };
+
+    async function loadAllLeaderboards() {
+      const idx = await fetch(`${BASE}data/index.json`).then(r => r.ok ? r.json() : null).catch(() => null);
+      if (!idx || !idx.leaderboards || idx.leaderboards.length === 0) return null;
+      const results = [];
+      for (const ref of idx.leaderboards) {
+        const data = await fetch(`${BASE}data/${ref.file}`).then(r => r.ok ? r.json() : null).catch(() => null);
+        if (data) results.push(data);
+      }
+      return results;
+    }
+
+    function badgeHtml(modality) {
+      const label = MODALITY_LABELS[modality] || modality;
+      const cls = BADGE_CLASS[modality] || '';
+      return `<span class="badge ${cls}" aria-label="Modality: ${label}">${label}</span>`;
+    }
+
+    function winRate(e) {
+      if (!e.battles) return '—';
+      return (e.win_rate * 100).toFixed(1) + '%';
+    }
+
+    function renderTable(lb) {
+      if (!lb.entries || lb.entries.length === 0) return '';
+      const title = `${MODALITY_LABELS[lb.family] || lb.family} — ${lb.lang || 'all'}`;
+      const rows = lb.entries.map(e => `
+        <tr>
+          <td style="text-align:right;width:3rem;color:var(--muted)">#${e.rank}</td>
+          <td><strong>${escHtml(e.display_name || e.plugin_name)}</strong><br>
+              <small style="color:var(--muted)">${escHtml(e.plugin_name)}</small></td>
+          <td>${badgeHtml(e.family)}</td>
+          <td>${escHtml(e.lang || '—')}</td>
+          <td style="font-weight:600">${Math.round(e.elo)}</td>
+          <td>${e.battles}</td>
+          <td style="color:var(--win)">${e.wins}</td>
+          <td style="color:var(--loss)">${e.losses}</td>
+          <td style="color:var(--tie)">${e.ties}</td>
+          <td>${winRate(e)}</td>
+        </tr>`).join('');
+      return `
+        <section class="card lb-section" data-modality="${lb.family}" data-lang="${lb.lang || ''}">
+          <h2 style="margin-top:0">${escHtml(title)}</h2>
+          <div style="overflow-x:auto">
+            <table aria-label="Leaderboard: ${escHtml(title)}">
+              <thead>
+                <tr>
+                  <th>Rank</th>
+                  <th>Plugin</th>
+                  <th>Modality</th>
+                  <th>Lang</th>
+                  <th>ELO</th>
+                  <th>Battles</th>
+                  <th>Wins</th>
+                  <th>Losses</th>
+                  <th>Ties</th>
+                  <th>Win rate</th>
+                </tr>
+              </thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>
+          ${lb.generated_at ? `<p style="font-size:0.8rem;margin-top:0.75rem;margin-bottom:0">Updated ${new Date(lb.generated_at).toLocaleString()}</p>` : ''}
+        </section>`;
+    }
+
+    function escHtml(str) {
+      return String(str).replace(/[&<>"']/g, c =>
+        ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c]);
+    }
+
+    function applyFilters(modality, lang) {
+      document.querySelectorAll('.lb-section').forEach(el => {
+        const show = (!modality || el.dataset.modality === modality)
+                  && (!lang || el.dataset.lang === lang);
+        el.style.display = show ? '' : 'none';
+      });
+    }
+
+    async function init() {
+      const loading = document.getElementById('lb-loading');
+      const empty = document.getElementById('lb-empty');
+      const tables = document.getElementById('lb-tables');
+      const selMod = document.getElementById('sel-modality');
+      const selLang = document.getElementById('sel-lang');
+
+      const boards = await loadAllLeaderboards();
+      loading.style.display = 'none';
+
+      if (!boards || boards.length === 0) {
+        empty.style.display = '';
+        return;
+      }
+
+      const langs = [...new Set(boards.map(b => b.lang).filter(Boolean))].sort();
+      langs.forEach(l => {
+        const o = document.createElement('option');
+        o.value = l; o.textContent = l;
+        selLang.appendChild(o);
+      });
+
+      tables.innerHTML = boards.map(renderTable).join('');
+      tables.style.display = '';
+
+      selMod.addEventListener('change', () => applyFilters(selMod.value, selLang.value));
+      selLang.addEventListener('change', () => applyFilters(selMod.value, selLang.value));
+    }
+
+    init();
+  </script>
+</Base>
