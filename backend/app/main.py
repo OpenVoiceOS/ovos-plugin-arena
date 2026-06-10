@@ -4,6 +4,7 @@ from fastapi.routing import APIRoute
 from starlette.middleware.cors import CORSMiddleware
 
 from app.api.main import api_router
+from app.arena.router import router as arena_core_router
 from app.core.config import settings
 from app.services.kafka_producer import kafka_producer
 
@@ -33,16 +34,30 @@ if settings.all_cors_origins:
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
+# Arena core — self-contained SQLite evaluation engine (P1 + P2)
+# Accessible at /api/v1/arena/…  (no auth, no Kafka, no PostgreSQL required)
+app.include_router(arena_core_router, prefix=f"{settings.API_V1_STR}/arena")
+
 
 @app.on_event("startup")
 async def startup_event() -> None:
-    """Initialize Kafka producer on application startup."""
+    """Initialize arena SQLite DB and Kafka producer on startup."""
+    import logging
+    from pathlib import Path
+
+    from app.arena import db as arena_db
+
+    logger = logging.getLogger(__name__)
+
+    # Arena SQLite — zero-infra, always available
+    db_path = Path(settings.ARENA_DB_PATH) if hasattr(settings, "ARENA_DB_PATH") else Path("arena.sqlite3")
+    arena_db.init_db(path=db_path)
+    logger.info("Arena SQLite DB initialised at %s", db_path)
+
     try:
         await kafka_producer.start()
     except Exception as e:
         # Log error but don't crash - app can still serve API
-        import logging
-        logger = logging.getLogger(__name__)
         logger.error("Failed to start Kafka producer: %s", e)
         logger.warning("API will continue but Kafka publishing will fail")
 

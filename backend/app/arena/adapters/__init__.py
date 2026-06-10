@@ -1,0 +1,1 @@
+# Arena plugin adapters package.
