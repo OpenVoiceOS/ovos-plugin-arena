@@ -101,6 +101,32 @@ Per modality:
 - **Intent**: `utterance`, `reference_intent`, `prediction` (intent +
   entities), `exact_match`, `entity_f1`.
 
+#### §3.2 Compatibility note — `ovos-stt-bench-*` real schema
+
+The published `OpenVoiceOS/ovos-stt-bench-*` datasets use a slightly different
+column layout than the minimum contract above.  The ingestion layer (`arena.ingestion`)
+accepts both forms via alias mapping:
+
+| spec column       | real column (ovos-stt-bench-*)    | notes |
+|-------------------|-----------------------------------|-------|
+| `sample_id`       | `dataset_entry_id`                | stable filename within source corpus |
+| `plugin_id`       | `plugin_name`                     | OPM entry-point name |
+| `plugin_version`  | `model_id`                        | composite: `plugin/model/hash` |
+| `prediction`      | `prediction_transcript`           | STT output text |
+| `reference_text`  | `transcript`                      | ground truth text |
+| `wer`             | *(absent — computed on ingest)*   | computed by ingester from above pair |
+| `cer`, `rtf`      | *(absent)*                        | omitted in current datasets |
+| `runner_version`  | *(absent)*                        | omitted in current datasets |
+| `created_at`      | *(absent)*                        | defaults to ingest time |
+
+Extra columns present in the real schema (stored in `metrics{}` by the ingester):
+- `prediction_confidence`: model confidence score
+- `prediction_type`: modality tag (e.g. "STT")
+
+The ingester is forward-compatible: if a future dataset adds `wer` directly,
+the pre-computed value is used as-is.  The spec's canonical column names remain
+the target; runner tooling SHOULD converge on them over time.
+
 ### 3.3 Arena backend
 
 Responsibilities, and nothing more:
