@@ -19,7 +19,6 @@ from typing import List, Optional
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Query
 
 from app.arena import db, ranking
-from app.arena.discovery import discover_plugins
 from app.arena.models import (
     EvalRun,
     EvalStatus,
@@ -40,10 +39,6 @@ router = APIRouter(tags=["arena-core"])
 # ---------------------------------------------------------------------------
 # Request/response helpers
 # ---------------------------------------------------------------------------
-
-
-class DiscoverRequest(BaseModel):
-    families: Optional[List[PluginFamily]] = None
 
 
 class EvalRunCreate(BaseModel):
@@ -68,19 +63,6 @@ class MetricVoteRequest(BaseModel):
 # ---------------------------------------------------------------------------
 # Plugin registry
 # ---------------------------------------------------------------------------
-
-
-@router.post("/plugins/discover", response_model=List[Plugin], summary="Discover & register plugins via OPM")
-def discover_and_register(body: DiscoverRequest) -> List[Plugin]:
-    """
-    Scan installed OVOS entry points and upsert them into the arena registry.
-
-    Returns the list of discovered Plugin records (including existing ones).
-    """
-    plugins = discover_plugins(families=body.families)
-    for p in plugins:
-        db.upsert_plugin(p)
-    return plugins
 
 
 @router.get("/plugins", response_model=List[Plugin], summary="List registered plugins")
