@@ -73,11 +73,13 @@ def read_jsonl(path: Path) -> List[PredictionRow]:
 
 
 def load_predictions_dir(predictions_dir: Path) -> List[PredictionRow]:
-    """Load every ``*.jsonl`` file in *predictions_dir*."""
+    """Load every ``*.jsonl`` under *predictions_dir* (nested per-lang dirs
+    and the flat legacy layout alike)."""
     rows: List[PredictionRow] = []
-    for path in sorted(predictions_dir.glob("*.jsonl")):
+    for path in sorted(predictions_dir.glob("**/*.jsonl")):
         file_rows = read_jsonl(path)
-        logger.info("Loaded %d rows from %s", len(file_rows), path.name)
+        logger.info("Loaded %d rows from %s",
+                    len(file_rows), path.relative_to(predictions_dir))
         rows.extend(file_rows)
     return rows
 
@@ -94,7 +96,7 @@ def fetch_hf_predictions(repo_id: str, revision: str = "main") -> Path:
         repo_id=repo_id,
         repo_type="dataset",
         revision=revision,
-        allow_patterns=["predictions/*.jsonl"],
+        allow_patterns=["predictions/**/*.jsonl", "predictions/*.jsonl"],
     )
     return Path(local) / "predictions"
 
