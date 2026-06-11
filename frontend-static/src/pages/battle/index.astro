@@ -1,14 +1,13 @@
 ---
 import Base from '../../layouts/Base.astro';
-const base = import.meta.env.BASE_URL;
 ---
 <Base title="Battle" description="Blind A/B battle — pick the better OVOS plugin output and vote.">
   <h1>Battle</h1>
-  <p>Listen to or read both outputs, then pick the one you prefer. Your vote opens a GitHub Issue — no arena account required.</p>
+  <p>Read or listen to both outputs, then pick the one you prefer. Your vote opens a GitHub Issue — no arena account required.</p>
 
   <div id="battle-loading" class="card" aria-live="polite">Loading battles pool…</div>
   <div id="battle-empty" class="card" style="display:none">
-    No battles available. Run the <code>assemble.yml</code> GitHub Action to assemble battles from HF prediction datasets.
+    No battles available. Run the <code>assemble.yml</code> GitHub Action to assemble battles from prediction datasets.
   </div>
 
   <section id="battle-ui" style="display:none" aria-label="Current battle">
@@ -16,10 +15,32 @@ const base = import.meta.env.BASE_URL;
       <span id="battle-badge" class="badge"></span>
       <span id="battle-lang" style="color:var(--muted);font-size:0.9rem"></span>
       <span id="battle-id" style="color:var(--muted);font-size:0.75rem;margin-left:auto"></span>
-      <button id="btn-skip" class="btn" style="margin-left:auto">Skip</button>
+      <button id="btn-skip" class="btn">Skip</button>
     </div>
 
-    <!-- STT battle: audio + two transcript boxes -->
+    <!-- Intent battle: utterance + two predictions -->
+    <div id="intent-panel" style="display:none">
+      <div class="card" style="margin-bottom:1rem">
+        <h2 style="margin-top:0;font-size:1rem">Utterance</h2>
+        <p id="intent-utterance" style="font-size:1.15rem;font-weight:600;margin-bottom:0;color:var(--text)"></p>
+        <p id="intent-hint" style="font-size:0.85rem;margin:0.5rem 0 0">
+          Which interpretation should a voice assistant act on?
+          “No match” means the assistant would ask the user to rephrase.
+        </p>
+      </div>
+      <div style="display:grid;gap:1rem;grid-template-columns:1fr 1fr">
+        <div class="card">
+          <h2 style="margin-top:0;font-size:1rem">Candidate A</h2>
+          <div id="intent-a"></div>
+        </div>
+        <div class="card">
+          <h2 style="margin-top:0;font-size:1rem">Candidate B</h2>
+          <div id="intent-b"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STT battle: audio + two transcripts -->
     <div id="stt-panel" style="display:none">
       <div class="card" style="margin-bottom:1rem">
         <h2 style="margin-top:0;font-size:1rem">Audio clip</h2>
@@ -43,46 +64,7 @@ const base = import.meta.env.BASE_URL;
       </div>
     </div>
 
-    <!-- Intent battle: utterance + two predictions -->
-    <div id="intent-panel" style="display:none">
-      <div class="card" style="margin-bottom:1rem">
-        <h2 style="margin-top:0;font-size:1rem">Utterance</h2>
-        <p id="intent-utterance" style="font-size:1.1rem;font-weight:600;margin-bottom:0"></p>
-      </div>
-      <div style="display:grid;gap:1rem;grid-template-columns:1fr 1fr">
-        <div class="card">
-          <h2 style="margin-top:0;font-size:1rem">Candidate A</h2>
-          <pre id="intent-a-text" style="font-family:monospace;font-size:0.85rem;white-space:pre-wrap;word-break:break-word;margin:0;color:var(--muted)"></pre>
-        </div>
-        <div class="card">
-          <h2 style="margin-top:0;font-size:1rem">Candidate B</h2>
-          <pre id="intent-b-text" style="font-family:monospace;font-size:0.85rem;white-space:pre-wrap;word-break:break-word;margin:0;color:var(--muted)"></pre>
-        </div>
-      </div>
-    </div>
-
-    <!-- TTS / Wake word battle: two audio players -->
-    <div id="audio-pair-panel" style="display:none">
-      <div class="card" style="margin-bottom:1rem">
-        <p id="audio-pair-label" style="margin-bottom:0"></p>
-      </div>
-      <div style="display:grid;gap:1rem;grid-template-columns:1fr 1fr">
-        <div class="card">
-          <h2 style="margin-top:0;font-size:1rem">Candidate A</h2>
-          <audio id="tts-audio-a" controls style="width:100%;margin-top:0.5rem">
-            <source id="tts-audio-a-src" src="" />
-          </audio>
-        </div>
-        <div class="card">
-          <h2 style="margin-top:0;font-size:1rem">Candidate B</h2>
-          <audio id="tts-audio-b" controls style="width:100%;margin-top:0.5rem">
-            <source id="tts-audio-b-src" src="" />
-          </audio>
-        </div>
-      </div>
-    </div>
-
-    <!-- Vote buttons — shown before reveal -->
+    <!-- Vote buttons -->
     <div id="vote-panel" class="card" style="margin-top:1.5rem;text-align:center">
       <p style="margin-bottom:1rem;font-weight:600;color:var(--text)">Which is better?</p>
       <div style="display:flex;gap:0.75rem;flex-wrap:wrap;justify-content:center" role="group" aria-label="Vote options">
@@ -92,13 +74,13 @@ const base = import.meta.env.BASE_URL;
         <button class="btn" id="vote-both-wrong" aria-label="Vote Both wrong">Both wrong</button>
       </div>
       <p id="vote-hint" style="margin-top:1rem;font-size:0.85rem;margin-bottom:0">
-        Clicking a vote button will open a prefilled GitHub issue. Submit it to record your vote.
+        Clicking a vote button reveals the plugin identities and opens a prefilled GitHub issue. Submit it to record your vote.
       </p>
     </div>
 
-    <!-- Reveal panel — shown after vote button click (before navigating to GH) -->
+    <!-- Reveal panel — shown after the vote is cast -->
     <div id="reveal-panel" class="card" style="display:none;margin-top:1rem;background:#1c2938">
-      <h2 style="margin-top:0;font-size:1rem;color:var(--accent)">Plugin identities</h2>
+      <h2 style="margin-top:0;font-size:1rem;color:var(--accent)">Fighter identities</h2>
       <div style="display:grid;gap:0.75rem;grid-template-columns:1fr 1fr">
         <div>
           <strong>Candidate A</strong><br>
@@ -113,8 +95,7 @@ const base = import.meta.env.BASE_URL;
   </section>
 
   <script>
-    const BASE = import.meta.env.BASE_URL;
-    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || '';
+    const BASE = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
     const GITHUB_REPO = import.meta.env.VITE_GITHUB_REPO || 'OpenVoiceOS/ovos-plugin-arena';
 
     const BADGE_CLASS = { stt: 'badge-stt', tts: 'badge-tts', wake_word: 'badge-ww', intent: 'badge-intent' };
@@ -130,24 +111,31 @@ const base = import.meta.env.BASE_URL;
     }
 
     function buildIssueUrl(battleId, choice) {
-      const title = `vote|${battleId}|${choice}`;
-      const body = [
-        `**Battle:** \`${battleId}\``,
-        `**Choice:** ${choice}`,
-        '',
-        `> This vote was cast from the OVOS Plugin Arena. Do not modify the title.`,
-      ].join('\n');
+      // The `vote` label is applied by the issue form template — labels in
+      // the URL would be ignored for non-collaborators.
       const params = new URLSearchParams({
         template: 'vote.yml',
-        labels: 'vote',
-        title,
-        body,
+        title: `vote|${battleId}|${choice}`,
       });
       return `https://github.com/${GITHUB_REPO}/issues/new?${params}`;
     }
 
+    function intentCardHtml(payload) {
+      if (!payload || payload.intent == null) {
+        return '<p style="color:var(--muted);font-style:italic;margin:0">No match — ask the user to rephrase</p>';
+      }
+      const slots = payload.slots || {};
+      const slotRows = Object.entries(slots).map(([k, v]) =>
+        `<tr><td style="color:var(--muted);padding:0.25rem 0.6rem 0.25rem 0">${escHtml(k)}</td>
+             <td style="padding:0.25rem 0">${escHtml(v)}</td></tr>`).join('');
+      return `
+        <p style="font-family:monospace;font-size:1rem;margin:0;color:var(--text)">${escHtml(payload.intent)}</p>
+        ${slotRows ? `<table style="margin-top:0.5rem;font-size:0.85rem;width:auto"><tbody>${slotRows}</tbody></table>`
+                   : '<p style="color:var(--muted);font-size:0.85rem;margin:0.5rem 0 0">no slots extracted</p>'}`;
+    }
+
     function showPanel(name) {
-      ['stt-panel','intent-panel','audio-pair-panel'].forEach(id => {
+      ['stt-panel', 'intent-panel'].forEach(id => {
         document.getElementById(id).style.display = id === name ? '' : 'none';
       });
     }
@@ -155,19 +143,25 @@ const base = import.meta.env.BASE_URL;
     function loadBattle(b) {
       currentBattle = b;
       const badge = document.getElementById('battle-badge');
-      badge.textContent = MODALITY_LABELS[b.family] || b.family;
-      badge.className = `badge ${BADGE_CLASS[b.family] || ''}`;
+      badge.textContent = MODALITY_LABELS[b.modality] || b.modality;
+      badge.className = `badge ${BADGE_CLASS[b.modality] || ''}`;
       document.getElementById('battle-lang').textContent = b.lang || '';
       document.getElementById('battle-id').textContent = `#${b.battle_id}`;
 
-      // Hide reveal panel, re-enable vote buttons
       document.getElementById('reveal-panel').style.display = 'none';
       document.getElementById('vote-panel').style.display = '';
       ['vote-a','vote-b','vote-tie','vote-both-wrong'].forEach(id => {
         document.getElementById(id).disabled = false;
       });
+      document.getElementById('vote-hint').textContent =
+        'Clicking a vote button reveals the plugin identities and opens a prefilled GitHub issue. Submit it to record your vote.';
 
-      if (b.family === 'stt') {
+      if (b.modality === 'intent') {
+        showPanel('intent-panel');
+        document.getElementById('intent-utterance').textContent = b.input_text || '';
+        document.getElementById('intent-a').innerHTML = intentCardHtml(b.prediction_a);
+        document.getElementById('intent-b').innerHTML = intentCardHtml(b.prediction_b);
+      } else {
         showPanel('stt-panel');
         const audioSrc = document.getElementById('stt-audio-src');
         audioSrc.src = b.audio_url || '';
@@ -181,67 +175,30 @@ const base = import.meta.env.BASE_URL;
         } else {
           refEl.style.display = 'none';
         }
-      } else if (b.family === 'intent') {
-        showPanel('intent-panel');
-        document.getElementById('intent-utterance').textContent = b.utterance || b.input_ref || '';
-        document.getElementById('intent-a-text').textContent =
-          JSON.stringify(b.prediction_a, null, 2) || '(no output)';
-        document.getElementById('intent-b-text').textContent =
-          JSON.stringify(b.prediction_b, null, 2) || '(no output)';
-      } else {
-        // TTS / WW — audio pair
-        showPanel('audio-pair-panel');
-        document.getElementById('audio-pair-label').textContent =
-          b.family === 'tts'
-            ? `Text: "${b.input_ref || ''}"`
-            : `Audio clip — two detector verdicts below`;
-        const srcA = document.getElementById('tts-audio-a-src');
-        const srcB = document.getElementById('tts-audio-b-src');
-        srcA.src = b.audio_url_a || b.prediction_a || '';
-        srcB.src = b.audio_url_b || b.prediction_b || '';
-        document.getElementById('tts-audio-a').load();
-        document.getElementById('tts-audio-b').load();
       }
 
       document.getElementById('battle-ui').style.display = '';
     }
 
-    async function castVote(choice) {
+    function castVote(choice) {
       if (!currentBattle) return;
 
-      // Reveal identities before navigating to GitHub
       document.getElementById('reveal-a').textContent =
-        `${currentBattle.plugin_a} v${currentBattle.plugin_version_a || '?'}`;
+        `${currentBattle.competitor_a} (${currentBattle.plugin_a || '?'})`;
       document.getElementById('reveal-b').textContent =
-        `${currentBattle.plugin_b} v${currentBattle.plugin_version_b || '?'}`;
+        `${currentBattle.competitor_b} (${currentBattle.plugin_b || '?'})`;
       document.getElementById('reveal-panel').style.display = '';
 
-      // Disable vote buttons to prevent double-submit
       ['vote-a','vote-b','vote-tie','vote-both-wrong'].forEach(id => {
         document.getElementById(id).disabled = true;
       });
       document.getElementById('vote-hint').textContent =
-        'Opening GitHub issue to record your vote… submit the issue there to confirm.';
+        'Opening GitHub issue to record your vote… submit the issue there to confirm. Next battle in a few seconds.';
 
-      if (BACKEND_URL) {
-        // Mode A — POST to backend
-        try {
-          await fetch(`${BACKEND_URL}/api/v1/arena/votes`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ battle_id: currentBattle.battle_id, outcome: choice }),
-          });
-        } catch(e) {
-          console.warn('Backend vote failed, falling through to GitHub issue', e);
-        }
-      }
-
-      // Mode C — always open GitHub issue (even in Mode A, as audit trail)
       const url = buildIssueUrl(currentBattle.battle_id, choice);
       window.open(url, '_blank', 'noopener,noreferrer');
 
-      // Auto-advance after 3 s
-      setTimeout(() => nextBattle(), 3000);
+      setTimeout(() => nextBattle(), 4000);
     }
 
     function nextBattle() {
@@ -254,17 +211,18 @@ const base = import.meta.env.BASE_URL;
       const loading = document.getElementById('battle-loading');
       const empty = document.getElementById('battle-empty');
 
-      const idx = await fetch(`${BASE}data/index.json`).then(r => r.ok ? r.json() : null).catch(() => null);
-      loading.style.display = 'none';
-
-      if (idx && idx.battles_pools && idx.battles_pools.length > 0) {
-        for (const ref of idx.battles_pools) {
-          const data = await fetch(`${BASE}data/${ref.file}`).then(r => r.ok ? r.json() : null).catch(() => null);
-          if (data && data.battles) battles.push(...data.battles);
+      const index = await fetch(`${BASE}data/index.json`)
+        .then(r => r.ok ? r.json() : null).catch(() => null);
+      if (index?.battles_pools?.length) {
+        for (const ref of index.battles_pools) {
+          const data = await fetch(`${BASE}data/${ref.file}`)
+            .then(r => r.ok ? r.json() : null).catch(() => null);
+          if (data?.battles) battles.push(...data.battles);
         }
       }
+      loading.style.display = 'none';
 
-      if (battles.length === 0) {
+      if (!battles.length) {
         empty.style.display = '';
         return;
       }

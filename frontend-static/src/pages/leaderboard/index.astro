@@ -1,12 +1,21 @@
 ---
 import Base from '../../layouts/Base.astro';
-const base = import.meta.env.BASE_URL;
 ---
-<Base title="Leaderboards" description="ELO leaderboards for OVOS plugins — STT, TTS, wake-word, intent — per language.">
+<Base title="Leaderboards" description="Benchmark and ELO leaderboards for OVOS plugins — per modality and language.">
   <h1>Leaderboards</h1>
-  <p>ELO standings per modality and language. Loaded from <code>data/</code> JSON files committed by GitHub Actions.</p>
+  <p>
+    Two board kinds per modality and language: <strong>benchmark boards</strong> computed
+    directly from prediction runs against labelled datasets, and <strong>ELO boards</strong>
+    seeded from those benchmarks and refined by human votes.
+  </p>
 
   <div id="lb-filters" class="card" style="display:flex;gap:1rem;flex-wrap:wrap;align-items:center;margin-bottom:1.5rem">
+    <label for="sel-kind" style="color:var(--muted);font-size:0.9rem">Board</label>
+    <select id="sel-kind" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:0.35rem 0.6rem">
+      <option value="">All</option>
+      <option value="benchmark">Benchmarks</option>
+      <option value="elo">ELO</option>
+    </select>
     <label for="sel-modality" style="color:var(--muted);font-size:0.9rem">Modality</label>
     <select id="sel-modality" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:0.35rem 0.6rem">
       <option value="">All</option>
@@ -23,90 +32,126 @@ const base = import.meta.env.BASE_URL;
 
   <div id="lb-loading" class="card" aria-live="polite">Loading leaderboard data…</div>
   <div id="lb-empty" class="card" style="display:none">
-    No leaderboard data found. Run the <code>assemble.yml</code> + <code>tally.yml</code> GitHub Actions to generate data.
+    No leaderboard data found. Run the <code>assemble.yml</code> GitHub Action to generate data.
   </div>
   <div id="lb-tables" style="display:none"></div>
 
   <script>
-    const BASE = import.meta.env.BASE_URL;
-    const GITHUB_REPO = import.meta.env.VITE_GITHUB_REPO || 'OpenVoiceOS/ovos-plugin-arena';
+    const BASE = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
 
     const MODALITY_LABELS = { stt: 'STT', tts: 'TTS', wake_word: 'Wake Word', intent: 'Intent' };
     const BADGE_CLASS = { stt: 'badge-stt', tts: 'badge-tts', wake_word: 'badge-ww', intent: 'badge-intent' };
-
-    async function loadAllLeaderboards() {
-      const idx = await fetch(`${BASE}data/index.json`).then(r => r.ok ? r.json() : null).catch(() => null);
-      if (!idx || !idx.leaderboards || idx.leaderboards.length === 0) return null;
-      const results = [];
-      for (const ref of idx.leaderboards) {
-        const data = await fetch(`${BASE}data/${ref.file}`).then(r => r.ok ? r.json() : null).catch(() => null);
-        if (data) results.push(data);
-      }
-      return results;
-    }
-
-    function badgeHtml(modality) {
-      const label = MODALITY_LABELS[modality] || modality;
-      const cls = BADGE_CLASS[modality] || '';
-      return `<span class="badge ${cls}" aria-label="Modality: ${label}">${label}</span>`;
-    }
-
-    function winRate(e) {
-      if (!e.battles) return '—';
-      return (e.win_rate * 100).toFixed(1) + '%';
-    }
-
-    function renderTable(lb) {
-      if (!lb.entries || lb.entries.length === 0) return '';
-      const title = `${MODALITY_LABELS[lb.family] || lb.family} — ${lb.lang || 'all'}`;
-      const rows = lb.entries.map(e => `
-        <tr>
-          <td style="text-align:right;width:3rem;color:var(--muted)">#${e.rank}</td>
-          <td><strong>${escHtml(e.display_name || e.plugin_name)}</strong><br>
-              <small style="color:var(--muted)">${escHtml(e.plugin_name)}</small></td>
-          <td>${badgeHtml(e.family)}</td>
-          <td>${escHtml(e.lang || '—')}</td>
-          <td style="font-weight:600">${Math.round(e.elo)}</td>
-          <td>${e.battles}</td>
-          <td style="color:var(--win)">${e.wins}</td>
-          <td style="color:var(--loss)">${e.losses}</td>
-          <td style="color:var(--tie)">${e.ties}</td>
-          <td>${winRate(e)}</td>
-        </tr>`).join('');
-      return `
-        <section class="card lb-section" data-modality="${lb.family}" data-lang="${lb.lang || ''}">
-          <h2 style="margin-top:0">${escHtml(title)}</h2>
-          <div style="overflow-x:auto">
-            <table aria-label="Leaderboard: ${escHtml(title)}">
-              <thead>
-                <tr>
-                  <th>Rank</th>
-                  <th>Plugin</th>
-                  <th>Modality</th>
-                  <th>Lang</th>
-                  <th>ELO</th>
-                  <th>Battles</th>
-                  <th>Wins</th>
-                  <th>Losses</th>
-                  <th>Ties</th>
-                  <th>Win rate</th>
-                </tr>
-              </thead>
-              <tbody>${rows}</tbody>
-            </table>
-          </div>
-          ${lb.generated_at ? `<p style="font-size:0.8rem;margin-top:0.75rem;margin-bottom:0">Updated ${new Date(lb.generated_at).toLocaleString()}</p>` : ''}
-        </section>`;
-    }
+    // Benchmark metric columns: [key, label, percent?]
+    const METRIC_COLUMNS = [
+      ['accuracy', 'Accuracy', true],
+      ['macro_f1', 'Macro F1', true],
+      ['ood_fpr', 'OOD FPR', true],
+      ['slot_exact_match', 'Slot EM', true],
+      ['wer_mean', 'WER (mean)', true],
+      ['wer_median', 'WER (median)', true],
+      ['latency_ms_median', 'Latency (ms)', false],
+    ];
 
     function escHtml(str) {
       return String(str).replace(/[&<>"']/g, c =>
         ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c]);
     }
 
-    function applyFilters(modality, lang) {
+    async function fetchJson(path) {
+      return fetch(path).then(r => r.ok ? r.json() : null).catch(() => null);
+    }
+
+    function badgeHtml(modality) {
+      const label = MODALITY_LABELS[modality] || modality;
+      return `<span class="badge ${BADGE_CLASS[modality] || ''}">${escHtml(label)}</span>`;
+    }
+
+    function pct(value) {
+      return value == null ? '—' : (value * 100).toFixed(1) + '%';
+    }
+
+    function sectionShell(kind, board, title, note, table) {
+      return `
+        <section class="card lb-section" data-kind="${kind}"
+                 data-modality="${escHtml(board.modality)}" data-lang="${escHtml(board.lang || '')}">
+          <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap">
+            <h2 style="margin:0">${escHtml(title)}</h2>
+            ${badgeHtml(board.modality)}
+            <span style="color:var(--muted);font-size:0.85rem">${escHtml(board.lang || '')}</span>
+          </div>
+          ${note ? `<p style="font-size:0.85rem;margin:0.5rem 0 0.75rem">${note}</p>` : ''}
+          <div style="overflow-x:auto">${table}</div>
+          ${board.generated_at ? `<p style="font-size:0.8rem;margin:0.75rem 0 0">Updated ${new Date(board.generated_at).toLocaleString()}</p>` : ''}
+        </section>`;
+    }
+
+    function renderBenchmark(board) {
+      if (!board.entries || !board.entries.length) return '';
+      const present = METRIC_COLUMNS.filter(([key]) =>
+        board.entries.some(e => e.metrics && e.metrics[key] != null));
+      const buckets = [...new Set(board.entries.flatMap(e =>
+        Object.keys(e.metrics || {}).filter(k => k.startsWith('acc_'))))].sort();
+
+      const head = ['<th>Rank</th><th>Fighter</th>',
+        ...present.map(([, label]) => `<th>${label}</th>`),
+        ...buckets.map(b => `<th class="bucket-col" style="display:none">${escHtml(b.slice(4))}</th>`),
+        '<th>Samples</th>'].join('');
+
+      const rows = board.entries.map(e => `
+        <tr>
+          <td style="text-align:right;width:3rem;color:var(--muted)">#${e.rank}</td>
+          <td><strong>${escHtml(e.competitor_id)}</strong><br>
+              <small style="color:var(--muted)">${escHtml(e.plugin_id || '')}</small></td>
+          ${present.map(([key, , isPct]) => {
+            const v = e.metrics ? e.metrics[key] : null;
+            return `<td>${v == null ? '—' : (isPct ? pct(v) : v)}</td>`;
+          }).join('')}
+          ${buckets.map(b => `<td class="bucket-col" style="display:none">${pct(e.metrics?.[b])}</td>`).join('')}
+          <td>${e.samples}</td>
+        </tr>`).join('');
+
+      const note = `Computed from prediction runs against <code>${escHtml(board.dataset_id || '')}</code>.
+        Primary metric: <strong>${escHtml(board.primary_metric)}</strong>.
+        ${buckets.length ? `<button class="btn toggle-buckets" style="padding:0.15rem 0.6rem;font-size:0.78rem;margin-left:0.5rem">show buckets</button>` : ''}`;
+
+      const table = `<table aria-label="Benchmark board"><thead><tr>${head}</tr></thead><tbody>${rows}</tbody></table>`;
+      return sectionShell('benchmark', board, 'Benchmark', note, table);
+    }
+
+    function renderElo(board) {
+      if (!board.entries || !board.entries.length) return '';
+      const rows = board.entries.map(e => `
+        <tr>
+          <td style="text-align:right;width:3rem;color:var(--muted)">#${e.rank}</td>
+          <td><strong>${escHtml(e.competitor_id)}</strong><br>
+              <small style="color:var(--muted)">${escHtml(e.plugin_id || '')}</small></td>
+          <td style="font-weight:600">${Math.round(e.elo)}</td>
+          <td>${e.battles}</td>
+          <td style="color:var(--win)">${e.wins}</td>
+          <td style="color:var(--loss)">${e.losses}</td>
+          <td style="color:var(--tie)">${e.ties}</td>
+          <td>${e.battles ? (e.win_rate * 100).toFixed(1) + '%' : '—'}</td>
+          <td>${e.human_votes}</td>
+        </tr>`).join('');
+
+      const note = `Seeded from ${board.vote_count - board.human_vote_count} benchmark auto-battles
+        (reduced K-factor) + <strong>${board.human_vote_count}</strong> human votes via
+        <a href="${BASE}battle/">blind battles</a>.`;
+
+      const table = `<table aria-label="ELO board"><thead><tr>
+          <th>Rank</th><th>Fighter</th><th>ELO</th><th>Battles</th>
+          <th>Wins</th><th>Losses</th><th>Ties</th><th>Win rate</th><th>Human votes</th>
+        </tr></thead><tbody>${rows}</tbody></table>`;
+      return sectionShell('elo', board, 'ELO', note, table);
+    }
+
+    function applyFilters() {
+      const kind = document.getElementById('sel-kind').value;
+      const modality = document.getElementById('sel-modality').value;
+      const lang = document.getElementById('sel-lang').value;
       document.querySelectorAll('.lb-section').forEach(el => {
-        const show = (!modality || el.dataset.modality === modality)
+        const show = (!kind || el.dataset.kind === kind)
+                  && (!modality || el.dataset.modality === modality)
                   && (!lang || el.dataset.lang === lang);
         el.style.display = show ? '' : 'none';
       });
@@ -116,29 +161,52 @@ const base = import.meta.env.BASE_URL;
       const loading = document.getElementById('lb-loading');
       const empty = document.getElementById('lb-empty');
       const tables = document.getElementById('lb-tables');
-      const selMod = document.getElementById('sel-modality');
-      const selLang = document.getElementById('sel-lang');
 
-      const boards = await loadAllLeaderboards();
+      const index = await fetchJson(`${BASE}data/index.json`);
+      const benchRefs = index?.benchmarks || [];
+      const eloRefs = index?.leaderboards || [];
+
+      const benchmarks = (await Promise.all(
+        benchRefs.map(ref => fetchJson(`${BASE}data/${ref.file}`)))).filter(Boolean);
+      const elos = (await Promise.all(
+        eloRefs.map(ref => fetchJson(`${BASE}data/${ref.file}`)))).filter(Boolean);
+
       loading.style.display = 'none';
-
-      if (!boards || boards.length === 0) {
+      if (!benchmarks.length && !elos.length) {
         empty.style.display = '';
         return;
       }
 
-      const langs = [...new Set(boards.map(b => b.lang).filter(Boolean))].sort();
+      const langs = [...new Set([...benchmarks, ...elos].map(b => b.lang).filter(Boolean))].sort();
+      const selLang = document.getElementById('sel-lang');
       langs.forEach(l => {
         const o = document.createElement('option');
         o.value = l; o.textContent = l;
         selLang.appendChild(o);
       });
 
-      tables.innerHTML = boards.map(renderTable).join('');
+      // Interleave per (modality, lang): benchmark first, ELO beside it
+      const keys = [...new Set([...benchmarks, ...elos].map(b => `${b.modality}|${b.lang}`))].sort();
+      tables.innerHTML = keys.map(key => {
+        const [modality, lang] = key.split('|');
+        const bench = benchmarks.find(b => b.modality === modality && b.lang === lang);
+        const elo = elos.find(b => b.modality === modality && b.lang === lang);
+        return (bench ? renderBenchmark(bench) : '') + (elo ? renderElo(elo) : '');
+      }).join('');
       tables.style.display = '';
 
-      selMod.addEventListener('change', () => applyFilters(selMod.value, selLang.value));
-      selLang.addEventListener('change', () => applyFilters(selMod.value, selLang.value));
+      tables.querySelectorAll('.toggle-buckets').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const section = btn.closest('.lb-section');
+          const cols = section.querySelectorAll('.bucket-col');
+          const hidden = cols.length && cols[0].style.display === 'none';
+          cols.forEach(c => c.style.display = hidden ? '' : 'none');
+          btn.textContent = hidden ? 'hide buckets' : 'show buckets';
+        });
+      });
+
+      ['sel-kind', 'sel-modality', 'sel-lang'].forEach(id =>
+        document.getElementById(id).addEventListener('change', applyFilters));
     }
 
     init();

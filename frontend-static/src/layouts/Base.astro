@@ -4,7 +4,7 @@ export interface Props {
   description?: string;
 }
 const { title, description = 'OVOS Plugin Arena — blind A/B plugin evaluation with ELO leaderboards' } = Astro.props;
-const base = import.meta.env.BASE_URL;
+const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
 ---
 <!doctype html>
 <html lang="en">
@@ -127,6 +127,26 @@ const base = import.meta.env.BASE_URL;
       .badge-ww  { background: #3d2a1f; color: #d29922; }
       .badge-intent { background: #2d1f3d; color: #bc8cff; }
 
+      /* fighter type chips (pokedex) */
+      .type-chip {
+        display: inline-block;
+        padding: 0.1rem 0.55rem;
+        border-radius: 12px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        border: 1px solid transparent;
+      }
+      .type-gofai          { background: #3d331f; color: #e3b341; }
+      .type-fuzzy-match    { background: #3d2a1f; color: #f0883e; }
+      .type-neural-net     { background: #1f3a5f; color: #58a6ff; }
+      .type-template-match { background: #1f3d2f; color: #3fb950; }
+      .type-keyword-match  { background: #1f3d3a; color: #39c5cf; }
+      .type-embedding      { background: #2d1f3d; color: #bc8cff; }
+      .type-llm            { background: #3d1f28; color: #ff7b72; }
+      .type-default        { background: #21262d; color: #8b949e; }
+
       .btn {
         display: inline-flex;
         align-items: center;
@@ -178,6 +198,7 @@ const base = import.meta.env.BASE_URL;
           <li><a href={`${base}`}>Home</a></li>
           <li><a href={`${base}leaderboard/`}>Leaderboards</a></li>
           <li><a href={`${base}battle/`}>Battle</a></li>
+          <li><a href={`${base}fighters/`}>Fighters</a></li>
           <li><a href="https://github.com/OpenVoiceOS/ovos-plugin-arena" target="_blank" rel="noopener noreferrer">GitHub</a></li>
         </ul>
       </nav>

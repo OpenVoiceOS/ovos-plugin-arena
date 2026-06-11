@@ -1,46 +1,74 @@
 ---
 import Base from '../layouts/Base.astro';
-const base = import.meta.env.BASE_URL;
+const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
 ---
 <Base title="Home">
   <section>
     <h1>OVOS Plugin Arena</h1>
     <p>
-      Blind A/B plugin evaluation for the OpenVoiceOS ecosystem — STT, TTS, wake-word, and intent.
-      Cast your vote, see the ELO leaderboards, and help the community find the best plugins.
+      <em>Which plugin should I use?</em> — answered with data. Reproducible benchmarks rank
+      OpenVoiceOS plugins on labelled datasets; blind A/B battles let the community refine
+      those rankings with human judgement. No servers, no accounts: the whole arena is this
+      GitHub repository.
     </p>
+
+    <div id="stats" class="card" style="display:none;gap:2rem;flex-wrap:wrap"></div>
 
     <div style="display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));margin-top:1.5rem;">
       <div class="card">
         <h2 style="margin-top:0">Leaderboards</h2>
-        <p>ELO standings per modality and language, updated hourly from community votes.</p>
+        <p>Benchmark boards straight from prediction runs, beside ELO boards seeded from them and refined by votes.</p>
         <a class="btn btn-primary" href={`${base}leaderboard/`}>View leaderboards</a>
       </div>
       <div class="card">
         <h2 style="margin-top:0">Battle</h2>
-        <p>Pick the better plugin output in a blind A/B comparison. No account needed — votes go through GitHub Issues.</p>
+        <p>Pick the better plugin output in a blind A/B comparison. Votes go through GitHub Issues — no arena account.</p>
         <a class="btn btn-primary" href={`${base}battle/`}>Start voting</a>
       </div>
       <div class="card">
+        <h2 style="margin-top:0">Fighters</h2>
+        <p>Browse the pokedex: every competitor with its species (plugin class), types (architecture) and configuration.</p>
+        <a class="btn btn-primary" href={`${base}fighters/`}>Open the pokedex</a>
+      </div>
+      <div class="card">
         <h2 style="margin-top:0">Fork your arena</h2>
-        <p>Fork this repo, enable GitHub Pages + Actions, point it at your own HF prediction datasets — you have a working arena for zero cost.</p>
+        <p>Every fighter and dataset is a JSON file; every benchmark is a Python script. Fork, point at your data, done.</p>
         <a class="btn" href="https://github.com/OpenVoiceOS/ovos-plugin-arena" target="_blank" rel="noopener noreferrer">Fork on GitHub</a>
       </div>
     </div>
 
     <div class="card" style="margin-top:1.5rem">
-      <h2 style="margin-top:0">How votes work (Mode C — GitHub-native)</h2>
+      <h2 style="margin-top:0">How it works</h2>
       <ol style="padding-left:1.4rem;color:var(--muted);line-height:2">
-        <li>Open a battle page and listen or read both plugin outputs.</li>
-        <li>Click a vote button (A / B / Tie / Both wrong).</li>
-        <li>A prefilled GitHub issue opens — submit it (free GitHub account required).</li>
-        <li>A scheduled Action runs hourly: it parses all vote issues, dedupes, replays ELO, commits updated leaderboards.</li>
-        <li>The leaderboard updates within ~30 seconds of the Action finishing.</li>
+        <li><strong>Benchmarks run offline.</strong> A dedicated script per benchmark trains each fighter and publishes per-sample predictions to HuggingFace — public, reproducible, versioned.</li>
+        <li><strong>CI assembles the arena.</strong> A scheduled Action turns predictions into benchmark boards, blind battle pools, and a benchmark-seeded ELO ledger.</li>
+        <li><strong>You vote.</strong> A battle shows two anonymous outputs for the same input; your pick opens a prefilled GitHub issue.</li>
+        <li><strong>CI tallies.</strong> Hourly, vote issues are parsed, deduplicated, and replayed on top of the ELO seed; updated boards are committed and the site redeploys.</li>
       </ol>
       <p style="margin-top:0.75rem;margin-bottom:0">
-        All votes are public and auditable — the vote log <em>is</em> the issue history.
-        ELO is fully replayable from that history at any time.
+        Every vote is public and the ELO standings are deterministically replayable from the
+        issue history — the vote log <em>is</em> the audit trail.
       </p>
     </div>
+
+    <script>
+      const BASE = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
+      async function stats() {
+        const index = await fetch(`${BASE}data/index.json`)
+          .then(r => r.ok ? r.json() : null).catch(() => null);
+        if (!index) return;
+        const battles = (index.battles_pools || []).reduce((n, p) => n + (p.count || 0), 0);
+        const boards = (index.benchmarks || []).length;
+        const langs = new Set((index.benchmarks || []).map(b => b.lang).filter(Boolean)).size;
+        const el = document.getElementById('stats');
+        const stat = (n, label) =>
+          `<div><div style="font-size:1.6rem;font-weight:700;color:var(--text)">${n}</div>
+           <div style="font-size:0.85rem;color:var(--muted)">${label}</div></div>`;
+        el.innerHTML = stat(boards, 'benchmark boards') + stat(langs, 'languages')
+          + stat(battles, 'open battles');
+        el.style.display = 'flex';
+      }
+      stats();
+    </script>
   </section>
 </Base>

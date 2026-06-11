@@ -1,0 +1,130 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="Fighters" description="The pokedex of OVOS plugin fighters — every competitor in the arena, with species, types and stats.">
+  <h1>Fighters</h1>
+  <p>
+    Every fighter in the arena is a <strong>plugin + configuration</strong> pair declared as a
+    JSON file in the <a href="https://github.com/OpenVoiceOS/ovos-plugin-arena/tree/dev/registry">registry</a>.
+    Its <strong>species</strong> is the plugin class it instantiates; its <strong>types</strong>
+    describe the architecture doing the matching.
+  </p>
+
+  <div class="card" style="display:flex;gap:1rem;flex-wrap:wrap;align-items:center;margin-bottom:1.5rem">
+    <label for="sel-modality" style="color:var(--muted);font-size:0.9rem">Modality</label>
+    <select id="sel-modality" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:0.35rem 0.6rem">
+      <option value="">All</option>
+      <option value="stt">STT</option>
+      <option value="tts">TTS</option>
+      <option value="wake_word">Wake Word</option>
+      <option value="intent">Intent</option>
+    </select>
+    <label for="sel-type" style="color:var(--muted);font-size:0.9rem">Type</label>
+    <select id="sel-type" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:0.35rem 0.6rem">
+      <option value="">All</option>
+    </select>
+  </div>
+
+  <div id="dex-loading" class="card" aria-live="polite">Loading fighters…</div>
+  <div id="dex-empty" class="card" style="display:none">
+    No fighters found. Run the <code>export-pokedex</code> CLI / the <code>assemble.yml</code> Action to generate <code>competitors.json</code>.
+  </div>
+  <div id="dex-grid" style="display:none;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1rem"></div>
+
+  <script>
+    const BASE = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
+    const MODALITY_LABELS = { stt: 'STT', tts: 'TTS', wake_word: 'Wake Word', intent: 'Intent' };
+    const BADGE_CLASS = { stt: 'badge-stt', tts: 'badge-tts', wake_word: 'badge-ww', intent: 'badge-intent' };
+
+    function escHtml(str) {
+      return String(str).replace(/[&<>"']/g, c =>
+        ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c]);
+    }
+
+    function typeChip(type) {
+      const slug = type.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+      const known = ['gofai','fuzzy-match','neural-net','template-match','keyword-match','embedding','llm'];
+      const cls = known.includes(slug) ? `type-${slug}` : 'type-default';
+      return `<span class="type-chip ${cls}">${escHtml(type)}</span>`;
+    }
+
+    function fighterCard(c) {
+      const name = c.display_name || c.competitor_id;
+      const types = (c.types || []).map(typeChip).join(' ');
+      const langs = c.langs || [];
+      const config = Object.entries(c.config || {});
+      const links = Object.entries(c.links || {});
+      return `
+        <article class="card fighter" data-modality="${escHtml(c.modality)}"
+                 data-types="${escHtml((c.types || []).join('|').toLowerCase())}"
+                 style="margin-bottom:0;display:flex;flex-direction:column;gap:0.6rem">
+          <div style="display:flex;align-items:baseline;gap:0.6rem;flex-wrap:wrap">
+            <h2 style="margin:0;font-size:1.15rem">${escHtml(name)}</h2>
+            <span class="badge ${BADGE_CLASS[c.modality] || ''}">${escHtml(MODALITY_LABELS[c.modality] || c.modality)}</span>
+          </div>
+          <div>${types}</div>
+          <dl style="display:grid;grid-template-columns:auto 1fr;gap:0.25rem 0.75rem;font-size:0.85rem;margin:0">
+            <dt style="color:var(--muted)">ID</dt><dd style="margin:0;font-family:monospace">${escHtml(c.competitor_id)}</dd>
+            ${c.species ? `<dt style="color:var(--muted)">Species</dt><dd style="margin:0;font-family:monospace">${escHtml(c.species)}</dd>` : ''}
+            <dt style="color:var(--muted)">Plugin</dt><dd style="margin:0;font-family:monospace">${escHtml(c.plugin)}</dd>
+            ${c.model ? `<dt style="color:var(--muted)">Model</dt><dd style="margin:0;font-family:monospace">${escHtml(c.model)}</dd>` : ''}
+            <dt style="color:var(--muted)">Languages</dt><dd style="margin:0">${langs.length ? escHtml(langs.join(', ')) : 'any'}</dd>
+          </dl>
+          ${c.description ? `<p style="font-size:0.88rem;margin:0">${escHtml(c.description)}</p>` : ''}
+          ${config.length ? `
+            <details style="font-size:0.82rem">
+              <summary style="cursor:pointer;color:var(--muted)">config</summary>
+              <pre style="margin:0.4rem 0 0;font-size:0.78rem;overflow-x:auto;color:var(--muted)">${escHtml(JSON.stringify(c.config, null, 2))}</pre>
+            </details>` : ''}
+          ${links.length ? `
+            <p style="font-size:0.85rem;margin:0">
+              ${links.map(([label, url]) =>
+                `<a href="${escHtml(url)}" target="_blank" rel="noopener noreferrer">${escHtml(label)}</a>`
+              ).join(' · ')}
+            </p>` : ''}
+        </article>`;
+    }
+
+    function applyFilters() {
+      const modality = document.getElementById('sel-modality').value;
+      const type = document.getElementById('sel-type').value.toLowerCase();
+      document.querySelectorAll('.fighter').forEach(el => {
+        const show = (!modality || el.dataset.modality === modality)
+                  && (!type || el.dataset.types.split('|').includes(type));
+        el.style.display = show ? '' : 'none';
+      });
+    }
+
+    async function init() {
+      const loading = document.getElementById('dex-loading');
+      const empty = document.getElementById('dex-empty');
+      const grid = document.getElementById('dex-grid');
+
+      const payload = await fetch(`${BASE}data/competitors.json`)
+        .then(r => r.ok ? r.json() : null).catch(() => null);
+      loading.style.display = 'none';
+
+      const fighters = payload?.competitors || [];
+      if (!fighters.length) {
+        empty.style.display = '';
+        return;
+      }
+
+      const types = [...new Set(fighters.flatMap(c => c.types || []))].sort();
+      const selType = document.getElementById('sel-type');
+      types.forEach(t => {
+        const o = document.createElement('option');
+        o.value = t; o.textContent = t;
+        selType.appendChild(o);
+      });
+
+      grid.innerHTML = fighters.map(fighterCard).join('');
+      grid.style.display = 'grid';
+
+      ['sel-modality', 'sel-type'].forEach(id =>
+        document.getElementById(id).addEventListener('change', applyFilters));
+    }
+
+    init();
+  </script>
+</Base>
