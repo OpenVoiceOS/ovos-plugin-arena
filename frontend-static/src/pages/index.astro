@@ -4,15 +4,24 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
 ---
 <Base title="Home">
   <section>
-    <h1>OVOS Plugin Arena</h1>
-    <p>
-      <em>Which plugin should I use?</em> — answered with data. Reproducible benchmarks rank
-      OpenVoiceOS plugins on labelled datasets; blind A/B battles let the community refine
-      those rankings with human judgement. No servers, no accounts: the whole arena is this
-      GitHub repository.
-    </p>
+    <div style="text-align:center;padding:2.5rem 0 2rem">
+      <h1 style="font-size:clamp(2rem,5vw,3.1rem);font-weight:800;letter-spacing:-0.02em;line-height:1.15;margin-bottom:0.9rem">
+        Which plugin should I use?<br>
+        <span style="background:var(--gradient);-webkit-background-clip:text;background-clip:text;color:transparent">Let them fight.</span>
+      </h1>
+      <p style="max-width:640px;margin:0 auto 1.4rem;font-size:1.08rem">
+        Reproducible benchmarks rank OpenVoiceOS plugins on labelled datasets;
+        blind A/B battles let the community refine those rankings with human judgement.
+        No servers, no accounts — the whole arena is a GitHub repository.
+      </p>
+      <div style="display:flex;gap:0.75rem;justify-content:center;flex-wrap:wrap">
+        <a class="btn btn-primary" href={`${base}battle/`}>⚔️ Start voting</a>
+        <a class="btn" href={`${base}leaderboard/`}>Leaderboards</a>
+        <a class="btn" href={`${base}fighters/`}>Meet the fighters</a>
+      </div>
+    </div>
 
-    <div id="stats" class="card" style="display:none;gap:2rem;flex-wrap:wrap"></div>
+    <div id="stats" class="card" style="display:none;gap:2.5rem;flex-wrap:wrap;justify-content:center;text-align:center"></div>
 
     <div style="display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));margin-top:1.5rem;">
       <div class="card">

@@ -19,7 +19,9 @@ import Base from '../../layouts/Base.astro';
       <option value="stt">STT</option>
       <option value="tts">TTS</option>
       <option value="wake_word">Wake Word</option>
-      <option value="intent">Intent</option>
+      <option value="intent">Intent · Open</option>
+      <option value="intent_template">Intent · Template</option>
+      <option value="intent_keyword">Intent · Keyword</option>
     </select>
     <label for="sel-type" style="color:var(--muted);font-size:0.9rem">Type</label>
     <select id="sel-type" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:0.35rem 0.6rem">
@@ -35,8 +37,8 @@ import Base from '../../layouts/Base.astro';
 
   <script>
     const BASE = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
-    const MODALITY_LABELS = { stt: 'STT', tts: 'TTS', wake_word: 'Wake Word', intent: 'Intent' };
-    const BADGE_CLASS = { stt: 'badge-stt', tts: 'badge-tts', wake_word: 'badge-ww', intent: 'badge-intent' };
+    const MODALITY_LABELS = { stt: 'STT', tts: 'TTS', wake_word: 'Wake Word', intent: 'Intent · Open', intent_template: 'Intent · Template', intent_keyword: 'Intent · Keyword' };
+    const BADGE_CLASS = { stt: 'badge-stt', tts: 'badge-tts', wake_word: 'badge-ww', intent: 'badge-intent', intent_template: 'badge-intent', intent_keyword: 'badge-intent' };
     const KNOWN_TYPES = ['gofai','fuzzy-match','neural-net','template-match','keyword-match','embedding','llm','ensemble','transformer'];
     // hue per primary type — drives each fighter's colour family
     const TYPE_HUE = {

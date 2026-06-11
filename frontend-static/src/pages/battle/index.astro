@@ -98,8 +98,8 @@ import Base from '../../layouts/Base.astro';
     const BASE = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
     const GITHUB_REPO = import.meta.env.VITE_GITHUB_REPO || 'OpenVoiceOS/ovos-plugin-arena';
 
-    const BADGE_CLASS = { stt: 'badge-stt', tts: 'badge-tts', wake_word: 'badge-ww', intent: 'badge-intent' };
-    const MODALITY_LABELS = { stt: 'STT', tts: 'TTS', wake_word: 'Wake Word', intent: 'Intent' };
+    const BADGE_CLASS = { stt: 'badge-stt', tts: 'badge-tts', wake_word: 'badge-ww', intent: 'badge-intent', intent_template: 'badge-intent', intent_keyword: 'badge-intent' };
+    const MODALITY_LABELS = { stt: 'STT', tts: 'TTS', wake_word: 'Wake Word', intent: 'Intent · Open', intent_template: 'Intent · Template', intent_keyword: 'Intent · Keyword' };
 
     let battles = [];
     let currentIdx = 0;
@@ -156,7 +156,7 @@ import Base from '../../layouts/Base.astro';
       document.getElementById('vote-hint').textContent =
         'Clicking a vote button reveals the plugin identities and opens a prefilled GitHub issue. Submit it to record your vote.';
 
-      if (b.modality === 'intent') {
+      if (b.modality.startsWith('intent')) {
         showPanel('intent-panel');
         document.getElementById('intent-utterance').textContent = b.input_text || '';
         document.getElementById('intent-a').innerHTML = intentCardHtml(b.prediction_a);

@@ -18,37 +18,61 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
       *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
       :root {
-        --bg: #0d1117;
-        --surface: #161b22;
-        --border: #30363d;
-        --text: #e6edf3;
-        --muted: #8b949e;
+        --bg: #0b0e14;
+        --surface: #141923;
+        --surface-2: #1a2130;
+        --border: #2a3344;
+        --text: #e8edf4;
+        --muted: #93a0b4;
         --accent: #58a6ff;
         --accent-hover: #79c0ff;
+        --accent-2: #bc8cff;
+        --accent-3: #ff7eb6;
         --win: #3fb950;
         --loss: #f85149;
         --tie: #d29922;
-        --radius: 6px;
+        --radius: 10px;
+        --gradient: linear-gradient(100deg, var(--accent) 0%, var(--accent-2) 55%, var(--accent-3) 100%);
         --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+        --mono: ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace;
       }
 
       body {
-        background: var(--bg);
+        background:
+          radial-gradient(1100px 480px at 18% -8%, rgba(88, 166, 255, 0.13), transparent 60%),
+          radial-gradient(900px 420px at 85% -12%, rgba(188, 140, 255, 0.10), transparent 55%),
+          var(--bg);
+        background-attachment: fixed;
         color: var(--text);
         font-family: var(--font);
         font-size: 16px;
-        line-height: 1.5;
+        line-height: 1.55;
         min-height: 100vh;
       }
+
+      ::selection { background: rgba(88, 166, 255, 0.35); }
+      code, pre { font-family: var(--mono); }
+      code {
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        border-radius: 5px;
+        padding: 0.08rem 0.35rem;
+        font-size: 0.86em;
+      }
+      pre code { background: none; border: none; padding: 0; }
 
       a { color: var(--accent); text-decoration: none; }
       a:hover { color: var(--accent-hover); text-decoration: underline; }
       a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
       header {
-        background: var(--surface);
+        background: rgba(13, 17, 23, 0.85);
+        backdrop-filter: blur(10px);
         border-bottom: 1px solid var(--border);
         padding: 0 1.5rem;
+        position: sticky;
+        top: 0;
+        z-index: 10;
       }
       header nav {
         max-width: 1200px;
@@ -59,13 +83,21 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
         height: 56px;
       }
       header .logo {
-        font-weight: 700;
+        font-weight: 800;
         font-size: 1.1rem;
-        color: var(--text);
+        letter-spacing: -0.01em;
+        background: var(--gradient);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
         text-decoration: none;
         white-space: nowrap;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
       }
-      header .logo:hover { text-decoration: none; color: var(--accent-hover); }
+      header .logo .mark { font-size: 1.15rem; -webkit-text-fill-color: initial; }
+      header .logo:hover { text-decoration: none; filter: brightness(1.2); }
       header nav ul {
         display: flex;
         gap: 1.5rem;
@@ -85,12 +117,18 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
       p { margin-bottom: 1rem; color: var(--muted); }
 
       .card {
-        background: var(--surface);
+        background: linear-gradient(180deg, var(--surface-2) 0%, var(--surface) 100%);
         border: 1px solid var(--border);
         border-radius: var(--radius);
         padding: 1.25rem 1.5rem;
         margin-bottom: 1rem;
+        transition: border-color 0.18s, transform 0.18s, box-shadow 0.18s;
       }
+      .card:hover {
+        border-color: #3d4a61;
+        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+      }
+      article.card.fighter:hover { transform: translateY(-3px); }
 
       table {
         width: 100%;
@@ -112,7 +150,9 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
         border-bottom: 1px solid var(--border);
       }
       tr:last-child td { border-bottom: none; }
-      tr:hover td { background: rgba(255,255,255,0.02); }
+      tbody tr:nth-child(odd) td { background: rgba(255, 255, 255, 0.015); }
+      tr:hover td { background: rgba(88, 166, 255, 0.05); }
+      tbody tr:first-child td:first-child { color: var(--tie) !important; font-weight: 700; }
 
       .badge {
         display: inline-block;
@@ -163,19 +203,27 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
         text-decoration: none;
         transition: background 0.15s, border-color 0.15s;
       }
-      .btn:hover { background: rgba(255,255,255,0.05); border-color: var(--muted); text-decoration: none; }
+      .btn:hover { background: rgba(255,255,255,0.05); border-color: var(--muted); text-decoration: none; color: var(--text); }
       .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-      .btn-primary { background: var(--accent); color: #0d1117; border-color: var(--accent); font-weight: 600; }
-      .btn-primary:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
+      .btn-primary {
+        background: var(--gradient);
+        color: #0b0e14;
+        border-color: transparent;
+        font-weight: 700;
+      }
+      .btn-primary:hover { filter: brightness(1.12); color: #0b0e14; }
 
       footer {
         text-align: center;
-        padding: 2rem 1.5rem;
+        padding: 2.25rem 1.5rem;
         color: var(--muted);
         font-size: 0.85rem;
         border-top: 1px solid var(--border);
         margin-top: 4rem;
+        background: linear-gradient(180deg, transparent, rgba(20, 25, 35, 0.6));
       }
+      footer p { margin-bottom: 0.5rem; }
+      footer p:last-child { margin-bottom: 0; }
 
       .sr-only {
         position: absolute;
@@ -195,7 +243,7 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
   <body>
     <header>
       <nav aria-label="Main navigation">
-        <a class="logo" href={base}>OVOS Plugin Arena</a>
+        <a class="logo" href={base}><span class="mark" aria-hidden="true">⚔️</span>OVOS Plugin Arena</a>
         <ul role="list">
           <li><a href={`${base}`}>Home</a></li>
           <li><a href={`${base}leaderboard/`}>Leaderboards</a></li>
@@ -212,6 +260,12 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
       <p>
         OVOS Plugin Arena — <a href="https://github.com/OpenVoiceOS/ovos-plugin-arena">open source</a> ·
         Votes via GitHub Issues · Data refreshed hourly by GitHub Actions
+      </p>
+      <p>
+        Funded by the <a href="https://nlnet.nl/project/OpenVoiceOS" rel="noopener noreferrer" target="_blank">NGI0 Commons Fund</a> /
+        <a href="https://nlnet.nl" rel="noopener noreferrer" target="_blank">NLnet</a>
+        under grant № <a href="https://cordis.europa.eu/project/id/101135429" rel="noopener noreferrer" target="_blank">101135429</a>,
+        through the European Commission's <a href="https://ngi.eu" rel="noopener noreferrer" target="_blank">Next Generation Internet</a> programme.
       </p>
     </footer>
   </body>
