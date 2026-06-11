@@ -29,7 +29,7 @@ No enforced linter config; match the existing style (PEP 8, ~80-90 cols).
 - `arena/` — core library. `predictions.py` (JSONL/HF loading),
   `metrics.py` (benchmark scoring), `assembler.py` (deterministic battles +
   ELO seeding), `elo.py` (rating engine), `cli.py`
-  (assemble / tally / export-index / export-pokedex), `models.py`
+  (assemble / tally / export-index / export-bestiary), `models.py`
   (pydantic contracts for every JSON artifact).
 - `registry/` — declarative registry: `competitors/<modality>/<id>.json`,
   `datasets/<modality>/<id>.json`, pydantic schemas + loaders.

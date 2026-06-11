@@ -68,19 +68,45 @@ registry/*.json ──► benchmarks/<bench>.py ──► HF dataset
 
 ### 3.1 Declarative registry
 
-**Competitors** (`registry/competitors/<modality>/<id>.json`): one plugin
-entry point under one exact configuration. The same plugin with a different
-model or config is a *different competitor*. `competitor_id` is the stable
-key for predictions, battles, ELO and leaderboards. Pokedex card fields
-describe the fighter for the UI: `display_name`, `species` (the plugin class
-it instantiates), `types` (architecture tags: `GOFAI`, `fuzzy-match`,
-`neural-net`, `template-match`, `keyword-match`, `embedding`, `LLM`),
-`description`, `model`, `links`.
+**Competitors** (`registry/competitors/<modality>/<id>.json`): a
+*configuration you could ship*. For the intent modality, `config` MUST be a
+valid `mycroft.conf` fragment — an `intents` section with an ordered
+`pipeline` list of `<plugin>-<tier>` stages plus per-plugin config blocks:
 
-**Datasets** (`registry/datasets/<modality>/<id>.json`): one benchmark
-corpus — source (HF id + revision + split), reference field mapping, license,
-`lang` (or `lang: multi` plus a `langs` list), and `role: eval` for held-out
-sets that gate leaderboard metrics.
+```json
+{
+  "competitor_id": "padatious-medium",
+  "modality": "intent",
+  "config": {
+    "intents": {
+      "pipeline": ["ovos-padatious-pipeline-plugin-medium"],
+      "ovos-padatious-pipeline-plugin": {}
+    }
+  }
+}
+```
+
+A single-stage pipeline benchmarks one engine. A multi-stage pipeline is an
+**ensemble** fighter in its own right (e.g. the stock OVOS cascade) — first
+stage whose own confidence gate fires wins, exactly like ovos-core. The same
+plugin under a different config is a *different competitor*; `competitor_id`
+is the stable key for predictions, battles, ELO and leaderboards. Bestiary
+card fields describe the fighter for the UI: `display_name`, `species` (the
+plugin class it instantiates), `types` (architecture tags: `GOFAI`,
+`fuzzy-match`, `neural-net`, `template-match`, `keyword-match`, `embedding`,
+`LLM`, `ensemble`), `description`, `model`, `links`.
+
+**Datasets** (`registry/datasets/<modality>/<id>.json`): one corpus per
+entry — source (HF id + revision + split or per-lang `file_pattern`),
+`reference_fields` (the datashape contract), license, `lang` (or
+`lang: multi` plus a `langs` list), and a `role`. **Keyword-paradigm and
+template-paradigm training corpora are different datasets with different
+datashapes**: each gets its own `role: train` entry tagged with `paradigm`
+(`template` rows carry `{slot}` phrase templates with example values;
+`keyword` rows carry complete Adapt-style `required_vocab`/`optional_vocab`
+rules). A `role: eval` corpus links its paradigm-specific training sets via
+`train_datasets`, and every stage plugin trains from the corpus matching its
+paradigm.
 
 ### 3.2 Prediction contract
 
@@ -125,13 +151,13 @@ A benchmark script (`benchmarks/<bench>.py`) MUST:
 | `benchmark-<mod>-<lang>.json` | Auto-metric board straight from predictions |
 | `elo-seed-<mod>-<lang>.json` | Benchmark-derived initial ELO ledger |
 | `leaderboard-<mod>-<lang>.json` | ELO board (seed + human votes) |
-| `competitors.json` | Pokedex export of the registry |
+| `competitors.json` | Bestiary export of the registry |
 | `index.json` | Catalogue of all of the above |
 
 ### 3.5 Frontend
 
 Static Astro site: leaderboards (benchmark boards beside ELO boards),
-blind battle page, and the fighters pokedex. Plugin identities MUST NOT be
+blind battle page, and the fighters bestiary. Plugin identities MUST NOT be
 revealed before the vote is committed (post-vote reveal is encouraged).
 Voting options MUST include: candidate A, candidate B, tie, both-wrong.
 

@@ -50,7 +50,7 @@ frontend-static/public/data/ battles-*.json     blind A/B pools
                              benchmark-*.json   auto-metric boards
                              elo-seed-*.json    benchmark-derived initial ELO
                              leaderboard-*.json ELO boards
-                             competitors.json   fighter pokedex
+                             competitors.json   fighter bestiary
    │
    ▼  Astro build → GitHub Pages
 voter picks A/B  →  prefilled GitHub issue  →  tally.yml (hourly)
@@ -69,13 +69,18 @@ deterministic, so the standings are reproducible from public data alone.
 
 ## The fighters
 
-Each fighter is a plugin class (**species**) under a specific configuration,
-tagged with architecture **types** (GOFAI, fuzzy-match, neural-net, …).
-Browse them in the **Fighters** pokedex page of the site, or in
-`registry/competitors/`. Current intent roster: Padatious, Padacioso,
-Nebulento, Adapt, Palavreado — all evaluated end-to-end through their real OPM
-pipeline plugins (`match_medium` confidence gate, the plugin owns its
-threshold).
+Each fighter is a *shippable configuration*: its `config` is a valid
+`mycroft.conf` fragment — an `intents` section with a tier-suffixed
+`pipeline` plus per-plugin config blocks. Single-stage pipelines benchmark
+one engine; multi-stage pipelines are **ensemble** fighters (the stock OVOS
+cascade competes as one). Fighters carry a **species** (the plugin class
+they instantiate) and architecture **types** (GOFAI, fuzzy-match,
+neural-net, ensemble, …), and each gets a procedurally generated sprite
+derived from its id hash. Browse the bestiary on the **Fighters** page or
+in `registry/competitors/`. Current intent roster: Padatious, Padacioso,
+Nebulento, Adapt, Palavreado at their own `match_medium` gates, plus the
+OVOS default cascade — all evaluated end-to-end through the real OPM
+pipeline plugins (the plugin owns its thresholds; the arena owns none).
 
 ## Running a benchmark
 
@@ -95,7 +100,7 @@ runner version. Uploading requires HF write access to the results repo.
 ```bash
 pip install ".[hf]"
 python -m arena.cli assemble --predictions OpenVoiceOS/ovos-intent-bench-intents-for-eval
-python -m arena.cli export-pokedex
+python -m arena.cli export-bestiary
 python -m arena.cli export-index
 python -m arena.cli tally --keep-issues-open   # dry-run vote tally
 
@@ -131,7 +136,7 @@ python -m pytest tests/ -q
 | `benchmarks/` | One reproducible prediction script per benchmark |
 | `runner/` | Plugin adapters used by bench scripts (intent pipeline, STT runner) |
 | `arena/` | Core library: prediction loading, metrics, battles, ELO, CLI |
-| `frontend-static/` | Astro static site (leaderboards, battles, pokedex) |
+| `frontend-static/` | Astro static site (leaderboards, battles, bestiary) |
 | `.github/workflows/assemble.yml` | Daily data refresh from HF predictions |
 | `.github/workflows/tally.yml` | Hourly vote tally → leaderboards |
 | `.github/workflows/pages.yml` | Astro build + Pages deploy |
