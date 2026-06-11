@@ -176,6 +176,13 @@ class BenchmarkBoard(BaseModel):
     lang: str
     generated_at: str
     primary_metric: str
+    dataset_info: Optional[Dict[str, Any]] = Field(
+        None,
+        description=(
+            "Registry metadata for the eval corpus: url, license, notes, "
+            "and the HF predictions repo(s) the board was assembled from."
+        ),
+    )
     entries: List[BenchmarkEntry] = Field(default_factory=list)
 
 

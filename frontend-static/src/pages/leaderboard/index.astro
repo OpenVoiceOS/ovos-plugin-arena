@@ -1,49 +1,72 @@
 ---
 import Base from '../../layouts/Base.astro';
 ---
-<Base title="Leaderboards" description="Benchmark and ELO leaderboards for OVOS plugins — per modality and language.">
+<Base title="Leaderboards" description="Benchmark and ELO leaderboards for OVOS plugins — per league and language.">
   <h1>Leaderboards</h1>
   <p>
-    Two board kinds per modality and language: <strong>benchmark boards</strong> computed
-    directly from prediction runs against labelled datasets, and <strong>ELO boards</strong>
-    seeded from those benchmarks and refined by human votes.
+    One tab per league. <strong>Benchmark boards</strong> are computed directly from
+    prediction runs against labelled datasets; <strong>ELO boards</strong> are seeded
+    from those benchmarks and refined by human votes in <a href="../battle/">blind battles</a>.
   </p>
-
-  <div id="lb-filters" class="card" style="display:flex;gap:1rem;flex-wrap:wrap;align-items:center;margin-bottom:1.5rem">
-    <label for="sel-kind" style="color:var(--muted);font-size:0.9rem">Board</label>
-    <select id="sel-kind" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:0.35rem 0.6rem">
-      <option value="">All</option>
-      <option value="benchmark">Benchmarks</option>
-      <option value="elo">ELO</option>
-    </select>
-    <label for="sel-modality" style="color:var(--muted);font-size:0.9rem">Modality</label>
-    <select id="sel-modality" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:0.35rem 0.6rem">
-      <option value="">All</option>
-      <option value="stt">STT</option>
-      <option value="tts">TTS</option>
-      <option value="wake_word">Wake Word</option>
-      <option value="intent">Intent · Open</option>
-      <option value="intent_template">Intent · Template</option>
-      <option value="intent_keyword">Intent · Keyword</option>
-    </select>
-    <label for="sel-lang" style="color:var(--muted);font-size:0.9rem">Language</label>
-    <select id="sel-lang" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:0.35rem 0.6rem">
-      <option value="">All</option>
-    </select>
-  </div>
 
   <div id="lb-loading" class="card" aria-live="polite">Loading leaderboard data…</div>
   <div id="lb-empty" class="card" style="display:none">
     No leaderboard data found. Run the <code>assemble.yml</code> GitHub Action to generate data.
   </div>
-  <div id="lb-tables" style="display:none"></div>
+
+  <div id="lb-app" style="display:none">
+    <div id="league-tabs" role="tablist" aria-label="Leagues"
+         style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1rem"></div>
+
+    <div class="card" style="display:flex;gap:1rem;flex-wrap:wrap;align-items:center">
+      <label for="sel-lang" style="color:var(--muted);font-size:0.9rem">Language</label>
+      <select id="sel-lang" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:0.35rem 0.6rem"></select>
+      <div id="dataset-info" style="font-size:0.85rem;color:var(--muted);flex:1;min-width:260px"></div>
+    </div>
+
+    <div id="lb-panels"></div>
+  </div>
+
+  <style>
+    .league-tab {
+      padding: 0.45rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--surface);
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .league-tab:hover { color: var(--text); border-color: var(--muted); }
+    .league-tab[aria-selected="true"] {
+      background: var(--gradient);
+      color: #fff;
+      border-color: transparent;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.35);
+    }
+    .board-grid { display: grid; gap: 1.25rem; }
+    .board-grid table { font-size: 0.95rem; min-width: 640px; }
+    .board-grid th {
+      white-space: nowrap;
+      font-size: 0.78rem;
+      padding: 0.7rem 0.9rem;
+    }
+    .board-grid td { padding: 0.7rem 0.9rem; white-space: nowrap; }
+    .board-grid td:nth-child(2) { white-space: normal; min-width: 200px; }
+  </style>
 
   <script>
     const BASE = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
 
-    const MODALITY_LABELS = { stt: 'STT', tts: 'TTS', wake_word: 'Wake Word', intent: 'Intent · Open', intent_template: 'Intent · Template', intent_keyword: 'Intent · Keyword' };
-    const BADGE_CLASS = { stt: 'badge-stt', tts: 'badge-tts', wake_word: 'badge-ww', intent: 'badge-intent', intent_template: 'badge-intent', intent_keyword: 'badge-intent' };
-    // Benchmark metric columns: [key, label, percent?]
+    const LEAGUE_LABELS = {
+      intent_template: 'Intent · Template',
+      intent_keyword: 'Intent · Keyword',
+      intent: 'Intent · Fusions',
+      stt: 'STT', tts: 'TTS', wake_word: 'Wake Word',
+    };
+    const LEAGUE_ORDER = ['intent_template', 'intent_keyword', 'intent', 'stt', 'tts', 'wake_word'];
     const METRIC_COLUMNS = [
       ['accuracy', 'Accuracy', true],
       ['macro_f1', 'Macro F1', true],
@@ -54,161 +77,142 @@ import Base from '../../layouts/Base.astro';
       ['latency_ms_median', 'Latency (ms)', false],
     ];
 
-    function escHtml(str) {
-      return String(str).replace(/[&<>"']/g, c =>
-        ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c]);
+    let benchmarks = [], elos = [];
+    let league = '', lang = '';
+
+    const esc = s => String(s).replace(/[&<>"']/g, c =>
+      ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c]);
+    const pct = v => v == null ? '—' : (v * 100).toFixed(1) + '%';
+    const fetchJson = p => fetch(p).then(r => r.ok ? r.json() : null).catch(() => null);
+
+    function fighterCell(e) {
+      return `<td><strong>${esc(e.competitor_id)}</strong><br>
+        <small style="color:var(--muted)">${esc(e.plugin_id || '')}</small></td>`;
     }
 
-    async function fetchJson(path) {
-      return fetch(path).then(r => r.ok ? r.json() : null).catch(() => null);
-    }
-
-    function badgeHtml(modality) {
-      const label = MODALITY_LABELS[modality] || modality;
-      return `<span class="badge ${BADGE_CLASS[modality] || ''}">${escHtml(label)}</span>`;
-    }
-
-    function pct(value) {
-      return value == null ? '—' : (value * 100).toFixed(1) + '%';
-    }
-
-    function sectionShell(kind, board, title, note, table) {
-      return `
-        <section class="card lb-section" data-kind="${kind}"
-                 data-modality="${escHtml(board.modality)}" data-lang="${escHtml(board.lang || '')}">
-          <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap">
-            <h2 style="margin:0">${escHtml(title)}</h2>
-            ${badgeHtml(board.modality)}
-            <span style="color:var(--muted);font-size:0.85rem">${escHtml(board.lang || '')}</span>
-          </div>
-          ${note ? `<p style="font-size:0.85rem;margin:0.5rem 0 0.75rem">${note}</p>` : ''}
-          <div style="overflow-x:auto">${table}</div>
-          ${board.generated_at ? `<p style="font-size:0.8rem;margin:0.75rem 0 0">Updated ${new Date(board.generated_at).toLocaleString()}</p>` : ''}
-        </section>`;
-    }
-
-    function renderBenchmark(board) {
-      if (!board.entries || !board.entries.length) return '';
-      const present = METRIC_COLUMNS.filter(([key]) =>
-        board.entries.some(e => e.metrics && e.metrics[key] != null));
+    function benchmarkTable(board) {
+      if (!board?.entries?.length) return '<div class="card"><p style="margin:0">No benchmark data for this league/language yet.</p></div>';
+      const present = METRIC_COLUMNS.filter(([k]) => board.entries.some(e => e.metrics?.[k] != null));
       const buckets = [...new Set(board.entries.flatMap(e =>
         Object.keys(e.metrics || {}).filter(k => k.startsWith('acc_'))))].sort();
-
-      const head = ['<th>Rank</th><th>Fighter</th>',
-        ...present.map(([, label]) => `<th>${label}</th>`),
-        ...buckets.map(b => `<th class="bucket-col" style="display:none">${escHtml(b.slice(4))}</th>`),
+      const head = ['<th>#</th><th>Fighter</th>',
+        ...present.map(([, l]) => `<th>${l}</th>`),
+        ...buckets.map(b => `<th class="bucket-col" style="display:none">${esc(b.slice(4))}</th>`),
         '<th>Samples</th>'].join('');
-
-      const rows = board.entries.map(e => `
-        <tr>
-          <td style="text-align:right;width:3rem;color:var(--muted)">#${e.rank}</td>
-          <td><strong>${escHtml(e.competitor_id)}</strong><br>
-              <small style="color:var(--muted)">${escHtml(e.plugin_id || '')}</small></td>
-          ${present.map(([key, , isPct]) => {
-            const v = e.metrics ? e.metrics[key] : null;
-            return `<td>${v == null ? '—' : (isPct ? pct(v) : v)}</td>`;
-          }).join('')}
-          ${buckets.map(b => `<td class="bucket-col" style="display:none">${pct(e.metrics?.[b])}</td>`).join('')}
-          <td>${e.samples}</td>
-        </tr>`).join('');
-
-      const note = `Computed from prediction runs against <code>${escHtml(board.dataset_id || '')}</code>.
-        Primary metric: <strong>${escHtml(board.primary_metric)}</strong>.
-        ${buckets.length ? `<button class="btn toggle-buckets" style="padding:0.15rem 0.6rem;font-size:0.78rem;margin-left:0.5rem">show buckets</button>` : ''}`;
-
-      const table = `<table aria-label="Benchmark board"><thead><tr>${head}</tr></thead><tbody>${rows}</tbody></table>`;
-      return sectionShell('benchmark', board, 'Benchmark', note, table);
+      const rows = board.entries.map(e => `<tr>
+        <td style="text-align:right;width:2.4rem;color:var(--muted)">${e.rank}</td>
+        ${fighterCell(e)}
+        ${present.map(([k,,p]) => `<td>${e.metrics?.[k] == null ? '—' : (p ? pct(e.metrics[k]) : e.metrics[k])}</td>`).join('')}
+        ${buckets.map(b => `<td class="bucket-col" style="display:none">${pct(e.metrics?.[b])}</td>`).join('')}
+        <td>${e.samples}</td></tr>`).join('');
+      return `<section class="card" style="margin:0">
+        <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap">
+          <h2 style="margin:0;font-size:1.25rem">📊 Benchmark</h2>
+          <span style="color:var(--muted);font-size:0.8rem">primary: ${esc(board.primary_metric)}</span>
+          ${buckets.length ? '<button class="btn toggle-buckets" style="padding:0.1rem 0.6rem;font-size:0.75rem;margin-left:auto">show buckets</button>' : ''}
+        </div>
+        <div style="overflow-x:auto;margin-top:0.9rem">
+          <table><thead><tr>${head}</tr></thead><tbody>${rows}</tbody></table>
+        </div>
+      </section>`;
     }
 
-    function renderElo(board) {
-      if (!board.entries || !board.entries.length) return '';
-      const rows = board.entries.map(e => `
-        <tr>
-          <td style="text-align:right;width:3rem;color:var(--muted)">#${e.rank}</td>
-          <td><strong>${escHtml(e.competitor_id)}</strong><br>
-              <small style="color:var(--muted)">${escHtml(e.plugin_id || '')}</small></td>
-          <td style="font-weight:600">${Math.round(e.elo)}</td>
-          <td>${e.battles}</td>
-          <td style="color:var(--win)">${e.wins}</td>
-          <td style="color:var(--loss)">${e.losses}</td>
-          <td style="color:var(--tie)">${e.ties}</td>
-          <td>${e.battles ? (e.win_rate * 100).toFixed(1) + '%' : '—'}</td>
-          <td>${e.human_votes}</td>
-        </tr>`).join('');
-
-      const note = `Seeded from ${board.vote_count - board.human_vote_count} benchmark auto-battles
-        (reduced K-factor) + <strong>${board.human_vote_count}</strong> human votes via
-        <a href="${BASE}battle/">blind battles</a>.`;
-
-      const table = `<table aria-label="ELO board"><thead><tr>
-          <th>Rank</th><th>Fighter</th><th>ELO</th><th>Battles</th>
-          <th>Wins</th><th>Losses</th><th>Ties</th><th>Win rate</th><th>Human votes</th>
-        </tr></thead><tbody>${rows}</tbody></table>`;
-      return sectionShell('elo', board, 'ELO', note, table);
+    function eloTable(board) {
+      if (!board?.entries?.length) return '<div class="card" style="margin:0"><p style="margin:0">No ELO standings yet — they appear after the first assemble run.</p></div>';
+      const rows = board.entries.map(e => `<tr>
+        <td style="text-align:right;width:2.4rem;color:var(--muted)">${e.rank}</td>
+        ${fighterCell(e)}
+        <td style="font-weight:700">${Math.round(e.elo)}</td>
+        <td style="color:var(--win)">${e.wins}</td>
+        <td style="color:var(--loss)">${e.losses}</td>
+        <td style="color:var(--tie)">${e.ties}</td>
+        <td>${e.human_votes}</td></tr>`).join('');
+      return `<section class="card" style="margin:0">
+        <div style="display:flex;align-items:baseline;gap:0.6rem;flex-wrap:wrap">
+          <h2 style="margin:0;font-size:1.25rem">⚔️ ELO</h2>
+          <span style="color:var(--muted);font-size:0.8rem">
+            ${board.vote_count - board.human_vote_count} auto-battles + ${board.human_vote_count} human votes
+          </span>
+        </div>
+        <div style="overflow-x:auto;margin-top:0.9rem">
+          <table><thead><tr><th>#</th><th>Fighter</th><th>ELO</th>
+            <th>Wins</th><th>Losses</th><th>Ties</th><th>Human votes</th></tr></thead>
+          <tbody>${rows}</tbody></table>
+        </div>
+      </section>`;
     }
 
-    function applyFilters() {
-      const kind = document.getElementById('sel-kind').value;
-      const modality = document.getElementById('sel-modality').value;
-      const lang = document.getElementById('sel-lang').value;
-      document.querySelectorAll('.lb-section').forEach(el => {
-        const show = (!kind || el.dataset.kind === kind)
-                  && (!modality || el.dataset.modality === modality)
-                  && (!lang || el.dataset.lang === lang);
-        el.style.display = show ? '' : 'none';
-      });
-    }
-
-    async function init() {
-      const loading = document.getElementById('lb-loading');
-      const empty = document.getElementById('lb-empty');
-      const tables = document.getElementById('lb-tables');
-
-      const index = await fetchJson(`${BASE}data/index.json`);
-      const benchRefs = index?.benchmarks || [];
-      const eloRefs = index?.leaderboards || [];
-
-      const benchmarks = (await Promise.all(
-        benchRefs.map(ref => fetchJson(`${BASE}data/${ref.file}`)))).filter(Boolean);
-      const elos = (await Promise.all(
-        eloRefs.map(ref => fetchJson(`${BASE}data/${ref.file}`)))).filter(Boolean);
-
-      loading.style.display = 'none';
-      if (!benchmarks.length && !elos.length) {
-        empty.style.display = '';
-        return;
+    function datasetInfoHtml(board) {
+      if (!board) return '';
+      const info = board.dataset_info || {};
+      const parts = [];
+      if (board.dataset_id) {
+        parts.push(info.url
+          ? `Dataset: <a href="${esc(info.url)}" target="_blank" rel="noopener noreferrer"><code>${esc(board.dataset_id)}</code></a>`
+          : `Dataset: <code>${esc(board.dataset_id)}</code>`);
       }
+      if (info.license) parts.push(`license: ${esc(info.license)}`);
+      for (const url of info.predictions || []) {
+        parts.push(`<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">predictions ↗</a>`);
+      }
+      if (board.generated_at) parts.push(`updated ${new Date(board.generated_at).toLocaleString()}`);
+      return parts.join(' · ');
+    }
 
-      const langs = [...new Set([...benchmarks, ...elos].map(b => b.lang).filter(Boolean))].sort();
-      const selLang = document.getElementById('sel-lang');
-      langs.forEach(l => {
-        const o = document.createElement('option');
-        o.value = l; o.textContent = l;
-        selLang.appendChild(o);
-      });
-
-      // Interleave per (modality, lang): benchmark first, ELO beside it
-      const keys = [...new Set([...benchmarks, ...elos].map(b => `${b.modality}|${b.lang}`))].sort();
-      tables.innerHTML = keys.map(key => {
-        const [modality, lang] = key.split('|');
-        const bench = benchmarks.find(b => b.modality === modality && b.lang === lang);
-        const elo = elos.find(b => b.modality === modality && b.lang === lang);
-        return (bench ? renderBenchmark(bench) : '') + (elo ? renderElo(elo) : '');
-      }).join('');
-      tables.style.display = '';
-
-      tables.querySelectorAll('.toggle-buckets').forEach(btn => {
+    function render() {
+      const bench = benchmarks.find(b => b.modality === league && b.lang === lang);
+      const elo = elos.find(b => b.modality === league && b.lang === lang);
+      document.getElementById('dataset-info').innerHTML = datasetInfoHtml(bench);
+      const panels = document.getElementById('lb-panels');
+      panels.innerHTML = `<div class="board-grid">${benchmarkTable(bench)}${eloTable(elo)}</div>`;
+      panels.querySelectorAll('.toggle-buckets').forEach(btn => {
         btn.addEventListener('click', () => {
-          const section = btn.closest('.lb-section');
-          const cols = section.querySelectorAll('.bucket-col');
+          const cols = btn.closest('section').querySelectorAll('.bucket-col');
           const hidden = cols.length && cols[0].style.display === 'none';
           cols.forEach(c => c.style.display = hidden ? '' : 'none');
           btn.textContent = hidden ? 'hide buckets' : 'show buckets';
         });
       });
+    }
 
-      ['sel-kind', 'sel-modality', 'sel-lang'].forEach(id =>
-        document.getElementById(id).addEventListener('change', applyFilters));
+    function setLeague(next) {
+      league = next;
+      document.querySelectorAll('.league-tab').forEach(t =>
+        t.setAttribute('aria-selected', t.dataset.league === league ? 'true' : 'false'));
+      const langs = [...new Set([...benchmarks, ...elos]
+        .filter(b => b.modality === league).map(b => b.lang))].sort();
+      const sel = document.getElementById('sel-lang');
+      sel.innerHTML = langs.map(l => `<option value="${esc(l)}">${esc(l)}</option>`).join('');
+      lang = langs.includes(lang) ? lang : (langs.includes('en-US') ? 'en-US' : langs[0] || '');
+      sel.value = lang;
+      render();
+    }
+
+    async function init() {
+      const index = await fetchJson(`${BASE}data/index.json`);
+      benchmarks = (await Promise.all((index?.benchmarks || []).map(r => fetchJson(`${BASE}data/${r.file}`)))).filter(Boolean);
+      elos = (await Promise.all((index?.leaderboards || []).map(r => fetchJson(`${BASE}data/${r.file}`)))).filter(Boolean);
+
+      document.getElementById('lb-loading').style.display = 'none';
+      if (!benchmarks.length && !elos.length) {
+        document.getElementById('lb-empty').style.display = '';
+        return;
+      }
+
+      const leagues = LEAGUE_ORDER.filter(m =>
+        benchmarks.some(b => b.modality === m) || elos.some(b => b.modality === m));
+      const tabs = document.getElementById('league-tabs');
+      tabs.innerHTML = leagues.map(m =>
+        `<button class="league-tab" role="tab" data-league="${m}" aria-selected="false">${LEAGUE_LABELS[m] || m}</button>`).join('');
+      tabs.querySelectorAll('.league-tab').forEach(t =>
+        t.addEventListener('click', () => setLeague(t.dataset.league)));
+
+      document.getElementById('sel-lang').addEventListener('change', e => {
+        lang = e.target.value; render();
+      });
+
+      document.getElementById('lb-app').style.display = '';
+      setLeague(leagues[0]);
     }
 
     init();

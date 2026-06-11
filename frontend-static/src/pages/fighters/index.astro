@@ -27,7 +27,42 @@ import Base from '../../layouts/Base.astro';
     <select id="sel-type" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:0.35rem 0.6rem">
       <option value="">All</option>
     </select>
+    <label for="sel-flang" style="color:var(--muted);font-size:0.9rem">Language</label>
+    <select id="sel-flang" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:0.35rem 0.6rem">
+      <option value="">All</option>
+    </select>
   </div>
+
+  <style>
+    #dex-grid { justify-content: center; }
+    .fighter {
+      margin-bottom: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.7rem;
+      text-align: center;
+    }
+    .fighter-hero { display: flex; flex-direction: column; align-items: center; gap: 0.45rem; }
+    .fighter-hero svg { filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.45)); }
+    .fighter-hero h2 { margin: 0.2rem 0 0; font-size: 1.2rem; letter-spacing: -0.01em; }
+    .fighter-types { display: flex; gap: 0.3rem; flex-wrap: wrap; justify-content: center; }
+    .fighter-desc { font-size: 0.86rem; margin: 0; }
+    .fighter-stats {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 0.3rem 0.8rem;
+      font-size: 0.82rem;
+      margin: 0;
+      text-align: left;
+      background: rgba(0, 0, 0, 0.22);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.7rem 0.9rem;
+    }
+    .fighter-stats dt { color: var(--muted); font-weight: 600; }
+    .fighter-stats dd { margin: 0; font-family: var(--mono); word-break: break-word; }
+    .fighter-foot { margin-top: auto; }
+  </style>
 
   <div id="dex-loading" class="card" aria-live="polite">Loading fighters…</div>
   <div id="dex-empty" class="card" style="display:none">
@@ -36,95 +71,16 @@ import Base from '../../layouts/Base.astro';
   <div id="dex-grid" style="display:none;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1rem"></div>
 
   <script>
+    import { spriteSvg, TYPE_HUE } from '../../lib/sprite.js';
+
     const BASE = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
     const MODALITY_LABELS = { stt: 'STT', tts: 'TTS', wake_word: 'Wake Word', intent: 'Intent · Open', intent_template: 'Intent · Template', intent_keyword: 'Intent · Keyword' };
     const BADGE_CLASS = { stt: 'badge-stt', tts: 'badge-tts', wake_word: 'badge-ww', intent: 'badge-intent', intent_template: 'badge-intent', intent_keyword: 'badge-intent' };
     const KNOWN_TYPES = ['gofai','fuzzy-match','neural-net','template-match','keyword-match','embedding','llm','ensemble','transformer'];
-    // hue per primary type — drives each fighter's colour family
-    const TYPE_HUE = {
-      'gofai': 45, 'fuzzy-match': 25, 'neural-net': 212, 'template-match': 135,
-      'keyword-match': 185, 'embedding': 270, 'llm': 355, 'ensemble': 310,
-      'transformer': 212,
-    };
 
     function escHtml(str) {
       return String(str).replace(/[&<>"']/g, c =>
         ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c]);
-    }
-
-    // -- procedural fighter sprites -------------------------------------
-    // Deterministic pixel-creature generated from the competitor id hash:
-    // a 5×5 mirrored body grid (identicon style), eyes on a hash-picked
-    // row, colours from the primary type's hue with hash jitter.
-
-    function hashString(str) {
-      let h = 2166136261 >>> 0;            // FNV-1a
-      for (let i = 0; i < str.length; i++) {
-        h ^= str.charCodeAt(i);
-        h = Math.imul(h, 16777619) >>> 0;
-      }
-      return h;
-    }
-
-    function* bitStream(seed) {
-      let state = seed >>> 0;
-      while (true) {
-        // xorshift32
-        state ^= state << 13; state >>>= 0;
-        state ^= state >> 17;
-        state ^= state << 5; state >>>= 0;
-        yield state;
-      }
-    }
-
-    function fighterSprite(c, size = 72) {
-      const seed = hashString(c.competitor_id);
-      const bits = bitStream(seed);
-      const next = () => bits.next().value;
-
-      const primary = ((c.types || [])[0] || '').toLowerCase().replace(/[^a-z0-9]+/g, '-');
-      const hue = TYPE_HUE[primary] ?? (seed % 360);
-      const hueJitter = (next() % 21) - 10;
-      const bodyH = (hue + hueJitter + 360) % 360;
-      const body = `hsl(${bodyH} ${55 + next() % 25}% ${48 + next() % 14}%)`;
-      const shade = `hsl(${bodyH} 60% 30%)`;
-      const bg = `hsl(${bodyH} 35% 14%)`;
-
-      // 5 wide (3 mirrored) × 5 tall body mask, ~60% fill
-      const grid = [];
-      for (let y = 0; y < 5; y++) {
-        const row = [];
-        for (let x = 0; x < 3; x++) row.push(next() % 100 < 62);
-        grid.push([row[0], row[1], row[2], row[1], row[0]]);
-      }
-      // guarantee a head and a torso pixel so every creature has a core
-      grid[1][2] = true;
-      grid[2][1] = grid[2][2] = grid[2][3] = true;
-
-      const eyeRow = 1 + (next() % 2);            // eyes on row 1 or 2
-      const eyeCol = next() % 2 ? 1 : 0;          // inner or outer pair
-      grid[eyeRow][1 + eyeCol] = true;
-      grid[eyeRow][3 - eyeCol] = true;
-
-      const cell = 10, pad = 6;                   // viewBox 62×62
-      let pixels = '';
-      for (let y = 0; y < 5; y++) {
-        for (let x = 0; x < 5; x++) {
-          if (!grid[y][x]) continue;
-          const edge = y === 4 || !grid[y + 1]?.[x];
-          pixels += `<rect x="${pad + x * cell}" y="${pad + y * cell}" width="${cell}" height="${cell}" rx="2.5" fill="${edge ? shade : body}"/>`;
-        }
-      }
-      // eyes: white sclera + dark pupil, blink-proof and always on top
-      for (const ex of [1 + eyeCol, 3 - eyeCol]) {
-        const cx = pad + ex * cell + cell / 2;
-        const cy = pad + eyeRow * cell + cell / 2;
-        pixels += `<circle cx="${cx}" cy="${cy}" r="3.2" fill="#f4f7fa"/>`
-                + `<circle cx="${cx + (ex < 2 ? 0.9 : -0.9)}" cy="${cy + 0.6}" r="1.6" fill="#10151c"/>`;
-      }
-      return `<svg width="${size}" height="${size}" viewBox="0 0 62 62" role="img"
-                   aria-label="Generated sprite for ${escHtml(c.competitor_id)}">
-        <rect width="62" height="62" rx="12" fill="${bg}"/>${pixels}</svg>`;
     }
 
     function typeChip(type) {
@@ -140,50 +96,63 @@ import Base from '../../layouts/Base.astro';
       const config = Object.entries(c.config || {});
       const links = Object.entries(c.links || {});
       const pipeline = c.config?.intents?.pipeline || [];
+      const langsLabel = !langs.length ? 'any language'
+        : langs.length > 6 ? `${langs.length} languages`
+        : langs.join(', ');
       return `
         <article class="card fighter" data-modality="${escHtml(c.modality)}"
                  data-types="${escHtml((c.types || []).join('|').toLowerCase())}"
-                 style="margin-bottom:0;display:flex;flex-direction:column;gap:0.6rem">
-          <div style="display:flex;align-items:center;gap:0.9rem">
-            ${fighterSprite(c)}
-            <div style="display:flex;flex-direction:column;gap:0.35rem">
-              <div style="display:flex;align-items:baseline;gap:0.6rem;flex-wrap:wrap">
-                <h2 style="margin:0;font-size:1.15rem">${escHtml(name)}</h2>
-                <span class="badge ${BADGE_CLASS[c.modality] || ''}">${escHtml(MODALITY_LABELS[c.modality] || c.modality)}</span>
-              </div>
-              <div>${types}</div>
-            </div>
+                 data-langs="${escHtml(langs.join('|').toLowerCase())}">
+          <div class="fighter-hero">
+            ${spriteSvg(c.competitor_id, (c.types || [])[0] || '', 84)}
+            <h2>${escHtml(name)}</h2>
+            <span class="badge ${BADGE_CLASS[c.modality] || ''}">${escHtml(MODALITY_LABELS[c.modality] || c.modality)}</span>
+            <div class="fighter-types">${types}</div>
           </div>
-          <dl style="display:grid;grid-template-columns:auto 1fr;gap:0.25rem 0.75rem;font-size:0.85rem;margin:0">
-            <dt style="color:var(--muted)">ID</dt><dd style="margin:0;font-family:monospace">${escHtml(c.competitor_id)}</dd>
-            ${c.species ? `<dt style="color:var(--muted)">Species</dt><dd style="margin:0;font-family:monospace">${escHtml(c.species)}</dd>` : ''}
-            ${c.plugin ? `<dt style="color:var(--muted)">Plugin</dt><dd style="margin:0;font-family:monospace">${escHtml(c.plugin)}</dd>` : ''}
-            ${pipeline.length > 1 ? `<dt style="color:var(--muted)">Pipeline</dt><dd style="margin:0;font-family:monospace;font-size:0.78rem">${pipeline.map(escHtml).join('<br>')}</dd>` : ''}
-            ${c.model ? `<dt style="color:var(--muted)">Model</dt><dd style="margin:0;font-family:monospace">${escHtml(c.model)}</dd>` : ''}
-            ${c.size ? `<dt style="color:var(--muted)">Size</dt><dd style="margin:0">${escHtml(c.size)}</dd>` : ''}
-            <dt style="color:var(--muted)">Languages</dt><dd style="margin:0">${langs.length ? escHtml(langs.join(', ')) : 'any'}</dd>
+          ${c.description ? `<p class="fighter-desc">${escHtml(c.description)}</p>` : ''}
+          <dl class="fighter-stats">
+            ${c.species ? `<dt>Species</dt><dd>${escHtml(c.species)}</dd>` : ''}
+            ${c.plugin ? `<dt>Plugin</dt><dd>${escHtml(c.plugin)}</dd>` : ''}
+            ${pipeline.length > 1 ? `<dt>Pipeline</dt><dd style="font-size:0.76rem">${pipeline.map(escHtml).join('<br>')}</dd>` : ''}
+            ${c.model ? `<dt>Model</dt><dd>${escHtml(c.model)}</dd>` : ''}
+            ${c.size ? `<dt>Size</dt><dd style="font-family:var(--font)">${escHtml(c.size)}</dd>` : ''}
+            <dt>Languages</dt><dd style="font-family:var(--font)" title="${escHtml(langs.join(', '))}">${escHtml(langsLabel)}</dd>
           </dl>
-          ${c.description ? `<p style="font-size:0.88rem;margin:0">${escHtml(c.description)}</p>` : ''}
-          ${config.length ? `
-            <details style="font-size:0.82rem">
-              <summary style="cursor:pointer;color:var(--muted)">mycroft.conf</summary>
-              <pre style="margin:0.4rem 0 0;font-size:0.78rem;overflow-x:auto;color:var(--muted)">${escHtml(JSON.stringify(c.config, null, 2))}</pre>
-            </details>` : ''}
-          ${links.length ? `
-            <p style="font-size:0.85rem;margin:0">
-              ${links.map(([label, url]) =>
-                `<a href="${escHtml(url)}" target="_blank" rel="noopener noreferrer">${escHtml(label)}</a>`
-              ).join(' · ')}
-            </p>` : ''}
+          <div class="fighter-foot">
+            ${config.length ? `
+              <details style="font-size:0.82rem">
+                <summary style="cursor:pointer;color:var(--muted)">mycroft.conf</summary>
+                <pre style="margin:0.4rem 0 0;font-size:0.76rem;overflow-x:auto;color:var(--muted);text-align:left">${escHtml(JSON.stringify(c.config, null, 2))}</pre>
+              </details>` : ''}
+            ${links.length ? `
+              <p style="font-size:0.85rem;margin:0.5rem 0 0">
+                ${links.map(([label, url]) =>
+                  `<a href="${escHtml(url)}" target="_blank" rel="noopener noreferrer">${escHtml(label)} ↗</a>`
+                ).join(' · ')}
+              </p>` : ''}
+          </div>
         </article>`;
+    }
+
+    const primaryLang = tag => tag.split(/[-_]/)[0].toLowerCase();
+
+    function langMatches(fighterLangs, wanted) {
+      if (!wanted) return true;
+      if (!fighterLangs) return true;  // empty list = any language
+      const tags = fighterLangs.split('|').filter(Boolean);
+      if (!tags.length) return true;
+      return tags.some(t => t === wanted.toLowerCase()
+                         || primaryLang(t) === primaryLang(wanted));
     }
 
     function applyFilters() {
       const modality = document.getElementById('sel-modality').value;
       const type = document.getElementById('sel-type').value.toLowerCase();
+      const wanted = document.getElementById('sel-flang').value;
       document.querySelectorAll('.fighter').forEach(el => {
         const show = (!modality || el.dataset.modality === modality)
-                  && (!type || el.dataset.types.split('|').includes(type));
+                  && (!type || el.dataset.types.split('|').includes(type))
+                  && langMatches(el.dataset.langs, wanted);
         el.style.display = show ? '' : 'none';
       });
     }
@@ -211,10 +180,18 @@ import Base from '../../layouts/Base.astro';
         selType.appendChild(o);
       });
 
+      const allLangs = [...new Set(fighters.flatMap(c => c.langs || []))].sort();
+      const selLang = document.getElementById('sel-flang');
+      allLangs.forEach(l => {
+        const o = document.createElement('option');
+        o.value = l; o.textContent = l;
+        selLang.appendChild(o);
+      });
+
       grid.innerHTML = fighters.map(fighterCard).join('');
       grid.style.display = 'grid';
 
-      ['sel-modality', 'sel-type'].forEach(id =>
+      ['sel-modality', 'sel-type', 'sel-flang'].forEach(id =>
         document.getElementById(id).addEventListener('change', applyFilters));
     }
 

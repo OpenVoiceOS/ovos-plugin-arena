@@ -204,14 +204,41 @@ def _write_json(path: Path, model) -> None:
 # ---------------------------------------------------------------------------
 
 
+def _dataset_info_lookup(prediction_sources: List[str]) -> Dict[str, Dict[str, Any]]:
+    """Registry metadata per dataset_id, for the benchmark board UI."""
+    info: Dict[str, Dict[str, Any]] = {}
+    try:
+        from registry.loaders import list_datasets
+    except ImportError:
+        return info
+    hf_repos = [s for s in prediction_sources if not Path(s).is_dir()]
+    predictions_urls = [f"https://huggingface.co/datasets/{r}" for r in hf_repos]
+    for dataset in list_datasets():
+        entry: Dict[str, Any] = {}
+        hf_id = getattr(dataset.source, "hf_id", None)
+        if hf_id:
+            entry["url"] = f"https://huggingface.co/datasets/{hf_id}"
+        if dataset.license:
+            entry["license"] = dataset.license
+        if dataset.notes:
+            entry["notes"] = dataset.notes
+        if predictions_urls:
+            entry["predictions"] = predictions_urls
+        info[dataset.dataset_id] = entry
+    return info
+
+
 def cmd_assemble(args: argparse.Namespace) -> int:
     from arena.predictions import group_rows, load_predictions
 
     data_dir = Path(args.output)
     data_dir.mkdir(parents=True, exist_ok=True)
 
+    sources = [s.strip() for s in args.predictions.split(",") if s.strip()]
+    dataset_info = _dataset_info_lookup(sources)
+
     rows = []
-    for source in [s.strip() for s in args.predictions.split(",") if s.strip()]:
+    for source in sources:
         log.info("Loading predictions from %s …", source)
         try:
             rows.extend(load_predictions(source, revision=args.revision))
@@ -249,6 +276,7 @@ def cmd_assemble(args: argparse.Namespace) -> int:
             for competitor_id, row in sample_rows.items():
                 by_competitor.setdefault(competitor_id, []).append(row)
         board = build_benchmark_board(modality, dataset_id, lang, by_competitor, now)
+        board.dataset_info = dataset_info.get(dataset_id)
         _write_json(data_dir / f"benchmark-{modality}-{lang}.json", board)
 
     # ELO seeds per (modality, lang) across datasets
