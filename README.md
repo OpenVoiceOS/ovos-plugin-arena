@@ -45,7 +45,7 @@ registry/*.json ──┐
 benchmarks/<bench>.py        one script per benchmark: trains each fighter,
    │                         predicts the test split, publishes JSONL rows
    ▼
-HuggingFace dataset          predictions/<competitor_id>.jsonl  (§3.2 contract)
+HF repos (1 per modality)    predictions/<lang>/<competitor>.jsonl, split per lang
    │
    ▼  assemble.yml (daily)
 frontend-static/public/data/ battles-*.json     blind A/B pools

@@ -128,8 +128,11 @@ paradigm.
 
 ### 3.2 Prediction contract
 
-Predictions live in HF dataset repos as per-competitor JSON lines:
-`predictions/<competitor_id>.jsonl`, one row per (language, sample).
+Predictions live in HF dataset repos — **one dedicated repo per benchmark
+modality**, named `ovos-<modality>-bench-<dataset_id>` (league underscores
+dashed), with per-competitor JSON lines at
+`predictions/<lang>/<competitor_id>.jsonl` and a generated dataset card
+declaring **one HF split per language**. One row per (language, sample).
 
 Minimum columns, all modalities: `competitor_id`, `sample_id`, `dataset_id`,
 `lang`, `plugin_id`, `plugin_version`, `prediction`, `runner_version`,
