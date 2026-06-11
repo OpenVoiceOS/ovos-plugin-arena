@@ -88,7 +88,14 @@ class DatasetDef(BaseModel):
             "or {'utterance': 'text', 'intent': 'intent'} for intent."
         ),
     )
-    lang: str = Field(..., description="BCP-47 language tag, e.g. pt-PT")
+    lang: str = Field(
+        ...,
+        description="BCP-47 language tag, or 'multi' for multilingual corpora",
+    )
+    langs: Optional[List[str]] = Field(
+        None,
+        description="Language list for multilingual corpora (lang='multi')",
+    )
     license: Optional[str] = None
     role: Literal["eval", "unrestricted"] = "eval"
     notes: Optional[str] = None
@@ -130,6 +137,34 @@ class CompetitorDef(BaseModel):
             "Legacy plugin_id values that map to this competitor in ingested rows. "
             "Enables backward-compat without re-running old prediction jobs."
         ),
+    )
+    # Pokedex card fields (fighter-browser UI)
+    display_name: Optional[str] = Field(
+        None, description="Human-friendly fighter name shown in the UI"
+    )
+    species: Optional[str] = Field(
+        None,
+        description=(
+            "Parent plugin class this fighter is an instance of, "
+            "e.g. 'PadatiousPipeline'"
+        ),
+    )
+    types: List[str] = Field(
+        default_factory=list,
+        description=(
+            "Architecture tags, e.g. 'GOFAI', 'fuzzy-match', 'embedding', "
+            "'neural-net', 'LLM'"
+        ),
+    )
+    description: Optional[str] = Field(
+        None, description="Short blurb about how this fighter works"
+    )
+    model: Optional[str] = Field(
+        None, description="Underlying model identifier, when one exists"
+    )
+    links: Dict[str, str] = Field(
+        default_factory=dict,
+        description="Named URLs: source, pypi, paper, …",
     )
     notes: Optional[str] = None
 

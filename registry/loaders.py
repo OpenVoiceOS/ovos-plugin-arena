@@ -61,6 +61,27 @@ def list_competitors(modality: Optional[str] = None) -> List[CompetitorDef]:
     return results
 
 
+def load_all_competitors(
+    registry_root: Optional[Path] = None,
+) -> List[CompetitorDef]:
+    """Return every competitor definition across all modalities.
+
+    *registry_root* overrides the default registry location (used by the
+    CLI when run from outside the repo root).
+    """
+    root = (registry_root or REGISTRY_ROOT) / "competitors"
+    results: List[CompetitorDef] = []
+    if not root.exists():
+        return results
+    for path in sorted(root.glob("**/*.json")):
+        try:
+            results.append(CompetitorDef.model_validate(json.loads(path.read_text())))
+        except Exception as exc:
+            import warnings
+            warnings.warn(f"Skipping invalid competitor file {path}: {exc}")
+    return results
+
+
 def get_competitor_by_alias(
     modality: str,
     plugin_id: str,
