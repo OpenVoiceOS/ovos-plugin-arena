@@ -224,6 +224,13 @@ class CompetitorDef(BaseModel):
     model: Optional[str] = Field(
         None, description="Underlying model identifier, when one exists"
     )
+    size: Optional[str] = Field(
+        None,
+        description=(
+            "Approximate installed footprint (package + models), "
+            "e.g. '<1 MB', '~250 MB'"
+        ),
+    )
     links: Dict[str, str] = Field(
         default_factory=dict,
         description="Named URLs: source, pypi, paper, …",
