@@ -163,8 +163,13 @@ class TestLoaders:
         assert "base" in comp.config.get("model", "")
 
     def test_load_competitor_intent(self):
-        comp = load_competitor("intent", "adapt-default-en")
+        comp = load_competitor("intent", "adapt-medium")
+        assert comp.competitor_id == "adapt-medium"
         assert comp.modality == Modality.INTENT
+        assert comp.plugin == "ovos-adapt-pipeline-plugin"
+        assert comp.config.get("tier") == "medium"
+        assert comp.species == "AdaptPipeline"
+        assert "GOFAI" in comp.types
 
     def test_load_competitor_missing_raises(self):
         with pytest.raises(FileNotFoundError):
@@ -177,9 +182,12 @@ class TestLoaders:
         assert ds.role == "eval"
 
     def test_load_dataset_intent(self):
-        ds = load_dataset("intent", "clinc150-en")
-        assert ds.dataset_id == "clinc150-en"
+        ds = load_dataset("intent", "intents-for-eval")
+        assert ds.dataset_id == "intents-for-eval"
         assert ds.modality == Modality.INTENT
+        assert ds.lang == "multi"
+        assert ds.langs and "en-US" in ds.langs and len(ds.langs) == 12
+        assert ds.role == "eval"
 
     def test_load_dataset_missing_raises(self):
         with pytest.raises(FileNotFoundError):
@@ -201,7 +209,7 @@ class TestLoaders:
         dsets = list_datasets()
         ids = [d.dataset_id for d in dsets]
         assert "minds14-pt-PT" in ids
-        assert "clinc150-en" in ids
+        assert "intents-for-eval" in ids
 
     def test_get_competitor_by_alias_plugin_name(self):
         comp = get_competitor_by_alias("stt", "ovos-stt-plugin-fasterwhisper")

@@ -1,101 +1,126 @@
-"""
-Tests for arena Pydantic data models (arena.models).
-"""
+"""Unit tests for arena.models — artifact contracts and battle ids."""
+from __future__ import annotations
 
-import uuid
+import json
 
-import pytest
-
-from app.arena.models import (
-    EvalRun,
-    EvalStatus,
-    LeaderboardEntry,
-    Matchup,
-    Plugin,
-    PluginFamily,
-    RatingSnapshot,
-    Sample,
-    Vote,
+from arena.models import (
+    Battle,
+    BattlesPool,
+    BenchmarkBoard,
+    BenchmarkEntry,
+    EloBoard,
+    EloEntry,
+    EloSeed,
+    Modality,
+    PredictionRow,
     VoteOutcome,
+    battle_id_for,
 )
 
 
-def test_plugin_defaults():
-    p = Plugin(plugin_name="ovos-tts-plugin-test", display_name="Test TTS", family=PluginFamily.TTS)
-    assert isinstance(p.id, uuid.UUID)
-    assert p.config == {}
-    assert p.config_hash == ""
-    assert p.lang is None
+class TestBattleId:
+    def test_deterministic(self):
+        a = battle_id_for("intent", "ds", "en-US", "s1", "x", "y")
+        b = battle_id_for("intent", "ds", "en-US", "s1", "x", "y")
+        assert a == b
+
+    def test_competitor_order_invariant(self):
+        a = battle_id_for("intent", "ds", "en-US", "s1", "x", "y")
+        b = battle_id_for("intent", "ds", "en-US", "s1", "y", "x")
+        assert a == b
+
+    def test_distinct_per_sample(self):
+        a = battle_id_for("intent", "ds", "en-US", "s1", "x", "y")
+        b = battle_id_for("intent", "ds", "en-US", "s2", "x", "y")
+        assert a != b
+
+    def test_distinct_per_lang(self):
+        a = battle_id_for("intent", "ds", "en-US", "s1", "x", "y")
+        b = battle_id_for("intent", "ds", "pt-PT", "s1", "x", "y")
+        assert a != b
+
+    def test_shape(self):
+        bid = battle_id_for("intent", "ds", "en-US", "s1", "x", "y")
+        assert len(bid) == 16
+        int(bid, 16)  # hex
 
 
-def test_plugin_families():
-    for fam in PluginFamily:
-        p = Plugin(plugin_name=f"test-{fam.value}", display_name=fam.value, family=fam)
-        assert p.family == fam
+class TestPredictionRow:
+    def test_minimal_intent_row(self):
+        row = PredictionRow(
+            competitor_id="padatious-medium",
+            sample_id="en-US/00001",
+            dataset_id="intents-for-eval",
+            lang="en-US",
+            plugin_id="ovos-padatious-pipeline-plugin",
+            utterance="play a song",
+            reference_intent="media:play_song",
+            prediction="media:play_song",
+            exact_match=True,
+        )
+        assert row.exact_match is True
+        assert row.extras == {}
+
+    def test_ood_row_none_fields(self):
+        row = PredictionRow(
+            competitor_id="c", sample_id="s", dataset_id="d", lang="en-US",
+            plugin_id="p", reference_intent=None, prediction=None,
+            exact_match=True,
+        )
+        assert row.reference_intent is None
+        assert row.prediction is None
 
 
-def test_eval_run_defaults():
-    run = EvalRun(plugin_id=uuid.uuid4(), family=PluginFamily.STT)
-    assert run.status == EvalStatus.PENDING
-    assert run.metrics == {}
-    assert run.started_at is None
+class TestArtifactRoundtrip:
+    def test_battles_pool_json_roundtrip(self):
+        pool = BattlesPool(
+            modality=Modality.INTENT,
+            dataset_id="intents-for-eval",
+            lang="en-US",
+            generated_at="2026-01-01T00:00:00+00:00",
+            battles=[Battle(
+                battle_id="ab12", modality=Modality.INTENT,
+                dataset_id="intents-for-eval", lang="en-US", sample_id="s1",
+                input_text="play a song",
+                prediction_a={"intent": "media:play_song"},
+                prediction_b=None,
+                competitor_a="x", competitor_b="y",
+            )],
+        )
+        payload = json.loads(json.dumps(pool.model_dump(mode="json")))
+        again = BattlesPool(**payload)
+        assert again == pool
 
+    def test_elo_seed_roundtrip(self):
+        seed = EloSeed(
+            modality=Modality.INTENT, lang="en-US",
+            generated_at="2026-01-01T00:00:00+00:00",
+            auto_vote_count=2,
+            ratings={"x": 1210.0, "y": 1190.0},
+            battles={"x": 2, "y": 2},
+            wins={"x": 2, "y": 0},
+            losses={"x": 0, "y": 2},
+            ties={"x": 0, "y": 0},
+            competitor_plugin={"x": "plug-x", "y": "plug-y"},
+        )
+        again = EloSeed(**json.loads(json.dumps(seed.model_dump(mode="json"))))
+        assert again == seed
 
-def test_sample_creation():
-    s = Sample(
-        run_id=uuid.uuid4(),
-        plugin_id=uuid.uuid4(),
-        family=PluginFamily.TTS,
-        input_ref="hello world",
-    )
-    assert s.output_ref is None
-    assert s.metrics == {}
+    def test_boards_serialise(self):
+        bench = BenchmarkBoard(
+            modality=Modality.INTENT, dataset_id="d", lang="en-US",
+            generated_at="t", primary_metric="accuracy",
+            entries=[BenchmarkEntry(rank=1, competitor_id="x",
+                                    metrics={"accuracy": 0.9})],
+        )
+        elo = EloBoard(
+            modality=Modality.INTENT, lang="en-US", generated_at="t",
+            entries=[EloEntry(rank=1, competitor_id="x", elo=1234.5)],
+        )
+        json.dumps(bench.model_dump(mode="json"))
+        json.dumps(elo.model_dump(mode="json"))
 
-
-def test_matchup_fields():
-    m = Matchup(
-        family=PluginFamily.TTS,
-        input_ref="test prompt",
-        sample_a_id=uuid.uuid4(),
-        sample_b_id=uuid.uuid4(),
-        plugin_a_id=uuid.uuid4(),
-        plugin_b_id=uuid.uuid4(),
-    )
-    assert m.status == "pending"
-
-
-def test_vote_outcomes():
-    for outcome in VoteOutcome:
-        v = Vote(matchup_id=uuid.uuid4(), outcome=outcome)
-        assert v.outcome == outcome
-        assert not v.automated
-
-
-def test_rating_snapshot():
-    snap = RatingSnapshot(
-        vote_id=uuid.uuid4(),
-        plugin_id=uuid.uuid4(),
-        elo_before=1200.0,
-        elo_after=1216.0,
-        delta=16.0,
-    )
-    assert snap.delta == pytest.approx(16.0)
-
-
-def test_leaderboard_entry():
-    entry = LeaderboardEntry(
-        rank=1,
-        plugin_id=uuid.uuid4(),
-        plugin_name="test-plugin",
-        display_name="Test Plugin",
-        family=PluginFamily.TTS,
-        lang="en-us",
-        elo=1320.5,
-        battles=10,
-        wins=7,
-        losses=2,
-        ties=1,
-        win_rate=70.0,
-    )
-    assert entry.rank == 1
-    assert entry.elo == pytest.approx(1320.5)
+    def test_vote_outcomes_complete(self):
+        assert {o.value for o in VoteOutcome} == {
+            "candidate_a", "candidate_b", "tie", "both_wrong",
+        }

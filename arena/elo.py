@@ -1,0 +1,125 @@
+"""
+Deterministic ELO rating engine for the OVOS Plugin Arena.
+
+Ratings are fully replayable (§P5): given the same ordered vote log the
+functions here always produce the same standings.  Two vote classes exist:
+
+- **auto votes** (``system:benchmark``) — derived from benchmark metrics at
+  assemble time, reduced K-factor (§4 R5).  They seed the initial ELO so a
+  fresh arena starts with a meaningful ranking.
+- **human votes** — GitHub vote issues, full K-factor, replayed on top of
+  the seed in issue-number order.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from typing import Dict, Tuple
+
+from arena.models import VoteOutcome
+
+INITIAL_ELO: float = 1200.0
+K_FACTOR: float = 32.0
+K_FACTOR_VETERAN: float = 16.0
+VETERAN_THRESHOLD: int = 30  # battles before using the lower K
+AUTO_K_DIVISOR: float = 4.0  # §4 R5 — auto votes carry K/4 weight
+
+
+def expected_score(rating_a: float, rating_b: float) -> float:
+    """Probability that player A beats player B under the ELO model."""
+    return 1.0 / (1.0 + 10.0 ** ((rating_b - rating_a) / 400.0))
+
+
+def k_factor(battles: int, auto: bool = False) -> float:
+    k = K_FACTOR if battles < VETERAN_THRESHOLD else K_FACTOR_VETERAN
+    return k / AUTO_K_DIVISOR if auto else k
+
+
+def update_ratings(
+    rating_a: float,
+    rating_b: float,
+    outcome: VoteOutcome,
+    battles_a: int = 0,
+    battles_b: int = 0,
+    auto: bool = False,
+) -> Tuple[float, float]:
+    """Compute updated ELO ratings for a single vote outcome.
+
+    ``outcome`` is from A's perspective; TIE and BOTH_WRONG score 0.5/0.5.
+    ``auto`` selects the reduced K-factor used for benchmark-derived votes.
+    """
+    e_a = expected_score(rating_a, rating_b)
+    e_b = 1.0 - e_a
+
+    if outcome == VoteOutcome.CANDIDATE_A:
+        s_a, s_b = 1.0, 0.0
+    elif outcome == VoteOutcome.CANDIDATE_B:
+        s_a, s_b = 0.0, 1.0
+    else:
+        s_a, s_b = 0.5, 0.5
+
+    new_a = rating_a + k_factor(battles_a, auto) * (s_a - e_a)
+    new_b = rating_b + k_factor(battles_b, auto) * (s_b - e_b)
+    return new_a, new_b
+
+
+@dataclass
+class EloLedger:
+    """Mutable ELO state — ratings plus win/loss/tie bookkeeping.
+
+    One ledger per (modality, lang) board.  Apply votes in deterministic
+    order; the ledger never reorders anything itself.
+    """
+
+    ratings: Dict[str, float] = field(default_factory=dict)
+    battles: Dict[str, int] = field(default_factory=dict)
+    wins: Dict[str, int] = field(default_factory=dict)
+    losses: Dict[str, int] = field(default_factory=dict)
+    ties: Dict[str, int] = field(default_factory=dict)
+    auto_votes: Dict[str, int] = field(default_factory=dict)
+    human_votes: Dict[str, int] = field(default_factory=dict)
+
+    def ensure(self, competitor_id: str) -> None:
+        if competitor_id not in self.ratings:
+            self.ratings[competitor_id] = INITIAL_ELO
+            for table in (self.battles, self.wins, self.losses,
+                          self.ties, self.auto_votes, self.human_votes):
+                table[competitor_id] = 0
+
+    def apply(
+        self,
+        competitor_a: str,
+        competitor_b: str,
+        outcome: VoteOutcome,
+        auto: bool = False,
+    ) -> None:
+        """Apply one vote (from A's perspective) to the ledger."""
+        self.ensure(competitor_a)
+        self.ensure(competitor_b)
+
+        new_a, new_b = update_ratings(
+            self.ratings[competitor_a],
+            self.ratings[competitor_b],
+            outcome,
+            self.battles[competitor_a],
+            self.battles[competitor_b],
+            auto=auto,
+        )
+        self.ratings[competitor_a] = new_a
+        self.ratings[competitor_b] = new_b
+        self.battles[competitor_a] += 1
+        self.battles[competitor_b] += 1
+
+        if outcome == VoteOutcome.CANDIDATE_A:
+            self.wins[competitor_a] += 1
+            self.losses[competitor_b] += 1
+        elif outcome == VoteOutcome.CANDIDATE_B:
+            self.wins[competitor_b] += 1
+            self.losses[competitor_a] += 1
+        else:
+            self.ties[competitor_a] += 1
+            self.ties[competitor_b] += 1
+
+        counter = self.auto_votes if auto else self.human_votes
+        counter[competitor_a] += 1
+        counter[competitor_b] += 1

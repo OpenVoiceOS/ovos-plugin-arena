@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ovos-plugin-arena"
+description = "Blind A/B evaluation and benchmark leaderboards for OpenVoiceOS plugins"
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.10"
+dynamic = ["version"]
+authors = [
+    {name = "JarbasAi", email = "jarbasai@mailfence.com"},
+]
+keywords = ["ovos", "openvoiceos", "benchmark", "elo", "arena", "intent", "stt", "tts", "wake-word"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "pydantic>=2.0,<3.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/OpenVoiceOS/ovos-plugin-arena"
+
+[project.optional-dependencies]
+# HuggingFace prediction dataset ingestion (assemble CLI, runners)
+hf = [
+    "huggingface_hub>=0.24",
+    "datasets>=2.20",
+]
+test = [
+    "pytest>=7.4",
+    "huggingface_hub>=0.24",
+]
+
+[project.scripts]
+ovos-arena = "arena.cli:main"
+
+[tool.setuptools]
+packages = ["arena", "registry", "runner"]
+
+[tool.setuptools.dynamic]
+version = {attr = "arena.version.__version__"}
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "network: tests that hit external services (HuggingFace, GitHub)",
+]
