@@ -323,7 +323,13 @@ def upload_predictions(
         langs = sorted(d.name for d in modality_dir.iterdir() if d.is_dir())
         if not langs:
             continue
-        api.create_repo(repo, repo_type="dataset", exist_ok=True)
+        try:
+            api.create_repo(repo, repo_type="dataset", exist_ok=True)
+        except Exception as exc:
+            # Restricted tokens may write to existing repos but not create
+            # new ones — proceed and let the upload itself decide.
+            log.warning("create_repo(%s) refused (%s) — uploading anyway",
+                        repo, exc)
         api.upload_file(
             path_or_fileobj=_dataset_card(
                 modality, dataset_id, eval_def, langs).encode(),
