@@ -3,20 +3,26 @@
 Intent benchmark over ``OpenVoiceOS/intents-for-eval``.
 
 Every benchmark in the arena is one dedicated, reproducible script.  This
-one trains each intent competitor from the registry on the dataset's own
-training files and runs the full test split through the plugin's
-``match_<tier>`` gate — predictions are produced fresh by this script,
-never copied from elsewhere.
+one runs each intent fighter from the registry — a fighter's config is a
+valid mycroft.conf fragment (an ``intents`` section with a tier-suffixed
+``pipeline`` plus per-plugin config blocks) — over the eval corpus, and
+publishes fresh per-sample predictions.  Single-stage pipelines benchmark
+one engine; multi-stage pipelines are ensemble fighters.
 
-Per (competitor, lang) it:
+Training data is paradigm-specific: the eval dataset entry links one
+``role: train`` dataset per paradigm (template rows vs keyword rules are
+different datashapes), and each stage plugin trains from the corpus
+matching its paradigm.
 
-1. downloads ``<lang>/train_templates.jsonl``, ``<lang>/train_keywords.jsonl``
-   and ``<lang>/test.jsonl`` from the dataset repo (revision pinned at run
-   start and recorded in every row);
-2. instantiates + trains the OPM pipeline plugin (``runner.intent_pipeline``);
+Per (fighter, lang) it:
+
+1. downloads the eval split and both training corpora from HF (revision
+   pinned at run start and recorded in every row);
+2. instantiates + trains the pipeline (``runner.intent_pipeline``);
 3. writes one §3.2 prediction row per test utterance to
    ``predictions/<competitor_id>.jsonl`` (resumable — already-done
-   (lang, sample) pairs are skipped);
+   (lang, sample) pairs are skipped); rows record which pipeline stage
+   fired;
 4. optionally uploads the JSONL files to the HF results dataset repo.
 
 Usage::
@@ -72,11 +78,20 @@ def resolve_revision(hf_id: str, revision: str) -> str:
     return info.sha or revision
 
 
-def fetch_jsonl(hf_id: str, filename: str, revision: str) -> list[dict]:
+def fetch_rows(dataset_def, lang: str, revision: str) -> list[dict]:
+    """Fetch one language's rows of a file-pattern dataset."""
     from huggingface_hub import hf_hub_download
 
+    pattern = dataset_def.source.file_pattern
+    if not pattern:
+        raise ValueError(
+            f"{dataset_def.dataset_id}: source.file_pattern is required"
+        )
     path = hf_hub_download(
-        hf_id, filename, repo_type="dataset", revision=revision
+        dataset_def.source.hf_id,
+        pattern.format(lang=lang),
+        repo_type="dataset",
+        revision=revision,
     )
     return [json.loads(line) for line in Path(path).read_text().splitlines()
             if line.strip()]
@@ -88,8 +103,7 @@ def fetch_jsonl(hf_id: str, filename: str, revision: str) -> list[dict]:
 
 
 def make_row(
-    competitor_id: str,
-    plugin_id: str,
+    competitor,
     lang: str,
     sample_index: int,
     test_row: dict,
@@ -97,6 +111,7 @@ def make_row(
     slots: dict,
     confidence: float | None,
     latency_ms: float,
+    stage: str | None,
     dataset_revision: str,
 ) -> dict:
     reference_intent = test_row.get("expected_intent")
@@ -104,14 +119,19 @@ def make_row(
         exact = prediction is None  # OOD: correct behaviour is no match
     else:
         exact = prediction == reference_intent
+    versions = ";".join(
+        plugin_version(p) for p in competitor.pipeline_plugins
+    )
     return {
-        "competitor_id": competitor_id,
+        "competitor_id": competitor.competitor_id,
         "sample_id": f"{lang}/{sample_index:05d}",
         "dataset_id": DATASET_ID,
         "dataset_revision": dataset_revision,
         "lang": lang,
-        "plugin_id": plugin_id,
-        "plugin_version": plugin_version(plugin_id),
+        "plugin_id": competitor.plugin or "ensemble",
+        "plugin_version": versions,
+        "pipeline": competitor.pipeline,
+        "stage": stage,
         "utterance": test_row["utterance"],
         "reference_intent": reference_intent,
         "reference_slots": test_row.get("expected_slots") or None,
@@ -146,15 +166,14 @@ def done_samples(out_path: Path) -> set[str]:
 def run_competitor_lang(
     competitor,
     lang: str,
-    hf_id: str,
+    eval_def,
+    train_defs: dict,
     revision: str,
     out_path: Path,
     max_samples: int = 0,
 ) -> int:
-    """Train one competitor for one language and predict the test split."""
-    templates = fetch_jsonl(hf_id, f"{lang}/train_templates.jsonl", revision)
-    keywords = fetch_jsonl(hf_id, f"{lang}/train_keywords.jsonl", revision)
-    test_rows = fetch_jsonl(hf_id, f"{lang}/test.jsonl", revision)
+    """Train one fighter for one language and predict the eval split."""
+    test_rows = fetch_rows(eval_def, lang, revision)
     if max_samples:
         test_rows = test_rows[:max_samples]
 
@@ -167,23 +186,25 @@ def run_competitor_lang(
         log.info("  %s/%s: already complete", competitor.competitor_id, lang)
         return 0
 
-    tier = competitor.config.get("tier", "medium")
-    pipeline = IntentPipeline(
-        competitor.plugin, config=competitor.config, lang=lang, tier=tier
-    )
-    log.info("  training %s for %s (%d templates, %d keyword rules)",
-             competitor.plugin, lang, len(templates), len(keywords))
-    pipeline.train(templates, keywords)
+    train_data = {
+        paradigm: fetch_rows(train_def, lang, revision)
+        for paradigm, train_def in train_defs.items()
+    }
+
+    pipeline = IntentPipeline(competitor.config["intents"], lang=lang)
+    log.info("  training %s for %s (stages: %s)",
+             competitor.competitor_id, lang, ", ".join(pipeline.stage_names))
+    pipeline.train(train_data)
 
     written = 0
     with out_path.open("a", encoding="utf-8") as fh:
         for i, test_row in todo:
-            prediction, slots, confidence, latency_ms = pipeline.predict(
-                test_row["utterance"]
+            prediction, slots, confidence, latency_ms, stage = (
+                pipeline.predict(test_row["utterance"])
             )
             row = make_row(
-                competitor.competitor_id, competitor.plugin, lang, i,
-                test_row, prediction, slots, confidence, latency_ms, revision,
+                competitor, lang, i, test_row,
+                prediction, slots, confidence, latency_ms, stage, revision,
             )
             fh.write(json.dumps(row, ensure_ascii=False) + "\n")
             written += 1
@@ -237,14 +258,18 @@ def main(argv=None) -> int:
     parser.add_argument("--results-repo", default=DEFAULT_RESULTS_REPO)
     args = parser.parse_args(argv)
 
-    dataset = load_dataset("intent", DATASET_ID)
-    hf_id = dataset.source.hf_id
-    revision = resolve_revision(hf_id, dataset.source.revision)
-    log.info("Dataset %s @ %s", hf_id, revision[:12])
+    eval_def = load_dataset("intent", DATASET_ID)
+    train_defs = {
+        paradigm: load_dataset("intent", dataset_id)
+        for paradigm, dataset_id in (eval_def.train_datasets or {}).items()
+    }
+    revision = resolve_revision(eval_def.source.hf_id, eval_def.source.revision)
+    log.info("Dataset %s @ %s (train sets: %s)",
+             eval_def.source.hf_id, revision[:12], ", ".join(train_defs))
 
     competitors = [
         comp for comp in list_competitors("intent")
-        if comp.plugin in ENGINE_REGISTRY
+        if all(p in ENGINE_REGISTRY for p in comp.pipeline_plugins)
     ]
     if args.competitors:
         wanted = {c.strip() for c in args.competitors.split(",") if c.strip()}
@@ -255,7 +280,7 @@ def main(argv=None) -> int:
             return 1
 
     langs = [lang.strip() for lang in args.langs.split(",") if lang.strip()] or (
-        dataset.langs or [dataset.lang]
+        eval_def.langs or [eval_def.lang]
     )
 
     output_dir = Path(args.output_dir)
@@ -263,14 +288,14 @@ def main(argv=None) -> int:
 
     for competitor in competitors:
         out_path = output_dir / f"{competitor.competitor_id}.jsonl"
-        log.info("Competitor %s → %s", competitor.competitor_id, out_path)
+        log.info("Fighter %s → %s", competitor.competitor_id, out_path)
         for lang in langs:
             if competitor.langs and lang not in competitor.langs:
                 log.info("  skipping %s (not in competitor langs)", lang)
                 continue
             try:
                 run_competitor_lang(
-                    competitor, lang, hf_id, revision, out_path,
+                    competitor, lang, eval_def, train_defs, revision, out_path,
                     max_samples=args.max_samples,
                 )
             except Exception:

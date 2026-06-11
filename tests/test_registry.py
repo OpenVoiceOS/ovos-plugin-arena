@@ -166,10 +166,40 @@ class TestLoaders:
         comp = load_competitor("intent", "adapt-medium")
         assert comp.competitor_id == "adapt-medium"
         assert comp.modality == Modality.INTENT
+        # config is a valid mycroft.conf fragment; plugin derived from it
+        assert comp.pipeline == ["ovos-adapt-pipeline-plugin-medium"]
         assert comp.plugin == "ovos-adapt-pipeline-plugin"
-        assert comp.config.get("tier") == "medium"
+        assert comp.pipeline_plugins == ["ovos-adapt-pipeline-plugin"]
+        assert comp.plugin_config("ovos-adapt-pipeline-plugin", "adapt") == {}
         assert comp.species == "AdaptPipeline"
         assert "GOFAI" in comp.types
+
+    def test_load_competitor_ensemble(self):
+        comp = load_competitor("intent", "ovos-default-cascade")
+        assert comp.plugin is None  # multi-engine pipeline
+        assert comp.pipeline_plugins == [
+            "ovos-padatious-pipeline-plugin",
+            "ovos-adapt-pipeline-plugin",
+        ]
+        assert "ensemble" in comp.types
+
+    def test_intent_competitor_requires_pipeline(self):
+        import pytest as _pytest
+        from registry.schemas import CompetitorDef
+        with _pytest.raises(Exception):
+            CompetitorDef(
+                competitor_id="bad", modality="intent",
+                config={"intents": {}},
+            )
+
+    def test_split_pipeline_stage(self):
+        from registry.schemas import split_pipeline_stage
+        assert split_pipeline_stage("ovos-adapt-pipeline-plugin-high") == (
+            "ovos-adapt-pipeline-plugin", "high",
+        )
+        import pytest as _pytest
+        with _pytest.raises(ValueError):
+            split_pipeline_stage("ovos-converse-pipeline-plugin")
 
     def test_load_competitor_missing_raises(self):
         with pytest.raises(FileNotFoundError):

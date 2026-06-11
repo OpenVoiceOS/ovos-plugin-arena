@@ -31,9 +31,13 @@ buckets).
 Produced by the reproducible benchmark script
 [`benchmarks/intent_intents_for_eval.py`](https://github.com/OpenVoiceOS/ovos-plugin-arena/blob/dev/benchmarks/intent_intents_for_eval.py)
 of the [OVOS Plugin Arena](https://github.com/OpenVoiceOS/ovos-plugin-arena):
-each competitor (one plugin + one configuration, declared in the arena
-registry) is trained on the dataset's own training files and evaluated
-end-to-end through the plugin's `match_<tier>` confidence gate.
+each competitor is a shippable `mycroft.conf` fragment (an `intents` section
+with a tier-suffixed `pipeline` plus per-plugin configs) declared in the
+arena registry. Single-stage pipelines benchmark one engine; multi-stage
+pipelines are ensemble fighters. Template engines train from the dataset's
+template corpus, keyword engines from its keyword-rule corpus (different
+datashapes), and every utterance runs through the cascade — the first stage
+whose own `match_<tier>` confidence gate fires wins, as in ovos-core.
 
 ## Layout
 
@@ -42,7 +46,9 @@ predictions/<competitor_id>.jsonl    one row per (language, test utterance)
 ```
 
 Row fields: `competitor_id`, `sample_id`, `dataset_id`, `dataset_revision`
-(pinned source revision), `lang`, `plugin_id`, `plugin_version`, `utterance`,
+(pinned source revision), `lang`, `plugin_id` (`"ensemble"` for multi-engine
+pipelines), `plugin_version` (`;`-joined per engine), `pipeline` (ordered
+stage list), `stage` (which stage fired; null = no match), `utterance`,
 `reference_intent` (null for out-of-scope samples), `reference_slots`,
 `prediction` (null = no match fired), `predicted_slots`, `exact_match`,
 `confidence`, `bucket`, `latency_ms`, `runner_version`, `created_at`.

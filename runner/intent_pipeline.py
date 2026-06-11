@@ -1,23 +1,26 @@
 """
-Arena-native adapter for OVOS intent pipeline plugins.
+Arena-native executor for OVOS intent pipelines.
 
-Instantiates a real OPM ``ConfidenceMatcherPipeline`` plugin over a
+A fighter's ``config`` is a valid ``mycroft.conf`` fragment: the
+``intents`` section carries an ordered ``pipeline`` list of
+``<plugin>-<tier>`` stages plus per-plugin config blocks.  This module
+instantiates the real OPM ``ConfidenceMatcherPipeline`` plugins over a
 ``FakeBus``, registers the benchmark intents the same way OVOS skills do
-(bus messages), triggers the plugin's own training, and exposes a single
-``predict`` call used by the bench scripts.
+(bus messages), triggers each plugin's own training, and runs utterances
+through the cascade — the first stage whose own ``match_<tier>`` gate
+fires wins, exactly like ovos-core dispatches its pipeline.
 
 Two registration paradigms exist (mirroring ``intents-for-eval``):
 
 - **template** engines (Padatious, Padacioso, Nebulento) consume
   ``train_templates.jsonl`` rows — ``padatious:register_intent`` messages
-  with expanded sample utterances plus ``padatious:register_entity`` for
-  slot example values.
+  with raw ``{slot}`` templates plus expanded sample utterances, and
+  ``padatious:register_entity`` for slot example values.
 - **keyword** engines (Adapt, Palavreado) consume ``train_keywords.jsonl``
   rows — ``register_vocab`` messages plus an ``IntentBuilder`` rule per
   intent.
 
-The plugin's own ``match_<tier>`` confidence gates decide whether a stage
-fires; the arena owns no threshold numbers.
+The arena owns no confidence numbers; the plugins gate themselves.
 """
 from __future__ import annotations
 
@@ -26,11 +29,11 @@ import importlib.metadata
 import logging
 import time
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
+
+from registry.schemas import split_pipeline_stage
 
 logger = logging.getLogger(__name__)
-
-TIERS = ("high", "medium", "low")
 
 # Keys in IntentHandlerMatch.match_data that are not slot entities
 _META_KEYS = {
@@ -47,24 +50,25 @@ class EngineSpec:
     paradigm: str  # "template" | "keyword"
     train_message: Optional[str]  # bus message that triggers training
     dist: str  # python distribution name, for plugin_version
+    short_name: str  # legacy mycroft.conf config key (e.g. "adapt")
 
 
 ENGINE_REGISTRY: Dict[str, EngineSpec] = {
     "ovos-padatious-pipeline-plugin": EngineSpec(
         "ovos_padatious.opm:PadatiousPipeline", "template",
-        "mycroft.skills.train", "ovos-padatious"),
+        "mycroft.skills.train", "ovos-padatious", "padatious"),
     "ovos-padacioso-pipeline-plugin": EngineSpec(
         "padacioso.opm:PadaciosoPipeline", "template",
-        None, "padacioso"),
+        None, "padacioso", "padacioso"),
     "ovos-nebulento-pipeline-plugin": EngineSpec(
         "nebulento.opm:NebulentoPipeline", "template",
-        "mycroft.skills.train", "nebulento"),
+        "mycroft.skills.train", "nebulento", "nebulento"),
     "ovos-adapt-pipeline-plugin": EngineSpec(
         "ovos_adapt.opm:AdaptPipeline", "keyword",
-        None, "ovos-adapt-parser"),
+        None, "ovos-adapt-parser", "adapt"),
     "ovos-palavreado-pipeline-plugin": EngineSpec(
         "palavreado.opm:PalavreadoPipeline", "keyword",
-        None, "palavreado"),
+        None, "palavreado", "palavreado"),
 }
 
 
@@ -103,26 +107,34 @@ def expand_template(template: str, slots: List[dict], cap: int = 6) -> List[str]
 
 
 class IntentPipeline:
-    """One instantiated and trained intent pipeline plugin."""
+    """One instantiated and trained intent pipeline (single- or multi-stage).
 
-    def __init__(self, plugin_id: str, config: Optional[dict] = None,
-                 lang: str = "en-US", tier: str = "medium"):
+    Parameters
+    ----------
+    intents_config:
+        The ``intents`` section of a mycroft.conf fragment:
+        ``{"pipeline": ["<plugin>-<tier>", …], "<plugin>": {…}, …}``.
+    lang:
+        BCP-47 language to train and match in.
+    """
+
+    def __init__(self, intents_config: Dict[str, Any], lang: str = "en-US"):
         from ovos_utils.fakebus import FakeBus
 
-        if plugin_id not in ENGINE_REGISTRY:
-            raise KeyError(
-                f"unknown intent plugin {plugin_id!r}; "
-                f"known: {sorted(ENGINE_REGISTRY)}"
-            )
-        if tier not in TIERS:
-            raise ValueError(f"tier must be one of {TIERS}, got {tier!r}")
+        pipeline = intents_config.get("pipeline") or []
+        if not pipeline:
+            raise ValueError("intents config carries no pipeline stages")
 
-        self.plugin_id = plugin_id
-        self.spec = ENGINE_REGISTRY[plugin_id]
         self.lang = lang
-        self.tier = tier
-        self.config = dict(config or {})
-        self.config.pop("tier", None)  # adapter-level setting, not plugin's
+        self.stages: List[Tuple[str, str]] = []  # (plugin_id, tier), ordered
+        for stage in pipeline:
+            plugin_id, tier = split_pipeline_stage(stage)
+            if plugin_id not in ENGINE_REGISTRY:
+                raise KeyError(
+                    f"unknown intent plugin {plugin_id!r} in pipeline; "
+                    f"known: {sorted(ENGINE_REGISTRY)}"
+                )
+            self.stages.append((plugin_id, tier))
 
         # The OPM pipeline plugins read the active language from the global
         # ovos-config singleton, not from their plugin config — set it before
@@ -130,30 +142,63 @@ class IntentPipeline:
         from ovos_config.config import Configuration
         Configuration()["lang"] = lang
 
-        module_name, class_name = self.spec.import_path.split(":")
-        plugin_cls = getattr(importlib.import_module(module_name), class_name)
-        self.bus = FakeBus()
-        self.plugin = plugin_cls(self.bus, self.config)
+        # One plugin instance per unique plugin id, shared across tiers,
+        # each with its own per-plugin config block from the intents section
+        self.plugins: Dict[str, Any] = {}
+        self.buses: Dict[str, Any] = {}
+        for plugin_id, _tier in self.stages:
+            if plugin_id in self.plugins:
+                continue
+            spec = ENGINE_REGISTRY[plugin_id]
+            plugin_config = dict(
+                intents_config.get(plugin_id)
+                or intents_config.get(spec.short_name)
+                or {}
+            )
+            module_name, class_name = spec.import_path.split(":")
+            plugin_cls = getattr(importlib.import_module(module_name), class_name)
+            bus = FakeBus()
+            self.plugins[plugin_id] = plugin_cls(bus, plugin_config)
+            self.buses[plugin_id] = bus
+
+    @property
+    def stage_names(self) -> List[str]:
+        return [f"{plugin_id}-{tier}" for plugin_id, tier in self.stages]
 
     # -- training ----------------------------------------------------------
 
-    def train(self, template_rows: List[dict], keyword_rows: List[dict]) -> None:
-        if self.spec.paradigm == "template":
-            self._register_templates(template_rows)
-        else:
-            self._register_keywords(keyword_rows)
+    def train(self, train_data: Dict[str, List[dict]]) -> None:
+        """Train every stage plugin from its paradigm's training corpus.
 
+        *train_data* maps paradigm → rows in that paradigm's datashape
+        (``"template"`` rows vs ``"keyword"`` rows are different datasets —
+        see the registry's ``role: train`` entries).
+        """
         from ovos_bus_client.message import Message
 
-        if self.spec.train_message:
-            self.bus.emit(Message(self.spec.train_message, {}))
-        if hasattr(self.plugin, "train"):
-            try:
-                self.plugin.train()
-            except TypeError:
-                pass  # train() signatures vary; bus message already fired
+        for plugin_id, plugin in self.plugins.items():
+            spec = ENGINE_REGISTRY[plugin_id]
+            bus = self.buses[plugin_id]
+            rows = train_data.get(spec.paradigm) or []
+            if not rows:
+                raise ValueError(
+                    f"No {spec.paradigm!r}-paradigm training rows for "
+                    f"{plugin_id} — check the dataset's train_datasets links"
+                )
+            if spec.paradigm == "template":
+                self._register_templates(bus, rows)
+            else:
+                self._register_keywords(bus, rows)
 
-    def _register_templates(self, rows: List[dict]) -> None:
+            if spec.train_message:
+                bus.emit(Message(spec.train_message, {}))
+            if hasattr(plugin, "train"):
+                try:
+                    plugin.train()
+                except TypeError:
+                    pass  # train() signatures vary; bus message already fired
+
+    def _register_templates(self, bus, rows: List[dict]) -> None:
         from ovos_bus_client.message import Message
 
         by_intent: Dict[str, List[dict]] = {}
@@ -179,7 +224,7 @@ class IntentPipeline:
             samples = list(dict.fromkeys(s for s in samples if s))
             if not samples:
                 continue
-            self.bus.emit(Message("padatious:register_intent", {
+            bus.emit(Message("padatious:register_intent", {
                 "name": intent_id,
                 "samples": samples,
                 "lang": self.lang,
@@ -189,14 +234,14 @@ class IntentPipeline:
         # Entities registered once per name — merged example values across
         # intents (some engines raise on re-registration)
         for name, samples in entities.items():
-            self.bus.emit(Message("padatious:register_entity", {
+            bus.emit(Message("padatious:register_entity", {
                 "name": name,
                 "samples": samples,
                 "lang": self.lang,
                 "skill_id": "arena",
             }))
 
-    def _register_keywords(self, rows: List[dict]) -> None:
+    def _register_keywords(self, bus, rows: List[dict]) -> None:
         from ovos_adapt.intent import IntentBuilder
         from ovos_bus_client.message import Message
 
@@ -212,7 +257,7 @@ class IntentPipeline:
                         continue
                     entity = f"{intent_id}__{label}"
                     for word in words:
-                        self.bus.emit(Message("register_vocab", {
+                        bus.emit(Message("register_vocab", {
                             "entity_value": word,
                             "entity_type": entity,
                             "lang": self.lang,
@@ -223,41 +268,45 @@ class IntentPipeline:
             intent = builder.build()
             data = dict(intent.__dict__)
             data["skill_id"] = "arena"
-            self.bus.emit(Message("register_intent", data))
+            bus.emit(Message("register_intent", data))
 
     # -- prediction ----------------------------------------------------------
 
     def predict(
         self, utterance: str
-    ) -> Tuple[Optional[str], Dict[str, str], Optional[float], float]:
-        """Match one utterance.
+    ) -> Tuple[Optional[str], Dict[str, str], Optional[float], float, Optional[str]]:
+        """Run one utterance through the cascade.
 
-        Returns ``(intent_id, slots, confidence, latency_ms)`` — intent_id is
-        None when the plugin's own ``match_<tier>`` gate does not fire.
+        Returns ``(intent_id, slots, confidence, latency_ms, fired_stage)``;
+        intent_id and fired_stage are None when no stage's gate fires.
         """
         from ovos_bus_client.message import Message
 
-        match_fn = getattr(self.plugin, f"match_{self.tier}")
         message = Message(
             "recognizer_loop:utterance",
             {"utterances": [utterance], "lang": self.lang},
         )
         start = time.perf_counter()
-        try:
-            match = match_fn([utterance], self.lang, message)
-        except Exception as exc:
-            logger.warning("%s failed on %r: %s", self.plugin_id, utterance, exc)
-            match = None
+        for plugin_id, tier in self.stages:
+            match_fn = getattr(self.plugins[plugin_id], f"match_{tier}")
+            try:
+                match = match_fn([utterance], self.lang, message)
+            except Exception as exc:
+                logger.warning("%s-%s failed on %r: %s",
+                               plugin_id, tier, utterance, exc)
+                match = None
+            if match is None:
+                continue
+
+            latency_ms = (time.perf_counter() - start) * 1000
+            intent_id = self._normalise(str(match.match_type))
+            data = dict(match.match_data or {})
+            confidence = data.get("conf", data.get("confidence"))
+            slots = self._extract_slots(data)
+            return intent_id, slots, confidence, latency_ms, f"{plugin_id}-{tier}"
+
         latency_ms = (time.perf_counter() - start) * 1000
-
-        if match is None:
-            return None, {}, None, latency_ms
-
-        intent_id = self._normalise(str(match.match_type))
-        data = dict(match.match_data or {})
-        confidence = data.get("conf", data.get("confidence"))
-        slots = self._extract_slots(data)
-        return intent_id, slots, confidence, latency_ms
+        return None, {}, None, latency_ms, None
 
     @staticmethod
     def _normalise(match_type: str) -> str:

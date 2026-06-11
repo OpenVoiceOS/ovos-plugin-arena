@@ -5,7 +5,7 @@
     "type": "huggingface",
     "hf_id": "OpenVoiceOS/intents-for-eval",
     "revision": "main",
-    "split": "test"
+    "file_pattern": "{lang}/test.jsonl"
   },
   "reference_fields": {
     "utterance": "utterance",
@@ -20,5 +20,9 @@
   ],
   "license": "apache-2.0",
   "role": "eval",
-  "notes": "OVOS canonical paradigm-neutral intent benchmark: 50 intents, 1750 test rows per language across template / paraphrase / near_ood / far_ood / asr_noise / typos buckets, with slot annotations. Training data ships in-dataset as train_templates.jsonl (template+embedding engines) and train_keywords.jsonl (keyword engines)."
+  "train_datasets": {
+    "template": "intents-for-eval-templates",
+    "keyword": "intents-for-eval-keywords"
+  },
+  "notes": "OVOS canonical paradigm-neutral intent benchmark: 50 intents, 1750 test rows per language across template / paraphrase / near_ood / far_ood / asr_noise / typos buckets, with slot annotations. far_ood rows carry expected_intent=null — the correct behaviour is no match."
 }

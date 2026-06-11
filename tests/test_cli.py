@@ -215,12 +215,12 @@ def main_args_assemble(preds: Path, out: Path) -> int:
     return 0
 
 
-class TestExportPokedex:
+class TestExportBestiary:
     def test_real_registry_export(self, tmp_path):
         registry_root = Path(__file__).parent.parent / "registry"
         out = tmp_path / "competitors.json"
         with pytest.raises(SystemExit) as exc:
-            main(["export-pokedex", "--registry", str(registry_root),
+            main(["export-bestiary", "--registry", str(registry_root),
                   "--output", str(out)])
         assert exc.value.code == 0
         payload = json.loads(out.read_text())

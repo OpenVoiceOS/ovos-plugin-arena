@@ -26,11 +26,15 @@ class TestEngineRegistry:
 
     def test_unknown_plugin_raises(self):
         with pytest.raises(KeyError):
-            IntentPipeline("not-a-plugin")
+            IntentPipeline({"pipeline": ["not-a-plugin-high"]})
 
     def test_bad_tier_raises(self):
         with pytest.raises(ValueError):
-            IntentPipeline("ovos-adapt-pipeline-plugin", tier="extreme")
+            IntentPipeline({"pipeline": ["ovos-adapt-pipeline-plugin-extreme"]})
+
+    def test_empty_pipeline_raises(self):
+        with pytest.raises(ValueError):
+            IntentPipeline({"pipeline": []})
 
 
 class TestExpandTemplate:
