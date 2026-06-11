@@ -1,0 +1,42 @@
+{
+  "competitor_id": "rover-whisper-vosk-en",
+  "modality": "stt",
+  "plugin": "ovos-stt-plugin-rover",
+  "config": {
+    "stt": {
+      "module": "ovos-stt-plugin-rover",
+      "ovos-stt-plugin-rover": {
+        "timeout": 12,
+        "workers": 4,
+        "backends": [
+          {
+            "module": "ovos-stt-plugin-whisper",
+            "config": {
+              "model": "openai/whisper-small.en"
+            }
+          },
+          {
+            "module": "ovos-stt-plugin-vosk",
+            "config": {
+              "model": "https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "langs": [
+    "en"
+  ],
+  "display_name": "ROVER (Whisper + Vosk)",
+  "species": "ROVERSTT",
+  "types": [
+    "ensemble"
+  ],
+  "description": "Meta-STT engine that runs multiple OVOS STT plugins in parallel and merges their hypotheses with ROVER word-level alignment and majority voting; accuracy improves most when backends have different error characteristics.",
+  "links": {
+    "source": "https://github.com/TigreGotico/ovos-stt-plugin-rover"
+  },
+  "model": "openai/whisper-small.en + vosk-model-small-en-us-0.15",
+  "notes": "Backends per the README configuration example, with each backend model pinned: openai/whisper-small.en (from the whisper plugin's documented model list) and vosk-model-small-en-us-0.15 (from the vosk plugin's documented model URL)."
+}

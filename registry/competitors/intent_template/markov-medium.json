@@ -1,0 +1,47 @@
+{
+  "competitor_id": "markov-medium",
+  "modality": "intent_template",
+  "config": {
+    "intents": {
+      "pipeline": [
+        "ovos-markov-pipeline-plugin-medium"
+      ],
+      "ovos-markov-pipeline-plugin": {
+        "order": 2,
+        "kneser_ney": true,
+        "backoff": true,
+        "smoothing": 1e-05,
+        "stem": false,
+        "char_fallback": false,
+        "conf_high": 0.75,
+        "conf_med": 0.55,
+        "conf_low": 0.3
+      }
+    }
+  },
+  "langs": [
+    "ca-ES",
+    "da-DK",
+    "de-DE",
+    "en-US",
+    "es-ES",
+    "eu-ES",
+    "fr-FR",
+    "gl-ES",
+    "it-IT",
+    "nl-NL",
+    "pt-BR",
+    "pt-PT"
+  ],
+  "display_name": "Markov",
+  "species": "MarkovPipeline",
+  "types": [
+    "statistical"
+  ],
+  "description": "Trains one word-level Markov chain per intent from example utterances and picks the intent whose chain yields the lowest perplexity; confidence is derived from perplexity. Trains in milliseconds with no GPU.",
+  "links": {
+    "source": "https://github.com/TigreGotico/ovos-markov-pipeline-plugin"
+  },
+  "model": "order-2 word-level Markov chains, Kneser-Ney smoothing with backoff",
+  "notes": "Single-stage pipeline at the plugin's own medium-confidence gate; the per-plugin config pins the documented model parameters (n-gram order, smoothing, backoff, stemming, char fallback) and confidence thresholds."
+}

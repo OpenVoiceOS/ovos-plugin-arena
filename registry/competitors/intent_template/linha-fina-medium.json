@@ -1,0 +1,41 @@
+{
+  "competitor_id": "linha-fina-medium",
+  "modality": "intent_template",
+  "config": {
+    "intents": {
+      "pipeline": [
+        "ovos-linha-fina-pipeline-plugin-medium"
+      ],
+      "ovos-linha-fina-pipeline-plugin": {
+        "conf_high": 0.8,
+        "conf_med": 0.6,
+        "conf_low": 0.4
+      }
+    }
+  },
+  "langs": [
+    "ca-ES",
+    "da-DK",
+    "de-DE",
+    "en-US",
+    "es-ES",
+    "eu-ES",
+    "fr-FR",
+    "gl-ES",
+    "it-IT",
+    "nl-NL",
+    "pt-BR",
+    "pt-PT"
+  ],
+  "display_name": "Linha Fina",
+  "species": "LinhaFinaPipeline",
+  "types": [
+    "classical-ML",
+    "keyword-match"
+  ],
+  "description": "Trains one SVM per intent over one-hot keyword vectors, selecting the most relevant negative samples by fuzzy token-set ratio. Entities come from simplematch templates and wordlists.",
+  "links": {
+    "source": "https://github.com/TigreGotico/linha-fina"
+  },
+  "notes": "Single-stage pipeline at the plugin's own medium-confidence gate; the per-plugin config pins the documented confidence thresholds. The engine itself is fixed: one SVM per intent over one-hot keyword vectors."
+}

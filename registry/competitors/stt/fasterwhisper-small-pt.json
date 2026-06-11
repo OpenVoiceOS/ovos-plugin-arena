@@ -3,6 +3,15 @@
   "modality": "stt",
   "plugin": "ovos-stt-plugin-fasterwhisper",
   "config": {
+    "stt": {
+      "module": "ovos-stt-plugin-fasterwhisper",
+      "ovos-stt-plugin-fasterwhisper": {
+        "model": "small",
+        "compute_type": "int8",
+        "cpu_threads": 1,
+        "beam_size": 3
+      }
+    },
     "model": "small",
     "compute_type": "int8",
     "cpu_threads": 1,
@@ -11,7 +20,7 @@
   "langs": [
     "pt-PT"
   ],
-  "notes": "faster-whisper small model, int8 quantised, low-memory profile",
+  "notes": "faster-whisper small model, int8 quantised, low-memory profile; flat config keys mirror the stt fragment for the prediction runner",
   "display_name": "FasterWhisper (small)",
   "species": "FasterWhisperSTT",
   "types": [

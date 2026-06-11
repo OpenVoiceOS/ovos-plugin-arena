@@ -1,0 +1,43 @@
+{
+  "competitor_id": "jurebes-medium",
+  "modality": "intent_template",
+  "config": {
+    "intents": {
+      "pipeline": [
+        "ovos-jurebes-pipeline-plugin-medium"
+      ],
+      "ovos-jurebes-pipeline-plugin": {
+        "baseline": "linear_svc",
+        "enable_slots": true,
+        "conf_high": 0.8,
+        "conf_med": 0.6,
+        "conf_low": 0.4
+      }
+    }
+  },
+  "langs": [
+    "ca-ES",
+    "da-DK",
+    "de-DE",
+    "en-US",
+    "es-ES",
+    "eu-ES",
+    "fr-FR",
+    "gl-ES",
+    "it-IT",
+    "nl-NL",
+    "pt-BR",
+    "pt-PT"
+  ],
+  "display_name": "Jurebes",
+  "species": "JurebesPipeline",
+  "types": [
+    "classical-ML"
+  ],
+  "description": "Scikit-learn text classification behind the OVOS pipeline API: any sklearn featurizer plus classifier can be wired in, with probability calibration applied automatically. The default baseline is a calibrated linear SVM.",
+  "model": "linear_svc (TF-IDF word featurizer + calibrated LinearSVC)",
+  "links": {
+    "source": "https://github.com/TigreGotico/jurebes"
+  },
+  "notes": "Single-stage pipeline at the plugin's own medium-confidence gate; the per-plugin config pins the documented linear_svc baseline (TF-IDF word featurizer + CalibratedClassifierCV-wrapped LinearSVC), slot tagging and confidence thresholds."
+}
