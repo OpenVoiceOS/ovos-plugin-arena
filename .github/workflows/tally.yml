@@ -2,36 +2,37 @@ name: Tally votes
 
 on:
   schedule:
-    # Run hourly to process vote issues and update leaderboards.
+    # Hourly: process vote issues and update the ELO leaderboards.
     - cron: '17 * * * *'
   workflow_dispatch: {}
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: arena-data
+  cancel-in-progress: false
 
 jobs:
   tally:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      issues: write
-
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: dev
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
-          python-version: '3.11'
+          python-version: '3.12'
           cache: 'pip'
 
-      - name: Install backend dependencies
-        run: |
-          cd backend
-          pip install -e ".[dev]" --quiet 2>&1 | tail -5
+      - name: Install arena
+        run: pip install --quiet .
 
-      - name: Tally votes and regenerate leaderboards
+      - name: Tally votes and regenerate ELO leaderboards
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
           python -m arena.cli tally \
             --data-dir frontend-static/public/data \

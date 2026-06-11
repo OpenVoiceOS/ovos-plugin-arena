@@ -2,54 +2,59 @@ name: Assemble battles
 
 on:
   schedule:
-    # Run daily at 03:00 UTC to refresh the battles pool from HF datasets.
+    # Daily battles-pool + benchmark-board refresh from HF prediction datasets.
     - cron: '0 3 * * *'
   workflow_dispatch:
     inputs:
       modality:
-        description: 'Modality to assemble (leave empty for all)'
+        description: 'Modality to assemble (empty = all)'
         required: false
         default: ''
       max_battles:
-        description: 'Max battles per modality (default: 200)'
+        description: 'Max battles per (modality, dataset, lang) pool'
         required: false
         default: '200'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: arena-data
+  cancel-in-progress: false
 
 jobs:
   assemble:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: dev
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
-          python-version: '3.11'
+          python-version: '3.12'
           cache: 'pip'
 
-      - name: Install backend dependencies
-        run: |
-          cd backend
-          pip install -e ".[dev]" --quiet 2>&1 | tail -5
+      - name: Install arena
+        run: pip install --quiet ".[hf]"
 
-      - name: Run assembler CLI
+      - name: Assemble battles, benchmark boards and ELO seeds
         env:
-          HF_DATASETS: ${{ vars.HF_DATASETS || 'OpenVoiceOS/ovos-stt-bench-pt-PT' }}
+          PREDICTIONS: ${{ vars.HF_PREDICTIONS || 'OpenVoiceOS/ovos-intent-bench-intents-for-eval' }}
           MODALITY: ${{ inputs.modality || '' }}
           MAX_BATTLES: ${{ inputs.max_battles || '200' }}
         run: |
           python -m arena.cli assemble \
-            --hf-datasets "${HF_DATASETS}" \
+            --predictions "${PREDICTIONS}" \
             --output frontend-static/public/data \
             ${MODALITY:+--modality "$MODALITY"} \
             --max-battles "${MAX_BATTLES}"
 
-      - name: Update data index
+      - name: Export pokedex and data index
         run: |
+          python -m arena.cli export-pokedex \
+            --registry registry \
+            --output frontend-static/public/data/competitors.json
           python -m arena.cli export-index \
             --data-dir frontend-static/public/data \
             --output frontend-static/public/data/index.json
@@ -62,6 +67,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "No data changes to commit."
           else
-            git commit -m "chore(data): refresh battles pool [skip ci]"
+            git commit -m "chore(data): refresh battles pool and benchmark boards [skip ci]"
             git push origin dev
           fi

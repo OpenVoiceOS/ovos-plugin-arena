@@ -1,5 +1,5 @@
 name: "Arena Vote"
-description: "Cast a vote in the OVOS Plugin Arena blind battle. Do not modify the title — it is machine-parsed."
+description: "Cast a vote in an OVOS Plugin Arena blind battle. Do not modify the title — it is machine-parsed."
 labels:
   - vote
 title: "vote|<battle_id>|<a|b|tie|both_wrong>"
@@ -7,42 +7,16 @@ body:
   - type: markdown
     attributes:
       value: |
-        **How this works:**
-        The arena UI pre-fills the title in the format `vote|<battle_id>|<choice>`.
-        A scheduled GitHub Action reads all vote issues, deduplicates, replays ELO, and updates the leaderboards.
-        Do **not** change the issue title — it is machine-parsed.
-  - type: input
-    id: battle_id
-    attributes:
-      label: Battle ID
-      description: Pre-filled by the arena UI. Do not change.
-      placeholder: "e.g. stt-pt-PT-plugin1-vs-plugin2-sample42"
-    validations:
-      required: true
-  - type: dropdown
-    id: choice
-    attributes:
-      label: My vote
-      description: Pre-filled by the arena UI. Do not change.
-      options:
-        - a
-        - b
-        - tie
-        - both_wrong
-    validations:
-      required: true
+        **Submit this issue as-is — do not edit the title.**
+
+        The arena UI pre-filled the title in the format `vote|<battle_id>|<choice>`.
+        A scheduled GitHub Action reads all `vote`-labelled issues, deduplicates
+        (one vote per user per battle), replays ELO and updates the leaderboards.
+        Your vote becomes part of the public, auditable vote log.
   - type: textarea
-    id: context
+    id: comment
     attributes:
-      label: Battle context (auto-filled)
-      description: Human-readable summary of the battle, filled by the arena UI.
-      render: markdown
+      label: Comment (optional)
+      description: Anything worth noting about this battle — e.g. why both candidates were wrong.
     validations:
       required: false
-  - type: checkboxes
-    id: confirm
-    attributes:
-      label: Confirmation
-      options:
-        - label: I listened to / read both outputs before voting.
-          required: true
