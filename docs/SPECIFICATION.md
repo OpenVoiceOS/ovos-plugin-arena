@@ -1,7 +1,7 @@
 # OVOS Plugin Arena — Specification
 
 **Status:** Active — maintained by TigreGotico
-**Version:** 0.2
+**Version:** 0.3
 
 The key words MUST, MUST NOT, SHOULD, SHOULD NOT, and MAY are to be
 interpreted as described in RFC 2119.
@@ -13,412 +13,177 @@ interpreted as described in RFC 2119.
 The Plugin Arena answers one recurring question for the OVOS ecosystem:
 *"which plugin should I use?"* It does so with two complementary signals:
 
-1. **Traditional benchmarks** — plugin predictions evaluated against labelled
-   datasets (WER/CER for STT, detection metrics for wake word, accuracy for
-   intent), published openly and reproducibly.
+1. **Benchmarks** — plugin predictions evaluated against labelled datasets
+   (accuracy/F1 for intent, WER for STT, detection metrics for wake word),
+   published openly and reproducibly.
 2. **Human preference** — chess-style ELO ratings produced by blind A/B
-   "battles" where users pick the better of two plugin outputs.
+   "battles" where users pick the better of two plugin outputs. The initial
+   ELO is derived from the benchmarks; human votes refine it.
 
-The arena is the *voting and rating* venue. It is **not** an execution venue.
+The arena is the *rating and voting* venue. It is **not** an execution venue.
 
 ## 2. Design principles
 
-- **P1 — Predictions are decentralized.** Plugins run *outside* the arena, as
-  offline batch jobs (cron, laptop, CI — anywhere). The arena MUST NOT
-  install, isolate, or execute OVOS plugins. This removes cloud cost,
-  sandboxing, and dependency-conflict concerns from the service entirely.
-- **P2 — HuggingFace is the artifact layer.** Every prediction run is
-  published as a queryable HF dataset (e.g.
-  `OpenVoiceOS/ovos-stt-bench-pt-PT`). The predictions are themselves a
-  public benchmark, independent of the arena.
-- **P3 — The arena database stores battle outcomes only.** Votes, ratings,
-  users. Never raw predictions, never audio blobs (it references HF rows).
-- **P4 — Evals grow organically.** New datasets and new plugins are added
-  over time by publishing more prediction datasets — no arena code changes.
-  Domain-specific evals (medical, ATC, accented speech, long-form audio)
-  arrive the same way.
-- **P5 — Ratings are replayable.** The ELO standings MUST be deterministically
-  recomputable from the persisted vote log.
+- **P1 — GitHub-native, zero servers.** The arena is a repository: data
+  artifacts are JSON files committed by scheduled Actions, the UI is a static
+  site on GitHub Pages, and votes are GitHub issues. There is no backend, no
+  database, and no arena account system. A FastAPI shim MAY exist as a local
+  *development tool* only; it MUST NOT become a deployment target.
+- **P2 — Predictions are decentralized; HF is the artifact layer.** Plugins
+  run *outside* the arena as offline batch jobs. Every prediction run is
+  published as a HuggingFace dataset. The arena MUST NOT install, isolate, or
+  execute OVOS plugins in CI.
+- **P3 — Everything is declarative.** Every competitor is a JSON file
+  (`registry/competitors/<modality>/<id>.json`); every dataset is a JSON file
+  (`registry/datasets/<modality>/<id>.json`). Forking the repo and editing
+  JSON yields a working arena.
+- **P4 — Every benchmark is a reproducible script.** One dedicated Python
+  script per benchmark under `benchmarks/`, tracked in git. It trains each
+  registry competitor, produces fresh predictions (never copied from other
+  sources), records the pinned dataset revision and plugin versions in every
+  row, and uploads to HF.
+- **P5 — Ratings are replayable.** Battle ids are content hashes; the ELO
+  seed is a deterministic function of the published predictions; human votes
+  replay in issue-number order. The full standings MUST be reproducible from
+  public data alone.
 - **P6 — All prediction data is kept**, including bad predictions — failure
   cases guide plugin improvements and are first-class benchmark content.
 
 ## 3. System components
 
 ```
-┌────────────────────┐   publish    ┌──────────────────────────┐
-│ Prediction Runners │ ───────────► │ HuggingFace datasets     │
-│ (offline, cron,    │              │ ovos-<mod>-bench-<ds>-<lang>
-│  anywhere)         │              └───────────┬──────────────┘
-└────────────────────┘                          │ sample
-                                                ▼
-                       ┌──────────────────────────────────────┐
-                       │ Arena backend                        │
-                       │  matchmaking · battles · votes · ELO │
-                       └───────────┬──────────────────────────┘
-                                   │ blind A/B
-                                   ▼
-                       ┌──────────────────────┐
-                       │ Frontend (web)       │
-                       │  listen/read · vote  │
-                       └──────────────────────┘
+registry/*.json ──► benchmarks/<bench>.py ──► HF dataset
+                                              predictions/<competitor_id>.jsonl
+                                                   │ assemble.yml (daily)
+                                                   ▼
+                      frontend-static/public/data/*.json
+                      battles · benchmark boards · elo seeds · leaderboards
+                                                   │ Astro build (pages.yml)
+                                                   ▼
+                      GitHub Pages  ◄── votes as GitHub issues
+                                                   │ tally.yml (hourly)
+                                                   ▼
+                      ELO replay → leaderboard JSON → commit → redeploy
 ```
 
-### 3.1 Prediction runners (out of scope for this service, in scope for this spec)
+### 3.1 Declarative registry
 
-- A runner takes (plugin, dataset, lang) and produces one prediction row per
-  sample, plus automatic metrics where references exist.
-- Runners MUST be reproducible: pinned plugin version, dataset revision, and
-  runner version recorded in every row.
-- Reference tooling lives in the OVOS ecosystem (`ovos-stt-bench-*` datasets
-  already exist; `tts-benchmarks`, `ww-benchmarks`, `ovos-intent-benchmark`
-  are the metric sources to converge on).
+**Competitors** (`registry/competitors/<modality>/<id>.json`): one plugin
+entry point under one exact configuration. The same plugin with a different
+model or config is a *different competitor*. `competitor_id` is the stable
+key for predictions, battles, ELO and leaderboards. Pokedex card fields
+describe the fighter for the UI: `display_name`, `species` (the plugin class
+it instantiates), `types` (architecture tags: `GOFAI`, `fuzzy-match`,
+`neural-net`, `template-match`, `keyword-match`, `embedding`, `LLM`),
+`description`, `model`, `links`.
 
-#### Declarative evaluation registry
+**Datasets** (`registry/datasets/<modality>/<id>.json`): one benchmark
+corpus — source (HF id + revision + split), reference field mapping, license,
+`lang` (or `lang: multi` plus a `langs` list), and `role: eval` for held-out
+sets that gate leaderboard metrics.
 
-Competitors and datasets are declared as JSON files in the repository instead
-of being inlined in scripts or queue files:
+### 3.2 Prediction contract
 
-```
-registry/
-  competitors/<modality>/<competitor_id>.json   — one plugin + one config
-  datasets/<modality>/<dataset_id>.json         — one benchmark corpus
-```
+Predictions live in HF dataset repos as per-competitor JSON lines:
+`predictions/<competitor_id>.jsonl`, one row per (language, sample).
 
-**Competitors** (`registry/competitors/<modality>/<id>.json`):
-
-```json
-{
-  "competitor_id": "fasterwhisper-small-pt",
-  "modality": "stt",
-  "plugin": "ovos-stt-plugin-fasterwhisper",
-  "config": {"model": "small", "compute_type": "int8"},
-  "langs": ["pt-PT"],
-  "alias": ["ovos-stt-plugin-fasterwhisper"],
-  "notes": "..."
-}
-```
-
-The same plugin entry point with a different model or config is a *different
-competitor*.  `competitor_id` is the stable key for battles, ELO, and
-leaderboards.  The `alias` list provides backward-compatibility: if legacy
-prediction rows carry the bare `plugin_name` (e.g. `ovos-stt-plugin-fasterwhisper`)
-the ingestion layer re-keys them to the matching `competitor_id` so old data
-remains valid.
-
-**Datasets** (`registry/datasets/<modality>/<id>.json`):
-
-```json
-{
-  "dataset_id": "minds14-pt-PT",
-  "modality": "stt",
-  "source": {"type": "huggingface", "hf_id": "PolyAI/minds14",
-             "revision": "main", "split": "train", "subset": "pt-PT"},
-  "reference_fields": {"audio": "audio", "ground_truth": "transcription"},
-  "lang": "pt-PT",
-  "license": "cc-by-4.0",
-  "role": "eval"
-}
-```
-
-`role: eval` marks held-out sets used for leaderboard metrics; `role: unrestricted`
-marks openly available training/development data.
-
-**Queue.yaml backward-compatibility**: `runner/queue.yaml` jobs may reference
-registry files (`competitor:` + `dataset_ref:`) or keep the original inline
-`plugin:` + `dataset:` blocks — both formats are accepted in the same file.
-
-#### Predictions as per-competitor JSONL
-
-Runner output is written to `predictions/<competitor_id>.jsonl` (one file per
-competitor, one row per sample).  All rows MUST include `competitor_id` in
-addition to the §3.2 minimum columns.  The ingestion layer accepts this layout
-alongside the legacy HF dataset alias (`ovos-stt-bench-*`).
-
-#### Intent modality — fairness via pipeline plugin
-
-Intent modality predictions run end-to-end through the OVOS pipeline plugin's
-`match_intent` method (full keyword/ML matching logic).  The runner is
-`runner/intent_runner.py`; a demo with `ovos-adapt-pipeline-plugin` over a
-small slice produces real JSONL rows.  Full ovoscope e2e routing (listener-loop
-fairness) is gated on TigreGotico/ovoscope#64.
-
-#### Auto-metric leaderboards
-
-`backend/app/arena/leaderboard.py` builds leaderboard tables straight from
-`predictions/*.jsonl` files without touching the arena DB:
-
-| Modality   | Primary metric        | Secondary metric |
-|------------|-----------------------|-----------------|
-| STT        | WER mean ↓            | WER median      |
-| Intent     | Accuracy ↑            | Macro F1 ↑      |
-| Wake word  | FAR + FRR ↓           |                 |
-
-Output: `frontend-static/public/data/leaderboard-<mod>-<lang>.json` — same
-path consumed by the static frontend in Mode B/C.  Runs standalone (no DB);
-the GitHub Actions `tally.yml` workflow calls it after pulling fresh prediction
-JSONLs.
-- `ovos-intent-benchmark` is the **intent prediction-runner**: it runs the
-  intent pipelines over labelled utterance datasets and publishes
-  `ovos-intent-bench-<dataset>-<lang>` prediction datasets in the §3.2
-  contract (see its issue #1); the arena seeds auto-battles from
-  `exact_match` and runs human battles on samples multiple pipelines got
-  wrong. Blocked on the intents eval dataset cleanup (HF `ovos-intents-*`
-  family is WIP).
-
-### 3.2 HF dataset contract
-
-Naming: `OpenVoiceOS/ovos-<modality>-bench-<dataset>-<lang>` (one dataset per
-source corpus + language; plugins are rows, not repos).
-
-Minimum columns, all modalities:
-
-| column | type | notes |
-| --- | --- | --- |
-| `sample_id` | str | stable ID within the source dataset |
-| `dataset_id` | str | source corpus identifier + revision |
-| `lang` | str | BCP-47 |
-| `plugin_id` | str | OPM plugin name |
-| `plugin_version` | str | exact installed version |
-| `prediction` | str/audio | modality-specific payload (see below) |
-| `runner_version` | str | reproducibility |
-| `created_at` | timestamp | |
+Minimum columns, all modalities: `competitor_id`, `sample_id`, `dataset_id`,
+`lang`, `plugin_id`, `plugin_version`, `prediction`, `runner_version`,
+`created_at`. Reproducibility columns SHOULD include `dataset_revision`.
 
 Per modality:
-- **STT**: `audio` (ref to source corpus sample), `reference_text`,
-  `prediction` (text), `wer`, `cer`, `rtf`.
-- **TTS**: `input_text`, `prediction` (synthesized audio file), `voice`,
-  `rtf`; objective metrics optional (MOS-predictors MAY be added later).
-- **Wake word**: `audio`, `label` (contains-ww or not), `prediction`
-  (score/decision), `latency_ms`.
-- **Intent**: `utterance`, `reference_intent`, `prediction` (intent +
-  entities), `exact_match`, `entity_f1`.
 
-#### §3.2 Compatibility note — `ovos-stt-bench-*` real schema
+- **Intent**: `utterance`, `reference_intent` (null = out-of-scope sample),
+  `reference_slots`, `predicted_slots`, `exact_match`, `confidence`,
+  `bucket`, `latency_ms`. For out-of-scope samples the correct behaviour is
+  *no match*: `prediction: null` scores as correct.
+- **STT**: `reference_text`, `prediction` (transcript), `wer` (computed on
+  ingest when absent), `latency_ms`.
+- **Wake word**: `label`, `prediction` (decision), `latency_ms`.
+- **TTS**: `input_text`, `prediction` (audio ref); no objective metric —
+  TTS ranks by human votes only.
 
-The published `OpenVoiceOS/ovos-stt-bench-*` datasets use a slightly different
-column layout than the minimum contract above.  The ingestion layer (`arena.ingestion`)
-accepts both forms via alias mapping:
+### 3.3 Benchmark scripts
 
-| spec column       | real column (ovos-stt-bench-*)    | notes |
-|-------------------|-----------------------------------|-------|
-| `sample_id`       | `dataset_entry_id`                | stable filename within source corpus |
-| `plugin_id`       | `plugin_name`                     | OPM entry-point name |
-| `plugin_version`  | `model_id`                        | composite: `plugin/model/hash` |
-| `prediction`      | `prediction_transcript`           | STT output text |
-| `reference_text`  | `transcript`                      | ground truth text |
-| `wer`             | *(absent — computed on ingest)*   | computed by ingester from above pair |
-| `cer`, `rtf`      | *(absent)*                        | omitted in current datasets |
-| `runner_version`  | *(absent)*                        | omitted in current datasets |
-| `created_at`      | *(absent)*                        | defaults to ingest time |
+A benchmark script (`benchmarks/<bench>.py`) MUST:
 
-Extra columns present in the real schema (stored in `metrics{}` by the ingester):
-- `prediction_confidence`: model confidence score
-- `prediction_type`: modality tag (e.g. "STT")
+1. load its dataset definition and competitors from the registry;
+2. pin the dataset revision at run start and record it in every row;
+3. train/instantiate each competitor exactly as OVOS would (for intent: the
+   real OPM pipeline plugin over a message bus, trained from the dataset's
+   own training files, matched through the plugin's own `match_<tier>`
+   confidence gate — the arena owns no threshold numbers);
+4. write resumable per-competitor JSONL and upload to the HF results repo.
 
-The ingester is forward-compatible: if a future dataset adds `wer` directly,
-the pre-computed value is used as-is.  The spec's canonical column names remain
-the target; runner tooling SHOULD converge on them over time.
+### 3.4 Static data artifacts
 
-### 3.3 Arena backend
+`assemble` (CI, daily) turns prediction JSONLs into:
 
-Responsibilities, and nothing more:
-1. **Plugin registry** — admin-registered plugin identities per modality
-   (mirrors what exists in the HF datasets).
-2. **Sampling/matchmaking** — assemble battles from HF prediction rows.
-3. **Battles & votes** — serve blind A/B pairs, record votes.
-4. **Ratings** — maintain ELO standings per (modality, lang); recompute on
-   demand from the vote log.
-5. **Leaderboards** — query endpoints + periodic static JSON/HTML export so
-   results remain public at zero infra cost even if the live service is down.
+| File | Content |
+|---|---|
+| `battles-<mod>-<lang>.json` | Blind A/B pool (capped, pair-interleaved) |
+| `benchmark-<mod>-<lang>.json` | Auto-metric board straight from predictions |
+| `elo-seed-<mod>-<lang>.json` | Benchmark-derived initial ELO ledger |
+| `leaderboard-<mod>-<lang>.json` | ELO board (seed + human votes) |
+| `competitors.json` | Pokedex export of the registry |
+| `index.json` | Catalogue of all of the above |
 
-The backend builds on the existing FastAPI + auth + Postgres work in this
-repo (alembic, users/roles). The committed `docs/models.sql` is the starting
-point with one structural change: **battles are assembled, not executed** —
-the `RUNNING` worker lifecycle is replaced by sampling from already-published
-predictions (see §5).
+### 3.5 Frontend
 
-### 3.4 Frontend
-
-- Blind battles per modality: STT shows the source audio + two transcripts;
-  TTS plays two audio renditions of the same text; intent shows utterance +
-  two predicted intents; wake word plays a clip + two detector verdicts.
-- Voting options MUST include: candidate A, candidate B, tie, both-wrong
-  (these exist in `vote_result_enum` already).
-- Plugin identities MUST NOT be revealed before the vote is committed
-  (post-vote reveal is encouraged for engagement).
+Static Astro site: leaderboards (benchmark boards beside ELO boards),
+blind battle page, and the fighters pokedex. Plugin identities MUST NOT be
+revealed before the vote is committed (post-vote reveal is encouraged).
+Voting options MUST include: candidate A, candidate B, tie, both-wrong.
 
 ## 4. Matchmaking rules
 
 - **R1 — Same stimulus.** A battle pairs two predictions for the *same*
-  `sample_id` from the *same* source dataset, by two different plugins.
-- **R2 — ELO proximity.** Opponents SHOULD be selected with similar current
-  ELO (configurable window), so battles are informative; cold-start plugins
-  (few battles) MAY be matched more broadly.
-- **R3 — Prefer discriminative samples.** For modalities with references,
-  sampling SHOULD prefer samples where *both* plugins erred (e.g. both
-  `wer > 0`) — these are the cases where human judgement adds signal beyond
-  the automatic metric. A configurable fraction of battles MAY come from
-  all-samples to avoid bias.
-- **R4 — No repeat exposure.** A user SHOULD NOT see the same
-  (sample, plugin-pair) battle twice.
-- **R5 — Auto-battles (seeding).** Before human votes exist, the system MAY
-  generate auto-battles judged by the automatic metric (winner = lower WER)
-  to bootstrap initial ELO. Auto-votes MUST be stored with
-  `voter = system:wer` (never attributed to a user), MUST be distinguishable
-  in the vote log, and SHOULD carry lower K-factor weight than human votes.
+  `sample_id` from the same dataset, by two different competitors.
+- **R2 — Identical outputs are never battled** (no signal for a voter).
+- **R3 — Prefer discriminative samples.** Within each competitor pair,
+  both-wrong samples sort first, then one-wrong disagreements. Battle pools
+  interleave competitor pairs so no pair dominates.
+- **R4 — Deterministic and blind.** `battle_id` is a content hash of
+  (modality, dataset, lang, sample, sorted pair); A/B display order derives
+  from that hash, not from competitor names. Re-running `assemble` keeps
+  ids stable so open votes never dangle.
+- **R5 — ELO seeding.** Auto-battles derive an outcome from the reference
+  metric (intent: exact match incl. OOD rejection; STT: lower WER) for every
+  (sample, pair) with signal, replayed in deterministic order at **K/4**.
+  Auto votes are never attributed to users and are reported separately.
 
-## 5. Data model (delta against docs/models.sql)
+## 5. Rating system
 
-Kept: `users` (+roles), `votes` (+`vote_result_enum`), plugin registry,
-ratings/snapshots.
+- Standard ELO: initial 1200, K=32 (K=16 after 30 battles), expected score
+  with the 400-point logistic curve.
+- Human votes: tie and both-wrong score 0.5/0.5.
+- Auto votes (seeding): K/4, outcomes from benchmark metrics only.
+- Separate standings per (modality, lang).
+- `tally` (CI, hourly) parses open `vote`-labelled issues
+  (`vote|<battle_id>|<choice>` titles), validates against the battles pool,
+  dedupes one vote per (author, battle), replays on top of the seed in
+  issue-number order, commits boards, closes processed issues.
 
-Changed:
-- `battles` no longer has worker lifecycle (`PENDING/RUNNING/...`). A battle
-  row is created at *assembly time* and references two prediction rows by
-  (hf_dataset, row ref) — it is READY by construction. A nightly assembler
-  job MAY pre-generate battle pools per modality/lang.
-- New: `prediction_sources` table — registered HF datasets (name, revision,
-  modality, lang, ingested_at) so battles always pin an exact dataset
-  revision.
-- `ratings` keyed by (plugin_id, modality, lang); every change references the
-  causal vote id (P5 replayability).
-
-## 6. Rating system
-
-- Standard ELO; parameters (initial=1000, K=32 fresh / 16 veteran,
-  veteran-threshold) are configuration, not code constants.
-- Human votes: tie → 0.5/0.5; both-wrong → 0.5/0.5 *plus* the sample is
-  flagged into a `hard_samples` view (P6: failure cases are content).
-- Separate standings per (modality, lang); a global aggregate MAY be shown
-  but per-language boards are the primary product.
-- Auto-battle votes use reduced K (suggested K/4) and are excluded from
-  "human preference" leaderboard views (shown as a separate "seeded" column
-  until a plugin has ≥N human votes).
-
-## 7. Roadmap (MVP first)
-
-1. **M1 — Spec agreed** (this document reviewed by the three of us).
-2. **M2 — Prediction-runner contract + first ingests**: register existing
-   `ovos-stt-bench-*` datasets; assembler builds a battle pool.
-3. **M3 — STT battles MVP**: read-only sampling + voting + ELO on the
-   existing auth/UI base. Human votes flowing end-to-end.
-4. **M4 — Leaderboards + static export.**
-5. **M5 — Auto-battle seeding.**
-6. **M6 — TTS battles** (pre-synthesized audio from HF, no live inference).
-7. **M7 — Wake word + intent battles.**
-8. **M8 — Unlabeled mode (stretch)**: battles on unlabeled audio where votes
-   *create* a new labelled dataset (consent + licensing reviewed before this
-   ships).
-
-Explicitly out of scope for MVP: live plugin inference (browser mic → backend
-inference for WW/TTS was discussed and parked: HF Zero-GPU endpoints are an
-option later, with cold-start caveats), user-uploaded audio, write access to
-HF from the arena service.
-
-## 8. Decisions
-
-1. **Hosting:** HF Space (or any small box) for the live service + static
-   leaderboard export to GitHub Pages — results stay public at zero infra
-   cost regardless of backend uptime.
-2. **Database:** SQLite for the MVP (single small service, replayable vote
-   log makes migration trivial); the Postgres/alembic schema remains the
-   target once multi-user load is real.
-3. **Voting:** accounts-only at MVP (existing auth); anonymous voting with
-   rate limits is a later experiment.
-4. **`both_wrong`:** scores 0.5/0.5 *and* flags the sample into
-   `hard_samples`.
-5. **Plugin versions:** a new `plugin_version` enters as a new competitor
-   seeded at its predecessor's rating; the predecessor's history is frozen,
-   never merged.
-
-## 9. Deployment modes
-
-### Mode A — Docker (self-host)
-
-A multi-stage Docker image bundles the FastAPI backend alongside the built
-static frontend (served by the API under `/`).  A `docker-compose.yml`
-provides a complete single-host stack (backend + SQLite volume).
-
-**When to use:** self-hosted community instances, private forks with
-local-network voting, integration testing.
-
-### Mode B — Static read-only mirror (GitHub Pages)
-
-The frontend is deployed to GitHub Pages as a fully static site.  Leaderboard
-and battle data are pre-rendered to `frontend-static/public/data/*.json` by a
-scheduled GitHub Action (`assemble.yml` + `tally.yml`) and committed to the
-repo; Pages deploys the updated static build automatically.
-
-Voting is **disabled** in this mode; the site is a public read-only window
-onto the current rankings and battle pool.  No server is required — the JSON
-files are the database.
-
-**When to use:** the canonical OpenVoiceOS leaderboard mirror — zero infra
-cost, survives backend outages, always publicly accessible.
-
-### Mode C — GitHub-native (preferred, zero servers)
-
-The static UI is the same as Mode B, but voting is enabled via GitHub Issues:
-
-1. A voter clicks a vote button in the UI.
-2. The browser opens a **prefilled GitHub issue** URL with:
-   - `labels=vote`
-   - structured title: `vote|<battle_id>|<a|b|tie|both_wrong>`
-   - body pre-filled with human-readable battle context.
-3. The voter submits the issue (requires a GitHub account — free, no arena
-   account).
-4. A scheduled Action (`tally.yml`) runs on cron (e.g. hourly):
-   - Lists all open issues labelled `vote` via `gh api`.
-   - Validates each: parses the title, checks the battle_id exists, dedupes
-     (one vote per `(author, battle_id)` pair — later votes by the same user
-     on the same battle are silently ignored).
-   - Replays ELO **deterministically from the full ordered issue history**
-     (issue number = order proxy; `created_at` as tiebreak) — this is the
-     spec's P5 replayability: the vote log IS the issue history.
-   - Regenerates `frontend-static/public/data/leaderboard-*.json`.
-   - Commits the updated JSON; Pages redeploys automatically.
-   - Closes each processed issue with a thank-you comment, moves it to the
-     `processed` label.
-5. Any fork with GitHub Pages + Actions enabled becomes a working arena for
-   whatever HF prediction datasets it configures — **forkable with zero
-   server infrastructure**.
-
-**Comparison to backend Mode A:** Mode C trades real-time vote confirmation
-for zero infrastructure.  The vote is public on GitHub (transparency), the
-ELO history is auditable (replayable from public issues), and the leaderboard
-updates hourly at no cost.
-
-**End-to-end vote-issue flow (Mode C):**
+## 6. Vote flow (end to end)
 
 ```
-Voter opens static page → clicks vote (e.g. "A is better")
-  → browser navigates to:
-    https://github.com/OpenVoiceOS/ovos-plugin-arena/issues/new
-      ?template=vote.yml
-      &labels=vote
-      &title=vote%7Cbattle_001%7Ca
-  → voter submits GitHub issue (logs in if needed)
-  → issue #N created with label "vote"
-
+Voter opens battle page → picks A / B / Tie / Both wrong
+  → prefilled GitHub issue opens (template applies the `vote` label;
+    title: vote|<battle_id>|<choice>)
+  → voter submits (free GitHub account, no arena account)
 Hourly tally Action:
-  gh api /repos/.../issues?labels=vote&state=open (paginated)
-  → parse & validate each issue title
-  → dedupe: skip if (author, battle_id) already seen
-  → replay ELO from all valid votes (ordered by issue number)
-  → write frontend-static/public/data/leaderboard-stt-pt-PT.json (etc.)
-  → git commit && git push
-  → gh issue comment #N "Thanks! Your vote has been counted."
-  → gh issue close #N --comment "" (with "processed" label)
-  → Pages picks up new commit → redeploys → live in ~30s
+  parse + validate + dedupe → replay ELO (seed + votes, ordered)
+  → write leaderboard-*.json → commit → Pages redeploys
+  → close issues with a thank-you comment (label `processed`)
 ```
 
-## 10. Relationship to existing code
+The vote log **is** the issue history — public, auditable, replayable.
 
-- `main`/`dev` (Suvan): FastAPI template, alembic auth, frontend scaffold,
-  `docs/models.sql` — the base this spec builds on.
-- PR #3 (`feat/arena-core`): the ELO engine, replayable vote log, blind
-  matchup API, and SQLite persistence align with this spec and SHOULD be
-  rebased onto it (Postgres + assembled battles). Its OPM plugin discovery
-  and in-arena execution adapters are superseded by P1/P2 (predictions are
-  external) and SHOULD be dropped or moved to the prediction-runner tooling.
-- Roadmap issue #2 is superseded by §7 of this document.
+## 7. Modality roadmap
+
+1. **Intent** — live: `benchmarks/intent_intents_for_eval.py`, 5 engines ×
+   12 languages over `OpenVoiceOS/intents-for-eval`.
+2. **STT** — prediction runner exists (`runner/`, deployed off-repo);
+   arena benchmark script + registry entries pending.
+3. **Wake word** — pending (same contracts).
+4. **TTS** — pending; human-vote-only boards (no auto metric, no ELO seed).

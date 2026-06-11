@@ -11,8 +11,8 @@ queue and sleeping between cycles.
 
 ## Row schema
 
-Each row written to the JSONL output and uploaded to HF matches the real
-`ovos-stt-bench-*` column layout that the arena ingestion layer accepts:
+Each row written to the JSONL output and uploaded to HF matches the legacy
+`ovos-stt-bench-*` column layout; the arena §3.2 contract (docs/SPECIFICATION.md) is the convergence target for a future STT bench script:
 
 | column | type | notes |
 |---|---|---|
