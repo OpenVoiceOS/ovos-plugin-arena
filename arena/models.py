@@ -150,6 +150,13 @@ class BattlesPool(BaseModel):
     dataset_id: str
     lang: str
     generated_at: str
+    dataset_info: Optional[Dict[str, Any]] = Field(
+        None,
+        description=(
+            "Registry metadata for the eval corpus, including the "
+            "paradigm-specific training corpora the fighters trained on."
+        ),
+    )
     battles: List[Battle] = Field(default_factory=list)
 
 

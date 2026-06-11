@@ -213,7 +213,9 @@ def _dataset_info_lookup(prediction_sources: List[str]) -> Dict[str, Dict[str, A
         return info
     hf_repos = [s for s in prediction_sources if not Path(s).is_dir()]
     predictions_urls = [f"https://huggingface.co/datasets/{r}" for r in hf_repos]
-    for dataset in list_datasets():
+    datasets = list_datasets()
+    by_id = {d.dataset_id: d for d in datasets}
+    for dataset in datasets:
         entry: Dict[str, Any] = {}
         hf_id = getattr(dataset.source, "hf_id", None)
         if hf_id:
@@ -224,6 +226,18 @@ def _dataset_info_lookup(prediction_sources: List[str]) -> Dict[str, Dict[str, A
             entry["notes"] = dataset.notes
         if predictions_urls:
             entry["predictions"] = predictions_urls
+        if dataset.train_datasets:
+            trains: Dict[str, Any] = {}
+            for paradigm, train_id in dataset.train_datasets.items():
+                train_def = by_id.get(train_id)
+                train_hf = (getattr(train_def.source, "hf_id", None)
+                            if train_def else None)
+                trains[paradigm] = {
+                    "dataset_id": train_id,
+                    **({"url": f"https://huggingface.co/datasets/{train_hf}"}
+                       if train_hf else {}),
+                }
+            entry["train_datasets"] = trains
         info[dataset.dataset_id] = entry
     return info
 
@@ -267,6 +281,7 @@ def cmd_assemble(args: argparse.Namespace) -> int:
             dataset_id=dataset_id,
             lang=lang,
             generated_at=now,
+            dataset_info=dataset_info.get(dataset_id),
             battles=battles,
         )
         _write_json(data_dir / f"battles-{modality}-{lang}.json", pool)

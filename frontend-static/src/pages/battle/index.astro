@@ -34,6 +34,7 @@ import Base from '../../layouts/Base.astro';
       <p id="intent-hint" style="font-size:0.8rem;margin:0.6rem 0 0">
         Which interpretation should a voice assistant act on? “No match” means it would ask the user to rephrase.
       </p>
+      <p id="battle-train" style="font-size:0.78rem;margin:0.55rem 0 0;color:var(--muted)"></p>
     </div>
 
     <!-- The fighters -->
@@ -173,6 +174,20 @@ import Base from '../../layouts/Base.astro';
           : '<p style="color:var(--muted);font-size:0.82rem;margin:0.45rem 0 0">no slots extracted</p>'}`;
     }
 
+    function provenanceHtml(b) {
+      const info = b.dataset_info || {};
+      const link = (label, url) => url
+        ? `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer"><code>${esc(label)}</code></a>`
+        : `<code>${esc(label)}</code>`;
+      const parts = [`eval: ${link(b.dataset_id, info.url)}`];
+      const trains = Object.entries(info.train_datasets || {});
+      if (trains.length) {
+        parts.push('fighters trained on: ' + trains.map(([paradigm, t]) =>
+          `${esc(paradigm)} → ${link(t.dataset_id, t.url)}`).join(' · '));
+      }
+      return parts.join(' &nbsp;·&nbsp; ');
+    }
+
     function payloadHtml(battle, payload) {
       if (battle.modality.startsWith('intent')) return intentCardHtml(payload);
       return `<p style="font-family:var(--mono);white-space:pre-wrap;word-break:break-word;margin:0">${esc(payload ?? '(no output)')}</p>`;
@@ -188,6 +203,7 @@ import Base from '../../layouts/Base.astro';
         `battle ${currentIdx + 1} / ${battles.length}`;
       document.getElementById('battle-id').textContent = `#${b.battle_id}`;
       document.getElementById('battle-input').textContent = b.input_text || '';
+      document.getElementById('battle-train').innerHTML = provenanceHtml(b);
 
       // masked sprites — seeded from battle id + side, so they never leak identity
       document.getElementById('sprite-a').innerHTML = spriteSvg(b.battle_id + '|a', '', 64, true);
@@ -246,7 +262,10 @@ import Base from '../../layouts/Base.astro';
       const index = await fetchJson(`${BASE}data/index.json`);
       for (const ref of index?.battles_pools || []) {
         const data = await fetchJson(`${BASE}data/${ref.file}`);
-        if (data?.battles) battles.push(...data.battles);
+        for (const b of data?.battles || []) {
+          b.dataset_info = data.dataset_info || null;
+          battles.push(b);
+        }
       }
       const bestiary = await fetchJson(`${BASE}data/competitors.json`);
       for (const f of bestiary?.competitors || []) fightersById[f.competitor_id] = f;
