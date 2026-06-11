@@ -8,9 +8,6 @@ import pytest
 
 from arena.cli import (
     build_elo_board,
-    cmd_assemble,
-    cmd_export_index,
-    cmd_export_pokedex,
     dedupe_votes,
     load_battles_pools,
     load_elo_seeds,
