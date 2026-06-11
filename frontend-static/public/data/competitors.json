@@ -1,0 +1,1553 @@
+{
+  "generated_at": "2026-06-11T19:00:42.381100+00:00",
+  "competitors": [
+    {
+      "competitor_id": "frankenparse",
+      "modality": "intent",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-padacioso-pipeline-plugin-high",
+            "ovos-adapt-pipeline-plugin-high",
+            "ovos-padatious-pipeline-plugin-high",
+            "ovos-palavreado-pipeline-plugin-medium",
+            "ovos-padatious-pipeline-plugin-medium",
+            "ovos-nebulento-pipeline-plugin-medium",
+            "ovos-adapt-pipeline-plugin-low"
+          ],
+          "ovos-padacioso-pipeline-plugin": {},
+          "ovos-adapt-pipeline-plugin": {},
+          "ovos-padatious-pipeline-plugin": {},
+          "ovos-palavreado-pipeline-plugin": {},
+          "ovos-nebulento-pipeline-plugin": {}
+        }
+      },
+      "langs": [],
+      "alias": [],
+      "display_name": "Frankenparse",
+      "types": [
+        "ensemble",
+        "GOFAI",
+        "neural-net",
+        "fuzzy-match",
+        "keyword-match"
+      ],
+      "description": "All five engines stitched into one monster: exact templates, keyword rules and the neural parser at their high gates, then medium keyword/neural/fuzzy recall, with Adapt low as the last resort.",
+      "size": "micro",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-plugin-arena"
+      },
+      "notes": "The kitchen-sink fusion — every arena engine in one pipeline, precision stages before recall stages."
+    },
+    {
+      "competitor_id": "hierarchical-knn-medium",
+      "modality": "intent",
+      "plugin": "ovos-hierarchical-knn-pipeline",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-hierarchical-knn-pipeline-medium"
+          ],
+          "ovos-hierarchical-knn-pipeline": {}
+        }
+      },
+      "langs": [],
+      "alias": [
+        "ovos-hierarchical-knn-pipeline"
+      ],
+      "display_name": "Hierarchical KNN",
+      "species": "HierarchicalKNNIntentPipeline",
+      "types": [
+        "embedding",
+        "neural-net"
+      ],
+      "description": "Two-stage hierarchical k-NN over a pre-built FAISS IVF+PQ index of IBM Granite multilingual embeddings: domain-level search scoped to loaded skills, then intent-level scoring with Wu-Lin pairwise probability estimation.",
+      "model": "IBM Granite Embedding 97M Multilingual R2 (quint8 ONNX) + FAISS index",
+      "size": "medium",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-hierarchical-knn-pipeline"
+      },
+      "notes": "Single-stage pipeline at the plugin's own medium-confidence gate; per-plugin config keeps the shipped defaults."
+    },
+    {
+      "competitor_id": "m2v-medium",
+      "modality": "intent",
+      "plugin": "ovos-m2v-pipeline",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-m2v-pipeline-medium"
+          ],
+          "ovos-m2v-pipeline": {}
+        }
+      },
+      "langs": [],
+      "alias": [
+        "ovos-m2v-pipeline"
+      ],
+      "display_name": "Model2Vec",
+      "species": "Model2VecIntentPipeline",
+      "types": [
+        "embedding",
+        "neural-net"
+      ],
+      "description": "Classifies utterances with a pretrained Model2Vec static-embedding intent classifier restricted to intents registered by loaded skills. The default model is multilingual, distilled from LaBSE.",
+      "model": "Jarbas/ovos-model2vec-intents-LaBSE",
+      "size": "medium",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-m2v-pipeline"
+      },
+      "notes": "Single-stage pipeline at the plugin's own medium-confidence gate; per-plugin config keeps the shipped defaults."
+    },
+    {
+      "competitor_id": "nebulapt",
+      "modality": "intent",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-adapt-pipeline-plugin-high",
+            "ovos-nebulento-pipeline-plugin-medium",
+            "ovos-adapt-pipeline-plugin-medium"
+          ],
+          "ovos-adapt-pipeline-plugin": {},
+          "ovos-nebulento-pipeline-plugin": {}
+        }
+      },
+      "langs": [],
+      "alias": [],
+      "display_name": "Nebulapt",
+      "types": [
+        "ensemble",
+        "fuzzy-match",
+        "keyword-match"
+      ],
+      "description": "Nebulento × Adapt fusion — precise keyword rules take the first shot, fuzzy matching mops up typos and ASR noise, and Adapt medium catches the remainder.",
+      "size": "micro",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/nebulento"
+      },
+      "notes": "Demonstration fusion: keyword precision first, fuzzy recall second."
+    },
+    {
+      "competitor_id": "nebulatious",
+      "modality": "intent",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-padatious-pipeline-plugin-high",
+            "ovos-nebulento-pipeline-plugin-medium",
+            "ovos-padatious-pipeline-plugin-medium"
+          ],
+          "ovos-padatious-pipeline-plugin": {},
+          "ovos-nebulento-pipeline-plugin": {}
+        }
+      },
+      "langs": [],
+      "alias": [],
+      "display_name": "Nebulatious",
+      "types": [
+        "ensemble",
+        "neural-net",
+        "fuzzy-match"
+      ],
+      "description": "Padatious × Nebulento fusion — the neural parser leads at high confidence, fuzzy string matching mops up typos and ASR noise, neural medium catches the rest.",
+      "size": "micro",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/nebulento"
+      },
+      "notes": "Neural-first template cascade with a fuzzy middle stage for noisy input."
+    },
+    {
+      "competitor_id": "padapt",
+      "modality": "intent",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-padatious-pipeline-plugin-high",
+            "ovos-adapt-pipeline-plugin-high",
+            "ovos-adapt-pipeline-plugin-medium"
+          ],
+          "ovos-padatious-pipeline-plugin": {},
+          "ovos-adapt-pipeline-plugin": {}
+        }
+      },
+      "langs": [],
+      "alias": [],
+      "display_name": "Padapt",
+      "types": [
+        "ensemble",
+        "neural-net",
+        "keyword-match"
+      ],
+      "description": "Padatious × Adapt fusion — the intent-classifier stages of the stock OVOS pipeline in shipped order: Padatious high, Adapt high, then Adapt medium. First stage whose own confidence gate fires wins.",
+      "size": "micro",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-config"
+      },
+      "notes": "Mirrors the default mycroft.conf intents.pipeline restricted to arena-supported engines (m2v stage omitted until it joins the roster)."
+    },
+    {
+      "competitor_id": "padatioso",
+      "modality": "intent",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-padacioso-pipeline-plugin-high",
+            "ovos-padatious-pipeline-plugin-medium"
+          ],
+          "ovos-padacioso-pipeline-plugin": {},
+          "ovos-padatious-pipeline-plugin": {}
+        }
+      },
+      "langs": [],
+      "alias": [],
+      "display_name": "Padatioso",
+      "types": [
+        "ensemble",
+        "GOFAI",
+        "neural-net"
+      ],
+      "description": "Padacioso × Padatious fusion — deterministic regex templates take the exact matches, the neural parser sweeps up paraphrases the templates miss.",
+      "size": "micro",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/padacioso"
+      },
+      "notes": "Precision-first template cascade: exact match high, neural medium fallback."
+    },
+    {
+      "competitor_id": "palavadapt",
+      "modality": "intent",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-adapt-pipeline-plugin-high",
+            "ovos-palavreado-pipeline-plugin-high",
+            "ovos-adapt-pipeline-plugin-medium",
+            "ovos-palavreado-pipeline-plugin-medium"
+          ],
+          "ovos-adapt-pipeline-plugin": {},
+          "ovos-palavreado-pipeline-plugin": {}
+        }
+      },
+      "langs": [],
+      "alias": [],
+      "display_name": "Palavadapt",
+      "types": [
+        "ensemble",
+        "GOFAI",
+        "keyword-match"
+      ],
+      "description": "Adapt × Palavreado fusion — the keyword family closes ranks: both rule engines at their high gates first, then both again at medium.",
+      "size": "micro",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/palavreado"
+      },
+      "notes": "All-keyword cascade; useful as the keyword league's pooled upper bound."
+    },
+    {
+      "competitor_id": "adapt-medium",
+      "modality": "intent_keyword",
+      "plugin": "ovos-adapt-pipeline-plugin",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-adapt-pipeline-plugin-medium"
+          ],
+          "ovos-adapt-pipeline-plugin": {}
+        }
+      },
+      "langs": [],
+      "alias": [
+        "ovos-adapt-pipeline-plugin"
+      ],
+      "display_name": "Adapt",
+      "species": "AdaptPipeline",
+      "types": [
+        "GOFAI",
+        "keyword-match"
+      ],
+      "description": "Classic rule-based keyword intent parser from the Mycroft era: intents are built from required and optional vocabulary groups, matched by keyword presence regardless of word order.",
+      "size": "micro",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-adapt-pipeline-plugin"
+      },
+      "notes": "Single-stage pipeline at the plugin's own medium-confidence gate; per-plugin config keeps the shipped defaults."
+    },
+    {
+      "competitor_id": "palavreado-medium",
+      "modality": "intent_keyword",
+      "plugin": "ovos-palavreado-pipeline-plugin",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-palavreado-pipeline-plugin-medium"
+          ],
+          "ovos-palavreado-pipeline-plugin": {}
+        }
+      },
+      "langs": [],
+      "alias": [
+        "ovos-palavreado-pipeline-plugin"
+      ],
+      "display_name": "Palavreado",
+      "species": "PalavreadoPipeline",
+      "types": [
+        "GOFAI",
+        "keyword-match"
+      ],
+      "description": "Keyword-rule intent engine in the Adapt lineage, rebuilt for OVOS with better multilingual tokenisation. Intents are vocabulary-group rules; matching is order-independent keyword presence.",
+      "size": "micro",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/palavreado"
+      },
+      "notes": "Single-stage pipeline at the plugin's own medium-confidence gate; per-plugin config keeps the shipped defaults."
+    },
+    {
+      "competitor_id": "jurebes-medium",
+      "modality": "intent_template",
+      "plugin": "ovos-jurebes-pipeline-plugin",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-jurebes-pipeline-plugin-medium"
+          ],
+          "ovos-jurebes-pipeline-plugin": {
+            "baseline": "linear_svc",
+            "enable_slots": true,
+            "conf_high": 0.8,
+            "conf_med": 0.6,
+            "conf_low": 0.4
+          }
+        }
+      },
+      "langs": [],
+      "alias": [
+        "ovos-jurebes-pipeline-plugin"
+      ],
+      "display_name": "Jurebes",
+      "species": "JurebesPipeline",
+      "types": [
+        "classical-ML"
+      ],
+      "description": "Scikit-learn text classification behind the OVOS pipeline API: any sklearn featurizer plus classifier can be wired in, with probability calibration applied automatically. The default baseline is a calibrated linear SVM.",
+      "model": "linear_svc (TF-IDF word featurizer + calibrated LinearSVC)",
+      "links": {
+        "source": "https://github.com/TigreGotico/jurebes"
+      },
+      "notes": "Single-stage pipeline at the plugin's own medium-confidence gate; the per-plugin config pins the documented linear_svc baseline (TF-IDF word featurizer + CalibratedClassifierCV-wrapped LinearSVC), slot tagging and confidence thresholds."
+    },
+    {
+      "competitor_id": "linha-fina-medium",
+      "modality": "intent_template",
+      "plugin": "ovos-linha-fina-pipeline-plugin",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-linha-fina-pipeline-plugin-medium"
+          ],
+          "ovos-linha-fina-pipeline-plugin": {
+            "conf_high": 0.8,
+            "conf_med": 0.6,
+            "conf_low": 0.4
+          }
+        }
+      },
+      "langs": [],
+      "alias": [
+        "ovos-linha-fina-pipeline-plugin"
+      ],
+      "display_name": "Linha Fina",
+      "species": "LinhaFinaPipeline",
+      "types": [
+        "classical-ML",
+        "keyword-match"
+      ],
+      "description": "Trains one SVM per intent over one-hot keyword vectors, selecting the most relevant negative samples by fuzzy token-set ratio. Entities come from simplematch templates and wordlists.",
+      "links": {
+        "source": "https://github.com/TigreGotico/linha-fina"
+      },
+      "notes": "Single-stage pipeline at the plugin's own medium-confidence gate; the per-plugin config pins the documented confidence thresholds. The engine itself is fixed: one SVM per intent over one-hot keyword vectors."
+    },
+    {
+      "competitor_id": "markov-medium",
+      "modality": "intent_template",
+      "plugin": "ovos-markov-pipeline-plugin",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-markov-pipeline-plugin-medium"
+          ],
+          "ovos-markov-pipeline-plugin": {
+            "order": 2,
+            "kneser_ney": true,
+            "backoff": true,
+            "smoothing": 1e-05,
+            "stem": false,
+            "char_fallback": false,
+            "conf_high": 0.75,
+            "conf_med": 0.55,
+            "conf_low": 0.3
+          }
+        }
+      },
+      "langs": [],
+      "alias": [
+        "ovos-markov-pipeline-plugin"
+      ],
+      "display_name": "Markov",
+      "species": "MarkovPipeline",
+      "types": [
+        "statistical"
+      ],
+      "description": "Trains one word-level Markov chain per intent from example utterances and picks the intent whose chain yields the lowest perplexity; confidence is derived from perplexity. Trains in milliseconds with no GPU.",
+      "model": "order-2 word-level Markov chains, Kneser-Ney smoothing with backoff",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-markov-pipeline-plugin"
+      },
+      "notes": "Single-stage pipeline at the plugin's own medium-confidence gate; the per-plugin config pins the documented model parameters (n-gram order, smoothing, backoff, stemming, char fallback) and confidence thresholds."
+    },
+    {
+      "competitor_id": "nebulento-medium",
+      "modality": "intent_template",
+      "plugin": "ovos-nebulento-pipeline-plugin",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-nebulento-pipeline-plugin-medium"
+          ],
+          "ovos-nebulento-pipeline-plugin": {}
+        }
+      },
+      "langs": [],
+      "alias": [
+        "ovos-nebulento-pipeline-plugin"
+      ],
+      "display_name": "Nebulento",
+      "species": "NebulentoPipeline",
+      "types": [
+        "fuzzy-match",
+        "template-match"
+      ],
+      "description": "Fuzzy-matching intent engine: compares utterances against example sentences with string-similarity ratios instead of exact rules, trading precision for resilience to typos and ASR noise.",
+      "size": "micro",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/nebulento"
+      },
+      "notes": "Single-stage pipeline at the plugin's own medium-confidence gate; per-plugin config keeps the shipped defaults."
+    },
+    {
+      "competitor_id": "padacioso-medium",
+      "modality": "intent_template",
+      "plugin": "ovos-padacioso-pipeline-plugin",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-padacioso-pipeline-plugin-medium"
+          ],
+          "ovos-padacioso-pipeline-plugin": {}
+        }
+      },
+      "langs": [],
+      "alias": [
+        "ovos-padacioso-pipeline-plugin"
+      ],
+      "display_name": "Padacioso",
+      "species": "PadaciosoPipeline",
+      "types": [
+        "GOFAI",
+        "template-match"
+      ],
+      "description": "Deterministic, regex-based drop-in replacement for Padatious. No training step and no false positives on unseen phrasings — what you template is exactly what you match.",
+      "size": "micro",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/padacioso"
+      },
+      "notes": "Single-stage pipeline at the plugin's own medium-confidence gate; per-plugin config keeps the shipped defaults."
+    },
+    {
+      "competitor_id": "padatious-medium",
+      "modality": "intent_template",
+      "plugin": "ovos-padatious-pipeline-plugin",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-padatious-pipeline-plugin-medium"
+          ],
+          "ovos-padatious-pipeline-plugin": {}
+        }
+      },
+      "langs": [],
+      "alias": [
+        "ovos-padatious-pipeline-plugin"
+      ],
+      "display_name": "Padatious",
+      "species": "PadatiousPipeline",
+      "types": [
+        "neural-net",
+        "template-match"
+      ],
+      "description": "Lightweight neural intent parser trained on expanded example sentences. The OVOS default intent engine: fast to train, fast to match, tolerant to small variations in phrasing.",
+      "size": "micro",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-padatious-pipeline-plugin"
+      },
+      "notes": "Single-stage pipeline at the plugin's own medium-confidence gate; per-plugin config keeps the shipped defaults."
+    },
+    {
+      "competitor_id": "azure-stt-en",
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-azure",
+      "config": {
+        "stt": {
+          "module": "ovos-stt-plugin-azure",
+          "ovos-stt-plugin-azure": {
+            "lang": "en-US",
+            "region": "westeurope",
+            "profanity": "raw"
+          }
+        }
+      },
+      "langs": [
+        "en-US"
+      ],
+      "alias": [
+        "ovos-stt-plugin-azure"
+      ],
+      "display_name": "Azure STT (en-US)",
+      "species": "OVOSAzureSTT",
+      "types": [
+        "cloud"
+      ],
+      "description": "Sends recorded audio to the Azure Cognitive Services speech-to-text REST endpoint and returns the display transcript, pinned to the en-US recognition language.",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-stt-plugin-azure"
+      },
+      "notes": "Requires an Azure subscription key ('key') in the plugin config; region and profanity values from the README configuration example."
+    },
+    {
+      "competitor_id": "chromium-stt-en",
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-chromium",
+      "config": {
+        "stt": {
+          "module": "ovos-stt-plugin-chromium",
+          "ovos-stt-plugin-chromium": {
+            "lang": "en-US",
+            "pfilter": false
+          }
+        }
+      },
+      "langs": [
+        "en-US"
+      ],
+      "alias": [
+        "ovos-stt-plugin-chromium"
+      ],
+      "display_name": "Chromium (Google) STT (en-US)",
+      "species": "ChromiumSTT",
+      "types": [
+        "cloud"
+      ],
+      "description": "Posts audio to the Google speech API used by the Chrome browser, pinned to the en-US recognition language.",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-stt-plugin-chromium"
+      },
+      "notes": "README advanced configuration with the language pinned to en-US; no account required."
+    },
+    {
+      "competitor_id": "citrinet-512-ca",
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-citrinet",
+      "config": {
+        "stt": {
+          "module": "ovos-stt-plugin-citrinet",
+          "ovos-stt-plugin-citrinet": {
+            "lang": "ca",
+            "model": "projecte-aina/stt-ca-citrinet-512"
+          }
+        }
+      },
+      "langs": [
+        "ca"
+      ],
+      "alias": [
+        "ovos-stt-plugin-citrinet"
+      ],
+      "display_name": "Citrinet-512 (ca)",
+      "species": "CitrinetSTT",
+      "types": [
+        "neural-net"
+      ],
+      "description": "NVIDIA NeMo Citrinet-512 acoustic model exported to ONNX and run with onnxruntime. This fighter runs the Catalan stt-ca-citrinet-512 model from Projecte AINA.",
+      "model": "projecte-aina/stt-ca-citrinet-512",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-stt-plugin-citrinet"
+      },
+      "notes": "Model from the README models table (self-reported WER 6.684 on CV11); downloaded from HuggingFace."
+    },
+    {
+      "competitor_id": "fasterwhisper-base-pt",
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-fasterwhisper",
+      "config": {
+        "stt": {
+          "module": "ovos-stt-plugin-fasterwhisper",
+          "ovos-stt-plugin-fasterwhisper": {
+            "model": "base",
+            "compute_type": "int8",
+            "cpu_threads": 1,
+            "beam_size": 3
+          }
+        },
+        "model": "base",
+        "compute_type": "int8",
+        "cpu_threads": 1,
+        "beam_size": 3
+      },
+      "langs": [
+        "pt-PT"
+      ],
+      "alias": [
+        "ovos-stt-plugin-fasterwhisper"
+      ],
+      "display_name": "FasterWhisper (base)",
+      "species": "FasterWhisperSTT",
+      "types": [
+        "neural-net",
+        "transformer"
+      ],
+      "description": "OpenAI Whisper base model served through faster-whisper (CTranslate2, int8). Encoder-decoder speech transformer; the small-footprint profile of the Whisper family.",
+      "model": "whisper-base (int8)",
+      "size": "small",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-stt-plugin-fasterwhisper"
+      },
+      "notes": "faster-whisper base model, int8 quantised; flat config keys mirror the stt fragment for the prediction runner"
+    },
+    {
+      "competitor_id": "fasterwhisper-small-pt",
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-fasterwhisper",
+      "config": {
+        "stt": {
+          "module": "ovos-stt-plugin-fasterwhisper",
+          "ovos-stt-plugin-fasterwhisper": {
+            "model": "small",
+            "compute_type": "int8",
+            "cpu_threads": 1,
+            "beam_size": 3
+          }
+        },
+        "model": "small",
+        "compute_type": "int8",
+        "cpu_threads": 1,
+        "beam_size": 3
+      },
+      "langs": [
+        "pt-PT"
+      ],
+      "alias": [
+        "ovos-stt-plugin-fasterwhisper"
+      ],
+      "display_name": "FasterWhisper (small)",
+      "species": "FasterWhisperSTT",
+      "types": [
+        "neural-net",
+        "transformer"
+      ],
+      "description": "OpenAI Whisper small model served through faster-whisper (CTranslate2, int8). Encoder-decoder speech transformer; better accuracy than base at higher latency.",
+      "model": "whisper-small (int8)",
+      "size": "base",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-stt-plugin-fasterwhisper"
+      },
+      "notes": "faster-whisper small model, int8 quantised, low-memory profile; flat config keys mirror the stt fragment for the prediction runner"
+    },
+    {
+      "competitor_id": "mynorthai-whisper-small-pt",
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-MyNorthAI",
+      "config": {
+        "stt": {
+          "module": "ovos-stt-plugin-MyNorthAI",
+          "ovos-stt-plugin-MyNorthAI": {
+            "model": "my-north-ai/whisper-small-pt"
+          }
+        }
+      },
+      "langs": [
+        "pt"
+      ],
+      "alias": [
+        "ovos-stt-plugin-MyNorthAI"
+      ],
+      "display_name": "MyNorth AI Whisper (small, pt)",
+      "species": "MyNorthAISTT",
+      "types": [
+        "neural-net",
+        "transformer"
+      ],
+      "description": "Portuguese fine-tuned Whisper checkpoints from MyNorth AI, served through the transformers Whisper loader. Defaults to the small variant; medium and large-v3 are also published.",
+      "model": "my-north-ai/whisper-small-pt",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-MyNorthAI"
+      },
+      "notes": "Plugin default model."
+    },
+    {
+      "competitor_id": "nemo-quartznet15x5-en",
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-nemo",
+      "config": {
+        "stt": {
+          "module": "ovos-stt-plugin-nemo",
+          "ovos-stt-plugin-nemo": {
+            "model": "stt_en_quartznet15x5",
+            "use_cuda": false
+          }
+        }
+      },
+      "langs": [
+        "en"
+      ],
+      "alias": [
+        "ovos-stt-plugin-nemo"
+      ],
+      "display_name": "NVIDIA NeMo (QuartzNet15x5, en)",
+      "species": "NemoSTT",
+      "types": [
+        "neural-net"
+      ],
+      "description": "Runs NVIDIA NeMo ASR checkpoints through the NeMo toolkit. This fighter runs stt_en_quartznet15x5, the English QuartzNet 15x5 convolutional CTC model.",
+      "model": "stt_en_quartznet15x5",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-stt-plugin-nemo"
+      },
+      "notes": "Model id from the README's NVidia default model list; it is also the plugin's English default. GPU strongly recommended by the plugin."
+    },
+    {
+      "competitor_id": "onnx-asr-canary",
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-onnx-asr",
+      "config": {
+        "stt": {
+          "module": "ovos-stt-plugin-onnx-asr",
+          "ovos-stt-plugin-onnx-asr": {
+            "model": "nemo-canary-1b-v2"
+          }
+        }
+      },
+      "langs": [
+        "en",
+        "de",
+        "fr",
+        "es"
+      ],
+      "alias": [
+        "ovos-stt-plugin-onnx-asr"
+      ],
+      "display_name": "ONNX-ASR (Canary 1B v2)",
+      "species": "OnnxASR",
+      "types": [
+        "neural-net",
+        "transformer"
+      ],
+      "description": "Runs ASR models exported to ONNX through the onnx-asr library, without a PyTorch dependency. Defaults to NVIDIA Canary 1B v2, a multilingual encoder-decoder model.",
+      "model": "nemo-canary-1b-v2",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
+      },
+      "notes": "Plugin default model; int8 quantization available via the 'quantization' key."
+    },
+    {
+      "competitor_id": "rover-whisper-vosk-en",
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-rover",
+      "config": {
+        "stt": {
+          "module": "ovos-stt-plugin-rover",
+          "ovos-stt-plugin-rover": {
+            "timeout": 12,
+            "workers": 4,
+            "backends": [
+              {
+                "module": "ovos-stt-plugin-whisper",
+                "config": {
+                  "model": "openai/whisper-small.en"
+                }
+              },
+              {
+                "module": "ovos-stt-plugin-vosk",
+                "config": {
+                  "model": "https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip"
+                }
+              }
+            ]
+          }
+        }
+      },
+      "langs": [
+        "en"
+      ],
+      "alias": [
+        "ovos-stt-plugin-rover"
+      ],
+      "display_name": "ROVER (Whisper + Vosk)",
+      "species": "ROVERSTT",
+      "types": [
+        "ensemble"
+      ],
+      "description": "Meta-STT engine that runs multiple OVOS STT plugins in parallel and merges their hypotheses with ROVER word-level alignment and majority voting; accuracy improves most when backends have different error characteristics.",
+      "model": "openai/whisper-small.en + vosk-model-small-en-us-0.15",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-rover"
+      },
+      "notes": "Backends per the README configuration example, with each backend model pinned: openai/whisper-small.en (from the whisper plugin's documented model list) and vosk-model-small-en-us-0.15 (from the vosk plugin's documented model URL)."
+    },
+    {
+      "competitor_id": "sherpa-onnx-zipformer-en",
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-sherpa-onnx",
+      "config": {
+        "stt": {
+          "module": "ovos-stt-plugin-sherpa-onnx",
+          "ovos-stt-plugin-sherpa-onnx": {
+            "model": "sherpa-onnx-zipformer-en-libriheavy-20230830-large-punct-case",
+            "model_type": "transducer",
+            "encoder": "encoder-epoch-16-avg-2.int8.onnx",
+            "decoder": "decoder-epoch-16-avg-2.int8.onnx",
+            "joiner": "joiner-epoch-16-avg-2.int8.onnx",
+            "tokens": "tokens.txt"
+          }
+        }
+      },
+      "langs": [
+        "en"
+      ],
+      "alias": [
+        "ovos-stt-plugin-sherpa-onnx"
+      ],
+      "display_name": "Sherpa-ONNX Zipformer (en)",
+      "species": "SherpaOnnxSTT",
+      "types": [
+        "neural-net",
+        "transformer"
+      ],
+      "description": "Sherpa-ONNX (next-generation Kaldi) runtime supporting transducer, Whisper, Moonshine, Paraformer and CTC architectures. This fighter runs the English Zipformer transducer trained on LibriHeavy with punctuation and casing.",
+      "model": "sherpa-onnx-zipformer-en-libriheavy-20230830-large-punct-case (int8)",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-sherpa-onnx"
+      },
+      "notes": "README reference configuration; model archive auto-downloaded from the k2-fsa releases."
+    },
+    {
+      "competitor_id": "vosk-small-en",
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-vosk",
+      "config": {
+        "stt": {
+          "module": "ovos-stt-plugin-vosk",
+          "ovos-stt-plugin-vosk": {
+            "model": "https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip"
+          }
+        }
+      },
+      "langs": [
+        "en"
+      ],
+      "alias": [
+        "ovos-stt-plugin-vosk"
+      ],
+      "display_name": "Vosk (small, en-US)",
+      "species": "VoskKaldiSTT",
+      "types": [
+        "neural-net"
+      ],
+      "description": "Offline Kaldi recognizer through the Vosk API. This fighter runs the compact US English model vosk-model-small-en-us-0.15; transcription happens after recording finishes.",
+      "model": "vosk-model-small-en-us-0.15",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-stt-plugin-vosk"
+      },
+      "notes": "Model download URL from the README advanced configuration; archive auto-downloaded from alphacephei."
+    },
+    {
+      "competitor_id": "wav2vec2-xlsr-en",
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-wav2vec",
+      "config": {
+        "stt": {
+          "module": "ovos-stt-plugin-wav2vec",
+          "ovos-stt-plugin-wav2vec": {
+            "model": "jonatasgrosman/wav2vec2-large-xlsr-53-english"
+          }
+        }
+      },
+      "langs": [
+        "en"
+      ],
+      "alias": [
+        "ovos-stt-plugin-wav2vec"
+      ],
+      "display_name": "Wav2Vec2 XLSR (en)",
+      "species": "Wav2VecSTT",
+      "types": [
+        "neural-net",
+        "transformer"
+      ],
+      "description": "Self-supervised wav2vec 2.0 XLSR-53 acoustic model fine-tuned for English, run with HuggingFace transformers.",
+      "model": "jonatasgrosman/wav2vec2-large-xlsr-53-english",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-stt-plugin-wav2vec2"
+      },
+      "notes": "English checkpoint from the plugin's documented LANG2MODEL map."
+    },
+    {
+      "competitor_id": "whisper-large-v3-turbo",
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-whisper",
+      "config": {
+        "stt": {
+          "module": "ovos-stt-plugin-whisper",
+          "ovos-stt-plugin-whisper": {
+            "model": "openai/whisper-large-v3-turbo"
+          }
+        }
+      },
+      "langs": [],
+      "alias": [
+        "ovos-stt-plugin-whisper"
+      ],
+      "display_name": "Whisper (large-v3-turbo)",
+      "species": "WhisperSTT",
+      "types": [
+        "neural-net",
+        "transformer"
+      ],
+      "description": "OpenAI Whisper large-v3-turbo running through the HuggingFace transformers library; a multilingual encoder-decoder speech transformer. Any Whisper checkpoint or local path can be substituted.",
+      "model": "openai/whisper-large-v3-turbo",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-whisper"
+      },
+      "notes": "Plugin default model; CUDA optional via 'use_cuda'."
+    },
+    {
+      "competitor_id": "whisper-lm-eu",
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-whisper-lm",
+      "config": {
+        "stt": {
+          "module": "ovos-stt-plugin-whisper-lm",
+          "ovos-stt-plugin-whisper-lm": {
+            "model": "zuazo/whisper-medium-eu",
+            "lm_repo": "HiTZ/whisper-lm-ngrams",
+            "lm_model": "5gram-eu.bin",
+            "lm_alpha": 0.33582369,
+            "lm_beta": 0.68825565
+          }
+        }
+      },
+      "langs": [
+        "eu"
+      ],
+      "alias": [
+        "ovos-stt-plugin-whisper-lm"
+      ],
+      "display_name": "Whisper-LM (Basque)",
+      "species": "WhisperLMSTT",
+      "types": [
+        "neural-net",
+        "transformer"
+      ],
+      "description": "Whisper decoding fused with a KenLM n-gram language model via whisper-lm-transformers. This fighter pairs a Basque fine-tuned Whisper medium checkpoint with the HiTZ Basque 5-gram LM.",
+      "model": "zuazo/whisper-medium-eu + HiTZ 5gram-eu.bin",
+      "size": "x-large",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-stt-plugin-whisper-lm"
+      },
+      "notes": "README reference configuration; lm_alpha/lm_beta are the published optimized values for Basque."
+    },
+    {
+      "competitor_id": "whispercpp-base",
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-whispercpp",
+      "config": {
+        "stt": {
+          "module": "ovos-stt-plugin-whispercpp",
+          "ovos-stt-plugin-whispercpp": {
+            "model": "base"
+          }
+        }
+      },
+      "langs": [],
+      "alias": [
+        "ovos-stt-plugin-whispercpp"
+      ],
+      "display_name": "Whisper.cpp (base)",
+      "species": "WhispercppSTT",
+      "types": [
+        "neural-net",
+        "transformer"
+      ],
+      "description": "OpenAI Whisper base model running on whisper.cpp, a dependency-free C/C++ inference engine optimized for CPU (AVX, Arm Neon, mixed F16/F32).",
+      "model": "whisper-base (ggml)",
+      "size": "small",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-stt-plugin-whispercpp"
+      },
+      "notes": "Plugin default model; ggml weights auto-downloaded on first load."
+    },
+    {
+      "competitor_id": "ahotts-eu",
+      "modality": "tts",
+      "plugin": "ovos-tts-plugin-ahotts",
+      "config": {
+        "tts": {
+          "module": "ovos-tts-plugin-ahotts",
+          "ovos-tts-plugin-ahotts": {
+            "lang": "eu"
+          }
+        }
+      },
+      "langs": [
+        "eu",
+        "es"
+      ],
+      "alias": [
+        "ovos-tts-plugin-ahotts"
+      ],
+      "display_name": "AhoTTS (Basque)",
+      "species": "AhoTTSPlugin",
+      "types": [
+        "concatenative"
+      ],
+      "description": "Wraps AhoTTS from the Aholab group, a concatenative synthesizer with linguistic processing for Basque and Spanish.",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-tts-plugin-ahotts"
+      },
+      "notes": "README reference configuration with Basque selected."
+    },
+    {
+      "competitor_id": "azure-tts-jenny",
+      "modality": "tts",
+      "plugin": "ovos-tts-plugin-azure",
+      "config": {
+        "tts": {
+          "module": "ovos-tts-plugin-azure",
+          "ovos-tts-plugin-azure": {
+            "voice": "en-US-JennyNeural",
+            "region": "westus"
+          }
+        }
+      },
+      "langs": [
+        "en-US"
+      ],
+      "alias": [
+        "ovos-tts-plugin-azure"
+      ],
+      "display_name": "Azure TTS (Jenny)",
+      "species": "AzureTTSPlugin",
+      "types": [
+        "cloud",
+        "neural-net"
+      ],
+      "description": "Synthesizes through the Azure Cognitive Services speech service. This fighter runs the en-US-JennyNeural voice from the Azure neural voice catalog.",
+      "model": "en-US-JennyNeural",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-tts-plugin-azure"
+      },
+      "notes": "Requires an Azure 'api_key'; voice and region are the plugin defaults, pinned explicitly."
+    },
+    {
+      "competitor_id": "beepspeak-r2d2",
+      "modality": "tts",
+      "plugin": "ovos-tts-plugin-beepspeak",
+      "config": {
+        "tts": {
+          "module": "ovos-tts-plugin-beepspeak",
+          "ovos-tts-plugin-beepspeak": {
+            "voice": "r2d2"
+          }
+        }
+      },
+      "langs": [],
+      "alias": [
+        "ovos-tts-plugin-beepspeak"
+      ],
+      "display_name": "BeepSpeak",
+      "species": "BeepSpeak",
+      "types": [
+        "concatenative"
+      ],
+      "description": "Renders letters, digits and punctuation as R2D2-style droid beeps by concatenating bundled sound files. Produces signalling sounds rather than speech.",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-tts-plugin-beepspeak"
+      },
+      "notes": "Shipped defaults: r2d2 voice, bundled droid sound bank."
+    },
+    {
+      "competitor_id": "coqui-ljspeech-vits",
+      "modality": "tts",
+      "plugin": "ovos-tts-plugin-coqui",
+      "config": {
+        "tts": {
+          "module": "ovos-tts-plugin-coqui",
+          "ovos-tts-plugin-coqui": {
+            "model": "tts_models/en/ljspeech/vits"
+          }
+        }
+      },
+      "langs": [
+        "en"
+      ],
+      "alias": [
+        "ovos-tts-plugin-coqui"
+      ],
+      "display_name": "Coqui TTS (LJSpeech VITS)",
+      "species": "CoquiTTSPlugin",
+      "types": [
+        "neural-net"
+      ],
+      "description": "Coqui TTS running the English VITS model trained on LJSpeech, an end-to-end neural synthesizer combining a variational autoencoder with adversarial training.",
+      "model": "tts_models/en/ljspeech/vits",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-tts-plugin-coqui"
+      },
+      "notes": "Pretrained model id from the plugin README model list; sibling entry points cover XTTS, FreeVC and Fairseq MMS variants."
+    },
+    {
+      "competitor_id": "cotovia-sabela",
+      "modality": "tts",
+      "plugin": "ovos-tts-plugin-cotovia",
+      "config": {
+        "tts": {
+          "module": "ovos-tts-plugin-cotovia",
+          "ovos-tts-plugin-cotovia": {
+            "voice": "sabela"
+          }
+        }
+      },
+      "langs": [
+        "gl",
+        "es"
+      ],
+      "alias": [
+        "ovos-tts-plugin-cotovia"
+      ],
+      "display_name": "Cotovia (Sabela)",
+      "species": "CotoviaTTSPlugin",
+      "types": [
+        "concatenative"
+      ],
+      "description": "Unit-selection synthesizer for Galician (also usable for Spanish) that concatenates prerecorded segments, selecting among parallel intonation contours. The default sabela voice balances quality and speed.",
+      "model": "sabela",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-tts-plugin-cotovia"
+      },
+      "notes": "Requires the cotovia Debian packages (executable plus gl/es linguistic data)."
+    },
+    {
+      "competitor_id": "edge-tts-aria",
+      "modality": "tts",
+      "plugin": "ovos-tts-plugin-edge-tts",
+      "config": {
+        "tts": {
+          "module": "ovos-tts-plugin-edge-tts",
+          "ovos-tts-plugin-edge-tts": {
+            "voice": "en-US-AriaNeural",
+            "rate": "+0%"
+          }
+        }
+      },
+      "langs": [
+        "en-US"
+      ],
+      "alias": [
+        "ovos-tts-plugin-edge-tts"
+      ],
+      "display_name": "Edge TTS (Aria)",
+      "species": "EdgeTTSPlugin",
+      "types": [
+        "cloud",
+        "neural-net"
+      ],
+      "description": "Uses the Microsoft Edge read-aloud service via the edge-tts library; no account required. The full Edge neural voice catalog, including multilingual voices, is selectable by voice name.",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-tts-plugin-edge-tts"
+      },
+      "notes": "README reference configuration with the en-US-AriaNeural voice."
+    },
+    {
+      "competitor_id": "espeakng-m1",
+      "modality": "tts",
+      "plugin": "ovos-tts-plugin-espeakng",
+      "config": {
+        "tts": {
+          "module": "ovos-tts-plugin-espeakng",
+          "ovos-tts-plugin-espeakng": {
+            "voice": "m1"
+          }
+        }
+      },
+      "langs": [
+        "en-US"
+      ],
+      "alias": [
+        "ovos-tts-plugin-espeakng"
+      ],
+      "display_name": "eSpeak NG (m1)",
+      "species": "EspeakNGTTS",
+      "types": [
+        "GOFAI",
+        "formant-synthesis"
+      ],
+      "description": "Wraps the espeak-ng command-line synthesizer, a compact formant-synthesis engine covering over 100 languages and accents. This fighter runs the m1 male voice variant on US English.",
+      "model": "m1",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-tts-plugin-espeakNG"
+      },
+      "notes": "README reference configuration; requires the espeak-ng binary on the system. The voice variant is appended to the language code (en-us+m1)."
+    },
+    {
+      "competitor_id": "google-tx-en-us",
+      "modality": "tts",
+      "plugin": "ovos-tts-plugin-google-tx",
+      "config": {
+        "tts": {
+          "module": "ovos-tts-plugin-google-tx",
+          "ovos-tts-plugin-google-tx": {
+            "lang": "en",
+            "tld": "us",
+            "slow": false
+          }
+        }
+      },
+      "langs": [
+        "en-US"
+      ],
+      "alias": [
+        "ovos-tts-plugin-google-tx"
+      ],
+      "display_name": "Google Translate TTS (en-US)",
+      "species": "GoogleTranslateTTS",
+      "types": [
+        "cloud"
+      ],
+      "description": "Synthesizes through the undocumented Google Translate speech endpoint via gTTS, pinned to the US English accent via the tld option.",
+      "model": "gTTS en (tld=us)",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-tts-plugin-google-tx"
+      },
+      "notes": "lang/tld pair from the plugin's documented REGIONAL_CONFIGS map for en-US. The README warns this endpoint is unofficial and unsuitable for production or commercial use."
+    },
+    {
+      "competitor_id": "marytts-cmu-slt",
+      "modality": "tts",
+      "plugin": "ovos-tts-plugin-marytts",
+      "config": {
+        "tts": {
+          "module": "ovos-tts-plugin-marytts",
+          "ovos-tts-plugin-marytts": {
+            "url": "http://0.0.0.0:59125",
+            "voice": "cmu-slt-hsmm"
+          }
+        }
+      },
+      "langs": [
+        "en-US"
+      ],
+      "alias": [
+        "ovos-tts-plugin-marytts"
+      ],
+      "display_name": "MaryTTS (cmu-slt-hsmm)",
+      "species": "MaryTTS",
+      "types": [
+        "statistical-parametric"
+      ],
+      "description": "Client for a MaryTTS server (or MaryTTS-compatible APIs such as OpenTTS and Larynx); the server synthesizes with hidden semi-Markov model and unit-selection voices.",
+      "model": "cmu-slt-hsmm",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-tts-plugin-marytts"
+      },
+      "notes": "Requires a separately hosted MaryTTS server; README reference configuration."
+    },
+    {
+      "competitor_id": "mimic-ap",
+      "modality": "tts",
+      "plugin": "ovos-tts-plugin-mimic",
+      "config": {
+        "tts": {
+          "module": "ovos-tts-plugin-mimic",
+          "ovos-tts-plugin-mimic": {
+            "voice": "ap"
+          }
+        }
+      },
+      "langs": [
+        "en"
+      ],
+      "alias": [
+        "ovos-tts-plugin-mimic"
+      ],
+      "display_name": "Mimic 1 (ap)",
+      "species": "MimicTTSPlugin",
+      "types": [
+        "concatenative"
+      ],
+      "description": "Wraps the Mimic 1 binary, a flite-based concatenative synthesizer; voices are festvox flitevox files loadable from paths or URLs.",
+      "model": "ap",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-tts-plugin-mimic"
+      },
+      "notes": "Requires the mimic binary; README reference configuration with the ap voice."
+    },
+    {
+      "competitor_id": "phoonnx-miro-tugaphone",
+      "modality": "tts",
+      "plugin": "ovos-tts-plugin-phoonnx",
+      "config": {
+        "tts": {
+          "module": "ovos-tts-plugin-phoonnx",
+          "ovos-tts-plugin-phoonnx": {
+            "voice": "OpenVoiceOS/phoonnx_pt-PT_miro_tugaphone"
+          }
+        }
+      },
+      "langs": [
+        "pt-PT"
+      ],
+      "alias": [
+        "ovos-tts-plugin-phoonnx"
+      ],
+      "display_name": "Phoonnx (Miro, pt-PT)",
+      "species": "PhoonnxTTSPlugin",
+      "types": [
+        "neural-net"
+      ],
+      "description": "ONNX-runtime TTS with pluggable phonemizers (eSpeak, Gruut, Epitran) and a shared adapter framework for VITS and OptiSpeech voices. This fighter runs the Miro European Portuguese voice with the tugaphone phonemizer.",
+      "model": "OpenVoiceOS/phoonnx_pt-PT_miro_tugaphone",
+      "links": {
+        "source": "https://github.com/TigreGotico/phoonnx"
+      },
+      "notes": "README reference configuration with the Miro (pt-PT, tugaphone) voice."
+    },
+    {
+      "competitor_id": "pico-en-us",
+      "modality": "tts",
+      "plugin": "ovos-tts-plugin-pico",
+      "config": {
+        "tts": {
+          "module": "ovos-tts-plugin-pico",
+          "ovos-tts-plugin-pico": {
+            "voice": "en-US"
+          }
+        }
+      },
+      "langs": [
+        "en-US"
+      ],
+      "alias": [
+        "ovos-tts-plugin-pico"
+      ],
+      "display_name": "SVOX Pico (en-US)",
+      "species": "PicoTTS",
+      "types": [
+        "GOFAI"
+      ],
+      "description": "Wraps the SVOX Pico engine (nanotts, pico2wave or pico-tts binaries), a tiny offline synthesizer with six built-in voices. This fighter runs the en-US voice.",
+      "model": "en-US",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-tts-plugin-pico"
+      },
+      "notes": "Voice pinned to en-US from the README's documented voice list; requires a pico binary (nanotts/pico2wave/pico-tts) on the system."
+    },
+    {
+      "competitor_id": "polly-matthew",
+      "modality": "tts",
+      "plugin": "ovos-tts-plugin-polly",
+      "config": {
+        "tts": {
+          "module": "ovos-tts-plugin-polly",
+          "ovos-tts-plugin-polly": {
+            "voice": "Matthew",
+            "region": "us-east-1",
+            "engine": "standard"
+          }
+        }
+      },
+      "langs": [
+        "en-US"
+      ],
+      "alias": [
+        "ovos-tts-plugin-polly"
+      ],
+      "display_name": "Amazon Polly (Matthew)",
+      "species": "PollyTTS",
+      "types": [
+        "cloud"
+      ],
+      "description": "Synthesizes through the Amazon Polly cloud service via boto3, with the Polly voice catalog selectable by voice name and engine tier.",
+      "model": "Matthew (standard)",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-tts-plugin-polly"
+      },
+      "notes": "Requires AWS credentials (key_id/secret_key); plugin defaults shown."
+    },
+    {
+      "competitor_id": "sam",
+      "modality": "tts",
+      "plugin": "ovos-tts-plugin-SAM",
+      "config": {
+        "tts": {
+          "module": "ovos-tts-plugin-SAM",
+          "ovos-tts-plugin-SAM": {
+            "voice": "SAM"
+          }
+        }
+      },
+      "langs": [
+        "en"
+      ],
+      "alias": [
+        "ovos-tts-plugin-SAM"
+      ],
+      "display_name": "S.A.M.",
+      "species": "SAMTTS",
+      "types": [
+        "GOFAI",
+        "formant-synthesis"
+      ],
+      "description": "Software Automatic Mouth, a rule-based formant synthesizer producing retro 8-bit robotic English speech. Voice presets are pitch/throat/mouth/speed parameter sets fed to the sam binary.",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-tts-plugin-SAM"
+      },
+      "notes": "Compiles and installs the sam binary on first run when not found system-wide."
+    },
+    {
+      "competitor_id": "microwakeword-hey-mycroft",
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-microwakeword",
+      "config": {
+        "hotwords": {
+          "hey_mycroft": {
+            "module": "ovos-ww-plugin-microwakeword",
+            "model_name": "hey_mycroft",
+            "model_version": 2,
+            "probability_cutoff": 0.5,
+            "sliding_window_size": 10,
+            "refractory_frames": 40
+          }
+        }
+      },
+      "langs": [
+        "en"
+      ],
+      "alias": [
+        "ovos-ww-plugin-microwakeword"
+      ],
+      "display_name": "microWakeWord (hey mycroft)",
+      "species": "MicroWakeWordPlugin",
+      "types": [
+        "neural-net"
+      ],
+      "description": "Streaming TFLite wake-word models from the microWakeWord/ESPHome ecosystem, operating on 1x1x40 int8 log-mel features. The hey_mycroft model is auto-downloaded from the official ESPHome repository.",
+      "model": "hey_mycroft (v2)",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-microwakeword"
+      },
+      "notes": "hey_mycroft only exists as a v2 model; remaining keys are the documented defaults."
+    },
+    {
+      "competitor_id": "openwakeword-hey-mycroft",
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-openwakeword",
+      "config": {
+        "hotwords": {
+          "hey_mycroft": {
+            "module": "ovos-ww-plugin-openwakeword",
+            "threshold": 0.5
+          }
+        }
+      },
+      "langs": [
+        "en"
+      ],
+      "alias": [
+        "ovos-ww-plugin-openwakeword"
+      ],
+      "display_name": "openWakeWord (hey mycroft)",
+      "species": "OwwHotwordPlugin",
+      "types": [
+        "neural-net"
+      ],
+      "description": "openWakeWord models running on a shared mel-spectrogram and embedding frontend. The pretrained model matching the hotword name is loaded automatically, here the bundled hey_mycroft model.",
+      "model": "hey_mycroft (openWakeWord pretrained)",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-openWakeWord"
+      },
+      "notes": "Pretrained model auto-selected by hotword name; threshold is the plugin default."
+    },
+    {
+      "competitor_id": "precise-onnx-hey-mycroft",
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-precise-onnx",
+      "config": {
+        "hotwords": {
+          "hey_mycroft": {
+            "module": "ovos-ww-plugin-precise-onnx",
+            "model": "https://github.com/OpenVoiceOS/precise-lite-models/raw/master/wakewords/en/hey_mycroft.onnx",
+            "trigger_level": 3,
+            "sensitivity": 0.5
+          }
+        }
+      },
+      "langs": [
+        "en"
+      ],
+      "alias": [
+        "ovos-ww-plugin-precise-onnx"
+      ],
+      "display_name": "Precise ONNX (hey mycroft)",
+      "species": "PreciseOnnxHotwordPlugin",
+      "types": [
+        "neural-net"
+      ],
+      "description": "Mycroft Precise recurrent wake-word network exported to ONNX and run with onnxruntime instead of TFLite; community models are published in precise-lite-models.",
+      "model": "hey_mycroft.onnx (precise-lite-models)",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-precise-onnx"
+      },
+      "notes": "README reference configuration."
+    },
+    {
+      "competitor_id": "vosk-ww-hey-computer",
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-vosk",
+      "config": {
+        "hotwords": {
+          "hey_computer": {
+            "module": "ovos-ww-plugin-vosk",
+            "listen": true
+          }
+        }
+      },
+      "langs": [
+        "en"
+      ],
+      "alias": [
+        "ovos-ww-plugin-vosk"
+      ],
+      "display_name": "Vosk wake word (hey computer)",
+      "species": "VoskWakeWordPlugin",
+      "types": [
+        "neural-net",
+        "keyword-match"
+      ],
+      "description": "Detects wake words by running the Vosk Kaldi recognizer in keyword mode and matching the transcript against configured samples and rules, so any phrase in the model vocabulary can be a wake word.",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-vosk"
+      },
+      "notes": "README quick-start configuration; the language model is auto-downloaded for the configured language."
+    }
+  ]
+}
