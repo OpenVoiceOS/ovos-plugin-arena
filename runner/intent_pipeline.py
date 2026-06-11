@@ -119,8 +119,8 @@ class IntentPipeline:
     """
 
     def __init__(self, intents_config: Dict[str, Any], lang: str = "en-US"):
-        from ovos_utils.fakebus import FakeBus
-
+        # Validate the pipeline before touching the OVOS runtime so config
+        # errors raise even where the engines are not installed.
         pipeline = intents_config.get("pipeline") or []
         if not pipeline:
             raise ValueError("intents config carries no pipeline stages")
@@ -135,6 +135,8 @@ class IntentPipeline:
                     f"known: {sorted(ENGINE_REGISTRY)}"
                 )
             self.stages.append((plugin_id, tier))
+
+        from ovos_utils.fakebus import FakeBus
 
         # The OPM pipeline plugins read the active language from the global
         # ovos-config singleton, not from their plugin config — set it before
