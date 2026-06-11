@@ -163,9 +163,9 @@ class TestLoaders:
         assert "base" in comp.config.get("model", "")
 
     def test_load_competitor_intent(self):
-        comp = load_competitor("intent", "adapt-medium")
+        comp = load_competitor("intent_keyword", "adapt-medium")
         assert comp.competitor_id == "adapt-medium"
-        assert comp.modality == Modality.INTENT
+        assert comp.modality == Modality.INTENT_KEYWORD
         # config is a valid mycroft.conf fragment; plugin derived from it
         assert comp.pipeline == ["ovos-adapt-pipeline-plugin-medium"]
         assert comp.plugin == "ovos-adapt-pipeline-plugin"
@@ -174,14 +174,22 @@ class TestLoaders:
         assert comp.species == "AdaptPipeline"
         assert "GOFAI" in comp.types
 
-    def test_load_competitor_ensemble(self):
-        comp = load_competitor("intent", "ovos-default-cascade")
+    def test_load_competitor_fusion(self):
+        # fusions live in the open intent league with fusion names
+        comp = load_competitor("intent", "padapt")
+        assert comp.modality == Modality.INTENT
         assert comp.plugin is None  # multi-engine pipeline
         assert comp.pipeline_plugins == [
             "ovos-padatious-pipeline-plugin",
             "ovos-adapt-pipeline-plugin",
         ]
         assert "ensemble" in comp.types
+
+    def test_leagues_are_paradigm_pure(self):
+        template = {c.competitor_id for c in list_competitors("intent_template")}
+        keyword = {c.competitor_id for c in list_competitors("intent_keyword")}
+        assert {"padatious-medium", "padacioso-medium", "nebulento-medium"} <= template
+        assert {"adapt-medium", "palavreado-medium"} <= keyword
 
     def test_intent_competitor_requires_pipeline(self):
         import pytest as _pytest

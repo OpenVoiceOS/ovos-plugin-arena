@@ -17,11 +17,13 @@ the arena:
 
 ## Status
 
-**Alpha — intent modality only.** The intent benchmark
-(5 engines × 12 languages over
+**Alpha — intent leagues only.** The intent benchmark (7 fighters × 12
+languages over
 [`OpenVoiceOS/intents-for-eval`](https://huggingface.co/datasets/OpenVoiceOS/intents-for-eval))
-is live: benchmark boards, benchmark-seeded ELO and blind battle pools are
-generated and the static site renders them. STT, TTS and wake-word modalities
+is live across three independent leagues — `intent_template` (Padatious,
+Padacioso, Nebulento), `intent_keyword` (Adapt, Palavreado) and the open
+`intent` league for mixed-paradigm fusions (Padapt, Nebulapt) — each with
+its own benchmark boards, battle pools and ELO. STT, TTS and wake-word
 follow the same contracts but have no published arena benchmarks yet.
 Pages deployment activates when the repository goes public.
 
@@ -72,15 +74,16 @@ deterministic, so the standings are reproducible from public data alone.
 Each fighter is a *shippable configuration*: its `config` is a valid
 `mycroft.conf` fragment — an `intents` section with a tier-suffixed
 `pipeline` plus per-plugin config blocks. Single-stage pipelines benchmark
-one engine; multi-stage pipelines are **ensemble** fighters (the stock OVOS
-cascade competes as one). Fighters carry a **species** (the plugin class
-they instantiate) and architecture **types** (GOFAI, fuzzy-match,
-neural-net, ensemble, …), and each gets a procedurally generated sprite
-derived from its id hash. Browse the bestiary on the **Fighters** page or
-in `registry/competitors/`. Current intent roster: Padatious, Padacioso,
-Nebulento, Adapt, Palavreado at their own `match_medium` gates, plus the
-OVOS default cascade — all evaluated end-to-end through the real OPM
-pipeline plugins (the plugin owns its thresholds; the arena owns none).
+one engine in its paradigm league; multi-stage pipelines are **fusion**
+fighters competing in the open intent league under portmanteau names —
+**Padapt** (Padatious × Adapt, the stock OVOS cascade) and **Nebulapt**
+(Nebulento × Adapt). Fighters carry a **species** (the plugin class they
+instantiate), architecture **types** (GOFAI, fuzzy-match, neural-net,
+ensemble, …), a **size** class (micro → titan), and a procedurally
+generated sprite derived from their id hash. Browse the bestiary on the
+**Fighters** page or in `registry/competitors/`. All fighters are evaluated
+end-to-end through the real OPM pipeline plugins — the plugin owns its
+confidence thresholds; the arena owns none.
 
 ## Running a benchmark
 

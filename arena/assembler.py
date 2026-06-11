@@ -32,6 +32,7 @@ from arena.models import (
     PredictionRow,
     VoteOutcome,
     battle_id_for,
+    is_intent_modality,
 )
 
 logger = logging.getLogger(__name__)
@@ -46,7 +47,7 @@ DEFAULT_MAX_BATTLES = 200
 
 def _is_correct(row: PredictionRow, modality: str) -> Optional[bool]:
     """Reference-metric correctness for one row, if computable."""
-    if modality == "intent":
+    if is_intent_modality(modality):
         return row_is_correct(row)
     if modality == "stt":
         wer = row_wer(row)
@@ -86,7 +87,7 @@ def _battle_priority(
 
 def _payload(row: PredictionRow, modality: str):
     """What the voter sees for one candidate."""
-    if modality == "intent":
+    if is_intent_modality(modality):
         out = {"intent": row.prediction}
         if row.predicted_slots:
             out["slots"] = row.predicted_slots
@@ -138,7 +139,7 @@ def assemble_battles(
                 sample_id=sample_id,
                 input_text=row_a.utterance or row_a.extras.get("input_text"),
                 reference=row_a.reference_intent
-                if modality == "intent"
+                if is_intent_modality(modality)
                 else row_a.reference_text,
                 prediction_a=_payload(row_a, modality),
                 prediction_b=_payload(row_b, modality),

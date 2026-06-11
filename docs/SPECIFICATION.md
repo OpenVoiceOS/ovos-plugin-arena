@@ -49,6 +49,24 @@ The arena is the *rating and voting* venue. It is **not** an execution venue.
 - **P6 — All prediction data is kept**, including bad predictions — failure
   cases guide plugin improvements and are first-class benchmark content.
 
+## 2.1 Leagues (modalities)
+
+Every modality is an independent league with its own benchmarks, battle
+pools and ELO standings: `stt`, `tts`, `wake_word`, and **three intent
+leagues**. Keyword-paradigm engines (hand-written vocabulary rules) and
+template-paradigm engines (phrase-template corpora) consume different
+supervision, so they MUST NOT be ranked against each other:
+
+| League | Who competes |
+|---|---|
+| `intent_template` | template/embedding engines (Padatious, Padacioso, Nebulento, …) |
+| `intent_keyword` | keyword engines (Adapt, Palavreado, …) |
+| `intent` | open league — mixed-paradigm pipeline **fusions** (ensembles) |
+
+Paradigm leagues are pure: a fighter in `intent_template` may only carry
+template-paradigm stages (enforced by the bench script). Fusions carry
+fun portmanteau names (Padapt = Padatious × Adapt).
+
 ## 3. System components
 
 ```

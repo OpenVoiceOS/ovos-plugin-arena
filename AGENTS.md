@@ -54,6 +54,10 @@ No enforced linter config; match the existing style (PEP 8, ~80-90 cols).
   `arena.cli`, don't hand-edit.
 - Issue forms apply the `vote` label; URL `labels=` params are ignored for
   non-collaborators — don't move labelling back into the vote URL.
+- Intent leagues are independent modalities (`intent_template`,
+  `intent_keyword`, open `intent` for fusions) with separate boards/ELO;
+  paradigm leagues must stay pure (bench script enforces it). Fusions get
+  portmanteau names (Padapt), never "default cascade" style ids.
 - Pages deploy job is gated on the repo being public; the build job always
   runs.
 

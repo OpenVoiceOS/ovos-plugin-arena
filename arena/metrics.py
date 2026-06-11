@@ -26,6 +26,8 @@ from arena.models import BenchmarkBoard, BenchmarkEntry, PredictionRow
 
 PRIMARY_METRIC = {
     "intent": "accuracy",
+    "intent_template": "accuracy",
+    "intent_keyword": "accuracy",
     "stt": "wer_mean",
     "wake_word": "error_rate",
 }
@@ -158,6 +160,8 @@ def score_stt(rows: List[PredictionRow]) -> Dict[str, float]:
 
 _SCORERS = {
     "intent": score_intent,
+    "intent_template": score_intent,
+    "intent_keyword": score_intent,
     "stt": score_stt,
 }
 

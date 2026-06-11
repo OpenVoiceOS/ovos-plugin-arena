@@ -29,6 +29,10 @@ _STT_FIELDS = {"reference_text", "wer"}
 
 
 def infer_modality(row: dict) -> str:
+    """League of one row — the explicit ``modality`` field wins, payload
+    field sniffing is the fallback for legacy rows."""
+    if row.get("modality"):
+        return row["modality"]
     if _INTENT_FIELDS & row.keys():
         return "intent"
     if _STT_FIELDS & row.keys():

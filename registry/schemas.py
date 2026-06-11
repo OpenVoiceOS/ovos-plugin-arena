@@ -32,10 +32,21 @@ from pydantic import BaseModel, Field, model_validator
 
 
 class Modality(str, Enum):
+    """Arena leagues. Keyword-paradigm and template-paradigm intent engines
+    consume different supervision, so they compete in separate leagues; the
+    open ``intent`` league hosts mixed-paradigm pipeline fusions."""
+
     STT = "stt"
     TTS = "tts"
     WAKE_WORD = "wake_word"
-    INTENT = "intent"
+    INTENT = "intent"  # open league — mixed-paradigm fusions
+    INTENT_TEMPLATE = "intent_template"
+    INTENT_KEYWORD = "intent_keyword"
+
+
+INTENT_MODALITIES = (
+    Modality.INTENT, Modality.INTENT_TEMPLATE, Modality.INTENT_KEYWORD,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -224,11 +235,16 @@ class CompetitorDef(BaseModel):
     model: Optional[str] = Field(
         None, description="Underlying model identifier, when one exists"
     )
-    size: Optional[str] = Field(
+    size: Optional[Literal[
+        "micro", "tiny", "small", "base", "medium",
+        "large", "x-large", "giant", "titan",
+    ]] = Field(
         None,
         description=(
-            "Approximate installed footprint (package + models), "
-            "e.g. '<1 MB', '~250 MB'"
+            "Installed footprint class (package + models): "
+            "micro <5MB · tiny 5-50MB · small 50-200MB · base 200-500MB · "
+            "medium 500MB-2GB · large 2-8GB · x-large 8-20GB · "
+            "giant 20-80GB · titan >80GB (LLM-class)"
         ),
     )
     links: Dict[str, str] = Field(
@@ -245,7 +261,7 @@ class CompetitorDef(BaseModel):
         tier-suffixed stage names).  ``plugin`` is derived when the pipeline
         uses a single engine; ensembles keep ``plugin = None``.
         """
-        if self.modality == Modality.INTENT:
+        if self.modality in INTENT_MODALITIES:
             intents = self.config.get("intents") or {}
             pipeline = intents.get("pipeline") or []
             if not pipeline or not isinstance(pipeline, list):

@@ -22,12 +22,31 @@ from pydantic import BaseModel, Field
 
 
 class Modality(str, enum.Enum):
-    """Supported OVOS plugin modalities."""
+    """Supported arena modalities — each is an independent league with its
+    own benchmarks, battles and ELO standings.
+
+    Keyword-paradigm and template-paradigm intent engines consume different
+    supervision (hand-written vocabulary rules vs phrase-template corpora),
+    so they compete in separate leagues; the open ``intent`` league hosts
+    mixed-paradigm pipeline fusions.
+    """
 
     TTS = "tts"
     STT = "stt"
     WAKE_WORD = "wake_word"
-    INTENT = "intent"
+    INTENT = "intent"  # open league — mixed-paradigm pipeline fusions
+    INTENT_TEMPLATE = "intent_template"  # template-paradigm engines
+    INTENT_KEYWORD = "intent_keyword"  # keyword-paradigm engines
+
+
+INTENT_MODALITIES = frozenset(
+    {Modality.INTENT.value, Modality.INTENT_TEMPLATE.value,
+     Modality.INTENT_KEYWORD.value}
+)
+
+
+def is_intent_modality(modality: str) -> bool:
+    return modality in INTENT_MODALITIES
 
 
 class VoteOutcome(str, enum.Enum):
@@ -64,6 +83,7 @@ class PredictionRow(BaseModel):
     dataset_id: str
     lang: str
     plugin_id: str
+    modality: Optional[str] = None  # league; inferred from fields when absent
     plugin_version: str = ""
     prediction: Optional[str] = None
     runner_version: str = ""

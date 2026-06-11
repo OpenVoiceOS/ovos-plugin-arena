@@ -17,7 +17,7 @@ tally
 export-index
     Regenerate ``index.json`` describing every data artifact.
 
-export-pokedex
+export-bestiary
     Flatten the competitor registry into ``competitors.json`` for the
     fighter-browser UI.
 """
@@ -389,7 +389,7 @@ def cmd_tally(args: argparse.Namespace) -> int:
 
 
 # ---------------------------------------------------------------------------
-# export-index / export-pokedex
+# export-index / export-bestiary
 # ---------------------------------------------------------------------------
 
 
@@ -425,7 +425,7 @@ def cmd_export_index(args: argparse.Namespace) -> int:
             except Exception as exc:
                 log.warning("Skipping %s: %s", path, exc)
         index[key] = entries
-    index["has_pokedex"] = (data_dir / "competitors.json").exists()
+    index["has_bestiary"] = (data_dir / "competitors.json").exists()
 
     out_file = Path(args.output)
     out_file.write_text(json.dumps(index, indent=2) + "\n")
@@ -435,7 +435,7 @@ def cmd_export_index(args: argparse.Namespace) -> int:
     return 0
 
 
-def cmd_export_pokedex(args: argparse.Namespace) -> int:
+def cmd_export_bestiary(args: argparse.Namespace) -> int:
     registry_root = Path(args.registry).resolve()
     if str(registry_root.parent) not in sys.path:
         sys.path.insert(0, str(registry_root.parent))
@@ -490,7 +490,7 @@ def main(argv=None):
     p.add_argument("--data-dir", default="frontend-static/public/data")
     p.add_argument("--output", default="frontend-static/public/data/index.json")
 
-    p = sub.add_parser("export-pokedex", help="Flatten registry into competitors.json")
+    p = sub.add_parser("export-bestiary", help="Flatten registry into competitors.json")
     p.add_argument("--registry", default="registry")
     p.add_argument("--output", default="frontend-static/public/data/competitors.json")
 
@@ -499,7 +499,7 @@ def main(argv=None):
         "assemble": cmd_assemble,
         "tally": cmd_tally,
         "export-index": cmd_export_index,
-        "export-pokedex": cmd_export_pokedex,
+        "export-bestiary": cmd_export_bestiary,
     }
     if args.command not in commands:
         parser.print_help()

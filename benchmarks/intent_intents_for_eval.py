@@ -48,7 +48,7 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from arena.version import __version__ as ARENA_VERSION  # noqa: E402
-from registry.loaders import list_competitors, load_dataset  # noqa: E402
+from registry.loaders import load_all_competitors, load_dataset  # noqa: E402
 from runner.intent_pipeline import (  # noqa: E402
     ENGINE_REGISTRY,
     IntentPipeline,
@@ -128,6 +128,7 @@ def make_row(
         "dataset_id": DATASET_ID,
         "dataset_revision": dataset_revision,
         "lang": lang,
+        "modality": competitor.modality.value,
         "plugin_id": competitor.plugin or "ensemble",
         "plugin_version": versions,
         "pipeline": competitor.pipeline,
@@ -242,6 +243,25 @@ def upload_predictions(output_dir: Path, results_repo: str) -> None:
         )
 
 
+def check_league(competitor) -> None:
+    """Paradigm leagues are pure: every stage engine must match the league.
+
+    The open ``intent`` league accepts any mix.
+    """
+    league = competitor.modality.value
+    if league == "intent":
+        return
+    expected = league.removeprefix("intent_")
+    for plugin_id in competitor.pipeline_plugins:
+        paradigm = ENGINE_REGISTRY[plugin_id].paradigm
+        if paradigm != expected:
+            raise ValueError(
+                f"{competitor.competitor_id}: {plugin_id} is a "
+                f"{paradigm}-paradigm engine but the fighter is in the "
+                f"{league} league"
+            )
+
+
 def main(argv=None) -> int:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s  %(message)s")
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[1])
@@ -268,9 +288,12 @@ def main(argv=None) -> int:
              eval_def.source.hf_id, revision[:12], ", ".join(train_defs))
 
     competitors = [
-        comp for comp in list_competitors("intent")
-        if all(p in ENGINE_REGISTRY for p in comp.pipeline_plugins)
+        comp for comp in load_all_competitors()
+        if comp.modality.value.startswith("intent")
+        and all(p in ENGINE_REGISTRY for p in comp.pipeline_plugins)
     ]
+    for comp in competitors:
+        check_league(comp)
     if args.competitors:
         wanted = {c.strip() for c in args.competitors.split(",") if c.strip()}
         competitors = [c for c in competitors if c.competitor_id in wanted]
