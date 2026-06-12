@@ -1,13 +1,13 @@
 {
   "modality": "intent_template",
-  "dataset_id": "intents-for-eval",
+  "dataset_id": "massive-templates",
   "lang": "da-DK",
-  "generated_at": "2026-06-11T19:32:42.810542+00:00",
+  "generated_at": "2026-06-12T07:23:11.357445+00:00",
   "primary_metric": "accuracy",
   "dataset_info": {
-    "url": "https://huggingface.co/datasets/OpenVoiceOS/intents-for-eval",
+    "url": "https://huggingface.co/datasets/OpenVoiceOS/massive-templates",
     "license": "apache-2.0",
-    "notes": "OVOS canonical paradigm-neutral intent benchmark: 50 intents, 1750 test rows per language across template / paraphrase / near_ood / far_ood / asr_noise / typos buckets, with slot annotations. far_ood rows carry expected_intent=null — the correct behaviour is no match.",
+    "notes": "Amazon MASSIVE recast into the paradigm-neutral template benchmark format: 52 languages with held-out test utterances (intent + slot annotations). Template-paradigm training only — no keyword corpus, so keyword engines cannot train on it.",
     "predictions": [
       "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-template-bench-intents-for-eval",
       "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-keyword-bench-intents-for-eval",
@@ -17,12 +17,8 @@
     ],
     "train_datasets": {
       "template": {
-        "dataset_id": "intents-for-eval-templates",
-        "url": "https://huggingface.co/datasets/OpenVoiceOS/intents-for-eval"
-      },
-      "keyword": {
-        "dataset_id": "intents-for-eval-keywords",
-        "url": "https://huggingface.co/datasets/OpenVoiceOS/intents-for-eval"
+        "dataset_id": "massive-templates-train",
+        "url": "https://huggingface.co/datasets/OpenVoiceOS/massive-templates"
       }
     }
   },
@@ -31,57 +27,25 @@
       "rank": 1,
       "competitor_id": "nebulento-medium",
       "plugin_id": "ovos-nebulento-pipeline-plugin",
-      "samples": 1750,
+      "samples": 2974,
       "metrics": {
-        "accuracy": 0.6189,
-        "macro_f1": 0.7498,
-        "ood_fpr": 0.02,
-        "slot_exact_match": 0.779,
-        "latency_ms_median": 66.85,
-        "acc_asr_noise": 0.12,
-        "acc_far_ood": 0.98,
-        "acc_near_ood": 0.9525,
-        "acc_paraphrase": 0.2014,
-        "acc_template": 1.0,
-        "acc_typos": 0.12
+        "accuracy": 0.503,
+        "macro_f1": 0.5033,
+        "slot_exact_match": 0.5744,
+        "latency_ms_median": 133.81,
+        "acc_test": 0.503
       }
     },
     {
       "rank": 2,
       "competitor_id": "padacioso-medium",
       "plugin_id": "ovos-padacioso-pipeline-plugin",
-      "samples": 1750,
+      "samples": 2974,
       "metrics": {
-        "accuracy": 0.5566,
-        "macro_f1": 0.6864,
-        "ood_fpr": 0.1,
-        "slot_exact_match": 0.129,
-        "latency_ms_median": 1.61,
-        "acc_asr_noise": 0.02,
-        "acc_far_ood": 0.9,
-        "acc_near_ood": 0.9025,
-        "acc_paraphrase": 0.1143,
-        "acc_template": 0.974,
-        "acc_typos": 0.0
-      }
-    },
-    {
-      "rank": 3,
-      "competitor_id": "padatious-medium",
-      "plugin_id": "ovos-padatious-pipeline-plugin",
-      "samples": 1750,
-      "metrics": {
-        "accuracy": 0.5503,
-        "macro_f1": 0.6912,
-        "ood_fpr": 0.04,
-        "slot_exact_match": 0.0532,
-        "latency_ms_median": 14.72,
-        "acc_asr_noise": 0.06,
-        "acc_far_ood": 0.96,
-        "acc_near_ood": 0.8425,
-        "acc_paraphrase": 0.1271,
-        "acc_template": 0.97,
-        "acc_typos": 0.02
+        "accuracy": 0.0,
+        "macro_f1": 0.0,
+        "latency_ms_median": 1.88,
+        "acc_test": 0.0
       }
     }
   ]

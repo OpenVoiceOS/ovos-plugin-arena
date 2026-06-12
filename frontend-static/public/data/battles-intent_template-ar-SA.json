@@ -1,0 +1,4962 @@
+{
+  "modality": "intent_template",
+  "dataset_id": "massive-templates",
+  "lang": "ar-SA",
+  "generated_at": "2026-06-12T07:23:11.357445+00:00",
+  "dataset_info": {
+    "url": "https://huggingface.co/datasets/OpenVoiceOS/massive-templates",
+    "license": "apache-2.0",
+    "notes": "Amazon MASSIVE recast into the paradigm-neutral template benchmark format: 52 languages with held-out test utterances (intent + slot annotations). Template-paradigm training only — no keyword corpus, so keyword engines cannot train on it.",
+    "predictions": [
+      "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-template-bench-intents-for-eval",
+      "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-keyword-bench-intents-for-eval",
+      "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-bench-intents-for-eval",
+      "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-template-bench-massive-templates",
+      "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-bench-massive-templates"
+    ],
+    "train_datasets": {
+      "template": {
+        "dataset_id": "massive-templates-train",
+        "url": "https://huggingface.co/datasets/OpenVoiceOS/massive-templates"
+      }
+    }
+  },
+  "battles": [
+    {
+      "battle_id": "002cf13db21fcd45",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01028",
+      "input_text": "اكل",
+      "reference": "takeaway:takeaway_order",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "takeaway:takeaway_query",
+        "slots": {
+          "event_name": "اكل"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "0082fb97a9adaeda",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/02377",
+      "input_text": "ماذا حدث لداو جونز اليوم",
+      "reference": "qa:qa_stock",
+      "prediction_a": {
+        "intent": "datetime:datetime_query",
+        "slots": {
+          "time": "اليوم",
+          "date": "اليوم",
+          "time_zone": "يوم",
+          "timeofday": "اليوم"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "008d10c1bc9a0206",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01565",
+      "input_text": "المواعيد الجاية في التقويم",
+      "reference": "calendar:calendar_set",
+      "prediction_a": {
+        "intent": "calendar:calendar_query",
+        "slots": {
+          "time": "الجاية",
+          "event_name": "المواعيد"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "00dd29d2868f2a47",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/02894",
+      "input_text": "ضيف هذا الايميل لجهات الاتصال حقتي وبعدها ارسل له email",
+      "reference": "email:email_addcontact",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "email:email_querycontact",
+        "slots": {
+          "media_type": "ارسل",
+          "event_name": "اتصال",
+          "relation": "حق",
+          "personal_info": "ايميل"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "018590b90aac0d44",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00173",
+      "input_text": "طفي اللمبه لو سمحت",
+      "reference": "iot:iot_hue_lightoff",
+      "prediction_a": {
+        "intent": "alarm:alarm_remove"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "01b9a6f9f5527395",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/02728",
+      "input_text": "شيك على emails الجديدة وعلمني وش تتكلم عنه",
+      "reference": "email:email_query",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:calendar_set",
+        "slots": {
+          "time": "وش",
+          "date": "كل",
+          "media_type": "الجديدة",
+          "business_name": "من",
+          "general_frequency": "كل",
+          "event_name": "كل",
+          "personal_info": "email"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "01ed5732dd1dfbe6",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/02261",
+      "input_text": "هل تعرف رقم الهاتف الخاص بمها محمد",
+      "reference": "qa:qa_factoid",
+      "prediction_a": {
+        "intent": "social:social_post",
+        "slots": {
+          "device_type": "هاتف",
+          "business_name": "الخاص بمها",
+          "person": "محمد",
+          "personal_info": "رقم الهاتف"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "0225f5fcbdb83248",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00399",
+      "input_text": "من أي فيلم هذي الموسيقى وش اسم الموسيقى",
+      "reference": "music:music_query",
+      "prediction_a": {
+        "intent": "calendar:calendar_set",
+        "slots": {
+          "time": "وش",
+          "media_type": "الموسيقى",
+          "business_name": "من",
+          "event_name": "اسم",
+          "personal_info": "ذي"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "0260c57b44eaaa06",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/02297",
+      "input_text": "ما تعريف كلمة توقيت",
+      "reference": "qa:qa_definition",
+      "prediction_a": {
+        "intent": "social:social_query",
+        "slots": {
+          "date": "كل",
+          "general_frequency": "كل",
+          "event_name": "كل"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "045e8014a4d8a74c",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01925",
+      "input_text": "احذف مسح المطبخ من قائمة المهام حقي",
+      "reference": "lists:lists_remove",
+      "prediction_a": {
+        "intent": "lists:lists_createoradd",
+        "slots": {
+          "time": "احذف",
+          "person": "لمها",
+          "relation": "حق",
+          "list_name": "المهام"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "0461879e7a6ab50b",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00922",
+      "input_text": "قل لي الحصول على الأخبار المحلية من بي بي سي عربية",
+      "reference": "news:news_query",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "recommendation:recommendation_movies",
+        "slots": {
+          "media_type": "الأخبار المحلية",
+          "place_name": "المحل",
+          "business_name": "من",
+          "business_type": "محل"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "04742e129085c025",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01110",
+      "input_text": "قول لي أحسن الأماكن السياحية اللي تنصحني أزورها في السعودية",
+      "reference": "recommendation:recommendation_locations",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:calendar_set",
+        "slots": {
+          "place_name": "السعودية",
+          "song_name": "الأماكن",
+          "business_name": "ماك",
+          "person": "حسن",
+          "relation": "أم"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "04dba932fe7abce8",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01037",
+      "input_text": "وطي سطوع اللمبات",
+      "reference": "iot:iot_hue_lightdim",
+      "prediction_a": {
+        "intent": "iot:iot_hue_lightup",
+        "slots": {
+          "house_place": "لمبات",
+          "device_type": "اللمبات"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "051c135d262cb54f",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/02578",
+      "input_text": "كام يساوي الدولار في السعودية",
+      "reference": "qa:qa_currency",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "datetime:datetime_query",
+        "slots": {
+          "place_name": "السعودية",
+          "time_zone": "السعودية",
+          "food_type": "السعودية"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "053720c8bf9c5131",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01287",
+      "input_text": "منع ساعة وحدة من الساعة عشرة الصبح بكرة",
+      "reference": "calendar:calendar_set",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "iot:iot_coffee",
+        "slots": {
+          "time": "ساعة",
+          "date": "بكرة",
+          "business_name": "من",
+          "timeofday": "الصبح",
+          "coffee_type": "الصبح"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "055f35b0b0ef6479",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01348",
+      "input_text": "الاثنين",
+      "reference": "calendar:calendar_set",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:calendar_query",
+        "slots": {
+          "time": "اثنين",
+          "date": "الاثنين",
+          "general_frequency": "اثنين"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "05ae964f692e5653",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00260",
+      "input_text": "ما هو الطقس للموقع حقي هاذ الأسبوع",
+      "reference": "weather:weather_query",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:calendar_set",
+        "slots": {
+          "time": "الأسبوع",
+          "date": "الأسبوع",
+          "relation": "حق",
+          "personal_info": "موقع"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "05eb6aafb700419e",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01954",
+      "input_text": "تجهيزات الحفلة حقي",
+      "reference": "calendar:calendar_query",
+      "prediction_a": {
+        "intent": "calendar:calendar_remove",
+        "slots": {
+          "place_name": "الحفلة",
+          "event_name": "الحفلة",
+          "business_type": "تجهيزات الحفلة",
+          "relation": "حق",
+          "list_name": "الحفلة"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "06421439105b1337",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/02917",
+      "input_text": "رجاءاً حط عنوان الايميل الجديد حقي في جهة الاتصال",
+      "reference": "email:email_addcontact",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "email:email_querycontact",
+        "slots": {
+          "event_name": "اتصال",
+          "person": "رجاء",
+          "relation": "حق",
+          "personal_info": "ايميل",
+          "list_name": "عن"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "0727f378ce393666",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01737",
+      "input_text": "وش هو menu اليوم وحط بعض من خضار مسلوقة بعد",
+      "reference": "cooking:cooking_recipe",
+      "prediction_a": {
+        "intent": "calendar:calendar_query",
+        "slots": {
+          "time": "اليوم",
+          "date": "اليوم",
+          "business_name": "من",
+          "timeofday": "اليوم",
+          "list_name": "خضار"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "0735733a5dd94e51",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00891",
+      "input_text": "تذاكر السفر السعودية",
+      "reference": "transport:transport_ticket",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "qa:qa_factoid",
+        "slots": {
+          "place_name": "السعودية",
+          "food_type": "السعودية",
+          "music_genre": "سعودية",
+          "person": "لسعود"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "08b3bc18385fc4de",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00957",
+      "input_text": "لو سمحت شغل كل اللمبات",
+      "reference": "iot:iot_hue_lightup",
+      "prediction_a": {
+        "intent": "iot:iot_hue_lightdim",
+        "slots": {
+          "house_place": "لمبات",
+          "device_type": "كل اللمبات"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "08e91a71d4537eb7",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01856",
+      "input_text": "زيد المنظفات على قائمة الأشياء اللي لازم أشتريها",
+      "reference": "lists:lists_createoradd",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "lists:lists_query",
+        "slots": {
+          "device_type": "المنظف",
+          "business_name": "من",
+          "list_name": "أشتريها"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "08fae13556a68646",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00338",
+      "input_text": "وش الأغنية الشغالة الحين",
+      "reference": "music:music_query",
+      "prediction_a": {
+        "intent": "recommendation:recommendation_movies",
+        "slots": {
+          "time": "الحين",
+          "date": "الحين",
+          "media_type": "أغنية",
+          "place_name": "الحي",
+          "event_name": "شغال"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "091a7e723a9c8149",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/02030",
+      "input_text": "علمني عن فعاليات سباق الخيل الموجودة بالمدينة حقي",
+      "reference": "recommendation:recommendation_events",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:calendar_query",
+        "slots": {
+          "place_name": "المدينة",
+          "business_name": "من",
+          "event_name": "سباق الخيل",
+          "relation": "حق",
+          "list_name": "عن"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "099c13e59f83534a",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00983",
+      "input_text": "منبه عشرة الصباح",
+      "reference": "alarm:alarm_set",
+      "prediction_a": {
+        "intent": "alarm:alarm_remove",
+        "slots": {
+          "time": "عشرة الصباح",
+          "date": "عشرة",
+          "timeofday": "الصباح",
+          "person": "صباح"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "09c77a2f92dbb5ee",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01366",
+      "input_text": "حدث",
+      "reference": "calendar:calendar_remove",
+      "prediction_a": {
+        "intent": "calendar:calendar_query"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "09e46f7d2566f9cb",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01355",
+      "input_text": "انا موعد اليوم",
+      "reference": "calendar:calendar_query",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "general:general_quirky",
+        "slots": {
+          "time": "اليوم",
+          "date": "اليوم",
+          "artist_name": "وعد",
+          "timeofday": "اليوم",
+          "event_name": "موعد",
+          "person": "وعد"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "0a2f04a3028b7c30",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01359",
+      "input_text": "احداث",
+      "reference": "calendar:calendar_remove",
+      "prediction_a": {
+        "intent": "calendar:calendar_query"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "0b6de5d21ace6a96",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00995",
+      "input_text": "محمد عبده",
+      "reference": "music:music_likeness",
+      "prediction_a": {
+        "intent": "music:music_query",
+        "slots": {
+          "artist_name": "محمد عبده",
+          "person": "محمد"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "0b80e23bd29d13e7",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/02055",
+      "input_text": "olly ايش أفضل أفلام الدراما اللي بتنعرض في نهاية الأسبوع",
+      "reference": "recommendation:recommendation_movies",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:calendar_set",
+        "slots": {
+          "time": "نهاية الأسبوع",
+          "date": "نهاية الأسبوع",
+          "song_name": "أفلام"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "0bc0f63cbcb98523",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01425",
+      "input_text": "موعد طبيب الأسنان",
+      "reference": "calendar:calendar_remove",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:calendar_query",
+        "slots": {
+          "event_name": "موعد",
+          "person": "وعد",
+          "relation": "طبيب الأسنان"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "0c7e79d7724421a8",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00925",
+      "input_text": "هل هو عشرون مارس اليوم",
+      "reference": "datetime:datetime_query",
+      "prediction_a": {
+        "intent": "weather:weather_query",
+        "slots": {
+          "time": "اليوم",
+          "date": "اليوم",
+          "timeofday": "اليوم"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "0d1ddf3634667f30",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00842",
+      "input_text": "سجل رأي على اغنية راشد الماجد",
+      "reference": "music:music_likeness",
+      "prediction_a": {
+        "intent": "play:play_music",
+        "slots": {
+          "artist_name": "راشد الماجد",
+          "song_name": "راشد الماجد",
+          "music_descriptor": "أي"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "0e43325c16e18fc7",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/02105",
+      "input_text": "ايش المحلات القريبة مني",
+      "reference": "recommendation:recommendation_locations",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "recommendation:recommendation_events",
+        "slots": {
+          "place_name": "المحل",
+          "business_name": "من",
+          "business_type": "المحلات"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "0e667f880f743cfc",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00969",
+      "input_text": "اطلب اكل",
+      "reference": "takeaway:takeaway_order",
+      "prediction_a": {
+        "intent": "transport:transport_taxi",
+        "slots": {
+          "date": "كل",
+          "event_name": "اكل"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "0ee5515723e64d03",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01841",
+      "input_text": "كيف قائمة الأشياء اللي بسويها اليوم",
+      "reference": "lists:lists_query",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "lists:lists_remove",
+        "slots": {
+          "date": "اليوم",
+          "timeofday": "اليوم",
+          "list_name": "قائمة الأشياء"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "0fdc550492593172",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00809",
+      "input_text": "تسعدني ذا الأغنية",
+      "reference": "music:music_likeness",
+      "prediction_a": {
+        "intent": "music:music_settings",
+        "slots": {
+          "media_type": "أغنية",
+          "player_setting": "عد"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "0ffd30ba70aee3f1",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00322",
+      "input_text": "الحالية",
+      "reference": "music:music_likeness",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "lists:lists_createoradd"
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "1043b231b4542b78",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00970",
+      "input_text": "من فضلك أعد الإنارة ضوء خافت بشكل مناسب في المطبخ",
+      "reference": "iot:iot_hue_lightup",
+      "prediction_a": {
+        "intent": "calendar:calendar_set",
+        "slots": {
+          "date": "كل",
+          "house_place": "المطبخ",
+          "business_name": "من",
+          "general_frequency": "كل",
+          "event_name": "كل"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "105bc5855aea1243",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/02059",
+      "input_text": "أي فعاليات نهاية هذا الأسبوع في القصيم",
+      "reference": "recommendation:recommendation_events",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "lists:lists_createoradd",
+        "slots": {
+          "time": "نهاية هذا الأسبوع",
+          "date": "نهاية هذا الأسبوع",
+          "place_name": "القصيم",
+          "music_descriptor": "أي"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "10c8c17e404f4f7a",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00224",
+      "input_text": "أنا أحب أغاني محمد عبدة تكفى شغلها",
+      "reference": "music:music_likeness",
+      "prediction_a": {
+        "intent": "music:music_query",
+        "slots": {
+          "media_type": "أغاني",
+          "music_genre": "أغاني",
+          "player_setting": "شغل",
+          "person": "محمد"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "10d40569eeb0f1f7",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01277",
+      "input_text": "حطيت منبه لإجتماع بكره ولا لا",
+      "reference": "calendar:calendar_query",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "alarm:alarm_set",
+        "slots": {
+          "date": "بكره",
+          "order_type": "حط",
+          "event_name": "لإجتماع"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "11c5c82ec2ce9cc6",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01384",
+      "input_text": "امسح الموعد حق الدكتور يوم السبت الله يسعدك",
+      "reference": "calendar:calendar_remove",
+      "prediction_a": {
+        "intent": "calendar:calendar_set",
+        "slots": {
+          "time": "يوم",
+          "date": "السبت",
+          "artist_name": "وعد",
+          "event_name": "الموعد",
+          "person": "سعد",
+          "relation": "دكتور"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "1294c733a649ceb7",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01113",
+      "input_text": "أخبار الدوري السعودي",
+      "reference": "news:news_query",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "general:general_quirky",
+        "slots": {
+          "food_type": "سعودي",
+          "news_topic": "الدوري السعودي",
+          "person": "لسعود"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "13a87d533d005afe",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00281",
+      "input_text": "أبغى أشوف كل المنبهات حقي",
+      "reference": "alarm:alarm_query",
+      "prediction_a": {
+        "intent": "calendar:calendar_remove",
+        "slots": {
+          "date": "كل",
+          "general_frequency": "كل",
+          "event_name": "كل",
+          "relation": "حق",
+          "list_name": "المنبه"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "13c9591deacc459c",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/02268",
+      "input_text": "تحقق من أسعار كل دور السينما وإن كانت تعرض أفلام جيدة في موقعي",
+      "reference": "recommendation:recommendation_movies",
+      "prediction_a": {
+        "intent": "calendar:calendar_set",
+        "slots": {
+          "date": "كل",
+          "place_name": "السينما",
+          "song_name": "أفلام",
+          "business_name": "من",
+          "general_frequency": "كل",
+          "event_name": "كل",
+          "relation": "حق",
+          "personal_info": "موقع"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "14168d21b4466ff2",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/02149",
+      "input_text": "قطار الرياض مكة",
+      "reference": "transport:transport_query",
+      "prediction_a": {
+        "intent": "transport:transport_ticket",
+        "slots": {
+          "place_name": "الرياض",
+          "transport_type": "قطار"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "1442b3111662d383",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00516",
+      "input_text": "الحين وقت أكل جاهز",
+      "reference": "takeaway:takeaway_order",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:calendar_query",
+        "slots": {
+          "time": "الحين",
+          "date": "الحين",
+          "place_name": "الحي",
+          "general_frequency": "كل",
+          "event_name": "كل"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "14bd8cab6e9122aa",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01436",
+      "input_text": "حط تنبيه قبل ثلاثين دقيقة من اجتماع يوم الثلوث",
+      "reference": "calendar:calendar_set",
+      "prediction_a": {
+        "intent": "alarm:alarm_set",
+        "slots": {
+          "time": "يوم",
+          "date": "يوم الثلوث",
+          "time_zone": "يوم",
+          "order_type": "حط",
+          "event_name": "اجتماع"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "152efde543eca401",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/02530",
+      "input_text": "هل يمكن أن تخبرني عن مملكة الحيوانات في الصحراء العربية",
+      "reference": "general:general_quirky",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "qa:qa_factoid",
+        "slots": {
+          "artist_name": "ملكة",
+          "place_name": "الحي",
+          "food_type": "العربية",
+          "music_genre": "بي",
+          "person": "ملك"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "1603722acb8ecdf4",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00294",
+      "input_text": "سلام olly تكفى قول لي اسم هاذي الأغنية الشغالة الحين",
+      "reference": "music:music_query",
+      "prediction_a": {
+        "intent": "calendar:calendar_set",
+        "slots": {
+          "time": "الحين",
+          "date": "الحين",
+          "media_type": "أغنية",
+          "place_name": "الحي",
+          "event_name": "اسم",
+          "personal_info": "ذي"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "1618f77a03994a28",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01573",
+      "input_text": "عشا اليوم مع نوف",
+      "reference": "calendar:calendar_remove",
+      "prediction_a": {
+        "intent": "takeaway:takeaway_order",
+        "slots": {
+          "time": "اليوم",
+          "date": "اليوم",
+          "meal_type": "عشا",
+          "timeofday": "اليوم"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "16876ae26e72c26a",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01267",
+      "input_text": "تقدر تعطيني تفاصيل الحفلة السنوية الجاية في ستة وعشرين من مارس",
+      "reference": "general:general_quirky",
+      "prediction_a": {
+        "intent": "calendar:calendar_set",
+        "slots": {
+          "time": "ستة",
+          "date": "مارس",
+          "place_name": "الحفلة",
+          "business_name": "من",
+          "general_frequency": "السنوي",
+          "event_name": "الحفلة",
+          "personal_info": "تفاصيل"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "168cb1003def86f1",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01426",
+      "input_text": "كم التاريخ",
+      "reference": "calendar:calendar_query",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "datetime:datetime_query",
+        "slots": {
+          "time_zone": "تاريخ"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "16d09978e66881b5",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00597",
+      "input_text": "تكفى غير المنطقة الزمنية للسعودية",
+      "reference": "datetime:datetime_convert",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "qa:qa_factoid",
+        "slots": {
+          "place_name": "للسعودية",
+          "food_type": "سعودي",
+          "music_genre": "سعودية",
+          "person": "لسعود"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "176496db80ac7efa",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01481",
+      "input_text": "حدث",
+      "reference": "calendar:calendar_set",
+      "prediction_a": {
+        "intent": "calendar:calendar_query"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "177361f84714cf3b",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00386",
+      "input_text": "الساعة سبعة الصبح بتوقيت مكة المكرمة",
+      "reference": "datetime:datetime_convert",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "datetime:datetime_query",
+        "slots": {
+          "time": "سبعة الصبح",
+          "place_name": "توقيت مكة",
+          "time_zone": "بتوقيت مكة",
+          "timeofday": "الصبح"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "17aaf245be28539d",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/02588",
+      "input_text": "ما هي المنطقة الواقعة في سيناء",
+      "reference": "qa:qa_factoid",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:calendar_set",
+        "slots": {
+          "place_name": "سيناء",
+          "song_name": "سيناء",
+          "business_name": "المنطق",
+          "personal_info": "المنطقة"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "184de9e810a85bb9",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01469",
+      "input_text": "حدث التقويم حقي بهذا الموعد لو سمحت",
+      "reference": "calendar:calendar_set",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:calendar_remove",
+        "slots": {
+          "date": "الموعد",
+          "event_name": "الموعد",
+          "person": "وعد",
+          "relation": "حق"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "19222a10a999a1a7",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00971",
+      "input_text": "أنر الأضواء في غرفة المعيشة",
+      "reference": "iot:iot_hue_lightup",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "iot:iot_hue_lightdim",
+        "slots": {
+          "house_place": "غرفة"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "1922ed08a8bdb923",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01272",
+      "input_text": "سجل انه عندي اجتماع بكره",
+      "reference": "calendar:calendar_set",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:calendar_query",
+        "slots": {
+          "date": "بكره",
+          "event_name": "اجتماع",
+          "list_name": "عن"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "1a09b2a3e02da970",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00368",
+      "input_text": "من الحين اضبط على كتم",
+      "reference": "audio:audio_volume_mute",
+      "prediction_a": {
+        "intent": "calendar:calendar_set",
+        "slots": {
+          "time": "الحين",
+          "date": "الحين",
+          "place_name": "الحي",
+          "business_name": "من"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "1a6e41151f63dee8",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00664",
+      "input_text": "كم الساعة اللي حطيت عليها المنبه اللي بيصحيني لرحلة الطيارة نهاية هذا الأسبوع",
+      "reference": "alarm:alarm_query",
+      "prediction_a": {
+        "intent": "calendar:calendar_remove",
+        "slots": {
+          "time": "ساعة",
+          "date": "نهاية هذا الأسبوع",
+          "event_name": "لرحلة",
+          "person": "علي",
+          "transport_type": "رحلة",
+          "list_name": "المنبه"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "1b4e11f03e0ab9b5",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/02153",
+      "input_text": "قطار حفر الباطن خميس مشيط",
+      "reference": "transport:transport_ticket",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "transport:transport_query",
+        "slots": {
+          "date": "خميس",
+          "place_name": "خميس مشيط",
+          "transport_type": "قطار"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "1b5f3fa5ef527db7",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/02864",
+      "input_text": "email سامي فيه رابط ولا لا",
+      "reference": "email:email_query",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "email:email_sendemail",
+        "slots": {
+          "artist_name": "راب",
+          "person": "سامي",
+          "relation": "امي",
+          "personal_info": "email"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "1b940a8fa8f61440",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/02191",
+      "input_text": "قطار جدة منطقة مكة المكرمة ثمنية الصبح اليوم",
+      "reference": "transport:transport_ticket",
+      "prediction_a": {
+        "intent": "transport:transport_query",
+        "slots": {
+          "time": "ثمنية",
+          "date": "اليوم",
+          "place_name": "جدة",
+          "business_name": "من",
+          "timeofday": "الصبح",
+          "person": "مكة",
+          "transport_type": "قطار",
+          "transport_name": "جدة"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "1c705e0ba8f3050e",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01492",
+      "input_text": "ذكرني عندي حفلة عيد ميلاد في الثلاثين",
+      "reference": "calendar:calendar_set",
+      "prediction_a": {
+        "intent": "lists:lists_query",
+        "slots": {
+          "date": "عيد ميلاد",
+          "music_genre": "حفلة",
+          "event_name": "عيد ميلاد",
+          "list_name": "عن"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "1df5638998815a3b",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/02830",
+      "input_text": "ابيك ترسل هذا الإيميل الحين",
+      "reference": "email:email_sendemail",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "play:play_radio",
+        "slots": {
+          "time": "الحين",
+          "date": "الحين",
+          "music_genre": "بي"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "1ee6a06aee6aabc3",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01121",
+      "input_text": "وش الصوت اللي يسويه الكلب",
+      "reference": "general:general_quirky",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:calendar_set",
+        "slots": {
+          "time": "وش",
+          "date": "كل",
+          "media_type": "الصوت",
+          "general_frequency": "كل",
+          "event_name": "كل",
+          "person": "الكل"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "1f6d5ea6ed0f3151",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/02624",
+      "input_text": "هل فيه أحد يتابعني على تويتر اليوم",
+      "reference": "social:social_query",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "play:play_music",
+        "slots": {
+          "time": "اليوم",
+          "date": "اليوم",
+          "media_type": "تويتر",
+          "player_setting": "تابع",
+          "timeofday": "اليوم"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "20106d5b6415d9c6",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01909",
+      "input_text": "أولي أقرأي القائمة لي",
+      "reference": "lists:lists_query",
+      "prediction_a": {
+        "intent": "lists:lists_createoradd",
+        "slots": {
+          "event_name": "لقا",
+          "music_descriptor": "أي"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "20975405f59ae877",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01571",
+      "input_text": "لو سمحت امسح هاذي المناسبة",
+      "reference": "calendar:calendar_remove",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:calendar_set",
+        "slots": {
+          "date": "امس",
+          "business_name": "من",
+          "personal_info": "ذي"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "21c5fbca890c0f8e",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01137",
+      "input_text": "الجو خايس اليوم",
+      "reference": "general:general_quirky",
+      "prediction_a": {
+        "intent": "datetime:datetime_query",
+        "slots": {
+          "time": "اليوم",
+          "date": "اليوم",
+          "time_zone": "يوم",
+          "timeofday": "اليوم"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "23320590bbfe62a5",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/02081",
+      "input_text": "ايش بيكون عندنا هنا نهاية هذا الأسبوع",
+      "reference": "recommendation:recommendation_events",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:calendar_query",
+        "slots": {
+          "time": "نهاية هذا الأسبوع",
+          "date": "نهاية هذا الأسبوع",
+          "list_name": "عن"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "233f7a2d3ee9ba3f",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00228",
+      "input_text": "وش عندنا في الصفحة الرئيسية حق مجلة زهرة الخليج",
+      "reference": "news:news_query",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:calendar_query",
+        "slots": {
+          "time": "وش",
+          "business_name": "الرئيس",
+          "person": "الرئيس",
+          "relation": "الرئيس",
+          "list_name": "عن"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "23c67ae136da607b",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01288",
+      "input_text": "حط علامة بقائمتي اني مشغوله بكرة من الساعة أربعة للساعة ستة باليل",
+      "reference": "calendar:calendar_set",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "takeaway:takeaway_order",
+        "slots": {
+          "time": "أربعة",
+          "date": "بكرة",
+          "order_type": "حط",
+          "business_name": "من",
+          "timeofday": "باليل"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "24290ca66cdca56c",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01204",
+      "input_text": "احذفلي موعدي الجاي",
+      "reference": "calendar:calendar_remove",
+      "prediction_a": {
+        "intent": "calendar:calendar_query",
+        "slots": {
+          "time": "احذف",
+          "event_name": "موعدي",
+          "person": "وعد",
+          "list_name": "موعدي"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "259bd3acfd6d0ff4",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01303",
+      "input_text": "علم قروبي بموعد الاجتماع الجديد انه صار بكره",
+      "reference": "calendar:calendar_set",
+      "prediction_a": {
+        "intent": "music:music_query",
+        "slots": {
+          "date": "بكره",
+          "artist_name": "وعد",
+          "music_genre": "بي",
+          "player_setting": "عد",
+          "person": "وعد"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "25a9601f3366f14f",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/02744",
+      "input_text": "ظيف هذا email الجديد مع جهات الإتصال",
+      "reference": "email:email_addcontact",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "email:email_sendemail",
+        "slots": {
+          "personal_info": "email"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "267ca826404623be",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01180",
+      "input_text": "استمر في الكلام الجميل معي",
+      "reference": "general:general_quirky",
+      "prediction_a": {
+        "intent": "weather:weather_query",
+        "slots": {
+          "date": "كل",
+          "general_frequency": "كل",
+          "weather_descriptor": "جميل",
+          "event_name": "كل"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "26a5eb8a8ed6a997",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01027",
+      "input_text": "ممكن توقف كلام لو سمحت",
+      "reference": "audio:audio_volume_mute",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "play:play_podcasts",
+        "slots": {
+          "date": "كل",
+          "player_setting": "توقف",
+          "podcast_descriptor": "كل"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "2750c4c56663c883",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00358",
+      "input_text": "الغداء",
+      "reference": "takeaway:takeaway_query",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "general:general_quirky",
+        "slots": {
+          "date": "الغد",
+          "meal_type": "الغدا"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "2851812d88af633a",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00051",
+      "input_text": "شغل اللمبات بالمطبخ",
+      "reference": "iot:iot_hue_lighton",
+      "prediction_a": {
+        "intent": "iot:iot_hue_lightoff",
+        "slots": {
+          "house_place": "المطبخ",
+          "device_type": "اللمبات"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "28875e2038a5a53c",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/02593",
+      "input_text": "كيف يعمل كارفور",
+      "reference": "qa:qa_stock",
+      "prediction_a": {
+        "intent": "social:social_post",
+        "slots": {
+          "place_name": "كارفور",
+          "business_name": "كارفور",
+          "event_name": "كارفور",
+          "business_type": "كارفور"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "290caaf7831ec95c",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01550",
+      "input_text": "ذكرني قبل يومين عن عيد ميلاد زوجتي",
+      "reference": "calendar:calendar_set",
+      "prediction_a": {
+        "intent": "calendar:calendar_query",
+        "slots": {
+          "time": "يوم",
+          "date": "عيد ميلاد",
+          "general_frequency": "يومي",
+          "event_name": "عيد ميلاد",
+          "relation": "زوجتي",
+          "list_name": "عن"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "294cad47e93d70a9",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01708",
+      "input_text": "شغل كتاب أغاني",
+      "reference": "play:play_audiobook",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "play:play_music",
+        "slots": {
+          "media_type": "أغاني",
+          "music_genre": "أغاني",
+          "player_setting": "شغل"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "29e4040e86ca6498",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01226",
+      "input_text": "الظهر الغداء مع المدير",
+      "reference": "calendar:calendar_set",
+      "prediction_a": {
+        "intent": "calendar:calendar_remove",
+        "slots": {
+          "date": "الغد",
+          "meal_type": "الغدا",
+          "timeofday": "الظهر",
+          "event_name": "الغداء مع المدير",
+          "relation": "المدير"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "29f9a9615c13858e",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00670",
+      "input_text": "أريد أسمع أي أغاني لاقت انتشار هذه السنة",
+      "reference": "play:play_music",
+      "prediction_a": {
+        "intent": "play:play_radio",
+        "slots": {
+          "time": "السنة",
+          "media_type": "أغاني",
+          "music_genre": "أغاني",
+          "music_descriptor": "أي",
+          "person": "ريد"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "2ab75a46f810fd44",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/02078",
+      "input_text": "اقترح عليا فيلم ينعرض في المنطقة حقي",
+      "reference": "recommendation:recommendation_movies",
+      "prediction_a": {
+        "intent": "calendar:calendar_set",
+        "slots": {
+          "media_type": "فيلم",
+          "business_name": "المنطق",
+          "event_name": "فيلم",
+          "person": "علي",
+          "relation": "حق",
+          "personal_info": "المنطقة"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "2ba40492a2a3008f",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00785",
+      "input_text": "وش نشرت عكاظ اليوم",
+      "reference": "news:news_query",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "general:general_quirky",
+        "slots": {
+          "time": "اليوم",
+          "date": "اليوم",
+          "media_type": "عكاظ",
+          "timeofday": "اليوم"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "2c15f5f732733936",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01371",
+      "input_text": "قص الشعر اليوم",
+      "reference": "calendar:calendar_remove",
+      "prediction_a": {
+        "intent": "datetime:datetime_query",
+        "slots": {
+          "time": "اليوم",
+          "date": "اليوم",
+          "time_zone": "يوم",
+          "timeofday": "اليوم",
+          "event_name": "قص الشعر"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "2d53f926b4911e6e",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01096",
+      "input_text": "مرحبا olly قابلت أحد أخوياي القديمين اليوم",
+      "reference": "general:general_quirky",
+      "prediction_a": {
+        "intent": "calendar:calendar_remove",
+        "slots": {
+          "time": "اليوم",
+          "date": "اليوم",
+          "timeofday": "اليوم",
+          "person": "مرح",
+          "relation": "أخوي"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "2e019a368f010bd4",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01117",
+      "input_text": "وش المهارات اللي خططت تسويها في المستقبل",
+      "reference": "general:general_quirky",
+      "prediction_a": {
+        "intent": "calendar:calendar_query",
+        "slots": {
+          "time": "المستقبل",
+          "business_name": "لمها",
+          "person": "لمها"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "307d54865cb301ed",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00073",
+      "input_text": "موسيقى",
+      "reference": "music:music_likeness",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:music_query",
+        "slots": {
+          "media_type": "موسيقى"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "31d2b40520cbb24a",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00694",
+      "input_text": "أبغى أحط منبه وانا راجع البيت بكرة يذكرني أوقف عند المحل وأشتري أكل",
+      "reference": "alarm:alarm_set",
+      "prediction_a": {
+        "intent": "calendar:calendar_set",
+        "slots": {
+          "date": "بكرة",
+          "house_place": "البيت",
+          "place_name": "المحل",
+          "business_name": "من",
+          "general_frequency": "كل",
+          "event_name": "كل",
+          "business_type": "محل"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "32900c8e734b1338",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00291",
+      "input_text": "وطي الصوت بنسبة خمسين في المية",
+      "reference": "audio:audio_volume_down",
+      "prediction_a": {
+        "intent": "audio:audio_volume_up",
+        "slots": {
+          "change_amount": "خمسين في المية",
+          "media_type": "الصوت"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "329bdd360b94e445",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/02347",
+      "input_text": "كم عدد المسرحيات التي شارك فيها كاظم الساهر",
+      "reference": "qa:qa_factoid",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "general:general_quirky",
+        "slots": {
+          "artist_name": "كاظم الساهر",
+          "place_name": "المسرح",
+          "news_topic": "كاظم",
+          "business_type": "المسرح",
+          "person": "كاظم الساهر"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "334075ca738c2826",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/02275",
+      "input_text": "حقي وسط المدينة",
+      "reference": "transport:transport_query",
+      "prediction_a": {
+        "intent": "transport:transport_taxi",
+        "slots": {
+          "place_name": "وسط المدينة",
+          "event_name": "دين"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "33d770be86d58e43",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00372",
+      "input_text": "شغل نقاده حق رابح صقر",
+      "reference": "play:play_music",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:music_query",
+        "slots": {
+          "artist_name": "رابح صقر",
+          "music_genre": "راب",
+          "player_setting": "شغل",
+          "person": "رابح"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "33dcafa1c5973ef2",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01269",
+      "input_text": "صحيني الساعة ستة الصبح يوم الخميس عشان يكون عندي وقت للإجتماع",
+      "reference": "calendar:calendar_set",
+      "prediction_a": {
+        "intent": "calendar:calendar_remove",
+        "slots": {
+          "time": "يوم",
+          "date": "يوم الخميس",
+          "meal_type": "عشا",
+          "timeofday": "الصبح",
+          "event_name": "للإجتماع",
+          "list_name": "عن"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "34b6b6300e97a67d",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00384",
+      "input_text": "خلني على اطلاع على المعطيات مع أسعار البورصة حق اليوم",
+      "reference": "news:news_query",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "general:general_quirky",
+        "slots": {
+          "time": "اليوم",
+          "date": "حق اليوم",
+          "news_topic": "البورصة",
+          "timeofday": "اليوم",
+          "relation": "حق"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "360bd31164a370c0",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/02318",
+      "input_text": "انطيني أرقام الانصيب الكسبانة في نهاية هذا الأسبوع طال عمرك",
+      "reference": "general:general_quirky",
+      "prediction_a": {
+        "intent": "calendar:calendar_set",
+        "slots": {
+          "time": "نهاية هذا الأسبوع",
+          "date": "نهاية هذا الأسبوع",
+          "person": "عمر",
+          "personal_info": "عمر"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "3642fe30d2fdc680",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00589",
+      "input_text": "تكلم بصوت أنعم الله يسعدك",
+      "reference": "audio:audio_volume_down",
+      "prediction_a": {
+        "intent": "social:social_query",
+        "slots": {
+          "date": "كل",
+          "media_type": "صوت",
+          "general_frequency": "كل",
+          "event_name": "كل",
+          "person": "سعد"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "36663dc2d6311e41",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/02155",
+      "input_text": "اليوم",
+      "reference": "transport:transport_query",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:calendar_query",
+        "slots": {
+          "time": "اليوم",
+          "date": "اليوم",
+          "timeofday": "اليوم"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "36948380c79dffa0",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/02122",
+      "input_text": "قطار الرياض",
+      "reference": "transport:transport_ticket",
+      "prediction_a": {
+        "intent": "transport:transport_query",
+        "slots": {
+          "place_name": "الرياض",
+          "transport_type": "قطار"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "377ca33386ca90c3",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/02159",
+      "input_text": "أسرع طريق لمايسترو بيتزا",
+      "reference": "transport:transport_query",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "recommendation:recommendation_locations",
+        "slots": {
+          "place_name": "بيت",
+          "food_type": "بيتزا",
+          "business_name": "مايسترو بيتزا"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "3999b3be113fa613",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01820",
+      "input_text": "امسح أول حاجة في القائمة",
+      "reference": "lists:lists_remove",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:calendar_remove",
+        "slots": {
+          "date": "امس",
+          "event_name": "لقا"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "39bda419f4242cfe",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/02446",
+      "input_text": "كم سعر يساوي الدولار الامريكي في السعودية",
+      "reference": "qa:qa_currency",
+      "prediction_a": {
+        "intent": "qa:qa_factoid",
+        "slots": {
+          "place_name": "السعودية",
+          "food_type": "السعودية",
+          "music_genre": "سعودية",
+          "person": "لسعود"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "39ee9dc4e2055975",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00762",
+      "input_text": "راجع كل التنبيهات",
+      "reference": "alarm:alarm_query",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "alarm:alarm_remove",
+        "slots": {
+          "date": "كل",
+          "event_name": "كل",
+          "alarm_type": "التنبيهات"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "3a5fccbeb56dfd0a",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01383",
+      "input_text": "وش الحفلات الجاية في دار الأوبرا",
+      "reference": "calendar:calendar_query",
+      "prediction_a": {
+        "intent": "recommendation:recommendation_events",
+        "slots": {
+          "time": "الجاية",
+          "place_name": "دار الأوبرا",
+          "business_name": "أوبر",
+          "event_name": "الحفلات"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "3a6ddeed606daa47",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/02663",
+      "input_text": "غرد عن البيتزا الباردة في كارفور",
+      "reference": "social:social_post",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:calendar_set",
+        "slots": {
+          "house_place": "البيت",
+          "media_type": "غرد",
+          "place_name": "كارفور",
+          "business_name": "بيتزا",
+          "event_name": "كارفور",
+          "business_type": "كارفور"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "3cff1fbfe7d69912",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01248",
+      "input_text": "أضف اجتماع عن بعد في واحد وعشرين الساعة سبعة",
+      "reference": "calendar:calendar_set",
+      "prediction_a": {
+        "intent": "lists:lists_createoradd",
+        "slots": {
+          "time": "سبعة",
+          "date": "واحد وعشرين",
+          "event_name": "اجتماع",
+          "list_name": "عن"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "3d3e3a417ab3dacd",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/02112",
+      "input_text": "الرياض قطار الشرقية الويكند هذا",
+      "reference": "transport:transport_ticket",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "transport:transport_query",
+        "slots": {
+          "date": "الويكند",
+          "place_name": "الرياض",
+          "business_name": "الشرقي",
+          "person": "رقية",
+          "transport_type": "قطار"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "3e2b9224814b4c97",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00531",
+      "input_text": "شغل المسار الأول عبد المجيد من قائمة التشغيل حقي",
+      "reference": "play:play_music",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:calendar_query",
+        "slots": {
+          "business_name": "من",
+          "timeofday": "المسا",
+          "person": "عبد المجيد",
+          "relation": "حق",
+          "list_name": "قائمة التشغيل"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "3e451feaa8dd5a00",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00884",
+      "input_text": "منبه جديد لستة الصبح",
+      "reference": "alarm:alarm_set",
+      "prediction_a": {
+        "intent": "iot:iot_coffee",
+        "slots": {
+          "time": "لستة الصبح",
+          "business_name": "من",
+          "timeofday": "الصبح",
+          "coffee_type": "الصبح"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "3e7569e6e54ab68e",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00410",
+      "input_text": "بيتزا مطعم الشرقي",
+      "reference": "takeaway:takeaway_order",
+      "prediction_a": {
+        "intent": "takeaway:takeaway_query",
+        "slots": {
+          "place_name": "مطعم الشرق",
+          "food_type": "بيتزا",
+          "business_name": "مطعم الشرقي",
+          "business_type": "مطعم"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "3e8bb8fb6f392d21",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/02650",
+      "input_text": "كانت عندي مشكلة مع البرجر حقي ممكن تغرد لماك",
+      "reference": "social:social_post",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:calendar_query",
+        "slots": {
+          "date": "كل",
+          "business_name": "ماك",
+          "general_frequency": "كل",
+          "event_name": "كل",
+          "relation": "حق",
+          "list_name": "عن"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "3f0a558b09269722",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00736",
+      "input_text": "غير كل لمبات البيت وخلها زرقا",
+      "reference": "iot:iot_hue_lightchange",
+      "prediction_a": {
+        "intent": "calendar:calendar_set",
+        "slots": {
+          "date": "كل",
+          "house_place": "البيت",
+          "place_name": "البيت",
+          "general_frequency": "كل",
+          "event_name": "كل"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "3f717c7faad9618c",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00205",
+      "input_text": "مين غنى أغنية الأماكن كلها مشتاقة لك",
+      "reference": "music:music_query",
+      "prediction_a": {
+        "intent": "calendar:calendar_set",
+        "slots": {
+          "date": "كل",
+          "media_type": "أغنية",
+          "song_name": "الأماكن",
+          "business_name": "ماك",
+          "general_frequency": "كل",
+          "event_name": "كل",
+          "relation": "أم"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "4087e5fba96685be",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00616",
+      "input_text": "وش آخر الأخبار من وكالة الأنباء السعودية",
+      "reference": "news:news_query",
+      "prediction_a": {
+        "intent": "qa:qa_factoid",
+        "slots": {
+          "time": "وش",
+          "place_name": "السعودية",
+          "food_type": "السعودية",
+          "music_genre": "سعودية",
+          "person": "لسعود"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "40d095905269f29c",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/02274",
+      "input_text": "الموقع",
+      "reference": "qa:qa_definition",
+      "prediction_a": {
+        "intent": "transport:transport_query",
+        "slots": {
+          "place_name": "الموقع"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "4185528dbd17003e",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01690",
+      "input_text": "وقف",
+      "reference": "play:play_audiobook",
+      "prediction_a": {
+        "intent": "audio:audio_volume_mute"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "4202d2e554282c75",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01440",
+      "input_text": "اليوم اجتماع الموظفين أربعة",
+      "reference": "calendar:calendar_set",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:calendar_query",
+        "slots": {
+          "time": "أربعة",
+          "date": "اليوم",
+          "timeofday": "اليوم",
+          "event_name": "اجتماع",
+          "relation": "الموظفين"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "4232134987b4bb90",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00314",
+      "input_text": "أريد أن آكل شيء حار",
+      "reference": "takeaway:takeaway_order",
+      "prediction_a": {
+        "intent": "weather:weather_query",
+        "slots": {
+          "date": "كل",
+          "general_frequency": "كل",
+          "weather_descriptor": "حار",
+          "event_name": "كل"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "437aa479031eb910",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01103",
+      "input_text": "تعتقد يلزمني أروح المسرح اليوم",
+      "reference": "general:general_quirky",
+      "prediction_a": {
+        "intent": "transport:transport_taxi",
+        "slots": {
+          "time": "اليوم",
+          "date": "اليوم",
+          "place_name": "المسرح",
+          "business_name": "من",
+          "timeofday": "اليوم",
+          "business_type": "المسرح"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "438d047ed1bff2dd",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01969",
+      "input_text": "شغل الحلقة الجاية من لا تحزن لعايض القرني",
+      "reference": "play:play_audiobook",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "play:play_podcasts",
+        "slots": {
+          "time": "الجاية",
+          "player_setting": "شغل",
+          "person": "لعايض",
+          "podcast_name": "لا تحزن",
+          "podcast_descriptor": "الحلقة الجاية"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "43fef4b2a0854bfb",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00713",
+      "input_text": "غير مستوى الصوت لأعلى درجة",
+      "reference": "audio:audio_volume_other",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "audio:audio_volume_up",
+        "slots": {
+          "change_amount": "لأعلى درجة",
+          "media_type": "الصوت"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "444e5c3ebb013593",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01831",
+      "input_text": "امسح المرسمة من أغراض المكتبة",
+      "reference": "lists:lists_remove",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:calendar_set",
+        "slots": {
+          "date": "امس",
+          "house_place": "المكتب",
+          "place_name": "المكتب",
+          "business_name": "من",
+          "business_type": "مكتبة"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "44e7e49f16f6e0b1",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01372",
+      "input_text": "وش رايك تكنسل العشا الليلة",
+      "reference": "calendar:calendar_remove",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "general:general_quirky",
+        "slots": {
+          "time": "الليلة",
+          "date": "الليلة",
+          "device_type": "كنس",
+          "meal_type": "العشا",
+          "timeofday": "الليلة"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "45b19e3286773b57",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/02963",
+      "input_text": "تكفى حط كل الرسايل اللي قريتها في الأرشيف",
+      "reference": "email:email_query",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "alarm:alarm_set",
+        "slots": {
+          "date": "كل",
+          "order_type": "حط",
+          "general_frequency": "كل",
+          "event_name": "كل"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "461b243027db3899",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01699",
+      "input_text": "أكمل لي الفصل الأخير من الكتاب الصوتي الذي كنت أستمع إليه",
+      "reference": "play:play_audiobook",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:calendar_set",
+        "slots": {
+          "media_type": "الكتاب الصوتي",
+          "business_name": "من",
+          "relation": "أخي",
+          "personal_info": "ذي"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "46cfafb212a36d9a",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00355",
+      "input_text": "أنا بروح الحين أنام",
+      "reference": "iot:iot_hue_lightoff",
+      "prediction_a": {
+        "intent": "qa:qa_factoid",
+        "slots": {
+          "time": "الحين",
+          "date": "الحين",
+          "place_name": "الحي",
+          "music_genre": "روح"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "46d0a5cc469896ea",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01552",
+      "input_text": "ما هو موعد اجتماع اليوم",
+      "reference": "calendar:calendar_query",
+      "prediction_a": {
+        "intent": "general:general_quirky",
+        "slots": {
+          "time": "اليوم",
+          "date": "اليوم",
+          "artist_name": "وعد",
+          "news_topic": "اجتماع اليوم",
+          "timeofday": "اليوم",
+          "event_name": "اجتماع",
+          "person": "وعد"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "46fe435a20e7b7e1",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01491",
+      "input_text": "وش المعلومات اللي لازم أعرفها قبل اجتماعاتي اليوم",
+      "reference": "calendar:calendar_query",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "recommendation:recommendation_events",
+        "slots": {
+          "time": "اليوم",
+          "date": "اليوم",
+          "timeofday": "اليوم",
+          "event_name": "اجتماع",
+          "personal_info": "معلومات"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "47596f7773a2afa8",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00293",
+      "input_text": "ما هي درجة الحرارة الصغرى في الرياض",
+      "reference": "weather:weather_query",
+      "prediction_a": {
+        "intent": "qa:qa_factoid",
+        "slots": {
+          "place_name": "الرياض"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "47a8ed04b11507d5",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00559",
+      "input_text": "من فضلك شغل أبريق القهوة الخاص بي",
+      "reference": "iot:iot_coffee",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "play:play_music",
+        "slots": {
+          "music_genre": "بي",
+          "device_type": "القهوة",
+          "player_setting": "شغل"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "48543e86cc7c8b21",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01754",
+      "input_text": "دوري وصفة للعشاء الليلة",
+      "reference": "cooking:cooking_recipe",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:calendar_query",
+        "slots": {
+          "time": "الليلة",
+          "date": "الليلة",
+          "place_name": "عشاء",
+          "meal_type": "للعشا",
+          "timeofday": "الليلة"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "48965a47a90376ee",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/02175",
+      "input_text": "البيت",
+      "reference": "transport:transport_taxi",
+      "prediction_a": {
+        "intent": "iot:iot_hue_lightchange",
+        "slots": {
+          "house_place": "البيت"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "48d92be089a42242",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/02090",
+      "input_text": "ممكن تدور لي على محل أثاث قريب مني",
+      "reference": "recommendation:recommendation_locations",
+      "prediction_a": {
+        "intent": "recommendation:recommendation_events",
+        "slots": {
+          "place_name": "قريب مني",
+          "business_name": "من",
+          "business_type": "محل"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "4931cc6fcf2651a4",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/02965",
+      "input_text": "السلام عليكم ارسل ايميل ل عمر",
+      "reference": "email:email_sendemail",
+      "prediction_a": {
+        "intent": "social:social_post",
+        "slots": {
+          "media_type": "ارسل",
+          "event_name": "ايميل",
+          "person": "عمر",
+          "personal_info": "ايميل"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "4948940a9b56ee26",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00371",
+      "input_text": "طقس الرياض",
+      "reference": "weather:weather_query",
+      "prediction_a": {
+        "intent": "datetime:datetime_query",
+        "slots": {
+          "place_name": "الرياض",
+          "time_zone": "الرياض"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "494e98370ed1d547",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01534",
+      "input_text": "ذكرني في اجتماع بكرة الساعة تسعة الصبح",
+      "reference": "calendar:calendar_set",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:calendar_query",
+        "slots": {
+          "time": "الساعة تسعة",
+          "date": "بكرة",
+          "timeofday": "الصبح",
+          "event_name": "اجتماع"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "4970462ceab4e1a1",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00199",
+      "input_text": "ابي موسيقى",
+      "reference": "play:play_music",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "play:play_radio",
+        "slots": {
+          "media_type": "موسيقى",
+          "music_genre": "بي"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "49747309a25c05fc",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01423",
+      "input_text": "هل لدي ما تبقى عن حفلة عيد ميلاد",
+      "reference": "calendar:calendar_query",
+      "prediction_a": {
+        "intent": "lists:lists_query",
+        "slots": {
+          "date": "عيد ميلاد",
+          "music_genre": "حفلة",
+          "event_name": "عيد ميلاد",
+          "list_name": "عن"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "498b3d351ef1fe0a",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01082",
+      "input_text": "متى يبدا عيد ميلاد صديقي",
+      "reference": "general:general_quirky",
+      "prediction_a": {
+        "intent": "calendar:calendar_query",
+        "slots": {
+          "date": "عيد ميلاد",
+          "event_name": "عيد ميلاد",
+          "relation": "صديق"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "49e6720d6fa061e8",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01220",
+      "input_text": "بعد واحد قبل الثالثة بعد الظهر",
+      "reference": "calendar:calendar_query",
+      "prediction_a": {
+        "intent": "play:play_podcasts",
+        "slots": {
+          "time": "قبل",
+          "date": "الثالث",
+          "player_setting": "عد",
+          "timeofday": "بعد الظهر"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "49f92c7aef5234ac",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01213",
+      "input_text": "حط تنبيه لااجتماع بكره الساعة عشرة",
+      "reference": "calendar:calendar_set",
+      "prediction_a": {
+        "intent": "alarm:alarm_set",
+        "slots": {
+          "time": "ساعة",
+          "date": "بكره",
+          "order_type": "حط",
+          "event_name": "اجتماع"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "4a2e34c9e7354372",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/02166",
+      "input_text": "قطار",
+      "reference": "transport:transport_ticket",
+      "prediction_a": {
+        "intent": "transport:transport_query",
+        "slots": {
+          "transport_type": "قطار"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "4ac685ffb62390d0",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00099",
+      "input_text": "أغنية",
+      "reference": "music:music_query",
+      "prediction_a": {
+        "intent": "play:play_music",
+        "slots": {
+          "media_type": "أغنية"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "4cd904765cda2e3f",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01073",
+      "input_text": "هل ارتداء نظارات شمسية هو خيار جيد اليوم",
+      "reference": "weather:weather_query",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "datetime:datetime_query",
+        "slots": {
+          "time": "اليوم",
+          "date": "اليوم",
+          "time_zone": "يوم",
+          "timeofday": "اليوم"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "4d4d2abeabdd4688",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01924",
+      "input_text": "امسح قائمة مهام هذا الأسبوع",
+      "reference": "lists:lists_remove",
+      "prediction_a": {
+        "intent": "calendar:calendar_query",
+        "slots": {
+          "time": "الأسبوع",
+          "date": "هذا الأسبوع",
+          "person": "مها",
+          "list_name": "مهام"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "4d6ca2e43059af0a",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00274",
+      "input_text": "وش الأوقات اللي تشتغل فيها المنبهات حقي",
+      "reference": "alarm:alarm_query",
+      "prediction_a": {
+        "intent": "calendar:calendar_query",
+        "slots": {
+          "time": "وش",
+          "business_name": "من",
+          "relation": "حق",
+          "list_name": "المنبه"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "4d9d7e1cba643bfd",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01563",
+      "input_text": "احذف من الأجندا الموعد الطبي حقي اليوم",
+      "reference": "calendar:calendar_remove",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:calendar_set",
+        "slots": {
+          "time": "اليوم",
+          "date": "اليوم",
+          "artist_name": "وعد",
+          "business_name": "من",
+          "timeofday": "اليوم",
+          "event_name": "الموعد",
+          "person": "وعد",
+          "relation": "حق"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "4e9110e66899ed82",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00911",
+      "input_text": "أحب الموسيقى",
+      "reference": "music:music_likeness",
+      "prediction_a": {
+        "intent": "play:play_music",
+        "slots": {
+          "media_type": "الموسيقى"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "4ea0544420582446",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01198",
+      "input_text": "حقي",
+      "reference": "calendar:calendar_remove",
+      "prediction_a": {
+        "intent": "play:play_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "4f317e9635662e05",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01362",
+      "input_text": "وش المنبهات اللي حطيتها",
+      "reference": "calendar:calendar_query",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "alarm:alarm_query",
+        "slots": {
+          "time": "وش"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "4f3dec36e7eb5c9f",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01339",
+      "input_text": "في التقويم حقي امسح كل فعاليات golf للشهر هذا",
+      "reference": "calendar:calendar_remove",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:calendar_set",
+        "slots": {
+          "date": "شهر",
+          "general_frequency": "كل",
+          "event_name": "كل",
+          "relation": "حق"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "4f9fbf412efe9659",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/02387",
+      "input_text": "كيف توصف عيد ميلاد سعيد",
+      "reference": "qa:qa_definition",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:calendar_set",
+        "slots": {
+          "date": "عيد ميلاد",
+          "song_name": "سعيد",
+          "event_name": "عيد ميلاد"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "503c33c5e5909341",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/02680",
+      "input_text": "اوكي جوجل سوي تغريدة مين مالك محطة البترول",
+      "reference": "social:social_post",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:calendar_set",
+        "slots": {
+          "media_type": "جوجل",
+          "place_name": "محطة",
+          "business_name": "جوجل",
+          "person": "ريد"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "511e1ef36673d67d",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/02945",
+      "input_text": "بس ضيف ايميل جديد للمكالمات حقي من فاضل",
+      "reference": "email:email_addcontact",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "email:email_query",
+        "slots": {
+          "business_name": "من",
+          "event_name": "ايميل",
+          "relation": "حق",
+          "personal_info": "ايميل"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "514258912c39f473",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01317",
+      "input_text": "ابي اجتماع الين الساعة ثلاثة",
+      "reference": "calendar:calendar_set",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:calendar_remove",
+        "slots": {
+          "time": "ساعة",
+          "date": "ثلاثة",
+          "event_name": "اجتماع"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "51fcf52f104cd89d",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00411",
+      "input_text": "تكفى أعطيني توقعات الطقس اليوم لمدينة أبها",
+      "reference": "weather:weather_query",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "general:general_quirky",
+        "slots": {
+          "time": "اليوم",
+          "date": "اليوم",
+          "place_name": "أبها",
+          "news_topic": "الطقس",
+          "timeofday": "اليوم",
+          "event_name": "دين"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "52755a41c8c113a0",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/02033",
+      "input_text": "عطني لستة عروض السيرك الموجودة في المدينة الحين",
+      "reference": "recommendation:recommendation_events",
+      "prediction_a": {
+        "intent": "calendar:calendar_set",
+        "slots": {
+          "time": "الحين",
+          "date": "الحين",
+          "media_type": "المدينة",
+          "place_name": "المدينة",
+          "event_name": "دين"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "533806559e0339d4",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01128",
+      "input_text": "اليوم حصل معي التالي كان عندي اجتماع مع محمد",
+      "reference": "general:general_quirky",
+      "prediction_a": {
+        "intent": "calendar:calendar_query",
+        "slots": {
+          "time": "اليوم",
+          "date": "اليوم",
+          "timeofday": "اليوم",
+          "event_name": "اجتماع",
+          "person": "محمد",
+          "list_name": "عن"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "536508764f3083e7",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01895",
+      "input_text": "امسح الكل",
+      "reference": "lists:lists_remove",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:calendar_remove",
+        "slots": {
+          "date": "كل",
+          "general_frequency": "كل",
+          "event_name": "كل",
+          "person": "الكل"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "5396bab1d003f47b",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/02685",
+      "input_text": "غرد إلى خدمة عملاء google إن هاتف nexus الجديد الخاص بي يتوقف عن العمل الرجاء المساعدة",
+      "reference": "social:social_post",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "lists:lists_query",
+        "slots": {
+          "music_genre": "بي",
+          "device_type": "هاتف",
+          "business_name": "google",
+          "timeofday": "المسا",
+          "person": "رجاء",
+          "list_name": "عن"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "54ed4162bffa8f7d",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00356",
+      "input_text": "شصار على طلبية الأكل",
+      "reference": "takeaway:takeaway_query",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "alarm:alarm_set",
+        "slots": {
+          "date": "كل",
+          "order_type": "طلبية",
+          "general_frequency": "كل",
+          "event_name": "كل"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "550cfeb867a7d1a6",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01243",
+      "input_text": "أعطيني جدول نشاطات اليوم",
+      "reference": "calendar:calendar_query",
+      "prediction_a": {
+        "intent": "datetime:datetime_query",
+        "slots": {
+          "time": "اليوم",
+          "date": "اليوم",
+          "time_zone": "يوم",
+          "timeofday": "اليوم"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "55283287bf8a7bdf",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01689",
+      "input_text": "طف التشغيل",
+      "reference": "play:play_audiobook",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "audio:audio_volume_mute"
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "5528fab2744518d9",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01527",
+      "input_text": "الموعد اللي في التقويم صح ولا لا",
+      "reference": "calendar:calendar_query",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:calendar_set",
+        "slots": {
+          "date": "الموعد",
+          "artist_name": "وعد",
+          "event_name": "الموعد",
+          "person": "وعد"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "552d2da4479ae73c",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00634",
+      "input_text": "من فضلك شغل أشهر اغاني التسعينيات حقي",
+      "reference": "play:play_music",
+      "prediction_a": {
+        "intent": "social:social_post",
+        "slots": {
+          "date": "شهر",
+          "media_type": "اغاني",
+          "business_name": "من",
+          "relation": "حق"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "5558ad7f476a9e12",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01443",
+      "input_text": "احفظ حدث من خمسة لستة المسا في ثمنطعشر مارس",
+      "reference": "calendar:calendar_set",
+      "prediction_a": {
+        "intent": "calendar:calendar_query",
+        "slots": {
+          "time": "خمسة",
+          "date": "مارس",
+          "business_name": "من",
+          "timeofday": "المسا"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "55b8361a5e569302",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00530",
+      "input_text": "سويلي فنجان قهوة مع كريم بنكهة الكراميل المملح",
+      "reference": "iot:iot_coffee",
+      "prediction_a": {
+        "intent": "general:general_quirky",
+        "slots": {
+          "business_type": "بنك",
+          "person": "رامي",
+          "relation": "امي",
+          "drink_type": "قهوة"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "56ddbdfb7bd6bd09",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00677",
+      "input_text": "لو سمحت اختار الأغنية الأولى من مكتبة itunes",
+      "reference": "play:play_music",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:calendar_set",
+        "slots": {
+          "media_type": "أغنية",
+          "place_name": "مكتبة",
+          "business_name": "من",
+          "business_type": "مكتبة",
+          "relation": "اخت"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "582dcf5be8600db8",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/02883",
+      "input_text": "لو سمحت شيك على email جديد من ماجد",
+      "reference": "email:email_query",
+      "prediction_a": {
+        "intent": "email:email_sendemail",
+        "slots": {
+          "artist_name": "ماجد",
+          "business_name": "من",
+          "person": "ماجد",
+          "personal_info": "email"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "58b0e5946cfce499",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01309",
+      "input_text": "وش فيه على جدول الإجتماع مع أحمد الساعة أربعة العصر",
+      "reference": "calendar:calendar_query",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:calendar_set",
+        "slots": {
+          "time": "أربعة",
+          "timeofday": "العصر",
+          "event_name": "الإجتماع",
+          "person": "أحمد"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "58bcd81ce8d8be4b",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01345",
+      "input_text": "olly كنسل كل مواعيدي ومكالماتي يوم اثنين مارس وخليها في التقويم مناسبة يوم ميلاد هيثم",
+      "reference": "calendar:calendar_set",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:calendar_query",
+        "slots": {
+          "time": "يوم",
+          "date": "مارس",
+          "business_name": "من",
+          "general_frequency": "كل",
+          "event_name": "مواعيد",
+          "person": "هيثم",
+          "list_name": "مواعيدي"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "58c3e358494e4f1c",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/02208",
+      "input_text": "الحرمين السريع قطار مكة",
+      "reference": "transport:transport_ticket",
+      "prediction_a": {
+        "intent": "transport:transport_query",
+        "slots": {
+          "place_name": "مكة",
+          "business_name": "مكة",
+          "person": "مكة",
+          "transport_type": "قطار"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "58e239f738729453",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01333",
+      "input_text": "سجل عيد ميلاد أخوي يوم عشرين أبريل",
+      "reference": "calendar:calendar_set",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "datetime:datetime_query",
+        "slots": {
+          "time": "يوم",
+          "date": "عيد ميلاد",
+          "time_zone": "يوم",
+          "event_name": "عيد ميلاد"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "59175915a0397fc0",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00000",
+      "input_text": "صحيني خمسة الفجر هذا الأسبوع",
+      "reference": "alarm:alarm_set",
+      "prediction_a": {
+        "intent": "weather:weather_query",
+        "slots": {
+          "time": "خمسة",
+          "date": "هذا الأسبوع",
+          "timeofday": "الفجر"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "5970dd375f4dff39",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00840",
+      "input_text": "البحث للعثور على التوقيت المحلي الحالي والمنطقة الزمنية",
+      "reference": "datetime:datetime_query",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "recommendation:recommendation_events",
+        "slots": {
+          "place_name": "المحل",
+          "business_name": "من",
+          "business_type": "محل",
+          "personal_info": "المنطقة"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "59b122ae69753804",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00541",
+      "input_text": "من فضلك سجل أنا أحب موسيقا شرقية وأكره أغاني المهرجانات",
+      "reference": "music:music_likeness",
+      "prediction_a": {
+        "intent": "lists:lists_query",
+        "slots": {
+          "music_genre": "موسيقا شرقية",
+          "business_name": "جان",
+          "event_name": "المهرجانات",
+          "person": "رقية"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "59d4b6060c82b8c8",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00537",
+      "input_text": "this song",
+      "reference": "music:music_query",
+      "prediction_a": {
+        "intent": "music:music_likeness"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "59f343dc6018d70e",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/02889",
+      "input_text": "متى وقت المقابلة من email أمس",
+      "reference": "email:email_query",
+      "prediction_a": {
+        "intent": "calendar:calendar_set",
+        "slots": {
+          "date": "أمس",
+          "song_name": "أمس",
+          "business_name": "من",
+          "event_name": "مقابلة",
+          "relation": "أم",
+          "personal_info": "email"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "5aa7306ffc0c33f8",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00014",
+      "input_text": "تعجبني أغاني رابح",
+      "reference": "music:music_likeness",
+      "prediction_a": {
+        "intent": "play:play_music",
+        "slots": {
+          "artist_name": "رابح",
+          "media_type": "أغاني",
+          "music_genre": "راب"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "5b53c905f65ae4ab",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00380",
+      "input_text": "أخبرني إيش الطقس في الرياض هالحين",
+      "reference": "weather:weather_query",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "datetime:datetime_query",
+        "slots": {
+          "time": "الحين",
+          "date": "الحين",
+          "place_name": "الرياض",
+          "time_zone": "الرياض"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "5b7a99ec5ca852d0",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/02710",
+      "input_text": "مين راح أقابل اليوم",
+      "reference": "calendar:calendar_query",
+      "prediction_a": {
+        "intent": "datetime:datetime_query",
+        "slots": {
+          "time": "اليوم",
+          "date": "اليوم",
+          "time_zone": "يوم",
+          "timeofday": "اليوم"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "5cc1ee98388f6193",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01777",
+      "input_text": "قايمة بأشهر الوصفات حق البرياني",
+      "reference": "cooking:cooking_recipe",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "general:general_quirky",
+        "slots": {
+          "date": "شهر",
+          "food_type": "البرياني",
+          "person": "ريان",
+          "relation": "حق"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "5cfaeec3babc364b",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01861",
+      "input_text": "احذف القائمة الحالية",
+      "reference": "lists:lists_remove",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:calendar_remove",
+        "slots": {
+          "time": "احذف",
+          "event_name": "لقا"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "5d175eba99faad13",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01363",
+      "input_text": "تسجيل",
+      "reference": "calendar:calendar_set",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "general:general_quirky"
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "5d49f9eed34492e1",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01163",
+      "input_text": "وين كنت اليوم",
+      "reference": "general:general_quirky",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:calendar_query",
+        "slots": {
+          "time": "اليوم",
+          "date": "اليوم",
+          "timeofday": "اليوم"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "5e8023ee7eea1845",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00383",
+      "input_text": "ابدأ القهوة السادسة صباحا",
+      "reference": "iot:iot_coffee",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "general:general_quirky",
+        "slots": {
+          "time": "السادسة صباحا",
+          "device_type": "القهوة",
+          "timeofday": "صباح",
+          "person": "صباح",
+          "drink_type": "القهوة"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "5f6c8a43e3200f83",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/02852",
+      "input_text": "وصلني ايميل جديد من رولا رح ارد عليه بعد وقت",
+      "reference": "email:email_sendemail",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "email:email_query",
+        "slots": {
+          "business_name": "من",
+          "event_name": "ايميل",
+          "person": "علي",
+          "personal_info": "ايميل"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "5fde9314f75da378",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/02321",
+      "input_text": "كم عدد الأرجل التي يمتلكها الكلب",
+      "reference": "qa:qa_factoid",
+      "prediction_a": {
+        "intent": "calendar:calendar_query",
+        "slots": {
+          "date": "كل",
+          "general_frequency": "كل",
+          "event_name": "كل",
+          "person": "الكل"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "60d9b21e667a4460",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01335",
+      "input_text": "cancel كل مواعيدي بعد الساعة ثلاثة العصر اليوم وقل لي بالتفاصيل",
+      "reference": "calendar:calendar_remove",
+      "prediction_a": {
+        "intent": "calendar:calendar_set",
+        "slots": {
+          "time": "اليوم",
+          "date": "اليوم",
+          "general_frequency": "كل",
+          "timeofday": "العصر",
+          "event_name": "مواعيد",
+          "personal_info": "تفاصيل"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "62d8dcaa0a9841f0",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/02564",
+      "input_text": "متى يصدر الألبوم التالي حق راشد الماجد",
+      "reference": "qa:qa_factoid",
+      "prediction_a": {
+        "intent": "calendar:calendar_set",
+        "slots": {
+          "artist_name": "راشد الماجد",
+          "media_type": "ألبوم",
+          "song_name": "راشد الماجد",
+          "person": "لماجد",
+          "relation": "حق"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "63624c3a94801f66",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00574",
+      "input_text": "ما هي توقعات العشرة أياما هي توقعات عشر أيام",
+      "reference": "weather:weather_query",
+      "prediction_a": {
+        "intent": "play:play_radio",
+        "slots": {
+          "time": "عشرة",
+          "date": "عشرة",
+          "music_descriptor": "أي",
+          "radio_name": "عشرة"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "63b2ec81c0066c73",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/01510",
+      "input_text": "حط منبه عالتكرار عشان يذكرني أحضر فعالية facebook يوم سبعة april",
+      "reference": "alarm:alarm_set",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:calendar_set",
+        "slots": {
+          "time": "سبعة",
+          "date": "سبعة april",
+          "media_type": "facebook",
+          "meal_type": "عشا",
+          "business_name": "من",
+          "general_frequency": "التكرار"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "6449f0d8fc3b3145",
+      "modality": "intent_template",
+      "dataset_id": "massive-templates",
+      "lang": "ar-SA",
+      "sample_id": "ar-SA/00895",
+      "input_text": "لو سمحت عدي أغنيتين",
+      "reference": "music:music_settings",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "play:play_music",
+        "slots": {
+          "player_setting": "عد"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    }
+  ]
+}
