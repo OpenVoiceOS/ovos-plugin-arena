@@ -284,7 +284,7 @@ def cmd_assemble(args: argparse.Namespace) -> int:
             dataset_info=dataset_info.get(dataset_id),
             battles=battles,
         )
-        _write_json(data_dir / f"battles-{modality}-{lang}.json", pool)
+        _write_json(data_dir / f"battles-{modality}-{dataset_id}-{lang}.json", pool)
 
         by_competitor: Dict[str, List] = {}
         for sample_rows in samples.values():
@@ -292,7 +292,7 @@ def cmd_assemble(args: argparse.Namespace) -> int:
                 by_competitor.setdefault(competitor_id, []).append(row)
         board = build_benchmark_board(modality, dataset_id, lang, by_competitor, now)
         board.dataset_info = dataset_info.get(dataset_id)
-        _write_json(data_dir / f"benchmark-{modality}-{lang}.json", board)
+        _write_json(data_dir / f"benchmark-{modality}-{dataset_id}-{lang}.json", board)
 
     # ELO seeds per (modality, lang) across datasets
     for (modality, lang), samples_by_dataset in sorted(per_board.items()):

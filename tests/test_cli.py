@@ -156,12 +156,12 @@ class TestAssemblePipeline:
         out = tmp_path / "data"
         rc = main_args_assemble(preds, out)
         assert rc == 0
-        assert (out / "battles-intent-en-US.json").exists()
-        assert (out / "benchmark-intent-en-US.json").exists()
+        assert (out / "battles-intent-intents-for-eval-en-US.json").exists()
+        assert (out / "benchmark-intent-intents-for-eval-en-US.json").exists()
         assert (out / "elo-seed-intent-en-US.json").exists()
         assert (out / "leaderboard-intent-en-US.json").exists()
 
-        benchmark = json.loads((out / "benchmark-intent-en-US.json").read_text())
+        benchmark = json.loads((out / "benchmark-intent-intents-for-eval-en-US.json").read_text())
         assert benchmark["entries"][0]["competitor_id"] == "good"
         assert benchmark["entries"][0]["metrics"]["accuracy"] == 1.0
 

@@ -8,6 +8,12 @@ Only a template-paradigm training corpus exists, so keyword engines and
 keyword-bearing fusions are automatically ineligible — the template league
 and template-pure fusions compete.
 
+The training corpus is large (~13k templates per language).  Engines whose
+training is super-linear in corpus size (Padatious-class neural training)
+do not finish in practical time here; run them with an explicit
+``--competitors`` selection only if you can afford multi-day training.
+Sample-lookup engines (Padacioso, Nebulento) handle the corpus fine.
+
 Predictions publish to one HF repo per modality
 (``OpenVoiceOS/ovos-<modality>-bench-massive-templates``) with one dataset
 split per language.  See ``runner/intent_bench.py`` for the shared engine

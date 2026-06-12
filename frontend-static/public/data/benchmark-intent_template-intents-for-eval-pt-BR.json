@@ -1,0 +1,87 @@
+{
+  "modality": "intent_template",
+  "dataset_id": "intents-for-eval",
+  "lang": "pt-BR",
+  "generated_at": "2026-06-12T00:22:24.930228+00:00",
+  "primary_metric": "accuracy",
+  "dataset_info": {
+    "url": "https://huggingface.co/datasets/OpenVoiceOS/intents-for-eval",
+    "license": "apache-2.0",
+    "notes": "OVOS canonical paradigm-neutral intent benchmark: 50 intents, 1750 test rows per language across template / paraphrase / near_ood / far_ood / asr_noise / typos buckets, with slot annotations. far_ood rows carry expected_intent=null — the correct behaviour is no match.",
+    "predictions": [
+      "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-template-bench-intents-for-eval",
+      "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-keyword-bench-intents-for-eval",
+      "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-bench-intents-for-eval",
+      "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-template-bench-massive-templates"
+    ],
+    "train_datasets": {
+      "template": {
+        "dataset_id": "intents-for-eval-templates",
+        "url": "https://huggingface.co/datasets/OpenVoiceOS/intents-for-eval"
+      },
+      "keyword": {
+        "dataset_id": "intents-for-eval-keywords",
+        "url": "https://huggingface.co/datasets/OpenVoiceOS/intents-for-eval"
+      }
+    }
+  },
+  "entries": [
+    {
+      "rank": 1,
+      "competitor_id": "nebulento-medium",
+      "plugin_id": "ovos-nebulento-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.6269,
+        "macro_f1": 0.7525,
+        "ood_fpr": 0.02,
+        "slot_exact_match": 0.8746,
+        "latency_ms_median": 14.04,
+        "acc_asr_noise": 0.16,
+        "acc_far_ood": 0.98,
+        "acc_near_ood": 0.9525,
+        "acc_paraphrase": 0.2157,
+        "acc_template": 0.994,
+        "acc_typos": 0.22
+      }
+    },
+    {
+      "rank": 2,
+      "competitor_id": "padatious-medium",
+      "plugin_id": "ovos-padatious-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.5291,
+        "macro_f1": 0.6739,
+        "ood_fpr": 0.02,
+        "slot_exact_match": 0.0536,
+        "latency_ms_median": 13.26,
+        "acc_asr_noise": 0.04,
+        "acc_far_ood": 0.98,
+        "acc_near_ood": 0.815,
+        "acc_paraphrase": 0.0943,
+        "acc_template": 0.966,
+        "acc_typos": 0.0
+      }
+    },
+    {
+      "rank": 3,
+      "competitor_id": "padacioso-medium",
+      "plugin_id": "ovos-padacioso-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.5286,
+        "macro_f1": 0.6566,
+        "ood_fpr": 0.06,
+        "slot_exact_match": 0.0805,
+        "latency_ms_median": 1.47,
+        "acc_asr_noise": 0.04,
+        "acc_far_ood": 0.94,
+        "acc_near_ood": 0.825,
+        "acc_paraphrase": 0.0943,
+        "acc_template": 0.954,
+        "acc_typos": 0.06
+      }
+    }
+  ]
+}

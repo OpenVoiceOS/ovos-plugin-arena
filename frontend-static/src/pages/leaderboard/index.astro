@@ -107,7 +107,7 @@ import Base from '../../layouts/Base.astro';
         <td>${e.samples}</td></tr>`).join('');
       return `<section class="card" style="margin:0">
         <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap">
-          <h2 style="margin:0;font-size:1.25rem">📊 Benchmark</h2>
+          <h2 style="margin:0;font-size:1.25rem">📊 Benchmark <code style="font-size:0.8rem">${esc(board.dataset_id || '')}</code></h2>
           <span style="color:var(--muted);font-size:0.8rem">primary: ${esc(board.primary_metric)}</span>
           ${buckets.length ? '<button class="btn toggle-buckets" style="padding:0.1rem 0.6rem;font-size:0.75rem;margin-left:auto">show buckets</button>' : ''}
         </div>
@@ -160,11 +160,14 @@ import Base from '../../layouts/Base.astro';
     }
 
     function render() {
-      const bench = benchmarks.find(b => b.modality === league && b.lang === lang);
+      const benches = benchmarks.filter(b => b.modality === league && b.lang === lang)
+        .sort((a, b) => (a.dataset_id || '').localeCompare(b.dataset_id || ''));
       const elo = elos.find(b => b.modality === league && b.lang === lang);
-      document.getElementById('dataset-info').innerHTML = datasetInfoHtml(bench);
+      document.getElementById('dataset-info').innerHTML = datasetInfoHtml(benches[0]);
       const panels = document.getElementById('lb-panels');
-      panels.innerHTML = `<div class="board-grid">${benchmarkTable(bench)}${eloTable(elo)}</div>`;
+      panels.innerHTML = `<div class="board-grid">${
+        benches.length ? benches.map(benchmarkTable).join('') : benchmarkTable(null)
+      }${eloTable(elo)}</div>`;
       panels.querySelectorAll('.toggle-buckets').forEach(btn => {
         btn.addEventListener('click', () => {
           const cols = btn.closest('section').querySelectorAll('.bucket-col');

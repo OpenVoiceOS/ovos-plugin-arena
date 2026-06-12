@@ -1,0 +1,4105 @@
+{
+  "modality": "intent",
+  "dataset_id": "intents-for-eval",
+  "lang": "nl-NL",
+  "generated_at": "2026-06-12T00:22:24.930228+00:00",
+  "dataset_info": {
+    "url": "https://huggingface.co/datasets/OpenVoiceOS/intents-for-eval",
+    "license": "apache-2.0",
+    "notes": "OVOS canonical paradigm-neutral intent benchmark: 50 intents, 1750 test rows per language across template / paraphrase / near_ood / far_ood / asr_noise / typos buckets, with slot annotations. far_ood rows carry expected_intent=null — the correct behaviour is no match.",
+    "predictions": [
+      "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-template-bench-intents-for-eval",
+      "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-keyword-bench-intents-for-eval",
+      "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-bench-intents-for-eval",
+      "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-template-bench-massive-templates"
+    ],
+    "train_datasets": {
+      "template": {
+        "dataset_id": "intents-for-eval-templates",
+        "url": "https://huggingface.co/datasets/OpenVoiceOS/intents-for-eval"
+      },
+      "keyword": {
+        "dataset_id": "intents-for-eval-keywords",
+        "url": "https://huggingface.co/datasets/OpenVoiceOS/intents-for-eval"
+      }
+    }
+  },
+  "battles": [
+    {
+      "battle_id": "04936c01cf0d57e3",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00946",
+      "input_text": "hoeveel letters heeft serendipiteit",
+      "reference": "search_qa:spell_word",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "search_qa:factual_query"
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "1153362ba9c7b85f",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01166",
+      "input_text": "agenda van vandaag alsjeblieft",
+      "reference": "calendar:list_events",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:news_source"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "007f816c5b68ff2c",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01454",
+      "input_text": "praat me bij over het nieuws",
+      "reference": "news:read_headlines",
+      "prediction_a": {
+        "intent": "news:read_topic"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "frankenparse",
+      "competitor_b": "padapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "0540210426ed6db8",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00045",
+      "input_text": "stilte alsjeblieft",
+      "reference": "media:pause_playback",
+      "prediction_a": {
+        "intent": "system_control:mute_system"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "frankenparse",
+      "competitor_b": "padatioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "08514231ea28aaf1",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00021",
+      "input_text": "zou wel iets van boudewijn de groot willen",
+      "reference": "media:play_song",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:news_source"
+      },
+      "competitor_a": "palavadapt",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "0e5d484e27304969",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01290",
+      "input_text": "kill de machine",
+      "reference": "system_control:shutdown",
+      "prediction_a": {
+        "intent": "timers_alarms:cancel_timer",
+        "slots": {
+          "label-timer": "machine"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "0476e9aec36b4304",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01266",
+      "input_text": "we moeten tandartsafspraak naar morgen verplaatsen",
+      "reference": "calendar:reschedule_event",
+      "prediction_a": {
+        "intent": "calendar:create_event",
+        "slots": {
+          "date": "morgen",
+          "title": "tandartsafspraak"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "padapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "06e1c7444521a1c5",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01290",
+      "input_text": "kill de machine",
+      "reference": "system_control:shutdown",
+      "prediction_a": {
+        "intent": "timers_alarms:cancel_timer",
+        "slots": {
+          "label-timer": "machine"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padatioso",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "0ccc3ed0a160170e",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00652",
+      "input_text": "wijs me het vliegveld",
+      "reference": "navigation:navigate_to",
+      "prediction_a": {
+        "intent": "navigation:eta_query",
+        "slots": {
+          "destination": "het vliegveld"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "palavadapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "1d237bf01de82e52",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01301",
+      "input_text": "ik ga zet uit",
+      "reference": "system_control:shutdown",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:play_song"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "padapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "0783778522efe069",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01142",
+      "input_text": "kun je tandartsafspraak om 15 uur noteren",
+      "reference": "calendar:create_event",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:reschedule_event",
+        "slots": {
+          "time": "15 uur",
+          "title": "tandartsafspraak"
+        }
+      },
+      "competitor_a": "padatioso",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "032fcab6c750f3ee",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01515",
+      "input_text": "saai volgende",
+      "reference": "news:next_story",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:skip_track"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "palavadapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "3892ebfae9842029",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01270",
+      "input_text": "zet tandartsafspraak op morgen in plaats",
+      "reference": "calendar:reschedule_event",
+      "prediction_a": {
+        "intent": "calendar:create_event",
+        "slots": {
+          "date": "morgen in plaats",
+          "title": "tandartsafspraak"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padatioso",
+      "competitor_b": "padapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "018fc89a2f7c19f8",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01290",
+      "input_text": "kill de machine",
+      "reference": "system_control:shutdown",
+      "prediction_a": {
+        "intent": "timers_alarms:cancel_timer",
+        "slots": {
+          "label-timer": "machine"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "palavadapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "0d81c7ca0cb9a1f3",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01436",
+      "input_text": "zet de helderheid op 50",
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "competitor_a": "palavadapt",
+      "competitor_b": "padatioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "0d7490ce237db324",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00560",
+      "input_text": "de laatste van jan alsjeblieft",
+      "reference": "communication:read_messages",
+      "prediction_a": {
+        "intent": "news:news_source"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "frankenparse",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "1eaf54d7283be9b4",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01697",
+      "input_text": "nou bevries afspelen",
+      "reference": "media:pause_playback",
+      "prediction_a": {
+        "intent": "media:play_song"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "frankenparse",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "08cf53940a99209f",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00014",
+      "input_text": "wat dacht je van ik ben verliefd",
+      "reference": "media:play_song",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:news_source"
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "12e2e4a268df0f1c",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01196",
+      "input_text": "dump diner met anneke",
+      "reference": "calendar:cancel_event",
+      "prediction_a": {
+        "intent": "calendar:create_event",
+        "slots": {
+          "title": "diner met anneke"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "frankenparse",
+      "competitor_b": "padatioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "088b371af3bec745",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01004",
+      "input_text": "regen volgende maandag",
+      "reference": "weather:weather_forecast",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:skip_track"
+      },
+      "competitor_a": "palavadapt",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "1e355fd0c18bd28b",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01515",
+      "input_text": "saai volgende",
+      "reference": "news:next_story",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:skip_track"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "05e0f149a60d227e",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01404",
+      "input_text": "zet de helderheid op 50",
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "padapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "1483872054816ef3",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00501",
+      "input_text": "draai piets nummer",
+      "reference": "communication:call_contact",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:play_song"
+      },
+      "competitor_a": "padatioso",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "292317a1f89db1e0",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01142",
+      "input_text": "kun je tandartsafspraak om 15 uur noteren",
+      "reference": "calendar:create_event",
+      "prediction_a": {
+        "intent": "calendar:reschedule_event",
+        "slots": {
+          "time": "15 uur",
+          "title": "tandartsafspraak"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "palavadapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "2aa9395a2e539f51",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01489",
+      "input_text": "weernieuws alsjeblieft",
+      "reference": "news:read_topic",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_headlines"
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "0ca9eeb41a748537",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01390",
+      "input_text": "zet het volume op nul",
+      "reference": "system_control:mute_system",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:set_volume"
+      },
+      "competitor_a": "padatioso",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "0930489509371de7",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01306",
+      "input_text": "zet de helderheid op 50",
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "competitor_a": "palavadapt",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "4e2cb668ee41cf52",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00045",
+      "input_text": "stilte alsjeblieft",
+      "reference": "media:pause_playback",
+      "prediction_a": {
+        "intent": "system_control:mute_system"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "padatioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "792b748dc06aa408",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01404",
+      "input_text": "zet de helderheid op 50",
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "palavadapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "29ba6433ba63eb02",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01591",
+      "input_text": "nos journaal",
+      "reference": "news:news_source",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_headlines"
+      },
+      "competitor_a": "padatioso",
+      "competitor_b": "palavadapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "113e498a1acb6477",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01270",
+      "input_text": "zet tandartsafspraak op morgen in plaats",
+      "reference": "calendar:reschedule_event",
+      "prediction_a": {
+        "intent": "calendar:create_event",
+        "slots": {
+          "date": "morgen",
+          "title": "tandartsafspraak"
+        }
+      },
+      "prediction_b": {
+        "intent": "calendar:create_event",
+        "slots": {
+          "date": "morgen in plaats",
+          "title": "tandartsafspraak"
+        }
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "23bb9da7b9f75e78",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01548",
+      "input_text": "ik wil die opnieuw horen",
+      "reference": "news:previous_story",
+      "prediction_a": {
+        "intent": "media:play_song"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "frankenparse",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "0a6f6343878fc14a",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00946",
+      "input_text": "hoeveel letters heeft serendipiteit",
+      "reference": "search_qa:spell_word",
+      "prediction_a": {
+        "intent": "search_qa:factual_query"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "frankenparse",
+      "competitor_b": "padapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "187fef7a01f695b0",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00048",
+      "input_text": "bevries het afspelen",
+      "reference": "media:pause_playback",
+      "prediction_a": {
+        "intent": "media:play_song"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "frankenparse",
+      "competitor_b": "padatioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "095a42a54e0f3e52",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00752",
+      "input_text": "zwaar naar het vliegveld",
+      "reference": "navigation:traffic_status",
+      "prediction_a": {
+        "intent": "navigation:navigate_to",
+        "slots": {
+          "destination": "het vliegveld"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "frankenparse",
+      "competitor_b": "palavadapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "3f2ad0a9036d5613",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01356",
+      "input_text": "schroef de helderheid op naar 80",
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "80"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "18fb97ba02cf7cd3",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01264",
+      "input_text": "schuif diner met anneke op",
+      "reference": "calendar:reschedule_event",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:cancel_event",
+        "slots": {
+          "title": "diner met anneke"
+        }
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "1f4ae81bc6c4ef04",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00107",
+      "input_text": "zet hem op 80",
+      "reference": "media:set_volume",
+      "prediction_a": {
+        "intent": "smarthome:set_thermostat"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "padatioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "2db59b2777ecd1b6",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00502",
+      "input_text": "start een gesprek met jan",
+      "reference": "communication:call_contact",
+      "prediction_a": {
+        "intent": "communication:video_call",
+        "slots": {
+          "contact": "jan"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "palavadapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "318a645cc2c44e5b",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01455",
+      "input_text": "lees de berichten van vandaag voor",
+      "reference": "news:read_headlines",
+      "prediction_a": {
+        "intent": "communication:read_messages"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "4f6ab42ed4fac1a4",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01271",
+      "input_text": "doe teamvergadering opnieuw voor vrijdag",
+      "reference": "calendar:reschedule_event",
+      "prediction_a": {
+        "intent": "calendar:create_event",
+        "slots": {
+          "date": "vrijdag",
+          "title": "teamvergadering"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "padatioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "121455a888019be1",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00107",
+      "input_text": "zet hem op 80",
+      "reference": "media:set_volume",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_thermostat"
+      },
+      "competitor_a": "palavadapt",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "5336e93a2b368815",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01301",
+      "input_text": "ik ga zet uit",
+      "reference": "system_control:shutdown",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:play_song"
+      },
+      "competitor_a": "padatioso",
+      "competitor_b": "padapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "8a06e2d519b023b1",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01147",
+      "input_text": "verwijder de teamvergadering uit de agenda",
+      "reference": "calendar:cancel_event",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "timers_alarms:cancel_timer",
+        "slots": {
+          "label-timer": "teamvergadering uit de agenda"
+        }
+      },
+      "competitor_a": "palavadapt",
+      "competitor_b": "padapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "2c078b1855d128ba",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01147",
+      "input_text": "verwijder de teamvergadering uit de agenda",
+      "reference": "calendar:cancel_event",
+      "prediction_a": {
+        "intent": "timers_alarms:cancel_timer",
+        "slots": {
+          "label-timer": "teamvergadering uit de agenda"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padatioso",
+      "competitor_b": "palavadapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "144d49d238d355f0",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01719",
+      "input_text": "ii il netts horen",
+      "reference": "system_control:mute_system",
+      "prediction_a": {
+        "intent": "media:play_song"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "frankenparse",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "26127b3402f454f0",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00082",
+      "input_text": "ok muziek weer",
+      "reference": "media:resume_playback",
+      "prediction_a": {
+        "intent": "weather:weather_forecast"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "frankenparse",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "0c8efe25b38947fb",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01266",
+      "input_text": "we moeten tandartsafspraak naar morgen verplaatsen",
+      "reference": "calendar:reschedule_event",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:create_event",
+        "slots": {
+          "date": "morgen",
+          "title": "tandartsafspraak"
+        }
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "1c402df0e6d3fcd1",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01004",
+      "input_text": "regen volgende maandag",
+      "reference": "weather:weather_forecast",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:skip_track"
+      },
+      "competitor_a": "padatioso",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "11df8fe7b6910e19",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01270",
+      "input_text": "zet tandartsafspraak op morgen in plaats",
+      "reference": "calendar:reschedule_event",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:create_event",
+        "slots": {
+          "date": "morgen in plaats",
+          "title": "tandartsafspraak"
+        }
+      },
+      "competitor_a": "palavadapt",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "5c8b4cb4f63261bf",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00369",
+      "input_text": "haal de lamp weg in de woonkamer",
+      "reference": "smarthome:lights_off",
+      "prediction_a": {
+        "intent": "timers_alarms:cancel_timer",
+        "slots": {
+          "label-timer": "lamp weg in de woonkamer"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "19708368640d2db0",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01194",
+      "input_text": "vergeet de tandartsafspraak",
+      "reference": "calendar:cancel_event",
+      "prediction_a": {
+        "intent": "calendar:reschedule_event",
+        "slots": {
+          "title": "tandartsafspraak"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "padapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "1f901031d1f1f6ee",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00819",
+      "input_text": "leer me kortstondig",
+      "reference": "search_qa:define_word",
+      "prediction_a": {
+        "intent": "search_qa:spell_word",
+        "slots": {
+          "word": "kortstondig"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "padatioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "311a912b6226d67d",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00752",
+      "input_text": "zwaar naar het vliegveld",
+      "reference": "navigation:traffic_status",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "navigation:navigate_to",
+        "slots": {
+          "destination": "het vliegveld"
+        }
+      },
+      "competitor_a": "palavadapt",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "32b1bc844f790319",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00752",
+      "input_text": "zwaar naar het vliegveld",
+      "reference": "navigation:traffic_status",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "navigation:navigate_to",
+        "slots": {
+          "destination": "het vliegveld"
+        }
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "54835e1c2d12d1be",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01258",
+      "input_text": "kunnen we de tandartsafspraak naar morgen schuiven",
+      "reference": "calendar:reschedule_event",
+      "prediction_a": {
+        "intent": "calendar:create_event",
+        "slots": {
+          "date": "morgen",
+          "title": "tandartsafspraak"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "padatioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "158f1d40868848a8",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01166",
+      "input_text": "agenda van vandaag alsjeblieft",
+      "reference": "calendar:list_events",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:news_source"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "palavadapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "643fecabcbb36e77",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00051",
+      "input_text": "stop de geluiden even",
+      "reference": "media:pause_playback",
+      "prediction_a": {
+        "intent": "timers_alarms:cancel_timer",
+        "slots": {
+          "label-timer": "geluiden even"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padatioso",
+      "competitor_b": "padapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "b42541f1e7f15ede",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01306",
+      "input_text": "zet de helderheid op 50",
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "palavadapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "40e29b1e4896c84f",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01584",
+      "input_text": "koppen reuters",
+      "reference": "news:news_source",
+      "prediction_a": {
+        "intent": "news:read_headlines"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "palavadapt",
+      "competitor_b": "padatioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "1f40dfba848362d8",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01669",
+      "input_text": "ik wil niets horen",
+      "reference": "system_control:mute_system",
+      "prediction_a": {
+        "intent": "media:play_song"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "frankenparse",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "30c521c8965cddc1",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00045",
+      "input_text": "stilte alsjeblieft",
+      "reference": "media:pause_playback",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "system_control:mute_system"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "12aba9c9f407188b",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00622",
+      "input_text": "bel jan met camera",
+      "reference": "communication:video_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "communication:call_contact",
+        "slots": {
+          "contact": "jan"
+        }
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "24d2836fd6100aa5",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00556",
+      "input_text": "wachten er berichten",
+      "reference": "communication:read_messages",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "padatioso",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "19ce0793123154c3",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00779",
+      "input_text": "vergeet de aanwijzingen",
+      "reference": "navigation:cancel_route",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "navigation:navigate_to"
+      },
+      "competitor_a": "palavadapt",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "5f55e7f721e0473e",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00045",
+      "input_text": "stilte alsjeblieft",
+      "reference": "media:pause_playback",
+      "prediction_a": {
+        "intent": "system_control:mute_system"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "1bdb8a9193e3921c",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00752",
+      "input_text": "zwaar naar het vliegveld",
+      "reference": "navigation:traffic_status",
+      "prediction_a": {
+        "intent": "navigation:navigate_to",
+        "slots": {
+          "destination": "het vliegveld"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "padapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "27e5e789f0458fae",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01264",
+      "input_text": "schuif diner met anneke op",
+      "reference": "calendar:reschedule_event",
+      "prediction_a": {
+        "intent": "calendar:cancel_event",
+        "slots": {
+          "title": "diner met anneke"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "padatioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "3781558e73c6860e",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01264",
+      "input_text": "schuif diner met anneke op",
+      "reference": "calendar:reschedule_event",
+      "prediction_a": {
+        "intent": "calendar:cancel_event",
+        "slots": {
+          "title": "diner met anneke"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "palavadapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "37b3a3b56cbf79b6",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01264",
+      "input_text": "schuif diner met anneke op",
+      "reference": "calendar:reschedule_event",
+      "prediction_a": {
+        "intent": "calendar:cancel_event",
+        "slots": {
+          "title": "diner met anneke"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "padapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "580a06e021af4a85",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00752",
+      "input_text": "zwaar naar het vliegveld",
+      "reference": "navigation:traffic_status",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "navigation:navigate_to",
+        "slots": {
+          "destination": "het vliegveld"
+        }
+      },
+      "competitor_a": "padatioso",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "232b565d98c32207",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01270",
+      "input_text": "zet tandartsafspraak op morgen in plaats",
+      "reference": "calendar:reschedule_event",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:create_event",
+        "slots": {
+          "date": "morgen",
+          "title": "tandartsafspraak"
+        }
+      },
+      "competitor_a": "palavadapt",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "653561a6ce62062d",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00501",
+      "input_text": "draai piets nummer",
+      "reference": "communication:call_contact",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:play_song"
+      },
+      "competitor_a": "padatioso",
+      "competitor_b": "padapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "d39f2caabca540e0",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01436",
+      "input_text": "zet de helderheid op 50",
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "palavadapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "486c2de79832df87",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01404",
+      "input_text": "zet de helderheid op 50",
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "competitor_a": "palavadapt",
+      "competitor_b": "padatioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "22bc35829cb2edec",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01697",
+      "input_text": "nou bevries afspelen",
+      "reference": "media:pause_playback",
+      "prediction_a": {
+        "intent": "media:play_song"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "frankenparse",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "404b1c91ce8cfc19",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00081",
+      "input_text": "kom op muziek weer",
+      "reference": "media:resume_playback",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:weather_forecast"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "13ddb8ff8662b886",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01489",
+      "input_text": "weernieuws alsjeblieft",
+      "reference": "news:read_topic",
+      "prediction_a": {
+        "intent": "news:read_headlines"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "frankenparse",
+      "competitor_b": "padapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "25573f09b7b649fd",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01295",
+      "input_text": "sluit alles af",
+      "reference": "system_control:shutdown",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "smarthome:lock_door"
+      },
+      "competitor_a": "padatioso",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "1eac55b24346d45c",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01404",
+      "input_text": "zet de helderheid op 50",
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "frankenparse",
+      "competitor_b": "palavadapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "5fdb5993c1ebb0f7",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00556",
+      "input_text": "wachten er berichten",
+      "reference": "communication:read_messages",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "300bb11494244efa",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01338",
+      "input_text": "zet de helderheid op 50",
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "padapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "295284cd89a4992c",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01301",
+      "input_text": "ik ga zet uit",
+      "reference": "system_control:shutdown",
+      "prediction_a": {
+        "intent": "media:play_song"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "padatioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "403605fb569bed41",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01306",
+      "input_text": "zet de helderheid op 50",
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
+      },
+      "competitor_a": "palavadapt",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "3ac4de7c60046a4d",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01166",
+      "input_text": "agenda van vandaag alsjeblieft",
+      "reference": "calendar:list_events",
+      "prediction_a": {
+        "intent": "news:news_source"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "646993d6f0929f59",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01264",
+      "input_text": "schuif diner met anneke op",
+      "reference": "calendar:reschedule_event",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:cancel_event",
+        "slots": {
+          "title": "diner met anneke"
+        }
+      },
+      "competitor_a": "padatioso",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "384167fa1d3cbec0",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00652",
+      "input_text": "wijs me het vliegveld",
+      "reference": "navigation:navigate_to",
+      "prediction_a": {
+        "intent": "navigation:eta_query",
+        "slots": {
+          "destination": "het vliegveld"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "palavadapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "74c7d2bc9795135e",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00556",
+      "input_text": "wachten er berichten",
+      "reference": "communication:read_messages",
+      "prediction_a": {
+        "intent": "news:read_topic"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "padatioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "e574c14b12ed0707",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01338",
+      "input_text": "zet de helderheid op 50",
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "competitor_a": "palavadapt",
+      "competitor_b": "padapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "55aea016495b0c9b",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00051",
+      "input_text": "stop de geluiden even",
+      "reference": "media:pause_playback",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "timers_alarms:cancel_timer",
+        "slots": {
+          "label-timer": "geluiden even"
+        }
+      },
+      "competitor_a": "palavadapt",
+      "competitor_b": "padatioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "2cb7f29d329d1d11",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00369",
+      "input_text": "haal de lamp weg in de woonkamer",
+      "reference": "smarthome:lights_off",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "timers_alarms:cancel_timer",
+        "slots": {
+          "label-timer": "lamp weg in de woonkamer"
+        }
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "487d5a8887043f93",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00501",
+      "input_text": "draai piets nummer",
+      "reference": "communication:call_contact",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:play_song"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "17360fd4f7e50c7e",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00301",
+      "input_text": "snooze me opnieuw",
+      "reference": "timers_alarms:snooze_alarm",
+      "prediction_a": {
+        "intent": "system_control:restart"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "frankenparse",
+      "competitor_b": "padapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "2a89fab39ab575f8",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01455",
+      "input_text": "lees de berichten van vandaag voor",
+      "reference": "news:read_headlines",
+      "prediction_a": {
+        "intent": "communication:read_messages"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "frankenparse",
+      "competitor_b": "padatioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "20bd3b7175495737",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00310",
+      "input_text": "zet hem 20 minuten uit",
+      "reference": "timers_alarms:snooze_alarm",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:play_song"
+      },
+      "competitor_a": "palavadapt",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "7a0096eaa710b742",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01404",
+      "input_text": "zet de helderheid op 50",
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "389dcc2291f57c4a",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01306",
+      "input_text": "zet de helderheid op 50",
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "padapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "4167119dd5882bb6",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00502",
+      "input_text": "start een gesprek met jan",
+      "reference": "communication:call_contact",
+      "prediction_a": {
+        "intent": "communication:video_call",
+        "slots": {
+          "contact": "jan"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "padatioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "4ae7dae664efee87",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01194",
+      "input_text": "vergeet de tandartsafspraak",
+      "reference": "calendar:cancel_event",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:reschedule_event",
+        "slots": {
+          "title": "tandartsafspraak"
+        }
+      },
+      "competitor_a": "palavadapt",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "3c8361ce0b7c9f1f",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01271",
+      "input_text": "doe teamvergadering opnieuw voor vrijdag",
+      "reference": "calendar:reschedule_event",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:create_event",
+        "slots": {
+          "date": "vrijdag",
+          "title": "teamvergadering"
+        }
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "7562f922f4e2698f",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00791",
+      "input_text": "schakel de route uit",
+      "reference": "navigation:cancel_route",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "system_control:shutdown"
+      },
+      "competitor_a": "padatioso",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "3854d5fc366aa1ae",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00369",
+      "input_text": "haal de lamp weg in de woonkamer",
+      "reference": "smarthome:lights_off",
+      "prediction_a": {
+        "intent": "timers_alarms:cancel_timer",
+        "slots": {
+          "label-timer": "lamp weg in de woonkamer"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "palavadapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "9dfbd7a9340b718e",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01584",
+      "input_text": "koppen reuters",
+      "reference": "news:news_source",
+      "prediction_a": {
+        "intent": "news:read_headlines"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "padatioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "00151160e03269bc",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00121",
+      "input_text": "pauzeer de muziek",
+      "reference": "media:pause_playback",
+      "prediction_a": {
+        "intent": "media:pause_playback"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "palavadapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "641c7f3949d5e87c",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00369",
+      "input_text": "haal de lamp weg in de woonkamer",
+      "reference": "smarthome:lights_off",
+      "prediction_a": {
+        "intent": "timers_alarms:cancel_timer",
+        "slots": {
+          "label-timer": "lamp weg in de woonkamer"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padatioso",
+      "competitor_b": "palavadapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "307c39b00f7ed8b9",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01399",
+      "input_text": "elimineer het geluid",
+      "reference": "system_control:mute_system",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:set_volume"
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "4e99ccee21929db3",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00267",
+      "input_text": "samenvatting van mijn wekkers alsjeblieft",
+      "reference": "timers_alarms:list_alarms",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:news_source"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "1ab9bab44f3b5a21",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01142",
+      "input_text": "kun je tandartsafspraak om 15 uur noteren",
+      "reference": "calendar:create_event",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:reschedule_event",
+        "slots": {
+          "time": "15 uur",
+          "title": "tandartsafspraak"
+        }
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "3206198b0514952f",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00310",
+      "input_text": "zet hem 20 minuten uit",
+      "reference": "timers_alarms:snooze_alarm",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:play_song"
+      },
+      "competitor_a": "padatioso",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "221102ddd91aa9e5",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01356",
+      "input_text": "schroef de helderheid op naar 80",
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "80"
+        }
+      },
+      "competitor_a": "palavadapt",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "9fa1dd4bb5ee8c06",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01436",
+      "input_text": "zet de helderheid op 50",
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "43abc32406aa5145",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01258",
+      "input_text": "kunnen we de tandartsafspraak naar morgen schuiven",
+      "reference": "calendar:reschedule_event",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:create_event",
+        "slots": {
+          "date": "morgen",
+          "title": "tandartsafspraak"
+        }
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "42befc7506081fa3",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00791",
+      "input_text": "schakel de route uit",
+      "reference": "navigation:cancel_route",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "system_control:shutdown"
+      },
+      "competitor_a": "padatioso",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "4db1450533639740",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01270",
+      "input_text": "zet tandartsafspraak op morgen in plaats",
+      "reference": "calendar:reschedule_event",
+      "prediction_a": {
+        "intent": "calendar:create_event",
+        "slots": {
+          "date": "morgen",
+          "title": "tandartsafspraak"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "palavadapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "3d573e3d98acd9ab",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00107",
+      "input_text": "zet hem op 80",
+      "reference": "media:set_volume",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_thermostat"
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "7600a153560eb66f",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01270",
+      "input_text": "zet tandartsafspraak op morgen in plaats",
+      "reference": "calendar:reschedule_event",
+      "prediction_a": {
+        "intent": "calendar:create_event",
+        "slots": {
+          "date": "morgen in plaats",
+          "title": "tandartsafspraak"
+        }
+      },
+      "prediction_b": {
+        "intent": "calendar:create_event",
+        "slots": {
+          "date": "morgen",
+          "title": "tandartsafspraak"
+        }
+      },
+      "competitor_a": "padatioso",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "41ee36e3505c6412",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01301",
+      "input_text": "ik ga zet uit",
+      "reference": "system_control:shutdown",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:play_song"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "palavadapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "a3c717927459e61c",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01166",
+      "input_text": "agenda van vandaag alsjeblieft",
+      "reference": "calendar:list_events",
+      "prediction_a": {
+        "intent": "news:news_source"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "padatioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "00933b1bc846daff",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01124",
+      "input_text": "plan tandartsafspraak om 15 uur",
+      "reference": "calendar:create_event",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:create_event"
+      },
+      "competitor_a": "palavadapt",
+      "competitor_b": "padapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "6629c35565a4211c",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01166",
+      "input_text": "agenda van vandaag alsjeblieft",
+      "reference": "calendar:list_events",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:news_source"
+      },
+      "competitor_a": "padatioso",
+      "competitor_b": "palavadapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "32cbd4c5ea3180d6",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01306",
+      "input_text": "zet de helderheid op 50",
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
+      },
+      "competitor_a": "frankenparse",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "5a64ad44b25bb6b4",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01719",
+      "input_text": "ii il netts horen",
+      "reference": "system_control:mute_system",
+      "prediction_a": {
+        "intent": "media:play_song"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "frankenparse",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "214562f614763152",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00086",
+      "input_text": "muziek weer aan alsjeblieft",
+      "reference": "media:resume_playback",
+      "prediction_a": {
+        "intent": "weather:weather_forecast"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "frankenparse",
+      "competitor_b": "padapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "32aa8e8be08b3d0a",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01697",
+      "input_text": "nou bevries afspelen",
+      "reference": "media:pause_playback",
+      "prediction_a": {
+        "intent": "media:play_song"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "frankenparse",
+      "competitor_b": "padatioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "2409ee040cd502a9",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00652",
+      "input_text": "wijs me het vliegveld",
+      "reference": "navigation:navigate_to",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "navigation:eta_query",
+        "slots": {
+          "destination": "het vliegveld"
+        }
+      },
+      "competitor_a": "palavadapt",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "a8e4933b89f9f4cb",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01166",
+      "input_text": "agenda van vandaag alsjeblieft",
+      "reference": "calendar:list_events",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:news_source"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "478985330799f195",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01142",
+      "input_text": "kun je tandartsafspraak om 15 uur noteren",
+      "reference": "calendar:create_event",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:reschedule_event",
+        "slots": {
+          "time": "15 uur",
+          "title": "tandartsafspraak"
+        }
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "4583458ea7693407",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01515",
+      "input_text": "saai volgende",
+      "reference": "news:next_story",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:skip_track"
+      },
+      "competitor_a": "padatioso",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "5068c6e32f131907",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01489",
+      "input_text": "weernieuws alsjeblieft",
+      "reference": "news:read_topic",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_headlines"
+      },
+      "competitor_a": "palavadapt",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "3f2b793d7144f6a9",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01515",
+      "input_text": "saai volgende",
+      "reference": "news:next_story",
+      "prediction_a": {
+        "intent": "media:skip_track"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "764d4f493b505946",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00652",
+      "input_text": "wijs me het vliegveld",
+      "reference": "navigation:navigate_to",
+      "prediction_a": {
+        "intent": "navigation:eta_query",
+        "slots": {
+          "destination": "het vliegveld"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "padatioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "42845ce51884070e",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00502",
+      "input_text": "start een gesprek met jan",
+      "reference": "communication:call_contact",
+      "prediction_a": {
+        "intent": "communication:video_call",
+        "slots": {
+          "contact": "jan"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "palavadapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "bba7db7b0ba157ec",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01591",
+      "input_text": "nos journaal",
+      "reference": "news:news_source",
+      "prediction_a": {
+        "intent": "news:read_headlines"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "padatioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "00be882559891334",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00514",
+      "input_text": "berichtje aan piet",
+      "reference": "communication:send_message",
+      "prediction_a": {
+        "intent": "communication:send_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "palavadapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "98fb4dae9f8e4989",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01290",
+      "input_text": "kill de machine",
+      "reference": "system_control:shutdown",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "timers_alarms:cancel_timer",
+        "slots": {
+          "label-timer": "machine"
+        }
+      },
+      "competitor_a": "palavadapt",
+      "competitor_b": "padatioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "34d6a00d3aa17263",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00048",
+      "input_text": "bevries het afspelen",
+      "reference": "media:pause_playback",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:play_song"
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "60a013484cc4e581",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00779",
+      "input_text": "vergeet de aanwijzingen",
+      "reference": "navigation:cancel_route",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "navigation:navigate_to"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "274745b2bbb99bbe",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01295",
+      "input_text": "sluit alles af",
+      "reference": "system_control:shutdown",
+      "prediction_a": {
+        "intent": "smarthome:lock_door"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "frankenparse",
+      "competitor_b": "padapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "384dd773ff7904ec",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01166",
+      "input_text": "agenda van vandaag alsjeblieft",
+      "reference": "calendar:list_events",
+      "prediction_a": {
+        "intent": "news:news_source"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "frankenparse",
+      "competitor_b": "padatioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "272b4f28c61ed9d3",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01306",
+      "input_text": "zet de helderheid op 50",
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "competitor_a": "palavadapt",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "be09a160d85c8799",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00501",
+      "input_text": "draai piets nummer",
+      "reference": "communication:call_contact",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:play_song"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "5ba4ebe70bca9364",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01436",
+      "input_text": "zet de helderheid op 50",
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "padapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "4ec7fb8dc4a904e4",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00752",
+      "input_text": "zwaar naar het vliegveld",
+      "reference": "navigation:traffic_status",
+      "prediction_a": {
+        "intent": "navigation:navigate_to",
+        "slots": {
+          "destination": "het vliegveld"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "padatioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "54723d61f6ac2244",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01338",
+      "input_text": "zet de helderheid op 50",
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "palavadapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "56fa51bebf3b0d49",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01266",
+      "input_text": "we moeten tandartsafspraak naar morgen verplaatsen",
+      "reference": "calendar:reschedule_event",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:create_event",
+        "slots": {
+          "date": "morgen",
+          "title": "tandartsafspraak"
+        }
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "78dccc9a016e45ec",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01196",
+      "input_text": "dump diner met anneke",
+      "reference": "calendar:cancel_event",
+      "prediction_a": {
+        "intent": "calendar:create_event",
+        "slots": {
+          "title": "diner met anneke"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "padatioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "50ba7d4bf38c05b9",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01266",
+      "input_text": "we moeten tandartsafspraak naar morgen verplaatsen",
+      "reference": "calendar:reschedule_event",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:create_event",
+        "slots": {
+          "date": "morgen",
+          "title": "tandartsafspraak"
+        }
+      },
+      "competitor_a": "palavadapt",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "c1e633cd001e8618",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01455",
+      "input_text": "lees de berichten van vandaag voor",
+      "reference": "news:read_headlines",
+      "prediction_a": {
+        "intent": "communication:read_messages"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "padatioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "0103d2912733ee31",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00711",
+      "input_text": "wanneer kom ik het vliegveld",
+      "reference": "navigation:eta_query",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "navigation:eta_query"
+      },
+      "competitor_a": "palavadapt",
+      "competitor_b": "padapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "a96c511ab5889c98",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01338",
+      "input_text": "zet de helderheid op 50",
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padatioso",
+      "competitor_b": "palavadapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "3f00cb7bb58f96ad",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01296",
+      "input_text": "we zijn klaar zet uit",
+      "reference": "system_control:shutdown",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:play_song"
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "662555bf7e949d93",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00086",
+      "input_text": "muziek weer aan alsjeblieft",
+      "reference": "media:resume_playback",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:weather_forecast"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "29bc766f0de757ce",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00369",
+      "input_text": "haal de lamp weg in de woonkamer",
+      "reference": "smarthome:lights_off",
+      "prediction_a": {
+        "intent": "timers_alarms:cancel_timer",
+        "slots": {
+          "label-timer": "lamp weg in de woonkamer"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "frankenparse",
+      "competitor_b": "padapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "4001c2e0a5ae025b",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00266",
+      "input_text": "wat staat er in mijn wekkerplanning",
+      "reference": "timers_alarms:list_alarms",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:list_events"
+      },
+      "competitor_a": "padatioso",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "276c297d89b2ede2",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00791",
+      "input_text": "schakel de route uit",
+      "reference": "navigation:cancel_route",
+      "prediction_a": {
+        "intent": "system_control:shutdown"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "frankenparse",
+      "competitor_b": "palavadapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "c7a6ae0241dee7ac",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01306",
+      "input_text": "zet de helderheid op 50",
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "5e1956add00b08d3",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00652",
+      "input_text": "wijs me het vliegveld",
+      "reference": "navigation:navigate_to",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "navigation:eta_query",
+        "slots": {
+          "destination": "het vliegveld"
+        }
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "50d12ec7d1595500",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01196",
+      "input_text": "dump diner met anneke",
+      "reference": "calendar:cancel_event",
+      "prediction_a": {
+        "intent": "calendar:create_event",
+        "slots": {
+          "title": "diner met anneke"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "padatioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "5f35f122a5603289",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00107",
+      "input_text": "zet hem op 80",
+      "reference": "media:set_volume",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_thermostat"
+      },
+      "competitor_a": "palavadapt",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "74907752a5e9bb1e",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01591",
+      "input_text": "nos journaal",
+      "reference": "news:news_source",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_headlines"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "padapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "7e299c193f664f4e",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00266",
+      "input_text": "wat staat er in mijn wekkerplanning",
+      "reference": "timers_alarms:list_alarms",
+      "prediction_a": {
+        "intent": "calendar:list_events"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "padatioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "520649aedcacf8f9",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00045",
+      "input_text": "stilte alsjeblieft",
+      "reference": "media:pause_playback",
+      "prediction_a": {
+        "intent": "system_control:mute_system"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "palavadapt",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "c625e5c9d4141332",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01515",
+      "input_text": "saai volgende",
+      "reference": "news:next_story",
+      "prediction_a": {
+        "intent": "media:skip_track"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "padatioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "01a7f5d7932893c5",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01028",
+      "input_text": "regent het in tokio",
+      "reference": "weather:weather_location",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:weather_location"
+      },
+      "competitor_a": "palavadapt",
+      "competitor_b": "padapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "b3f27bb66ef32f32",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01306",
+      "input_text": "zet de helderheid op 50",
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padatioso",
+      "competitor_b": "palavadapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "43614c5a44f0d766",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00301",
+      "input_text": "snooze me opnieuw",
+      "reference": "timers_alarms:snooze_alarm",
+      "prediction_a": {
+        "intent": "system_control:restart"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "frankenparse",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "671646160357ab7f",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01296",
+      "input_text": "we zijn klaar zet uit",
+      "reference": "system_control:shutdown",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:play_song"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "2a88ff2a00c90b15",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00078",
+      "input_text": "speel nu maar weer",
+      "reference": "media:resume_playback",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:weather_today"
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "43fa6175bd4d2cbe",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01669",
+      "input_text": "ik wil niets horen",
+      "reference": "system_control:mute_system",
+      "prediction_a": {
+        "intent": "media:play_song"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "frankenparse",
+      "competitor_b": "padatioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "2846fe611271de2a",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01299",
+      "input_text": "rond af en sluit af",
+      "reference": "system_control:shutdown",
+      "prediction_a": {
+        "intent": "smarthome:lock_door"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "frankenparse",
+      "competitor_b": "palavadapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "d61bff7b444c9348",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00051",
+      "input_text": "stop de geluiden even",
+      "reference": "media:pause_playback",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "timers_alarms:cancel_timer",
+        "slots": {
+          "label-timer": "geluiden even"
+        }
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "686994f24abfd419",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01290",
+      "input_text": "kill de machine",
+      "reference": "system_control:shutdown",
+      "prediction_a": {
+        "intent": "timers_alarms:cancel_timer",
+        "slots": {
+          "label-timer": "machine"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "54ce9f771ab57d53",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00369",
+      "input_text": "haal de lamp weg in de woonkamer",
+      "reference": "smarthome:lights_off",
+      "prediction_a": {
+        "intent": "timers_alarms:cancel_timer",
+        "slots": {
+          "label-timer": "lamp weg in de woonkamer"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padatioso",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "769e3d80f1d0bca0",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01143",
+      "input_text": "voeg teamvergadering toe",
+      "reference": "calendar:create_event",
+      "prediction_a": {
+        "intent": "calendar:cancel_event",
+        "slots": {
+          "title": "teamvergadering"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "palavadapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "823cd7847dd13c63",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00556",
+      "input_text": "wachten er berichten",
+      "reference": "communication:read_messages",
+      "prediction_a": {
+        "intent": "news:read_topic"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "9c252581ad014b5c",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01489",
+      "input_text": "weernieuws alsjeblieft",
+      "reference": "news:read_topic",
+      "prediction_a": {
+        "intent": "news:read_headlines"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "padatioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "58028e055ae7f3b9",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00752",
+      "input_text": "zwaar naar het vliegveld",
+      "reference": "navigation:traffic_status",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "navigation:navigate_to",
+        "slots": {
+          "destination": "het vliegveld"
+        }
+      },
+      "competitor_a": "palavadapt",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "cac48b6f1acb9867",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01356",
+      "input_text": "schroef de helderheid op naar 80",
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "80"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padatioso",
+      "competitor_b": "padapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "01defd97bc9628a9",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01189",
+      "input_text": "schrap teamvergadering",
+      "reference": "calendar:cancel_event",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:cancel_event"
+      },
+      "competitor_a": "palavadapt",
+      "competitor_b": "padapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "bfccd03d1d72a309",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01270",
+      "input_text": "zet tandartsafspraak op morgen in plaats",
+      "reference": "calendar:reschedule_event",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:create_event",
+        "slots": {
+          "date": "morgen in plaats",
+          "title": "tandartsafspraak"
+        }
+      },
+      "competitor_a": "palavadapt",
+      "competitor_b": "padatioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "44c7eb504d1438b0",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00786",
+      "input_text": "ik heb geen aanwijzingen meer nodig",
+      "reference": "navigation:cancel_route",
+      "prediction_a": {
+        "intent": "navigation:navigate_to"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "frankenparse",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "7276c92955c12547",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01004",
+      "input_text": "regen volgende maandag",
+      "reference": "weather:weather_forecast",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:skip_track"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "2b61f73f67b85c6f",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01697",
+      "input_text": "nou bevries afspelen",
+      "reference": "media:pause_playback",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:play_song"
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "4b8afa9d5ec7880f",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01266",
+      "input_text": "we moeten tandartsafspraak naar morgen verplaatsen",
+      "reference": "calendar:reschedule_event",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:create_event",
+        "slots": {
+          "date": "morgen",
+          "title": "tandartsafspraak"
+        }
+      },
+      "competitor_a": "padatioso",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "2d22b41d0916d505",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01587",
+      "input_text": "zet nos aan",
+      "reference": "news:news_source",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:play_song"
+      },
+      "competitor_a": "palavadapt",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "ddabb2eb7710ee35",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01591",
+      "input_text": "nos journaal",
+      "reference": "news:news_source",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_headlines"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "7581a244a0014676",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00791",
+      "input_text": "schakel de route uit",
+      "reference": "navigation:cancel_route",
+      "prediction_a": {
+        "intent": "system_control:shutdown"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "padapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "6f9436564a471663",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01306",
+      "input_text": "zet de helderheid op 50",
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
+      },
+      "competitor_a": "padatioso",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "96ab52a3a0030c1a",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00819",
+      "input_text": "leer me kortstondig",
+      "reference": "search_qa:define_word",
+      "prediction_a": {
+        "intent": "search_qa:spell_word",
+        "slots": {
+          "word": "kortstondig"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "palavadapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "85b72ec4867359e7",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00501",
+      "input_text": "draai piets nummer",
+      "reference": "communication:call_contact",
+      "prediction_a": {
+        "intent": "media:play_song"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "9f4692d8d1fb84d3",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00502",
+      "input_text": "start een gesprek met jan",
+      "reference": "communication:call_contact",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "communication:video_call",
+        "slots": {
+          "contact": "jan"
+        }
+      },
+      "competitor_a": "padatioso",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "5ab05d6d513bc4f3",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01258",
+      "input_text": "kunnen we de tandartsafspraak naar morgen schuiven",
+      "reference": "calendar:reschedule_event",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:create_event",
+        "slots": {
+          "date": "morgen",
+          "title": "tandartsafspraak"
+        }
+      },
+      "competitor_a": "palavadapt",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "ef1bc6eed0bdcc06",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01390",
+      "input_text": "zet het volume op nul",
+      "reference": "system_control:mute_system",
+      "prediction_a": {
+        "intent": "media:set_volume"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "padatioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "025d63166e8b705b",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00736",
+      "input_text": "hoe is het verkeer",
+      "reference": "navigation:traffic_status",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "navigation:traffic_status"
+      },
+      "competitor_a": "palavadapt",
+      "competitor_b": "padapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "c12c3da265e7fef0",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01515",
+      "input_text": "saai volgende",
+      "reference": "news:next_story",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:skip_track"
+      },
+      "competitor_a": "padatioso",
+      "competitor_b": "palavadapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "510a2c7459b3b8c9",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01548",
+      "input_text": "ik wil die opnieuw horen",
+      "reference": "news:previous_story",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:play_song"
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "832a11f2f1e9ecd3",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01233",
+      "input_text": "geef me het volgende item op de agenda",
+      "reference": "calendar:next_event",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:list_events"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "33a196856d88eb73",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00021",
+      "input_text": "zou wel iets van boudewijn de groot willen",
+      "reference": "media:play_song",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:news_source"
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "4bdf22d63c7c0edf",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01165",
+      "input_text": "overzicht van afspraken",
+      "reference": "calendar:list_events",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:news_source"
+      },
+      "competitor_a": "padatioso",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "3c03a21998cacd5c",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01142",
+      "input_text": "kun je tandartsafspraak om 15 uur noteren",
+      "reference": "calendar:create_event",
+      "prediction_a": {
+        "intent": "calendar:reschedule_event",
+        "slots": {
+          "time": "15 uur",
+          "title": "tandartsafspraak"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "frankenparse",
+      "competitor_b": "palavadapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    }
+  ]
+}
