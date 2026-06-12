@@ -20,7 +20,9 @@ import Base from '../../layouts/Base.astro';
   <section id="battle-ui" style="display:none" aria-label="Current battle">
     <div class="card" style="display:flex;gap:0.75rem;flex-wrap:wrap;align-items:center;margin-bottom:1rem;padding:0.7rem 1.1rem">
       <span id="battle-badge" class="badge"></span>
-      <span id="battle-lang" style="color:var(--muted);font-size:0.9rem"></span>
+      <label for="sel-lang" class="sr-only">Battle language</label>
+      <select id="sel-lang" title="Only battles in a language you understand"
+              style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:0.25rem 0.5rem;font-size:0.85rem"></select>
       <span id="battle-count" style="color:var(--muted);font-size:0.8rem"></span>
       <span id="battle-id" style="color:var(--muted);font-size:0.72rem;font-family:var(--mono);margin-left:auto"></span>
       <button id="btn-skip" class="btn" style="padding:0.3rem 0.8rem">Skip ↻</button>
@@ -141,10 +143,40 @@ import Base from '../../layouts/Base.astro';
     const BADGE_CLASS = { stt: 'badge-stt', tts: 'badge-tts', wake_word: 'badge-ww', intent: 'badge-intent', intent_template: 'badge-intent', intent_keyword: 'badge-intent' };
     const MODALITY_LABELS = { stt: 'STT', tts: 'TTS', wake_word: 'Wake Word', intent: 'Intent · Fusions', intent_template: 'Intent · Template', intent_keyword: 'Intent · Keyword' };
 
+    let allBattles = [];
     let battles = [];
     let fightersById = {};
     let currentIdx = 0;
     let currentBattle = null;
+
+    function shuffle(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function pickDefaultLang(langs) {
+      const saved = localStorage.getItem('arena-battle-lang');
+      if (saved && langs.includes(saved)) return saved;
+      // match the browser's languages, full tag first, then primary subtag
+      for (const tag of navigator.languages || [navigator.language]) {
+        const exact = langs.find(l => l.toLowerCase() === tag.toLowerCase());
+        if (exact) return exact;
+        const primary = tag.split('-')[0].toLowerCase();
+        const close = langs.find(l => l.split('-')[0].toLowerCase() === primary);
+        if (close) return close;
+      }
+      return langs.includes('en-US') ? 'en-US' : langs[0];
+    }
+
+    function setLang(lang) {
+      localStorage.setItem('arena-battle-lang', lang);
+      battles = shuffle(allBattles.filter(b => b.lang === lang));
+      currentIdx = 0;
+      if (battles.length) loadBattle(battles[0]);
+    }
 
     const esc = s => String(s).replace(/[&<>"']/g, c =>
       ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c]);
@@ -198,7 +230,6 @@ import Base from '../../layouts/Base.astro';
       const badge = document.getElementById('battle-badge');
       badge.textContent = MODALITY_LABELS[b.modality] || b.modality;
       badge.className = `badge ${BADGE_CLASS[b.modality] || ''}`;
-      document.getElementById('battle-lang').textContent = b.lang || '';
       document.getElementById('battle-count').textContent =
         `battle ${currentIdx + 1} / ${battles.length}`;
       document.getElementById('battle-id').textContent = `#${b.battle_id}`;
@@ -264,23 +295,25 @@ import Base from '../../layouts/Base.astro';
         const data = await fetchJson(`${BASE}data/${ref.file}`);
         for (const b of data?.battles || []) {
           b.dataset_info = data.dataset_info || null;
-          battles.push(b);
+          allBattles.push(b);
         }
       }
       const bestiary = await fetchJson(`${BASE}data/competitors.json`);
       for (const f of bestiary?.competitors || []) fightersById[f.competitor_id] = f;
 
       document.getElementById('battle-loading').style.display = 'none';
-      if (!battles.length) {
+      if (!allBattles.length) {
         document.getElementById('battle-empty').style.display = '';
         return;
       }
 
-      for (let i = battles.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [battles[i], battles[j]] = [battles[j], battles[i]];
-      }
-      loadBattle(battles[0]);
+      const langs = [...new Set(allBattles.map(b => b.lang))].sort();
+      const sel = document.getElementById('sel-lang');
+      sel.innerHTML = langs.map(l => `<option value="${esc(l)}">${esc(l)}</option>`).join('');
+      const lang = pickDefaultLang(langs);
+      sel.value = lang;
+      sel.addEventListener('change', () => setLang(sel.value));
+      setLang(lang);
 
       document.getElementById('vote-a').addEventListener('click', () => castVote('a'));
       document.getElementById('vote-b').addEventListener('click', () => castVote('b'));
