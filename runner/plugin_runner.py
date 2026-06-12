@@ -8,8 +8,6 @@ from __future__ import annotations
 
 import json
 import logging
-import os
-import sys
 import time
 from pathlib import Path
 from typing import Iterator, Optional, Tuple
@@ -129,7 +127,6 @@ def _stream_dataset(spec: DatasetSpec) -> Iterator[Tuple[str, str, object, int]]
     Uses direct parquet + huggingface_hub download to avoid dill/datasets
     incompatibility on Python 3.14.
     """
-    import io
     import pyarrow.parquet as pq
     from huggingface_hub import hf_hub_download
 
