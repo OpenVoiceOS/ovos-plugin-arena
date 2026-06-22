@@ -2,7 +2,7 @@
   "modality": "intent",
   "dataset_id": "intents-for-eval",
   "lang": "en-US",
-  "generated_at": "2026-06-22T08:58:22.531307+00:00",
+  "generated_at": "2026-06-22T21:23:14.003855+00:00",
   "dataset_info": {
     "url": "https://huggingface.co/datasets/OpenVoiceOS/intents-for-eval",
     "license": "apache-2.0",
@@ -11,7 +11,9 @@
       "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-template-bench-intents-for-eval",
       "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-keyword-bench-intents-for-eval",
       "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-bench-intents-for-eval",
-      "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-template-bench-massive-templates"
+      "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-template-bench-massive-templates",
+      "https://huggingface.co/datasets/OpenVoiceOS/ovos-stt-bench-minds14-en-US",
+      "https://huggingface.co/datasets/OpenVoiceOS/ovos-tts-bench-intents-for-eval-prompts"
     ],
     "train_datasets": {
       "template": {
@@ -26,12 +28,199 @@
   },
   "battles": [
     {
+      "battle_id": "11e35a003d0114b2",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01390",
+      "input_text": "drop the volume to nothing",
+      "audio_url": null,
+      "reference": "system_control:mute_system",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:set_volume"
+      },
+      "competitor_a": "adapt-medium",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ovos-adapt-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "0ed4fe5314463802",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01366",
+      "input_text": "max brightness to 100",
+      "audio_url": null,
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "100"
+        }
+      },
+      "competitor_a": "adapt-medium",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ovos-adapt-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "06ce3f80a37bd274",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01194",
+      "input_text": "forget the dentist appointment",
+      "audio_url": null,
+      "reference": "calendar:cancel_event",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:reschedule_event",
+        "slots": {
+          "title": "dentist appointment"
+        }
+      },
+      "competitor_a": "adapt-medium",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ovos-adapt-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "010a131faa22801c",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00043",
+      "input_text": "shush the audio",
+      "audio_url": null,
+      "reference": "media:pause_playback",
+      "prediction_a": {
+        "intent": "system_control:mute_system"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "adapt-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-adapt-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "016f0a65adbe1193",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01338",
+      "input_text": "set the brightness to 50",
+      "audio_url": null,
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "adapt-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-adapt-pipeline-plugin"
+    },
+    {
+      "battle_id": "268e594497908014",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01338",
+      "input_text": "set the brightness to 50",
+      "audio_url": null,
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "competitor_a": "adapt-medium",
+      "competitor_b": "padapt",
+      "plugin_a": "ovos-adapt-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "160161d8ead1b093",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00045",
+      "input_text": "silence please",
+      "audio_url": null,
+      "reference": "media:pause_playback",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "system_control:mute_system"
+      },
+      "competitor_a": "padatioso",
+      "competitor_b": "adapt-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-adapt-pipeline-plugin"
+    },
+    {
+      "battle_id": "1ca3300f71a0283a",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01436",
+      "input_text": "set the brightness to 50",
+      "audio_url": null,
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "competitor_a": "adapt-medium",
+      "competitor_b": "padatious-medium",
+      "plugin_a": "ovos-adapt-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "05f603c030c3f47f",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00043",
+      "input_text": "shush the audio",
+      "audio_url": null,
+      "reference": "media:pause_playback",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "system_control:mute_system"
+      },
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "adapt-medium",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ovos-adapt-pipeline-plugin"
+    },
+    {
       "battle_id": "03a826571d346d09",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
       "sample_id": "en-US/01338",
       "input_text": "set the brightness to 50",
+      "audio_url": null,
       "reference": "system_control:set_brightness_screen",
       "prediction_a": {
         "intent": "smarthome:set_brightness_light",
@@ -54,6 +243,7 @@
       "lang": "en-US",
       "sample_id": "en-US/00045",
       "input_text": "silence please",
+      "audio_url": null,
       "reference": "media:pause_playback",
       "prediction_a": {
         "intent": null
@@ -67,12 +257,56 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "0bf729aefb7b84fc",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00716",
+      "input_text": "how many minutes are left",
+      "audio_url": null,
+      "reference": "navigation:eta_query",
+      "prediction_a": {
+        "intent": "search_qa:factual_query"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "frankenparse",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "034d0ccd2c927d7c",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01173",
+      "input_text": "what's planned monday",
+      "audio_url": null,
+      "reference": "calendar:list_events",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "search_qa:factual_query",
+        "slots": {
+          "query": "planned monday"
+        }
+      },
+      "competitor_a": "frankenparse",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
       "battle_id": "0392b03e340fa0e5",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
       "sample_id": "en-US/01199",
       "input_text": "dump the team meeting",
+      "audio_url": null,
       "reference": "calendar:cancel_event",
       "prediction_a": {
         "intent": null
@@ -95,6 +329,7 @@
       "lang": "en-US",
       "sample_id": "en-US/01271",
       "input_text": "redo team meeting for friday",
+      "audio_url": null,
       "reference": "calendar:reschedule_event",
       "prediction_a": {
         "intent": null
@@ -112,12 +347,36 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "135d3db39cfe8081",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00401",
+      "input_text": "crank the living room to 90",
+      "audio_url": null,
+      "reference": "smarthome:set_brightness_light",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_thermostat",
+        "slots": {
+          "room": "living room"
+        }
+      },
+      "competitor_a": "padatious-medium",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "033c7d31137e0da7",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
       "sample_id": "en-US/01104",
       "input_text": "blustery weather report",
+      "audio_url": null,
       "reference": "weather:weather_wind",
       "prediction_a": {
         "intent": null
@@ -131,12 +390,36 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "0329a489828b2b34",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01206",
+      "input_text": "toss the dentist appointment",
+      "audio_url": null,
+      "reference": "calendar:cancel_event",
+      "prediction_a": {
+        "intent": "calendar:reschedule_event",
+        "slots": {
+          "title": "dentist appointment"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "frankenparse",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
+    },
+    {
       "battle_id": "11903ffa54a2e721",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
       "sample_id": "en-US/00589",
       "input_text": "shut down the call",
+      "audio_url": null,
       "reference": "communication:hang_up",
       "prediction_a": {
         "intent": null
@@ -150,12 +433,56 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "219d9ef4a2e3f33b",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00403",
+      "input_text": "hit 60 percent on the lights",
+      "audio_url": null,
+      "reference": "smarthome:set_brightness_light",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "smarthome:lights_on"
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "035258f793030ab5",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01582",
+      "input_text": "anything from the bbc",
+      "audio_url": null,
+      "reference": "news:news_source",
+      "prediction_a": {
+        "intent": "communication:read_messages",
+        "slots": {
+          "contact": "the bbc"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "06affb9d86ada2e2",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
       "sample_id": "en-US/01270",
       "input_text": "put dentist appointment on tomorrow instead",
+      "audio_url": null,
       "reference": "calendar:reschedule_event",
       "prediction_a": {
         "intent": "calendar:create_event",
@@ -179,6 +506,7 @@
       "lang": "en-US",
       "sample_id": "en-US/00661",
       "input_text": "make for the supermarket",
+      "audio_url": null,
       "reference": "navigation:navigate_to",
       "prediction_a": {
         "intent": null
@@ -195,12 +523,37 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "0099d8faceaa0bff",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01258",
+      "input_text": "can we bump the dentist appointment to tomorrow",
+      "audio_url": null,
+      "reference": "calendar:reschedule_event",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:create_event",
+        "slots": {
+          "date": "tomorrow",
+          "title": "dentist appointment"
+        }
+      },
+      "competitor_a": "padatious-medium",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "0a4437558f9f2a2e",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
       "sample_id": "en-US/01338",
       "input_text": "set the brightness to 50",
+      "audio_url": null,
       "reference": "system_control:set_brightness_screen",
       "prediction_a": {
         "intent": "smarthome:set_brightness_light",
@@ -217,12 +570,82 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "0535b6981e38fbd5",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00698",
+      "input_text": "how long to get to the airport",
+      "audio_url": null,
+      "reference": "navigation:eta_query",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "navigation:navigate_to",
+        "slots": {
+          "destination": "the airport"
+        }
+      },
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "516f0ee76550ed75",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00527",
+      "input_text": "drop sarah a line about the meeting",
+      "audio_url": null,
+      "reference": "communication:send_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:cancel_event",
+        "slots": {
+          "title": "sarah a line about the meeting"
+        }
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "03f54038abc365a8",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00593",
+      "input_text": "drop it",
+      "audio_url": null,
+      "reference": "communication:hang_up",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:cancel_event",
+        "slots": {
+          "title": "it"
+        }
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
       "battle_id": "0bf1d5f373280fa3",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
       "sample_id": "en-US/00796",
       "input_text": "how long to get to the airport",
+      "audio_url": null,
       "reference": "navigation:eta_query",
       "prediction_a": {
         "intent": null
@@ -245,6 +668,7 @@
       "lang": "en-US",
       "sample_id": "en-US/00492",
       "input_text": "hop on a call with mike",
+      "audio_url": null,
       "reference": "communication:call_contact",
       "prediction_a": {
         "intent": "communication:video_call",
@@ -261,12 +685,36 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "02a67466896712b3",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00752",
+      "input_text": "rough going to the airport",
+      "audio_url": null,
+      "reference": "navigation:traffic_status",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "navigation:eta_query",
+        "slots": {
+          "destination": "the airport"
+        }
+      },
+      "competitor_a": "padatious-medium",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "01e2c445065c7c20",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
       "sample_id": "en-US/00045",
       "input_text": "silence please",
+      "audio_url": null,
       "reference": "media:pause_playback",
       "prediction_a": {
         "intent": null
@@ -280,12 +728,294 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "0558d7c6d30db3aa",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01199",
+      "input_text": "dump the team meeting",
+      "audio_url": null,
+      "reference": "calendar:cancel_event",
+      "prediction_a": {
+        "intent": "calendar:reschedule_event",
+        "slots": {
+          "title": "team meeting"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
+    },
+    {
+      "battle_id": "0350bcfb196fd383",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01173",
+      "input_text": "what's planned monday",
+      "audio_url": null,
+      "reference": "calendar:list_events",
+      "prediction_a": {
+        "intent": "search_qa:factual_query",
+        "slots": {
+          "query": "planned monday"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "0a018f67da486569",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01135",
+      "input_text": "lock in team meeting friday",
+      "audio_url": null,
+      "reference": "calendar:create_event",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:reschedule_event",
+        "slots": {
+          "date": "friday",
+          "title": "team meeting"
+        }
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "002beea75c9a47eb",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01436",
+      "input_text": "set the brightness to 50",
+      "audio_url": null,
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
+      },
+      "competitor_a": "padatioso",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "0954357e4251b2d6",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01138",
+      "input_text": "calendar: dentist appointment tomorrow afternoon",
+      "audio_url": null,
+      "reference": "calendar:create_event",
+      "prediction_a": {
+        "intent": "calendar:reschedule_event",
+        "slots": {
+          "time": "noon",
+          "date": "tomorrow",
+          "title": "dentist appointment"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padatious-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "01f4bd388a36ff7e",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01271",
+      "input_text": "redo team meeting for friday",
+      "audio_url": null,
+      "reference": "calendar:reschedule_event",
+      "prediction_a": {
+        "intent": "calendar:create_event",
+        "slots": {
+          "date": "friday",
+          "title": "team meeting"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "palavadapt",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "00914c1df75dac6d",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01270",
+      "input_text": "put dentist appointment on tomorrow instead",
+      "audio_url": null,
+      "reference": "calendar:reschedule_event",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:create_event",
+        "slots": {
+          "date": "tomorrow",
+          "title": "dentist appointment"
+        }
+      },
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "02473b3fa1aae020",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00235",
+      "input_text": "buzz me at 6:15 tomorrow",
+      "audio_url": null,
+      "reference": "timers_alarms:set_alarm",
+      "prediction_a": {
+        "intent": "communication:call_contact",
+        "slots": {
+          "contact": "me at 6:15 tomorrow"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "padapt",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "050b67ac3375a273",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01163",
+      "input_text": "what's coming up",
+      "audio_url": null,
+      "reference": "calendar:list_events",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "search_qa:factual_query",
+        "slots": {
+          "query": "coming up"
+        }
+      },
+      "competitor_a": "padatioso",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "0835b10a0ffc278c",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01456",
+      "input_text": "go through the headlines",
+      "audio_url": null,
+      "reference": "news:read_headlines",
+      "prediction_a": {
+        "intent": "news:read_topic",
+        "slots": {
+          "topic": "go through the"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "padatious-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "0045d129b758036a",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00266",
+      "input_text": "what's on my alarm schedule",
+      "audio_url": null,
+      "reference": "timers_alarms:list_alarms",
+      "prediction_a": {
+        "intent": "search_qa:factual_query",
+        "slots": {
+          "query": "on my alarm schedule"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "palavadapt",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "007e96c6d90c3de3",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01595",
+      "input_text": "skip to next story",
+      "audio_url": null,
+      "reference": "news:next_story",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:skip_track",
+        "slots": {
+          "count": "to next story"
+        }
+      },
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
       "battle_id": "0140c89677536e44",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
       "sample_id": "en-US/00045",
       "input_text": "silence please",
+      "audio_url": null,
       "reference": "media:pause_playback",
       "prediction_a": {
         "intent": "system_control:mute_system"
@@ -299,12 +1029,33 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "173e80e1610d250a",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00045",
+      "input_text": "silence please",
+      "audio_url": null,
+      "reference": "media:pause_playback",
+      "prediction_a": {
+        "intent": "system_control:mute_system"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "padatious-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
       "battle_id": "318023676fc892e1",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
       "sample_id": "en-US/01404",
       "input_text": "set the brightness to 50",
+      "audio_url": null,
       "reference": "system_control:set_brightness_screen",
       "prediction_a": {
         "intent": null
@@ -318,12 +1069,57 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "0b46d17d2365707b",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01105",
+      "input_text": "kite weather",
+      "audio_url": null,
+      "reference": "weather:weather_wind",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:weather_forecast"
+      },
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "padapt",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "6e24d5a5ca6ce5db",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00391",
+      "input_text": "set the living room brightness to 50",
+      "audio_url": null,
+      "reference": "smarthome:set_brightness_light",
+      "prediction_a": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "room": "living room",
+          "level": "50"
+        }
+      },
+      "competitor_a": "padatious-medium",
+      "competitor_b": "padatioso",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "23d3862fa52a6a20",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
       "sample_id": "en-US/00045",
       "input_text": "silence please",
+      "audio_url": null,
       "reference": "media:pause_playback",
       "prediction_a": {
         "intent": null
@@ -337,12 +1133,286 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "06d62c36a2e19a2b",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01306",
+      "input_text": "set the brightness to 50",
+      "audio_url": null,
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "padatioso",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "168cf892baee5df7",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00589",
+      "input_text": "shut down the call",
+      "audio_url": null,
+      "reference": "communication:hang_up",
+      "prediction_a": {
+        "intent": "system_control:shutdown"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "palavadapt",
+      "competitor_b": "padatious-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "324fa9f54c135fe1",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00527",
+      "input_text": "drop sarah a line about the meeting",
+      "audio_url": null,
+      "reference": "communication:send_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:cancel_event",
+        "slots": {
+          "title": "sarah a line about the meeting"
+        }
+      },
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "padatious-medium",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "04ff6b7e354e2d9f",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00043",
+      "input_text": "shush the audio",
+      "audio_url": null,
+      "reference": "media:pause_playback",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "system_control:mute_system"
+      },
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "palavadapt",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "15426493be1dc453",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00977",
+      "input_text": "is it shorts weather",
+      "audio_url": null,
+      "reference": "weather:weather_today",
+      "prediction_a": {
+        "intent": "weather:weather_forecast"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "frankenparse",
+      "competitor_b": "adapt-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-adapt-pipeline-plugin"
+    },
+    {
+      "battle_id": "17bc40f9787d9f90",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00698",
+      "input_text": "how long to get to the airport",
+      "audio_url": null,
+      "reference": "navigation:eta_query",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "navigation:navigate_to",
+        "slots": {
+          "destination": "the airport"
+        }
+      },
+      "competitor_a": "adapt-medium",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ovos-adapt-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "09daf2b51b734f9c",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00043",
+      "input_text": "shush the audio",
+      "audio_url": null,
+      "reference": "media:pause_playback",
+      "prediction_a": {
+        "intent": "system_control:mute_system"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "adapt-medium",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ovos-adapt-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "0864fedf792953d1",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01270",
+      "input_text": "put dentist appointment on tomorrow instead",
+      "audio_url": null,
+      "reference": "calendar:reschedule_event",
+      "prediction_a": {
+        "intent": "calendar:create_event",
+        "slots": {
+          "date": "tomorrow",
+          "title": "dentist appointment"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "adapt-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-adapt-pipeline-plugin"
+    },
+    {
+      "battle_id": "057707c188d1552e",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00877",
+      "input_text": "what's napoleon's deal",
+      "audio_url": null,
+      "reference": "search_qa:who_is",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "search_qa:factual_query",
+        "slots": {
+          "query": "napoleon s deal"
+        }
+      },
+      "competitor_a": "adapt-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-adapt-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "6032b89a30faf3e1",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01404",
+      "input_text": "set the brightness to 50",
+      "audio_url": null,
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "adapt-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-adapt-pipeline-plugin"
+    },
+    {
+      "battle_id": "1d41d914b8c3a876",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00043",
+      "input_text": "shush the audio",
+      "audio_url": null,
+      "reference": "media:pause_playback",
+      "prediction_a": {
+        "intent": "system_control:mute_system"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "adapt-medium",
+      "competitor_b": "padatioso",
+      "plugin_a": "ovos-adapt-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "22807181633c5af2",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01493",
+      "input_text": "weather stories today",
+      "audio_url": null,
+      "reference": "news:read_topic",
+      "prediction_a": {
+        "intent": "weather:weather_today"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "adapt-medium",
+      "competitor_b": "padatious-medium",
+      "plugin_a": "ovos-adapt-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "1b5a6a5de3cd5d2b",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00045",
+      "input_text": "silence please",
+      "audio_url": null,
+      "reference": "media:pause_playback",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "system_control:mute_system"
+      },
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "adapt-medium",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ovos-adapt-pipeline-plugin"
+    },
+    {
       "battle_id": "0fd3279eb719b8a8",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
       "sample_id": "en-US/01397",
       "input_text": "kill all sound",
+      "audio_url": null,
       "reference": "system_control:mute_system",
       "prediction_a": {
         "intent": "media:set_volume"
@@ -362,6 +1432,7 @@
       "lang": "en-US",
       "sample_id": "en-US/00589",
       "input_text": "shut down the call",
+      "audio_url": null,
       "reference": "communication:hang_up",
       "prediction_a": {
         "intent": null
@@ -375,12 +1446,59 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "26667f3236b5bb07",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01436",
+      "input_text": "set the brightness to 50",
+      "audio_url": null,
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "057492eacb76e78d",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01520",
+      "input_text": "skip this and read the next",
+      "audio_url": null,
+      "reference": "news:next_story",
+      "prediction_a": {
+        "intent": "media:skip_track",
+        "slots": {
+          "count": "this and read the next"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "1996e90315f715c1",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
       "sample_id": "en-US/00492",
       "input_text": "hop on a call with mike",
+      "audio_url": null,
       "reference": "communication:call_contact",
       "prediction_a": {
         "intent": null
@@ -403,6 +1521,7 @@
       "lang": "en-US",
       "sample_id": "en-US/01515",
       "input_text": "boring next one",
+      "audio_url": null,
       "reference": "news:next_story",
       "prediction_a": {
         "intent": null
@@ -416,12 +1535,33 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "14395302dd219db5",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01683",
+      "input_text": "weather stories i mean today",
+      "audio_url": null,
+      "reference": "news:read_topic",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:weather_today"
+      },
+      "competitor_a": "padatious-medium",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "0cd83954da455db7",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
       "sample_id": "en-US/00660",
       "input_text": "aim for the airport",
+      "audio_url": null,
       "reference": "navigation:navigate_to",
       "prediction_a": {
         "intent": null
@@ -438,12 +1578,33 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "0b1c1c8e43be41ec",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01657",
+      "input_text": "how many minutes are left",
+      "audio_url": null,
+      "reference": "navigation:eta_query",
+      "prediction_a": {
+        "intent": "search_qa:factual_query"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "frankenparse",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
+    },
+    {
       "battle_id": "1bb47bda6150e632",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
       "sample_id": "en-US/00527",
       "input_text": "drop sarah a line about the meeting",
+      "audio_url": null,
       "reference": "communication:send_message",
       "prediction_a": {
         "intent": null
@@ -460,12 +1621,56 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "2d037d9e017ade65",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01683",
+      "input_text": "weather stories i mean today",
+      "audio_url": null,
+      "reference": "news:read_topic",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:weather_today"
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "0583beb4834302bb",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00266",
+      "input_text": "what's on my alarm schedule",
+      "audio_url": null,
+      "reference": "timers_alarms:list_alarms",
+      "prediction_a": {
+        "intent": "search_qa:factual_query",
+        "slots": {
+          "query": "on my alarm schedule"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "0e8e5feaa694a431",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
       "sample_id": "en-US/01436",
       "input_text": "set the brightness to 50",
+      "audio_url": null,
       "reference": "system_control:set_brightness_screen",
       "prediction_a": {
         "intent": "smarthome:set_brightness_light"
@@ -488,6 +1693,7 @@
       "lang": "en-US",
       "sample_id": "en-US/01683",
       "input_text": "weather stories i mean today",
+      "audio_url": null,
       "reference": "news:read_topic",
       "prediction_a": {
         "intent": null
@@ -501,12 +1707,36 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "0341e6536e5d4a66",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00752",
+      "input_text": "rough going to the airport",
+      "audio_url": null,
+      "reference": "navigation:traffic_status",
+      "prediction_a": {
+        "intent": "navigation:eta_query",
+        "slots": {
+          "destination": "the airport"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "padatious-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
       "battle_id": "0ea25a1a971bd5aa",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
       "sample_id": "en-US/00698",
       "input_text": "how long to get to the airport",
+      "audio_url": null,
       "reference": "navigation:eta_query",
       "prediction_a": {
         "intent": "navigation:navigate_to",
@@ -523,12 +1753,79 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "067351518fde5f8d",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00045",
+      "input_text": "silence please",
+      "audio_url": null,
+      "reference": "media:pause_playback",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "system_control:mute_system"
+      },
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "5766fdcb350b8d61",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01404",
+      "input_text": "set the brightness to 50",
+      "audio_url": null,
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "09ba9aae2e87ca1b",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01390",
+      "input_text": "drop the volume to nothing",
+      "audio_url": null,
+      "reference": "system_control:mute_system",
+      "prediction_a": {
+        "intent": "media:set_volume",
+        "slots": {
+          "level": "nothing"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "15d01347f346ed0f",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
       "sample_id": "en-US/01487",
       "input_text": "politics briefing",
+      "audio_url": null,
       "reference": "news:read_topic",
       "prediction_a": {
         "intent": "news:read_headlines"
@@ -548,6 +1845,7 @@
       "lang": "en-US",
       "sample_id": "en-US/01202",
       "input_text": "wipe the dentist appointment",
+      "audio_url": null,
       "reference": "calendar:cancel_event",
       "prediction_a": {
         "intent": null
@@ -564,12 +1862,36 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "10d585e71ec83307",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00660",
+      "input_text": "aim for the airport",
+      "audio_url": null,
+      "reference": "navigation:navigate_to",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "navigation:eta_query",
+        "slots": {
+          "destination": "the airport"
+        }
+      },
+      "competitor_a": "padatious-medium",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "04ace2263312aeb0",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
       "sample_id": "en-US/01487",
       "input_text": "politics briefing",
+      "audio_url": null,
       "reference": "news:read_topic",
       "prediction_a": {
         "intent": null
@@ -583,12 +1905,286 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "05a320ce8377e26a",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00666",
+      "input_text": "how long to get to the airport",
+      "audio_url": null,
+      "reference": "navigation:eta_query",
+      "prediction_a": {
+        "intent": "navigation:navigate_to",
+        "slots": {
+          "destination": "the airport"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
+    },
+    {
+      "battle_id": "036e8b9866e89524",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01306",
+      "input_text": "set the brightness to 50",
+      "audio_url": null,
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "0d20b547d26881f1",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00698",
+      "input_text": "how long to get to the airport",
+      "audio_url": null,
+      "reference": "navigation:eta_query",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "navigation:navigate_to",
+        "slots": {
+          "destination": "the airport"
+        }
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "06a01062c2cd55f0",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00661",
+      "input_text": "make for the supermarket",
+      "audio_url": null,
+      "reference": "navigation:navigate_to",
+      "prediction_a": {
+        "intent": "navigation:eta_query",
+        "slots": {
+          "destination": "the supermarket"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padatioso",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "0e8241a6e0470dbc",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00492",
+      "input_text": "hop on a call with mike",
+      "audio_url": null,
+      "reference": "communication:call_contact",
+      "prediction_a": {
+        "intent": "communication:video_call",
+        "slots": {
+          "contact": "mike"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padatious-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "0261c483bbeb74a2",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00492",
+      "input_text": "hop on a call with mike",
+      "audio_url": null,
+      "reference": "communication:call_contact",
+      "prediction_a": {
+        "intent": "communication:video_call",
+        "slots": {
+          "contact": "mike"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "palavadapt",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "1068a4725207f1f9",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00492",
+      "input_text": "hop on a call with mike",
+      "audio_url": null,
+      "reference": "communication:call_contact",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "communication:video_call",
+        "slots": {
+          "contact": "mike"
+        }
+      },
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "0dd00c107fedf490",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00207",
+      "input_text": "ditch the laundry timer",
+      "audio_url": null,
+      "reference": "timers_alarms:cancel_timer",
+      "prediction_a": {
+        "intent": "calendar:cancel_event",
+        "slots": {
+          "title": "the laundry timer"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "padapt",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "053b2940675babfa",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00139",
+      "input_text": "get rid of this song",
+      "audio_url": null,
+      "reference": "media:skip_track",
+      "prediction_a": {
+        "intent": "calendar:cancel_event",
+        "slots": {
+          "title": "this song"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "padatioso",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "0e116524efc1a204",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00046",
+      "input_text": "kill the sound for now",
+      "audio_url": null,
+      "reference": "media:pause_playback",
+      "prediction_a": {
+        "intent": "calendar:cancel_event",
+        "slots": {
+          "title": "the sound for now"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "padatious-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "044b36d991332cee",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00043",
+      "input_text": "shush the audio",
+      "audio_url": null,
+      "reference": "media:pause_playback",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "system_control:mute_system"
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "palavadapt",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "0824f46e06a06d12",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00211",
+      "input_text": "scrap whatever timer is running",
+      "audio_url": null,
+      "reference": "timers_alarms:cancel_timer",
+      "prediction_a": {
+        "intent": "calendar:cancel_event",
+        "slots": {
+          "title": "whatever timer is running"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
+    },
+    {
       "battle_id": "2844d7a27e346ab4",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
       "sample_id": "en-US/01487",
       "input_text": "politics briefing",
+      "audio_url": null,
       "reference": "news:read_topic",
       "prediction_a": {
         "intent": "news:read_headlines"
@@ -602,12 +2198,33 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "6553236b21e22e56",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01515",
+      "input_text": "boring next one",
+      "audio_url": null,
+      "reference": "news:next_story",
+      "prediction_a": {
+        "intent": "media:skip_track"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "padatious-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
       "battle_id": "4d4cb02beedfba2d",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
       "sample_id": "en-US/01436",
       "input_text": "set the brightness to 50",
+      "audio_url": null,
       "reference": "system_control:set_brightness_screen",
       "prediction_a": {
         "intent": null
@@ -621,12 +2238,33 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "0e440e23384607fc",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01598",
+      "input_text": "read sports news",
+      "audio_url": null,
+      "reference": "news:read_topic",
+      "prediction_a": {
+        "intent": "news:read_headlines"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
+    },
+    {
       "battle_id": "2472828e99ddcdd0",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
       "sample_id": "en-US/01436",
       "input_text": "set the brightness to 50",
+      "audio_url": null,
       "reference": "system_control:set_brightness_screen",
       "prediction_a": {
         "intent": "smarthome:set_brightness_light"
@@ -640,12 +2278,297 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "4fc3feeb74abf8fe",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00527",
+      "input_text": "drop sarah a line about the meeting",
+      "audio_url": null,
+      "reference": "communication:send_message",
+      "prediction_a": {
+        "intent": "calendar:cancel_event",
+        "slots": {
+          "title": "sarah a line about the meeting"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padatioso",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
+    },
+    {
+      "battle_id": "1c43410270aa3a65",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00045",
+      "input_text": "silence please",
+      "audio_url": null,
+      "reference": "media:pause_playback",
+      "prediction_a": {
+        "intent": "system_control:mute_system"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "palavadapt",
+      "competitor_b": "padatious-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "399c4b710eedaace",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01270",
+      "input_text": "put dentist appointment on tomorrow instead",
+      "audio_url": null,
+      "reference": "calendar:reschedule_event",
+      "prediction_a": {
+        "intent": "calendar:create_event",
+        "slots": {
+          "title": "dentist appointment",
+          "date": "tomorrow instead"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padatious-medium",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
+    },
+    {
+      "battle_id": "1970b58ce243f604",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01570",
+      "input_text": "reuters news please",
+      "audio_url": null,
+      "reference": "news:news_source",
+      "prediction_a": {
+        "intent": "news:read_headlines"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "palavadapt",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
+    },
+    {
+      "battle_id": "2252312790beb42e",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01138",
+      "input_text": "calendar: dentist appointment tomorrow afternoon",
+      "audio_url": null,
+      "reference": "calendar:create_event",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:reschedule_event",
+        "slots": {
+          "time": "noon",
+          "date": "tomorrow",
+          "title": "dentist appointment"
+        }
+      },
+      "competitor_a": "adapt-medium",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ovos-adapt-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "1a6b82ddafe51e33",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01306",
+      "input_text": "set the brightness to 50",
+      "audio_url": null,
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "adapt-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-adapt-pipeline-plugin"
+    },
+    {
+      "battle_id": "0a160750a02fd670",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00401",
+      "input_text": "crank the living room to 90",
+      "audio_url": null,
+      "reference": "smarthome:set_brightness_light",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_thermostat",
+        "slots": {
+          "room": "living room"
+        }
+      },
+      "competitor_a": "adapt-medium",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ovos-adapt-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "0ce594a4198f4905",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01202",
+      "input_text": "wipe the dentist appointment",
+      "audio_url": null,
+      "reference": "calendar:cancel_event",
+      "prediction_a": {
+        "intent": "calendar:reschedule_event",
+        "slots": {
+          "title": "dentist appointment"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "adapt-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-adapt-pipeline-plugin"
+    },
+    {
+      "battle_id": "06c69b44156b4535",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00439",
+      "input_text": "dial in 22 degrees overall",
+      "audio_url": null,
+      "reference": "smarthome:set_thermostat",
+      "prediction_a": {
+        "intent": "communication:call_contact",
+        "slots": {
+          "contact": "in 22 degrees overall"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "adapt-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-adapt-pipeline-plugin"
+    },
+    {
+      "battle_id": "bf89073a0fc6c041",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01436",
+      "input_text": "set the brightness to 50",
+      "audio_url": null,
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "adapt-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-adapt-pipeline-plugin"
+    },
+    {
+      "battle_id": "36112be90d97623b",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01683",
+      "input_text": "weather stories i mean today",
+      "audio_url": null,
+      "reference": "news:read_topic",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:weather_today"
+      },
+      "competitor_a": "padatioso",
+      "competitor_b": "adapt-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-adapt-pipeline-plugin"
+    },
+    {
+      "battle_id": "2d0d726e8d5e5204",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01463",
+      "input_text": "top stories please",
+      "audio_url": null,
+      "reference": "news:read_headlines",
+      "prediction_a": {
+        "intent": "news:read_topic"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "adapt-medium",
+      "competitor_b": "padatious-medium",
+      "plugin_a": "ovos-adapt-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "24e62b34f41b6911",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01683",
+      "input_text": "weather stories i mean today",
+      "audio_url": null,
+      "reference": "news:read_topic",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:weather_today"
+      },
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "adapt-medium",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ovos-adapt-pipeline-plugin"
+    },
+    {
       "battle_id": "15b54105b88d3087",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
       "sample_id": "en-US/00977",
       "input_text": "is it shorts weather",
+      "audio_url": null,
       "reference": "weather:weather_today",
       "prediction_a": {
         "intent": null
@@ -665,6 +2588,7 @@
       "lang": "en-US",
       "sample_id": "en-US/00567",
       "input_text": "update me on sarah's messages",
+      "audio_url": null,
       "reference": "communication:read_messages",
       "prediction_a": {
         "intent": null
@@ -678,12 +2602,56 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "2e2c672951f6944d",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01233",
+      "input_text": "give me the next item on my schedule",
+      "audio_url": null,
+      "reference": "calendar:next_event",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:list_events"
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "08ffbd5ec4bd0d74",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01397",
+      "input_text": "kill all sound",
+      "audio_url": null,
+      "reference": "system_control:mute_system",
+      "prediction_a": {
+        "intent": "media:set_volume"
+      },
+      "prediction_b": {
+        "intent": "calendar:cancel_event",
+        "slots": {
+          "title": "all sound"
+        }
+      },
+      "competitor_a": "frankenparse",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
       "battle_id": "272ca42028710c7e",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
       "sample_id": "en-US/00977",
       "input_text": "is it shorts weather",
+      "audio_url": null,
       "reference": "weather:weather_today",
       "prediction_a": {
         "intent": "weather:weather_forecast"
@@ -703,6 +2671,7 @@
       "lang": "en-US",
       "sample_id": "en-US/01197",
       "input_text": "skip the doctor visit",
+      "audio_url": null,
       "reference": "calendar:cancel_event",
       "prediction_a": {
         "intent": null
@@ -719,12 +2688,36 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "187d7df3c8ed6cf3",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00622",
+      "input_text": "call up john with the camera",
+      "audio_url": null,
+      "reference": "communication:video_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "communication:call_contact",
+        "slots": {
+          "contact": "john"
+        }
+      },
+      "competitor_a": "padatious-medium",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "1624abdea278d8a0",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
       "sample_id": "en-US/01404",
       "input_text": "set the brightness to 50",
+      "audio_url": null,
       "reference": "system_control:set_brightness_screen",
       "prediction_a": {
         "intent": "smarthome:set_brightness_light"
@@ -738,12 +2731,33 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "12ee898c5485e749",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00784",
+      "input_text": "throw out the route",
+      "audio_url": null,
+      "reference": "navigation:cancel_route",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:play_song"
+      },
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "22b9375000da7ace",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
       "sample_id": "en-US/01436",
       "input_text": "set the brightness to 50",
+      "audio_url": null,
       "reference": "system_control:set_brightness_screen",
       "prediction_a": {
         "intent": "smarthome:set_brightness_light",
@@ -760,12 +2774,56 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "2d630fec6bf17a38",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01493",
+      "input_text": "weather stories today",
+      "audio_url": null,
+      "reference": "news:read_topic",
+      "prediction_a": {
+        "intent": "weather:weather_today"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "07e0d90a6080fe09",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00593",
+      "input_text": "drop it",
+      "audio_url": null,
+      "reference": "communication:hang_up",
+      "prediction_a": {
+        "intent": "calendar:cancel_event",
+        "slots": {
+          "title": "it"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "0f87577c4ffcf708",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
       "sample_id": "en-US/00660",
       "input_text": "aim for the airport",
+      "audio_url": null,
       "reference": "navigation:navigate_to",
       "prediction_a": {
         "intent": "navigation:eta_query",
@@ -788,6 +2846,7 @@
       "lang": "en-US",
       "sample_id": "en-US/01206",
       "input_text": "toss the dentist appointment",
+      "audio_url": null,
       "reference": "calendar:cancel_event",
       "prediction_a": {
         "intent": "calendar:reschedule_event",
@@ -804,12 +2863,33 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "3011145ad76a9b2b",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01493",
+      "input_text": "weather stories today",
+      "audio_url": null,
+      "reference": "news:read_topic",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:weather_today"
+      },
+      "competitor_a": "padatious-medium",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "13d13fe3716aa10c",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
       "sample_id": "en-US/01404",
       "input_text": "set the brightness to 50",
+      "audio_url": null,
       "reference": "system_control:set_brightness_screen",
       "prediction_a": {
         "intent": "smarthome:set_brightness_light",
@@ -826,12 +2906,82 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "0febff72b1e04129",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00492",
+      "input_text": "hop on a call with mike",
+      "audio_url": null,
+      "reference": "communication:call_contact",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "communication:video_call",
+        "slots": {
+          "contact": "mike"
+        }
+      },
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "668e6732243e14f8",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01436",
+      "input_text": "set the brightness to 50",
+      "audio_url": null,
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "0b803bf0f622ce0b",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00205",
+      "input_text": "call off the timer",
+      "audio_url": null,
+      "reference": "timers_alarms:cancel_timer",
+      "prediction_a": {
+        "intent": "communication:call_contact",
+        "slots": {
+          "contact": "off the timer"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "2020030cf555d026",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
       "sample_id": "en-US/01194",
       "input_text": "forget the dentist appointment",
+      "audio_url": null,
       "reference": "calendar:cancel_event",
       "prediction_a": {
         "intent": "calendar:reschedule_event",
@@ -854,6 +3004,7 @@
       "lang": "en-US",
       "sample_id": "en-US/00660",
       "input_text": "aim for the airport",
+      "audio_url": null,
       "reference": "navigation:navigate_to",
       "prediction_a": {
         "intent": "navigation:eta_query",
@@ -870,12 +3021,37 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "13bd1e14e204240a",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01135",
+      "input_text": "lock in team meeting friday",
+      "audio_url": null,
+      "reference": "calendar:create_event",
+      "prediction_a": {
+        "intent": "calendar:reschedule_event",
+        "slots": {
+          "date": "friday",
+          "title": "team meeting"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "padatious-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
       "battle_id": "0b6edbe572e59fe3",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
       "sample_id": "en-US/01404",
       "input_text": "set the brightness to 50",
+      "audio_url": null,
       "reference": "system_control:set_brightness_screen",
       "prediction_a": {
         "intent": null
@@ -889,12 +3065,285 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "113d3132d0d8da62",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01338",
+      "input_text": "set the brightness to 50",
+      "audio_url": null,
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
+    },
+    {
+      "battle_id": "0874eee27dccc870",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01199",
+      "input_text": "dump the team meeting",
+      "audio_url": null,
+      "reference": "calendar:cancel_event",
+      "prediction_a": {
+        "intent": "calendar:reschedule_event",
+        "slots": {
+          "title": "team meeting"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "12d7d9b33fb2282e",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01138",
+      "input_text": "calendar: dentist appointment tomorrow afternoon",
+      "audio_url": null,
+      "reference": "calendar:create_event",
+      "prediction_a": {
+        "intent": "calendar:reschedule_event",
+        "slots": {
+          "time": "noon",
+          "date": "tomorrow",
+          "title": "dentist appointment"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padapt",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "17abbadf507e893d",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01206",
+      "input_text": "toss the dentist appointment",
+      "audio_url": null,
+      "reference": "calendar:cancel_event",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:reschedule_event",
+        "slots": {
+          "title": "dentist appointment"
+        }
+      },
+      "competitor_a": "padatioso",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "1bc93ba7df438112",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01197",
+      "input_text": "skip the doctor visit",
+      "audio_url": null,
+      "reference": "calendar:cancel_event",
+      "prediction_a": {
+        "intent": "calendar:reschedule_event",
+        "slots": {
+          "title": "doctor visit"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padatious-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "02717b3d3d9da8b2",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00589",
+      "input_text": "shut down the call",
+      "audio_url": null,
+      "reference": "communication:hang_up",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "system_control:shutdown"
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "palavadapt",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "11a6e335c7272e76",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01436",
+      "input_text": "set the brightness to 50",
+      "audio_url": null,
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
+    },
+    {
+      "battle_id": "0ee64da304f4d3d8",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00234",
+      "input_text": "get me up at 5:45am please",
+      "audio_url": null,
+      "reference": "timers_alarms:set_alarm",
+      "prediction_a": {
+        "intent": "communication:call_contact",
+        "slots": {
+          "contact": "up at 5:45am please"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "padapt",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "05784d2471ec407d",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01490",
+      "input_text": "what's hot in sports",
+      "audio_url": null,
+      "reference": "news:read_topic",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "search_qa:factual_query",
+        "slots": {
+          "query": "hot in sports"
+        }
+      },
+      "competitor_a": "padatioso",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "12b07240d4f70b8d",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00235",
+      "input_text": "buzz me at 6:15 tomorrow",
+      "audio_url": null,
+      "reference": "timers_alarms:set_alarm",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "communication:call_contact",
+        "slots": {
+          "contact": "me at 6:15 tomorrow"
+        }
+      },
+      "competitor_a": "padatious-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "04d8ca374ac7f24e",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01197",
+      "input_text": "skip the doctor visit",
+      "audio_url": null,
+      "reference": "calendar:cancel_event",
+      "prediction_a": {
+        "intent": "media:skip_track",
+        "slots": {
+          "count": "the doctor visit"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "palavadapt",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "0bb648c81116e7f6",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00207",
+      "input_text": "ditch the laundry timer",
+      "audio_url": null,
+      "reference": "timers_alarms:cancel_timer",
+      "prediction_a": {
+        "intent": "calendar:cancel_event",
+        "slots": {
+          "title": "the laundry timer"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
+    },
+    {
       "battle_id": "426b38da3effa550",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
       "sample_id": "en-US/00403",
       "input_text": "hit 60 percent on the lights",
+      "audio_url": null,
       "reference": "smarthome:set_brightness_light",
       "prediction_a": {
         "intent": "smarthome:lights_on"
@@ -908,12 +3357,33 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "6c3ebc687921f81e",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01683",
+      "input_text": "weather stories i mean today",
+      "audio_url": null,
+      "reference": "news:read_topic",
+      "prediction_a": {
+        "intent": "weather:weather_today"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "padatious-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
       "battle_id": "5bb63f41afe0902c",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
       "sample_id": "en-US/01306",
       "input_text": "set the brightness to 50",
+      "audio_url": null,
       "reference": "system_control:set_brightness_screen",
       "prediction_a": {
         "intent": "smarthome:set_brightness_light"
@@ -927,12 +3397,33 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "2065c1ce3a6d66fc",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01463",
+      "input_text": "top stories please",
+      "audio_url": null,
+      "reference": "news:read_headlines",
+      "prediction_a": {
+        "intent": "news:read_topic"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
+    },
+    {
       "battle_id": "34dd81952315bb66",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
       "sample_id": "en-US/00403",
       "input_text": "hit 60 percent on the lights",
+      "audio_url": null,
       "reference": "smarthome:set_brightness_light",
       "prediction_a": {
         "intent": null
@@ -946,12 +3437,280 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "80c00c2bbb0c93fb",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01338",
+      "input_text": "set the brightness to 50",
+      "audio_url": null,
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "padatioso",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "27f0e13c12374e3b",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01306",
+      "input_text": "set the brightness to 50",
+      "audio_url": null,
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "competitor_a": "palavadapt",
+      "competitor_b": "padatious-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "3b1730bfcd3cd064",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01404",
+      "input_text": "set the brightness to 50",
+      "audio_url": null,
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padatious-medium",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
+    },
+    {
+      "battle_id": "201113c8c55f7b06",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00045",
+      "input_text": "silence please",
+      "audio_url": null,
+      "reference": "media:pause_playback",
+      "prediction_a": {
+        "intent": "system_control:mute_system"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "palavadapt",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
+    },
+    {
+      "battle_id": "225ec8ec5b93a38f",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01651",
+      "input_text": "humidity high today",
+      "audio_url": null,
+      "reference": "weather:weather_today",
+      "prediction_a": {
+        "intent": "weather:weather_humidity"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "frankenparse",
+      "competitor_b": "adapt-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-adapt-pipeline-plugin"
+    },
+    {
+      "battle_id": "2450fab9d2d2a0eb",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01142",
+      "input_text": "can you mark down dentist appointment 3pm",
+      "audio_url": null,
+      "reference": "calendar:create_event",
+      "prediction_a": {
+        "intent": "calendar:reschedule_event",
+        "slots": {
+          "time": "3pm",
+          "title": "dentist appointment"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "adapt-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-adapt-pipeline-plugin"
+    },
+    {
+      "battle_id": "0a92b0bfff16e360",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01515",
+      "input_text": "boring next one",
+      "audio_url": null,
+      "reference": "news:next_story",
+      "prediction_a": {
+        "intent": "media:skip_track"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "adapt-medium",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ovos-adapt-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "261795389c0d0dc9",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00045",
+      "input_text": "silence please",
+      "audio_url": null,
+      "reference": "media:pause_playback",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "system_control:mute_system"
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "adapt-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-adapt-pipeline-plugin"
+    },
+    {
+      "battle_id": "0ddbfe67448722f9",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01583",
+      "input_text": "cnn breaking news",
+      "audio_url": null,
+      "reference": "news:news_source",
+      "prediction_a": {
+        "intent": "news:read_topic",
+        "slots": {
+          "topic": "cnn breaking"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "adapt-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-adapt-pipeline-plugin"
+    },
+    {
+      "battle_id": "d8333353b6a5dcec",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01306",
+      "input_text": "set the brightness to 50",
+      "audio_url": null,
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "competitor_a": "adapt-medium",
+      "competitor_b": "padapt",
+      "plugin_a": "ovos-adapt-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "52543a51eb4bfecd",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01404",
+      "input_text": "set the brightness to 50",
+      "audio_url": null,
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padatioso",
+      "competitor_b": "adapt-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-adapt-pipeline-plugin"
+    },
+    {
+      "battle_id": "332173ce4e64bfc7",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00043",
+      "input_text": "shush the audio",
+      "audio_url": null,
+      "reference": "media:pause_playback",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "system_control:mute_system"
+      },
+      "competitor_a": "padatious-medium",
+      "competitor_b": "adapt-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-adapt-pipeline-plugin"
+    },
+    {
+      "battle_id": "294e34abb18437b3",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00403",
+      "input_text": "hit 60 percent on the lights",
+      "audio_url": null,
+      "reference": "smarthome:set_brightness_light",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "smarthome:lights_on"
+      },
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "adapt-medium",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ovos-adapt-pipeline-plugin"
+    },
+    {
       "battle_id": "2084db142861666c",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
       "sample_id": "en-US/01436",
       "input_text": "set the brightness to 50",
+      "audio_url": null,
       "reference": "system_control:set_brightness_screen",
       "prediction_a": {
         "intent": "smarthome:set_brightness_light"
@@ -974,6 +3733,7 @@
       "lang": "en-US",
       "sample_id": "en-US/00079",
       "input_text": "throw the music back on",
+      "audio_url": null,
       "reference": "media:resume_playback",
       "prediction_a": {
         "intent": "media:play_song"
@@ -987,12 +3747,56 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "3015d0b512057447",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01584",
+      "input_text": "reuters top stories",
+      "audio_url": null,
+      "reference": "news:news_source",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "0a0f4c7ccf54d021",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00171",
+      "input_text": "buzz me after 15 minutes",
+      "audio_url": null,
+      "reference": "timers_alarms:set_timer",
+      "prediction_a": {
+        "intent": "communication:call_contact",
+        "slots": {
+          "contact": "me after 15 minutes"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "27eedb2d26f35551",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
       "sample_id": "en-US/01270",
       "input_text": "put dentist appointment on tomorrow instead",
+      "audio_url": null,
       "reference": "calendar:reschedule_event",
       "prediction_a": {
         "intent": null
@@ -1016,6 +3820,7 @@
       "lang": "en-US",
       "sample_id": "en-US/00084",
       "input_text": "restart the playback",
+      "audio_url": null,
       "reference": "media:resume_playback",
       "prediction_a": {
         "intent": "system_control:restart"
@@ -1029,12 +3834,33 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "194c125fa6496274",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00043",
+      "input_text": "shush the audio",
+      "audio_url": null,
+      "reference": "media:pause_playback",
+      "prediction_a": {
+        "intent": "system_control:mute_system"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "frankenparse",
+      "competitor_b": "padatious-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
       "battle_id": "205ca294d54f9111",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
       "sample_id": "en-US/00939",
       "input_text": "could you sound out ephemeral",
+      "audio_url": null,
       "reference": "search_qa:spell_word",
       "prediction_a": {
         "intent": null
@@ -1048,12 +3874,33 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "13b22ac3dc496ade",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01676",
+      "input_text": "kite i mean weather",
+      "audio_url": null,
+      "reference": "weather:weather_wind",
+      "prediction_a": {
+        "intent": "weather:weather_forecast"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "frankenparse",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
+    },
+    {
       "battle_id": "3b44f8efcb5356b4",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
       "sample_id": "en-US/01338",
       "input_text": "set the brightness to 50",
+      "audio_url": null,
       "reference": "system_control:set_brightness_screen",
       "prediction_a": {
         "intent": "smarthome:set_brightness_light",
@@ -1070,12 +3917,53 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "666539e46b164424",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00045",
+      "input_text": "silence please",
+      "audio_url": null,
+      "reference": "media:pause_playback",
+      "prediction_a": {
+        "intent": "system_control:mute_system"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "090197f8577e23aa",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00043",
+      "input_text": "shush the audio",
+      "audio_url": null,
+      "reference": "media:pause_playback",
+      "prediction_a": {
+        "intent": "system_control:mute_system"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
       "battle_id": "1bbfe30e710ce8e1",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
       "sample_id": "en-US/00764",
       "input_text": "how long to get to the airport",
+      "audio_url": null,
       "reference": "navigation:eta_query",
       "prediction_a": {
         "intent": null
@@ -1098,6 +3986,7 @@
       "lang": "en-US",
       "sample_id": "en-US/01515",
       "input_text": "boring next one",
+      "audio_url": null,
       "reference": "news:next_story",
       "prediction_a": {
         "intent": null
@@ -1111,12 +4000,33 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "34bc94c821c489c3",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01487",
+      "input_text": "politics briefing",
+      "audio_url": null,
+      "reference": "news:read_topic",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_headlines"
+      },
+      "competitor_a": "padatious-medium",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "27af418c60309d32",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
       "sample_id": "en-US/01194",
       "input_text": "forget the dentist appointment",
+      "audio_url": null,
       "reference": "calendar:cancel_event",
       "prediction_a": {
         "intent": "calendar:reschedule_event",
@@ -1133,12 +4043,80 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "180bddd234d9c7db",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00589",
+      "input_text": "shut down the call",
+      "audio_url": null,
+      "reference": "communication:hang_up",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "system_control:shutdown"
+      },
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "c2f44069ec093db7",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01306",
+      "input_text": "set the brightness to 50",
+      "audio_url": null,
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "0bcfabeed1abb34e",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01142",
+      "input_text": "can you mark down dentist appointment 3pm",
+      "audio_url": null,
+      "reference": "calendar:create_event",
+      "prediction_a": {
+        "intent": "calendar:reschedule_event",
+        "slots": {
+          "time": "3pm",
+          "title": "dentist appointment"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
       "battle_id": "262f5a7ae8c63fb5",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
       "sample_id": "en-US/01493",
       "input_text": "weather stories today",
+      "audio_url": null,
       "reference": "news:read_topic",
       "prediction_a": {
         "intent": "weather:weather_today"
@@ -1158,6 +4136,7 @@
       "lang": "en-US",
       "sample_id": "en-US/01197",
       "input_text": "skip the doctor visit",
+      "audio_url": null,
       "reference": "calendar:cancel_event",
       "prediction_a": {
         "intent": null
@@ -1174,12 +4153,36 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "1f1e716d4927dce4",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01197",
+      "input_text": "skip the doctor visit",
+      "audio_url": null,
+      "reference": "calendar:cancel_event",
+      "prediction_a": {
+        "intent": "calendar:reschedule_event",
+        "slots": {
+          "title": "doctor visit"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "padatious-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
       "battle_id": "135efb2d955f3b23",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
       "sample_id": "en-US/00401",
       "input_text": "crank the living room to 90",
+      "audio_url": null,
       "reference": "smarthome:set_brightness_light",
       "prediction_a": {
         "intent": null
@@ -1196,520 +4199,79 @@
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "57c9cb7d4d784bd5",
+      "battle_id": "33704e114fce4862",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
-      "sample_id": "en-US/00043",
-      "input_text": "shush the audio",
-      "reference": "media:pause_playback",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "system_control:mute_system"
-      },
-      "competitor_a": "padatioso",
-      "competitor_b": "padapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "f5047d2ec08d1a56",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01338",
-      "input_text": "set the brightness to 50",
-      "reference": "system_control:set_brightness_screen",
-      "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "padapt",
-      "competitor_b": "palavadapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "4d40f80d8048c11e",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01306",
-      "input_text": "set the brightness to 50",
-      "reference": "system_control:set_brightness_screen",
-      "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "padatioso",
-      "competitor_b": "palavadapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "2298abe738ecd0d6",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00527",
-      "input_text": "drop sarah a line about the meeting",
-      "reference": "communication:send_message",
-      "prediction_a": {
-        "intent": "calendar:cancel_event",
-        "slots": {
-          "title": "sarah a line about the meeting"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "445a9fab74c0ca0f",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01584",
-      "input_text": "reuters top stories",
-      "reference": "news:news_source",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "news:read_topic"
-      },
-      "competitor_a": "nebulatious",
-      "competitor_b": "frankenparse",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "2af84d068746eec3",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01135",
-      "input_text": "lock in team meeting friday",
-      "reference": "calendar:create_event",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "calendar:reschedule_event",
-        "slots": {
-          "date": "friday",
-          "title": "team meeting"
-        }
-      },
-      "competitor_a": "padapt",
-      "competitor_b": "frankenparse",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "17d7da05ba69a6fb",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00043",
-      "input_text": "shush the audio",
-      "reference": "media:pause_playback",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "system_control:mute_system"
-      },
-      "competitor_a": "padatioso",
-      "competitor_b": "frankenparse",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "227bb9165f5df638",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00716",
-      "input_text": "how many minutes are left",
+      "sample_id": "en-US/00698",
+      "input_text": "how long to get to the airport",
+      "audio_url": null,
       "reference": "navigation:eta_query",
       "prediction_a": {
-        "intent": "search_qa:factual_query"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "palavadapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "547ac4a84b7e9d8c",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01105",
-      "input_text": "kite weather",
-      "reference": "weather:weather_wind",
-      "prediction_a": {
-        "intent": "weather:weather_forecast"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "28b6ca48bbf4cf20",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01404",
-      "input_text": "set the brightness to 50",
-      "reference": "system_control:set_brightness_screen",
-      "prediction_a": {
-        "intent": "smarthome:set_brightness_light",
-        "slots": {
-          "level": "50"
-        }
-      },
-      "prediction_b": {
-        "intent": "smarthome:set_brightness_light"
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "padapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "0f784520bb37bdd4",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01199",
-      "input_text": "dump the team meeting",
-      "reference": "calendar:cancel_event",
-      "prediction_a": {
-        "intent": "calendar:reschedule_event",
-        "slots": {
-          "title": "team meeting"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "padatioso",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "407113f32ced14df",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01270",
-      "input_text": "put dentist appointment on tomorrow instead",
-      "reference": "calendar:reschedule_event",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "calendar:create_event",
-        "slots": {
-          "date": "tomorrow",
-          "title": "dentist appointment"
-        }
-      },
-      "competitor_a": "palavadapt",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "3039aaa72be8d19b",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00660",
-      "input_text": "aim for the airport",
-      "reference": "navigation:navigate_to",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "navigation:eta_query",
+        "intent": "navigation:navigate_to",
         "slots": {
           "destination": "the airport"
         }
       },
-      "competitor_a": "padapt",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "60469d7b2c49f3b2",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00661",
-      "input_text": "make for the supermarket",
-      "reference": "navigation:navigate_to",
-      "prediction_a": {
-        "intent": "navigation:eta_query",
-        "slots": {
-          "destination": "the supermarket"
-        }
-      },
       "prediction_b": {
         "intent": null
       },
       "competitor_a": "nebulatious",
-      "competitor_b": "padatioso",
+      "competitor_b": "palavreado-medium",
       "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
     },
     {
-      "battle_id": "18efcda3d3eba045",
+      "battle_id": "0c69ae232aef1816",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
-      "sample_id": "en-US/01493",
-      "input_text": "weather stories today",
-      "reference": "news:read_topic",
-      "prediction_a": {
-        "intent": "weather:weather_today"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "palavadapt",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "70d155922e179ca7",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01105",
-      "input_text": "kite weather",
-      "reference": "weather:weather_wind",
+      "sample_id": "en-US/01517",
+      "input_text": "advance the news",
+      "audio_url": null,
+      "reference": "news:next_story",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "weather:weather_forecast"
+        "intent": "news:read_topic",
+        "slots": {
+          "topic": "advance the"
+        }
       },
-      "competitor_a": "padatioso",
-      "competitor_b": "padapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
     },
     {
-      "battle_id": "007979d31ae29954",
+      "battle_id": "13c8eb2c155f26f2",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
-      "sample_id": "en-US/00936",
-      "input_text": "read out the letters of serendipity",
-      "reference": "search_qa:spell_word",
-      "prediction_a": {
-        "intent": "search_qa:spell_word"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "padapt",
-      "competitor_b": "palavadapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "4d7cc5c1d1d8dfdf",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01683",
-      "input_text": "weather stories i mean today",
-      "reference": "news:read_topic",
-      "prediction_a": {
-        "intent": "weather:weather_today"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "palavadapt",
-      "competitor_b": "padatioso",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "33b2c0421b5958fe",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01452",
-      "input_text": "give me a rundown of today's stories",
+      "sample_id": "en-US/01463",
+      "input_text": "top stories please",
+      "audio_url": null,
       "reference": "news:read_headlines",
       "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
         "intent": "news:read_topic"
       },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "47fe86e6f73be7ca",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01706",
-      "input_text": "how many eltters i seRendipity",
-      "reference": "search_qa:spell_word",
-      "prediction_a": {
-        "intent": "search_qa:factual_query"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "2dadc0fa797e92e0",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01202",
-      "input_text": "wipe the dentist appointment",
-      "reference": "calendar:cancel_event",
-      "prediction_a": {
-        "intent": "calendar:reschedule_event",
-        "slots": {
-          "title": "dentist appointment"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
+      "competitor_a": "nebulento-medium",
       "competitor_b": "padapt",
-      "plugin_a": "ensemble",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "1871ffc7d957e56e",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01135",
-      "input_text": "lock in team meeting friday",
-      "reference": "calendar:create_event",
-      "prediction_a": {
-        "intent": "calendar:reschedule_event",
-        "slots": {
-          "date": "friday",
-          "title": "team meeting"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "padatioso",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "2780ee72f4f24d73",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00266",
-      "input_text": "what's on my alarm schedule",
-      "reference": "timers_alarms:list_alarms",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "timers_alarms:set_alarm"
-      },
-      "competitor_a": "palavadapt",
-      "competitor_b": "frankenparse",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "69832ecf37364213",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00403",
-      "input_text": "hit 60 percent on the lights",
-      "reference": "smarthome:set_brightness_light",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "smarthome:lights_on"
-      },
-      "competitor_a": "nebulatious",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "36680e87f4deb2f0",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00492",
-      "input_text": "hop on a call with mike",
-      "reference": "communication:call_contact",
-      "prediction_a": {
-        "intent": "communication:video_call",
-        "slots": {
-          "contact": "mike"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "padapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "1046e202b79fe4bb",
+      "battle_id": "1a341271cdcce7ab",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
       "sample_id": "en-US/01366",
       "input_text": "max brightness to 100",
+      "audio_url": null,
       "reference": "system_control:set_brightness_screen",
       "prediction_a": {
         "intent": null
@@ -1721,810 +4283,18 @@
         }
       },
       "competitor_a": "padatioso",
-      "competitor_b": "nebulapt",
+      "competitor_b": "nebulento-medium",
       "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
     },
     {
-      "battle_id": "45497e280ab69693",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01206",
-      "input_text": "toss the dentist appointment",
-      "reference": "calendar:cancel_event",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "calendar:reschedule_event",
-        "slots": {
-          "title": "dentist appointment"
-        }
-      },
-      "competitor_a": "palavadapt",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "30a5178025c71090",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01105",
-      "input_text": "kite weather",
-      "reference": "weather:weather_wind",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "weather:weather_forecast"
-      },
-      "competitor_a": "nebulatious",
-      "competitor_b": "padapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "677101c0baf193f3",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01271",
-      "input_text": "redo team meeting for friday",
-      "reference": "calendar:reschedule_event",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "calendar:create_event",
-        "slots": {
-          "date": "friday",
-          "title": "team meeting"
-        }
-      },
-      "competitor_a": "padatioso",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "27f815a1895523f7",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00661",
-      "input_text": "make for the supermarket",
-      "reference": "navigation:navigate_to",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "navigation:eta_query",
-        "slots": {
-          "destination": "the supermarket"
-        }
-      },
-      "competitor_a": "palavadapt",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "87e188b6dba29a58",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00589",
-      "input_text": "shut down the call",
-      "reference": "communication:hang_up",
-      "prediction_a": {
-        "intent": "system_control:shutdown"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "padapt",
-      "competitor_b": "padatioso",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "01b1f1452e9a19ce",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00615",
-      "input_text": "get mom on video",
-      "reference": "communication:video_call",
-      "prediction_a": {
-        "intent": "communication:video_call"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "padapt",
-      "competitor_b": "palavadapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "6d66a42e64fdbff9",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01515",
-      "input_text": "boring next one",
-      "reference": "news:next_story",
-      "prediction_a": {
-        "intent": "media:skip_track"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "palavadapt",
-      "competitor_b": "padatioso",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "37506efb78ea6167",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01233",
-      "input_text": "give me the next item on my schedule",
-      "reference": "calendar:next_event",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "calendar:list_events"
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "frankenparse",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "4d48827ee6e0153f",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01463",
-      "input_text": "top stories please",
-      "reference": "news:read_headlines",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "news:read_topic"
-      },
-      "competitor_a": "nebulatious",
-      "competitor_b": "frankenparse",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "31bbc31033bd7899",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00716",
-      "input_text": "how many minutes are left",
-      "reference": "navigation:eta_query",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "search_qa:factual_query"
-      },
-      "competitor_a": "padapt",
-      "competitor_b": "frankenparse",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "216a96b6b2cdd86c",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01194",
-      "input_text": "forget the dentist appointment",
-      "reference": "calendar:cancel_event",
-      "prediction_a": {
-        "intent": "calendar:reschedule_event",
-        "slots": {
-          "title": "dentist appointment"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "padatioso",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "2a6b416df4fa3890",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00055",
-      "input_text": "halt that song please",
-      "reference": "media:pause_playback",
-      "prediction_a": {
-        "intent": "system_control:shutdown"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "palavadapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "7cff41f7456f736c",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00043",
-      "input_text": "shush the audio",
-      "reference": "media:pause_playback",
-      "prediction_a": {
-        "intent": "system_control:mute_system"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "4fcf15cecffb1e9d",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01271",
-      "input_text": "redo team meeting for friday",
-      "reference": "calendar:reschedule_event",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "calendar:create_event",
-        "slots": {
-          "date": "friday",
-          "title": "team meeting"
-        }
-      },
-      "competitor_a": "padapt",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "1b1954da3765f23c",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00527",
-      "input_text": "drop sarah a line about the meeting",
-      "reference": "communication:send_message",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "calendar:cancel_event",
-        "slots": {
-          "title": "sarah a line about the meeting"
-        }
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "padatioso",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "47e947e64215c0fb",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01138",
-      "input_text": "calendar: dentist appointment tomorrow afternoon",
-      "reference": "calendar:create_event",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "calendar:reschedule_event",
-        "slots": {
-          "time": "noon",
-          "date": "tomorrow",
-          "title": "dentist appointment"
-        }
-      },
-      "competitor_a": "palavadapt",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "41b230b273de285d",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01206",
-      "input_text": "toss the dentist appointment",
-      "reference": "calendar:cancel_event",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "calendar:reschedule_event",
-        "slots": {
-          "title": "dentist appointment"
-        }
-      },
-      "competitor_a": "padapt",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "6f1476f9626620c5",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01199",
-      "input_text": "dump the team meeting",
-      "reference": "calendar:cancel_event",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "calendar:reschedule_event",
-        "slots": {
-          "title": "team meeting"
-        }
-      },
-      "competitor_a": "padatioso",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "2b1ceda163bff57b",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00527",
-      "input_text": "drop sarah a line about the meeting",
-      "reference": "communication:send_message",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "calendar:cancel_event",
-        "slots": {
-          "title": "sarah a line about the meeting"
-        }
-      },
-      "competitor_a": "palavadapt",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "94b8571754ae44fd",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01683",
-      "input_text": "weather stories i mean today",
-      "reference": "news:read_topic",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "weather:weather_today"
-      },
-      "competitor_a": "padatioso",
-      "competitor_b": "padapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "026bfa434e0803c8",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01065",
-      "input_text": "how moist is the air",
-      "reference": "weather:weather_humidity",
-      "prediction_a": {
-        "intent": "weather:weather_humidity"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "padapt",
-      "competitor_b": "palavadapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "8668a8c1a61f1c21",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01493",
-      "input_text": "weather stories today",
-      "reference": "news:read_topic",
-      "prediction_a": {
-        "intent": "weather:weather_today"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "palavadapt",
-      "competitor_b": "padatioso",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "3932ed2a34da11de",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00716",
-      "input_text": "how many minutes are left",
-      "reference": "navigation:eta_query",
-      "prediction_a": {
-        "intent": "search_qa:factual_query"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "5187e4ce137036b2",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01493",
-      "input_text": "weather stories today",
-      "reference": "news:read_topic",
-      "prediction_a": {
-        "intent": "weather:weather_today"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "3a5015d77d9b9e64",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01390",
-      "input_text": "drop the volume to nothing",
-      "reference": "system_control:mute_system",
-      "prediction_a": {
-        "intent": "media:set_volume"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "padapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "252ae1878feff530",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00974",
-      "input_text": "weather situation report",
-      "reference": "weather:weather_today",
-      "prediction_a": {
-        "intent": "weather:weather_forecast"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "padatioso",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "328ebaf98b446f8a",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01233",
-      "input_text": "give me the next item on my schedule",
-      "reference": "calendar:next_event",
-      "prediction_a": {
-        "intent": "calendar:list_events"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "palavadapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "8555c95ba7f19e20",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01515",
-      "input_text": "boring next one",
-      "reference": "news:next_story",
-      "prediction_a": {
-        "intent": "media:skip_track"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "54dadc68fc72364d",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01202",
-      "input_text": "wipe the dentist appointment",
-      "reference": "calendar:cancel_event",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "calendar:reschedule_event",
-        "slots": {
-          "title": "dentist appointment"
-        }
-      },
-      "competitor_a": "padapt",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "1f816408c5ba711a",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01338",
-      "input_text": "set the brightness to 50",
-      "reference": "system_control:set_brightness_screen",
-      "prediction_a": {
-        "intent": "smarthome:set_brightness_light",
-        "slots": {
-          "level": "50"
-        }
-      },
-      "prediction_b": {
-        "intent": "smarthome:set_brightness_light"
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "padatioso",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "5d601b6f0f83562c",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00764",
-      "input_text": "how long to get to the airport",
-      "reference": "navigation:eta_query",
-      "prediction_a": {
-        "intent": "navigation:navigate_to",
-        "slots": {
-          "destination": "the airport"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "palavadapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "45d8ddb9bf96419f",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00401",
-      "input_text": "crank the living room to 90",
-      "reference": "smarthome:set_brightness_light",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "smarthome:set_thermostat",
-        "slots": {
-          "room": "living room"
-        }
-      },
-      "competitor_a": "padapt",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "8615685ca836d975",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01194",
-      "input_text": "forget the dentist appointment",
-      "reference": "calendar:cancel_event",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "calendar:reschedule_event",
-        "slots": {
-          "title": "dentist appointment"
-        }
-      },
-      "competitor_a": "padatioso",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "345df3f42bf50fa0",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00666",
-      "input_text": "how long to get to the airport",
-      "reference": "navigation:eta_query",
-      "prediction_a": {
-        "intent": "navigation:navigate_to",
-        "slots": {
-          "destination": "the airport"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulatious",
-      "competitor_b": "palavadapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "ab725c06d448b9fa",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01493",
-      "input_text": "weather stories today",
-      "reference": "news:read_topic",
-      "prediction_a": {
-        "intent": "weather:weather_today"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "padapt",
-      "competitor_b": "padatioso",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "027c3dc897c4fd6b",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01275",
-      "input_text": "what's on my calendar today",
-      "reference": "calendar:list_events",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "calendar:list_events"
-      },
-      "competitor_a": "palavadapt",
-      "competitor_b": "padapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "8b3293ef884d6ca0",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01487",
-      "input_text": "politics briefing",
-      "reference": "news:read_topic",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "news:read_headlines"
-      },
-      "competitor_a": "padatioso",
-      "competitor_b": "palavadapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "453096516417791e",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01651",
-      "input_text": "humidity high today",
-      "reference": "weather:weather_today",
-      "prediction_a": {
-        "intent": "weather:weather_humidity"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "5daf1d925a424e7b",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00043",
-      "input_text": "shush the audio",
-      "reference": "media:pause_playback",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "system_control:mute_system"
-      },
-      "competitor_a": "nebulatious",
-      "competitor_b": "frankenparse",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "3b981c4f5dcfd8cd",
+      "battle_id": "1ef62eb9c043682f",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
       "sample_id": "en-US/00660",
       "input_text": "aim for the airport",
+      "audio_url": null,
       "reference": "navigation:navigate_to",
       "prediction_a": {
         "intent": null
@@ -2535,422 +4305,19 @@
           "destination": "the airport"
         }
       },
-      "competitor_a": "padapt",
-      "competitor_b": "frankenparse",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
+      "competitor_a": "padatious-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
     },
     {
-      "battle_id": "265f4df82eb768f5",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01661",
-      "input_text": "tell sarah uh pick up",
-      "reference": "communication:call_contact",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "media:resume_playback"
-      },
-      "competitor_a": "padatioso",
-      "competitor_b": "frankenparse",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "3379119d0b8127ab",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00079",
-      "input_text": "throw the music back on",
-      "reference": "media:resume_playback",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "media:play_song"
-      },
-      "competitor_a": "palavadapt",
-      "competitor_b": "frankenparse",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "8a894d0973e40f83",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01404",
-      "input_text": "set the brightness to 50",
-      "reference": "system_control:set_brightness_screen",
-      "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
-      },
-      "prediction_b": {
-        "intent": "smarthome:set_brightness_light",
-        "slots": {
-          "level": "50"
-        }
-      },
-      "competitor_a": "nebulatious",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "587f285d5374ef8b",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01197",
-      "input_text": "skip the doctor visit",
-      "reference": "calendar:cancel_event",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "calendar:reschedule_event",
-        "slots": {
-          "title": "doctor visit"
-        }
-      },
-      "competitor_a": "padapt",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "22c6578bab8d57e8",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01194",
-      "input_text": "forget the dentist appointment",
-      "reference": "calendar:cancel_event",
-      "prediction_a": {
-        "intent": "calendar:reschedule_event",
-        "slots": {
-          "title": "dentist appointment"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "padatioso",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "5d922915ea940a4a",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00492",
-      "input_text": "hop on a call with mike",
-      "reference": "communication:call_contact",
-      "prediction_a": {
-        "intent": "communication:video_call",
-        "slots": {
-          "contact": "mike"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "palavadapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "586478b7fa3dc6b4",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00043",
-      "input_text": "shush the audio",
-      "reference": "media:pause_playback",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "system_control:mute_system"
-      },
-      "competitor_a": "nebulatious",
-      "competitor_b": "padapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "b593fcfbff8efeac",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01206",
-      "input_text": "toss the dentist appointment",
-      "reference": "calendar:cancel_event",
-      "prediction_a": {
-        "intent": "calendar:reschedule_event",
-        "slots": {
-          "title": "dentist appointment"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulatious",
-      "competitor_b": "padatioso",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "348dd3a3d4ac1120",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01105",
-      "input_text": "kite weather",
-      "reference": "weather:weather_wind",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "weather:weather_forecast"
-      },
-      "competitor_a": "nebulatious",
-      "competitor_b": "palavadapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "abdea2474ee9bfa5",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01515",
-      "input_text": "boring next one",
-      "reference": "news:next_story",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "media:skip_track"
-      },
-      "competitor_a": "padatioso",
-      "competitor_b": "padapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "03d5e91cd0402294",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01509",
-      "input_text": "give me the next one",
-      "reference": "news:next_story",
-      "prediction_a": {
-        "intent": "news:next_story"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "padapt",
-      "competitor_b": "palavadapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "8bdee4742618a1ff",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01338",
-      "input_text": "set the brightness to 50",
-      "reference": "system_control:set_brightness_screen",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "smarthome:set_brightness_light"
-      },
-      "competitor_a": "palavadapt",
-      "competitor_b": "padatioso",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "47c0db795a6d0e68",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00622",
-      "input_text": "call up john with the camera",
-      "reference": "communication:video_call",
-      "prediction_a": {
-        "intent": "communication:call_contact",
-        "slots": {
-          "contact": "john"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "615fc4766a723558",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01676",
-      "input_text": "kite i mean weather",
-      "reference": "weather:weather_wind",
-      "prediction_a": {
-        "intent": "weather:weather_forecast"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "422b269bac78687d",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00055",
-      "input_text": "halt that song please",
-      "reference": "media:pause_playback",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "system_control:shutdown"
-      },
-      "competitor_a": "padapt",
-      "competitor_b": "frankenparse",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "2fe2faf9b0969a02",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00784",
-      "input_text": "throw out the route",
-      "reference": "navigation:cancel_route",
-      "prediction_a": {
-        "intent": "media:play_song"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "padatioso",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "33fb745fae1b41ac",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01452",
-      "input_text": "give me a rundown of today's stories",
-      "reference": "news:read_headlines",
-      "prediction_a": {
-        "intent": "news:read_topic"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "palavadapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "8e22b0606a561adf",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01493",
-      "input_text": "weather stories today",
-      "reference": "news:read_topic",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "weather:weather_today"
-      },
-      "competitor_a": "nebulatious",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "597075578995ac5e",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00401",
-      "input_text": "crank the living room to 90",
-      "reference": "smarthome:set_brightness_light",
-      "prediction_a": {
-        "intent": "smarthome:set_thermostat",
-        "slots": {
-          "room": "living room"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "padapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "2612fc765953b6ef",
+      "battle_id": "0e474a2d9c4e1430",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
       "sample_id": "en-US/01306",
       "input_text": "set the brightness to 50",
-      "reference": "system_control:set_brightness_screen",
-      "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
-      },
-      "prediction_b": {
-        "intent": "smarthome:set_brightness_light",
-        "slots": {
-          "level": "50"
-        }
-      },
-      "competitor_a": "padatioso",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "6a98c100f5ce4f4c",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01436",
-      "input_text": "set the brightness to 50",
+      "audio_url": null,
       "reference": "system_control:set_brightness_screen",
       "prediction_a": {
         "intent": "smarthome:set_brightness_light",
@@ -2961,1168 +4328,56 @@
       "prediction_b": {
         "intent": null
       },
-      "competitor_a": "nebulapt",
+      "competitor_a": "nebulento-medium",
       "competitor_b": "palavadapt",
-      "plugin_a": "ensemble",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "6899e97dd26a50a7",
+      "battle_id": "21db966c099c503a",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
-      "sample_id": "en-US/01258",
-      "input_text": "can we bump the dentist appointment to tomorrow",
-      "reference": "calendar:reschedule_event",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "calendar:create_event",
-        "slots": {
-          "date": "tomorrow",
-          "title": "dentist appointment"
-        }
-      },
-      "competitor_a": "padapt",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "b7f95db080986167",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00752",
-      "input_text": "rough going to the airport",
-      "reference": "navigation:traffic_status",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "navigation:eta_query",
-        "slots": {
-          "destination": "the airport"
-        }
-      },
-      "competitor_a": "padatioso",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "3cf643ae9455cd0a",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01199",
-      "input_text": "dump the team meeting",
-      "reference": "calendar:cancel_event",
-      "prediction_a": {
-        "intent": "calendar:reschedule_event",
-        "slots": {
-          "title": "team meeting"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulatious",
-      "competitor_b": "palavadapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "c24be4d5c20ad7f6",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01463",
-      "input_text": "top stories please",
-      "reference": "news:read_headlines",
-      "prediction_a": {
-        "intent": "news:read_topic"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "padapt",
-      "competitor_b": "padatioso",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "04293e334805aa96",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00960",
-      "input_text": "what's the weather",
-      "reference": "weather:weather_today",
-      "prediction_a": {
-        "intent": "weather:weather_today"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "padapt",
-      "competitor_b": "palavadapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "8d689ae6b5a3e078",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00043",
-      "input_text": "shush the audio",
-      "reference": "media:pause_playback",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "system_control:mute_system"
-      },
-      "competitor_a": "padatioso",
-      "competitor_b": "palavadapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "520423d604483d41",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01676",
-      "input_text": "kite i mean weather",
-      "reference": "weather:weather_wind",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "weather:weather_forecast"
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "frankenparse",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "63ff14d07200fb30",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00084",
-      "input_text": "restart the playback",
-      "reference": "media:resume_playback",
-      "prediction_a": {
-        "intent": "system_control:restart"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "478bcadca150bde2",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00266",
-      "input_text": "what's on my alarm schedule",
-      "reference": "timers_alarms:list_alarms",
-      "prediction_a": {
-        "intent": "timers_alarms:set_alarm"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "padapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "3645f70dd0a2fe4d",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00492",
-      "input_text": "hop on a call with mike",
-      "reference": "communication:call_contact",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "communication:video_call",
-        "slots": {
-          "contact": "mike"
-        }
-      },
-      "competitor_a": "padatioso",
-      "competitor_b": "frankenparse",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "34add7ddd5867261",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01661",
-      "input_text": "tell sarah uh pick up",
-      "reference": "communication:call_contact",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "media:resume_playback"
-      },
-      "competitor_a": "palavadapt",
-      "competitor_b": "frankenparse",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "9ffa966bab4b7528",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00045",
-      "input_text": "silence please",
-      "reference": "media:pause_playback",
-      "prediction_a": {
-        "intent": "system_control:mute_system"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "5c8b72603429f190",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01194",
-      "input_text": "forget the dentist appointment",
-      "reference": "calendar:cancel_event",
-      "prediction_a": {
-        "intent": "calendar:reschedule_event",
-        "slots": {
-          "title": "dentist appointment"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "padapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "31e82cf88828e307",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01138",
-      "input_text": "calendar: dentist appointment tomorrow afternoon",
-      "reference": "calendar:create_event",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "calendar:reschedule_event",
-        "slots": {
-          "time": "noon",
-          "date": "tomorrow",
-          "title": "dentist appointment"
-        }
-      },
-      "competitor_a": "padatioso",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "6d1848b772414ca7",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00796",
+      "sample_id": "en-US/00698",
       "input_text": "how long to get to the airport",
+      "audio_url": null,
       "reference": "navigation:eta_query",
       "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
         "intent": "navigation:navigate_to",
         "slots": {
           "destination": "the airport"
         }
       },
-      "competitor_a": "palavadapt",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "6ed347e0d4abdd74",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01271",
-      "input_text": "redo team meeting for friday",
-      "reference": "calendar:reschedule_event",
-      "prediction_a": {
-        "intent": "calendar:create_event",
-        "slots": {
-          "date": "friday",
-          "title": "team meeting"
-        }
-      },
       "prediction_b": {
         "intent": null
       },
-      "competitor_a": "nebulatious",
-      "competitor_b": "padapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
     },
     {
-      "battle_id": "c10ecb46c44cc0ca",
+      "battle_id": "102a9af74341dec7",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
-      "sample_id": "en-US/01135",
-      "input_text": "lock in team meeting friday",
-      "reference": "calendar:create_event",
-      "prediction_a": {
-        "intent": "calendar:reschedule_event",
-        "slots": {
-          "date": "friday",
-          "title": "team meeting"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulatious",
-      "competitor_b": "padatioso",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "4286b181d4573f99",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01515",
-      "input_text": "boring next one",
-      "reference": "news:next_story",
-      "prediction_a": {
-        "intent": "media:skip_track"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "palavadapt",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "ce6f3a3f5030edba",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00527",
-      "input_text": "drop sarah a line about the meeting",
-      "reference": "communication:send_message",
+      "sample_id": "en-US/00362",
+      "input_text": "kill the brightness in here",
+      "audio_url": null,
+      "reference": "smarthome:lights_off",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
         "intent": "calendar:cancel_event",
         "slots": {
-          "title": "sarah a line about the meeting"
+          "title": "the brightness in here"
         }
       },
       "competitor_a": "padapt",
-      "competitor_b": "padatioso",
+      "competitor_b": "padacioso-medium",
       "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "0639ace6e14576cb",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01217",
-      "input_text": "when's my next event",
-      "reference": "calendar:next_event",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "calendar:next_event"
-      },
-      "competitor_a": "palavadapt",
-      "competitor_b": "padapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "a15f911e06488479",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01105",
-      "input_text": "kite weather",
-      "reference": "weather:weather_wind",
-      "prediction_a": {
-        "intent": "weather:weather_forecast"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "palavadapt",
-      "competitor_b": "padatioso",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "567f6a88d557371f",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00055",
-      "input_text": "halt that song please",
-      "reference": "media:pause_playback",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "system_control:shutdown"
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "frankenparse",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "6ecbfbc8d1951a70",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01270",
-      "input_text": "put dentist appointment on tomorrow instead",
-      "reference": "calendar:reschedule_event",
-      "prediction_a": {
-        "intent": "calendar:create_event",
-        "slots": {
-          "title": "dentist appointment",
-          "date": "tomorrow instead"
-        }
-      },
-      "prediction_b": {
-        "intent": "calendar:create_event",
-        "slots": {
-          "date": "tomorrow",
-          "title": "dentist appointment"
-        }
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "483587effd6ff722",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00084",
-      "input_text": "restart the playback",
-      "reference": "media:resume_playback",
-      "prediction_a": {
-        "intent": "system_control:restart"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "padapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "380edf79faff48e4",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01397",
-      "input_text": "kill all sound",
-      "reference": "system_control:mute_system",
-      "prediction_a": {
-        "intent": "media:set_volume"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "padatioso",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "371d24e035c75739",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00084",
-      "input_text": "restart the playback",
-      "reference": "media:resume_playback",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "system_control:restart"
-      },
-      "competitor_a": "palavadapt",
-      "competitor_b": "frankenparse",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "a86083b8eabb9026",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01683",
-      "input_text": "weather stories i mean today",
-      "reference": "news:read_topic",
-      "prediction_a": {
-        "intent": "weather:weather_today"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "61b1e6bddf090b1f",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00666",
-      "input_text": "how long to get to the airport",
-      "reference": "navigation:eta_query",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "navigation:navigate_to",
-        "slots": {
-          "destination": "the airport"
-        }
-      },
-      "competitor_a": "padapt",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "42610dd172c85e6c",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00401",
-      "input_text": "crank the living room to 90",
-      "reference": "smarthome:set_brightness_light",
-      "prediction_a": {
-        "intent": "smarthome:set_thermostat",
-        "slots": {
-          "room": "living room"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "padatioso",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "7f3fbc53c5674bde",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00752",
-      "input_text": "rough going to the airport",
-      "reference": "navigation:traffic_status",
-      "prediction_a": {
-        "intent": "navigation:eta_query",
-        "slots": {
-          "destination": "the airport"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "palavadapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "79f92d5c9f504c3e",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00527",
-      "input_text": "drop sarah a line about the meeting",
-      "reference": "communication:send_message",
-      "prediction_a": {
-        "intent": "calendar:cancel_event",
-        "slots": {
-          "title": "sarah a line about the meeting"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulatious",
-      "competitor_b": "padapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "c8f6e3b61c5717a3",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01138",
-      "input_text": "calendar: dentist appointment tomorrow afternoon",
-      "reference": "calendar:create_event",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "calendar:reschedule_event",
-        "slots": {
-          "time": "noon",
-          "date": "tomorrow",
-          "title": "dentist appointment"
-        }
-      },
-      "competitor_a": "padatioso",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "516b393d88b4da47",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01683",
-      "input_text": "weather stories i mean today",
-      "reference": "news:read_topic",
-      "prediction_a": {
-        "intent": "weather:weather_today"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "palavadapt",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "efa7b4eb0f160000",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01270",
-      "input_text": "put dentist appointment on tomorrow instead",
-      "reference": "calendar:reschedule_event",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "calendar:create_event",
-        "slots": {
-          "title": "dentist appointment",
-          "date": "tomorrow instead"
-        }
-      },
-      "competitor_a": "padapt",
-      "competitor_b": "padatioso",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "067dca6aad3b23d7",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01478",
-      "input_text": "anything new in technology",
-      "reference": "news:read_topic",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "news:read_topic"
-      },
-      "competitor_a": "palavadapt",
-      "competitor_b": "padapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "a695b655451587fc",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01463",
-      "input_text": "top stories please",
-      "reference": "news:read_headlines",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "news:read_topic"
-      },
-      "competitor_a": "padatioso",
-      "competitor_b": "palavadapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "56825f2a5aed5e60",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01104",
-      "input_text": "blustery weather report",
-      "reference": "weather:weather_wind",
-      "prediction_a": {
-        "intent": "weather:weather_forecast"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "6fbf3b59be7c6f6d",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01651",
-      "input_text": "humidity high today",
-      "reference": "weather:weather_today",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "weather:weather_humidity"
-      },
-      "competitor_a": "nebulatious",
-      "competitor_b": "frankenparse",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "4934dd57971b3dff",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00622",
-      "input_text": "call up john with the camera",
-      "reference": "communication:video_call",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "communication:call_contact",
-        "slots": {
-          "contact": "john"
-        }
-      },
-      "competitor_a": "padapt",
-      "competitor_b": "frankenparse",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "5ea99724f484cf0a",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00403",
-      "input_text": "hit 60 percent on the lights",
-      "reference": "smarthome:set_brightness_light",
-      "prediction_a": {
-        "intent": "smarthome:lights_on"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "padatioso",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "38d3245ea294fd08",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01397",
-      "input_text": "kill all sound",
-      "reference": "system_control:mute_system",
-      "prediction_a": {
-        "intent": "media:set_volume"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "palavadapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "c4e363b2bd0797dd",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01487",
-      "input_text": "politics briefing",
-      "reference": "news:read_topic",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "news:read_headlines"
-      },
-      "competitor_a": "nebulatious",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "7b7231616682d2e3",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00796",
-      "input_text": "how long to get to the airport",
-      "reference": "navigation:eta_query",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "navigation:navigate_to",
-        "slots": {
-          "destination": "the airport"
-        }
-      },
-      "competitor_a": "padapt",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "4650d42d5194b1a5",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01463",
-      "input_text": "top stories please",
-      "reference": "news:read_headlines",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "news:read_topic"
-      },
-      "competitor_a": "padatioso",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "9f8e02d9c2bd4520",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01135",
-      "input_text": "lock in team meeting friday",
-      "reference": "calendar:create_event",
-      "prediction_a": {
-        "intent": "calendar:reschedule_event",
-        "slots": {
-          "date": "friday",
-          "title": "team meeting"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "palavadapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "7b759664c7f8aeb4",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00752",
-      "input_text": "rough going to the airport",
-      "reference": "navigation:traffic_status",
-      "prediction_a": {
-        "intent": "navigation:eta_query",
-        "slots": {
-          "destination": "the airport"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulatious",
-      "competitor_b": "padapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "c9475a715be33141",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01142",
-      "input_text": "can you mark down dentist appointment 3pm",
-      "reference": "calendar:create_event",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "calendar:reschedule_event",
-        "slots": {
-          "time": "3pm",
-          "title": "dentist appointment"
-        }
-      },
-      "competitor_a": "padatioso",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "53af00f2efc98b4c",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01271",
-      "input_text": "redo team meeting for friday",
-      "reference": "calendar:reschedule_event",
-      "prediction_a": {
-        "intent": "calendar:create_event",
-        "slots": {
-          "date": "friday",
-          "title": "team meeting"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulatious",
-      "competitor_b": "palavadapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "007cd6c48f930ba7",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00115",
-      "input_text": "knock the volume to 25",
-      "reference": "media:set_volume",
-      "prediction_a": {
-        "intent": "media:set_volume",
-        "slots": {
-          "level": "25"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "padatioso",
-      "competitor_b": "padapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "06a8a7c6c10142bf",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00154",
-      "input_text": "stop the song",
-      "reference": "media:pause_playback",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "media:pause_playback"
-      },
-      "competitor_a": "palavadapt",
-      "competitor_b": "padapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "bf7b1e414e4414e4",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00589",
-      "input_text": "shut down the call",
-      "reference": "communication:hang_up",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "system_control:shutdown"
-      },
-      "competitor_a": "padatioso",
-      "competitor_b": "palavadapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "57062275012ad076",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00084",
-      "input_text": "restart the playback",
-      "reference": "media:resume_playback",
-      "prediction_a": {
-        "intent": "system_control:restart"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "7b9e01d767ca1a5e",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01105",
-      "input_text": "kite weather",
-      "reference": "weather:weather_wind",
-      "prediction_a": {
-        "intent": "weather:weather_forecast"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "4c22ff8af609fe81",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01452",
-      "input_text": "give me a rundown of today's stories",
-      "reference": "news:read_headlines",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "news:read_topic"
-      },
-      "competitor_a": "padapt",
-      "competitor_b": "frankenparse",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "60970a4ac2dfe924",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00752",
-      "input_text": "rough going to the airport",
-      "reference": "navigation:traffic_status",
-      "prediction_a": {
-        "intent": "navigation:eta_query",
-        "slots": {
-          "destination": "the airport"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "padatioso",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "3b2ffa350247e212",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01194",
-      "input_text": "forget the dentist appointment",
-      "reference": "calendar:cancel_event",
-      "prediction_a": {
-        "intent": "calendar:reschedule_event",
-        "slots": {
-          "title": "dentist appointment"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "palavadapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
     }
   ]
 }

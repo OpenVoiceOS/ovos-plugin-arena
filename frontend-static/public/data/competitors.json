@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-22T08:58:29.554327+00:00",
+  "generated_at": "2026-06-22T21:23:26.436040+00:00",
   "competitors": [
     {
       "competitor_id": "frankenparse",
@@ -584,6 +584,45 @@
         "source": "https://github.com/OpenVoiceOS/ovos-stt-plugin-citrinet"
       },
       "notes": "Model from the README models table (self-reported WER 6.684 on CV11); downloaded from HuggingFace."
+    },
+    {
+      "competitor_id": "fasterwhisper-base-en",
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-fasterwhisper",
+      "config": {
+        "stt": {
+          "module": "ovos-stt-plugin-fasterwhisper",
+          "ovos-stt-plugin-fasterwhisper": {
+            "model": "base",
+            "compute_type": "int8",
+            "cpu_threads": 1,
+            "beam_size": 3
+          }
+        },
+        "model": "base",
+        "compute_type": "int8",
+        "cpu_threads": 1,
+        "beam_size": 3
+      },
+      "langs": [
+        "en"
+      ],
+      "alias": [
+        "ovos-stt-plugin-fasterwhisper"
+      ],
+      "display_name": "FasterWhisper (base)",
+      "species": "FasterWhisperSTT",
+      "types": [
+        "neural-net",
+        "transformer"
+      ],
+      "description": "OpenAI Whisper base model served through faster-whisper (CTranslate2, int8). Encoder-decoder speech transformer; the small-footprint profile of the Whisper family.",
+      "model": "whisper-base (int8)",
+      "size": "small",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-stt-plugin-fasterwhisper"
+      },
+      "notes": "faster-whisper base model, int8 quantised; flat config keys mirror the stt fragment for the prediction runner"
     },
     {
       "competitor_id": "fasterwhisper-base-pt",
@@ -1207,6 +1246,37 @@
         "source": "https://github.com/OpenVoiceOS/ovos-tts-plugin-espeakNG"
       },
       "notes": "README reference configuration; requires the espeak-ng binary on the system. The voice variant is appended to the language code (en-us+m1)."
+    },
+    {
+      "competitor_id": "google-tx-en-gb",
+      "modality": "tts",
+      "plugin": "ovos-tts-plugin-google-tx",
+      "config": {
+        "tts": {
+          "module": "ovos-tts-plugin-google-tx",
+          "ovos-tts-plugin-google-tx": {
+            "lang": "en",
+            "tld": "co.uk",
+            "slow": false
+          }
+        }
+      },
+      "langs": [
+        "en-GB"
+      ],
+      "alias": [
+        "ovos-tts-plugin-google-tx"
+      ],
+      "display_name": "Google Translate TTS (UK)",
+      "species": "GoogleTranslateTTS",
+      "types": [
+        "cloud"
+      ],
+      "description": "The Google Translate read-aloud voice via the gTTS library; no account required. The British English accent is selected with the co.uk top-level domain.",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-tts-plugin-google-tx"
+      },
+      "notes": "Same plugin as google-tx-en-us under a different tld — a distinct competitor (US vs UK accent)."
     },
     {
       "competitor_id": "google-tx-en-us",

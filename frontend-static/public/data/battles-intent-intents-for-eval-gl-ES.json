@@ -2,7 +2,7 @@
   "modality": "intent",
   "dataset_id": "intents-for-eval",
   "lang": "gl-ES",
-  "generated_at": "2026-06-22T08:58:22.531307+00:00",
+  "generated_at": "2026-06-22T21:23:14.003855+00:00",
   "dataset_info": {
     "url": "https://huggingface.co/datasets/OpenVoiceOS/intents-for-eval",
     "license": "apache-2.0",
@@ -11,7 +11,9 @@
       "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-template-bench-intents-for-eval",
       "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-keyword-bench-intents-for-eval",
       "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-bench-intents-for-eval",
-      "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-template-bench-massive-templates"
+      "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-template-bench-massive-templates",
+      "https://huggingface.co/datasets/OpenVoiceOS/ovos-stt-bench-minds14-en-US",
+      "https://huggingface.co/datasets/OpenVoiceOS/ovos-tts-bench-intents-for-eval-prompts"
     ],
     "train_datasets": {
       "template": {
@@ -26,12 +28,202 @@
   },
   "battles": [
     {
+      "battle_id": "02f7d196a1c0edf0",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/00021",
+      "input_text": "teño ganas de siniestro total",
+      "audio_url": null,
+      "reference": "media:play_song",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:news_source"
+      },
+      "competitor_a": "adapt-medium",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ovos-adapt-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "04548cf34821bb6c",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/00492",
+      "input_text": "entra nunha chamada con pedro",
+      "audio_url": null,
+      "reference": "communication:call_contact",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "communication:video_call",
+        "slots": {
+          "contact": "pedro"
+        }
+      },
+      "competitor_a": "adapt-medium",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ovos-adapt-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "01597b5ca7b54e58",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/00334",
+      "input_text": "sobe as luces da cociña",
+      "audio_url": null,
+      "reference": "smarthome:lights_on",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "room": "cociña"
+        }
+      },
+      "competitor_a": "adapt-medium",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ovos-adapt-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "050e711b50263dae",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01338",
+      "input_text": "pon o brillo en 50",
+      "audio_url": null,
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
+      },
+      "competitor_a": "adapt-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-adapt-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "1316985c4f4b91e6",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01512",
+      "input_text": "pasa á seguinte",
+      "audio_url": null,
+      "reference": "news:next_story",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:skip_track"
+      },
+      "competitor_a": "adapt-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-adapt-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "020913bad95c47cf",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01404",
+      "input_text": "pon o brillo en 50",
+      "audio_url": null,
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "adapt-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-adapt-pipeline-plugin"
+    },
+    {
+      "battle_id": "0812f9b68f11c2e6",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01584",
+      "input_text": "titulares reuters",
+      "audio_url": null,
+      "reference": "news:news_source",
+      "prediction_a": {
+        "intent": "news:read_headlines"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "adapt-medium",
+      "competitor_b": "padatioso",
+      "plugin_a": "ovos-adapt-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "047d3e82bb38b0af",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01306",
+      "input_text": "pon o brillo en 50",
+      "audio_url": null,
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padatious-medium",
+      "competitor_b": "adapt-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-adapt-pipeline-plugin"
+    },
+    {
+      "battle_id": "0c3a86af25149dd8",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01444",
+      "input_text": "novas de hoxe",
+      "audio_url": null,
+      "reference": "news:read_headlines",
+      "prediction_a": {
+        "intent": "news:read_topic"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "adapt-medium",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ovos-adapt-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
+    },
+    {
       "battle_id": "0aad1aac77c61cb3",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "gl-ES",
       "sample_id": "gl-ES/01436",
       "input_text": "pon o brillo en 50",
+      "audio_url": null,
       "reference": "system_control:set_brightness_screen",
       "prediction_a": {
         "intent": "smarthome:set_brightness_light",
@@ -54,6 +246,7 @@
       "lang": "gl-ES",
       "sample_id": "gl-ES/01326",
       "input_text": "probaches apagar e acender",
+      "audio_url": null,
       "reference": "system_control:restart",
       "prediction_a": {
         "intent": null
@@ -67,12 +260,53 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "07a2bce0e98ea03a",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01482",
+      "input_text": "que hai de deportes",
+      "audio_url": null,
+      "reference": "news:read_topic",
+      "prediction_a": {
+        "intent": "news:news_source"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "frankenparse",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "047b80a5fd06df05",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/00374",
+      "input_text": "poderías apagar o dormitorio",
+      "audio_url": null,
+      "reference": "smarthome:lights_off",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "system_control:shutdown"
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "08ebeb3af9c8dd9c",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "gl-ES",
       "sample_id": "gl-ES/00627",
       "input_text": "zoom con maría",
+      "audio_url": null,
       "reference": "communication:video_call",
       "prediction_a": {
         "intent": "communication:call_contact",
@@ -95,6 +329,7 @@
       "lang": "gl-ES",
       "sample_id": "gl-ES/00815",
       "input_text": "nunca oín efémero que é",
+      "audio_url": null,
       "reference": "search_qa:define_word",
       "prediction_a": {
         "intent": "search_qa:factual_query"
@@ -108,12 +343,33 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "021505785302a2b6",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/00791",
+      "input_text": "apaga a ruta",
+      "audio_url": null,
+      "reference": "navigation:cancel_route",
+      "prediction_a": {
+        "intent": "system_control:shutdown"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "frankenparse",
+      "competitor_b": "padatious-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
       "battle_id": "016b7f92305e7696",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "gl-ES",
       "sample_id": "gl-ES/01430",
       "input_text": "cambia a voz a español",
+      "audio_url": null,
       "reference": "system_control:change_language",
       "prediction_a": {
         "intent": "news:news_source",
@@ -130,12 +386,33 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "0037fb6179ddca77",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/00564",
+      "input_text": "leme as novas",
+      "audio_url": null,
+      "reference": "communication:read_messages",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_headlines"
+      },
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "015c874faf7e6aa9",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "gl-ES",
       "sample_id": "gl-ES/00791",
       "input_text": "apaga a ruta",
+      "audio_url": null,
       "reference": "navigation:cancel_route",
       "prediction_a": {
         "intent": null
@@ -149,12 +426,56 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "03e00e36dac906ce",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/00364",
+      "input_text": "ponme escuro por favor",
+      "audio_url": null,
+      "reference": "smarthome:lights_off",
+      "prediction_a": {
+        "intent": "media:play_song"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "04cffa1e6042a406",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01395",
+      "input_text": "pon o sistema en silencio",
+      "audio_url": null,
+      "reference": "system_control:mute_system",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:play_song",
+        "slots": {
+          "song": "o sistema en silencio"
+        }
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
       "battle_id": "05c77f2eecba041b",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "gl-ES",
       "sample_id": "gl-ES/00564",
       "input_text": "leme as novas",
+      "audio_url": null,
       "reference": "communication:read_messages",
       "prediction_a": {
         "intent": null
@@ -174,6 +495,7 @@
       "lang": "gl-ES",
       "sample_id": "gl-ES/01338",
       "input_text": "pon o brillo en 50",
+      "audio_url": null,
       "reference": "system_control:set_brightness_screen",
       "prediction_a": {
         "intent": "smarthome:set_brightness_light"
@@ -190,12 +512,36 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "002a671cf5196200",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/00334",
+      "input_text": "sobe as luces da cociña",
+      "audio_url": null,
+      "reference": "smarthome:lights_on",
+      "prediction_a": {
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "room": "cociña"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "padatious-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
       "battle_id": "030621d5db25b43f",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "gl-ES",
       "sample_id": "gl-ES/00561",
       "input_text": "escribiume maría",
+      "audio_url": null,
       "reference": "communication:read_messages",
       "prediction_a": {
         "intent": null
@@ -212,12 +558,83 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "12b7e7bb76da611b",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01263",
+      "input_text": "achega a reunión de equipo ao venres",
+      "audio_url": null,
+      "reference": "calendar:reschedule_event",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:create_event",
+        "slots": {
+          "date": "venres",
+          "title": "reunión de equipo"
+        }
+      },
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "655fc35adac4b42b",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01338",
+      "input_text": "pon o brillo en 50",
+      "audio_url": null,
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "01ab0426018f838e",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01678",
+      "input_text": "sabes haialgunha alarma que deba saber",
+      "audio_url": null,
+      "reference": "timers_alarms:list_alarms",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "search_qa:factual_query",
+        "slots": {
+          "query": "haialgunha alarma que deba saber"
+        }
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
       "battle_id": "16e124caf864b5cc",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "gl-ES",
       "sample_id": "gl-ES/01515",
       "input_text": "aburrida seguinte",
+      "audio_url": null,
       "reference": "news:next_story",
       "prediction_a": {
         "intent": null
@@ -237,6 +654,7 @@
       "lang": "gl-ES",
       "sample_id": "gl-ES/01130",
       "input_text": "apunta cita co dentista para mañá",
+      "audio_url": null,
       "reference": "calendar:create_event",
       "prediction_a": {
         "intent": null
@@ -254,12 +672,36 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "21d5a4c84da995d9",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/00492",
+      "input_text": "entra nunha chamada con pedro",
+      "audio_url": null,
+      "reference": "communication:call_contact",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "communication:video_call",
+        "slots": {
+          "contact": "pedro"
+        }
+      },
+      "competitor_a": "padatious-medium",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "0e84196683deea97",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "gl-ES",
       "sample_id": "gl-ES/00502",
       "input_text": "entra en chamada con xoán",
+      "audio_url": null,
       "reference": "communication:call_contact",
       "prediction_a": {
         "intent": null
@@ -276,12 +718,277 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "13bc23db9c47e409",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01338",
+      "input_text": "pon o brillo en 50",
+      "audio_url": null,
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "015d94263a8e7d83",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/00663",
+      "input_text": "pon o gps á oficina",
+      "audio_url": null,
+      "reference": "navigation:navigate_to",
+      "prediction_a": {
+        "intent": "media:play_song",
+        "slots": {
+          "song": "o gps á oficina"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "03dfd21a1b8a10a3",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01388",
+      "input_text": "non quero oír nada",
+      "audio_url": null,
+      "reference": "system_control:mute_system",
+      "prediction_a": {
+        "intent": "media:play_song"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "11360f9275dff3fb",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01306",
+      "input_text": "pon o brillo en 50",
+      "audio_url": null,
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
+      },
+      "competitor_a": "padatioso",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "15ee98ab2e1ef595",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/00492",
+      "input_text": "entra nunha chamada con pedro",
+      "audio_url": null,
+      "reference": "communication:call_contact",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "communication:video_call",
+        "slots": {
+          "contact": "pedro"
+        }
+      },
+      "competitor_a": "padatious-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "0d503ad3cbbbee3a",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/00364",
+      "input_text": "ponme escuro por favor",
+      "audio_url": null,
+      "reference": "smarthome:lights_off",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:play_song"
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "palavadapt",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "158aca29c9ba09d2",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/00653",
+      "input_text": "rumbo ao supermercado",
+      "audio_url": null,
+      "reference": "navigation:navigate_to",
+      "prediction_a": {
+        "intent": "navigation:eta_query",
+        "slots": {
+          "destination": "ao supermercado"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
+    },
+    {
+      "battle_id": "00b59ea351b49ac1",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01175",
+      "input_text": "ponme ao día sobre mañá",
+      "audio_url": null,
+      "reference": "calendar:list_events",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:play_song",
+        "slots": {
+          "song": "ao día sobre mañá"
+        }
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "02e86c5e7e943711",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/00564",
+      "input_text": "leme as novas",
+      "audio_url": null,
+      "reference": "communication:read_messages",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:news_source",
+        "slots": {
+          "source": "as novas"
+        }
+      },
+      "competitor_a": "padatioso",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "0049339c8cf6f7e1",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01423",
+      "input_text": "respóndeme en francés a partir de agora",
+      "audio_url": null,
+      "reference": "system_control:change_language",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "search_qa:factual_query",
+        "slots": {
+          "query": "en francés a partir de agora"
+        }
+      },
+      "competitor_a": "padatious-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "00d1a1123ad5a332",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01584",
+      "input_text": "titulares reuters",
+      "audio_url": null,
+      "reference": "news:news_source",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_headlines"
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "palavadapt",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "0c624c778fc245b6",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01035",
+      "input_text": "algo de tempo en londres",
+      "audio_url": null,
+      "reference": "weather:weather_location",
+      "prediction_a": {
+        "intent": "communication:read_messages",
+        "slots": {
+          "contact": "tempo en londres"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
+    },
+    {
       "battle_id": "05ea5dc1b251c222",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "gl-ES",
       "sample_id": "gl-ES/01515",
       "input_text": "aburrida seguinte",
+      "audio_url": null,
       "reference": "news:next_story",
       "prediction_a": {
         "intent": "media:skip_track"
@@ -295,12 +1002,36 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "13ffe9853eceafe0",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01356",
+      "input_text": "sobe o brillo a 80",
+      "audio_url": null,
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "80"
+        }
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "padatious-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
       "battle_id": "0653950bd43a6171",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "gl-ES",
       "sample_id": "gl-ES/01512",
       "input_text": "pasa á seguinte",
+      "audio_url": null,
       "reference": "news:next_story",
       "prediction_a": {
         "intent": null
@@ -314,12 +1045,33 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "03449b00848b5519",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01508",
+      "input_text": "avanza",
+      "audio_url": null,
+      "reference": "news:next_story",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:skip_track"
+      },
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "padapt",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "0327cac9d584c176",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "gl-ES",
       "sample_id": "gl-ES/00045",
       "input_text": "silencio por favor",
+      "audio_url": null,
       "reference": "media:pause_playback",
       "prediction_a": {
         "intent": null
@@ -333,12 +1085,291 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "66ae097157cb17e9",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01338",
+      "input_text": "pon o brillo en 50",
+      "audio_url": null,
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "padatioso",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "03eec7f949d14ad9",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01430",
+      "input_text": "cambia a voz a español",
+      "audio_url": null,
+      "reference": "system_control:change_language",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:news_source",
+        "slots": {
+          "source": "voz a español"
+        }
+      },
+      "competitor_a": "palavadapt",
+      "competitor_b": "padatious-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "12d8b8bcfca34341",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01430",
+      "input_text": "cambia a voz a español",
+      "audio_url": null,
+      "reference": "system_control:change_language",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:news_source",
+        "slots": {
+          "source": "voz a español"
+        }
+      },
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "padatious-medium",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "006bb11afb599749",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01388",
+      "input_text": "non quero oír nada",
+      "audio_url": null,
+      "reference": "system_control:mute_system",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:play_song"
+      },
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "palavadapt",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "0943bc635d31dcaa",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/00076",
+      "input_text": "volve poñer a música a tope",
+      "audio_url": null,
+      "reference": "media:resume_playback",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:play_song"
+      },
+      "competitor_a": "adapt-medium",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ovos-adapt-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "22dddb6aafcbb70f",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01436",
+      "input_text": "pon o brillo en 50",
+      "audio_url": null,
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "adapt-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-adapt-pipeline-plugin"
+    },
+    {
+      "battle_id": "0cd620e0049126c5",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01143",
+      "input_text": "engade reunión de equipo",
+      "audio_url": null,
+      "reference": "calendar:create_event",
+      "prediction_a": {
+        "intent": "calendar:cancel_event",
+        "slots": {
+          "title": "reunión de equipo"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "adapt-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-adapt-pipeline-plugin"
+    },
+    {
+      "battle_id": "0905dec670dc3eb4",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01404",
+      "input_text": "pon o brillo en 50",
+      "audio_url": null,
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
+      },
+      "competitor_a": "adapt-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-adapt-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "13e9c7f0525bf554",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01423",
+      "input_text": "respóndeme en francés a partir de agora",
+      "audio_url": null,
+      "reference": "system_control:change_language",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "search_qa:factual_query",
+        "slots": {
+          "query": "en francés a partir de agora"
+        }
+      },
+      "competitor_a": "adapt-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-adapt-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "13548a6c79d272a0",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01338",
+      "input_text": "pon o brillo en 50",
+      "audio_url": null,
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "competitor_a": "adapt-medium",
+      "competitor_b": "padapt",
+      "plugin_a": "ovos-adapt-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "13314b9e5021abb6",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/00364",
+      "input_text": "ponme escuro por favor",
+      "audio_url": null,
+      "reference": "smarthome:lights_off",
+      "prediction_a": {
+        "intent": "media:play_song"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "adapt-medium",
+      "competitor_b": "padatioso",
+      "plugin_a": "ovos-adapt-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "053baf0ee8f13616",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/00791",
+      "input_text": "apaga a ruta",
+      "audio_url": null,
+      "reference": "navigation:cancel_route",
+      "prediction_a": {
+        "intent": "system_control:shutdown"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "adapt-medium",
+      "competitor_b": "padatious-medium",
+      "plugin_a": "ovos-adapt-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "1304c26de3d003ce",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01390",
+      "input_text": "baixa o volume a cero",
+      "audio_url": null,
+      "reference": "system_control:mute_system",
+      "prediction_a": {
+        "intent": "media:set_volume"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "adapt-medium",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ovos-adapt-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
+    },
+    {
       "battle_id": "2239c85654dced3f",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "gl-ES",
       "sample_id": "gl-ES/00980",
       "input_text": "humidade alta hoxe",
+      "audio_url": null,
       "reference": "weather:weather_today",
       "prediction_a": {
         "intent": null
@@ -358,6 +1389,7 @@
       "lang": "gl-ES",
       "sample_id": "gl-ES/01453",
       "input_text": "preciso un briefing de novas",
+      "audio_url": null,
       "reference": "news:read_headlines",
       "prediction_a": {
         "intent": "news:read_topic"
@@ -371,12 +1403,56 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "081211237a57ff94",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01306",
+      "input_text": "pon o brillo en 50",
+      "audio_url": null,
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
+      },
+      "competitor_a": "frankenparse",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "078878a98eed145b",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/00560",
+      "input_text": "a última de xoán por favor",
+      "audio_url": null,
+      "reference": "communication:read_messages",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:news_source"
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "0c8789262f446582",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "gl-ES",
       "sample_id": "gl-ES/00179",
       "input_text": "marca 8 minutos para a roupa",
+      "audio_url": null,
       "reference": "timers_alarms:set_timer",
       "prediction_a": {
         "intent": "communication:call_contact"
@@ -396,6 +1472,7 @@
       "lang": "gl-ES",
       "sample_id": "gl-ES/00661",
       "input_text": "rumbo ao supermercado",
+      "audio_url": null,
       "reference": "navigation:navigate_to",
       "prediction_a": {
         "intent": null
@@ -412,12 +1489,33 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "049e10d0826f7855",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/00021",
+      "input_text": "teño ganas de siniestro total",
+      "audio_url": null,
+      "reference": "media:play_song",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:news_source"
+      },
+      "competitor_a": "padatious-medium",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "0cc48d96d2fb3546",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "gl-ES",
       "sample_id": "gl-ES/00374",
       "input_text": "poderías apagar o dormitorio",
+      "audio_url": null,
       "reference": "smarthome:lights_off",
       "prediction_a": {
         "intent": "system_control:shutdown"
@@ -431,12 +1529,33 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "0056b51eb86057ff",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01482",
+      "input_text": "que hai de deportes",
+      "audio_url": null,
+      "reference": "news:read_topic",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:news_source"
+      },
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "0bb03d245b670f97",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "gl-ES",
       "sample_id": "gl-ES/01637",
       "input_text": "cala por favor",
+      "audio_url": null,
       "reference": null,
       "prediction_a": {
         "intent": "communication:hang_up"
@@ -450,12 +1569,56 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "4eec9354cc6b8c8b",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01637",
+      "input_text": "cala por favor",
+      "audio_url": null,
+      "reference": null,
+      "prediction_a": {
+        "intent": "communication:hang_up"
+      },
+      "prediction_b": {
+        "intent": "system_control:mute_system"
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "0e55bfea5ab8147b",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01133",
+      "input_text": "bloquea a visita ao médico o luns que vén",
+      "audio_url": null,
+      "reference": "calendar:create_event",
+      "prediction_a": {
+        "intent": "smarthome:lock_door",
+        "slots": {
+          "door": "visita ao médico o luns que vén"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "099aee018d6d97ec",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "gl-ES",
       "sample_id": "gl-ES/01271",
       "input_text": "refai a reunión de equipo para o venres",
+      "audio_url": null,
       "reference": "calendar:reschedule_event",
       "prediction_a": {
         "intent": "calendar:create_event",
@@ -479,6 +1642,7 @@
       "lang": "gl-ES",
       "sample_id": "gl-ES/00334",
       "input_text": "sobe as luces da cociña",
+      "audio_url": null,
       "reference": "smarthome:lights_on",
       "prediction_a": {
         "intent": null
@@ -495,12 +1659,36 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "047515b4de2e02dc",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/00502",
+      "input_text": "entra en chamada con xoán",
+      "audio_url": null,
+      "reference": "communication:call_contact",
+      "prediction_a": {
+        "intent": "communication:video_call",
+        "slots": {
+          "contact": "xoán"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "padatious-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
       "battle_id": "19bef87cca8ac53f",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "gl-ES",
       "sample_id": "gl-ES/01263",
       "input_text": "achega a reunión de equipo ao venres",
+      "audio_url": null,
       "reference": "calendar:reschedule_event",
       "prediction_a": {
         "intent": null
@@ -518,12 +1706,82 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "2810b4b2d429083b",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/00492",
+      "input_text": "entra nunha chamada con pedro",
+      "audio_url": null,
+      "reference": "communication:call_contact",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "communication:video_call",
+        "slots": {
+          "contact": "pedro"
+        }
+      },
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "7110d153e748c31b",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01404",
+      "input_text": "pon o brillo en 50",
+      "audio_url": null,
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "01d3a45a1800506c",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01227",
+      "input_text": "cal é a próxima cousa que teño que facer",
+      "audio_url": null,
+      "reference": "calendar:next_event",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "search_qa:factual_query",
+        "slots": {
+          "query": "a próxima cousa que teño que facer"
+        }
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
       "battle_id": "1981c580b6a04038",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "gl-ES",
       "sample_id": "gl-ES/00661",
       "input_text": "rumbo ao supermercado",
+      "audio_url": null,
       "reference": "navigation:navigate_to",
       "prediction_a": {
         "intent": "navigation:eta_query",
@@ -546,6 +1804,7 @@
       "lang": "gl-ES",
       "sample_id": "gl-ES/01390",
       "input_text": "baixa o volume a cero",
+      "audio_url": null,
       "reference": "system_control:mute_system",
       "prediction_a": {
         "intent": "media:set_volume"
@@ -559,12 +1818,33 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "2a41a64468af1489",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/00045",
+      "input_text": "silencio por favor",
+      "audio_url": null,
+      "reference": "media:pause_playback",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "system_control:mute_system"
+      },
+      "competitor_a": "padatious-medium",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "156fb5efef428892",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "gl-ES",
       "sample_id": "gl-ES/01515",
       "input_text": "aburrida seguinte",
+      "audio_url": null,
       "reference": "news:next_story",
       "prediction_a": {
         "intent": null
@@ -578,12 +1858,278 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "19a5c906dea8fe03",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01508",
+      "input_text": "avanza",
+      "audio_url": null,
+      "reference": "news:next_story",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:skip_track"
+      },
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "018b15bb95295546",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/00369",
+      "input_text": "quita a lámpada do salón",
+      "audio_url": null,
+      "reference": "smarthome:lights_off",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:cancel_event",
+        "slots": {
+          "title": "lámpada do salón"
+        }
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "03f3ded0847db229",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01130",
+      "input_text": "apunta cita co dentista para mañá",
+      "audio_url": null,
+      "reference": "calendar:create_event",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:reschedule_event",
+        "slots": {
+          "date": "mañá",
+          "title": "cita co dentista"
+        }
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "1ad92db4b9ef4d3a",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/00561",
+      "input_text": "escribiume maría",
+      "audio_url": null,
+      "reference": "communication:read_messages",
+      "prediction_a": {
+        "intent": "communication:send_message",
+        "slots": {
+          "contact": "maría"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padatioso",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "17aa7de595f288d5",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01390",
+      "input_text": "baixa o volume a cero",
+      "audio_url": null,
+      "reference": "system_control:mute_system",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:set_volume"
+      },
+      "competitor_a": "padatious-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "0e8c4daed4a7dcbb",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01512",
+      "input_text": "pasa á seguinte",
+      "audio_url": null,
+      "reference": "news:next_story",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:skip_track"
+      },
+      "competitor_a": "palavadapt",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "1df1302e41054098",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01436",
+      "input_text": "pon o brillo en 50",
+      "audio_url": null,
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
+    },
+    {
+      "battle_id": "045ae4159133f601",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01677",
+      "input_text": "ponme ao día sabes coas novas",
+      "audio_url": null,
+      "reference": "news:read_headlines",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:play_song",
+        "slots": {
+          "song": "ao día sabes coas novas"
+        }
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "03e4032437aff0ee",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/00391",
+      "input_text": "pon o brillo do salón en 50",
+      "audio_url": null,
+      "reference": "smarthome:set_brightness_light",
+      "prediction_a": {
+        "intent": "media:play_song",
+        "slots": {
+          "song": "o brillo do salón en 50"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "padatioso",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "047736722fbaa032",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/00205",
+      "input_text": "anula o temporizador",
+      "audio_url": null,
+      "reference": "timers_alarms:cancel_timer",
+      "prediction_a": {
+        "intent": "calendar:cancel_event",
+        "slots": {
+          "title": "o temporizador"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "padatious-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "00e68ec920835bd6",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/00118",
+      "input_text": "ponno en 85",
+      "audio_url": null,
+      "reference": "media:set_volume",
+      "prediction_a": {
+        "intent": "smarthome:set_thermostat",
+        "slots": {
+          "temperature": "85"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "palavadapt",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "0dcb46c99cfb8f3a",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01508",
+      "input_text": "avanza",
+      "audio_url": null,
+      "reference": "news:next_story",
+      "prediction_a": {
+        "intent": "media:skip_track"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
+    },
+    {
       "battle_id": "074b7e6eb35f61e2",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "gl-ES",
       "sample_id": "gl-ES/00045",
       "input_text": "silencio por favor",
+      "audio_url": null,
       "reference": "media:pause_playback",
       "prediction_a": {
         "intent": "system_control:mute_system"
@@ -597,12 +2143,33 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "3a4451e4d5793e97",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/00364",
+      "input_text": "ponme escuro por favor",
+      "audio_url": null,
+      "reference": "smarthome:lights_off",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:play_song"
+      },
+      "competitor_a": "padatious-medium",
+      "competitor_b": "padapt",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "274224e4a689f4f0",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "gl-ES",
       "sample_id": "gl-ES/01338",
       "input_text": "pon o brillo en 50",
+      "audio_url": null,
       "reference": "system_control:set_brightness_screen",
       "prediction_a": {
         "intent": "smarthome:set_brightness_light"
@@ -616,12 +2183,33 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "0fc7c572677fcfae",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01584",
+      "input_text": "titulares reuters",
+      "audio_url": null,
+      "reference": "news:news_source",
+      "prediction_a": {
+        "intent": "news:read_headlines"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
+    },
+    {
       "battle_id": "0d4e05a6eab6492c",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "gl-ES",
       "sample_id": "gl-ES/01515",
       "input_text": "aburrida seguinte",
+      "audio_url": null,
       "reference": "news:next_story",
       "prediction_a": {
         "intent": null
@@ -635,12 +2223,289 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "6e17b4e2571c029d",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/00631",
+      "input_text": "chamada con cámara a maría por favor",
+      "audio_url": null,
+      "reference": "communication:video_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "communication:call_contact",
+        "slots": {
+          "contact": "maría"
+        }
+      },
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "padatioso",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "12c147a463a26cb6",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/00266",
+      "input_text": "que teño na axenda de alarmas",
+      "audio_url": null,
+      "reference": "timers_alarms:list_alarms",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:list_events"
+      },
+      "competitor_a": "padatious-medium",
+      "competitor_b": "palavadapt",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "170b036947e0fdd2",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01436",
+      "input_text": "pon o brillo en 50",
+      "audio_url": null,
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padatious-medium",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
+    },
+    {
+      "battle_id": "15325cb9a90114e5",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/00364",
+      "input_text": "ponme escuro por favor",
+      "audio_url": null,
+      "reference": "smarthome:lights_off",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:play_song"
+      },
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "palavadapt",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "0f92c4546d343fa7",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/00334",
+      "input_text": "sobe as luces da cociña",
+      "audio_url": null,
+      "reference": "smarthome:lights_on",
+      "prediction_a": {
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "room": "cociña"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "frankenparse",
+      "competitor_b": "adapt-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-adapt-pipeline-plugin"
+    },
+    {
+      "battle_id": "2ef2c2b76795b9e7",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01264",
+      "input_text": "empuxa a cea con maría",
+      "audio_url": null,
+      "reference": "calendar:reschedule_event",
+      "prediction_a": {
+        "intent": "calendar:cancel_event",
+        "slots": {
+          "title": "cea con maría"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "adapt-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-adapt-pipeline-plugin"
+    },
+    {
+      "battle_id": "2dfaf776c819ad63",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/00564",
+      "input_text": "leme as novas",
+      "audio_url": null,
+      "reference": "communication:read_messages",
+      "prediction_a": {
+        "intent": "news:read_headlines"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "adapt-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-adapt-pipeline-plugin"
+    },
+    {
+      "battle_id": "14bf297738d473d7",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01263",
+      "input_text": "achega a reunión de equipo ao venres",
+      "audio_url": null,
+      "reference": "calendar:reschedule_event",
+      "prediction_a": {
+        "intent": "calendar:create_event",
+        "slots": {
+          "date": "venres",
+          "title": "reunión de equipo"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "adapt-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-adapt-pipeline-plugin"
+    },
+    {
+      "battle_id": "1808cb5eb5ba9292",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/00391",
+      "input_text": "pon o brillo do salón en 50",
+      "audio_url": null,
+      "reference": "smarthome:set_brightness_light",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:play_song",
+        "slots": {
+          "song": "o brillo do salón en 50"
+        }
+      },
+      "competitor_a": "adapt-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-adapt-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "31574320db91abed",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01512",
+      "input_text": "pasa á seguinte",
+      "audio_url": null,
+      "reference": "news:next_story",
+      "prediction_a": {
+        "intent": "media:skip_track"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "adapt-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-adapt-pipeline-plugin"
+    },
+    {
+      "battle_id": "2796b7797dbacb49",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01515",
+      "input_text": "aburrida seguinte",
+      "audio_url": null,
+      "reference": "news:next_story",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:skip_track"
+      },
+      "competitor_a": "padatioso",
+      "competitor_b": "adapt-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-adapt-pipeline-plugin"
+    },
+    {
+      "battle_id": "062c65c5d3635fba",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01483",
+      "input_text": "dáme novas políticas",
+      "audio_url": null,
+      "reference": "news:read_topic",
+      "prediction_a": {
+        "intent": "news:read_headlines"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "adapt-medium",
+      "competitor_b": "padatious-medium",
+      "plugin_a": "ovos-adapt-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "1679763cfc185d89",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01561",
+      "input_text": "titulares de hoxe",
+      "audio_url": null,
+      "reference": "news:read_headlines",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "adapt-medium",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ovos-adapt-pipeline-plugin"
+    },
+    {
       "battle_id": "27b82f7f218b45e6",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "gl-ES",
       "sample_id": "gl-ES/01103",
       "input_text": "aire quedo hoxe",
+      "audio_url": null,
       "reference": "weather:weather_wind",
       "prediction_a": {
         "intent": "smarthome:set_thermostat"
@@ -660,6 +2525,7 @@
       "lang": "gl-ES",
       "sample_id": "gl-ES/01683",
       "input_text": "apaga ha ruta",
+      "audio_url": null,
       "reference": "navigation:cancel_route",
       "prediction_a": {
         "intent": "system_control:shutdown"
@@ -673,12 +2539,53 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "0a02252e93b889b5",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01104",
+      "input_text": "boletín de tempo axitado",
+      "audio_url": null,
+      "reference": "weather:weather_wind",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:weather_forecast"
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "0ae1c5128036edfe",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01103",
+      "input_text": "aire quedo hoxe",
+      "audio_url": null,
+      "reference": "weather:weather_wind",
+      "prediction_a": {
+        "intent": "smarthome:set_thermostat"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "frankenparse",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
       "battle_id": "0cbdc5b19310f40d",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "gl-ES",
       "sample_id": "gl-ES/00119",
       "input_text": "volve a 30",
+      "audio_url": null,
       "reference": "media:set_volume",
       "prediction_a": {
         "intent": null
@@ -698,6 +2605,7 @@
       "lang": "gl-ES",
       "sample_id": "gl-ES/01683",
       "input_text": "apaga ha ruta",
+      "audio_url": null,
       "reference": "navigation:cancel_route",
       "prediction_a": {
         "intent": "system_control:shutdown"
@@ -711,12 +2619,33 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "1016243c13eb3b70",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01105",
+      "input_text": "tempo de papaventos",
+      "audio_url": null,
+      "reference": "weather:weather_wind",
+      "prediction_a": {
+        "intent": "weather:weather_forecast"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "frankenparse",
+      "competitor_b": "padatious-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
       "battle_id": "0e58cf915060e01a",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "gl-ES",
       "sample_id": "gl-ES/01130",
       "input_text": "apunta cita co dentista para mañá",
+      "audio_url": null,
       "reference": "calendar:create_event",
       "prediction_a": {
         "intent": "calendar:reschedule_event",
@@ -734,12 +2663,33 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "02e20935b26680af",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01104",
+      "input_text": "boletín de tempo axitado",
+      "audio_url": null,
+      "reference": "weather:weather_wind",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:weather_forecast"
+      },
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "184a798678f627df",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "gl-ES",
       "sample_id": "gl-ES/01404",
       "input_text": "pon o brillo en 50",
+      "audio_url": null,
       "reference": "system_control:set_brightness_screen",
       "prediction_a": {
         "intent": "smarthome:set_brightness_light"
@@ -756,12 +2706,56 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "71d511ab68515f36",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/00266",
+      "input_text": "que teño na axenda de alarmas",
+      "audio_url": null,
+      "reference": "timers_alarms:list_alarms",
+      "prediction_a": {
+        "intent": "calendar:list_events"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "0f2aca08f58ae4f3",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/00211",
+      "input_text": "desfaite de calquera temporizador en marcha",
+      "audio_url": null,
+      "reference": "timers_alarms:cancel_timer",
+      "prediction_a": {
+        "intent": "calendar:cancel_event",
+        "slots": {
+          "title": "calquera temporizador en marcha"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "1623e4fa16128ba1",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "gl-ES",
       "sample_id": "gl-ES/01263",
       "input_text": "achega a reunión de equipo ao venres",
+      "audio_url": null,
       "reference": "calendar:reschedule_event",
       "prediction_a": {
         "intent": null
@@ -785,6 +2779,7 @@
       "lang": "gl-ES",
       "sample_id": "gl-ES/00364",
       "input_text": "ponme escuro por favor",
+      "audio_url": null,
       "reference": "smarthome:lights_off",
       "prediction_a": {
         "intent": null
@@ -798,12 +2793,37 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "0481667d4d7cab4f",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01137",
+      "input_text": "anota visita ao médico mediodía",
+      "audio_url": null,
+      "reference": "calendar:create_event",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:reschedule_event",
+        "slots": {
+          "time": "mediodía",
+          "title": "visita ao médico"
+        }
+      },
+      "competitor_a": "padatious-medium",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "1f48c115b38aa2c2",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "gl-ES",
       "sample_id": "gl-ES/01258",
       "input_text": "podemos empuxar a cita co dentista a mañá",
+      "audio_url": null,
       "reference": "calendar:reschedule_event",
       "prediction_a": {
         "intent": "calendar:create_event",
@@ -821,12 +2841,79 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "31eda60fc382332c",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/00564",
+      "input_text": "leme as novas",
+      "audio_url": null,
+      "reference": "communication:read_messages",
+      "prediction_a": {
+        "intent": "news:read_headlines"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
+    },
+    {
+      "battle_id": "7754b055d9145e12",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01436",
+      "input_text": "pon o brillo en 50",
+      "audio_url": null,
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "09971c49f0cde131",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/00174",
+      "input_text": "dime cando pasen 7 minutos",
+      "audio_url": null,
+      "reference": "timers_alarms:set_timer",
+      "prediction_a": {
+        "intent": "search_qa:factual_query",
+        "slots": {
+          "query": "cando pasen 7 minutos"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "1fa21c60778ef9cf",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "gl-ES",
       "sample_id": "gl-ES/00653",
       "input_text": "rumbo ao supermercado",
+      "audio_url": null,
       "reference": "navigation:navigate_to",
       "prediction_a": {
         "intent": null
@@ -849,6 +2936,7 @@
       "lang": "gl-ES",
       "sample_id": "gl-ES/00334",
       "input_text": "sobe as luces da cociña",
+      "audio_url": null,
       "reference": "smarthome:lights_on",
       "prediction_a": {
         "intent": null
@@ -865,12 +2953,36 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "2e7475321f02eefe",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/00502",
+      "input_text": "entra en chamada con xoán",
+      "audio_url": null,
+      "reference": "communication:call_contact",
+      "prediction_a": {
+        "intent": "communication:video_call",
+        "slots": {
+          "contact": "xoán"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "padatious-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
       "battle_id": "2e8c6ab798284b8e",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "gl-ES",
       "sample_id": "gl-ES/01512",
       "input_text": "pasa á seguinte",
+      "audio_url": null,
       "reference": "news:next_story",
       "prediction_a": {
         "intent": "media:skip_track"
@@ -884,12 +2996,280 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "1a33a7bf2053c847",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/00653",
+      "input_text": "rumbo ao supermercado",
+      "audio_url": null,
+      "reference": "navigation:navigate_to",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "navigation:eta_query",
+        "slots": {
+          "destination": "ao supermercado"
+        }
+      },
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "11689009b99f5422",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01423",
+      "input_text": "respóndeme en francés a partir de agora",
+      "audio_url": null,
+      "reference": "system_control:change_language",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "search_qa:factual_query",
+        "slots": {
+          "query": "en francés a partir de agora"
+        }
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "048f4a505ca3bef5",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01515",
+      "input_text": "aburrida seguinte",
+      "audio_url": null,
+      "reference": "news:next_story",
+      "prediction_a": {
+        "intent": "media:skip_track"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "1f23a424829459e0",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/00661",
+      "input_text": "rumbo ao supermercado",
+      "audio_url": null,
+      "reference": "navigation:navigate_to",
+      "prediction_a": {
+        "intent": "navigation:eta_query",
+        "slots": {
+          "destination": "ao supermercado"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padatioso",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "318582501b301108",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/00334",
+      "input_text": "sobe as luces da cociña",
+      "audio_url": null,
+      "reference": "smarthome:lights_on",
+      "prediction_a": {
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "room": "cociña"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padatious-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "199be8ab1f556814",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01388",
+      "input_text": "non quero oír nada",
+      "audio_url": null,
+      "reference": "system_control:mute_system",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:play_song"
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "palavadapt",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "2d75d3dd206302b0",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/00045",
+      "input_text": "silencio por favor",
+      "audio_url": null,
+      "reference": "media:pause_playback",
+      "prediction_a": {
+        "intent": "system_control:mute_system"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
+    },
+    {
+      "battle_id": "098afea7cb6303fe",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01014",
+      "input_text": "dime que esperar mañá",
+      "audio_url": null,
+      "reference": "weather:weather_forecast",
+      "prediction_a": {
+        "intent": "search_qa:factual_query",
+        "slots": {
+          "query": "que esperar mañá"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "padapt",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "04c0f88d9bb70b7a",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01454",
+      "input_text": "ponme ao día coas novas",
+      "audio_url": null,
+      "reference": "news:read_headlines",
+      "prediction_a": {
+        "intent": "media:play_song",
+        "slots": {
+          "song": "ao día coas novas"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "padatioso",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "08d130b4d8282814",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01228",
+      "input_text": "que teño aliñado",
+      "audio_url": null,
+      "reference": "calendar:next_event",
+      "prediction_a": {
+        "intent": "calendar:list_events",
+        "slots": {
+          "date": "aliñado"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "padatious-medium",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "06b525068ecbabc1",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/00369",
+      "input_text": "quita a lámpada do salón",
+      "audio_url": null,
+      "reference": "smarthome:lights_off",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:cancel_event",
+        "slots": {
+          "title": "lámpada do salón"
+        }
+      },
+      "competitor_a": "palavadapt",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "13ccf040f1006b2f",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01455",
+      "input_text": "le as novas de hoxe",
+      "audio_url": null,
+      "reference": "news:read_headlines",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic",
+        "slots": {
+          "topic": "hoxe"
+        }
+      },
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
       "battle_id": "2b171e18e081b52b",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "gl-ES",
       "sample_id": "gl-ES/00266",
       "input_text": "que teño na axenda de alarmas",
+      "audio_url": null,
       "reference": "timers_alarms:list_alarms",
       "prediction_a": {
         "intent": null
@@ -903,12 +3283,33 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "3ad08847dac1da7b",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/00791",
+      "input_text": "apaga a ruta",
+      "audio_url": null,
+      "reference": "navigation:cancel_route",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "system_control:shutdown"
+      },
+      "competitor_a": "padatious-medium",
+      "competitor_b": "padapt",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "36ca2619dfea1a66",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "gl-ES",
       "sample_id": "gl-ES/01404",
       "input_text": "pon o brillo en 50",
+      "audio_url": null,
       "reference": "system_control:set_brightness_screen",
       "prediction_a": {
         "intent": "smarthome:set_brightness_light"
@@ -922,12 +3323,33 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "12e95396af3a9e05",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/00791",
+      "input_text": "apaga a ruta",
+      "audio_url": null,
+      "reference": "navigation:cancel_route",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "system_control:shutdown"
+      },
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "padapt",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "15bcae9e4c0dfd34",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "gl-ES",
       "sample_id": "gl-ES/01486",
       "input_text": "resumo de deportes por favor",
+      "audio_url": null,
       "reference": "news:read_topic",
       "prediction_a": {
         "intent": null
@@ -941,12 +3363,283 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "6eeb18d03908be48",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01306",
+      "input_text": "pon o brillo en 50",
+      "audio_url": null,
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padatioso",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
+    },
+    {
+      "battle_id": "1f947463fe9380bd",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01483",
+      "input_text": "dáme novas políticas",
+      "audio_url": null,
+      "reference": "news:read_topic",
+      "prediction_a": {
+        "intent": "news:read_headlines"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "palavadapt",
+      "competitor_b": "padatious-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "3712ad47630a7beb",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/00118",
+      "input_text": "ponno en 85",
+      "audio_url": null,
+      "reference": "media:set_volume",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_thermostat"
+      },
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "padatious-medium",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "250925df6e31727d",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01497",
+      "input_text": "titulares de hoxe",
+      "audio_url": null,
+      "reference": "news:read_headlines",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "palavadapt",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "1455b7086ab3f1ab",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01104",
+      "input_text": "boletín de tempo axitado",
+      "audio_url": null,
+      "reference": "weather:weather_wind",
+      "prediction_a": {
+        "intent": "weather:weather_forecast"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "frankenparse",
+      "competitor_b": "adapt-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-adapt-pipeline-plugin"
+    },
+    {
+      "battle_id": "3797cf8c4c4f3eee",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01137",
+      "input_text": "anota visita ao médico mediodía",
+      "audio_url": null,
+      "reference": "calendar:create_event",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:reschedule_event",
+        "slots": {
+          "time": "mediodía",
+          "title": "visita ao médico"
+        }
+      },
+      "competitor_a": "adapt-medium",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ovos-adapt-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "2f20bafcd8c0ca7d",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01306",
+      "input_text": "pon o brillo en 50",
+      "audio_url": null,
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "adapt-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-adapt-pipeline-plugin"
+    },
+    {
+      "battle_id": "15614a168f2b9f80",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01143",
+      "input_text": "engade reunión de equipo",
+      "audio_url": null,
+      "reference": "calendar:create_event",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:cancel_event",
+        "slots": {
+          "title": "reunión de equipo"
+        }
+      },
+      "competitor_a": "adapt-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-adapt-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "1ce142530865491e",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01270",
+      "input_text": "pon a cita co dentista a mañá no canto",
+      "audio_url": null,
+      "reference": "calendar:reschedule_event",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:play_song",
+        "slots": {
+          "song": "a cita co dentista a mañá no canto"
+        }
+      },
+      "competitor_a": "adapt-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-adapt-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
+      "battle_id": "5ac87d83f0c9cc57",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01436",
+      "input_text": "pon o brillo en 50",
+      "audio_url": null,
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padapt",
+      "competitor_b": "adapt-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-adapt-pipeline-plugin"
+    },
+    {
+      "battle_id": "315555c5ffb432bd",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/00266",
+      "input_text": "que teño na axenda de alarmas",
+      "audio_url": null,
+      "reference": "timers_alarms:list_alarms",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:list_events"
+      },
+      "competitor_a": "padatioso",
+      "competitor_b": "adapt-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-adapt-pipeline-plugin"
+    },
+    {
+      "battle_id": "12b84ed90ab489a3",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01584",
+      "input_text": "titulares reuters",
+      "audio_url": null,
+      "reference": "news:news_source",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_headlines"
+      },
+      "competitor_a": "padatious-medium",
+      "competitor_b": "adapt-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-adapt-pipeline-plugin"
+    },
+    {
+      "battle_id": "1c3cb349ee788a38",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01388",
+      "input_text": "non quero oír nada",
+      "audio_url": null,
+      "reference": "system_control:mute_system",
+      "prediction_a": {
+        "intent": "media:play_song"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "adapt-medium",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ovos-adapt-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
+    },
+    {
       "battle_id": "320216c4429ffd8f",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "gl-ES",
       "sample_id": "gl-ES/01482",
       "input_text": "que hai de deportes",
+      "audio_url": null,
       "reference": "news:read_topic",
       "prediction_a": {
         "intent": null
@@ -966,6 +3659,7 @@
       "lang": "gl-ES",
       "sample_id": "gl-ES/01482",
       "input_text": "que hai de deportes",
+      "audio_url": null,
       "reference": "news:read_topic",
       "prediction_a": {
         "intent": null
@@ -979,12 +3673,56 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "1b8087bde959f640",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01070",
+      "input_text": "hai humidade no aire",
+      "audio_url": null,
+      "reference": "weather:weather_humidity",
+      "prediction_a": {
+        "intent": "smarthome:set_thermostat"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "frankenparse",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "0d1d0b4352a88474",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/00174",
+      "input_text": "dime cando pasen 7 minutos",
+      "audio_url": null,
+      "reference": "timers_alarms:set_timer",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "search_qa:factual_query",
+        "slots": {
+          "query": "cando pasen 7 minutos"
+        }
+      },
+      "competitor_a": "frankenparse",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
+    },
+    {
       "battle_id": "1aa1636126a5ea74",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "gl-ES",
       "sample_id": "gl-ES/01356",
       "input_text": "sobe o brillo a 80",
+      "audio_url": null,
       "reference": "system_control:set_brightness_screen",
       "prediction_a": {
         "intent": "smarthome:set_brightness_light",
@@ -1007,6 +3745,7 @@
       "lang": "gl-ES",
       "sample_id": "gl-ES/01271",
       "input_text": "refai a reunión de equipo para o venres",
+      "audio_url": null,
       "reference": "calendar:reschedule_event",
       "prediction_a": {
         "intent": null
@@ -1024,12 +3763,36 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "10f404b8dec4eb00",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/00561",
+      "input_text": "escribiume maría",
+      "audio_url": null,
+      "reference": "communication:read_messages",
+      "prediction_a": {
+        "intent": "communication:send_message",
+        "slots": {
+          "contact": "maría"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "frankenparse",
+      "competitor_b": "padatious-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
       "battle_id": "10c9a2374b9afafe",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "gl-ES",
       "sample_id": "gl-ES/00021",
       "input_text": "teño ganas de siniestro total",
+      "audio_url": null,
       "reference": "media:play_song",
       "prediction_a": {
         "intent": "news:news_source"
@@ -1043,12 +3806,33 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "0e961297c1182a1e",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/00977",
+      "input_text": "é tempo de pantalón curto",
+      "audio_url": null,
+      "reference": "weather:weather_today",
+      "prediction_a": {
+        "intent": "weather:weather_forecast"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "frankenparse",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
+    },
+    {
       "battle_id": "35dbfa9780513ce9",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "gl-ES",
       "sample_id": "gl-ES/01356",
       "input_text": "sobe o brillo a 80",
+      "audio_url": null,
       "reference": "system_control:set_brightness_screen",
       "prediction_a": {
         "intent": "smarthome:set_brightness_light",
@@ -1065,12 +3849,57 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "8a5cd1b0b1d5d357",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01388",
+      "input_text": "non quero oír nada",
+      "audio_url": null,
+      "reference": "system_control:mute_system",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:play_song"
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "107de7aae6415fe5",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01263",
+      "input_text": "achega a reunión de equipo ao venres",
+      "audio_url": null,
+      "reference": "calendar:reschedule_event",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:create_event",
+        "slots": {
+          "date": "venres",
+          "title": "reunión de equipo"
+        }
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "25754f13dc600ffb",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "gl-ES",
       "sample_id": "gl-ES/01306",
       "input_text": "pon o brillo en 50",
+      "audio_url": null,
       "reference": "system_control:set_brightness_screen",
       "prediction_a": {
         "intent": "smarthome:set_brightness_light"
@@ -1093,6 +3922,7 @@
       "lang": "gl-ES",
       "sample_id": "gl-ES/01404",
       "input_text": "pon o brillo en 50",
+      "audio_url": null,
       "reference": "system_control:set_brightness_screen",
       "prediction_a": {
         "intent": "smarthome:set_brightness_light",
@@ -1109,12 +3939,36 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "0b3fc5e264f90caf",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01436",
+      "input_text": "pon o brillo en 50",
+      "audio_url": null,
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": "smarthome:set_brightness_light"
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
+      },
+      "competitor_a": "padatious-medium",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "411d81afc4b8f1db",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "gl-ES",
       "sample_id": "gl-ES/01436",
       "input_text": "pon o brillo en 50",
+      "audio_url": null,
       "reference": "system_control:set_brightness_screen",
       "prediction_a": {
         "intent": null
@@ -1131,12 +3985,82 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "32ce299c7c1b966a",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01417",
+      "input_text": "traduce a francés",
+      "audio_url": null,
+      "reference": "system_control:change_language",
+      "prediction_a": {
+        "intent": "search_qa:translate_phrase",
+        "slots": {
+          "target_language": "francés"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
+    },
+    {
+      "battle_id": "817a063a4f96e808",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/00631",
+      "input_text": "chamada con cámara a maría por favor",
+      "audio_url": null,
+      "reference": "communication:video_call",
+      "prediction_a": {
+        "intent": "communication:call_contact",
+        "slots": {
+          "contact": "maría"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "0aa278459e63fd79",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01567",
+      "input_text": "dáme novas de cnn",
+      "audio_url": null,
+      "reference": "news:news_source",
+      "prediction_a": {
+        "intent": "news:read_topic",
+        "slots": {
+          "topic": "cnn"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "273d0789c30bf0f5",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "gl-ES",
       "sample_id": "gl-ES/01356",
       "input_text": "sobe o brillo a 80",
+      "audio_url": null,
       "reference": "system_control:set_brightness_screen",
       "prediction_a": {
         "intent": null
@@ -1159,6 +4083,7 @@
       "lang": "gl-ES",
       "sample_id": "gl-ES/00661",
       "input_text": "rumbo ao supermercado",
+      "audio_url": null,
       "reference": "navigation:navigate_to",
       "prediction_a": {
         "intent": "navigation:eta_query",
@@ -1173,6 +4098,30 @@
       "competitor_b": "padatioso",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "669b4adff549623a",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "gl-ES",
+      "sample_id": "gl-ES/01258",
+      "input_text": "podemos empuxar a cita co dentista a mañá",
+      "audio_url": null,
+      "reference": "calendar:reschedule_event",
+      "prediction_a": {
+        "intent": "calendar:create_event",
+        "slots": {
+          "date": "mañá",
+          "title": "cita co dentista"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "padatious-medium",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
     },
     {
       "battle_id": "30741be48da3c312",
@@ -1181,6 +4130,7 @@
       "lang": "gl-ES",
       "sample_id": "gl-ES/00791",
       "input_text": "apaga a ruta",
+      "audio_url": null,
       "reference": "navigation:cancel_route",
       "prediction_a": {
         "intent": null
@@ -1194,737 +4144,83 @@
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "40a001e4fb227729",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01483",
-      "input_text": "dáme novas políticas",
-      "reference": "news:read_topic",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "news:read_headlines"
-      },
-      "competitor_a": "padatioso",
-      "competitor_b": "padapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "d6ac8c7d2e026d9c",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01306",
-      "input_text": "pon o brillo en 50",
-      "reference": "system_control:set_brightness_screen",
-      "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "padapt",
-      "competitor_b": "palavadapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "2128bfd5b9823428",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01584",
-      "input_text": "titulares reuters",
-      "reference": "news:news_source",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "news:read_headlines"
-      },
-      "competitor_a": "padatioso",
-      "competitor_b": "palavadapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "4047ff96eff53320",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01104",
-      "input_text": "boletín de tempo axitado",
-      "reference": "weather:weather_wind",
-      "prediction_a": {
-        "intent": "weather:weather_forecast"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "3b1fdce880aceafe",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01233",
-      "input_text": "dáme o próximo elemento da axenda",
-      "reference": "calendar:next_event",
-      "prediction_a": {
-        "intent": "calendar:list_events"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "227a016229d90d5a",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01651",
-      "input_text": "poderías poñer mmm luces en 65",
-      "reference": "smarthome:set_brightness_light",
-      "prediction_a": {
-        "intent": "media:play_song"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "padapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "0f2d7ee8acfedf38",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01390",
-      "input_text": "baixa o volume a cero",
-      "reference": "system_control:mute_system",
-      "prediction_a": {
-        "intent": "media:set_volume"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "padatioso",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "13009e2c066ffbf5",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00815",
-      "input_text": "nunca oín efémero que é",
-      "reference": "search_qa:define_word",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "search_qa:factual_query"
-      },
-      "competitor_a": "palavadapt",
-      "competitor_b": "frankenparse",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "8487e728c175b7d7",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00631",
-      "input_text": "chamada con cámara a maría por favor",
-      "reference": "communication:video_call",
-      "prediction_a": {
-        "intent": "communication:call_contact",
-        "slots": {
-          "contact": "maría"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulatious",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "2e6721cfab9daadd",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00502",
-      "input_text": "entra en chamada con xoán",
-      "reference": "communication:call_contact",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "communication:video_call",
-        "slots": {
-          "contact": "xoán"
-        }
-      },
-      "competitor_a": "padapt",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "39e6db54d0b4baac",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00492",
-      "input_text": "entra nunha chamada con pedro",
-      "reference": "communication:call_contact",
-      "prediction_a": {
-        "intent": "communication:video_call",
-        "slots": {
-          "contact": "pedro"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "padatioso",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "450da71d5de62265",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00492",
-      "input_text": "entra nunha chamada con pedro",
-      "reference": "communication:call_contact",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "communication:video_call",
-        "slots": {
-          "contact": "pedro"
-        }
-      },
-      "competitor_a": "palavadapt",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "2a097ed0a19373d3",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01143",
-      "input_text": "engade reunión de equipo",
-      "reference": "calendar:create_event",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "calendar:cancel_event",
-        "slots": {
-          "title": "reunión de equipo"
-        }
-      },
-      "competitor_a": "padapt",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "7729be558c256e8e",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00627",
-      "input_text": "zoom con maría",
-      "reference": "communication:video_call",
-      "prediction_a": {
-        "intent": "communication:call_contact",
-        "slots": {
-          "contact": "maría"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulatious",
-      "competitor_b": "padatioso",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "403898f0d85a1a7f",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00118",
-      "input_text": "ponno en 85",
-      "reference": "media:set_volume",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "smarthome:set_thermostat"
-      },
-      "competitor_a": "palavadapt",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "458eddf2e6e340e0",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01584",
-      "input_text": "titulares reuters",
-      "reference": "news:news_source",
-      "prediction_a": {
-        "intent": "news:read_headlines"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "padapt",
-      "competitor_b": "padatioso",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "df21b425dd51b827",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01436",
-      "input_text": "pon o brillo en 50",
-      "reference": "system_control:set_brightness_screen",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "smarthome:set_brightness_light"
-      },
-      "competitor_a": "palavadapt",
-      "competitor_b": "padapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "302abdf301a7fb67",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00118",
-      "input_text": "ponno en 85",
-      "reference": "media:set_volume",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "smarthome:set_thermostat"
-      },
-      "competitor_a": "palavadapt",
-      "competitor_b": "padatioso",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "4d6a2a244f21e3d8",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00977",
-      "input_text": "é tempo de pantalón curto",
-      "reference": "weather:weather_today",
-      "prediction_a": {
-        "intent": "weather:weather_forecast"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "41d051ed2f08b87c",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00815",
-      "input_text": "nunca oín efémero que é",
-      "reference": "search_qa:define_word",
-      "prediction_a": {
-        "intent": "search_qa:factual_query"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "265bf1c9dbc051bc",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01104",
-      "input_text": "boletín de tempo axitado",
-      "reference": "weather:weather_wind",
-      "prediction_a": {
-        "intent": "weather:weather_forecast"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "padapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "0fce56cbfa1b2ced",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01233",
-      "input_text": "dáme o próximo elemento da axenda",
-      "reference": "calendar:next_event",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "calendar:list_events"
-      },
-      "competitor_a": "padatioso",
-      "competitor_b": "frankenparse",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "13d8b67f8a91d50a",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01356",
-      "input_text": "sobe o brillo a 80",
-      "reference": "system_control:set_brightness_screen",
-      "prediction_a": {
-        "intent": "smarthome:set_brightness_light",
-        "slots": {
-          "level": "80"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "palavadapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "9bff7e00cde0d6b6",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01515",
-      "input_text": "aburrida seguinte",
-      "reference": "news:next_story",
-      "prediction_a": {
-        "intent": "media:skip_track"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "385acad2a96a8f5c",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00334",
-      "input_text": "sobe as luces da cociña",
-      "reference": "smarthome:lights_on",
-      "prediction_a": {
-        "intent": "smarthome:set_brightness_light",
-        "slots": {
-          "room": "cociña"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "padapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "3b852299b1b7cfec",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01263",
-      "input_text": "achega a reunión de equipo ao venres",
-      "reference": "calendar:reschedule_event",
-      "prediction_a": {
-        "intent": "calendar:create_event",
-        "slots": {
-          "date": "venres",
-          "title": "reunión de equipo"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "padatioso",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "45b15604174e16aa",
+      "battle_id": "34f6f155b4a1dfa7",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "gl-ES",
       "sample_id": "gl-ES/01271",
       "input_text": "refai a reunión de equipo para o venres",
+      "audio_url": null,
       "reference": "calendar:reschedule_event",
       "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
         "intent": "calendar:create_event",
         "slots": {
           "date": "venres",
           "title": "reunión de equipo"
         }
       },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "palavadapt",
-      "plugin_a": "ensemble",
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "412e10ed06b6c219",
+      "battle_id": "13b49977a9d19992",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "gl-ES",
-      "sample_id": "gl-ES/00334",
-      "input_text": "sobe as luces da cociña",
-      "reference": "smarthome:lights_on",
+      "sample_id": "gl-ES/01503",
+      "input_text": "dáme novas de cnn",
+      "audio_url": null,
+      "reference": "news:news_source",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "smarthome:set_brightness_light",
+        "intent": "news:read_topic",
         "slots": {
-          "room": "cociña"
+          "topic": "cnn"
         }
       },
-      "competitor_a": "padapt",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
     },
     {
-      "battle_id": "7cc884190af35529",
+      "battle_id": "11030356c53250fa",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "gl-ES",
-      "sample_id": "gl-ES/00561",
-      "input_text": "escribiume maría",
-      "reference": "communication:read_messages",
+      "sample_id": "gl-ES/01264",
+      "input_text": "empuxa a cea con maría",
+      "audio_url": null,
+      "reference": "calendar:reschedule_event",
       "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "communication:send_message",
+        "intent": "calendar:cancel_event",
         "slots": {
-          "contact": "maría"
+          "title": "cea con maría"
         }
       },
-      "competitor_a": "padatioso",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "44e1072a0c4f8a38",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00364",
-      "input_text": "ponme escuro por favor",
-      "reference": "smarthome:lights_off",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "media:play_song"
-      },
-      "competitor_a": "nebulatious",
-      "competitor_b": "palavadapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "5908c356b5b53310",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01486",
-      "input_text": "resumo de deportes por favor",
-      "reference": "news:read_topic",
-      "prediction_a": {
-        "intent": "news:news_source"
-      },
       "prediction_b": {
         "intent": null
       },
-      "competitor_a": "padapt",
-      "competitor_b": "padatioso",
-      "plugin_a": "ensemble",
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "padapt",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "feaa836b1a57c332",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00118",
-      "input_text": "ponno en 85",
-      "reference": "media:set_volume",
-      "prediction_a": {
-        "intent": "smarthome:set_thermostat"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "padapt",
-      "competitor_b": "palavadapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "5a27cf0257d1084e",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01306",
-      "input_text": "pon o brillo en 50",
-      "reference": "system_control:set_brightness_screen",
-      "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "padatioso",
-      "competitor_b": "palavadapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "54a8437c71fc125b",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01166",
-      "input_text": "axenda de hoxe por favor",
-      "reference": "calendar:list_events",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "news:news_source"
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "frankenparse",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "41e9e9a6915d2550",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00364",
-      "input_text": "ponme escuro por favor",
-      "reference": "smarthome:lights_off",
-      "prediction_a": {
-        "intent": "media:play_song"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "2e6c6ff7a8b99ca1",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00661",
-      "input_text": "rumbo ao supermercado",
-      "reference": "navigation:navigate_to",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "navigation:eta_query",
-        "slots": {
-          "destination": "ao supermercado"
-        }
-      },
-      "competitor_a": "padapt",
-      "competitor_b": "frankenparse",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "1893e184112c4baa",
+      "battle_id": "20ce18a74b75fa72",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "gl-ES",
       "sample_id": "gl-ES/01263",
       "input_text": "achega a reunión de equipo ao venres",
+      "audio_url": null,
       "reference": "calendar:reschedule_event",
       "prediction_a": {
         "intent": "calendar:create_event",
@@ -1936,535 +4232,66 @@
       "prediction_b": {
         "intent": null
       },
-      "competitor_a": "frankenparse",
+      "competitor_a": "nebulento-medium",
       "competitor_b": "padatioso",
-      "plugin_a": "ensemble",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "13e3965cefa83968",
+      "battle_id": "3510c6e5ea83443f",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "gl-ES",
-      "sample_id": "gl-ES/01166",
-      "input_text": "axenda de hoxe por favor",
-      "reference": "calendar:list_events",
-      "prediction_a": {
-        "intent": "news:news_source"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "palavadapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "a9f8a357b61efa01",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00364",
-      "input_text": "ponme escuro por favor",
-      "reference": "smarthome:lights_off",
+      "sample_id": "gl-ES/01271",
+      "input_text": "refai a reunión de equipo para o venres",
+      "audio_url": null,
+      "reference": "calendar:reschedule_event",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "media:play_song"
-      },
-      "competitor_a": "nebulatious",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "3acd1ba605ae2f5a",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01130",
-      "input_text": "apunta cita co dentista para mañá",
-      "reference": "calendar:create_event",
-      "prediction_a": {
-        "intent": "calendar:reschedule_event",
+        "intent": "calendar:create_event",
         "slots": {
-          "date": "mañá",
-          "title": "cita co dentista"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "padapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "4323a7040e08d2f7",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00564",
-      "input_text": "leme as novas",
-      "reference": "communication:read_messages",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "news:read_headlines"
-      },
-      "competitor_a": "padatioso",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "4a49c98526a8b4a5",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00653",
-      "input_text": "rumbo ao supermercado",
-      "reference": "navigation:navigate_to",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "navigation:eta_query",
-        "slots": {
-          "destination": "ao supermercado"
-        }
-      },
-      "competitor_a": "palavadapt",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "4a10bf358f7c19e3",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01130",
-      "input_text": "apunta cita co dentista para mañá",
-      "reference": "calendar:create_event",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "calendar:reschedule_event",
-        "slots": {
-          "date": "mañá",
-          "title": "cita co dentista"
-        }
-      },
-      "competitor_a": "padapt",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "8ed80903be344936",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00502",
-      "input_text": "entra en chamada con xoán",
-      "reference": "communication:call_contact",
-      "prediction_a": {
-        "intent": "communication:video_call",
-        "slots": {
-          "contact": "xoán"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulatious",
-      "competitor_b": "padatioso",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "462fc7484789f603",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01388",
-      "input_text": "non quero oír nada",
-      "reference": "system_control:mute_system",
-      "prediction_a": {
-        "intent": "media:play_song"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "palavadapt",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "6b12d65daa0967f1",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00791",
-      "input_text": "apaga a ruta",
-      "reference": "navigation:cancel_route",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "system_control:shutdown"
-      },
-      "competitor_a": "padatioso",
-      "competitor_b": "padapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "002b517fb5aa7fd2",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00059",
-      "input_text": "segue tocando",
-      "reference": "media:resume_playback",
-      "prediction_a": {
-        "intent": "media:resume_playback"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "padapt",
-      "competitor_b": "palavadapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "68dddde84b0d1e25",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01404",
-      "input_text": "pon o brillo en 50",
-      "reference": "system_control:set_brightness_screen",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "smarthome:set_brightness_light"
-      },
-      "competitor_a": "palavadapt",
-      "competitor_b": "padatioso",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "55b5f5676af93396",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01338",
-      "input_text": "pon o brillo en 50",
-      "reference": "system_control:set_brightness_screen",
-      "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
-      },
-      "prediction_b": {
-        "intent": "smarthome:set_brightness_light",
-        "slots": {
-          "level": "50"
-        }
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "45864c329f66dcb8",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00076",
-      "input_text": "volve poñer a música a tope",
-      "reference": "media:resume_playback",
-      "prediction_a": {
-        "intent": "media:play_song"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "30773e521c1c39d7",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00631",
-      "input_text": "chamada con cámara a maría por favor",
-      "reference": "communication:video_call",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "communication:call_contact",
-        "slots": {
-          "contact": "maría"
-        }
-      },
-      "competitor_a": "padapt",
-      "competitor_b": "frankenparse",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "18b4c147c35e15e1",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00266",
-      "input_text": "que teño na axenda de alarmas",
-      "reference": "timers_alarms:list_alarms",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "calendar:list_events"
-      },
-      "competitor_a": "padatioso",
-      "competitor_b": "frankenparse",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "1c8b131e3c0e5257",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00631",
-      "input_text": "chamada con cámara a maría por favor",
-      "reference": "communication:video_call",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "communication:call_contact",
-        "slots": {
-          "contact": "maría"
-        }
-      },
-      "competitor_a": "palavadapt",
-      "competitor_b": "frankenparse",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "b108a8cacc9b6073",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01338",
-      "input_text": "pon o brillo en 50",
-      "reference": "system_control:set_brightness_screen",
-      "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
-      },
-      "prediction_b": {
-        "intent": "smarthome:set_brightness_light",
-        "slots": {
-          "level": "50"
-        }
-      },
-      "competitor_a": "nebulatious",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "3c4dc0bee19ff226",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01143",
-      "input_text": "engade reunión de equipo",
-      "reference": "calendar:create_event",
-      "prediction_a": {
-        "intent": "calendar:cancel_event",
-        "slots": {
+          "date": "venres",
           "title": "reunión de equipo"
         }
       },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "padapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
+      "competitor_a": "padatious-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
     },
     {
-      "battle_id": "5f571922963a68ee",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01137",
-      "input_text": "anota visita ao médico mediodía",
-      "reference": "calendar:create_event",
-      "prediction_a": {
-        "intent": "calendar:reschedule_event",
-        "slots": {
-          "time": "mediodía",
-          "title": "visita ao médico"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "padatioso",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "50259b4f2c99c0b5",
+      "battle_id": "1ccd75fe49cf2bce",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "gl-ES",
       "sample_id": "gl-ES/00627",
       "input_text": "zoom con maría",
+      "audio_url": null,
       "reference": "communication:video_call",
       "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
         "intent": "communication:call_contact",
         "slots": {
           "contact": "maría"
         }
       },
-      "competitor_a": "palavadapt",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "64f04921fa1ac2b3",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00266",
-      "input_text": "que teño na axenda de alarmas",
-      "reference": "timers_alarms:list_alarms",
-      "prediction_a": {
-        "intent": "calendar:list_events"
-      },
       "prediction_b": {
         "intent": null
       },
-      "competitor_a": "padapt",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "palavadapt",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "91fe9cade35c9416",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00045",
-      "input_text": "silencio por favor",
-      "reference": "media:pause_playback",
-      "prediction_a": {
-        "intent": "system_control:mute_system"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulatious",
-      "competitor_b": "padatioso",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "4ff4b41d6d3f273d",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00661",
-      "input_text": "rumbo ao supermercado",
-      "reference": "navigation:navigate_to",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "navigation:eta_query",
-        "slots": {
-          "destination": "ao supermercado"
-        }
-      },
-      "competitor_a": "palavadapt",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "90e2de89db84b8c7",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01430",
-      "input_text": "cambia a voz a español",
-      "reference": "system_control:change_language",
-      "prediction_a": {
-        "intent": "news:news_source",
-        "slots": {
-          "source": "voz a español"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "padatioso",
-      "competitor_b": "padapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "00336ebebd273a73",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01156",
-      "input_text": "comproba o meu calendario",
-      "reference": "calendar:list_events",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "calendar:list_events"
-      },
-      "competitor_a": "palavadapt",
-      "competitor_b": "padapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "8306a297b1090f3c",
+      "battle_id": "40b5e505d8a7f99c",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "gl-ES",
       "sample_id": "gl-ES/01512",
       "input_text": "pasa á seguinte",
+      "audio_url": null,
       "reference": "news:next_story",
       "prediction_a": {
         "intent": "media:skip_track"
@@ -2472,1648 +4299,56 @@
       "prediction_b": {
         "intent": null
       },
-      "competitor_a": "padatioso",
-      "competitor_b": "palavadapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
     },
     {
-      "battle_id": "692a838ea1dcd7d3",
+      "battle_id": "0ad24e3e4a670c22",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "gl-ES",
-      "sample_id": "gl-ES/00021",
-      "input_text": "teño ganas de siniestro total",
-      "reference": "media:play_song",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "news:news_source"
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "frankenparse",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "45dc858bfa261a83",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01166",
-      "input_text": "axenda de hoxe por favor",
-      "reference": "calendar:list_events",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "news:news_source"
-      },
-      "competitor_a": "nebulatious",
-      "competitor_b": "frankenparse",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "3775940ca5e0e0d1",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01233",
-      "input_text": "dáme o próximo elemento da axenda",
+      "sample_id": "gl-ES/01228",
+      "input_text": "que teño aliñado",
+      "audio_url": null,
       "reference": "calendar:next_event",
       "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "calendar:list_events"
-      },
-      "competitor_a": "padapt",
-      "competitor_b": "frankenparse",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "200a4f06b5475563",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00119",
-      "input_text": "volve a 30",
-      "reference": "media:set_volume",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "media:resume_playback"
-      },
-      "competitor_a": "padatioso",
-      "competitor_b": "frankenparse",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "1dc77229d80dc155",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00502",
-      "input_text": "entra en chamada con xoán",
-      "reference": "communication:call_contact",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "communication:video_call",
+        "intent": "calendar:list_events",
         "slots": {
-          "contact": "xoán"
-        }
-      },
-      "competitor_a": "palavadapt",
-      "competitor_b": "frankenparse",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "e461812088511de7",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01306",
-      "input_text": "pon o brillo en 50",
-      "reference": "system_control:set_brightness_screen",
-      "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
-      },
-      "prediction_b": {
-        "intent": "smarthome:set_brightness_light",
-        "slots": {
-          "level": "50"
-        }
-      },
-      "competitor_a": "nebulatious",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "49662d15c4a72ec6",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01264",
-      "input_text": "empuxa a cea con maría",
-      "reference": "calendar:reschedule_event",
-      "prediction_a": {
-        "intent": "calendar:cancel_event",
-        "slots": {
-          "title": "cea con maría"
+          "date": "aliñado"
         }
       },
       "prediction_b": {
         "intent": null
       },
-      "competitor_a": "nebulapt",
+      "competitor_a": "padacioso-medium",
       "competitor_b": "padapt",
-      "plugin_a": "ensemble",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "663e06ef86ecf18b",
+      "battle_id": "06a5352596bfd81f",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "gl-ES",
-      "sample_id": "gl-ES/01436",
-      "input_text": "pon o brillo en 50",
-      "reference": "system_control:set_brightness_screen",
-      "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
-      },
-      "prediction_b": {
-        "intent": "smarthome:set_brightness_light",
-        "slots": {
-          "level": "50"
-        }
-      },
-      "competitor_a": "padatioso",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "569be335c1bdfcde",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01306",
-      "input_text": "pon o brillo en 50",
-      "reference": "system_control:set_brightness_screen",
-      "prediction_a": {
-        "intent": "smarthome:set_brightness_light",
-        "slots": {
-          "level": "50"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "palavadapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "871c1ad383f338b1",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01388",
-      "input_text": "non quero oír nada",
-      "reference": "system_control:mute_system",
-      "prediction_a": {
-        "intent": "media:play_song"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "padapt",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "9eb7f2d7706cf8f5",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01263",
-      "input_text": "achega a reunión de equipo ao venres",
-      "reference": "calendar:reschedule_event",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "calendar:create_event",
-        "slots": {
-          "date": "venres",
-          "title": "reunión de equipo"
-        }
-      },
-      "competitor_a": "padatioso",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "50b39ee0b469fc74",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01356",
-      "input_text": "sobe o brillo a 80",
-      "reference": "system_control:set_brightness_screen",
-      "prediction_a": {
-        "intent": "smarthome:set_brightness_light",
-        "slots": {
-          "level": "80"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulatious",
-      "competitor_b": "palavadapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "92b9294d5ae304d0",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00631",
-      "input_text": "chamada con cámara a maría por favor",
-      "reference": "communication:video_call",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "communication:call_contact",
-        "slots": {
-          "contact": "maría"
-        }
-      },
-      "competitor_a": "padapt",
-      "competitor_b": "padatioso",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "0033b8414962ee4e",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01449",
-      "input_text": "actualización de novas",
+      "sample_id": "gl-ES/01677",
+      "input_text": "ponme ao día sabes coas novas",
+      "audio_url": null,
       "reference": "news:read_headlines",
       "prediction_a": {
-        "intent": "news:read_headlines"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "padapt",
-      "competitor_b": "palavadapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "8829d4b407c8719b",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01430",
-      "input_text": "cambia a voz a español",
-      "reference": "system_control:change_language",
-      "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "news:news_source",
+        "intent": "media:play_song",
         "slots": {
-          "source": "voz a español"
-        }
-      },
-      "competitor_a": "palavadapt",
-      "competitor_b": "padatioso",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "733051d687d4041c",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00179",
-      "input_text": "marca 8 minutos para a roupa",
-      "reference": "timers_alarms:set_timer",
-      "prediction_a": {
-        "intent": "communication:call_contact"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "546f5a1d2f9a9a7b",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01104",
-      "input_text": "boletín de tempo axitado",
-      "reference": "weather:weather_wind",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "weather:weather_forecast"
-      },
-      "competitor_a": "nebulatious",
-      "competitor_b": "frankenparse",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "3d900837f5628c64",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00084",
-      "input_text": "reinicia a reprodución",
-      "reference": "media:resume_playback",
-      "prediction_a": {
-        "intent": "system_control:restart"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "padapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "2d478b4815342bf8",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01453",
-      "input_text": "preciso un briefing de novas",
-      "reference": "news:read_headlines",
-      "prediction_a": {
-        "intent": "news:read_topic"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "padatioso",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "1ffabfb71a31e9f4",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01404",
-      "input_text": "pon o brillo en 50",
-      "reference": "system_control:set_brightness_screen",
-      "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "palavadapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "f4eb49e4a9f4e040",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01388",
-      "input_text": "non quero oír nada",
-      "reference": "system_control:mute_system",
-      "prediction_a": {
-        "intent": "media:play_song"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "54ab53113dbf0ebc",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00661",
-      "input_text": "rumbo ao supermercado",
-      "reference": "navigation:navigate_to",
-      "prediction_a": {
-        "intent": "navigation:eta_query",
-        "slots": {
-          "destination": "ao supermercado"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "padapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "740310ddeec759ef",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01356",
-      "input_text": "sobe o brillo a 80",
-      "reference": "system_control:set_brightness_screen",
-      "prediction_a": {
-        "intent": "smarthome:set_brightness_light",
-        "slots": {
-          "level": "80"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "padatioso",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "6196c9b058da979d",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01404",
-      "input_text": "pon o brillo en 50",
-      "reference": "system_control:set_brightness_screen",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "smarthome:set_brightness_light",
-        "slots": {
-          "level": "50"
-        }
-      },
-      "competitor_a": "palavadapt",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "94a925dea18fa9bf",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00492",
-      "input_text": "entra nunha chamada con pedro",
-      "reference": "communication:call_contact",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "communication:video_call",
-        "slots": {
-          "contact": "pedro"
-        }
-      },
-      "competitor_a": "padapt",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "a1793fdafddf47be",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00653",
-      "input_text": "rumbo ao supermercado",
-      "reference": "navigation:navigate_to",
-      "prediction_a": {
-        "intent": "navigation:eta_query",
-        "slots": {
-          "destination": "ao supermercado"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulatious",
-      "competitor_b": "padatioso",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "6d7d1e27e284df29",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00561",
-      "input_text": "escribiume maría",
-      "reference": "communication:read_messages",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "communication:send_message",
-        "slots": {
-          "contact": "maría"
-        }
-      },
-      "competitor_a": "palavadapt",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "a03f6e9b69f28552",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00364",
-      "input_text": "ponme escuro por favor",
-      "reference": "smarthome:lights_off",
-      "prediction_a": {
-        "intent": "media:play_song"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "padapt",
-      "competitor_b": "padatioso",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "00360887eb5db0b5",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00957",
-      "input_text": "quen é shakespeare",
-      "reference": "search_qa:who_is",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "search_qa:who_is"
-      },
-      "competitor_a": "palavadapt",
-      "competitor_b": "padapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "8c3b8698b1ecc91c",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00266",
-      "input_text": "que teño na axenda de alarmas",
-      "reference": "timers_alarms:list_alarms",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "calendar:list_events"
-      },
-      "competitor_a": "padatioso",
-      "competitor_b": "palavadapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "764bc7ba286f1656",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00560",
-      "input_text": "a última de xoán por favor",
-      "reference": "communication:read_messages",
-      "prediction_a": {
-        "intent": "news:news_source"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "55f10d58f4e307e6",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01515",
-      "input_text": "aburrida seguinte",
-      "reference": "news:next_story",
-      "prediction_a": {
-        "intent": "media:skip_track"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "3ee6471ff1346b35",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00374",
-      "input_text": "poderías apagar o dormitorio",
-      "reference": "smarthome:lights_off",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "system_control:shutdown"
-      },
-      "competitor_a": "padapt",
-      "competitor_b": "frankenparse",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "31a7d5618b1ab8de",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01258",
-      "input_text": "podemos empuxar a cita co dentista a mañá",
-      "reference": "calendar:reschedule_event",
-      "prediction_a": {
-        "intent": "calendar:create_event",
-        "slots": {
-          "date": "mañá",
-          "title": "cita co dentista"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "padatioso",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "23848cf5a33bf481",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01326",
-      "input_text": "probaches apagar e acender",
-      "reference": "system_control:restart",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "system_control:shutdown"
-      },
-      "competitor_a": "palavadapt",
-      "competitor_b": "frankenparse",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "fc3fb84f4702aa9d",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01436",
-      "input_text": "pon o brillo en 50",
-      "reference": "system_control:set_brightness_screen",
-      "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
-      },
-      "prediction_b": {
-        "intent": "smarthome:set_brightness_light",
-        "slots": {
-          "level": "50"
-        }
-      },
-      "competitor_a": "nebulatious",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "597d80280111dc10",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01258",
-      "input_text": "podemos empuxar a cita co dentista a mañá",
-      "reference": "calendar:reschedule_event",
-      "prediction_a": {
-        "intent": "calendar:create_event",
-        "slots": {
-          "date": "mañá",
-          "title": "cita co dentista"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "padapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "8641dfc242565614",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01390",
-      "input_text": "baixa o volume a cero",
-      "reference": "system_control:mute_system",
-      "prediction_a": {
-        "intent": "media:set_volume"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "padatioso",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "687fcc4cbfe4e18e",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01338",
-      "input_text": "pon o brillo en 50",
-      "reference": "system_control:set_brightness_screen",
-      "prediction_a": {
-        "intent": "smarthome:set_brightness_light",
-        "slots": {
-          "level": "50"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "palavadapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "ae8feed112fbca5d",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01264",
-      "input_text": "empuxa a cea con maría",
-      "reference": "calendar:reschedule_event",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "calendar:cancel_event",
-        "slots": {
-          "title": "cea con maría"
-        }
-      },
-      "competitor_a": "padapt",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "ad611aeaebb96797",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01271",
-      "input_text": "refai a reunión de equipo para o venres",
-      "reference": "calendar:reschedule_event",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "calendar:create_event",
-        "slots": {
-          "date": "venres",
-          "title": "reunión de equipo"
+          "song": "ao día sabes coas novas"
         }
       },
       "competitor_a": "padatioso",
-      "competitor_b": "nebulatious",
+      "competitor_b": "padacioso-medium",
       "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "70c77ac963370eed",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01404",
-      "input_text": "pon o brillo en 50",
-      "reference": "system_control:set_brightness_screen",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "smarthome:set_brightness_light"
-      },
-      "competitor_a": "palavadapt",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "a99c7713e76b3f9f",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01390",
-      "input_text": "baixa o volume a cero",
-      "reference": "system_control:mute_system",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "media:set_volume"
-      },
-      "competitor_a": "padatioso",
-      "competitor_b": "padapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "0079441ce148bdc6",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00463",
-      "input_text": "bota o ferrollo",
-      "reference": "smarthome:lock_door",
-      "prediction_a": {
-        "intent": "smarthome:lock_door"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "padapt",
-      "competitor_b": "palavadapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "91cab012396b4d5c",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00791",
-      "input_text": "apaga a ruta",
-      "reference": "navigation:cancel_route",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "system_control:shutdown"
-      },
-      "competitor_a": "padatioso",
-      "competitor_b": "palavadapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "7e7b3904ead866e4",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01651",
-      "input_text": "poderías poñer mmm luces en 65",
-      "reference": "smarthome:set_brightness_light",
-      "prediction_a": {
-        "intent": "media:play_song"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "5d56b9ef03a4a160",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00717",
-      "input_text": "cal é o tempo restante",
-      "reference": "navigation:eta_query",
-      "prediction_a": {
-        "intent": "weather:weather_forecast"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "420532f81b973aa5",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00717",
-      "input_text": "cal é o tempo restante",
-      "reference": "navigation:eta_query",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "weather:weather_forecast"
-      },
-      "competitor_a": "padapt",
-      "competitor_b": "frankenparse",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "3667c2265b143e9e",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01482",
-      "input_text": "que hai de deportes",
-      "reference": "news:read_topic",
-      "prediction_a": {
-        "intent": "news:news_source"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "padatioso",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "258d5ca643e9fce1",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00179",
-      "input_text": "marca 8 minutos para a roupa",
-      "reference": "timers_alarms:set_timer",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "communication:call_contact"
-      },
-      "competitor_a": "palavadapt",
-      "competitor_b": "frankenparse",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "ff77a76f0852c607",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00266",
-      "input_text": "que teño na axenda de alarmas",
-      "reference": "timers_alarms:list_alarms",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "calendar:list_events"
-      },
-      "competitor_a": "nebulatious",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "5bd0891cbdba96e1",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01338",
-      "input_text": "pon o brillo en 50",
-      "reference": "system_control:set_brightness_screen",
-      "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
-      },
-      "prediction_b": {
-        "intent": "smarthome:set_brightness_light",
-        "slots": {
-          "level": "50"
-        }
-      },
-      "competitor_a": "padapt",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "8ce770160851f76a",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00627",
-      "input_text": "zoom con maría",
-      "reference": "communication:video_call",
-      "prediction_a": {
-        "intent": "communication:call_contact",
-        "slots": {
-          "contact": "maría"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "padatioso",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "6ad285e499fda06e",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01130",
-      "input_text": "apunta cita co dentista para mañá",
-      "reference": "calendar:create_event",
-      "prediction_a": {
-        "intent": "calendar:reschedule_event",
-        "slots": {
-          "date": "mañá",
-          "title": "cita co dentista"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "palavadapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "af0fcd28a0a04fcd",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01637",
-      "input_text": "cala por favor",
-      "reference": null,
-      "prediction_a": {
-        "intent": "system_control:mute_system"
-      },
-      "prediction_b": {
-        "intent": "communication:hang_up"
-      },
-      "competitor_a": "padapt",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "c3743361017977cb",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01258",
-      "input_text": "podemos empuxar a cita co dentista a mañá",
-      "reference": "calendar:reschedule_event",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "calendar:create_event",
-        "slots": {
-          "date": "mañá",
-          "title": "cita co dentista"
-        }
-      },
-      "competitor_a": "padatioso",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "75e6976e0129cfbc",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01258",
-      "input_text": "podemos empuxar a cita co dentista a mañá",
-      "reference": "calendar:reschedule_event",
-      "prediction_a": {
-        "intent": "calendar:create_event",
-        "slots": {
-          "date": "mañá",
-          "title": "cita co dentista"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulatious",
-      "competitor_b": "palavadapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "b14caba65970589f",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01388",
-      "input_text": "non quero oír nada",
-      "reference": "system_control:mute_system",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "media:play_song"
-      },
-      "competitor_a": "padatioso",
-      "competitor_b": "padapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "01253f14130309bb",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00033",
-      "input_text": "pausa a música",
-      "reference": "media:pause_playback",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "media:pause_playback"
-      },
-      "competitor_a": "palavadapt",
-      "competitor_b": "padapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "9399654611f8dc54",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01436",
-      "input_text": "pon o brillo en 50",
-      "reference": "system_control:set_brightness_screen",
-      "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "padatioso",
-      "competitor_b": "palavadapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "7ecb27e991964402",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01683",
-      "input_text": "apaga ha ruta",
-      "reference": "navigation:cancel_route",
-      "prediction_a": {
-        "intent": "system_control:shutdown"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "627a494044148279",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01637",
-      "input_text": "cala por favor",
-      "reference": null,
-      "prediction_a": {
-        "intent": "communication:hang_up"
-      },
-      "prediction_b": {
-        "intent": "system_control:mute_system"
-      },
-      "competitor_a": "nebulatious",
-      "competitor_b": "frankenparse",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "420d65d86aef2325",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00502",
-      "input_text": "entra en chamada con xoán",
-      "reference": "communication:call_contact",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "communication:video_call",
-        "slots": {
-          "contact": "xoán"
-        }
-      },
-      "competitor_a": "padapt",
-      "competitor_b": "frankenparse",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "374305ed5cff5d91",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00980",
-      "input_text": "humidade alta hoxe",
-      "reference": "weather:weather_today",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "weather:weather_humidity"
-      },
-      "competitor_a": "padatioso",
-      "competitor_b": "frankenparse",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "2b80b661475a3a51",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01263",
-      "input_text": "achega a reunión de equipo ao venres",
-      "reference": "calendar:reschedule_event",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "calendar:create_event",
-        "slots": {
-          "date": "venres",
-          "title": "reunión de equipo"
-        }
-      },
-      "competitor_a": "palavadapt",
-      "competitor_b": "frankenparse",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "07abb6a9a20ae481",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00820",
-      "input_text": "definición sinxela de ubicuo",
-      "reference": "search_qa:define_word",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "search_qa:define_word",
-        "slots": {
-          "word": "ubicuo"
-        }
-      },
-      "competitor_a": "nebulatious",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "7d7fc4e64f0f093a",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00627",
-      "input_text": "zoom con maría",
-      "reference": "communication:video_call",
-      "prediction_a": {
-        "intent": "communication:call_contact",
-        "slots": {
-          "contact": "maría"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "padapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "90c80674e55e4cbe",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01271",
-      "input_text": "refai a reunión de equipo para o venres",
-      "reference": "calendar:reschedule_event",
-      "prediction_a": {
-        "intent": "calendar:create_event",
-        "slots": {
-          "date": "venres",
-          "title": "reunión de equipo"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "padatioso",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "6ccb6f6585b7f282",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01143",
-      "input_text": "engade reunión de equipo",
-      "reference": "calendar:create_event",
-      "prediction_a": {
-        "intent": "calendar:cancel_event",
-        "slots": {
-          "title": "reunión de equipo"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "palavadapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "b67ac12491956a94",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00631",
-      "input_text": "chamada con cámara a maría por favor",
-      "reference": "communication:video_call",
-      "prediction_a": {
-        "intent": "communication:call_contact",
-        "slots": {
-          "contact": "maría"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulatious",
-      "competitor_b": "padapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "cade7b323595400a",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01137",
-      "input_text": "anota visita ao médico mediodía",
-      "reference": "calendar:create_event",
-      "prediction_a": {
-        "intent": "calendar:reschedule_event",
-        "slots": {
-          "time": "mediodía",
-          "title": "visita ao médico"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulatious",
-      "competitor_b": "padatioso",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "7942807f95bafc30",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01306",
-      "input_text": "pon o brillo en 50",
-      "reference": "system_control:set_brightness_screen",
-      "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulatious",
-      "competitor_b": "palavadapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "e914bdd71020390d",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01356",
-      "input_text": "sobe o brillo a 80",
-      "reference": "system_control:set_brightness_screen",
-      "prediction_a": {
-        "intent": "smarthome:set_brightness_light",
-        "slots": {
-          "level": "80"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "padatioso",
-      "competitor_b": "padapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "017f630d3be6d01c",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00296",
-      "input_text": "dáme 15 minutos máis",
-      "reference": "timers_alarms:snooze_alarm",
-      "prediction_a": {
-        "intent": "timers_alarms:snooze_alarm"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "padapt",
-      "competitor_b": "palavadapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "9d4e756ec60a949d",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01356",
-      "input_text": "sobe o brillo a 80",
-      "reference": "system_control:set_brightness_screen",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "smarthome:set_brightness_light",
-        "slots": {
-          "level": "80"
-        }
-      },
-      "competitor_a": "palavadapt",
-      "competitor_b": "padatioso",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "808101efd1061885",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01233",
-      "input_text": "dáme o próximo elemento da axenda",
-      "reference": "calendar:next_event",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "calendar:list_events"
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "frankenparse",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "6abe9d8424fb9a83",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00560",
-      "input_text": "a última de xoán por favor",
-      "reference": "communication:read_messages",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "news:news_source"
-      },
-      "competitor_a": "nebulatious",
-      "competitor_b": "frankenparse",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "4610c090f311ab6e",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01326",
-      "input_text": "probaches apagar e acender",
-      "reference": "system_control:restart",
-      "prediction_a": {
-        "intent": "system_control:shutdown"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "padapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "37a8a0d662fb64da",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/00021",
-      "input_text": "teño ganas de siniestro total",
-      "reference": "media:play_song",
-      "prediction_a": {
-        "intent": "news:news_source"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "padatioso",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "2c518d8c86430668",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "gl-ES",
-      "sample_id": "gl-ES/01399",
-      "input_text": "elimina o son",
-      "reference": "system_control:mute_system",
-      "prediction_a": {
-        "intent": "media:set_volume"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "frankenparse",
-      "competitor_b": "palavadapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
     }
   ]
 }
