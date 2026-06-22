@@ -33,6 +33,7 @@ import Base from '../../layouts/Base.astro';
       <p id="input-kicker" style="font-size:0.78rem;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.4rem">heard utterance</p>
       <p id="battle-input" style="font-size:clamp(1.1rem,3vw,1.5rem);font-weight:700;color:var(--text);margin:0">
       </p>
+      <div id="battle-audio" style="margin:0.7rem auto 0;max-width:420px"></div>
       <p id="intent-hint" style="font-size:0.8rem;margin:0.6rem 0 0">
         Which interpretation should a voice assistant act on? “No match” means it would ask the user to rephrase.
       </p>
@@ -142,6 +143,12 @@ import Base from '../../layouts/Base.astro';
 
     const BADGE_CLASS = { stt: 'badge-stt', tts: 'badge-tts', wake_word: 'badge-ww', intent: 'badge-intent', intent_template: 'badge-intent', intent_keyword: 'badge-intent' };
     const MODALITY_LABELS = { stt: 'STT', tts: 'TTS', wake_word: 'Wake Word', intent: 'Intent · Fusions', intent_template: 'Intent · Template', intent_keyword: 'Intent · Keyword' };
+    const MODALITY_KICKER = { stt: 'spoken audio — what was said?', tts: 'text to read aloud', wake_word: 'audio clip — did the wake word fire?', intent: 'heard utterance', intent_template: 'heard utterance', intent_keyword: 'heard utterance' };
+    const MODALITY_PROMPT = {
+      stt: 'Which transcript is closer to what you hear?',
+      tts: 'Listen to both voices reading the same line — which sounds better?',
+      wake_word: 'Which detector made the right call on this clip?',
+    };
 
     let allBattles = [];
     let battles = [];
@@ -220,9 +227,23 @@ import Base from '../../layouts/Base.astro';
       return parts.join(' &nbsp;·&nbsp; ');
     }
 
+    const isAudioUrl = v => typeof v === 'string' && /^https?:\/\//.test(v) &&
+      /\.(wav|mp3|ogg|flac|opus|webm|m4a)(\?|#|$)/i.test(v);
+
+    function audioHtml(src) {
+      return `<audio controls preload="none" style="width:100%" src="${esc(src)}">
+        <a href="${esc(src)}" target="_blank" rel="noopener noreferrer">audio clip ↗</a></audio>`;
+    }
+
     function payloadHtml(battle, payload) {
       if (battle.modality.startsWith('intent')) return intentCardHtml(payload);
-      return `<p style="font-family:var(--mono);white-space:pre-wrap;word-break:break-word;margin:0">${esc(payload ?? '(no output)')}</p>`;
+      // TTS candidates are synthesised audio clips; STT/WW are short text
+      if (isAudioUrl(payload)) return audioHtml(payload);
+      const text = battle.modality === 'wake_word'
+        ? (payload === 'detected' ? '🔔 fired — wake word detected'
+           : payload === 'not_detected' ? '🔇 silent — no detection' : payload)
+        : payload;
+      return `<p style="font-family:var(--mono);white-space:pre-wrap;word-break:break-word;margin:0">${esc(text ?? '(no output)')}</p>`;
     }
 
     function loadBattle(b) {
@@ -234,6 +255,16 @@ import Base from '../../layouts/Base.astro';
         `battle ${currentIdx + 1} / ${battles.length}`;
       document.getElementById('battle-id').textContent = `#${b.battle_id}`;
       document.getElementById('battle-input').textContent = b.input_text || '';
+      document.getElementById('input-kicker').textContent =
+        MODALITY_KICKER[b.modality] || 'input';
+      // source-audio stimulus (STT / wake word): the voter listens to the clip
+      const audioBox = document.getElementById('battle-audio');
+      audioBox.innerHTML = b.audio_url ? audioHtml(b.audio_url) : '';
+      // intent gets its "no match" hint; other modalities get their own prompt
+      const hint = document.getElementById('intent-hint');
+      hint.textContent = b.modality.startsWith('intent')
+        ? 'Which interpretation should a voice assistant act on? “No match” means it would ask the user to rephrase.'
+        : (MODALITY_PROMPT[b.modality] || '');
       document.getElementById('battle-train').innerHTML = provenanceHtml(b);
 
       // masked sprites — seeded from battle id + side, so they never leak identity

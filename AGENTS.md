@@ -35,8 +35,11 @@ No enforced linter config; match the existing style (PEP 8, ~80-90 cols).
   `datasets/<modality>/<id>.json`, pydantic schemas + loaders.
 - `benchmarks/` — one reproducible script per benchmark; writes
   `predictions/<competitor_id>.jsonl` (§3.2 rows), uploads to HF.
-- `runner/` — plugin adapters: `intent_pipeline.py` (OPM intent plugins over
-  FakeBus), STT runner (`plugin_runner.py` + `queue.yaml`, deployed off-repo).
+- `runner/` — plugin adapters + shared bench engines. Intent:
+  `intent_bench.py` + `intent_pipeline.py` (OPM intent plugins over FakeBus).
+  Audio: `media_bench.py` (shared driver) + `stt_bench.py` / `ww_bench.py` /
+  `tts_bench.py` adapters + `audio_io.py` (decode/stream). Legacy off-repo STT
+  runner (`plugin_runner.py` + `queue.yaml`) still feeds `ovos-stt-bench-*`.
 - `frontend-static/` — Astro site; generated data lives in `public/data/`
   (committed by CI, owned by the workflows).
 - `.github/workflows/` — `assemble.yml` (daily), `tally.yml` (hourly),

@@ -25,7 +25,7 @@ import logging
 from typing import Dict, List, Optional, Tuple
 
 from arena.elo import EloLedger
-from arena.metrics import row_is_correct, row_wer
+from arena.metrics import row_is_correct, row_wer, ww_row_correct
 from arena.models import (
     Battle,
     EloSeed,
@@ -52,6 +52,8 @@ def _is_correct(row: PredictionRow, modality: str) -> Optional[bool]:
     if modality == "stt":
         wer = row_wer(row)
         return None if wer is None else wer == 0.0
+    if modality == "wake_word":
+        return ww_row_correct(row)
     return None
 
 
@@ -95,6 +97,25 @@ def _payload(row: PredictionRow, modality: str):
     return row.prediction
 
 
+def _stimulus(row: PredictionRow, modality: str):
+    """The shared battle stimulus: ``(input_text, audio_url, reference)``.
+
+    What the voter is shown and asked to judge differs per modality: intent
+    voters read the utterance, STT/wake-word voters listen to the source clip,
+    TTS voters read the prompt and listen to each candidate's synthesis.
+    """
+    if is_intent_modality(modality):
+        return row.utterance, None, row.reference_intent
+    if modality == "stt":
+        return None, row.audio_url, row.reference_text
+    if modality == "tts":
+        return (row.input_text or row.utterance
+                or row.extras.get("input_text")), None, None
+    if modality == "wake_word":
+        return None, row.audio_url, row.label
+    return row.utterance or row.extras.get("input_text"), row.audio_url, None
+
+
 # ---------------------------------------------------------------------------
 # Battles
 # ---------------------------------------------------------------------------
@@ -131,16 +152,16 @@ def assemble_battles(
                 comp_a, comp_b = comp_b, comp_a
                 row_a, row_b = row_b, row_a
 
+            input_text, audio_url, reference = _stimulus(row_a, modality)
             battle = Battle(
                 battle_id=bid,
                 modality=modality,
                 dataset_id=dataset_id,
                 lang=lang,
                 sample_id=sample_id,
-                input_text=row_a.utterance or row_a.extras.get("input_text"),
-                reference=row_a.reference_intent
-                if is_intent_modality(modality)
-                else row_a.reference_text,
+                input_text=input_text,
+                audio_url=audio_url,
+                reference=reference,
                 prediction_a=_payload(row_a, modality),
                 prediction_b=_payload(row_b, modality),
                 competitor_a=comp_a,

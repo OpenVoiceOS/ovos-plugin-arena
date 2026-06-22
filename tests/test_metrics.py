@@ -9,6 +9,8 @@ from arena.metrics import (
     row_wer,
     score_intent,
     score_stt,
+    score_wake_word,
+    ww_row_correct,
 )
 from arena.models import PredictionRow
 
@@ -113,6 +115,53 @@ class TestScoreStt:
         assert row_wer(_row()) is None
 
 
+class TestScoreWakeWord:
+    def _clip(self, label, prediction, **over):
+        return _row(label=label, prediction=prediction, **over)
+
+    def test_row_correct(self):
+        assert ww_row_correct(self._clip("positive", "detected")) is True
+        assert ww_row_correct(self._clip("positive", "not_detected")) is False
+        assert ww_row_correct(self._clip("negative", "not_detected")) is True
+        assert ww_row_correct(self._clip("negative", "detected")) is False
+        assert ww_row_correct(self._clip(None, "detected")) is None
+
+    def test_label_aliases(self):
+        # numeric / boolean-ish labels normalise to presence
+        assert ww_row_correct(self._clip("1", "detected")) is True
+        assert ww_row_correct(self._clip("0", "not_detected")) is True
+        assert ww_row_correct(self._clip("adversarial", "not_detected")) is True
+
+    def test_rates(self):
+        rows = [
+            self._clip("positive", "detected"),       # TP
+            self._clip("positive", "not_detected"),   # FR
+            self._clip("negative", "not_detected"),   # TN
+            self._clip("negative", "detected"),        # FA
+        ]
+        m = score_wake_word(rows)
+        assert m["error_rate"] == 0.5
+        assert m["accuracy"] == 0.5
+        assert m["false_accept_rate"] == 0.5
+        assert m["false_reject_rate"] == 0.5
+
+    def test_perfect(self):
+        rows = [self._clip("positive", "detected"),
+                self._clip("negative", "not_detected")]
+        m = score_wake_word(rows)
+        assert m["error_rate"] == 0.0
+        assert m["false_accept_rate"] == 0.0
+        assert m["false_reject_rate"] == 0.0
+
+    def test_unscorable_rows_ignored(self):
+        assert score_wake_word([self._clip(None, None)]) == {}
+
+    def test_latency(self):
+        rows = [self._clip("positive", "detected", latency_ms=5.0),
+                self._clip("negative", "not_detected", latency_ms=15.0)]
+        assert score_wake_word(rows)["latency_ms_median"] == 10.0
+
+
 class TestBenchmarkBoard:
     def test_intent_ranked_by_accuracy_desc(self):
         by_competitor = {
@@ -133,6 +182,17 @@ class TestBenchmarkBoard:
         }
         board = build_benchmark_board("stt", "d", "pt-PT", by_competitor, "t")
         assert [e.competitor_id for e in board.entries] == ["good", "bad"]
+
+    def test_wake_word_ranked_by_error_rate_asc(self):
+        by_competitor = {
+            "noisy": [_row(competitor_id="noisy", label="negative",
+                           prediction="detected")],
+            "clean": [_row(competitor_id="clean", label="negative",
+                           prediction="not_detected")],
+        }
+        board = build_benchmark_board("wake_word", "d", "en", by_competitor, "t")
+        assert board.primary_metric == "error_rate"
+        assert [e.competitor_id for e in board.entries] == ["clean", "noisy"]
 
     def test_unscored_modality_yields_empty_board(self):
         board = build_benchmark_board("tts", "d", "en-US", {"x": []}, "t")

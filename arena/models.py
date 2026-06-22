@@ -99,6 +99,14 @@ class PredictionRow(BaseModel):
     # stt modality
     reference_text: Optional[str] = None
     wer: Optional[float] = None
+    # tts modality — source text read aloud; ``prediction`` holds the audio ref
+    input_text: Optional[str] = None
+    # wake_word modality — ground-truth presence ("positive"/"negative"),
+    # ``prediction`` holds the detector decision
+    label: Optional[str] = None
+    # audio stimulus URL for the voter (source clip for stt/wake_word;
+    # synthesised clip for tts when ``prediction`` is not itself a URL)
+    audio_url: Optional[str] = None
     # shared diagnostics
     latency_ms: Optional[float] = None
     extras: Dict[str, Any] = Field(default_factory=dict)
@@ -133,6 +141,7 @@ class Battle(BaseModel):
     sample_id: str
     # candidate payloads — what the voter sees (NO competitor identity)
     input_text: Optional[str] = None  # utterance (intent) / source text (tts)
+    audio_url: Optional[str] = None  # source audio clip (stt / wake_word)
     reference: Optional[str] = None  # gold label / reference transcript
     prediction_a: Optional[Any] = None
     prediction_b: Optional[Any] = None

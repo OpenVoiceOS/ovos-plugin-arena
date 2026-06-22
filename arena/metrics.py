@@ -20,7 +20,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from statistics import median
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from arena.models import BenchmarkBoard, BenchmarkEntry, PredictionRow
 
@@ -32,7 +32,9 @@ PRIMARY_METRIC = {
     "wake_word": "error_rate",
 }
 
-# Higher is better for these primary metrics; lower for the rest.
+# Higher is better for these primary metrics; lower for the rest (error rates,
+# WER, latency).  ``accuracy`` is the only intent/wake-word board ranked
+# descending; every other primary metric ranks ascending.
 _HIGHER_BETTER = {"accuracy"}
 
 
@@ -158,11 +160,98 @@ def score_stt(rows: List[PredictionRow]) -> Dict[str, float]:
     return metrics
 
 
+# ---------------------------------------------------------------------------
+# Wake word
+# ---------------------------------------------------------------------------
+
+# Tokens that mean "the wake word is present / was detected" on either the
+# reference ``label`` or the predicted ``prediction`` side of a row.
+_WW_POSITIVE = {"positive", "wake", "wakeword", "detected", "hit",
+                "true", "yes", "1"}
+
+
+def _ww_is_positive(value: object) -> Optional[bool]:
+    """Normalise a wake-word label/decision to a boolean, or None if unknown."""
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        return value
+    token = str(value).strip().lower()
+    if not token:
+        return None
+    if token in _WW_POSITIVE:
+        return True
+    return False
+
+
+def ww_reference(row: PredictionRow) -> Optional[bool]:
+    """Ground truth for a wake-word row: was the wake word actually present?"""
+    return _ww_is_positive(row.label)
+
+
+def ww_detected(row: PredictionRow) -> Optional[bool]:
+    """Detector decision for a wake-word row: did it fire?"""
+    return _ww_is_positive(row.prediction)
+
+
+def ww_row_correct(row: PredictionRow) -> Optional[bool]:
+    """Whether one wake-word decision matches the ground-truth label."""
+    ref = ww_reference(row)
+    pred = ww_detected(row)
+    if ref is None or pred is None:
+        return None
+    return ref == pred
+
+
+def score_wake_word(rows: List[PredictionRow]) -> Dict[str, float]:
+    """Detection metrics for a wake-word competitor.
+
+    ``error_rate`` (primary, lower is better) is the share of all samples
+    decided wrong; ``false_accept_rate`` is firing on negatives (noise that
+    triggers the assistant), ``false_reject_rate`` is missing positives (the
+    user says the wake word and nothing happens).
+    """
+    positives = negatives = 0
+    false_accepts = false_rejects = 0
+    scored = 0
+    latencies: List[float] = []
+    for row in rows:
+        if row.latency_ms is not None:
+            latencies.append(row.latency_ms)
+        ref = ww_reference(row)
+        pred = ww_detected(row)
+        if ref is None or pred is None:
+            continue
+        scored += 1
+        if ref:
+            positives += 1
+            if not pred:
+                false_rejects += 1
+        else:
+            negatives += 1
+            if pred:
+                false_accepts += 1
+
+    metrics: Dict[str, float] = {}
+    if scored:
+        errors = false_accepts + false_rejects
+        metrics["error_rate"] = round(errors / scored, 4)
+        metrics["accuracy"] = round((scored - errors) / scored, 4)
+    if negatives:
+        metrics["false_accept_rate"] = round(false_accepts / negatives, 4)
+    if positives:
+        metrics["false_reject_rate"] = round(false_rejects / positives, 4)
+    if latencies:
+        metrics["latency_ms_median"] = round(median(latencies), 2)
+    return metrics
+
+
 _SCORERS = {
     "intent": score_intent,
     "intent_template": score_intent,
     "intent_keyword": score_intent,
     "stt": score_stt,
+    "wake_word": score_wake_word,
 }
 
 

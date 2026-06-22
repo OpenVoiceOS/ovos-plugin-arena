@@ -1,7 +1,7 @@
 # OVOS Plugin Arena — Specification
 
 **Status:** Active — maintained by TigreGotico
-**Version:** 0.3
+**Version:** 0.4
 
 The key words MUST, MUST NOT, SHOULD, SHOULD NOT, and MAY are to be
 interpreted as described in RFC 2119.
@@ -226,11 +226,26 @@ Hourly tally Action:
 
 The vote log **is** the issue history — public, auditable, replayable.
 
-## 7. Modality roadmap
+## 7. Modalities
 
-1. **Intent** — live: `benchmarks/intent_intents_for_eval.py`, 5 engines ×
-   12 languages over `OpenVoiceOS/intents-for-eval`.
-2. **STT** — prediction runner exists (`runner/`, deployed off-repo);
-   arena benchmark script + registry entries pending.
-3. **Wake word** — pending (same contracts).
-4. **TTS** — pending; human-vote-only boards (no auto metric, no ELO seed).
+Every modality has registry fighters and a reproducible benchmark script; the
+audio modalities share `runner/media_bench.py` (the intent leagues share
+`runner/intent_bench.py`). Each script takes the same flags
+(`--competitors`, `--langs`, `--max-samples`, `--dataset`, `--upload`).
+
+1. **Intent** — `benchmarks/intent_intents_for_eval.py` and
+   `benchmarks/intent_massive_templates.py`: the three intent leagues over
+   `OpenVoiceOS/intents-for-eval` (12 langs) and `OpenVoiceOS/massive-templates`
+   (52 langs). Ranked by accuracy with an ELO seed.
+2. **STT** — `benchmarks/stt_minds14.py` (`runner/stt_bench.py`): transcribes
+   each fighter over MInDS-14. Ranked by WER with an ELO seed. A separate
+   off-repo prediction runner also feeds legacy `ovos-stt-bench-*` rows,
+   re-keyed to competitors via the registry `alias` field.
+3. **Wake word** — `benchmarks/ww_hey_mycroft.py` (`runner/ww_bench.py`):
+   runs each hotword engine frame-by-frame over the held-out ww-bench manifest.
+   Ranked by detection error rate (with false-accept / false-reject) and an
+   ELO seed.
+4. **TTS** — `benchmarks/tts_intents_prompts.py` (`runner/tts_bench.py`):
+   synthesises a prompt corpus per fighter and stores the clips. Human-vote
+   only — no objective metric, no benchmark board, no ELO seed; the ELO board
+   accrues purely from blind A/B listening votes.

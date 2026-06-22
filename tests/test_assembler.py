@@ -60,6 +60,22 @@ class TestAutoOutcome:
         b = _row("y", "ola munto", wer=0.5)
         assert auto_outcome(a, b, "stt") == VoteOutcome.CANDIDATE_A
 
+    def test_wake_word_correct_wins(self):
+        a = _row("x", "detected", reference=None, label="positive")
+        b = _row("y", "not_detected", reference=None, label="positive")
+        assert auto_outcome(a, b, "wake_word") == VoteOutcome.CANDIDATE_A
+        assert auto_outcome(b, a, "wake_word") == VoteOutcome.CANDIDATE_B
+
+    def test_wake_word_both_correct_no_signal(self):
+        a = _row("x", "detected", reference=None, label="positive")
+        b = _row("y", "detected", reference=None, label="positive")
+        assert auto_outcome(a, b, "wake_word") is None
+
+    def test_tts_has_no_auto_signal(self):
+        a = _row("x", "https://hf/a.wav", reference=None, input_text="hi")
+        b = _row("y", "https://hf/b.wav", reference=None, input_text="hi")
+        assert auto_outcome(a, b, "tts") is None
+
 
 class TestAssembleBattles:
     def test_identical_predictions_skipped(self):
@@ -126,6 +142,46 @@ class TestAssembleBattles:
         assert payloads["x"] == {"intent": "media:play_song",
                                  "slots": {"song": "africa"}}
         assert payloads["y"] == {"intent": None}
+
+
+class TestStimulus:
+    def _one(self, modality, rows):
+        samples = {"s0": {r.competitor_id: r.model_copy(update={"sample_id": "s0"})
+                          for r in rows}}
+        battles = assemble_battles(modality, "d", "x", samples)
+        assert len(battles) == 1
+        return battles[0]
+
+    def test_stt_uses_source_audio_and_transcript(self):
+        a = _row("x", "ola mundo", reference=None, reference_text="ola mundo",
+                 utterance=None, audio_url="https://hf/a.wav")
+        b = _row("y", "ola munto", reference=None, reference_text="ola mundo",
+                 utterance=None, audio_url="https://hf/a.wav")
+        battle = self._one("stt", [a, b])
+        assert battle.input_text is None
+        assert battle.audio_url == "https://hf/a.wav"
+        assert battle.reference == "ola mundo"
+        assert battle.prediction_a in ("ola mundo", "ola munto")
+
+    def test_tts_shows_prompt_and_audio_payload(self):
+        a = _row("x", "https://hf/a.wav", reference=None, utterance=None,
+                 input_text="hello there")
+        b = _row("y", "https://hf/b.wav", reference=None, utterance=None,
+                 input_text="hello there")
+        battle = self._one("tts", [a, b])
+        assert battle.input_text == "hello there"
+        assert battle.audio_url is None
+        assert battle.prediction_a.endswith(".wav")
+
+    def test_wake_word_uses_label_reference(self):
+        a = _row("x", "detected", reference=None, utterance=None,
+                 label="positive", audio_url="https://hf/w.wav")
+        b = _row("y", "not_detected", reference=None, utterance=None,
+                 label="positive", audio_url="https://hf/w.wav")
+        battle = self._one("wake_word", [a, b])
+        assert battle.audio_url == "https://hf/w.wav"
+        assert battle.reference == "positive"
+        assert battle.prediction_a in ("detected", "not_detected")
 
 
 class TestSeedElo:

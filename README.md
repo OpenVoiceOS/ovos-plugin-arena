@@ -17,15 +17,19 @@ the arena:
 
 ## Status
 
-**Alpha — intent leagues only.** The intent benchmark (7 fighters × 12
-languages over
-[`OpenVoiceOS/intents-for-eval`](https://huggingface.co/datasets/OpenVoiceOS/intents-for-eval))
-is live across three independent leagues — `intent_template` (Padatious,
-Padacioso, Nebulento), `intent_keyword` (Adapt, Palavreado) and the open
-`intent` league for mixed-paradigm fusions (Padapt, Nebulapt) — each with
-its own benchmark boards, battle pools and ELO. STT, TTS and wake-word
-follow the same contracts but have no published arena benchmarks yet.
-Pages deployment activates when the repository goes public.
+**Alpha — all modalities wired.** Every league has a reproducible benchmark
+script and registry fighters:
+
+| League | Benchmark | Ranking signal |
+|---|---|---|
+| `intent_template` · `intent_keyword` · `intent` | `benchmarks/intent_*.py` over [`intents-for-eval`](https://huggingface.co/datasets/OpenVoiceOS/intents-for-eval) (12 langs) + `massive-templates` (52 langs) | accuracy / macro-F1 / OOD-FPR / slot-EM → ELO seed |
+| `stt` | `benchmarks/stt_minds14.py` over MInDS-14 | WER → ELO seed |
+| `wake_word` | `benchmarks/ww_hey_mycroft.py` over [ww-bench](https://github.com/TigreGotico/ww-benchmarks) | detection error / false-accept / false-reject → ELO seed |
+| `tts` | `benchmarks/tts_intents_prompts.py` | human votes only (no objective metric, no ELO seed) |
+
+The intent leagues are fully populated with published predictions; STT, TTS
+and wake-word fighters + datasets are registered and runnable, awaiting a
+prediction sweep. Pages deployment activates when the repository goes public.
 
 ## Transparency
 
@@ -89,14 +93,23 @@ confidence thresholds; the arena owns none.
 
 ```bash
 pip install ".[hf]"
+# intent (shared engine in runner/intent_bench.py)
 python benchmarks/intent_intents_for_eval.py                  # full run (CPU, ~15 min)
 python benchmarks/intent_intents_for_eval.py \
     --competitors padatious-medium --langs en-US --max-samples 50   # smoke run
-python benchmarks/intent_intents_for_eval.py --upload         # publish to HF
+# audio modalities (shared engine in runner/media_bench.py)
+python benchmarks/stt_minds14.py --dataset minds14-en-US --max-samples 50
+python benchmarks/ww_hey_mycroft.py --competitors openwakeword-hey-mycroft
+python benchmarks/tts_intents_prompts.py --langs en-US --max-samples 30
+python benchmarks/stt_minds14.py --upload                    # publish to HF
 ```
 
-Runs are resumable; rows carry the pinned dataset revision, plugin version and
-runner version. Uploading requires HF write access to the results repo.
+Every benchmark — intent and audio — shares the same flags (`--competitors`,
+`--langs`, `--max-samples`, `--dataset`, `--upload`). Runs are resumable; rows
+carry the pinned dataset revision, plugin version and runner version. Audio
+benchmarks instantiate the real OVOS STT/TTS/wake-word plugins offline;
+uploading requires HF write access to the results repo. See
+[`docs/benchmarks.md`](docs/benchmarks.md) for per-modality details.
 
 ## Assembling the arena locally
 
@@ -137,7 +150,7 @@ python -m pytest tests/ -q
 |---|---|
 | `registry/` | Declarative fighters + datasets (JSON) and their loaders |
 | `benchmarks/` | One reproducible prediction script per benchmark |
-| `runner/` | Plugin adapters used by bench scripts (intent pipeline, STT runner) |
+| `runner/` | Plugin adapters + shared bench engines: `intent_bench` (intent), `media_bench` + `stt_bench`/`ww_bench`/`tts_bench` (audio) |
 | `arena/` | Core library: prediction loading, metrics, battles, ELO, CLI |
 | `frontend-static/` | Astro static site (leaderboards, battles, bestiary) |
 | `.github/workflows/assemble.yml` | Daily data refresh from HF predictions |
