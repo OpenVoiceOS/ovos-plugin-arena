@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-22T23:00:14.630423+00:00",
+  "generated_at": "2026-06-22T23:53:52.094876+00:00",
   "competitors": [
     {
       "competitor_id": "frankenparse",
@@ -1825,6 +1825,38 @@
       "notes": "Pretrained model auto-selected by hotword name; threshold is the plugin default."
     },
     {
+      "competitor_id": "precise-onnx-computer",
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-precise-onnx",
+      "config": {
+        "hotwords": {
+          "computer": {
+            "module": "ovos-ww-plugin-precise-onnx",
+            "model": "https://github.com/OpenVoiceOS/precise-lite-models/raw/master/wakewords/en/computer.onnx",
+            "trigger_level": 3,
+            "sensitivity": 0.5
+          }
+        }
+      },
+      "langs": [
+        "en"
+      ],
+      "alias": [
+        "ovos-ww-plugin-precise-onnx"
+      ],
+      "display_name": "Precise ONNX (computer)",
+      "species": "PreciseOnnxHotwordPlugin",
+      "types": [
+        "neural-net"
+      ],
+      "description": "Mycroft Precise recurrent wake-word network for the 'computer' phrase, exported to ONNX and run with onnxruntime; community model from precise-lite-models.",
+      "model": "computer.onnx (precise-lite-models)",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-precise-onnx"
+      },
+      "notes": "Reference precise-onnx configuration for the 'computer' wake word."
+    },
+    {
       "competitor_id": "precise-onnx-hey-mycroft",
       "modality": "wake_word",
       "plugin": "ovos-ww-plugin-precise-onnx",
@@ -1855,6 +1887,36 @@
         "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-precise-onnx"
       },
       "notes": "README reference configuration."
+    },
+    {
+      "competitor_id": "vosk-ww-computer",
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-vosk",
+      "config": {
+        "hotwords": {
+          "computer": {
+            "module": "ovos-ww-plugin-vosk",
+            "listen": true
+          }
+        }
+      },
+      "langs": [
+        "en"
+      ],
+      "alias": [
+        "ovos-ww-plugin-vosk"
+      ],
+      "display_name": "Vosk wake word (computer)",
+      "species": "VoskWakeWordPlugin",
+      "types": [
+        "neural-net",
+        "keyword-match"
+      ],
+      "description": "Detects the 'computer' wake word by running the Vosk Kaldi recognizer in keyword mode and matching the transcript — any phrase in the model vocabulary can be a wake word.",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-vosk"
+      },
+      "notes": "Vosk configured for the 'computer' phrase; the language model auto-downloads."
     },
     {
       "competitor_id": "vosk-ww-hey-computer",
