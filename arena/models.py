@@ -49,6 +49,20 @@ def is_intent_modality(modality: str) -> bool:
     return modality in INTENT_MODALITIES
 
 
+def battle_group(modality: str) -> str:
+    """The blind-battle / ELO group a modality competes in.
+
+    Benchmark *boards* stay per-modality (paradigm-pure), but battles and ELO
+    pool every plugin that answers the same stimulus in a language — so the
+    three intent paradigm leagues collapse into one open ``intent`` arena
+    where a template engine can be voted against a keyword engine.  STT, TTS
+    and wake word are each their own group.
+    """
+    if modality in INTENT_MODALITIES:
+        return Modality.INTENT.value
+    return modality
+
+
 class VoteOutcome(str, enum.Enum):
     """Outcome of a single blind battle vote."""
 

@@ -43,6 +43,7 @@ from arena.models import (
     EloEntry,
     EloSeed,
     VoteOutcome,
+    battle_group,
 )
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s  %(message)s")
@@ -266,26 +267,11 @@ def cmd_assemble(args: argparse.Namespace) -> int:
     grouped = group_rows(rows)
     now = _now_iso()
 
-    # Battles + benchmark boards per (modality, dataset, lang)
-    per_board: Dict[Tuple[str, str], Dict[str, Dict[str, Dict]]] = {}
+    # Benchmark boards stay per (modality, dataset, lang) — paradigm-pure, so a
+    # template engine is never ranked against a keyword engine on metrics.
     for (modality, dataset_id, lang), samples in sorted(grouped.items()):
         if args.modality and modality != args.modality:
             continue
-        per_board.setdefault((modality, lang), {})[dataset_id] = samples
-
-        battles = assemble_battles(
-            modality, dataset_id, lang, samples, max_battles=args.max_battles
-        )
-        pool = BattlesPool(
-            modality=modality,
-            dataset_id=dataset_id,
-            lang=lang,
-            generated_at=now,
-            dataset_info=dataset_info.get(dataset_id),
-            battles=battles,
-        )
-        _write_json(data_dir / f"battles-{modality}-{dataset_id}-{lang}.json", pool)
-
         by_competitor: Dict[str, List] = {}
         for sample_rows in samples.values():
             for competitor_id, row in sample_rows.items():
@@ -294,18 +280,67 @@ def cmd_assemble(args: argparse.Namespace) -> int:
         board.dataset_info = dataset_info.get(dataset_id)
         _write_json(data_dir / f"benchmark-{modality}-{dataset_id}-{lang}.json", board)
 
-    # ELO seeds per (modality, lang) across datasets
-    for (modality, lang), samples_by_dataset in sorted(per_board.items()):
-        seed = seed_elo(modality, lang, samples_by_dataset, now)
-        _write_json(data_dir / f"elo-seed-{modality}-{lang}.json", seed)
+    # Battles + ELO pool by battle group: every plugin that answered the same
+    # stimulus in a language competes, so the intent paradigm leagues merge into
+    # one open arena (battles across all plugins, same language).
+    battle_samples: Dict[Tuple[str, str, str], Dict[str, Dict[str, Any]]] = {}
+    elo_samples: Dict[Tuple[str, str], Dict[str, Dict[str, Dict[str, Any]]]] = {}
+    for (modality, dataset_id, lang), samples in grouped.items():
+        if args.modality and modality != args.modality:
+            continue
+        group = battle_group(modality)
+        bs = battle_samples.setdefault((group, dataset_id, lang), {})
+        es = elo_samples.setdefault((group, lang), {}).setdefault(dataset_id, {})
+        for sample_id, comp_rows in samples.items():
+            bs.setdefault(sample_id, {}).update(comp_rows)
+            es.setdefault(sample_id, {}).update(comp_rows)
+
+    # Sub-leagues now merged into a group leave stale per-paradigm battle/ELO
+    # files behind; drop them (benchmark boards are kept).
+    _clean_merged_artifacts(data_dir, {m for (m, _, _) in grouped})
+
+    for (group, dataset_id, lang), samples in sorted(battle_samples.items()):
+        battles = assemble_battles(
+            group, dataset_id, lang, samples, max_battles=args.max_battles
+        )
+        pool = BattlesPool(
+            modality=group,
+            dataset_id=dataset_id,
+            lang=lang,
+            generated_at=now,
+            dataset_info=dataset_info.get(dataset_id),
+            battles=battles,
+        )
+        _write_json(data_dir / f"battles-{group}-{dataset_id}-{lang}.json", pool)
+
+    for (group, lang), samples_by_dataset in sorted(elo_samples.items()):
+        seed = seed_elo(group, lang, samples_by_dataset, now)
+        _write_json(data_dir / f"elo-seed-{group}-{lang}.json", seed)
 
         # Bootstrap the ELO board when none exists yet; `tally` owns it after
-        board_path = data_dir / f"leaderboard-{modality}-{lang}.json"
+        board_path = data_dir / f"leaderboard-{group}-{lang}.json"
         if not board_path.exists():
-            board = build_elo_board(modality, lang, seed, [], {})
+            board = build_elo_board(group, lang, seed, [], {})
             _write_json(board_path, board)
 
     return 0
+
+
+def _clean_merged_artifacts(data_dir: Path, modalities: set) -> None:
+    """Remove battle/ELO files of sub-leagues that now merge into a group.
+
+    Benchmark boards are kept (paradigm-pure); only the per-sub-league
+    ``battles`` / ``elo-seed`` / ``leaderboard`` artifacts are superseded by the
+    merged group ones.
+    """
+    for modality in modalities:
+        group = battle_group(modality)
+        if group == modality:
+            continue
+        for prefix in ("battles", "elo-seed", "leaderboard"):
+            for path in data_dir.glob(f"{prefix}-{modality}-*.json"):
+                path.unlink()
+                log.info("Removed superseded %s", path.name)
 
 
 # ---------------------------------------------------------------------------

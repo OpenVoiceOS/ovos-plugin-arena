@@ -207,6 +207,74 @@ class TestAssemblePipeline:
         assert ids1 == ids2
 
 
+def _write_cross_league_predictions(tmp_path: Path) -> Path:
+    """Template + keyword fighters answering the SAME en-US samples."""
+    preds = tmp_path / "predictions"
+    preds.mkdir()
+    fighters = [
+        ("padatious-medium", "intent_template", True),
+        ("adapt-medium", "intent_keyword", False),
+    ]
+    for competitor, modality, correct in fighters:
+        rows = []
+        for i in range(5):
+            rows.append({
+                "competitor_id": competitor,
+                "sample_id": f"en-US/{i:05d}",
+                "dataset_id": "intents-for-eval",
+                "lang": "en-US",
+                "modality": modality,
+                "plugin_id": f"plugin-{competitor}",
+                "utterance": f"utterance number {i}",
+                "reference_intent": "media:play_song",
+                "prediction": "media:play_song" if correct else f"wrong{i}",
+                "exact_match": correct,
+            })
+        (preds / f"{competitor}.jsonl").write_text(
+            "\n".join(json.dumps(r) for r in rows) + "\n"
+        )
+    return preds
+
+
+class TestBattleMerge:
+    def test_intent_leagues_merge_for_battles_and_elo(self, tmp_path):
+        preds = _write_cross_league_predictions(tmp_path)
+        out = tmp_path / "data"
+        assert main_args_assemble(preds, out) == 0
+
+        # battles + ELO merge into the open intent group...
+        assert (out / "battles-intent-intents-for-eval-en-US.json").exists()
+        assert (out / "elo-seed-intent-en-US.json").exists()
+        # ...and the per-paradigm battle/ELO artifacts are NOT written
+        assert not (out / "battles-intent_template-intents-for-eval-en-US.json").exists()
+        assert not (out / "elo-seed-intent_template-en-US.json").exists()
+        assert not (out / "elo-seed-intent_keyword-en-US.json").exists()
+
+        # a battle pairs the template engine against the keyword engine
+        pool = json.loads(
+            (out / "battles-intent-intents-for-eval-en-US.json").read_text())
+        pairs = {tuple(sorted((b["competitor_a"], b["competitor_b"])))
+                 for b in pool["battles"]}
+        assert ("adapt-medium", "padatious-medium") in pairs
+
+        # benchmark boards stay per paradigm league
+        assert (out / "benchmark-intent_template-intents-for-eval-en-US.json").exists()
+        assert (out / "benchmark-intent_keyword-intents-for-eval-en-US.json").exists()
+
+        # one merged ELO seed across both engines
+        seed = json.loads((out / "elo-seed-intent-en-US.json").read_text())
+        assert set(seed["ratings"]) == {"padatious-medium", "adapt-medium"}
+
+    def test_stale_subleague_files_removed(self, tmp_path):
+        preds = _write_cross_league_predictions(tmp_path)
+        out = tmp_path / "data"
+        out.mkdir()
+        # a stale per-paradigm battle pool from a previous design
+        (out / "battles-intent_template-intents-for-eval-en-US.json").write_text("{}")
+        assert main_args_assemble(preds, out) == 0
+        assert not (out / "battles-intent_template-intents-for-eval-en-US.json").exists()
+
+
 def main_args_assemble(preds: Path, out: Path) -> int:
     try:
         main(["assemble", "--predictions", str(preds), "--output", str(out)])

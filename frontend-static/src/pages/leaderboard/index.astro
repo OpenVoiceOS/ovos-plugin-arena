@@ -67,6 +67,9 @@ import Base from '../../layouts/Base.astro';
       stt: 'STT', tts: 'TTS', wake_word: 'Wake Word',
     };
     const LEAGUE_ORDER = ['intent_template', 'intent_keyword', 'intent', 'stt', 'tts', 'wake_word'];
+    // battles + ELO pool by group (intent paradigm leagues share one ELO board);
+    // benchmark boards stay per-league.
+    const BATTLE_GROUP = { intent_template: 'intent', intent_keyword: 'intent', intent: 'intent', stt: 'stt', tts: 'tts', wake_word: 'wake_word' };
     const METRIC_COLUMNS = [
       ['accuracy', 'Accuracy', true],
       ['macro_f1', 'Macro F1', true],
@@ -165,7 +168,8 @@ import Base from '../../layouts/Base.astro';
     function render() {
       const benches = benchmarks.filter(b => b.modality === league && b.lang === lang)
         .sort((a, b) => (a.dataset_id || '').localeCompare(b.dataset_id || ''));
-      const elo = elos.find(b => b.modality === league && b.lang === lang);
+      // ELO is pooled by battle group — intent sub-leagues share one board
+      const elo = elos.find(b => b.modality === BATTLE_GROUP[league] && b.lang === lang);
       document.getElementById('dataset-info').innerHTML = datasetInfoHtml(benches[0]);
       const panels = document.getElementById('lb-panels');
       panels.innerHTML = `<div class="board-grid">${
