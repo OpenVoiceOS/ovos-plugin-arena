@@ -97,6 +97,31 @@ def _even(paths: List[str], cap: int) -> List[str]:
     return [paths[int(i * step)] for i in range(cap)]
 
 
+def _emit_ww_clips(hf_id, pos, neg, revision, max_per_class):
+    """Download + decode positive/negative clip lists → labelled WW samples."""
+    from urllib.parse import quote
+
+    from huggingface_hub import hf_hub_download
+
+    if max_per_class:
+        pos = _even(sorted(pos), max_per_class)
+        neg = _even(sorted(neg), max_per_class)
+    for label, paths in (("positive", pos), ("negative", neg)):
+        for rel in paths:
+            try:
+                local = hf_hub_download(hf_id, rel, repo_type="dataset",
+                                        revision=revision)
+                with open(local, "rb") as fh:
+                    array, sr = decode_audio_bytes(fh.read())
+            except Exception as exc:
+                logger.warning("ww clip %s failed: %s", rel, exc)
+                continue
+            url = (f"https://huggingface.co/datasets/{hf_id}"
+                   f"/resolve/{revision}/{quote(rel)}")
+            yield rel, {"array": array, "sr": sr, "label": label,
+                        "audio_url": url}
+
+
 def stream_audiofolder_ww(
     source,
     wakeword: str,
@@ -104,45 +129,52 @@ def stream_audiofolder_ww(
     revision: str,
     max_per_class: int = 0,
 ) -> Iterator[Tuple[str, dict]]:
-    """Yield ``(sample_id, {"array","sr","label","audio_url"})`` from an
-    audiofolder wake-word corpus (one folder per phrase).
+    """Yield labelled WW clips from an audiofolder corpus (one folder per phrase).
 
     Positives are clips under ``<wakeword>/``; negatives are clips under the
     other top-level folders (``negative_dirs``, or every other folder when
-    None) — other wake phrases make strong adversarial hard negatives.  Each
-    clip is a real file, so ``audio_url`` is a playable HF resolve URL.
+    None) — other wake phrases make strong adversarial hard negatives.
     """
-    from urllib.parse import quote
-
-    from huggingface_hub import HfApi, hf_hub_download
+    from huggingface_hub import HfApi
 
     files = [f for f in HfApi().list_repo_files(source.hf_id, repo_type="dataset",
                                                 revision=revision)
              if f.lower().endswith(_AUDIO_EXT) and "/" in f]
-    pos = sorted(f for f in files if f.split("/")[0] == wakeword)
-    if negative_dirs:
-        negset = set(negative_dirs)
-        neg = sorted(f for f in files if f.split("/")[0] in negset)
-    else:
-        neg = sorted(f for f in files if f.split("/")[0] != wakeword)
-    if max_per_class:
-        pos = _even(pos, max_per_class)
-        neg = _even(neg, max_per_class)
+    pos = [f for f in files if f.split("/")[0] == wakeword]
+    negset = set(negative_dirs) if negative_dirs else None
+    neg = [f for f in files if f.split("/")[0] != wakeword
+           and (negset is None or f.split("/")[0] in negset)]
+    yield from _emit_ww_clips(source.hf_id, pos, neg, revision, max_per_class)
 
-    for label, paths in (("positive", pos), ("negative", neg)):
-        for rel in paths:
-            try:
-                local = hf_hub_download(source.hf_id, rel, repo_type="dataset",
-                                        revision=revision)
-                with open(local, "rb") as fh:
-                    array, sr = decode_audio_bytes(fh.read())
-            except Exception as exc:
-                logger.warning("ww clip %s failed: %s", rel, exc)
-                continue
-            url = (f"https://huggingface.co/datasets/{source.hf_id}"
-                   f"/resolve/{revision}/{quote(rel)}")
-            yield rel, {"array": array, "sr": sr, "label": label,
-                        "audio_url": url}
+
+def stream_metadata_csv_ww(
+    source,
+    wakeword: str,
+    negative_labels: Optional[List[str]],
+    revision: str,
+    max_per_class: int = 0,
+    audio_col: str = "file_name",
+    label_col: str = "label",
+) -> Iterator[Tuple[str, dict]]:
+    """Yield labelled WW clips from an audiofolder corpus with a ``metadata.csv``.
+
+    Some HF audio corpora list every clip in a CSV (``file_name``, ``label``)
+    rather than relying on folder names — and their file tree may be too large
+    to enumerate.  Positives are rows whose label is *wakeword*; negatives are
+    rows in *negative_labels* (or every other label).
+    """
+    import csv
+
+    from huggingface_hub import hf_hub_download
+
+    meta = hf_hub_download(source.hf_id, source.file_pattern or "metadata.csv",
+                           repo_type="dataset", revision=revision)
+    rows = list(csv.DictReader(open(meta, encoding="utf-8")))
+    pos = [r[audio_col] for r in rows if r.get(label_col) == wakeword]
+    negset = set(negative_labels) if negative_labels else None
+    neg = [r[audio_col] for r in rows if r.get(label_col) != wakeword
+           and (negset is None or r.get(label_col) in negset)]
+    yield from _emit_ww_clips(source.hf_id, pos, neg, revision, max_per_class)
 
 
 def stream_manifest_audio(

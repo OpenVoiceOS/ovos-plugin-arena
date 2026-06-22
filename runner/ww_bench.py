@@ -27,6 +27,7 @@ from runner.audio_io import (
     stream_audio_dataset,
     stream_audiofolder_ww,
     stream_manifest_audio,
+    stream_metadata_csv_ww,
 )
 from runner.media_bench import (
     MediaBenchAdapter,
@@ -37,6 +38,9 @@ from runner.media_bench import (
 log = logging.getLogger("ww-bench")
 
 FRAME_SAMPLES = 1280  # 80 ms @ 16 kHz, the OVOS listener chunk size
+PRIME_SECONDS = 0.7   # leading silence that warms streaming feature buffers
+TAIL_SECONDS = 0.3    # trailing silence so the activation can settle
+SAMPLE_RATE = 16000
 
 
 def _apply_hotword_compat() -> None:
@@ -73,11 +77,19 @@ class WakeWordBench(MediaBenchAdapter):
         fields = dataset_def.reference_fields or {}
         if getattr(dataset_def, "wakeword", None):
             # audiofolder: positive folder vs the rest. max_samples caps each
-            # class, so a battle pool is balanced.
-            yield from stream_audiofolder_ww(
-                source, wakeword=dataset_def.wakeword,
-                negative_dirs=getattr(dataset_def, "negative_dirs", None),
-                revision=revision, max_per_class=max_samples)
+            # class, so a battle pool is balanced. A metadata.csv corpus lists
+            # clips in a CSV (folder tree may be too large to enumerate).
+            negs = getattr(dataset_def, "negative_dirs", None)
+            if (source.file_pattern or "").endswith(".csv"):
+                yield from stream_metadata_csv_ww(
+                    source, wakeword=dataset_def.wakeword, negative_labels=negs,
+                    revision=revision, max_per_class=max_samples,
+                    audio_col=fields.get("audio", "file_name"),
+                    label_col=fields.get("label", "label"))
+            else:
+                yield from stream_audiofolder_ww(
+                    source, wakeword=dataset_def.wakeword, negative_dirs=negs,
+                    revision=revision, max_per_class=max_samples)
             return
         audio_key = fields.get("audio", "audio")
         label_col = fields.get("label", "label")
@@ -117,12 +129,31 @@ class WakeWordBench(MediaBenchAdapter):
         }
 
 
+def _prime_pad(array):
+    """Wrap a clip in leading + trailing silence.
+
+    Streaming wake-word engines build mel/feature buffers over time; a cold
+    engine fed an isolated clip misses activations.  Leading silence primes the
+    buffers exactly as continuous mic audio would, the way a real listener sees
+    it (mirrors ovoscope's file-driven listener); trailing silence lets a late
+    activation settle.
+    """
+    import numpy as np
+
+    arr = np.asarray(array, dtype="float32")
+    lead = np.zeros(int(SAMPLE_RATE * PRIME_SECONDS), dtype="float32")
+    tail = np.zeros(int(SAMPLE_RATE * TAIL_SECONDS), dtype="float32")
+    return np.concatenate([lead, arr, tail])
+
+
 def _detect(engine, array) -> bool:
     """Run one clip through a hotword engine, tolerant of both plugin APIs.
 
     Some engines expose ``update(chunk_bytes)`` then ``found_wake_word()``;
     others do everything in ``found_wake_word(frame)`` taking an int16 frame.
+    The clip is primed with silence first so streaming engines activate.
     """
+    array = _prime_pad(array)
     if hasattr(engine, "reset"):
         try:
             engine.reset()
