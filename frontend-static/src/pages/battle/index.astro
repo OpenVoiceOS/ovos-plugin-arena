@@ -159,7 +159,7 @@ import Base from '../../layouts/Base.astro';
     const MODALITY_LABELS = { stt: 'STT', tts: 'TTS', wake_word: 'Wake Word', intent: 'Intent · Fusions', intent_template: 'Intent · Template', intent_keyword: 'Intent · Keyword' };
     const MODALITY_KICKER = { stt: 'spoken audio — what was said?', tts: 'text to read aloud', wake_word: 'audio clip — did the wake word fire?', intent: 'heard utterance', intent_template: 'heard utterance', intent_keyword: 'heard utterance' };
     const MODALITY_PROMPT = {
-      stt: 'Which transcript is closer to what you hear?',
+      stt: 'Which candidate is the more accurate transcription?',
       tts: 'Listen to both voices reading the same line — which sounds better?',
       wake_word: 'Which detector made the right call on this clip?',
     };
@@ -304,9 +304,21 @@ import Base from '../../layouts/Base.astro';
       document.getElementById('battle-count').textContent =
         `battle ${currentIdx + 1} / ${battles.length}`;
       document.getElementById('battle-id').textContent = `#${b.battle_id}`;
-      document.getElementById('battle-input').textContent = b.input_text || '';
-      document.getElementById('input-kicker').textContent =
-        MODALITY_KICKER[b.modality] || 'input';
+      // STT/WW battles play the source clip when one is hosted; when it isn't
+      // (parquet-embedded audio has no per-sample URL), fall back to showing the
+      // reference so the voter can still judge which candidate matches it.
+      let kicker = MODALITY_KICKER[b.modality] || 'input';
+      let mainText = b.input_text || '';
+      if (b.modality === 'stt') {
+        kicker = b.audio_url ? 'spoken audio' : 'reference transcript';
+        mainText = b.audio_url ? '' : (b.reference || '');
+      } else if (b.modality === 'wake_word') {
+        kicker = b.audio_url ? 'audio clip' : 'expected';
+        mainText = b.audio_url ? '' : (b.reference === 'positive'
+          ? 'wake word IS present' : 'wake word is NOT present');
+      }
+      document.getElementById('battle-input').textContent = mainText;
+      document.getElementById('input-kicker').textContent = kicker;
       // source-audio stimulus (STT / wake word): the voter listens to the clip
       const audioBox = document.getElementById('battle-audio');
       audioBox.innerHTML = b.audio_url ? audioHtml(b.audio_url) : '';
