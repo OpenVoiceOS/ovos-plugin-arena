@@ -14,7 +14,7 @@ import logging
 import time
 from typing import Iterator, List, Tuple
 
-from runner.media_bench import MediaBenchAdapter, PredictContext
+from runner.media_bench import MediaBenchAdapter, PredictContext, load_plugin_class
 
 log = logging.getLogger("tts-bench")
 
@@ -40,9 +40,7 @@ class TTSBench(MediaBenchAdapter):
         tts_cfg = competitor.config.get("tts", {})
         module = tts_cfg.get("module") or competitor.plugin
         plugin_cfg = dict(tts_cfg.get(module, {}))
-        clazz = load_tts_plugin(module)
-        if clazz is None:
-            raise RuntimeError(f"TTS plugin not found: {module}")
+        clazz = load_plugin_class(load_tts_plugin, module)
         return clazz({"lang": lang, "module": module, **plugin_cfg})
 
     def predict(self, engine, sample: dict, ctx: PredictContext) -> dict:

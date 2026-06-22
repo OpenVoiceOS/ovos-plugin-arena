@@ -18,7 +18,11 @@ import time
 from typing import Iterator, Tuple
 
 from runner.audio_io import stream_audio_dataset, stream_manifest_audio
-from runner.media_bench import MediaBenchAdapter, PredictContext
+from runner.media_bench import (
+    MediaBenchAdapter,
+    PredictContext,
+    load_plugin_class,
+)
 
 log = logging.getLogger("ww-bench")
 
@@ -58,9 +62,7 @@ class WakeWordBench(MediaBenchAdapter):
         # one hotword block per wake-word fighter
         key_phrase, hw_cfg = next(iter(hotwords.items()), ("hey_mycroft", {}))
         module = hw_cfg.get("module") or competitor.plugin
-        clazz = load_wake_word_plugin(module)
-        if clazz is None:
-            raise RuntimeError(f"wake-word plugin not found: {module}")
+        clazz = load_plugin_class(load_wake_word_plugin, module)
         return clazz(key_phrase.replace("_", " "), dict(hw_cfg))
 
     def predict(self, engine, sample: dict, ctx: PredictContext) -> dict:

@@ -64,10 +64,16 @@ class MediaBenchAdapter:
     card_task: str = ""
 
     def competitor_langs(self, competitor, dataset_langs: List[str]) -> List[str]:
-        """Languages to benchmark this competitor in (intersection with data)."""
-        if competitor.langs:
-            return [lang for lang in dataset_langs if lang in competitor.langs]
-        return list(dataset_langs)
+        """Languages to benchmark this competitor in (intersection with data).
+
+        Matches on the primary subtag too, so a plugin advertising ``en`` runs
+        on an ``en-US`` corpus (and vice-versa) — STT/TTS plugins commonly
+        declare primary-language tags while datasets use full BCP-47 tags.
+        """
+        if not competitor.langs:
+            return list(dataset_langs)
+        return [dl for dl in dataset_langs
+                if any(_lang_matches(cl, dl) for cl in competitor.langs)]
 
     def iter_samples(
         self, dataset_def, lang: str, revision: str, max_samples: int
@@ -164,6 +170,30 @@ def _plugin_version(competitor) -> str:
 # ---------------------------------------------------------------------------
 # Fighter selection
 # ---------------------------------------------------------------------------
+
+
+def load_plugin_class(loader, name: str):
+    """Resolve a plugin class, tolerating dash/underscore entry-point naming.
+
+    Some OVOS plugins register their entry point with underscores
+    (``ovos_tts_plugin_espeakng``) while the registry / pip name uses dashes;
+    try both forms before giving up.
+    """
+    for candidate in (name, name.replace("-", "_"), name.replace("_", "-")):
+        clazz = loader(candidate)
+        if clazz is not None:
+            return clazz
+    raise RuntimeError(f"plugin not found: {name}")
+
+
+def _primary(tag: str) -> str:
+    """Primary language subtag, lowercased: ``pt-BR`` → ``pt``."""
+    return tag.replace("_", "-").split("-")[0].lower()
+
+
+def _lang_matches(a: str, b: str) -> bool:
+    """True if two BCP-47 tags are equal or share a primary subtag."""
+    return a.lower() == b.lower() or _primary(a) == _primary(b)
 
 
 def competitors_for(modality: str, wanted: Optional[set] = None) -> list:

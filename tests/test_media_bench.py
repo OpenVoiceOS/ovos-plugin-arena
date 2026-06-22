@@ -9,6 +9,8 @@ from __future__ import annotations
 from pathlib import Path
 from types import SimpleNamespace
 
+import pytest
+
 from registry.loaders import load_competitor
 from runner import media_bench as mb
 
@@ -123,6 +125,46 @@ class TestRunCompetitorLang:
     def test_max_samples(self, tmp_path):
         out, written = self._run(StubAdapter(n=10), tmp_path, max_samples=4)
         assert written == 4
+
+
+class TestLangMatch:
+    def test_primary_subtag_matches_both_ways(self):
+        assert mb._lang_matches("en", "en-US")
+        assert mb._lang_matches("en-US", "en")
+        assert mb._lang_matches("pt-BR", "pt-PT")  # same primary, different region
+        assert mb._lang_matches("EN-us", "en-US")
+        assert not mb._lang_matches("en", "pt-PT")
+
+    def test_competitor_langs_primary_subtag(self):
+        # a plugin advertising "en" must run on an "en-US" corpus
+        comp = SimpleNamespace(langs=["en"])
+        adapter = StubAdapter()
+        assert adapter.competitor_langs(comp, ["en-US", "pt-PT"]) == ["en-US"]
+
+    def test_competitor_langs_empty_means_all(self):
+        comp = SimpleNamespace(langs=[])
+        assert StubAdapter().competitor_langs(comp, ["en-US", "pt-PT"]) == \
+            ["en-US", "pt-PT"]
+
+
+class TestLoadPluginClass:
+    def test_resolves_underscore_entrypoint(self):
+        # plugins like ovos-tts-plugin-espeakng register with underscores
+        seen = []
+
+        def loader(name):
+            seen.append(name)
+            return "CLS" if name == "ovos_tts_plugin_x" else None
+
+        assert mb.load_plugin_class(loader, "ovos-tts-plugin-x") == "CLS"
+
+    def test_resolves_dashed_entrypoint(self):
+        loader = lambda n: "CLS" if n == "ovos-stt-plugin-x" else None  # noqa: E731
+        assert mb.load_plugin_class(loader, "ovos-stt-plugin-x") == "CLS"
+
+    def test_raises_when_unresolvable(self):
+        with pytest.raises(RuntimeError):
+            mb.load_plugin_class(lambda n: None, "missing-plugin")
 
 
 class TestPredictContext:

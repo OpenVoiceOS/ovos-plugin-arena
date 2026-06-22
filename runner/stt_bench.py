@@ -14,7 +14,7 @@ import time
 from typing import Iterator, Tuple
 
 from runner.audio_io import stream_audio_dataset
-from runner.media_bench import MediaBenchAdapter, PredictContext
+from runner.media_bench import MediaBenchAdapter, PredictContext, load_plugin_class
 
 log = logging.getLogger("stt-bench")
 
@@ -44,9 +44,7 @@ class STTBench(MediaBenchAdapter):
         stt_cfg = competitor.config.get("stt", {})
         module = stt_cfg.get("module") or competitor.plugin
         plugin_cfg = dict(stt_cfg.get(module, {}))
-        clazz = load_stt_plugin(module)
-        if clazz is None:
-            raise RuntimeError(f"STT plugin not found: {module}")
+        clazz = load_plugin_class(load_stt_plugin, module)
         return clazz({"lang": lang, "module": module, **plugin_cfg})
 
     def predict(self, engine, sample: dict, ctx: PredictContext) -> dict:
