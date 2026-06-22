@@ -28,4 +28,5 @@ from runner.ww_bench import WakeWordBench  # noqa: E402
 
 if __name__ == "__main__":
     sys.exit(run_benchmark(
-        WakeWordBench(), "ww-bench-hey-mycroft", __doc__.split("\n")[1]))
+        WakeWordBench(), "synthetic-wakewords-hey_mycroft",
+        __doc__.split("\n")[1]))

@@ -7,17 +7,27 @@ listening loop does, and records the binary detection decision against the
 ground-truth label.  The arena scores detection error / false-accept /
 false-reject from these rows; the plugin owns its own threshold.
 
-The eval dataset's ``label`` column MUST be binary — ``1``/``positive``/the
-wake phrase for clips that contain the wake word, ``0``/``negative`` for the
-rest — so ground truth is competitor-independent.
+Three corpus layouts are supported:
+
+- **audiofolder** (one folder per phrase, e.g. ``OpenVoiceOS/synthetic-wakewords``):
+  the dataset names its positive folder via ``wakeword``; every other folder is
+  a negative (other wake phrases are strong adversarial hard negatives).
+- **manifest** (``manifest.jsonl`` beside the audio, the ww-bench layout): the
+  ``role`` field labels each clip.
+- **parquet** (audio + a binary ``label`` column).
 """
 from __future__ import annotations
 
+import inspect
 import logging
 import time
 from typing import Iterator, Tuple
 
-from runner.audio_io import stream_audio_dataset, stream_manifest_audio
+from runner.audio_io import (
+    stream_audio_dataset,
+    stream_audiofolder_ww,
+    stream_manifest_audio,
+)
 from runner.media_bench import (
     MediaBenchAdapter,
     PredictContext,
@@ -29,6 +39,28 @@ log = logging.getLogger("ww-bench")
 FRAME_SAMPLES = 1280  # 80 ms @ 16 kHz, the OVOS listener chunk size
 
 
+def _apply_hotword_compat() -> None:
+    """Let hotword plugins written for a newer plugin-manager load here.
+
+    Recent wake-word plugins call ``super().__init__(key_phrase, config, lang)``;
+    older ``HotWordEngine`` bases accept only ``(key_phrase, config)``.  Widen
+    the base signature to ignore the extra argument.  A no-op when the installed
+    base already accepts ``lang``.
+    """
+    from ovos_plugin_manager.templates import hotwords as hw
+
+    base = hw.HotWordEngine
+    if "lang" in inspect.signature(base.__init__).parameters:
+        return
+    _orig = base.__init__
+
+    def _compat(self, key_phrase="hey_mycroft", config=None, lang=None,
+                *args, **kwargs):
+        _orig(self, key_phrase, config)
+
+    base.__init__ = _compat
+
+
 class WakeWordBench(MediaBenchAdapter):
     modality = "wake_word"
     card_tags = ("keyword-spotting", "wake-word")
@@ -37,46 +69,46 @@ class WakeWordBench(MediaBenchAdapter):
     def iter_samples(
         self, dataset_def, lang: str, revision: str, max_samples: int
     ) -> Iterator[Tuple[str, dict]]:
+        source = dataset_def.source
         fields = dataset_def.reference_fields or {}
+        if getattr(dataset_def, "wakeword", None):
+            # audiofolder: positive folder vs the rest. max_samples caps each
+            # class, so a battle pool is balanced.
+            yield from stream_audiofolder_ww(
+                source, wakeword=dataset_def.wakeword,
+                negative_dirs=getattr(dataset_def, "negative_dirs", None),
+                revision=revision, max_per_class=max_samples)
+            return
         audio_key = fields.get("audio", "audio")
         label_col = fields.get("label", "label")
-        source = dataset_def.source
-        # ww-bench ships a per-sample manifest.jsonl beside the audio files;
-        # plain HF audio corpora carry the clip + label in parquet columns.
         if getattr(source, "file_pattern", None):
-            stream = stream_manifest_audio(
+            yield from stream_manifest_audio(
                 source, audio_key=audio_key,
                 extra_keys={"label": label_col}, revision=revision,
                 max_samples=max_samples)
         else:
-            stream = stream_audio_dataset(
+            yield from stream_audio_dataset(
                 source, audio_key=audio_key,
                 extra_keys={"label": label_col}, revision=revision,
                 max_samples=max_samples)
-        yield from stream
 
     def load_engine(self, competitor, lang: str):
         from ovos_plugin_manager.wakewords import load_wake_word_plugin
 
+        _apply_hotword_compat()
         hotwords = competitor.config.get("hotwords", {})
-        # one hotword block per wake-word fighter
+        # one hotword block per wake-word fighter; the key is the phrase id
+        # (underscored), which engines like openWakeWord match against their
+        # pretrained model filenames — pass it through unchanged.
         key_phrase, hw_cfg = next(iter(hotwords.items()), ("hey_mycroft", {}))
         module = hw_cfg.get("module") or competitor.plugin
         clazz = load_plugin_class(load_wake_word_plugin, module)
-        return clazz(key_phrase.replace("_", " "), dict(hw_cfg))
+        return clazz(key_phrase, dict(hw_cfg))
 
     def predict(self, engine, sample: dict, ctx: PredictContext) -> dict:
-        pcm = _to_pcm16(sample["array"])
-        engine.reset()
         start = time.perf_counter()
-        detected = False
-        for off in range(0, len(pcm), FRAME_SAMPLES * 2):
-            engine.update(pcm[off:off + FRAME_SAMPLES * 2])
-            if engine.found_wake_word():
-                detected = True
-                break
+        detected = _detect(engine, sample["array"])
         latency_ms = (time.perf_counter() - start) * 1000
-
         return {
             "label": _norm_label(sample.get("label")),
             "prediction": "detected" if detected else "not_detected",
@@ -85,14 +117,48 @@ class WakeWordBench(MediaBenchAdapter):
         }
 
 
+def _detect(engine, array) -> bool:
+    """Run one clip through a hotword engine, tolerant of both plugin APIs.
+
+    Some engines expose ``update(chunk_bytes)`` then ``found_wake_word()``;
+    others do everything in ``found_wake_word(frame)`` taking an int16 frame.
+    """
+    if hasattr(engine, "reset"):
+        try:
+            engine.reset()
+        except Exception:
+            pass
+    takes_frame = len(inspect.signature(engine.found_wake_word).parameters) >= 1
+    if takes_frame:
+        frames = _int16_frames(array)
+        for frame in frames:
+            if engine.found_wake_word(frame):
+                return True
+        return False
+    pcm = _to_pcm16(array)
+    for off in range(0, len(pcm), FRAME_SAMPLES * 2):
+        engine.update(pcm[off:off + FRAME_SAMPLES * 2])
+        if engine.found_wake_word():
+            return True
+    return False
+
+
 def _to_pcm16(array) -> bytes:
     """Float32 [-1, 1] mono array → 16-bit little-endian PCM bytes."""
     import numpy as np
 
-    arr = np.asarray(array, dtype="float32")
-    if arr.size and arr.dtype.kind == "f":
-        arr = np.clip(arr, -1.0, 1.0)
+    arr = np.clip(np.asarray(array, dtype="float32"), -1.0, 1.0)
     return (arr * 32767.0).astype("<i2").tobytes()
+
+
+def _int16_frames(array):
+    """Float32 mono array → list of int16 numpy frames of FRAME_SAMPLES each."""
+    import numpy as np
+
+    arr = (np.clip(np.asarray(array, dtype="float32"), -1.0, 1.0)
+           * 32767.0).astype("<i2")
+    return [arr[i:i + FRAME_SAMPLES]
+            for i in range(0, len(arr), FRAME_SAMPLES)]
 
 
 def _norm_label(raw) -> str:
@@ -100,6 +166,4 @@ def _norm_label(raw) -> str:
     from arena.metrics import _ww_is_positive
 
     val = _ww_is_positive(raw)
-    if val is None:
-        return "negative"
     return "positive" if val else "negative"

@@ -102,6 +102,81 @@ class TestWakeWordPredict:
         assert engine.resets == 1
 
 
+class FrameStyleWW:
+    """Hotword engine that does everything in found_wake_word(frame)."""
+
+    def __init__(self, fire_on_index=None):
+        self.fire_on_index = fire_on_index
+        self.i = -1
+        self.resets = 0
+
+    def reset(self):
+        self.resets += 1
+        self.i = -1
+
+    def found_wake_word(self, frame):  # frame-style API
+        self.i += 1
+        return self.i == self.fire_on_index
+
+
+class UpdateStyleWW:
+    """Hotword engine with update(chunk) + found_wake_word()."""
+
+    def __init__(self, fire_after=None):
+        self.fire_after = fire_after
+        self.n = 0
+        self.resets = 0
+
+    def reset(self):
+        self.resets += 1
+        self.n = 0
+
+    def update(self, chunk):
+        self.n += 1
+
+    def found_wake_word(self):  # update-style API
+        return self.fire_after is not None and self.n >= self.fire_after
+
+
+class TestWWDetect:
+    def _audio(self, n=6400):
+        import numpy as np
+        return np.zeros(n, dtype="float32")
+
+    def test_frame_style_detection(self):
+        from runner.ww_bench import _detect
+        assert _detect(FrameStyleWW(fire_on_index=1), self._audio()) is True
+        assert _detect(FrameStyleWW(fire_on_index=None), self._audio()) is False
+
+    def test_update_style_detection(self):
+        from runner.ww_bench import _detect
+        assert _detect(UpdateStyleWW(fire_after=1), self._audio()) is True
+        assert _detect(UpdateStyleWW(fire_after=None), self._audio()) is False
+
+    def test_reset_called_each_clip(self):
+        from runner.ww_bench import _detect
+        eng = UpdateStyleWW(fire_after=None)
+        _detect(eng, self._audio())
+        assert eng.resets == 1
+
+
+class TestEvenSampler:
+    def test_spans_full_range(self):
+        from runner.audio_io import _even
+        items = [f"x/{i:03d}.wav" for i in range(100)]
+        picked = _even(items, 5)
+        assert len(picked) == 5
+        assert picked[0] == "x/000.wav"      # starts at the front
+        assert picked[-1] != "x/004.wav"     # not a same-run head slice
+        assert picked == sorted(picked)       # deterministic, in order
+
+    def test_returns_all_when_under_cap(self):
+        from runner.audio_io import _even
+        items = ["a", "b", "c"]
+        assert _even(items, 10) == items
+        assert _even(items, 0) == items
+
+
 class TestTTSHelpers:
     def test_safe_is_stable_and_short(self):
         a = _safe("hello world")

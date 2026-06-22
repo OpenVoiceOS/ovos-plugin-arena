@@ -81,6 +81,70 @@ def _sample_id(sample: dict, audio_cell, audio_key: str,
     return f"sample_{index:06d}"
 
 
+_AUDIO_EXT = (".wav", ".flac", ".mp3", ".ogg", ".opus", ".m4a")
+
+
+def _even(paths: List[str], cap: int) -> List[str]:
+    """Pick *cap* paths evenly spaced across the sorted list (deterministic).
+
+    Striding spans the full range — across TTS voices within a folder and
+    across folders in a concatenated negative list — instead of taking a
+    same-voice run from the front.
+    """
+    if not cap or len(paths) <= cap:
+        return paths
+    step = len(paths) / cap
+    return [paths[int(i * step)] for i in range(cap)]
+
+
+def stream_audiofolder_ww(
+    source,
+    wakeword: str,
+    negative_dirs: Optional[List[str]],
+    revision: str,
+    max_per_class: int = 0,
+) -> Iterator[Tuple[str, dict]]:
+    """Yield ``(sample_id, {"array","sr","label","audio_url"})`` from an
+    audiofolder wake-word corpus (one folder per phrase).
+
+    Positives are clips under ``<wakeword>/``; negatives are clips under the
+    other top-level folders (``negative_dirs``, or every other folder when
+    None) — other wake phrases make strong adversarial hard negatives.  Each
+    clip is a real file, so ``audio_url`` is a playable HF resolve URL.
+    """
+    from urllib.parse import quote
+
+    from huggingface_hub import HfApi, hf_hub_download
+
+    files = [f for f in HfApi().list_repo_files(source.hf_id, repo_type="dataset",
+                                                revision=revision)
+             if f.lower().endswith(_AUDIO_EXT) and "/" in f]
+    pos = sorted(f for f in files if f.split("/")[0] == wakeword)
+    if negative_dirs:
+        negset = set(negative_dirs)
+        neg = sorted(f for f in files if f.split("/")[0] in negset)
+    else:
+        neg = sorted(f for f in files if f.split("/")[0] != wakeword)
+    if max_per_class:
+        pos = _even(pos, max_per_class)
+        neg = _even(neg, max_per_class)
+
+    for label, paths in (("positive", pos), ("negative", neg)):
+        for rel in paths:
+            try:
+                local = hf_hub_download(source.hf_id, rel, repo_type="dataset",
+                                        revision=revision)
+                with open(local, "rb") as fh:
+                    array, sr = decode_audio_bytes(fh.read())
+            except Exception as exc:
+                logger.warning("ww clip %s failed: %s", rel, exc)
+                continue
+            url = (f"https://huggingface.co/datasets/{source.hf_id}"
+                   f"/resolve/{revision}/{quote(rel)}")
+            yield rel, {"array": array, "sr": sr, "label": label,
+                        "audio_url": url}
+
+
 def stream_manifest_audio(
     source,
     audio_key: str,

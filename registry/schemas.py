@@ -139,6 +139,21 @@ class DatasetDef(BaseModel):
             "training corpus, e.g. {'template': 'intents-for-eval-templates'}."
         ),
     )
+    wakeword: Optional[str] = Field(
+        None,
+        description=(
+            "Wake-word audiofolder corpora: the top-level folder holding "
+            "positive clips for this benchmark's phrase (e.g. 'hey_mycroft'). "
+            "Clips in other folders are negatives."
+        ),
+    )
+    negative_dirs: Optional[List[str]] = Field(
+        None,
+        description=(
+            "Wake-word audiofolder corpora: which top-level folders to draw "
+            "negatives from (default: every folder except ``wakeword``)."
+        ),
+    )
     notes: Optional[str] = None
 
 
