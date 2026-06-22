@@ -51,6 +51,9 @@ Fighters are mycroft.conf pipeline fragments. Paradigm leagues are pure
 corpus its engine needs (e.g. keyword engines on a template-only corpus).
 Scored by accuracy / macro-F1 / OOD-FPR / slot-EM.
 
+> Audio benchmarks need the `audio` extra (`pip install .[hf,audio]` —
+> numpy/soundfile/pyarrow) plus the relevant STT/TTS/wake-word OVOS plugins.
+
 ### STT
 
 ```bash

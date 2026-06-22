@@ -92,7 +92,7 @@ confidence thresholds; the arena owns none.
 ## Running a benchmark
 
 ```bash
-pip install ".[hf]"
+pip install ".[hf,audio]"   # audio extra (numpy/soundfile/pyarrow) for stt/ww/tts
 # intent (shared engine in runner/intent_bench.py)
 python benchmarks/intent_intents_for_eval.py                  # full run (CPU, ~15 min)
 python benchmarks/intent_intents_for_eval.py \
