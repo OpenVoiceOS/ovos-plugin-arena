@@ -204,6 +204,16 @@ class TestSeedElo:
         # competitors still listed (known to the board)
         assert set(seed.competitor_plugin) == {"x", "y"}
 
+    def test_human_vote_only_lists_fighters_at_baseline(self):
+        # tts has no auto-outcome; fighters must still appear at baseline ELO
+        a = _row("voice_a", "https://hf/a.wav", reference=None, input_text="hi")
+        b = _row("voice_b", "https://hf/b.wav", reference=None, input_text="hi")
+        samples = {"s0": {"voice_a": a, "voice_b": b}}
+        seed = seed_elo("tts", "en-US", {"d": samples}, "t")
+        assert seed.auto_vote_count == 0
+        assert seed.ratings == {"voice_a": INITIAL_ELO, "voice_b": INITIAL_ELO}
+        assert seed.battles == {"voice_a": 0, "voice_b": 0}
+
     def test_deterministic(self):
         samples = _samples(*[
             [_row("x", "media:play_song" if i % 2 else "w1"),

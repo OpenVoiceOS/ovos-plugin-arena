@@ -221,10 +221,14 @@ def seed_elo(
         samples = samples_by_dataset[dataset_id]
         for sample_id in sorted(samples):
             rows = samples[sample_id]
+            # every competitor that ran is listed on the board, even with no
+            # auto-battle signal (e.g. TTS, which is human-vote-only) — start
+            # them at the baseline rating so the board shows who is competing.
+            for competitor, row in rows.items():
+                competitor_plugin.setdefault(competitor, row.plugin_id)
+                ledger.ensure(competitor)
             for comp_a, comp_b in itertools.combinations(sorted(rows), 2):
                 row_a, row_b = rows[comp_a], rows[comp_b]
-                competitor_plugin.setdefault(comp_a, row_a.plugin_id)
-                competitor_plugin.setdefault(comp_b, row_b.plugin_id)
                 outcome = auto_outcome(row_a, row_b, modality)
                 if outcome is None:
                     continue

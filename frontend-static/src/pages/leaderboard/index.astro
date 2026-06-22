@@ -96,8 +96,13 @@ import Base from '../../layouts/Base.astro';
         <small style="color:var(--muted)">${esc(e.plugin_id || '')}</small></td>`;
     }
 
-    function benchmarkTable(board) {
-      if (!board?.entries?.length) return '<div class="card"><p style="margin:0">No benchmark data for this league/language yet.</p></div>';
+    function benchmarkTable(board, league) {
+      if (!board?.entries?.length) {
+        const msg = league === 'tts'
+          ? 'TTS has no automatic benchmark — voices are judged by human listening votes only. Cast a vote on the <a href="../battle/">Battle</a> page.'
+          : 'No benchmark data for this league/language yet.';
+        return `<div class="card" style="margin:0"><p style="margin:0">${msg}</p></div>`;
+      }
       const present = METRIC_COLUMNS.filter(([k]) => board.entries.some(e => e.metrics?.[k] != null));
       const buckets = [...new Set(board.entries.flatMap(e =>
         Object.keys(e.metrics || {}).filter(k => k.startsWith('acc_'))))].sort();
@@ -123,8 +128,12 @@ import Base from '../../layouts/Base.astro';
       </section>`;
     }
 
-    function eloTable(board) {
+    function eloTable(board, league) {
       if (!board?.entries?.length) return '<div class="card" style="margin:0"><p style="margin:0">No ELO standings yet — they appear after the first assemble run.</p></div>';
+      const note = league === 'tts'
+        ? 'Human listening votes only — no benchmark seed; vote in the Battle page.'
+        : (league && league.startsWith('intent')
+            ? 'Spans all intent engines — template, keyword &amp; fusions compete together.' : '');
       const rows = board.entries.map(e => `<tr>
         <td style="text-align:right;width:2.4rem;color:var(--muted)">${e.rank}</td>
         ${fighterCell(e)}
@@ -140,6 +149,7 @@ import Base from '../../layouts/Base.astro';
             ${board.vote_count - board.human_vote_count} auto-battles + ${board.human_vote_count} human votes
           </span>
         </div>
+        ${note ? `<p style="margin:0.35rem 0 0;color:var(--muted);font-size:0.8rem">${note}</p>` : ''}
         <div style="overflow-x:auto;margin-top:0.9rem">
           <table><thead><tr><th>#</th><th>Fighter</th><th>ELO</th>
             <th>Wins</th><th>Losses</th><th>Ties</th><th>Human votes</th></tr></thead>
@@ -173,8 +183,8 @@ import Base from '../../layouts/Base.astro';
       document.getElementById('dataset-info').innerHTML = datasetInfoHtml(benches[0]);
       const panels = document.getElementById('lb-panels');
       panels.innerHTML = `<div class="board-grid">${
-        benches.length ? benches.map(benchmarkTable).join('') : benchmarkTable(null)
-      }${eloTable(elo)}</div>`;
+        benches.length ? benches.map(b => benchmarkTable(b, league)).join('') : benchmarkTable(null, league)
+      }${eloTable(elo, league)}</div>`;
       panels.querySelectorAll('.toggle-buckets').forEach(btn => {
         btn.addEventListener('click', () => {
           const cols = btn.closest('section').querySelectorAll('.bucket-col');
