@@ -18,15 +18,29 @@ import Base from '../../layouts/Base.astro';
   </div>
 
   <section id="battle-ui" style="display:none" aria-label="Current battle">
-    <div class="card" style="display:flex;gap:0.75rem;flex-wrap:wrap;align-items:center;margin-bottom:1rem;padding:0.7rem 1.1rem">
-      <span id="battle-badge" class="badge"></span>
-      <label for="sel-lang" class="sr-only">Battle language</label>
-      <select id="sel-lang" title="Only battles in a language you understand"
-              style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:0.25rem 0.5rem;font-size:0.85rem"></select>
-      <span id="battle-count" style="color:var(--muted);font-size:0.8rem"></span>
-      <span id="battle-id" style="color:var(--muted);font-size:0.72rem;font-family:var(--mono);margin-left:auto"></span>
-      <button id="btn-skip" class="btn" style="padding:0.3rem 0.8rem">Skip ↻</button>
+    <div class="card" style="margin-bottom:1rem;padding:0.7rem 1.1rem">
+      <div style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center">
+        <span id="battle-badge" class="badge"></span>
+        <span style="color:var(--muted);font-size:0.8rem">Languages you speak:</span>
+        <div id="lang-chips" role="group" aria-label="Languages you speak — only these battles are shown"
+             style="display:flex;gap:0.35rem;flex-wrap:wrap"></div>
+        <span id="battle-count" style="color:var(--muted);font-size:0.8rem;margin-left:auto"></span>
+        <span id="battle-id" style="color:var(--muted);font-size:0.72rem;font-family:var(--mono)"></span>
+        <button id="btn-skip" class="btn" style="padding:0.3rem 0.8rem">Skip ↻</button>
+      </div>
     </div>
+
+    <style>
+      .lang-chip {
+        padding: 0.2rem 0.7rem; border: 1px solid var(--border);
+        border-radius: 999px; background: var(--surface); color: var(--muted);
+        font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.15s;
+      }
+      .lang-chip:hover { color: var(--text); border-color: var(--muted); }
+      .lang-chip[aria-pressed="true"] {
+        background: var(--accent); color: #fff; border-color: transparent;
+      }
+    </style>
 
     <!-- The stimulus -->
     <div class="card" style="text-align:center;border-color:#57393d">
@@ -164,25 +178,61 @@ import Base from '../../layouts/Base.astro';
       return arr;
     }
 
-    function pickDefaultLang(langs) {
-      const saved = localStorage.getItem('arena-battle-lang');
-      if (saved && langs.includes(saved)) return saved;
-      // match the browser's languages, full tag first, then primary subtag
+    // The voter declares the languages they speak; only those battles are
+    // shown, so nobody votes on output in a language they cannot judge.
+    let spokenLangs = new Set();
+
+    function defaultLangs(langs) {
+      const saved = JSON.parse(localStorage.getItem('arena-battle-langs') || 'null');
+      if (Array.isArray(saved) && saved.length) {
+        const valid = saved.filter(l => langs.includes(l));
+        if (valid.length) return new Set(valid);
+      }
+      // seed from the browser's languages (full tag, then primary subtag)
+      const picked = new Set();
       for (const tag of navigator.languages || [navigator.language]) {
         const exact = langs.find(l => l.toLowerCase() === tag.toLowerCase());
-        if (exact) return exact;
+        if (exact) { picked.add(exact); continue; }
         const primary = tag.split('-')[0].toLowerCase();
-        const close = langs.find(l => l.split('-')[0].toLowerCase() === primary);
-        if (close) return close;
+        for (const l of langs) if (l.split('-')[0].toLowerCase() === primary) picked.add(l);
       }
-      return langs.includes('en-US') ? 'en-US' : langs[0];
+      if (!picked.size) picked.add(langs.includes('en-US') ? 'en-US' : langs[0]);
+      return picked;
     }
 
-    function setLang(lang) {
-      localStorage.setItem('arena-battle-lang', lang);
-      battles = shuffle(allBattles.filter(b => b.lang === lang));
+    function applyLangs() {
+      localStorage.setItem('arena-battle-langs', JSON.stringify([...spokenLangs]));
+      document.querySelectorAll('.lang-chip').forEach(c =>
+        c.setAttribute('aria-pressed', spokenLangs.has(c.dataset.lang) ? 'true' : 'false'));
+      battles = shuffle(allBattles.filter(b => spokenLangs.has(b.lang)));
       currentIdx = 0;
       if (battles.length) loadBattle(battles[0]);
+      else {
+        document.getElementById('battle-ui').style.display = 'none';
+        document.getElementById('battle-empty').style.display = '';
+        document.getElementById('battle-empty').textContent =
+          'No battles in your selected languages. Pick another language above.';
+      }
+    }
+
+    function toggleLang(lang) {
+      if (spokenLangs.has(lang)) {
+        if (spokenLangs.size > 1) spokenLangs.delete(lang);  // keep at least one
+      } else {
+        spokenLangs.add(lang);
+        document.getElementById('battle-empty').style.display = 'none';
+        document.getElementById('battle-ui').style.display = '';
+      }
+      applyLangs();
+    }
+
+    function renderLangChips(langs) {
+      const box = document.getElementById('lang-chips');
+      box.innerHTML = langs.map(l =>
+        `<button class="lang-chip" data-lang="${esc(l)}" aria-pressed="false">${esc(l)}</button>`
+      ).join('');
+      box.querySelectorAll('.lang-chip').forEach(c =>
+        c.addEventListener('click', () => toggleLang(c.dataset.lang)));
     }
 
     const esc = s => String(s).replace(/[&<>"']/g, c =>
@@ -339,12 +389,9 @@ import Base from '../../layouts/Base.astro';
       }
 
       const langs = [...new Set(allBattles.map(b => b.lang))].sort();
-      const sel = document.getElementById('sel-lang');
-      sel.innerHTML = langs.map(l => `<option value="${esc(l)}">${esc(l)}</option>`).join('');
-      const lang = pickDefaultLang(langs);
-      sel.value = lang;
-      sel.addEventListener('change', () => setLang(sel.value));
-      setLang(lang);
+      renderLangChips(langs);
+      spokenLangs = defaultLangs(langs);
+      applyLangs();
 
       document.getElementById('vote-a').addEventListener('click', () => castVote('a'));
       document.getElementById('vote-b').addEventListener('click', () => castVote('b'));
