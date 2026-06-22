@@ -6,6 +6,11 @@ on:
     paths:
       - 'frontend-static/**'
       - '.github/workflows/pages.yml'
+  # Redeploy after a data refresh: assemble/tally commit with [skip ci], so a
+  # push trigger never fires for them — deploy on their completion instead.
+  workflow_run:
+    workflows: ["Assemble battles", "Tally votes"]
+    types: [completed]
   workflow_dispatch: {}
 
 permissions:
