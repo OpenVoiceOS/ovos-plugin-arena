@@ -1,13 +1,13 @@
 {
-  "modality": "stt",
-  "dataset_id": "minds14-en-US",
-  "lang": "en-US",
+  "modality": "wake_word",
+  "dataset_id": "synthetic-wakewords-hey_mycroft",
+  "lang": "en",
   "generated_at": "2026-06-22T22:59:59.529440+00:00",
-  "primary_metric": "wer_mean",
+  "primary_metric": "error_rate",
   "dataset_info": {
-    "url": "https://huggingface.co/datasets/PolyAI/minds14",
-    "license": "cc-by-4.0",
-    "notes": "MInDS-14 English (US) — telephone-domain speech, 14 intent classes",
+    "url": "https://huggingface.co/datasets/OpenVoiceOS/synthetic-wakewords",
+    "license": "apache-2.0",
+    "notes": "Synthetic 'hey mycroft' wake-word eval: positives from the hey_mycroft folder of OpenVoiceOS/synthetic-wakewords (TTS across many voices), negatives drawn from other wake phrases and command words (adversarial hard negatives). One folder per phrase (audiofolder layout); label is positive for the wakeword folder, negative otherwise.",
     "predictions": [
       "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-template-bench-intents-for-eval",
       "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-keyword-bench-intents-for-eval",
@@ -24,24 +24,15 @@
   "entries": [
     {
       "rank": 1,
-      "competitor_id": "vosk-small-en",
-      "plugin_id": "ovos-stt-plugin-vosk",
-      "samples": 25,
+      "competitor_id": "precise-onnx-hey-mycroft",
+      "plugin_id": "ovos-ww-plugin-precise-onnx",
+      "samples": 80,
       "metrics": {
-        "wer_mean": 0.283,
-        "wer_median": 0.2222,
-        "latency_ms_median": 976.7
-      }
-    },
-    {
-      "rank": 2,
-      "competitor_id": "fasterwhisper-base-en",
-      "plugin_id": "ovos-stt-plugin-fasterwhisper",
-      "samples": 25,
-      "metrics": {
-        "wer_mean": 0.3346,
-        "wer_median": 0.2,
-        "latency_ms_median": 3380.5
+        "error_rate": 0.275,
+        "accuracy": 0.725,
+        "false_accept_rate": 0.0,
+        "false_reject_rate": 0.55,
+        "latency_ms_median": 5.99
       }
     }
   ]
