@@ -132,6 +132,8 @@ import Base from '../../layouts/Base.astro';
       if (!board?.entries?.length) return '<div class="card" style="margin:0"><p style="margin:0">No ELO standings yet — they appear after the first assemble run.</p></div>';
       const note = league === 'tts'
         ? 'Human listening votes only — no benchmark seed; vote in the Battle page.'
+        : league === 'wake_word' && board.entries.length < 2
+          ? 'Head-to-head battles need a second wake-word engine on the same clips.'
         : (league && league.startsWith('intent')
             ? 'Spans all intent engines — template, keyword &amp; fusions compete together.' : '');
       const rows = board.entries.map(e => `<tr>
