@@ -1,197 +1,291 @@
 ---
 import Base from '../../layouts/Base.astro';
 ---
-<Base title="Leaderboards" description="Benchmark and ELO leaderboards for OVOS plugins — per league and language.">
-  <h1>Leaderboards</h1>
-  <p>
-    One tab per league. <strong>Benchmark boards</strong> are computed directly from
-    prediction runs against labelled datasets; <strong>ELO boards</strong> are seeded
-    from those benchmarks and refined by human votes in <a href="../battle/">blind battles</a>.
+<Base title="Standings" description="The arena standings — ELO ladders and benchmark boards for every OVOS plugin, per league and language.">
+  <p class="eyebrow" style="margin-bottom:0.4rem">OVOS Plugin Arena · Rankings</p>
+  <h1 style="font-size:clamp(1.8rem,5vw,2.6rem);margin-bottom:0.35rem">The Standings</h1>
+  <p style="max-width:62ch">
+    Pick a league and a language. The <strong>ladder</strong> is the ELO ranking —
+    seeded from benchmarks, refined by <a href="../battle/">blind battle</a> votes.
+    The <strong>benchmark boards</strong> below it score every fighter straight off
+    labelled data.
   </p>
 
-  <div id="lb-loading" class="card" aria-live="polite">Loading leaderboard data…</div>
+  <div id="lb-loading" class="card" aria-live="polite">Loading the arena…</div>
   <div id="lb-empty" class="card" style="display:none">
-    No leaderboard data found. Run the <code>assemble.yml</code> GitHub Action to generate data.
+    No standings yet. Run the <code>assemble.yml</code> action to build them from prediction data.
   </div>
 
   <div id="lb-app" style="display:none">
-    <div id="league-tabs" role="tablist" aria-label="Leagues"
-         style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1rem"></div>
+    <div id="league-tabs" class="lb-tabs" role="tablist" aria-label="Leagues"></div>
 
-    <div class="card" style="display:flex;gap:1rem;flex-wrap:wrap;align-items:center">
-      <label for="sel-lang" style="color:var(--muted);font-size:0.9rem">Language</label>
-      <select id="sel-lang" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:0.35rem 0.6rem"></select>
-      <div id="dataset-info" style="font-size:0.85rem;color:var(--muted);flex:1;min-width:260px"></div>
+    <div class="lb-control">
+      <label for="sel-lang" class="lb-lang">
+        <span>Language</span>
+        <select id="sel-lang"></select>
+      </label>
+      <div id="dataset-info" class="lb-meta"></div>
     </div>
 
     <div id="lb-panels"></div>
   </div>
 
-  <style>
-    .league-tab {
-      padding: 0.45rem 1rem;
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      background: var(--surface);
-      color: var(--muted);
-      font-size: 0.9rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.15s;
+  <style is:global>
+    /* ---- league tabs: character-select chips ---- */
+    .lb-tabs { display:flex; gap:0.4rem; flex-wrap:wrap; margin:1.5rem 0 1rem; }
+    .lb-tab {
+      font-family: var(--display); font-weight:600; font-size:0.82rem;
+      letter-spacing:0.02em; padding:0.5rem 0.95rem; cursor:pointer;
+      color: var(--muted); background: var(--surface);
+      border:1px solid var(--border); border-radius:8px;
+      transition: color .15s, border-color .15s, background .15s, transform .1s;
     }
-    .league-tab:hover { color: var(--text); border-color: var(--muted); }
-    .league-tab[aria-selected="true"] {
-      background: var(--gradient);
-      color: #fff;
-      border-color: transparent;
-      text-shadow: 0 1px 2px rgba(0,0,0,0.35);
+    .lb-tab:hover { color: var(--text); border-color: var(--muted); }
+    .lb-tab:active { transform: translateY(1px); }
+    .lb-tab[aria-selected="true"] {
+      color:#fff; border-color: transparent; background: var(--gradient);
+      box-shadow: 0 6px 18px rgba(239,45,60,0.3);
     }
-    .board-grid { display: grid; gap: 1.25rem; }
-    .board-grid table { font-size: 0.95rem; min-width: 640px; }
-    .board-grid th {
-      white-space: nowrap;
-      font-size: 0.78rem;
-      padding: 0.7rem 0.9rem;
+
+    /* ---- control / meta row ---- */
+    .lb-control { display:flex; gap:1rem 1.5rem; flex-wrap:wrap; align-items:center;
+      padding:0.7rem 0; border-block:1px solid var(--border); margin-bottom:1.5rem; }
+    .lb-lang { display:flex; align-items:center; gap:0.5rem; font-size:0.85rem; color:var(--muted); }
+    .lb-lang select { font-family:var(--mono); background:var(--bg); color:var(--text);
+      border:1px solid var(--border); border-radius:7px; padding:0.35rem 0.6rem; }
+    .lb-meta { display:flex; gap:0.45rem; flex-wrap:wrap; align-items:center;
+      font-size:0.8rem; color:var(--muted); }
+    .lb-chip { display:inline-flex; align-items:center; gap:0.3rem; padding:0.15rem 0.55rem;
+      border:1px solid var(--border); border-radius:999px; background:var(--surface); }
+    .lb-chip code { background:none; border:none; padding:0; font-size:0.82em; color:var(--text); }
+
+    /* ---- section frame ---- */
+    .lb-section { margin-bottom:2.25rem; }
+    .lb-section-head { display:flex; align-items:baseline; gap:0.7rem; flex-wrap:wrap; margin-bottom:1rem; }
+    .lb-section-head h2 { margin:0; font-size:1.15rem; }
+    .lb-section-head .tag { font-size:0.78rem; color:var(--muted); }
+    .lb-note { margin:0.1rem 0 1rem; font-size:0.82rem; color:var(--muted);
+      border-left:2px solid var(--accent); padding-left:0.6rem; }
+
+    /* ---- podium (top 3) ---- */
+    .podium { display:grid; grid-template-columns:1fr 1.25fr 1fr; gap:0.8rem; align-items:end; margin-bottom:1rem; }
+    .pod {
+      position:relative; text-align:center; border:1px solid var(--border);
+      border-radius:14px; padding:1.1rem 0.8rem 1rem;
+      background:linear-gradient(180deg, var(--surface-2), var(--surface));
     }
-    .board-grid td { padding: 0.7rem 0.9rem; white-space: nowrap; }
-    .board-grid td:nth-child(2) { white-space: normal; min-width: 200px; }
+    .pod .crown { font-family:var(--pixel); font-size:0.62rem; letter-spacing:0.05em; margin-bottom:0.5rem; }
+    .pod .sprite { filter: drop-shadow(0 6px 16px rgba(0,0,0,0.5)); }
+    .pod .nm { font-family:var(--display); font-weight:600; font-size:0.95rem; margin:0.5rem 0 0.1rem; }
+    .pod .pl { font-family:var(--mono); font-size:0.72rem; color:var(--muted); word-break:break-word; }
+    .pod .elo { font-family:var(--display); font-weight:700; font-size:1.6rem; margin-top:0.5rem; line-height:1; }
+    .pod .elo small { font-family:var(--pixel); font-size:0.5rem; color:var(--muted); display:block; margin-top:0.35rem; letter-spacing:0.08em; }
+    .pod.r1 { border-color:var(--gold); box-shadow:0 0 0 1px var(--gold), 0 10px 30px rgba(255,206,77,0.14); transform:translateY(-10px); }
+    .pod.r1 .crown { color:var(--gold); } .pod.r1 .elo { color:var(--gold); }
+    .pod.r2 { border-color:var(--silver); } .pod.r2 .crown { color:var(--silver); }
+    .pod.r3 { border-color:var(--bronze); } .pod.r3 .crown { color:var(--bronze); }
+    .wlt { display:inline-flex; gap:0.3rem; margin-top:0.6rem; font-family:var(--mono); font-size:0.72rem; }
+    .wlt b { font-weight:700; }
+    .wlt .w { color:var(--win); } .wlt .l { color:var(--loss); } .wlt .t { color:var(--tie); }
+
+    /* ---- ladder rows (rank 4+) ---- */
+    .ladder { display:flex; flex-direction:column; gap:0.45rem; }
+    .lrow { display:grid; grid-template-columns:2.2rem 40px 1fr auto; align-items:center; gap:0.8rem;
+      padding:0.55rem 0.9rem; border:1px solid var(--border); border-radius:10px; background:var(--surface); }
+    .lrow:hover { border-color:#57393d; }
+    .lrow .rk { font-family:var(--display); font-weight:700; color:var(--muted); text-align:center; }
+    .lrow .who { min-width:0; }
+    .lrow .who .nm { font-family:var(--display); font-weight:600; font-size:0.92rem; }
+    .lrow .who .pl { font-family:var(--mono); font-size:0.72rem; color:var(--muted); }
+    .lrow .bar { height:5px; border-radius:3px; background:var(--gradient); margin-top:0.4rem; min-width:6%; }
+    .lrow .right { text-align:right; }
+    .lrow .right .elo { font-family:var(--display); font-weight:700; font-size:1.15rem; }
+
+    /* ---- benchmark board ---- */
+    .bench { border:1px solid var(--border); border-radius:14px; padding:1.1rem 1.25rem; margin-bottom:1.1rem;
+      background:linear-gradient(180deg, var(--surface-2), var(--surface)); }
+    .bench-tbl { width:100%; border-collapse:separate; border-spacing:0; }
+    .bench-tbl th { font-family:var(--display); font-weight:600; text-transform:none; letter-spacing:0;
+      font-size:0.76rem; color:var(--muted); text-align:left; padding:0.4rem 0.6rem; white-space:nowrap; }
+    .bench-tbl td { padding:0.55rem 0.6rem; border-top:1px solid var(--border); vertical-align:middle; white-space:nowrap; }
+    .bench-tbl tr:first-child td { border-top:none; }
+    .bench .nm { font-family:var(--display); font-weight:600; font-size:0.9rem; }
+    .bench .pl { font-family:var(--mono); font-size:0.7rem; color:var(--muted); }
+    .prim { display:flex; align-items:center; gap:0.6rem; min-width:160px; }
+    .prim .v { font-family:var(--display); font-weight:700; font-size:1.05rem; width:4.2rem; }
+    .prim .track { flex:1; height:6px; border-radius:3px; background:rgba(255,255,255,0.08); overflow:hidden; min-width:60px; }
+    .prim .fill { height:100%; background:var(--gradient); border-radius:3px; }
+    .metric-chip { font-family:var(--mono); font-size:0.8rem; color:var(--text); }
+    .rank-cell { font-family:var(--display); font-weight:700; color:var(--muted); width:2rem; text-align:center; }
+    .rank-cell.m1 { color:var(--gold); } .rank-cell.m2 { color:var(--silver); } .rank-cell.m3 { color:var(--bronze); }
+    .sprite-cell svg { display:block; }
+    .bucket-col { display:none; }
+
+    @media (max-width:720px) {
+      .podium { grid-template-columns:1fr; }
+      .pod.r1 { transform:none; order:-1; }
+      .lrow { grid-template-columns:1.8rem 32px 1fr auto; gap:0.5rem; }
+      .prim { min-width:120px; }
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      .lrow .bar, .prim .fill { animation: grow .5s ease-out; }
+      @keyframes grow { from { transform:scaleX(0); transform-origin:left; } }
+    }
   </style>
 
   <script>
+    import { spriteSvg } from '../../lib/sprite.js';
+
     const BASE = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
 
     const LEAGUE_LABELS = {
-      intent_template: 'Intent · Template',
-      intent_keyword: 'Intent · Keyword',
-      intent: 'Intent · Fusions',
-      stt: 'STT', tts: 'TTS', wake_word: 'Wake Word',
+      intent_template: 'Intent · Template', intent_keyword: 'Intent · Keyword',
+      intent: 'Intent · Fusions', stt: 'STT', tts: 'TTS', wake_word: 'Wake Word',
     };
     const LEAGUE_ORDER = ['intent_template', 'intent_keyword', 'intent', 'stt', 'tts', 'wake_word'];
-    // battles + ELO pool by group (intent paradigm leagues share one ELO board);
-    // benchmark boards stay per-league.
     const BATTLE_GROUP = { intent_template: 'intent', intent_keyword: 'intent', intent: 'intent', stt: 'stt', tts: 'tts', wake_word: 'wake_word' };
     const METRIC_COLUMNS = [
-      ['accuracy', 'Accuracy', true],
-      ['macro_f1', 'Macro F1', true],
-      ['ood_fpr', 'OOD FPR', true],
-      ['slot_exact_match', 'Slot EM', true],
-      ['wer_mean', 'WER (mean)', true],
-      ['wer_median', 'WER (median)', true],
-      ['error_rate', 'Error rate', true],
-      ['false_accept_rate', 'False accept', true],
-      ['false_reject_rate', 'False reject', true],
-      ['latency_ms_median', 'Latency (ms)', false],
+      ['accuracy', 'Accuracy', true], ['macro_f1', 'Macro F1', true],
+      ['ood_fpr', 'OOD FPR', true], ['slot_exact_match', 'Slot EM', true],
+      ['wer_mean', 'WER mean', true], ['wer_median', 'WER med.', true],
+      ['error_rate', 'Error', true], ['false_accept_rate', 'False acc.', true],
+      ['false_reject_rate', 'False rej.', true], ['latency_ms_median', 'Latency ms', false],
     ];
 
-    let benchmarks = [], elos = [];
+    let benchmarks = [], elos = [], fighters = {};
     let league = '', lang = '';
 
     const esc = s => String(s).replace(/[&<>"']/g, c =>
       ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c]);
     const pct = v => v == null ? '—' : (v * 100).toFixed(1) + '%';
     const fetchJson = p => fetch(p).then(r => r.ok ? r.json() : null).catch(() => null);
+    const typeOf = id => (fighters[id]?.types || [])[0] || '';
+    const nameOf = id => fighters[id]?.display_name || id;
+    const sprite = (id, size) => spriteSvg(id, typeOf(id), size, false);
 
-    function fighterCell(e) {
-      return `<td><strong>${esc(e.competitor_id)}</strong><br>
-        <small style="color:var(--muted)">${esc(e.plugin_id || '')}</small></td>`;
+    function wlt(e) {
+      return `<span class="wlt"><span class="w">${e.wins}<b>W</b></span>
+        <span class="l">${e.losses}<b>L</b></span><span class="t">${e.ties}<b>T</b></span></span>`;
     }
 
-    function benchmarkTable(board, league) {
+    function eloSection(board, league) {
+      const note = league === 'tts'
+        ? 'Ranked by human listening votes only — no benchmark seed. Vote in the Battle page.'
+        : league === 'wake_word' && (!board || board.entries.length < 2)
+          ? 'One engine benchmarked so far — head-to-head battles need a second on the same clips.'
+        : (league && league.startsWith('intent')
+            ? 'One ladder for every intent engine — template, keyword and fusions compete together.' : '');
+      const head = `<div class="lb-section-head">
+        <p class="eyebrow" style="color:var(--accent)">The Ladder</p>
+        <h2>⚔️ ELO ranking</h2>
+        ${board ? `<span class="tag">${board.vote_count - board.human_vote_count} auto-battles · ${board.human_vote_count} human votes</span>` : ''}
+      </div>${note ? `<p class="lb-note">${note}</p>` : ''}`;
+      if (!board?.entries?.length)
+        return `<section class="lb-section">${head}<div class="card" style="margin:0">No ladder standings yet.</div></section>`;
+
+      const E = board.entries;
+      const ratings = E.map(e => e.elo);
+      const lo = Math.min(...ratings), hi = Math.max(...ratings);
+      const strength = v => hi === lo ? 60 : Math.round(6 + 94 * (v - lo) / (hi - lo));
+
+      const top = E.slice(0, 3);
+      const podOrder = top.length === 3 ? [top[1], top[0], top[2]] : top;
+      const crowns = { 1: '① CHAMPION', 2: '② RUNNER-UP', 3: '③ THIRD' };
+      const podium = top.length >= 2 ? `<div class="podium">${podOrder.map(e => `
+        <div class="pod r${e.rank}">
+          <div class="crown">${crowns[e.rank] || ''}</div>
+          <span class="sprite">${sprite(e.competitor_id, e.rank === 1 ? 76 : 60)}</span>
+          <p class="nm">${esc(nameOf(e.competitor_id))}</p>
+          <p class="pl">${esc(e.plugin_id || '')}</p>
+          <p class="elo">${Math.round(e.elo)}<small>ELO</small></p>
+          ${e.battles ? wlt(e) : ''}
+        </div>`).join('')}</div>` : '';
+
+      const rest = E.slice(top.length >= 2 ? 3 : 0);
+      const ladder = rest.length ? `<div class="ladder">${rest.map(e => `
+        <div class="lrow">
+          <span class="rk">${e.rank}</span>
+          <span class="sprite-cell">${sprite(e.competitor_id, 40)}</span>
+          <span class="who">
+            <span class="nm">${esc(nameOf(e.competitor_id))}</span>
+            <span class="pl"> · ${esc(e.plugin_id || '')}</span>
+            <div class="bar" style="width:${strength(e.elo)}%"></div>
+          </span>
+          <span class="right"><span class="elo">${Math.round(e.elo)}</span><br>${e.battles ? wlt(e) : '<span class="pl">unrated</span>'}</span>
+        </div>`).join('')}</div>` : '';
+
+      return `<section class="lb-section">${head}${podium}${ladder}</section>`;
+    }
+
+    function benchBoard(board, league) {
       if (!board?.entries?.length) {
         const msg = league === 'tts'
-          ? 'TTS has no automatic benchmark — voices are judged by human listening votes only. Cast a vote on the <a href="../battle/">Battle</a> page.'
-          : 'No benchmark data for this league/language yet.';
-        return `<div class="card" style="margin:0"><p style="margin:0">${msg}</p></div>`;
+          ? 'TTS has no automatic benchmark — voices are judged by ear in <a href="../battle/">blind battles</a>.'
+          : 'No benchmark board for this league and language yet.';
+        return `<div class="bench">${msg}</div>`;
       }
-      const present = METRIC_COLUMNS.filter(([k]) => board.entries.some(e => e.metrics?.[k] != null));
+      const primary = board.primary_metric;
+      const higher = primary === 'accuracy';
+      const score = v => v == null ? 0 : Math.max(0, Math.min(1, higher ? v : 1 - v));
+      const secondary = METRIC_COLUMNS.filter(([k]) => k !== primary &&
+        board.entries.some(e => e.metrics?.[k] != null));
       const buckets = [...new Set(board.entries.flatMap(e =>
         Object.keys(e.metrics || {}).filter(k => k.startsWith('acc_'))))].sort();
-      const head = ['<th>#</th><th>Fighter</th>',
-        ...present.map(([, l]) => `<th>${l}</th>`),
-        ...buckets.map(b => `<th class="bucket-col" style="display:none">${esc(b.slice(4))}</th>`),
-        '<th>Samples</th>'].join('');
+      const medal = r => r <= 3 ? `m${r}` : '';
+      const head = `<tr><th></th><th></th><th>Fighter</th><th>${esc(primary)}</th>
+        ${secondary.map(([, l]) => `<th>${l}</th>`).join('')}
+        ${buckets.map(b => `<th class="bucket-col">${esc(b.slice(4))}</th>`).join('')}
+        <th>Samples</th></tr>`;
       const rows = board.entries.map(e => `<tr>
-        <td style="text-align:right;width:2.4rem;color:var(--muted)">${e.rank}</td>
-        ${fighterCell(e)}
-        ${present.map(([k,,p]) => `<td>${e.metrics?.[k] == null ? '—' : (p ? pct(e.metrics[k]) : e.metrics[k])}</td>`).join('')}
-        ${buckets.map(b => `<td class="bucket-col" style="display:none">${pct(e.metrics?.[b])}</td>`).join('')}
-        <td>${e.samples}</td></tr>`).join('');
-      return `<section class="card" style="margin:0">
-        <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap">
-          <h2 style="margin:0;font-size:1.25rem">📊 Benchmark <code style="font-size:0.8rem">${esc(board.dataset_id || '')}</code></h2>
-          <span style="color:var(--muted);font-size:0.8rem">primary: ${esc(board.primary_metric)}</span>
-          ${buckets.length ? '<button class="btn toggle-buckets" style="padding:0.1rem 0.6rem;font-size:0.75rem;margin-left:auto">show buckets</button>' : ''}
+        <td class="rank-cell ${medal(e.rank)}">${e.rank}</td>
+        <td class="sprite-cell">${sprite(e.competitor_id, 34)}</td>
+        <td><div class="nm">${esc(nameOf(e.competitor_id))}</div><div class="pl">${esc(e.plugin_id || '')}</div></td>
+        <td><div class="prim"><span class="v">${e.metrics?.[primary] == null ? '—' : pct(e.metrics[primary])}</span>
+          <span class="track"><span class="fill" style="width:${(score(e.metrics?.[primary]) * 100).toFixed(0)}%"></span></span></div></td>
+        ${secondary.map(([k,,p]) => `<td class="metric-chip">${e.metrics?.[k] == null ? '—' : (p ? pct(e.metrics[k]) : e.metrics[k])}</td>`).join('')}
+        ${buckets.map(b => `<td class="bucket-col metric-chip">${pct(e.metrics?.[b])}</td>`).join('')}
+        <td class="metric-chip">${e.samples}</td></tr>`).join('');
+      return `<div class="bench">
+        <div class="lb-section-head" style="margin-bottom:0.8rem">
+          <h2 style="font-size:1rem">📊 ${esc(board.dataset_id || '')}</h2>
+          <span class="tag">primary metric · ${esc(primary)}</span>
+          ${buckets.length ? '<button class="btn toggle-buckets" style="padding:0.1rem 0.6rem;font-size:0.72rem;margin-left:auto">show buckets</button>' : ''}
         </div>
-        <div style="overflow-x:auto;margin-top:0.9rem">
-          <table><thead><tr>${head}</tr></thead><tbody>${rows}</tbody></table>
-        </div>
-      </section>`;
-    }
-
-    function eloTable(board, league) {
-      if (!board?.entries?.length) return '<div class="card" style="margin:0"><p style="margin:0">No ELO standings yet — they appear after the first assemble run.</p></div>';
-      const note = league === 'tts'
-        ? 'Human listening votes only — no benchmark seed; vote in the Battle page.'
-        : league === 'wake_word' && board.entries.length < 2
-          ? 'Head-to-head battles need a second wake-word engine on the same clips.'
-        : (league && league.startsWith('intent')
-            ? 'Spans all intent engines — template, keyword &amp; fusions compete together.' : '');
-      const rows = board.entries.map(e => `<tr>
-        <td style="text-align:right;width:2.4rem;color:var(--muted)">${e.rank}</td>
-        ${fighterCell(e)}
-        <td style="font-weight:700">${Math.round(e.elo)}</td>
-        <td style="color:var(--win)">${e.wins}</td>
-        <td style="color:var(--loss)">${e.losses}</td>
-        <td style="color:var(--tie)">${e.ties}</td>
-        <td>${e.human_votes}</td></tr>`).join('');
-      return `<section class="card" style="margin:0">
-        <div style="display:flex;align-items:baseline;gap:0.6rem;flex-wrap:wrap">
-          <h2 style="margin:0;font-size:1.25rem">⚔️ ELO</h2>
-          <span style="color:var(--muted);font-size:0.8rem">
-            ${board.vote_count - board.human_vote_count} auto-battles + ${board.human_vote_count} human votes
-          </span>
-        </div>
-        ${note ? `<p style="margin:0.35rem 0 0;color:var(--muted);font-size:0.8rem">${note}</p>` : ''}
-        <div style="overflow-x:auto;margin-top:0.9rem">
-          <table><thead><tr><th>#</th><th>Fighter</th><th>ELO</th>
-            <th>Wins</th><th>Losses</th><th>Ties</th><th>Human votes</th></tr></thead>
-          <tbody>${rows}</tbody></table>
-        </div>
-      </section>`;
+        <div style="overflow-x:auto"><table class="bench-tbl"><thead>${head}</thead><tbody>${rows}</tbody></table></div>
+      </div>`;
     }
 
     function datasetInfoHtml(board) {
       if (!board) return '';
       const info = board.dataset_info || {};
+      const chip = (inner) => `<span class="lb-chip">${inner}</span>`;
       const parts = [];
-      if (board.dataset_id) {
-        parts.push(info.url
-          ? `Dataset: <a href="${esc(info.url)}" target="_blank" rel="noopener noreferrer"><code>${esc(board.dataset_id)}</code></a>`
-          : `Dataset: <code>${esc(board.dataset_id)}</code>`);
-      }
-      if (info.license) parts.push(`license: ${esc(info.license)}`);
-      for (const url of info.predictions || []) {
-        parts.push(`<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">predictions ↗</a>`);
-      }
-      if (board.generated_at) parts.push(`updated ${new Date(board.generated_at).toLocaleString()}`);
-      return parts.join(' · ');
+      if (board.dataset_id) parts.push(chip(info.url
+        ? `<a href="${esc(info.url)}" target="_blank" rel="noopener noreferrer"><code>${esc(board.dataset_id)}</code></a>`
+        : `<code>${esc(board.dataset_id)}</code>`));
+      if (info.license) parts.push(chip(esc(info.license)));
+      if ((info.predictions || []).length)
+        parts.push(chip(`<a href="${esc(info.predictions[0])}" target="_blank" rel="noopener noreferrer">predictions ↗</a>`));
+      if (board.generated_at) parts.push(`<span style="opacity:0.7">updated ${new Date(board.generated_at).toLocaleDateString()}</span>`);
+      return parts.join('');
     }
 
     function render() {
       const benches = benchmarks.filter(b => b.modality === league && b.lang === lang)
         .sort((a, b) => (a.dataset_id || '').localeCompare(b.dataset_id || ''));
-      // ELO is pooled by battle group — intent sub-leagues share one board
       const elo = elos.find(b => b.modality === BATTLE_GROUP[league] && b.lang === lang);
       document.getElementById('dataset-info').innerHTML = datasetInfoHtml(benches[0]);
       const panels = document.getElementById('lb-panels');
-      panels.innerHTML = `<div class="board-grid">${
-        benches.length ? benches.map(b => benchmarkTable(b, league)).join('') : benchmarkTable(null, league)
-      }${eloTable(elo, league)}</div>`;
+      panels.innerHTML = eloSection(elo, league) + `<section class="lb-section">
+        <div class="lb-section-head"><p class="eyebrow" style="color:var(--accent)">The Data</p>
+          <h2>📊 Benchmark boards</h2></div>
+        ${benches.length ? benches.map(b => benchBoard(b, league)).join('') : benchBoard(null, league)}
+      </section>`;
       panels.querySelectorAll('.toggle-buckets').forEach(btn => {
         btn.addEventListener('click', () => {
-          const cols = btn.closest('section').querySelectorAll('.bucket-col');
-          const hidden = cols.length && cols[0].style.display === 'none';
-          cols.forEach(c => c.style.display = hidden ? '' : 'none');
+          const cols = btn.closest('.bench').querySelectorAll('.bucket-col');
+          const hidden = cols.length && getComputedStyle(cols[0]).display === 'none';
+          cols.forEach(c => c.style.display = hidden ? 'table-cell' : 'none');
           btn.textContent = hidden ? 'hide buckets' : 'show buckets';
         });
       });
@@ -199,10 +293,12 @@ import Base from '../../layouts/Base.astro';
 
     function setLeague(next) {
       league = next;
-      document.querySelectorAll('.league-tab').forEach(t =>
+      document.querySelectorAll('.lb-tab').forEach(t =>
         t.setAttribute('aria-selected', t.dataset.league === league ? 'true' : 'false'));
-      const langs = [...new Set([...benchmarks, ...elos]
-        .filter(b => b.modality === league).map(b => b.lang))].sort();
+      const langs = [...new Set([
+        ...benchmarks.filter(b => b.modality === league),
+        ...elos.filter(b => b.modality === BATTLE_GROUP[league]),
+      ].map(b => b.lang))].sort();
       const sel = document.getElementById('sel-lang');
       sel.innerHTML = langs.map(l => `<option value="${esc(l)}">${esc(l)}</option>`).join('');
       lang = langs.includes(lang) ? lang : (langs.includes('en-US') ? 'en-US' : langs[0] || '');
@@ -214,6 +310,8 @@ import Base from '../../layouts/Base.astro';
       const index = await fetchJson(`${BASE}data/index.json`);
       benchmarks = (await Promise.all((index?.benchmarks || []).map(r => fetchJson(`${BASE}data/${r.file}`)))).filter(Boolean);
       elos = (await Promise.all((index?.leaderboards || []).map(r => fetchJson(`${BASE}data/${r.file}`)))).filter(Boolean);
+      const bestiary = await fetchJson(`${BASE}data/competitors.json`);
+      for (const f of bestiary?.competitors || []) fighters[f.competitor_id] = f;
 
       document.getElementById('lb-loading').style.display = 'none';
       if (!benchmarks.length && !elos.length) {
@@ -222,16 +320,13 @@ import Base from '../../layouts/Base.astro';
       }
 
       const leagues = LEAGUE_ORDER.filter(m =>
-        benchmarks.some(b => b.modality === m) || elos.some(b => b.modality === m));
+        benchmarks.some(b => b.modality === m) || elos.some(b => b.modality === BATTLE_GROUP[m]));
       const tabs = document.getElementById('league-tabs');
       tabs.innerHTML = leagues.map(m =>
-        `<button class="league-tab" role="tab" data-league="${m}" aria-selected="false">${LEAGUE_LABELS[m] || m}</button>`).join('');
-      tabs.querySelectorAll('.league-tab').forEach(t =>
+        `<button class="lb-tab" role="tab" data-league="${m}" aria-selected="false">${LEAGUE_LABELS[m] || m}</button>`).join('');
+      tabs.querySelectorAll('.lb-tab').forEach(t =>
         t.addEventListener('click', () => setLeague(t.dataset.league)));
-
-      document.getElementById('sel-lang').addEventListener('change', e => {
-        lang = e.target.value; render();
-      });
+      document.getElementById('sel-lang').addEventListener('change', e => { lang = e.target.value; render(); });
 
       document.getElementById('lb-app').style.display = '';
       setLeague(leagues[0]);

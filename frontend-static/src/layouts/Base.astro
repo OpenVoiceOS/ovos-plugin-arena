@@ -14,6 +14,9 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
     <meta name="description" content={description} />
     <title>{title} — OVOS Plugin Arena</title>
     <link rel="icon" href={`${base}favicon.svg`} type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet" />
     <style>
       *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -35,6 +38,12 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
         --gradient: linear-gradient(100deg, #ff6b6b 0%, #ef2d3c 55%, #ff8a65 100%);
         --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
         --mono: ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace;
+        --display: 'Chakra Petch', 'Segoe UI', system-ui, sans-serif;
+        --pixel: 'Press Start 2P', var(--mono);
+        /* arcade ranking medals */
+        --gold: #ffce4d;
+        --silver: #cfd8e3;
+        --bronze: #e0884e;
       }
 
       body {
@@ -95,9 +104,10 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
         height: 56px;
       }
       header .logo {
-        font-weight: 800;
-        font-size: 1.1rem;
-        letter-spacing: -0.01em;
+        font-family: var(--display);
+        font-weight: 700;
+        font-size: 1.15rem;
+        letter-spacing: 0.01em;
         background: var(--gradient);
         -webkit-background-clip: text;
         background-clip: text;
@@ -124,9 +134,19 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
         padding: 0 1.5rem;
       }
 
-      h1 { font-size: 1.75rem; margin-bottom: 0.5rem; }
-      h2 { font-size: 1.3rem; margin-bottom: 0.75rem; margin-top: 1.5rem; }
+      h1 { font-size: 1.75rem; margin-bottom: 0.5rem; font-family: var(--display); font-weight: 700; letter-spacing: -0.01em; }
+      h2 { font-size: 1.3rem; margin-bottom: 0.75rem; margin-top: 1.5rem; font-family: var(--display); font-weight: 600; }
       p { margin-bottom: 1rem; color: var(--muted); }
+
+      /* pixel eyebrow — arcade-cabinet kicker, used sparingly */
+      .eyebrow {
+        font-family: var(--pixel);
+        font-size: 0.6rem;
+        letter-spacing: 0.06em;
+        line-height: 1.6;
+        color: var(--accent);
+        text-transform: uppercase;
+      }
 
       .card {
         background: linear-gradient(180deg, var(--surface-2) 0%, var(--surface) 100%);
