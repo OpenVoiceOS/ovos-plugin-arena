@@ -198,6 +198,39 @@ def assemble_battles(
 
 
 # ---------------------------------------------------------------------------
+# Free-form matchups (direct subjective preference, no stimulus)
+# ---------------------------------------------------------------------------
+
+
+def freeform_battles(
+    group: str, lang: str, competitor_plugin: Dict[str, str]
+) -> List[Battle]:
+    """Every competitor pair as a stimulus-less matchup for direct voting.
+
+    A free-form vote is a subjective head-to-head ("which plugin do you
+    prefer?") cast by someone who tested the plugins out of band — no sample,
+    no blind masking.  Each pair gets a stable ``battle_id`` so ``tally``
+    dedupes one vote per (author, pair) and replays it into the same
+    (group, lang) ELO ladder as the blind battles.
+    """
+    battles: List[Battle] = []
+    for comp_a, comp_b in itertools.combinations(sorted(competitor_plugin), 2):
+        bid = battle_id_for(group, "freeform", lang, "freeform", comp_a, comp_b)
+        battles.append(Battle(
+            battle_id=bid,
+            modality=group,
+            dataset_id="freeform",
+            lang=lang,
+            sample_id="freeform",
+            competitor_a=comp_a,
+            competitor_b=comp_b,
+            plugin_a=competitor_plugin.get(comp_a, ""),
+            plugin_b=competitor_plugin.get(comp_b, ""),
+        ))
+    return battles
+
+
+# ---------------------------------------------------------------------------
 # ELO seeding (§4 R5)
 # ---------------------------------------------------------------------------
 

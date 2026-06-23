@@ -168,8 +168,17 @@ class TestAssemblePipeline:
         seeds = load_elo_seeds(out)
         assert seeds[("intent", "en-US")].ratings["good"] > INITIAL_ELO
 
+        # 6 blind battles (every sample disagrees) + the free-form pool
+        assert (out / "battles-intent-freeform-en-US.json").exists()
         battles = load_battles_pools(out)
-        assert len(battles) == 6  # every sample disagrees
+        assert len(battles) == 7  # 6 blind + 1 free-form pair (good vs bad)
+        freeform = json.loads(
+            (out / "battles-intent-freeform-en-US.json").read_text())
+        assert freeform["dataset_id"] == "freeform"
+        assert len(freeform["battles"]) == 1
+        fb = freeform["battles"][0]
+        assert {fb["competitor_a"], fb["competitor_b"]} == {"good", "bad"}
+        assert fb["sample_id"] == "freeform"
 
     def test_assemble_then_tally_dry(self, tmp_path):
         preds = _write_predictions(tmp_path)

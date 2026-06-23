@@ -1,0 +1,188 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="Free Vote" description="Pick any two OVOS plugins you've tried and say which you prefer — a direct subjective vote into the ELO ladder.">
+  <p class="eyebrow" style="margin-bottom:0.4rem">OVOS Plugin Arena · Free Vote</p>
+  <h1 style="font-size:clamp(1.8rem,5vw,2.6rem);margin-bottom:0.35rem">Pick a winner</h1>
+  <p style="max-width:64ch">
+    Tried two plugins yourself? Choose any pair and say which you prefer. Unlike a
+    <a href="../battle/">blind battle</a>, you see who's who — this is a direct
+    subjective preference that feeds the same ELO ladder. <strong>One vote per
+    matchup</strong> (your first vote on a pair counts).
+  </p>
+
+  <div id="fv-loading" class="card" aria-live="polite">Loading fighters…</div>
+  <div id="fv-empty" class="card" style="display:none">
+    No matchups yet. Run the <code>assemble.yml</code> action to build them.
+  </div>
+
+  <section id="fv-app" style="display:none">
+    <div class="fv-control card">
+      <label class="fv-field"><span>League</span>
+        <select id="fv-league"></select></label>
+      <label class="fv-field"><span>Language</span>
+        <select id="fv-lang"></select></label>
+    </div>
+
+    <div class="vs-grid">
+      <div class="card cand" id="fv-card-a">
+        <span id="fv-sprite-a"></span>
+        <p class="cand-label" style="color:var(--accent)">Fighter A</p>
+        <select id="fv-a" class="fv-pick" aria-label="Fighter A"></select>
+        <p id="fv-plugin-a" class="fv-plugin"></p>
+      </div>
+      <div class="vs-burst" aria-hidden="true">VS</div>
+      <div class="card cand" id="fv-card-b">
+        <span id="fv-sprite-b"></span>
+        <p class="cand-label" style="color:var(--accent-3)">Fighter B</p>
+        <select id="fv-b" class="fv-pick" aria-label="Fighter B"></select>
+        <p id="fv-plugin-b" class="fv-plugin"></p>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:1.25rem;text-align:center">
+      <div style="display:flex;gap:0.75rem;flex-wrap:wrap;justify-content:center" role="group" aria-label="Vote">
+        <button class="btn btn-primary vote-btn" id="fv-win-a">🅰 A is better</button>
+        <button class="btn btn-primary vote-btn" id="fv-win-b">🅱 B is better</button>
+        <button class="btn vote-btn" id="fv-tie">🤝 Tie</button>
+      </div>
+      <p id="fv-hint" style="margin:0.9rem 0 0;font-size:0.85rem">
+        Voting opens a prefilled GitHub issue — submit it to record your preference.
+      </p>
+    </div>
+  </section>
+
+  <style is:global>
+    .fv-control { display:flex; gap:1rem 1.5rem; flex-wrap:wrap; align-items:center; }
+    .fv-field { display:flex; align-items:center; gap:0.5rem; font-size:0.85rem; color:var(--muted); }
+    .fv-field select, .fv-pick { font-family:var(--mono); background:var(--bg); color:var(--text);
+      border:1px solid var(--border); border-radius:7px; padding:0.35rem 0.6rem; }
+    .fv-pick { font-family:var(--display); font-weight:600; font-size:0.95rem; max-width:100%; margin-top:0.4rem; }
+    .fv-plugin { font-family:var(--mono); font-size:0.72rem; color:var(--muted); margin:0.35rem 0 0; min-height:1em; }
+    #fv-app .cand { text-align:center; display:flex; flex-direction:column; align-items:center; gap:0.4rem; margin:0; }
+    #fv-app .cand svg { filter:drop-shadow(0 4px 14px rgba(0,0,0,0.45)); }
+    #fv-app .cand-label { font-size:0.82rem; font-weight:800; text-transform:uppercase; letter-spacing:0.08em; margin:0.2rem 0 0; }
+    #fv-app .vs-grid { display:grid; grid-template-columns:1fr auto 1fr; gap:1rem; align-items:center; margin-top:1rem; }
+    #fv-app .vs-burst { align-self:center; font-weight:900; font-size:1.3rem; padding:0.7rem 0.85rem; border-radius:50%;
+      background:var(--gradient); color:#fff; box-shadow:0 0 24px rgba(239,45,60,0.45); transform:rotate(-6deg); }
+    #fv-app .vote-btn { font-size:1rem; padding:0.65rem 1.3rem; }
+    @media (max-width:760px) { #fv-app .vs-grid { grid-template-columns:1fr; } #fv-app .vs-burst { margin:-0.4rem auto; } }
+  </style>
+
+  <script>
+    import { spriteSvg } from '../../lib/sprite.js';
+
+    const BASE = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
+    const GITHUB_REPO = import.meta.env.VITE_GITHUB_REPO || 'OpenVoiceOS/ovos-plugin-arena';
+    const LEAGUE_LABELS = { intent: 'Intent', stt: 'STT', tts: 'TTS', wake_word: 'Wake Word' };
+
+    let pools = [];        // {modality, lang, battles:[...]}
+    let fighters = {};
+    let pool = null;       // current pool
+
+    const esc = s => String(s).replace(/[&<>"']/g, c =>
+      ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c]);
+    const fetchJson = p => fetch(p).then(r => r.ok ? r.json() : null).catch(() => null);
+    const nameOf = id => fighters[id]?.display_name || id;
+    const typeOf = id => (fighters[id]?.types || [])[0] || '';
+    const pluginOf = id => fighters[id]?.plugin || '';
+
+    function competitorsOf(p) {
+      const set = new Set();
+      for (const b of p.battles) { set.add(b.competitor_a); set.add(b.competitor_b); }
+      return [...set].sort((x, y) => nameOf(x).localeCompare(nameOf(y)));
+    }
+
+    function fillSelect(sel, ids, pick) {
+      sel.innerHTML = ids.map(id => `<option value="${esc(id)}">${esc(nameOf(id))}</option>`).join('');
+      if (pick) sel.value = pick;
+    }
+
+    function side(which) {  // refresh sprite + plugin label for A or B
+      const id = document.getElementById(`fv-${which}`).value;
+      document.getElementById(`fv-sprite-${which}`).innerHTML = spriteSvg(id, typeOf(id), 72, false);
+      document.getElementById(`fv-plugin-${which}`).textContent = pluginOf(id);
+    }
+
+    function currentBattle() {
+      const a = document.getElementById('fv-a').value;
+      const b = document.getElementById('fv-b').value;
+      if (a === b) return null;
+      return pool.battles.find(x =>
+        (x.competitor_a === a && x.competitor_b === b) ||
+        (x.competitor_a === b && x.competitor_b === a)) || null;
+    }
+
+    function buildIssueUrl(battleId, choice) {
+      const params = new URLSearchParams({ template: 'vote.yml', title: `vote|${battleId}|${choice}` });
+      return `https://github.com/${GITHUB_REPO}/issues/new?${params}`;
+    }
+
+    function vote(winner) {  // winner: 'a' | 'b' | 'tie'
+      const hint = document.getElementById('fv-hint');
+      const a = document.getElementById('fv-a').value;
+      const b = document.getElementById('fv-b').value;
+      if (a === b) { hint.textContent = 'Pick two different fighters first.'; return; }
+      const battle = currentBattle();
+      if (!battle) { hint.textContent = 'That matchup is not available.'; return; }
+      let choice;
+      if (winner === 'tie') choice = 'tie';
+      else {
+        const winnerId = winner === 'a' ? a : b;
+        choice = winnerId === battle.competitor_a ? 'a' : 'b';
+      }
+      window.open(buildIssueUrl(battle.battle_id, choice), '_blank', 'noopener,noreferrer');
+      hint.textContent = 'Opening a GitHub issue — submit it to record your vote. One vote per matchup counts.';
+    }
+
+    function setLeagueLang() {
+      const league = document.getElementById('fv-league').value;
+      const lang = document.getElementById('fv-lang').value;
+      pool = pools.find(p => p.modality === league && p.lang === lang);
+      if (!pool) return;
+      const ids = competitorsOf(pool);
+      fillSelect(document.getElementById('fv-a'), ids, ids[0]);
+      fillSelect(document.getElementById('fv-b'), ids, ids[1] || ids[0]);
+      side('a'); side('b');
+    }
+
+    function refreshLangs() {
+      const league = document.getElementById('fv-league').value;
+      const langs = [...new Set(pools.filter(p => p.modality === league).map(p => p.lang))].sort();
+      const sel = document.getElementById('fv-lang');
+      sel.innerHTML = langs.map(l => `<option value="${esc(l)}">${esc(l)}</option>`).join('');
+      sel.value = langs.includes('en-US') ? 'en-US' : langs[0];
+      setLeagueLang();
+    }
+
+    async function init() {
+      const index = await fetchJson(`${BASE}data/index.json`);
+      pools = (await Promise.all((index?.freeform_pools || []).map(r => fetchJson(`${BASE}data/${r.file}`)))).filter(Boolean);
+      const bestiary = await fetchJson(`${BASE}data/competitors.json`);
+      for (const f of bestiary?.competitors || []) fighters[f.competitor_id] = f;
+
+      document.getElementById('fv-loading').style.display = 'none';
+      // need at least one pool with a real pair
+      pools = pools.filter(p => (p.battles || []).length);
+      if (!pools.length) { document.getElementById('fv-empty').style.display = ''; return; }
+
+      const leagues = [...new Set(pools.map(p => p.modality))]
+        .sort((a, b) => Object.keys(LEAGUE_LABELS).indexOf(a) - Object.keys(LEAGUE_LABELS).indexOf(b));
+      const lsel = document.getElementById('fv-league');
+      lsel.innerHTML = leagues.map(m => `<option value="${esc(m)}">${esc(LEAGUE_LABELS[m] || m)}</option>`).join('');
+
+      lsel.addEventListener('change', refreshLangs);
+      document.getElementById('fv-lang').addEventListener('change', setLeagueLang);
+      document.getElementById('fv-a').addEventListener('change', () => side('a'));
+      document.getElementById('fv-b').addEventListener('change', () => side('b'));
+      document.getElementById('fv-win-a').addEventListener('click', () => vote('a'));
+      document.getElementById('fv-win-b').addEventListener('click', () => vote('b'));
+      document.getElementById('fv-tie').addEventListener('click', () => vote('tie'));
+
+      document.getElementById('fv-app').style.display = '';
+      refreshLangs();
+    }
+
+    init();
+  </script>
+</Base>

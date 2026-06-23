@@ -1,7 +1,12 @@
 """Unit tests for arena.assembler — battles and ELO seeding."""
 from __future__ import annotations
 
-from arena.assembler import assemble_battles, auto_outcome, seed_elo
+from arena.assembler import (
+    assemble_battles,
+    auto_outcome,
+    freeform_battles,
+    seed_elo,
+)
 from arena.elo import INITIAL_ELO
 from arena.models import PredictionRow, VoteOutcome
 
@@ -182,6 +187,35 @@ class TestStimulus:
         assert battle.audio_url == "https://hf/w.wav"
         assert battle.reference == "positive"
         assert battle.prediction_a in ("detected", "not_detected")
+
+
+class TestFreeformBattles:
+    def test_all_pairs_no_self(self):
+        cp = {"a": "pa", "b": "pb", "c": "pc"}
+        battles = freeform_battles("intent", "en-US", cp)
+        pairs = {tuple(sorted((b.competitor_a, b.competitor_b))) for b in battles}
+        assert pairs == {("a", "b"), ("a", "c"), ("b", "c")}
+        assert all(b.competitor_a != b.competitor_b for b in battles)
+        assert all(b.dataset_id == "freeform" and b.sample_id == "freeform"
+                   for b in battles)
+        assert all(b.modality.value == "intent" for b in battles)
+
+    def test_carries_plugin_ids(self):
+        b = freeform_battles("stt", "en-US", {"x": "plug-x", "y": "plug-y"})[0]
+        plugs = {b.plugin_a, b.plugin_b}
+        assert plugs == {"plug-x", "plug-y"}
+
+    def test_ids_stable_and_match_vote_format(self):
+        from arena.models import battle_id_for
+        cp = {"adapt": "p1", "padatious": "p2"}
+        battles = freeform_battles("intent", "pt-PT", cp)
+        assert len(battles) == 1
+        expected = battle_id_for("intent", "freeform", "pt-PT", "freeform",
+                                 "adapt", "padatious")
+        assert battles[0].battle_id == expected
+
+    def test_single_competitor_no_battles(self):
+        assert freeform_battles("tts", "en-US", {"solo": "p"}) == []
 
 
 class TestSeedElo:

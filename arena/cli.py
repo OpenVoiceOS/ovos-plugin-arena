@@ -34,7 +34,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-from arena.assembler import assemble_battles, seed_elo
+from arena.assembler import assemble_battles, freeform_battles, seed_elo
 from arena.elo import EloLedger
 from arena.metrics import build_benchmark_board
 from arena.models import (
@@ -317,6 +317,17 @@ def cmd_assemble(args: argparse.Namespace) -> int:
         seed = seed_elo(group, lang, samples_by_dataset, now)
         _write_json(data_dir / f"elo-seed-{group}-{lang}.json", seed)
 
+        # Free-form matchup pool: every competitor pair, for direct subjective
+        # votes that replay into this same ELO ladder.
+        pool = BattlesPool(
+            modality=group,
+            dataset_id="freeform",
+            lang=lang,
+            generated_at=now,
+            battles=freeform_battles(group, lang, seed.competitor_plugin),
+        )
+        _write_json(data_dir / f"battles-{group}-freeform-{lang}.json", pool)
+
         # Bootstrap the ELO board when none exists yet; `tally` owns it after
         board_path = data_dir / f"leaderboard-{group}-{lang}.json"
         if not board_path.exists():
@@ -477,6 +488,7 @@ def _index_entry(path: Path, count_key: str) -> Dict[str, Any]:
         "leaderboards": len(payload.get("entries", [])),
         "benchmarks": len(payload.get("entries", [])),
         "battles_pools": len(payload.get("battles", [])),
+        "freeform_pools": len(payload.get("battles", [])),
     }
     return {
         "file": path.name,
@@ -491,25 +503,26 @@ def _index_entry(path: Path, count_key: str) -> Dict[str, Any]:
 def cmd_export_index(args: argparse.Namespace) -> int:
     data_dir = Path(args.data_dir)
     index: Dict[str, Any] = {"generated_at": _now_iso()}
-    for key, pattern in (
-        ("leaderboards", "leaderboard-*.json"),
-        ("benchmarks", "benchmark-*.json"),
-        ("battles_pools", "battles-*.json"),
-    ):
-        entries = []
-        for path in sorted(data_dir.glob(pattern)):
-            try:
-                entries.append(_index_entry(path, key))
-            except Exception as exc:
-                log.warning("Skipping %s: %s", path, exc)
-        index[key] = entries
+    for key in ("leaderboards", "benchmarks", "battles_pools", "freeform_pools"):
+        index[key] = []
+    for path in sorted(data_dir.glob("leaderboard-*.json")):
+        index["leaderboards"].append(_index_entry(path, "leaderboards"))
+    for path in sorted(data_dir.glob("benchmark-*.json")):
+        index["benchmarks"].append(_index_entry(path, "benchmarks"))
+    # blind sample battles vs free-form matchup pools (different voting UIs)
+    for path in sorted(data_dir.glob("battles-*.json")):
+        if "-freeform-" in path.name:
+            index["freeform_pools"].append(_index_entry(path, "freeform_pools"))
+        else:
+            index["battles_pools"].append(_index_entry(path, "battles_pools"))
     index["has_bestiary"] = (data_dir / "competitors.json").exists()
 
     out_file = Path(args.output)
     out_file.write_text(json.dumps(index, indent=2) + "\n")
-    log.info("Wrote %s (%d leaderboards, %d benchmarks, %d battle pools)",
-             out_file, len(index["leaderboards"]), len(index["benchmarks"]),
-             len(index["battles_pools"]))
+    log.info("Wrote %s (%d leaderboards, %d benchmarks, %d battle pools, "
+             "%d freeform pools)", out_file, len(index["leaderboards"]),
+             len(index["benchmarks"]), len(index["battles_pools"]),
+             len(index["freeform_pools"]))
     return 0
 
 

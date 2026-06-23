@@ -206,6 +206,14 @@ Voting options MUST include: candidate A, candidate B, tie, both-wrong.
 - Human votes: tie and both-wrong score 0.5/0.5.
 - Auto votes (seeding): K/4, outcomes from benchmark metrics only.
 - Separate standings per (modality, lang).
+- **Two human-vote sources, one ladder.** *Blind battles* pair two predictions
+  for the same sample. *Free-form votes* are direct subjective preferences
+  ("which plugin do you prefer?") cast by someone who tested the plugins out of
+  band — no stimulus, identities shown. Both are pairwise human preferences and
+  replay into the same (modality, lang) ELO. A free-form matchup is a
+  stimulus-less battle whose `battle_id` hashes `(group, "freeform", lang, A, B)`,
+  so it reuses the battle pool, the one-vote-per-(author, pair) dedupe, and the
+  ELO replay unchanged.
 - `tally` (CI, hourly) parses open `vote`-labelled issues
   (`vote|<battle_id>|<choice>` titles), validates against the battles pool,
   dedupes one vote per (author, battle), replays on top of the seed in
