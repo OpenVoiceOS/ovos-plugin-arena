@@ -132,15 +132,24 @@ def _prime_pad(array):
     arr = np.asarray(array, dtype="float32")
     lead = np.zeros(int(SAMPLE_RATE * PRIME_SECONDS), dtype="float32")
     tail = np.zeros(int(SAMPLE_RATE * TAIL_SECONDS), dtype="float32")
-    return np.concatenate([lead, arr, tail])
+    out = np.concatenate([lead, arr, tail])
+    # pad up to a whole number of frames — a short final frame (<25 ms) makes
+    # openWakeWord raise and abort the whole clip
+    rem = len(out) % FRAME_SAMPLES
+    if rem:
+        out = np.concatenate([out, np.zeros(FRAME_SAMPLES - rem, dtype="float32")])
+    return out
 
 
 def _detect(engine, array) -> bool:
-    """Run one clip through a hotword engine, tolerant of both plugin APIs.
+    """Run one clip through a hotword engine, streaming it as a live mic would.
 
-    Some engines expose ``update(chunk_bytes)`` then ``found_wake_word()``;
-    others do everything in ``found_wake_word(frame)`` taking an int16 frame.
-    The clip is primed with silence first so streaming engines activate.
+    The OVOS contract is ``update(chunk_bytes)`` to feed audio, then
+    ``found_wake_word()`` to read the latch.  Some plugins (openWakeWord) keep a
+    vestigial ``found_wake_word(frame_data)`` argument that they ignore — we
+    pass the chunk through so the signature matches, but the detection still
+    happens in ``update``.  The clip is primed with silence first so streaming
+    engines warm their buffers and activate.
     """
     array = _prime_pad(array)
     if hasattr(engine, "reset"):
@@ -148,17 +157,15 @@ def _detect(engine, array) -> bool:
             engine.reset()
         except Exception:
             pass
-    takes_frame = len(inspect.signature(engine.found_wake_word).parameters) >= 1
-    if takes_frame:
-        frames = _int16_frames(array)
-        for frame in frames:
-            if engine.found_wake_word(frame):
-                return True
-        return False
+    fww = engine.found_wake_word
+    fww_takes_arg = len(inspect.signature(fww).parameters) >= 1
+    has_update = hasattr(engine, "update")
     pcm = _to_pcm16(array)
     for off in range(0, len(pcm), FRAME_SAMPLES * 2):
-        engine.update(pcm[off:off + FRAME_SAMPLES * 2])
-        if engine.found_wake_word():
+        chunk = pcm[off:off + FRAME_SAMPLES * 2]
+        if has_update:
+            engine.update(chunk)
+        if (fww(chunk) if fww_takes_arg else fww()):
             return True
     return False
 
@@ -169,16 +176,6 @@ def _to_pcm16(array) -> bytes:
 
     arr = np.clip(np.asarray(array, dtype="float32"), -1.0, 1.0)
     return (arr * 32767.0).astype("<i2").tobytes()
-
-
-def _int16_frames(array):
-    """Float32 mono array → list of int16 numpy frames of FRAME_SAMPLES each."""
-    import numpy as np
-
-    arr = (np.clip(np.asarray(array, dtype="float32"), -1.0, 1.0)
-           * 32767.0).astype("<i2")
-    return [arr[i:i + FRAME_SAMPLES]
-            for i in range(0, len(arr), FRAME_SAMPLES)]
 
 
 def _norm_label(raw) -> str:

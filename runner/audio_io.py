@@ -105,6 +105,19 @@ def _repo_audio(hf_id: str, revision: str) -> List[str]:
             if f.lower().endswith(_AUDIO_EXT) and "/" in f]
 
 
+def _all_audio(hf_id: str, revision: str, subdir: Optional[str] = None) -> List[str]:
+    """Every audio file in a repo (root-level too), optionally under *subdir*."""
+    from huggingface_hub import HfApi
+
+    files = [f for f in HfApi().list_repo_files(hf_id, repo_type="dataset",
+                                                revision=revision)
+             if f.lower().endswith(_AUDIO_EXT)]
+    if subdir:
+        files = [f for f in files
+                 if f == subdir or f.startswith(subdir + "/")]
+    return files
+
+
 def _csv_rows(hf_id: str, csv_path: str, revision: str) -> list:
     import csv
 
@@ -165,11 +178,24 @@ def stream_ww(dataset_def, revision: str, max_per_class: int = 0
         same_neg = [(hf, f, revision) for f in files if f.split("/")[0] != ww
                     and (negset is None or f.split("/")[0] in negset)]
 
-    if dataset_def.negatives_hf:
+    if dataset_def.negatives_sources:
+        # pool negatives across several not-wake-word corpora (speech, music,
+        # noise, household sounds) so false-accept rate spans many scenarios;
+        # take an even share from each so a big corpus does not dominate.
+        srcs = dataset_def.negatives_sources
+        per = max(1, -(-max_per_class // len(srcs))) if max_per_class else 0
+        neg = []
+        for spec in srcs:
+            # an hf id is ``org/name``; anything after the second / is a subdir
+            parts = spec.split("/")
+            nhf = "/".join(parts[:2])
+            sub = "/".join(parts[2:]) or None
+            files = sorted(_all_audio(nhf, "main", sub or None))
+            for rel in (_even(files, per) if per else files):
+                neg.append((nhf, rel, "main"))
+    elif dataset_def.negatives_hf:
         nhf, ndir = dataset_def.negatives_hf, dataset_def.negatives_dir
-        nfiles = _repo_audio(nhf, "main")
-        if ndir:
-            nfiles = [f for f in nfiles if f.split("/")[0] == ndir]
+        nfiles = _all_audio(nhf, "main", ndir)
         neg = [(nhf, f, "main") for f in nfiles]
     else:
         neg = same_neg

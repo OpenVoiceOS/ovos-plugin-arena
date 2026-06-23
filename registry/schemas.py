@@ -167,6 +167,15 @@ class DatasetDef(BaseModel):
         None,
         description="Folder within ``negatives_hf`` holding the negative clips.",
     )
+    negatives_sources: Optional[List[str]] = Field(
+        None,
+        description=(
+            "Wake word: several not-wake-word corpora to pool negatives from, "
+            "each ``hf_id`` or ``hf_id/subdir`` — speech, music, ambient noise, "
+            "household sounds — so false-accept rate reflects many scenarios. "
+            "Overrides ``negatives_hf``."
+        ),
+    )
     notes: Optional[str] = None
 
 
