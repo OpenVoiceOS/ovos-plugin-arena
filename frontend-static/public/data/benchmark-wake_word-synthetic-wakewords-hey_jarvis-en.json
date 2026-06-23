@@ -1,13 +1,13 @@
 {
-  "modality": "stt",
-  "dataset_id": "minds14-it-IT",
-  "lang": "it-IT",
+  "modality": "wake_word",
+  "dataset_id": "synthetic-wakewords-hey_jarvis",
+  "lang": "en",
   "generated_at": "2026-06-23T01:08:26.180056+00:00",
-  "primary_metric": "wer_mean",
+  "primary_metric": "error_rate",
   "dataset_info": {
-    "url": "https://huggingface.co/datasets/PolyAI/minds14",
-    "license": "cc-by-4.0",
-    "notes": "MInDS-14 Italian (Italy) — telephone-domain speech, 14 intent classes",
+    "url": "https://huggingface.co/datasets/OpenVoiceOS/synthetic-wakewords",
+    "license": "apache-2.0",
+    "notes": "Synthetic 'hey jarvis' positives (TTS across many voices). Negatives pooled across the not-wake-word collection — general speech, public-domain sounds, environmental audio (ESC-50), music (FMA) and ambient noise — so false-accept rate reflects many scenarios. openWakeWord and microWakeWord both ship a 'hey jarvis' model, so this is a head-to-head neural comparison.",
     "predictions": [
       "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-template-bench-intents-for-eval",
       "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-keyword-bench-intents-for-eval",
@@ -26,24 +26,28 @@
   "entries": [
     {
       "rank": 1,
-      "competitor_id": "vosk-small-it",
-      "plugin_id": "ovos-stt-plugin-vosk",
-      "samples": 25,
+      "competitor_id": "openwakeword-hey-jarvis",
+      "plugin_id": "ovos-ww-plugin-openwakeword",
+      "samples": 59,
       "metrics": {
-        "wer_mean": 0.2059,
-        "wer_median": 0.1538,
-        "latency_ms_median": 704.66
+        "error_rate": 0.0,
+        "accuracy": 1.0,
+        "false_accept_rate": 0.0,
+        "false_reject_rate": 0.0,
+        "latency_ms_median": 50.41
       }
     },
     {
       "rank": 2,
-      "competitor_id": "fasterwhisper-base-it",
-      "plugin_id": "ovos-stt-plugin-fasterwhisper",
-      "samples": 25,
+      "competitor_id": "microwakeword-hey-jarvis",
+      "plugin_id": "ovos-ww-plugin-microwakeword",
+      "samples": 60,
       "metrics": {
-        "wer_mean": 0.4884,
-        "wer_median": 0.4444,
-        "latency_ms_median": 2418.96
+        "error_rate": 0.05,
+        "accuracy": 0.95,
+        "false_accept_rate": 0.1,
+        "false_reject_rate": 0.0,
+        "latency_ms_median": 1.99
       }
     }
   ]

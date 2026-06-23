@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-23T00:12:06.780966+00:00",
+  "generated_at": "2026-06-23T01:08:43.787856+00:00",
   "competitors": [
     {
       "competitor_id": "frankenparse",
@@ -1761,18 +1761,14 @@
       "notes": "Compiles and installs the sam binary on first run when not found system-wide."
     },
     {
-      "competitor_id": "microwakeword-hey-mycroft",
+      "competitor_id": "microwakeword-hey-jarvis",
       "modality": "wake_word",
       "plugin": "ovos-ww-plugin-microwakeword",
       "config": {
         "hotwords": {
-          "hey_mycroft": {
+          "hey_jarvis": {
             "module": "ovos-ww-plugin-microwakeword",
-            "model_name": "hey_mycroft",
-            "model_version": 2,
-            "probability_cutoff": 0.5,
-            "sliding_window_size": 10,
-            "refractory_frames": 40
+            "model_name": "hey_jarvis"
           }
         }
       },
@@ -1782,17 +1778,47 @@
       "alias": [
         "ovos-ww-plugin-microwakeword"
       ],
-      "display_name": "microWakeWord (hey mycroft)",
+      "display_name": "microWakeWord (hey jarvis)",
       "species": "MicroWakeWordPlugin",
       "types": [
         "neural-net"
       ],
-      "description": "Streaming TFLite wake-word models from the microWakeWord/ESPHome ecosystem, operating on 1x1x40 int8 log-mel features. The hey_mycroft model is auto-downloaded from the official ESPHome repository.",
-      "model": "hey_mycroft (v2)",
+      "description": "microWakeWord streaming TFLite model for 'hey jarvis' (the tiny inception-style network used on ESP32 devices), auto-downloaded from the official ESPHome model repository.",
+      "model": "hey_jarvis.tflite (ESPHome micro-wake-word-models)",
       "links": {
         "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-microwakeword"
       },
-      "notes": "hey_mycroft only exists as a v2 model; remaining keys are the documented defaults."
+      "notes": "ESPHome publishes models for a fixed phrase set (okay_nabu, hey_jarvis, alexa, …); 'hey mycroft' is not among them."
+    },
+    {
+      "competitor_id": "openwakeword-hey-jarvis",
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-openwakeword",
+      "config": {
+        "hotwords": {
+          "hey_jarvis": {
+            "module": "ovos-ww-plugin-openwakeword",
+            "threshold": 0.5
+          }
+        }
+      },
+      "langs": [
+        "en"
+      ],
+      "alias": [
+        "ovos-ww-plugin-openwakeword"
+      ],
+      "display_name": "openWakeWord (hey jarvis)",
+      "species": "OwwHotwordPlugin",
+      "types": [
+        "neural-net"
+      ],
+      "description": "openWakeWord running its pretrained 'hey jarvis' model on a shared mel-spectrogram + embedding frontend; streams 80 ms frames and scores each against the activation threshold.",
+      "model": "hey_jarvis (openWakeWord pretrained)",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-openWakeWord"
+      },
+      "notes": "Pretrained model auto-selected by hotword name."
     },
     {
       "competitor_id": "openwakeword-hey-mycroft",
