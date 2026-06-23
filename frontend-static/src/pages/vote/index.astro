@@ -86,6 +86,7 @@ import Base from '../../layouts/Base.astro';
     const nameOf = id => fighters[id]?.display_name || id;
     const typeOf = id => (fighters[id]?.types || [])[0] || '';
     const pluginOf = id => fighters[id]?.plugin || '';
+    const phraseOf = id => Object.keys(fighters[id]?.config?.hotwords || {})[0] || '';
 
     function competitorsOf(p) {
       const set = new Set();
@@ -102,6 +103,16 @@ import Base from '../../layouts/Base.astro';
       const id = document.getElementById(`fv-${which}`).value;
       document.getElementById(`fv-sprite-${which}`).innerHTML = spriteSvg(id, typeOf(id), 72, false);
       document.getElementById(`fv-plugin-${which}`).textContent = pluginOf(id);
+    }
+
+    function refreshB() {  // B can only be a valid opponent of A
+      const league = document.getElementById('fv-league').value;
+      const a = document.getElementById('fv-a').value;
+      let ids = competitorsOf(pool).filter(id => id !== a);
+      if (league === 'wake_word') ids = ids.filter(id => phraseOf(id) === phraseOf(a));
+      const cur = document.getElementById('fv-b').value;
+      fillSelect(document.getElementById('fv-b'), ids, ids.includes(cur) ? cur : ids[0]);
+      side('b');
     }
 
     function currentBattle() {
@@ -142,8 +153,7 @@ import Base from '../../layouts/Base.astro';
       if (!pool) return;
       const ids = competitorsOf(pool);
       fillSelect(document.getElementById('fv-a'), ids, ids[0]);
-      fillSelect(document.getElementById('fv-b'), ids, ids[1] || ids[0]);
-      side('a'); side('b');
+      side('a'); refreshB();
     }
 
     function refreshLangs() {
@@ -173,7 +183,7 @@ import Base from '../../layouts/Base.astro';
 
       lsel.addEventListener('change', refreshLangs);
       document.getElementById('fv-lang').addEventListener('change', setLeagueLang);
-      document.getElementById('fv-a').addEventListener('change', () => side('a'));
+      document.getElementById('fv-a').addEventListener('change', () => { side('a'); refreshB(); });
       document.getElementById('fv-b').addEventListener('change', () => side('b'));
       document.getElementById('fv-win-a').addEventListener('click', () => vote('a'));
       document.getElementById('fv-win-b').addEventListener('click', () => vote('b'));

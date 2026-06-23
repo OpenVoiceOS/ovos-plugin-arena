@@ -67,6 +67,11 @@ import Base from '../../layouts/Base.astro';
     .lb-note { margin:0.1rem 0 1rem; font-size:0.82rem; color:var(--muted);
       border-left:2px solid var(--accent); padding-left:0.6rem; }
 
+    /* ---- per-wake-word phrase grouping ---- */
+    .ww-phrase { margin-bottom:1.6rem; }
+    .ww-phrase-title { font-family:var(--display); font-weight:600; font-size:1rem;
+      margin:0 0 0.7rem; padding-bottom:0.4rem; border-bottom:1px solid var(--border); color:var(--text); }
+
     /* ---- podium (top 3) ---- */
     .podium { display:grid; grid-template-columns:1fr 1.25fr 1fr; gap:0.8rem; align-items:end; margin-bottom:1rem; }
     .pod {
@@ -162,17 +167,52 @@ import Base from '../../layouts/Base.astro';
     const typeOf = id => (fighters[id]?.types || [])[0] || '';
     const nameOf = id => fighters[id]?.display_name || id;
     const sprite = (id, size) => spriteSvg(id, typeOf(id), size, false);
+    // wake-word phrase a fighter targets (its hotword config key)
+    const phraseOf = id => Object.keys(fighters[id]?.config?.hotwords || {})[0] || '';
 
     function wlt(e) {
       return `<span class="wlt"><span class="w">${e.wins}<b>W</b></span>
         <span class="l">${e.losses}<b>L</b></span><span class="t">${e.ties}<b>T</b></span></span>`;
     }
 
+    function renderRanking(entries) {
+      // entries already ordered best-first; rank by position
+      const ratings = entries.map(e => e.elo);
+      const lo = Math.min(...ratings), hi = Math.max(...ratings);
+      const strength = v => hi === lo ? 60 : Math.round(6 + 94 * (v - lo) / (hi - lo));
+      const E = entries.map((e, i) => ({ ...e, r: i + 1 }));
+      const crowns = { 1: '① CHAMPION', 2: '② RUNNER-UP', 3: '③ THIRD' };
+      const top = E.slice(0, 3);
+      const podOrder = top.length === 3 ? [top[1], top[0], top[2]] : top;
+      const podium = top.length >= 2 ? `<div class="podium">${podOrder.map(e => `
+        <div class="pod r${e.r}">
+          <div class="crown">${crowns[e.r] || ''}</div>
+          <span class="sprite">${sprite(e.competitor_id, e.r === 1 ? 76 : 60)}</span>
+          <p class="nm">${esc(nameOf(e.competitor_id))}</p>
+          <p class="pl">${esc(e.plugin_id || '')}</p>
+          <p class="elo">${Math.round(e.elo)}<small>ELO</small></p>
+          ${e.battles ? wlt(e) : ''}
+        </div>`).join('')}</div>` : '';
+      const rest = E.slice(top.length >= 2 ? 3 : 0);
+      const ladder = rest.length ? `<div class="ladder">${rest.map(e => `
+        <div class="lrow">
+          <span class="rk">${e.r}</span>
+          <span class="sprite-cell">${sprite(e.competitor_id, 40)}</span>
+          <span class="who">
+            <span class="nm">${esc(nameOf(e.competitor_id))}</span>
+            <span class="pl"> · ${esc(e.plugin_id || '')}</span>
+            <div class="bar" style="width:${strength(e.elo)}%"></div>
+          </span>
+          <span class="right"><span class="elo">${Math.round(e.elo)}</span><br>${e.battles ? wlt(e) : '<span class="pl">unrated</span>'}</span>
+        </div>`).join('')}</div>` : '';
+      return podium + ladder;
+    }
+
     function eloSection(board, league) {
       const note = league === 'tts'
         ? 'Ranked by human listening votes only — no benchmark seed. Vote in the Battle page.'
-        : league === 'wake_word' && (!board || board.entries.length < 2)
-          ? 'One engine benchmarked so far — head-to-head battles need a second on the same clips.'
+        : league === 'wake_word'
+          ? 'One ranking per wake word — detectors only compete on the same phrase.'
         : (league && league.startsWith('intent')
             ? 'One ladder for every intent engine — template, keyword and fusions compete together.' : '');
       const head = `<div class="lb-section-head">
@@ -183,38 +223,21 @@ import Base from '../../layouts/Base.astro';
       if (!board?.entries?.length)
         return `<section class="lb-section">${head}<div class="card" style="margin:0">No ladder standings yet.</div></section>`;
 
-      const E = board.entries;
-      const ratings = E.map(e => e.elo);
-      const lo = Math.min(...ratings), hi = Math.max(...ratings);
-      const strength = v => hi === lo ? 60 : Math.round(6 + 94 * (v - lo) / (hi - lo));
-
-      const top = E.slice(0, 3);
-      const podOrder = top.length === 3 ? [top[1], top[0], top[2]] : top;
-      const crowns = { 1: '① CHAMPION', 2: '② RUNNER-UP', 3: '③ THIRD' };
-      const podium = top.length >= 2 ? `<div class="podium">${podOrder.map(e => `
-        <div class="pod r${e.rank}">
-          <div class="crown">${crowns[e.rank] || ''}</div>
-          <span class="sprite">${sprite(e.competitor_id, e.rank === 1 ? 76 : 60)}</span>
-          <p class="nm">${esc(nameOf(e.competitor_id))}</p>
-          <p class="pl">${esc(e.plugin_id || '')}</p>
-          <p class="elo">${Math.round(e.elo)}<small>ELO</small></p>
-          ${e.battles ? wlt(e) : ''}
-        </div>`).join('')}</div>` : '';
-
-      const rest = E.slice(top.length >= 2 ? 3 : 0);
-      const ladder = rest.length ? `<div class="ladder">${rest.map(e => `
-        <div class="lrow">
-          <span class="rk">${e.rank}</span>
-          <span class="sprite-cell">${sprite(e.competitor_id, 40)}</span>
-          <span class="who">
-            <span class="nm">${esc(nameOf(e.competitor_id))}</span>
-            <span class="pl"> · ${esc(e.plugin_id || '')}</span>
-            <div class="bar" style="width:${strength(e.elo)}%"></div>
-          </span>
-          <span class="right"><span class="elo">${Math.round(e.elo)}</span><br>${e.battles ? wlt(e) : '<span class="pl">unrated</span>'}</span>
-        </div>`).join('')}</div>` : '';
-
-      return `<section class="lb-section">${head}${podium}${ladder}</section>`;
+      let body;
+      if (league === 'wake_word') {
+        // a separate ranking per wake-word phrase
+        const byPhrase = {};
+        for (const e of board.entries)
+          (byPhrase[phraseOf(e.competitor_id) || 'other'] ??= []).push(e);
+        body = Object.keys(byPhrase).sort().map(ph => `
+          <div class="ww-phrase">
+            <p class="ww-phrase-title">📣 “${esc(ph.replace(/_/g, ' '))}”</p>
+            ${renderRanking(byPhrase[ph])}
+          </div>`).join('');
+      } else {
+        body = renderRanking(board.entries);
+      }
+      return `<section class="lb-section">${head}${body}</section>`;
     }
 
     function benchBoard(board, league) {

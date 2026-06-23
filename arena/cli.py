@@ -313,18 +313,23 @@ def cmd_assemble(args: argparse.Namespace) -> int:
         )
         _write_json(data_dir / f"battles-{group}-{dataset_id}-{lang}.json", pool)
 
+    ww_phrases = _wakeword_phrases()
     for (group, lang), samples_by_dataset in sorted(elo_samples.items()):
         seed = seed_elo(group, lang, samples_by_dataset, now)
         _write_json(data_dir / f"elo-seed-{group}-{lang}.json", seed)
 
         # Free-form matchup pool: every competitor pair, for direct subjective
-        # votes that replay into this same ELO ladder.
+        # votes that replay into this same ELO ladder. For wake word, restrict
+        # pairs to the same phrase (a 'hey jarvis' detector is not comparable
+        # to a 'computer' one).
+        subgroups = ww_phrases if group == "wake_word" else None
         pool = BattlesPool(
             modality=group,
             dataset_id="freeform",
             lang=lang,
             generated_at=now,
-            battles=freeform_battles(group, lang, seed.competitor_plugin),
+            battles=freeform_battles(group, lang, seed.competitor_plugin,
+                                     subgroups=subgroups),
         )
         _write_json(data_dir / f"battles-{group}-freeform-{lang}.json", pool)
 
@@ -335,6 +340,20 @@ def cmd_assemble(args: argparse.Namespace) -> int:
             _write_json(board_path, board)
 
     return 0
+
+
+def _wakeword_phrases() -> Dict[str, str]:
+    """Map each wake-word competitor id → its phrase (its hotword config key)."""
+    phrases: Dict[str, str] = {}
+    try:
+        from registry.loaders import list_competitors
+    except ImportError:
+        return phrases
+    for comp in list_competitors("wake_word"):
+        hotwords = (comp.config or {}).get("hotwords") or {}
+        if hotwords:
+            phrases[comp.competitor_id] = next(iter(hotwords))
+    return phrases
 
 
 def _clean_merged_artifacts(data_dir: Path, modalities: set) -> None:

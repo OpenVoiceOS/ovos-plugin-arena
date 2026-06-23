@@ -203,7 +203,8 @@ def assemble_battles(
 
 
 def freeform_battles(
-    group: str, lang: str, competitor_plugin: Dict[str, str]
+    group: str, lang: str, competitor_plugin: Dict[str, str],
+    subgroups: Optional[Dict[str, str]] = None,
 ) -> List[Battle]:
     """Every competitor pair as a stimulus-less matchup for direct voting.
 
@@ -212,9 +213,16 @@ def freeform_battles(
     no blind masking.  Each pair gets a stable ``battle_id`` so ``tally``
     dedupes one vote per (author, pair) and replays it into the same
     (group, lang) ELO ladder as the blind battles.
+
+    *subgroups* (competitor → key) restricts pairing to within a subgroup —
+    used for wake word, where only fighters for the *same phrase* are
+    comparable (you cannot prefer a 'hey jarvis' detector over a 'computer'
+    detector).
     """
     battles: List[Battle] = []
     for comp_a, comp_b in itertools.combinations(sorted(competitor_plugin), 2):
+        if subgroups and subgroups.get(comp_a) != subgroups.get(comp_b):
+            continue
         bid = battle_id_for(group, "freeform", lang, "freeform", comp_a, comp_b)
         battles.append(Battle(
             battle_id=bid,
