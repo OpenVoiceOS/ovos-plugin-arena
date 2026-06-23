@@ -154,6 +154,19 @@ class DatasetDef(BaseModel):
             "negatives from (default: every folder except ``wakeword``)."
         ),
     )
+    negatives_hf: Optional[str] = Field(
+        None,
+        description=(
+            "Wake word: a separate HF dataset to draw negatives from — a "
+            "'not-wake-word' corpus of general speech/noise that must never "
+            "trigger detection (the proper false-accept test). Overrides "
+            "same-corpus negatives."
+        ),
+    )
+    negatives_dir: Optional[str] = Field(
+        None,
+        description="Folder within ``negatives_hf`` holding the negative clips.",
+    )
     notes: Optional[str] = None
 
 

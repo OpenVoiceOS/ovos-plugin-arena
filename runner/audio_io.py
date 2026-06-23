@@ -97,8 +97,25 @@ def _even(paths: List[str], cap: int) -> List[str]:
     return [paths[int(i * step)] for i in range(cap)]
 
 
-def _emit_ww_clips(hf_id, pos, neg, revision, max_per_class):
-    """Download + decode positive/negative clip lists → labelled WW samples."""
+def _repo_audio(hf_id: str, revision: str) -> List[str]:
+    from huggingface_hub import HfApi
+
+    return [f for f in HfApi().list_repo_files(hf_id, repo_type="dataset",
+                                               revision=revision)
+            if f.lower().endswith(_AUDIO_EXT) and "/" in f]
+
+
+def _csv_rows(hf_id: str, csv_path: str, revision: str) -> list:
+    import csv
+
+    from huggingface_hub import hf_hub_download
+
+    meta = hf_hub_download(hf_id, csv_path, repo_type="dataset", revision=revision)
+    return list(csv.DictReader(open(meta, encoding="utf-8")))
+
+
+def _emit_ww(pos, neg, max_per_class):
+    """Download + decode clip tuples ``(hf_id, rel, rev)`` → labelled samples."""
     from urllib.parse import quote
 
     from huggingface_hub import hf_hub_download
@@ -106,75 +123,58 @@ def _emit_ww_clips(hf_id, pos, neg, revision, max_per_class):
     if max_per_class:
         pos = _even(sorted(pos), max_per_class)
         neg = _even(sorted(neg), max_per_class)
-    for label, paths in (("positive", pos), ("negative", neg)):
-        for rel in paths:
+    for label, clips in (("positive", pos), ("negative", neg)):
+        for hf_id, rel, rev in clips:
             try:
-                local = hf_hub_download(hf_id, rel, repo_type="dataset",
-                                        revision=revision)
+                local = hf_hub_download(hf_id, rel, repo_type="dataset", revision=rev)
                 with open(local, "rb") as fh:
                     array, sr = decode_audio_bytes(fh.read())
             except Exception as exc:
-                logger.warning("ww clip %s failed: %s", rel, exc)
+                logger.warning("ww clip %s/%s failed: %s", hf_id, rel, exc)
                 continue
             url = (f"https://huggingface.co/datasets/{hf_id}"
-                   f"/resolve/{revision}/{quote(rel)}")
-            yield rel, {"array": array, "sr": sr, "label": label,
-                        "audio_url": url}
+                   f"/resolve/{rev}/{quote(rel)}")
+            yield rel, {"array": array, "sr": sr, "label": label, "audio_url": url}
 
 
-def stream_audiofolder_ww(
-    source,
-    wakeword: str,
-    negative_dirs: Optional[List[str]],
-    revision: str,
-    max_per_class: int = 0,
-) -> Iterator[Tuple[str, dict]]:
-    """Yield labelled WW clips from an audiofolder corpus (one folder per phrase).
+def stream_ww(dataset_def, revision: str, max_per_class: int = 0
+              ) -> Iterator[Tuple[str, dict]]:
+    """Yield labelled wake-word clips for a benchmark.
 
-    Positives are clips under ``<wakeword>/``; negatives are clips under the
-    other top-level folders (``negative_dirs``, or every other folder when
-    None) — other wake phrases make strong adversarial hard negatives.
+    Positives are the wake-word clips of ``dataset_def`` (a ``<wakeword>/``
+    folder, or rows of a ``metadata.csv`` whose label is the wakeword).
+    Negatives come from a separate not-wake-word corpus when ``negatives_hf``
+    is set (general speech/noise that must never fire — the proper false-accept
+    test), otherwise from the same corpus's other phrases.
     """
-    from huggingface_hub import HfApi
+    src = dataset_def.source
+    hf, ww = src.hf_id, dataset_def.wakeword
+    fields = dataset_def.reference_fields or {}
+    negset = set(dataset_def.negative_dirs) if dataset_def.negative_dirs else None
 
-    files = [f for f in HfApi().list_repo_files(source.hf_id, repo_type="dataset",
-                                                revision=revision)
-             if f.lower().endswith(_AUDIO_EXT) and "/" in f]
-    pos = [f for f in files if f.split("/")[0] == wakeword]
-    negset = set(negative_dirs) if negative_dirs else None
-    neg = [f for f in files if f.split("/")[0] != wakeword
-           and (negset is None or f.split("/")[0] in negset)]
-    yield from _emit_ww_clips(source.hf_id, pos, neg, revision, max_per_class)
+    if (src.file_pattern or "").endswith(".csv"):
+        ac = fields.get("audio", "file_name")
+        lc = fields.get("label", "label")
+        rows = _csv_rows(hf, src.file_pattern, revision)
+        pos = [(hf, r[ac], revision) for r in rows if r.get(lc) == ww]
+        same_neg = [(hf, r[ac], revision) for r in rows if r.get(lc) != ww
+                    and (negset is None or r.get(lc) in negset)]
+    else:
+        files = _repo_audio(hf, revision)
+        pos = [(hf, f, revision) for f in files if f.split("/")[0] == ww]
+        same_neg = [(hf, f, revision) for f in files if f.split("/")[0] != ww
+                    and (negset is None or f.split("/")[0] in negset)]
 
+    if dataset_def.negatives_hf:
+        nhf, ndir = dataset_def.negatives_hf, dataset_def.negatives_dir
+        nfiles = _repo_audio(nhf, "main")
+        if ndir:
+            nfiles = [f for f in nfiles if f.split("/")[0] == ndir]
+        neg = [(nhf, f, "main") for f in nfiles]
+    else:
+        neg = same_neg
 
-def stream_metadata_csv_ww(
-    source,
-    wakeword: str,
-    negative_labels: Optional[List[str]],
-    revision: str,
-    max_per_class: int = 0,
-    audio_col: str = "file_name",
-    label_col: str = "label",
-) -> Iterator[Tuple[str, dict]]:
-    """Yield labelled WW clips from an audiofolder corpus with a ``metadata.csv``.
-
-    Some HF audio corpora list every clip in a CSV (``file_name``, ``label``)
-    rather than relying on folder names — and their file tree may be too large
-    to enumerate.  Positives are rows whose label is *wakeword*; negatives are
-    rows in *negative_labels* (or every other label).
-    """
-    import csv
-
-    from huggingface_hub import hf_hub_download
-
-    meta = hf_hub_download(source.hf_id, source.file_pattern or "metadata.csv",
-                           repo_type="dataset", revision=revision)
-    rows = list(csv.DictReader(open(meta, encoding="utf-8")))
-    pos = [r[audio_col] for r in rows if r.get(label_col) == wakeword]
-    negset = set(negative_labels) if negative_labels else None
-    neg = [r[audio_col] for r in rows if r.get(label_col) != wakeword
-           and (negset is None or r.get(label_col) in negset)]
-    yield from _emit_ww_clips(source.hf_id, pos, neg, revision, max_per_class)
+    yield from _emit_ww(pos, neg, max_per_class)
 
 
 def stream_manifest_audio(

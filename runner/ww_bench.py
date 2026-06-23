@@ -25,9 +25,8 @@ from typing import Iterator, Tuple
 
 from runner.audio_io import (
     stream_audio_dataset,
-    stream_audiofolder_ww,
     stream_manifest_audio,
-    stream_metadata_csv_ww,
+    stream_ww,
 )
 from runner.media_bench import (
     MediaBenchAdapter,
@@ -76,20 +75,10 @@ class WakeWordBench(MediaBenchAdapter):
         source = dataset_def.source
         fields = dataset_def.reference_fields or {}
         if getattr(dataset_def, "wakeword", None):
-            # audiofolder: positive folder vs the rest. max_samples caps each
-            # class, so a battle pool is balanced. A metadata.csv corpus lists
-            # clips in a CSV (folder tree may be too large to enumerate).
-            negs = getattr(dataset_def, "negative_dirs", None)
-            if (source.file_pattern or "").endswith(".csv"):
-                yield from stream_metadata_csv_ww(
-                    source, wakeword=dataset_def.wakeword, negative_labels=negs,
-                    revision=revision, max_per_class=max_samples,
-                    audio_col=fields.get("audio", "file_name"),
-                    label_col=fields.get("label", "label"))
-            else:
-                yield from stream_audiofolder_ww(
-                    source, wakeword=dataset_def.wakeword, negative_dirs=negs,
-                    revision=revision, max_per_class=max_samples)
+            # positives = the wakeword clips; negatives = a not-wake-word corpus
+            # (false-accept test) or the same corpus's other phrases. max_samples
+            # caps each class so the battle pool stays balanced.
+            yield from stream_ww(dataset_def, revision, max_per_class=max_samples)
             return
         audio_key = fields.get("audio", "audio")
         label_col = fields.get("label", "label")
