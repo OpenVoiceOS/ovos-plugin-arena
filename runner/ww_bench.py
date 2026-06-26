@@ -37,8 +37,16 @@ from runner.media_bench import (
 log = logging.getLogger("ww-bench")
 
 FRAME_SAMPLES = 1280  # 80 ms @ 16 kHz, the OVOS listener chunk size
-PRIME_SECONDS = 0.7   # leading silence that warms streaming feature buffers
-TAIL_SECONDS = 0.3    # trailing silence so the activation can settle
+# Leading silence that warms streaming feature buffers. Streaming detectors
+# (openWakeWord) only emit predictions once their rolling mel/embedding window
+# is full (~2.5 s of frames); a clip fed with too little lead never fills it,
+# so the activation is missed (false reject) — and on the shortest clips the
+# half-full buffer raises a shape mismatch that drops the sample entirely,
+# biasing the false-reject rate. A few seconds of leading silence primes the
+# window before the keyword arrives, exactly as a live mic keeps the loop warm.
+# Uniform across fighters, so it stays fair-per-task.
+PRIME_SECONDS = 3.0
+TAIL_SECONDS = 0.5    # trailing silence so a late activation can settle
 SAMPLE_RATE = 16000
 
 
