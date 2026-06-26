@@ -115,10 +115,12 @@ and **both error directions matter**:
 | `false_reject_rate` | misses real **speech** | lower better |
 | `accuracy`, `latency_ms_median` | — | — |
 
-**Dataset**: `speech-vs-nonspeech` — positives are general speech recordings;
-negatives are non-speech (public-domain sounds, ESC-50, FMA music, ambient
-noise). The same VAD plugins also appear as pre-wake gates in the wake-word
-league above.
+**Datasets**: `speech-vs-nonspeech` (English speech) plus a per-language
+`speech-vs-nonspeech-<lang>` for each MInDS-14 language (de, fr, it, es, pt, nl,
+pl, ru, cs, ko, zh, en-US/GB/AU) — MInDS-14 telephone speech as positives vs the
+same non-speech pool, so VAD is benchmarked across many languages. VAD fighters
+are language-agnostic (run on every language's set). The same VAD plugins also
+appear as pre-wake gates in the wake-word league above.
 
 ## ELO seeding (all leagues with an objective metric)
 

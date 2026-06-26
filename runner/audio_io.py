@@ -190,10 +190,27 @@ def stream_vad(dataset_def, revision: str, max_per_class: int = 0
     the battle pool stays balanced.
     """
     src = dataset_def.source
+    fields = dataset_def.reference_fields or {}
+    neg = _pool_negatives(dataset_def.negatives_sources or [], max_per_class)
+
+    if getattr(src, "split", None):
+        # Parquet / HF-dataset speech positives (e.g. MInDS-14 per language) —
+        # any speech corpus works as VAD positives. Negatives stay the shared
+        # non-speech pool. Lets VAD run across many languages.
+        audio_key = fields.get("audio", "audio")
+        for sid, sample in stream_audio_dataset(
+                src, audio_key=audio_key, extra_keys={}, revision=revision,
+                max_samples=max_per_class):
+            sample["label"] = "speech"
+            sample.setdefault("audio_url", None)
+            yield f"speech/{sid}", sample
+        yield from _emit_labelled([], neg, max_per_class, "speech", "non_speech")
+        return
+
+    # Audiofolder speech positives (whole repo, or a subset subdir).
     subdir = (src.subset or "").rstrip("/") or None
     pos = [(src.hf_id, f, revision)
            for f in _all_audio(src.hf_id, revision, subdir)]
-    neg = _pool_negatives(dataset_def.negatives_sources or [], max_per_class)
     yield from _emit_labelled(pos, neg, max_per_class, "speech", "non_speech")
 
 
