@@ -67,6 +67,10 @@ Paradigm leagues are pure: a fighter in `intent_template` may only carry
 template-paradigm stages (enforced by the bench script). Fusions carry
 fun portmanteau names (Padapt = Padatious × Adapt).
 
+The per-league task definitions and the exact metric formulas (what each
+benchmark board ranks by and what seeds ELO) are specified in
+[`docs/leagues.md`](leagues.md).
+
 ## 3. System components
 
 ```
