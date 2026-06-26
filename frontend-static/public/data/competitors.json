@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-25T06:48:14.731842+00:00",
+  "generated_at": "2026-06-26T06:55:19.577303+00:00",
   "competitors": [
     {
       "competitor_id": "frankenparse",
@@ -1518,6 +1518,41 @@
       "notes": "lang/tld pair from the plugin's documented REGIONAL_CONFIGS map for en-US. The README warns this endpoint is unofficial and unsuitable for production or commercial use."
     },
     {
+      "competitor_id": "lux-clone-en",
+      "modality": "tts",
+      "plugin": "ovos-tts-plugin-lux",
+      "config": {
+        "tts": {
+          "module": "ovos-tts-plugin-lux",
+          "ovos-tts-plugin-lux": {
+            "model_path": "YatharthS/LuxTTS",
+            "prompt_audio": "reference.wav",
+            "device": "cpu",
+            "num_steps": 4,
+            "t_shift": 0.9
+          }
+        }
+      },
+      "langs": [
+        "en"
+      ],
+      "alias": [
+        "ovos-tts-plugin-lux"
+      ],
+      "display_name": "LuxTTS (cloned)",
+      "species": "LuxTTS",
+      "types": [
+        "neural-net"
+      ],
+      "description": "LuxTTS, a lightweight zipvoice-based voice-cloning TTS (>150x realtime). Clones the voice in the reference clip pointed at by prompt_audio.",
+      "model": "YatharthS/LuxTTS (zipvoice)",
+      "size": "small",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-tts-plugin-lux"
+      },
+      "notes": "Voice-cloning fighter — set prompt_audio to a reference clip; a different reference voice is a different competitor. TTS ranks by human votes only."
+    },
+    {
       "competitor_id": "marytts-cmu-slt",
       "modality": "tts",
       "plugin": "ovos-tts-plugin-marytts",
@@ -1761,6 +1796,204 @@
       "notes": "Compiles and installs the sam binary on first run when not found system-wide."
     },
     {
+      "competitor_id": "noise-vad",
+      "modality": "vad",
+      "plugin": "ovos-vad-plugin-noise",
+      "config": {
+        "VAD": {
+          "module": "ovos-vad-plugin-noise",
+          "max_current_ratio_threshold": 2.0,
+          "energy_threshold": 1000.0
+        }
+      },
+      "langs": [
+        "en"
+      ],
+      "alias": [
+        "ovos-vad-plugin-noise"
+      ],
+      "display_name": "Noise VAD",
+      "species": "NoiseVAD",
+      "types": [
+        "GOFAI"
+      ],
+      "description": "The classic energy/denoise VAD extracted from the old ovos-listener: speech is audio whose max/current energy ratio falls below a threshold. No model, CPU-only.",
+      "model": "energy ratio (max_current_ratio_threshold 2.0)",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-vad-plugin-noise"
+      },
+      "notes": "Energy-based VAD; the ratio/energy thresholds are config. A different threshold is a different competitor on the false-accept / false-reject curve."
+    },
+    {
+      "competitor_id": "noise-vad-strict",
+      "modality": "vad",
+      "plugin": "ovos-vad-plugin-noise",
+      "config": {
+        "VAD": {
+          "module": "ovos-vad-plugin-noise",
+          "max_current_ratio_threshold": 3.0,
+          "energy_threshold": 1000.0
+        }
+      },
+      "langs": [
+        "en"
+      ],
+      "alias": [
+        "ovos-vad-plugin-noise"
+      ],
+      "display_name": "Noise VAD (strict)",
+      "species": "NoiseVAD",
+      "types": [
+        "GOFAI"
+      ],
+      "description": "Energy/denoise VAD at a higher max/current ratio threshold (3.0) — calls more audio speech than the 2.0 default (lower false-reject, higher false-accept).",
+      "model": "energy ratio (max_current_ratio_threshold 3.0)",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-vad-plugin-noise"
+      },
+      "notes": "Threshold variant of noise-vad — a different ratio threshold is a different competitor."
+    },
+    {
+      "competitor_id": "silero-vad",
+      "modality": "vad",
+      "plugin": "ovos-vad-plugin-silero",
+      "config": {
+        "VAD": {
+          "module": "ovos-vad-plugin-silero",
+          "threshold": 0.5
+        }
+      },
+      "langs": [
+        "en"
+      ],
+      "alias": [
+        "ovos-vad-plugin-silero"
+      ],
+      "display_name": "Silero VAD",
+      "species": "SileroVAD",
+      "types": [
+        "neural-net"
+      ],
+      "description": "Silero neural voice-activity detector running on a small ONNX model; the listener's default VAD. Robust to music and environmental noise.",
+      "model": "silero-vad (ONNX)",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-vad-plugin-silero"
+      },
+      "notes": "Single VAD fighter at the plugin's own threshold; speech decision is 'any voiced frame in the clip'."
+    },
+    {
+      "competitor_id": "silero-vad-thr03",
+      "modality": "vad",
+      "plugin": "ovos-vad-plugin-silero",
+      "config": {
+        "VAD": {
+          "module": "ovos-vad-plugin-silero",
+          "threshold": 0.3
+        }
+      },
+      "langs": [
+        "en"
+      ],
+      "alias": [
+        "ovos-vad-plugin-silero"
+      ],
+      "display_name": "Silero VAD @0.3",
+      "species": "SileroVAD",
+      "types": [
+        "neural-net"
+      ],
+      "description": "Silero VAD at a sensitive 0.3 threshold — calls more audio speech (lower false-reject, higher false-accept) than the 0.5 default.",
+      "model": "silero-vad (ONNX), threshold 0.3",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-vad-plugin-silero"
+      },
+      "notes": "Threshold variant: a different threshold is a different competitor on the false-accept / false-reject curve."
+    },
+    {
+      "competitor_id": "silero-vad-thr07",
+      "modality": "vad",
+      "plugin": "ovos-vad-plugin-silero",
+      "config": {
+        "VAD": {
+          "module": "ovos-vad-plugin-silero",
+          "threshold": 0.7
+        }
+      },
+      "langs": [
+        "en"
+      ],
+      "alias": [
+        "ovos-vad-plugin-silero"
+      ],
+      "display_name": "Silero VAD @0.7",
+      "species": "SileroVAD",
+      "types": [
+        "neural-net"
+      ],
+      "description": "Silero VAD at a strict 0.7 threshold — calls less audio speech (lower false-accept, higher false-reject) than the 0.5 default.",
+      "model": "silero-vad (ONNX), threshold 0.7",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-vad-plugin-silero"
+      },
+      "notes": "Threshold variant: a different threshold is a different competitor on the false-accept / false-reject curve."
+    },
+    {
+      "competitor_id": "webrtcvad",
+      "modality": "vad",
+      "plugin": "ovos-vad-plugin-webrtcvad",
+      "config": {
+        "VAD": {
+          "module": "ovos-vad-plugin-webrtcvad",
+          "vad_mode": 3
+        }
+      },
+      "langs": [
+        "en"
+      ],
+      "alias": [
+        "ovos-vad-plugin-webrtcvad"
+      ],
+      "display_name": "WebRTC VAD",
+      "species": "WebRTCVAD",
+      "types": [
+        "GOFAI"
+      ],
+      "description": "The classic WebRTC energy/GMM voice-activity detector. Tiny, CPU-only and fast; aggressiveness 0-3 trades false-accepts against false-rejects (3 = most aggressive at rejecting non-speech).",
+      "model": "webrtcvad (aggressiveness 3)",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-vad-plugin-webrtcvad"
+      },
+      "notes": "Single VAD fighter; vad_mode pins the aggressiveness. A different vad_mode is a different competitor."
+    },
+    {
+      "competitor_id": "webrtcvad-mode1",
+      "modality": "vad",
+      "plugin": "ovos-vad-plugin-webrtcvad",
+      "config": {
+        "VAD": {
+          "module": "ovos-vad-plugin-webrtcvad",
+          "vad_mode": 1
+        }
+      },
+      "langs": [
+        "en"
+      ],
+      "alias": [
+        "ovos-vad-plugin-webrtcvad"
+      ],
+      "display_name": "WebRTC VAD (mode 1)",
+      "species": "WebRTCVAD",
+      "types": [
+        "GOFAI"
+      ],
+      "description": "WebRTC VAD at aggressiveness 1 — less aggressive at rejecting non-speech than mode 3 (lower false-reject, higher false-accept).",
+      "model": "webrtcvad (aggressiveness 1)",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-vad-plugin-webrtcvad"
+      },
+      "notes": "Config variant: a different aggressiveness (vad_mode) is a different competitor on the false-accept / false-reject curve."
+    },
+    {
       "competitor_id": "microwakeword-hey-jarvis",
       "modality": "wake_word",
       "plugin": "ovos-ww-plugin-microwakeword",
@@ -1849,6 +2082,174 @@
         "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-openWakeWord"
       },
       "notes": "Pretrained model auto-selected by hotword name; threshold is the plugin default."
+    },
+    {
+      "competitor_id": "openwakeword-hey-mycroft-silero",
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-openwakeword",
+      "config": {
+        "hotwords": {
+          "hey_mycroft": {
+            "module": "ovos-ww-plugin-openwakeword",
+            "threshold": 0.5
+          }
+        },
+        "VAD": {
+          "module": "ovos-vad-plugin-silero",
+          "threshold": 0.5
+        }
+      },
+      "langs": [
+        "en"
+      ],
+      "alias": [
+        "ovos-ww-plugin-openwakeword"
+      ],
+      "display_name": "openWakeWord + Silero VAD (hey mycroft)",
+      "species": "OwwHotwordPlugin",
+      "types": [
+        "neural-net",
+        "vad-gated"
+      ],
+      "description": "openWakeWord 'hey mycroft' fronted by a Silero pre-wake VAD gate: the detector only runs on clips the VAD calls speech, suppressing false-accepts on music and noise at the risk of missing very quiet speech.",
+      "model": "hey_mycroft (openWakeWord) + silero-vad",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-openWakeWord"
+      },
+      "notes": "Combo fighter: wake-word engine + pre-wake VAD. The same engine without the VAD, or with a different VAD, is a different competitor."
+    },
+    {
+      "competitor_id": "openwakeword-hey-mycroft-silero-speaker",
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-openwakeword",
+      "config": {
+        "hotwords": {
+          "hey_mycroft": {
+            "module": "ovos-ww-plugin-openwakeword",
+            "threshold": 0.5
+          }
+        },
+        "VAD": {
+          "module": "ovos-vad-plugin-silero",
+          "threshold": 0.5
+        },
+        "hotword_verifier": {
+          "module": "ovos-ww-verifier-plugin-speaker"
+        }
+      },
+      "langs": [
+        "en"
+      ],
+      "alias": [
+        "ovos-ww-plugin-openwakeword"
+      ],
+      "display_name": "openWakeWord + Silero VAD + speaker verifier (hey mycroft)",
+      "species": "OwwHotwordPlugin",
+      "types": [
+        "neural-net",
+        "vad-gated",
+        "verified"
+      ],
+      "description": "The full listener stack for 'hey mycroft': a Silero pre-wake VAD gate, then openWakeWord, then a speaker-verification confirm. Both gates push the false-accept rate down; the benchmark shows the false-reject cost.",
+      "model": "silero-vad → hey_mycroft (openWakeWord) → speaker verifier",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-openWakeWord"
+      },
+      "notes": "Combo fighter: pre-wake VAD + wake-word engine + verifier. Each distinct (engine, VAD, verifier) triple is its own competitor."
+    },
+    {
+      "competitor_id": "openwakeword-hey-mycroft-speaker",
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-openwakeword",
+      "config": {
+        "hotwords": {
+          "hey_mycroft": {
+            "module": "ovos-ww-plugin-openwakeword",
+            "threshold": 0.5
+          }
+        },
+        "hotword_verifier": {
+          "module": "ovos-ww-verifier-plugin-speaker"
+        }
+      },
+      "langs": [
+        "en"
+      ],
+      "alias": [
+        "ovos-ww-plugin-openwakeword"
+      ],
+      "display_name": "openWakeWord + speaker verifier (hey mycroft)",
+      "species": "OwwHotwordPlugin",
+      "types": [
+        "neural-net",
+        "verified"
+      ],
+      "description": "openWakeWord 'hey mycroft' followed by a speaker-verification gate: an activation only counts when the verifier confirms it, trading a small false-reject increase for fewer false-accepts.",
+      "model": "hey_mycroft (openWakeWord) + speaker verifier",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-openWakeWord"
+      },
+      "notes": "Combo fighter: wake-word engine + verifier. The same engine without the verifier is a different competitor."
+    },
+    {
+      "competitor_id": "openwakeword-hey-mycroft-thr03",
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-openwakeword",
+      "config": {
+        "hotwords": {
+          "hey_mycroft": {
+            "module": "ovos-ww-plugin-openwakeword",
+            "threshold": 0.3
+          }
+        }
+      },
+      "langs": [
+        "en"
+      ],
+      "alias": [
+        "ovos-ww-plugin-openwakeword"
+      ],
+      "display_name": "openWakeWord @0.3 (hey mycroft)",
+      "species": "OwwHotwordPlugin",
+      "types": [
+        "neural-net"
+      ],
+      "description": "openWakeWord 'hey mycroft' at a sensitive 0.3 activation threshold — more activations (lower false-reject, higher false-accept) than the 0.5 default.",
+      "model": "hey_mycroft (openWakeWord), threshold 0.3",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-openWakeWord"
+      },
+      "notes": "Threshold variant: a different threshold is a different competitor — it lands a different point on the false-accept / false-reject curve and battles as its own entry."
+    },
+    {
+      "competitor_id": "openwakeword-hey-mycroft-thr07",
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-openwakeword",
+      "config": {
+        "hotwords": {
+          "hey_mycroft": {
+            "module": "ovos-ww-plugin-openwakeword",
+            "threshold": 0.7
+          }
+        }
+      },
+      "langs": [
+        "en"
+      ],
+      "alias": [
+        "ovos-ww-plugin-openwakeword"
+      ],
+      "display_name": "openWakeWord @0.7 (hey mycroft)",
+      "species": "OwwHotwordPlugin",
+      "types": [
+        "neural-net"
+      ],
+      "description": "openWakeWord 'hey mycroft' at a strict 0.7 activation threshold — fewer activations (lower false-accept, higher false-reject) than the 0.5 default.",
+      "model": "hey_mycroft (openWakeWord), threshold 0.7",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-openWakeWord"
+      },
+      "notes": "Threshold variant: a different threshold is a different competitor — it lands a different point on the false-accept / false-reject curve and battles as its own entry."
     },
     {
       "competitor_id": "precise-onnx-computer",
@@ -1973,6 +2374,104 @@
         "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-vosk"
       },
       "notes": "README quick-start configuration; the language model is auto-downloaded for the configured language."
+    },
+    {
+      "competitor_id": "wakeforge-hey-jarvis",
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-wakeforge",
+      "config": {
+        "hotwords": {
+          "hey_jarvis": {
+            "module": "ovos-ww-plugin-wakeforge",
+            "featurizer": "https://huggingface.co/OpenVoiceOS/wakeforge-hey_jarvis/resolve/main/featurizer.onnx",
+            "model": "https://huggingface.co/OpenVoiceOS/wakeforge-hey_jarvis/resolve/main/best_f1.onnx",
+            "threshold": 0.5,
+            "smoothing": "ema",
+            "patience": 3
+          }
+        }
+      },
+      "langs": [
+        "en"
+      ],
+      "alias": [
+        "ovos-ww-plugin-wakeforge"
+      ],
+      "display_name": "wakeforge (hey jarvis)",
+      "species": "WakeForgeHotwordPlugin",
+      "types": [
+        "neural-net"
+      ],
+      "description": "A custom wake-word model trained with the wakeforge pipeline, run as an always-on hotword engine: a feature-extractor ONNX plus a classifier-head ONNX, with EMA smoothing and a patience counter before firing.",
+      "model": "wakeforge hey_jarvis (featurizer + classifier ONNX)",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge"
+      },
+      "notes": "Point featurizer + model at the trained ONNX pair (paths or URLs). A different model or smoothing/patience setting is a different competitor."
+    },
+    {
+      "competitor_id": "wakewordlab-hey-jarvis",
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-wakewordlab",
+      "config": {
+        "hotwords": {
+          "hey_jarvis": {
+            "module": "ovos-ww-plugin-wakewordlab",
+            "model": "hey_jarvis",
+            "threshold": 0.5,
+            "vad": true
+          }
+        }
+      },
+      "langs": [
+        "en"
+      ],
+      "alias": [
+        "ovos-ww-plugin-wakewordlab"
+      ],
+      "display_name": "wakewordlab (hey jarvis)",
+      "species": "WakewordLabHotwordPlugin",
+      "types": [
+        "neural-net"
+      ],
+      "description": "wakewordlab pretrained 'hey jarvis' model on a shared mel/embedding frontend with an optional Silero VAD pre-filter; models are auto-downloaded by name and cached.",
+      "model": "hey_jarvis (wakewordlab pretrained)",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakewordlab"
+      },
+      "notes": "Pretrained model selected by name; threshold and the built-in VAD pre-filter are config. A different model/threshold is a different competitor."
+    },
+    {
+      "competitor_id": "wakewordlab-hey-jarvis-thr07",
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-wakewordlab",
+      "config": {
+        "hotwords": {
+          "hey_jarvis": {
+            "module": "ovos-ww-plugin-wakewordlab",
+            "model": "hey_jarvis",
+            "threshold": 0.7,
+            "vad": true
+          }
+        }
+      },
+      "langs": [
+        "en"
+      ],
+      "alias": [
+        "ovos-ww-plugin-wakewordlab"
+      ],
+      "display_name": "wakewordlab @0.7 (hey jarvis)",
+      "species": "WakewordLabHotwordPlugin",
+      "types": [
+        "neural-net"
+      ],
+      "description": "wakewordlab 'hey jarvis' at a strict 0.7 threshold — fewer activations (lower false-accept, higher false-reject) than the 0.5 default.",
+      "model": "hey_jarvis (wakewordlab pretrained), threshold 0.7",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakewordlab"
+      },
+      "notes": "Threshold variant of wakewordlab-hey-jarvis."
     }
   ]
 }
