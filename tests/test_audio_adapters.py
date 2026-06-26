@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from runner.stt_bench import STTBench, _first_hypothesis
 from runner.tts_bench import TTSBench, _safe
-from runner.ww_bench import WakeWordBench, _norm_label, _to_pcm16
+from runner.ww_bench import WakeWordBench, WWStack, _norm_label, _to_pcm16
 
 
 class TestSTTHypothesis:
@@ -83,7 +83,8 @@ class TestWakeWordPredict:
 
     def test_detection_and_passthrough(self):
         adapter = WakeWordBench()
-        out = adapter.predict(FakeWWEngine(fire_after=1), self._sample(), self._ctx())
+        out = adapter.predict(WWStack(FakeWWEngine(fire_after=1)),
+                              self._sample(), self._ctx())
         assert out["prediction"] == "detected"
         assert out["label"] == "positive"
         assert out["audio_url"] == "https://hf/clip.wav"
@@ -91,15 +92,55 @@ class TestWakeWordPredict:
 
     def test_no_detection(self):
         adapter = WakeWordBench()
-        out = adapter.predict(FakeWWEngine(fire_after=None),
+        out = adapter.predict(WWStack(FakeWWEngine(fire_after=None)),
                               self._sample(label="negative"), self._ctx())
         assert out["prediction"] == "not_detected"
         assert out["label"] == "negative"
 
     def test_engine_reset_per_clip(self):
         engine = FakeWWEngine(fire_after=None)
-        WakeWordBench().predict(engine, self._sample(), self._ctx())
+        WakeWordBench().predict(WWStack(engine), self._sample(), self._ctx())
         assert engine.resets == 1
+
+    def test_pre_wake_vad_gate_suppresses_detection(self):
+        # VAD hears no speech -> the detector never runs, even though it would fire
+        stack = WWStack(FakeWWEngine(fire_after=1), vad=_FakeVAD(speech=False))
+        out = WakeWordBench().predict(stack, self._sample(), self._ctx())
+        assert out["prediction"] == "not_detected"
+
+    def test_pre_wake_vad_passes_speech_through(self):
+        stack = WWStack(FakeWWEngine(fire_after=1), vad=_FakeVAD(speech=True))
+        out = WakeWordBench().predict(stack, self._sample(), self._ctx())
+        assert out["prediction"] == "detected"
+
+    def test_verifier_can_reject_activation(self):
+        stack = WWStack(FakeWWEngine(fire_after=1), verifier=_FakeVerifier(ok=False))
+        out = WakeWordBench().predict(stack, self._sample(), self._ctx())
+        assert out["prediction"] == "not_detected"
+
+    def test_verifier_confirms_activation(self):
+        stack = WWStack(FakeWWEngine(fire_after=1), verifier=_FakeVerifier(ok=True))
+        out = WakeWordBench().predict(stack, self._sample(), self._ctx())
+        assert out["prediction"] == "detected"
+
+
+class _FakeVAD:
+    def __init__(self, speech):
+        self._speech = speech
+
+    def reset(self):
+        pass
+
+    def is_silence(self, chunk):
+        return not self._speech
+
+
+class _FakeVerifier:
+    def __init__(self, ok):
+        self._ok = ok
+
+    def verify(self, chunk):
+        return self._ok
 
 
 class FrameStyleWW:

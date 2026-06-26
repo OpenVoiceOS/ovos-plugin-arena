@@ -52,7 +52,7 @@ def _is_correct(row: PredictionRow, modality: str) -> Optional[bool]:
     if modality == "stt":
         wer = row_wer(row)
         return None if wer is None else wer == 0.0
-    if modality == "wake_word":
+    if modality in ("wake_word", "vad"):
         return ww_row_correct(row)
     return None
 
@@ -111,7 +111,7 @@ def _stimulus(row: PredictionRow, modality: str):
     if modality == "tts":
         return (row.input_text or row.utterance
                 or row.extras.get("input_text")), None, None
-    if modality == "wake_word":
+    if modality in ("wake_word", "vad"):
         return None, row.audio_url, row.label
     return row.utterance or row.extras.get("input_text"), row.audio_url, None
 

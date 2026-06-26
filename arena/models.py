@@ -34,6 +34,7 @@ class Modality(str, enum.Enum):
     TTS = "tts"
     STT = "stt"
     WAKE_WORD = "wake_word"
+    VAD = "vad"
     INTENT = "intent"  # open league — mixed-paradigm pipeline fusions
     INTENT_TEMPLATE = "intent_template"  # template-paradigm engines
     INTENT_KEYWORD = "intent_keyword"  # keyword-paradigm engines

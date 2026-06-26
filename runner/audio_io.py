@@ -127,8 +127,13 @@ def _csv_rows(hf_id: str, csv_path: str, revision: str) -> list:
     return list(csv.DictReader(open(meta, encoding="utf-8")))
 
 
-def _emit_ww(pos, neg, max_per_class):
-    """Download + decode clip tuples ``(hf_id, rel, rev)`` → labelled samples."""
+def _emit_labelled(pos, neg, max_per_class, pos_label="positive",
+                   neg_label="negative"):
+    """Download + decode clip tuples ``(hf_id, rel, rev)`` → labelled samples.
+
+    Shared by the binary-detection benchmarks (wake word: positive/negative;
+    VAD: speech/non_speech).
+    """
     from urllib.parse import quote
 
     from huggingface_hub import hf_hub_download
@@ -136,18 +141,60 @@ def _emit_ww(pos, neg, max_per_class):
     if max_per_class:
         pos = _even(sorted(pos), max_per_class)
         neg = _even(sorted(neg), max_per_class)
-    for label, clips in (("positive", pos), ("negative", neg)):
+    for label, clips in ((pos_label, pos), (neg_label, neg)):
         for hf_id, rel, rev in clips:
             try:
                 local = hf_hub_download(hf_id, rel, repo_type="dataset", revision=rev)
                 with open(local, "rb") as fh:
                     array, sr = decode_audio_bytes(fh.read())
             except Exception as exc:
-                logger.warning("ww clip %s/%s failed: %s", hf_id, rel, exc)
+                logger.warning("clip %s/%s failed: %s", hf_id, rel, exc)
                 continue
             url = (f"https://huggingface.co/datasets/{hf_id}"
                    f"/resolve/{rev}/{quote(rel)}")
             yield rel, {"array": array, "sr": sr, "label": label, "audio_url": url}
+
+
+def _emit_ww(pos, neg, max_per_class):
+    """Wake-word labels (positive = wake word present)."""
+    yield from _emit_labelled(pos, neg, max_per_class, "positive", "negative")
+
+
+def _pool_negatives(sources, max_per_class):
+    """Even share of audio across several corpora → ``(hf_id, rel, rev)`` tuples.
+
+    An entry is ``org/name`` optionally followed by a subdir
+    (``org/name/subdir``); a big corpus never dominates the pool.
+    """
+    per = max(1, -(-max_per_class // len(sources))) if max_per_class else 0
+    out = []
+    for spec in sources:
+        parts = spec.split("/")
+        nhf = "/".join(parts[:2])
+        sub = "/".join(parts[2:]) or None
+        files = sorted(_all_audio(nhf, "main", sub))
+        for rel in (_even(files, per) if per else files):
+            out.append((nhf, rel, "main"))
+    return out
+
+
+def stream_vad(dataset_def, revision: str, max_per_class: int = 0
+               ) -> Iterator[Tuple[str, dict]]:
+    """Yield labelled clips for the VAD league: speech vs non-speech.
+
+    Positives are speech recordings from ``dataset_def.source`` (the whole
+    repo, or a ``file_pattern`` subdir); negatives are non-speech audio (music,
+    environmental sound, noise, silence) pooled across
+    ``dataset_def.negatives_sources`` so the false-accept rate — firing speech
+    on non-speech — spans many scenarios. ``max_per_class`` caps each class so
+    the battle pool stays balanced.
+    """
+    src = dataset_def.source
+    subdir = (src.subset or "").rstrip("/") or None
+    pos = [(src.hf_id, f, revision)
+           for f in _all_audio(src.hf_id, revision, subdir)]
+    neg = _pool_negatives(dataset_def.negatives_sources or [], max_per_class)
+    yield from _emit_labelled(pos, neg, max_per_class, "speech", "non_speech")
 
 
 def stream_ww(dataset_def, revision: str, max_per_class: int = 0

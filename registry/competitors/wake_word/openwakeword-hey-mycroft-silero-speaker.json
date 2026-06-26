@@ -1,0 +1,30 @@
+{
+  "competitor_id": "openwakeword-hey-mycroft-silero-speaker",
+  "modality": "wake_word",
+  "plugin": "ovos-ww-plugin-openwakeword",
+  "config": {
+    "hotwords": {
+      "hey_mycroft": {
+        "module": "ovos-ww-plugin-openwakeword",
+        "threshold": 0.5
+      }
+    },
+    "VAD": {
+      "module": "ovos-vad-plugin-silero",
+      "threshold": 0.5
+    },
+    "hotword_verifier": {
+      "module": "ovos-ww-verifier-plugin-speaker"
+    }
+  },
+  "langs": ["en"],
+  "display_name": "openWakeWord + Silero VAD + speaker verifier (hey mycroft)",
+  "species": "OwwHotwordPlugin",
+  "types": ["neural-net", "vad-gated", "verified"],
+  "description": "The full listener stack for 'hey mycroft': a Silero pre-wake VAD gate, then openWakeWord, then a speaker-verification confirm. Both gates push the false-accept rate down; the benchmark shows the false-reject cost.",
+  "model": "silero-vad → hey_mycroft (openWakeWord) → speaker verifier",
+  "links": {
+    "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-openWakeWord"
+  },
+  "notes": "Combo fighter: pre-wake VAD + wake-word engine + verifier. Each distinct (engine, VAD, verifier) triple is its own competitor."
+}

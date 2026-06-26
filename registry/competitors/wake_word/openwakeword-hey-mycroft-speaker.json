@@ -1,0 +1,26 @@
+{
+  "competitor_id": "openwakeword-hey-mycroft-speaker",
+  "modality": "wake_word",
+  "plugin": "ovos-ww-plugin-openwakeword",
+  "config": {
+    "hotwords": {
+      "hey_mycroft": {
+        "module": "ovos-ww-plugin-openwakeword",
+        "threshold": 0.5
+      }
+    },
+    "hotword_verifier": {
+      "module": "ovos-ww-verifier-plugin-speaker"
+    }
+  },
+  "langs": ["en"],
+  "display_name": "openWakeWord + speaker verifier (hey mycroft)",
+  "species": "OwwHotwordPlugin",
+  "types": ["neural-net", "verified"],
+  "description": "openWakeWord 'hey mycroft' followed by a speaker-verification gate: an activation only counts when the verifier confirms it, trading a small false-reject increase for fewer false-accepts.",
+  "model": "hey_mycroft (openWakeWord) + speaker verifier",
+  "links": {
+    "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-openWakeWord"
+  },
+  "notes": "Combo fighter: wake-word engine + verifier. The same engine without the verifier is a different competitor."
+}

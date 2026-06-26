@@ -21,7 +21,8 @@ from __future__ import annotations
 import inspect
 import logging
 import time
-from typing import Iterator, Tuple
+from dataclasses import dataclass
+from typing import Any, Iterator, Optional, Tuple
 
 from runner.audio_io import (
     stream_audio_dataset,
@@ -72,6 +73,23 @@ def _apply_hotword_compat() -> None:
     base.__init__ = _compat
 
 
+@dataclass
+class WWStack:
+    """A wake-word fighter as the listener actually stacks it.
+
+    The bare hotword engine, optionally fronted by a **pre-wake VAD** gate (only
+    voiced clips ever reach the detector — suppresses false-accepts on
+    non-speech) and/or followed by a **verifier** that must confirm an
+    activation (e.g. a speaker check). Each distinct (engine, VAD, verifier)
+    combination is its own competitor, with its own false-accept / false-reject
+    trade-off.
+    """
+
+    ww: Any
+    vad: Optional[Any] = None
+    verifier: Optional[Any] = None
+
+
 class WakeWordBench(MediaBenchAdapter):
     modality = "wake_word"
     card_tags = ("keyword-spotting", "wake-word")
@@ -101,7 +119,7 @@ class WakeWordBench(MediaBenchAdapter):
                 extra_keys={"label": label_col}, revision=revision,
                 max_samples=max_samples)
 
-    def load_engine(self, competitor, lang: str):
+    def load_engine(self, competitor, lang: str) -> WWStack:
         from ovos_plugin_manager.wakewords import load_wake_word_plugin
 
         _apply_hotword_compat()
@@ -112,11 +130,14 @@ class WakeWordBench(MediaBenchAdapter):
         key_phrase, hw_cfg = next(iter(hotwords.items()), ("hey_mycroft", {}))
         module = hw_cfg.get("module") or competitor.plugin
         clazz = load_plugin_class(load_wake_word_plugin, module)
-        return clazz(key_phrase, dict(hw_cfg))
+        ww = clazz(key_phrase, dict(hw_cfg))
+        return WWStack(ww,
+                       vad=_load_vad(competitor.config),
+                       verifier=_load_verifier(competitor.config))
 
-    def predict(self, engine, sample: dict, ctx: PredictContext) -> dict:
+    def predict(self, stack, sample: dict, ctx: PredictContext) -> dict:
         start = time.perf_counter()
-        detected = _detect(engine, sample["array"])
+        detected = _detect_stack(stack, sample["array"])
         latency_ms = (time.perf_counter() - start) * 1000
         return {
             "label": _norm_label(sample.get("label")),
@@ -124,6 +145,57 @@ class WakeWordBench(MediaBenchAdapter):
             "audio_url": sample.get("audio_url"),  # playable source clip in battles
             "latency_ms": round(latency_ms, 3),
         }
+
+
+def _load_vad(config: dict):
+    """Optional pre-wake VAD gate from a fighter config, or None."""
+    vad_cfg = config.get("VAD") or (config.get("listener") or {}).get("VAD")
+    if not vad_cfg:
+        return None
+    from ovos_plugin_manager.vad import load_vad_plugin
+
+    module = vad_cfg.get("module")
+    clazz = load_plugin_class(load_vad_plugin, module)
+    return clazz(dict(vad_cfg))
+
+
+def _load_verifier(config: dict):
+    """Optional hotword verifier from a fighter config, or None."""
+    ver_cfg = config.get("hotword_verifier") or config.get("verifier")
+    if not ver_cfg:
+        return None
+    from ovos_plugin_manager.wakewords import load_wake_word_verifier_plugin
+
+    module = ver_cfg.get("module")
+    clazz = load_plugin_class(load_wake_word_verifier_plugin, module)
+    return clazz(dict(ver_cfg))
+
+
+def _detect_stack(stack: "WWStack", array) -> bool:
+    """Run a clip through the full pre-VAD → wake-word → verifier stack.
+
+    Pre-wake VAD gates the clip: if the VAD hears no speech, the detector never
+    runs (this is how the stack suppresses false-accepts on non-speech). A
+    verifier, if present, must confirm an activation for it to count.
+    """
+    if stack.vad is not None:
+        from runner.vad_bench import _has_speech
+
+        if not _has_speech(stack.vad, array):
+            return False
+    detected = _detect(stack.ww, array)
+    if detected and stack.verifier is not None:
+        detected = _verify(stack.verifier, array)
+    return detected
+
+
+def _verify(verifier, array) -> bool:
+    """Run a hotword verifier over the primed clip; default to confirm on error."""
+    try:
+        return bool(verifier.verify(_to_pcm16(_prime_pad(array))))
+    except Exception as exc:
+        log.debug("verifier failed, accepting activation: %s", exc)
+        return True
 
 
 def _prime_pad(array):

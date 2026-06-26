@@ -30,6 +30,7 @@ PRIMARY_METRIC = {
     "intent_keyword": "accuracy",
     "stt": "wer_mean",
     "wake_word": "error_rate",
+    "vad": "error_rate",
 }
 
 # Higher is better for these primary metrics; lower for the rest (error rates,
@@ -165,9 +166,12 @@ def score_stt(rows: List[PredictionRow]) -> Dict[str, float]:
 # ---------------------------------------------------------------------------
 
 # Tokens that mean "the wake word is present / was detected" on either the
-# reference ``label`` or the predicted ``prediction`` side of a row.
+# reference ``label`` or the predicted ``prediction`` side of a row. The same
+# normaliser scores the wake-word and VAD leagues — both are binary detection,
+# so the VAD speech/voice tokens live here too (positive = speech present /
+# detected).
 _WW_POSITIVE = {"positive", "wake", "wakeword", "detected", "hit",
-                "true", "yes", "1"}
+                "true", "yes", "1", "speech", "voice"}
 
 
 def _ww_is_positive(value: object) -> Optional[bool]:
@@ -246,12 +250,17 @@ def score_wake_word(rows: List[PredictionRow]) -> Dict[str, float]:
     return metrics
 
 
+# VAD is binary speech/non-speech detection — the same FP (fires on non-speech)
+# / FN (misses speech) scoring as wake word, so it reuses the scorer.
+score_vad = score_wake_word
+
 _SCORERS = {
     "intent": score_intent,
     "intent_template": score_intent,
     "intent_keyword": score_intent,
     "stt": score_stt,
     "wake_word": score_wake_word,
+    "vad": score_vad,
 }
 
 

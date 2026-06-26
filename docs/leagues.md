@@ -80,6 +80,39 @@ community recordings), each drawing negatives from a shared not-wake-word pool
 (speech, ESC-50, FMA music, ambient noise, public-domain sounds) so the
 false-accept rate spans realistic scenarios.
 
+**Stacked fighters.** A wake-word competitor is not only a bare engine — it is
+the engine *as the listener actually stacks it*. A fighter config MAY add a
+**pre-wake VAD** gate (`config.VAD`: the detector only runs on clips the VAD
+calls speech, suppressing false-accepts on non-speech) and/or a **verifier**
+(`config.hotword_verifier`: an activation only counts when the verifier, e.g. a
+speaker check, confirms it). **Each distinct `(engine, VAD, verifier)`
+combination is its own competitor** with its own false-accept / false-reject
+trade-off — `openwakeword-hey-mycroft`, `openwakeword-hey-mycroft-silero`,
+`openwakeword-hey-mycroft-speaker` and `openwakeword-hey-mycroft-silero-speaker`
+are four different fighters in the same league.
+
+## VAD league (`vad`)
+
+**Task**: per-clip speech / non-speech detection — the same binary-detection
+task as wake word, so it shares the scorer. Each fighter's real OVOS
+`VADEngine` is fed a clip frame by frame through `is_silence()`; the clip counts
+as **speech** if any frame is voiced (`runner/vad_bench.py`).
+
+**Metrics** (`score_vad`), per `(dataset, lang)` — identical shape to wake word,
+and **both error directions matter**:
+
+| Metric | Meaning | Direction |
+|---|---|---|
+| **`error_rate`** *(primary → ELO seed)* | share of clips decided wrong | lower better |
+| `false_accept_rate` | fires **speech** on non-speech (music/noise) | lower better |
+| `false_reject_rate` | misses real **speech** | lower better |
+| `accuracy`, `latency_ms_median` | — | — |
+
+**Dataset**: `speech-vs-nonspeech` — positives are general speech recordings;
+negatives are non-speech (public-domain sounds, ESC-50, FMA music, ambient
+noise). The same VAD plugins also appear as pre-wake gates in the wake-word
+league above.
+
 ## ELO seeding (all leagues with an objective metric)
 
 `assemble` derives an auto-vote for every `(sample, competitor-pair)` where the

@@ -39,6 +39,7 @@ class Modality(str, Enum):
     STT = "stt"
     TTS = "tts"
     WAKE_WORD = "wake_word"
+    VAD = "vad"
     INTENT = "intent"  # open league — mixed-paradigm fusions
     INTENT_TEMPLATE = "intent_template"
     INTENT_KEYWORD = "intent_keyword"
