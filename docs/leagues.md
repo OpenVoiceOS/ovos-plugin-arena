@@ -91,6 +91,13 @@ trade-off — `openwakeword-hey-mycroft`, `openwakeword-hey-mycroft-silero`,
 `openwakeword-hey-mycroft-speaker` and `openwakeword-hey-mycroft-silero-speaker`
 are four different fighters in the same league.
 
+**Threshold / config variants are distinct fighters too.** The same engine at a
+different activation threshold lands a different point on the false-accept /
+false-reject curve, so each threshold is its own competitor and its own battle
+entry — `openwakeword-hey-mycroft-thr03` (sensitive) and `-thr07` (strict)
+compete alongside the 0.5 default. The same holds for VAD thresholds
+(`silero-vad-thr03` / `-thr07`) and webrtcvad aggressiveness (`webrtcvad-mode1`).
+
 ## VAD league (`vad`)
 
 **Task**: per-clip speech / non-speech detection — the same binary-detection
