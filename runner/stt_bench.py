@@ -13,7 +13,7 @@ import logging
 import time
 from typing import Iterator, Tuple
 
-from runner.audio_io import stream_audio_dataset
+from runner.audio_io import stream_audio_dataset, stream_manifest_audio
 from runner.media_bench import MediaBenchAdapter, PredictContext, load_plugin_class
 
 log = logging.getLogger("stt-bench")
@@ -30,8 +30,14 @@ class STTBench(MediaBenchAdapter):
         fields = dataset_def.reference_fields or {}
         audio_key = fields.get("audio", "audio")
         gt_col = fields.get("ground_truth", "transcription")
-        yield from stream_audio_dataset(
-            dataset_def.source,
+        src = dataset_def.source
+        # Manifest-backed corpora (metadata.csv / manifest.jsonl beside the
+        # audio, e.g. speech_MASSIVE_pt-PT) vs parquet-embedded audio (MInDS-14).
+        streamer = (stream_manifest_audio
+                    if (src.file_pattern or "").endswith((".csv", ".tsv", ".jsonl"))
+                    else stream_audio_dataset)
+        yield from streamer(
+            src,
             audio_key=audio_key,
             extra_keys={"ground_truth": gt_col},
             revision=revision,

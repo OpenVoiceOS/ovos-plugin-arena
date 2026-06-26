@@ -9,7 +9,7 @@ arena core and tests do not pull in audio stacks.
 from __future__ import annotations
 
 import logging
-from typing import Dict, Iterator, List, Optional, Tuple
+from typing import Dict, Iterable, Iterator, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -238,9 +238,21 @@ def stream_ww(dataset_def, revision: str, max_per_class: int = 0
                     and (negset is None or r.get(lc) in negset)]
     else:
         files = _repo_audio(hf, revision)
-        pos = [(hf, f, revision) for f in files if f.split("/")[0] == ww]
-        same_neg = [(hf, f, revision) for f in files if f.split("/")[0] != ww
-                    and (negset is None or f.split("/")[0] in negset)]
+        # ``subset`` optionally names a wrapping folder (e.g. Picovoice's
+        # ``data/<wakeword>/``); the wake phrase is the first component below it.
+        prefix = (src.subset.rstrip("/") + "/") if src.subset else ""
+
+        def _phrase(f: str) -> Optional[str]:
+            if prefix:
+                if not f.startswith(prefix):
+                    return None
+                f = f[len(prefix):]
+            return f.split("/")[0]
+
+        pos = [(hf, f, revision) for f in files if _phrase(f) == ww]
+        same_neg = [(hf, f, revision) for f in files
+                    if _phrase(f) not in (ww, None)
+                    and (negset is None or _phrase(f) in negset)]
 
     if dataset_def.negatives_sources:
         # pool negatives across several not-wake-word corpora (speech, music,
@@ -274,32 +286,39 @@ def stream_manifest_audio(
     revision: str,
     max_samples: int = 0,
 ) -> Iterator[Tuple[str, dict]]:
-    """Yield ``(sample_id, {"array", "sr", **extras})`` from a JSONL manifest.
+    """Yield ``(sample_id, {"array", "sr", **extras})`` from a manifest file.
 
-    For datasets stored as a per-sample ``manifest.jsonl`` next to audio files
-    (the ww-bench layout: one JSON record per clip with a relative ``path`` and
-    a ``role``).  ``source.file_pattern`` names the manifest file in the repo;
-    each record's *audio_key* field is the repo-relative audio path.  Lines
-    without the audio field (e.g. the ``_manifest_header``) are skipped.
+    For datasets stored as a per-sample manifest beside audio files: a
+    ``manifest.jsonl`` (one JSON record per clip — the ww-bench layout) or a
+    ``metadata.csv`` (one row per clip — the audiofolder layout, e.g.
+    ``speech_MASSIVE_pt-PT``). ``source.file_pattern`` names the manifest;
+    each record's *audio_key* field is the repo-relative audio path. Records
+    without the audio field (e.g. a header line) are skipped.
     """
     import json
 
     from huggingface_hub import hf_hub_download
 
     manifest_path = source.file_pattern or "manifest.jsonl"
-    manifest = hf_hub_download(source.hf_id, manifest_path, repo_type="dataset",
-                              revision=revision)
+    if manifest_path.endswith((".csv", ".tsv")):
+        records: Iterable[dict] = _csv_rows(source.hf_id, manifest_path, revision)
+    else:
+        manifest = hf_hub_download(source.hf_id, manifest_path,
+                                   repo_type="dataset", revision=revision)
+        def _jsonl():
+            with open(manifest, encoding="utf-8") as mf:
+                for line in mf:
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        yield json.loads(line)
+                    except json.JSONDecodeError as exc:
+                        logger.warning("skipping bad manifest line: %s", exc)
+        records = _jsonl()
+
     count = 0
-    with open(manifest, encoding="utf-8") as mf:
-        for line in mf:
-            line = line.strip()
-            if not line:
-                continue
-            try:
-                record = json.loads(line)
-            except json.JSONDecodeError as exc:
-                logger.warning("skipping bad manifest line: %s", exc)
-                continue
+    for record in records:
             rel = record.get(audio_key)
             if not rel:
                 continue  # header or rows without an audio path
