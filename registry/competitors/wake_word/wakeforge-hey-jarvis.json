@@ -1,0 +1,27 @@
+{
+  "competitor_id": "wakeforge-hey-jarvis",
+  "modality": "wake_word",
+  "plugin": "ovos-ww-plugin-wakeforge",
+  "config": {
+    "hotwords": {
+      "hey_jarvis": {
+        "module": "ovos-ww-plugin-wakeforge",
+        "featurizer": "https://huggingface.co/OpenVoiceOS/wakeforge-hey_jarvis/resolve/main/featurizer.onnx",
+        "model": "https://huggingface.co/OpenVoiceOS/wakeforge-hey_jarvis/resolve/main/best_f1.onnx",
+        "threshold": 0.5,
+        "smoothing": "ema",
+        "patience": 3
+      }
+    }
+  },
+  "langs": ["en"],
+  "display_name": "wakeforge (hey jarvis)",
+  "species": "WakeForgeHotwordPlugin",
+  "types": ["neural-net"],
+  "description": "A custom wake-word model trained with the wakeforge pipeline, run as an always-on hotword engine: a feature-extractor ONNX plus a classifier-head ONNX, with EMA smoothing and a patience counter before firing.",
+  "model": "wakeforge hey_jarvis (featurizer + classifier ONNX)",
+  "links": {
+    "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge"
+  },
+  "notes": "Point featurizer + model at the trained ONNX pair (paths or URLs). A different model or smoothing/patience setting is a different competitor."
+}
