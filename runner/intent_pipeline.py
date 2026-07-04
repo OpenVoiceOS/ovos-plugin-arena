@@ -69,6 +69,22 @@ ENGINE_REGISTRY: Dict[str, EngineSpec] = {
     "ovos-palavreado-pipeline-plugin": EngineSpec(
         "palavreado.opm:PalavreadoPipeline", "keyword",
         None, "palavreado", "palavreado"),
+    "ovos-jurebes-pipeline-plugin": EngineSpec(
+        "jurebes.opm:JurebesPipeline", "template",
+        "mycroft.ready", "jurebes", "jurebes"),
+    "ovos-linha-fina-pipeline-plugin": EngineSpec(
+        "linha_fina.opm:LinhaFinaPipeline", "template",
+        "mycroft.ready", "linha-fina", "linha_fina"),
+    "ovos-markov-pipeline-plugin": EngineSpec(
+        "ovos_markov_pipeline:MarkovPipeline", "template",
+        "mycroft.skills.train", "ovos-markov-pipeline-plugin", "markov"),
+    "ovos-m2v-pipeline": EngineSpec(
+        "ovos_m2v_pipeline:Model2VecIntentPipeline", "template",
+        "mycroft.ready", "ovos-m2v-pipeline", "m2v"),
+    "ovos-hierarchical-knn-pipeline": EngineSpec(
+        "ovos_hierarchical_knn_pipeline:HierarchicalKNNIntentPipeline",
+        "template",
+        "mycroft.ready", "ovos-hierarchical-knn-pipeline", "hknn"),
 }
 
 
@@ -302,7 +318,8 @@ class IntentPipeline:
 
             latency_ms = (time.perf_counter() - start) * 1000
             intent_id = self._normalise(str(match.match_type))
-            data = dict(match.match_data or {})
+            raw_data = match.match_data
+            data = dict(raw_data) if isinstance(raw_data, dict) else {}
             confidence = data.get("conf", data.get("confidence"))
             slots = self._extract_slots(data)
             return intent_id, slots, confidence, latency_ms, f"{plugin_id}-{tier}"
