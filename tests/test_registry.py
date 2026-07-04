@@ -171,7 +171,8 @@ class TestLoaders:
         assert comp.pipeline == ["ovos-adapt-pipeline-plugin-medium"]
         assert comp.plugin == "ovos-adapt-pipeline-plugin"
         assert comp.pipeline_plugins == ["ovos-adapt-pipeline-plugin"]
-        assert comp.plugin_config("ovos-adapt-pipeline-plugin", "adapt") == {}
+        assert comp.plugin_config("ovos-adapt-pipeline-plugin", "adapt") == {
+            "conf_high": 0.65, "conf_med": 0.45, "conf_low": 0.25}
         assert comp.species == "AdaptPipeline"
         assert "GOFAI" in comp.types
 

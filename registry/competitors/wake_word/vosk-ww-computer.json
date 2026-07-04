@@ -3,10 +3,23 @@
   "modality": "wake_word",
   "plugin": "ovos-ww-plugin-vosk",
   "config": {
+    "listener": {
+      "wake_word": "computer"
+    },
     "hotwords": {
       "computer": {
         "module": "ovos-ww-plugin-vosk",
-        "listen": true
+        "listen": true,
+        "model": "http://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip",
+        "lang": "en-US",
+        "samples": [
+          "computer"
+        ],
+        "full_vocab": false,
+        "rule": "equals",
+        "threshold": 0.75,
+        "time_between_checks": 1.0,
+        "debug": false
       }
     }
   },

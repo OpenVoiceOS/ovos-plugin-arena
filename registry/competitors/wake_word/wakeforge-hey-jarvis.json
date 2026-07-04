@@ -3,21 +3,33 @@
   "modality": "wake_word",
   "plugin": "ovos-ww-plugin-wakeforge",
   "config": {
+    "listener": {
+      "wake_word": "hey_jarvis"
+    },
     "hotwords": {
       "hey_jarvis": {
         "module": "ovos-ww-plugin-wakeforge",
+        "listen": true,
         "featurizer": "https://huggingface.co/OpenVoiceOS/wakeforge-hey_jarvis/resolve/main/featurizer.onnx",
         "model": "https://huggingface.co/OpenVoiceOS/wakeforge-hey_jarvis/resolve/main/best_f1.onnx",
         "threshold": 0.5,
         "smoothing": "ema",
-        "patience": 3
+        "patience": 3,
+        "debounce_sec": 1.0,
+        "window_size": 5,
+        "ema_alpha": 0.3,
+        "streaming": false
       }
     }
   },
-  "langs": ["en"],
+  "langs": [
+    "en"
+  ],
   "display_name": "wakeforge (hey jarvis)",
   "species": "WakeForgeHotwordPlugin",
-  "types": ["neural-net"],
+  "types": [
+    "neural-net"
+  ],
   "description": "A custom wake-word model trained with the wakeforge pipeline, run as an always-on hotword engine: a feature-extractor ONNX plus a classifier-head ONNX, with EMA smoothing and a patience counter before firing.",
   "model": "wakeforge hey_jarvis (featurizer + classifier ONNX)",
   "links": {

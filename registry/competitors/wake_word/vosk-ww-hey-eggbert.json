@@ -1,0 +1,42 @@
+{
+  "competitor_id": "vosk-ww-hey-eggbert",
+  "modality": "wake_word",
+  "plugin": "ovos-ww-plugin-vosk",
+  "config": {
+    "listener": {
+      "wake_word": "hey_eggbert"
+    },
+    "hotwords": {
+      "hey_eggbert": {
+        "module": "ovos-ww-plugin-vosk",
+        "listen": true,
+        "model": "http://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip",
+        "lang": "en-US",
+        "samples": [
+          "hey eggbert",
+          "hey egbert",
+          "hey egg bert"
+        ],
+        "full_vocab": false,
+        "rule": "equals",
+        "threshold": 0.75,
+        "time_between_checks": 1.0,
+        "debug": false
+      }
+    }
+  },
+  "langs": [
+    "en"
+  ],
+  "display_name": "Vosk wake word (hey eggbert)",
+  "species": "VoskWakeWordPlugin",
+  "types": [
+    "neural-net",
+    "keyword-match"
+  ],
+  "description": "Detects wake words by running the Vosk Kaldi recognizer in keyword mode and matching the transcript against configured samples, so any phrase in the model vocabulary can be a wake word.",
+  "links": {
+    "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-vosk"
+  },
+  "notes": "Transcript-match samples: ['hey eggbert', 'hey egbert', 'hey egg bert']. The language model is auto-downloaded."
+}

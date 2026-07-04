@@ -3,10 +3,19 @@
   "modality": "wake_word",
   "plugin": "ovos-ww-plugin-microwakeword",
   "config": {
+    "listener": {
+      "wake_word": "hey_jarvis"
+    },
     "hotwords": {
       "hey_jarvis": {
         "module": "ovos-ww-plugin-microwakeword",
-        "model_name": "hey_jarvis"
+        "listen": true,
+        "model": "https://github.com/esphome/micro-wake-word-models/raw/main/models/hey_jarvis.tflite",
+        "model_name": "hey_jarvis",
+        "model_version": 1,
+        "probability_cutoff": 0.5,
+        "sliding_window_size": 10,
+        "refractory_frames": 40
       }
     }
   },

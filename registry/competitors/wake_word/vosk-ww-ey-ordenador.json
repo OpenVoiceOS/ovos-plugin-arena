@@ -1,0 +1,42 @@
+{
+  "competitor_id": "vosk-ww-ey-ordenador",
+  "modality": "wake_word",
+  "plugin": "ovos-ww-plugin-vosk",
+  "config": {
+    "listener": {
+      "wake_word": "ey_ordenador"
+    },
+    "hotwords": {
+      "ey_ordenador": {
+        "module": "ovos-ww-plugin-vosk",
+        "listen": true,
+        "model": "https://alphacephei.com/vosk/models/vosk-model-small-es-0.3.zip",
+        "lang": "es",
+        "samples": [
+          "ey ordenador",
+          "hey ordenador",
+          "eh ordenador"
+        ],
+        "full_vocab": false,
+        "rule": "equals",
+        "threshold": 0.75,
+        "time_between_checks": 1.0,
+        "debug": false
+      }
+    }
+  },
+  "langs": [
+    "es"
+  ],
+  "display_name": "Vosk wake word (ey ordenador)",
+  "species": "VoskWakeWordPlugin",
+  "types": [
+    "neural-net",
+    "keyword-match"
+  ],
+  "description": "Detects wake words by running the Vosk Kaldi recognizer in keyword mode and matching the transcript against configured samples, so any phrase in the model vocabulary can be a wake word.",
+  "links": {
+    "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-vosk"
+  },
+  "notes": "Transcript-match samples: ['ey ordenador', 'hey ordenador', 'eh ordenador']. The language model is auto-downloaded."
+}

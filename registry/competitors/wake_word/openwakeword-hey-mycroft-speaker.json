@@ -3,20 +3,35 @@
   "modality": "wake_word",
   "plugin": "ovos-ww-plugin-openwakeword",
   "config": {
+    "listener": {
+      "wake_word": "hey_mycroft"
+    },
     "hotwords": {
       "hey_mycroft": {
         "module": "ovos-ww-plugin-openwakeword",
-        "threshold": 0.5
+        "listen": true,
+        "threshold": 0.5,
+        "custom_verifier_models": {},
+        "custom_verifier_threshold": 0.1
       }
     },
     "hotword_verifier": {
-      "module": "ovos-ww-verifier-speaker"
+      "module": "ovos-ww-verifier-speaker",
+      "model": "wespeaker-resnet34",
+      "threshold": 0.45,
+      "fail_open": true,
+      "per_profile_thresholds": {}
     }
   },
-  "langs": ["en"],
+  "langs": [
+    "en"
+  ],
   "display_name": "openWakeWord + speaker verifier (hey mycroft)",
   "species": "OwwHotwordPlugin",
-  "types": ["neural-net", "verified"],
+  "types": [
+    "neural-net",
+    "verified"
+  ],
   "description": "openWakeWord 'hey mycroft' followed by a speaker-verification gate: an activation only counts when the verifier confirms it, trading a small false-reject increase for fewer false-accepts.",
   "model": "hey_mycroft (openWakeWord) + speaker verifier",
   "links": {
