@@ -192,12 +192,36 @@ def build_elo_board(
     )
 
 
-def _write_json(path: Path, model) -> None:
-    path.write_text(
-        json.dumps(model.model_dump(mode="json"), indent=2, ensure_ascii=False)
-        + "\n"
-    )
+def _unchanged(path: Path, payload: Dict[str, Any]) -> bool:
+    """True when *payload* matches the file on disk apart from ``generated_at``.
+
+    Keeps artifact timestamps stable: an identical regeneration is not
+    rewritten, so the workflows' ``git diff --cached --quiet`` guards skip
+    the commit instead of churning ``generated_at``-only diffs.
+    """
+    if not path.exists():
+        return False
+    try:
+        existing = json.loads(path.read_text())
+    except (OSError, json.JSONDecodeError):
+        return False
+    if not isinstance(existing, dict):
+        return False
+    drop = "generated_at"
+    return ({k: v for k, v in existing.items() if k != drop}
+            == {k: v for k, v in payload.items() if k != drop})
+
+
+def _write_json_payload(path: Path, payload: Dict[str, Any]) -> None:
+    if _unchanged(path, payload):
+        log.info("Unchanged %s", path)
+        return
+    path.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n")
     log.info("Wrote %s", path)
+
+
+def _write_json(path: Path, model) -> None:
+    _write_json_payload(path, model.model_dump(mode="json"))
 
 
 # ---------------------------------------------------------------------------
@@ -250,6 +274,13 @@ def cmd_assemble(args: argparse.Namespace) -> int:
     data_dir.mkdir(parents=True, exist_ok=True)
 
     sources = [s.strip() for s in args.predictions.split(",") if s.strip()]
+    if not sources:
+        # Registry-driven default: every eval dataset's predictions_hf repo.
+        from registry.loaders import list_prediction_repos
+
+        sources = list_prediction_repos()
+        log.info("No --predictions given — using %d registry prediction "
+                 "repos", len(sources))
     dataset_info = _dataset_info_lookup(sources)
 
     rows = []
@@ -457,22 +488,27 @@ def cmd_tally(args: argparse.Namespace) -> int:
     log.info("  → %d valid votes (%d duplicates, %d invalid)",
              len(votes), len(duplicates), len(invalid))
 
-    # Group votes per (modality, lang) board
-    votes_by_board: Dict[Tuple[str, str], List[Dict]] = {}
-    for vote in votes:
-        battle = battles_pool[vote["battle_id"]]
-        key = (battle["modality"], battle["lang"])
-        votes_by_board.setdefault(key, []).append(vote)
+    if votes:
+        # Group votes per (modality, lang) board
+        votes_by_board: Dict[Tuple[str, str], List[Dict]] = {}
+        for vote in votes:
+            battle = battles_pool[vote["battle_id"]]
+            key = (battle["modality"], battle["lang"])
+            votes_by_board.setdefault(key, []).append(vote)
 
-    boards = set(seeds) | set(votes_by_board)
-    for modality, lang in sorted(boards):
-        board = build_elo_board(
-            modality, lang,
-            seeds.get((modality, lang)),
-            votes_by_board.get((modality, lang), []),
-            battles_pool,
-        )
-        _write_json(out_dir / f"leaderboard-{modality}-{lang}.json", board)
+        boards = set(seeds) | set(votes_by_board)
+        for modality, lang in sorted(boards):
+            board = build_elo_board(
+                modality, lang,
+                seeds.get((modality, lang)),
+                votes_by_board.get((modality, lang), []),
+                battles_pool,
+            )
+            _write_json(out_dir / f"leaderboard-{modality}-{lang}.json", board)
+    else:
+        # No new valid votes → the boards cannot change; leave them alone so
+        # the workflow's empty-diff guard skips the commit.
+        log.info("No new valid votes — leaderboards left untouched.")
 
     # Close processed issues (votes counted, duplicates, invalid)
     if args.repo and not args.keep_issues_open:
@@ -537,6 +573,9 @@ def cmd_export_index(args: argparse.Namespace) -> int:
     index["has_bestiary"] = (data_dir / "competitors.json").exists()
 
     out_file = Path(args.output)
+    if _unchanged(out_file, index):
+        log.info("Unchanged %s", out_file)
+        return 0
     out_file.write_text(json.dumps(index, indent=2) + "\n")
     log.info("Wrote %s (%d leaderboards, %d benchmarks, %d battle pools, "
              "%d freeform pools)", out_file, len(index["leaderboards"]),
@@ -559,13 +598,10 @@ def cmd_export_bestiary(args: argparse.Namespace) -> int:
 
     out_file = Path(args.output)
     out_file.parent.mkdir(parents=True, exist_ok=True)
-    out_file.write_text(
-        json.dumps(
-            {"generated_at": _now_iso(), "competitors": competitors},
-            indent=2, ensure_ascii=False,
-        ) + "\n"
+    _write_json_payload(
+        out_file, {"generated_at": _now_iso(), "competitors": competitors}
     )
-    log.info("Wrote %s (%d competitors)", out_file, len(competitors))
+    log.info("Exported %d competitors", len(competitors))
     return 0
 
 
@@ -581,8 +617,10 @@ def main(argv=None):
     sub = parser.add_subparsers(dest="command")
 
     p = sub.add_parser("assemble", help="Build battles, benchmark boards and ELO seeds")
-    p.add_argument("--predictions", required=True,
-                   help="Comma-separated HF dataset repo ids or local predictions dirs")
+    p.add_argument("--predictions", default="",
+                   help="Comma-separated HF dataset repo ids or local predictions "
+                        "dirs (default: every eval dataset's predictions_hf repo "
+                        "from the registry)")
     p.add_argument("--revision", default="main", help="HF revision to pin")
     p.add_argument("--output", default="frontend-static/public/data")
     p.add_argument("--modality", default="", help="Only assemble this modality")

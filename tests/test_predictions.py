@@ -39,6 +39,37 @@ class TestInferModality:
     def test_unknown(self):
         assert infer_modality({"prediction": "?"}) == "unknown"
 
+    def test_explicit_modality_wins(self):
+        assert infer_modality(_intent_row(modality="intent_template")) == (
+            "intent_template"
+        )
+        assert infer_modality(
+            {"label": "positive", "prediction": "detected", "modality": "vad"}
+        ) == "vad"
+
+    def test_wake_word(self):
+        assert infer_modality(
+            {"label": "positive", "prediction": "detected"}
+        ) == "wake_word"
+        assert infer_modality(
+            {"label": "negative", "prediction": "not_detected"}
+        ) == "wake_word"
+
+    def test_vad_from_label_vocabulary(self):
+        # runner.vad_bench rows: label speech/non_speech, prediction speech/silence
+        assert infer_modality(
+            {"label": "speech", "prediction": "silence"}
+        ) == "vad"
+        assert infer_modality(
+            {"label": "non_speech", "prediction": "speech"}
+        ) == "vad"
+
+    def test_vad_from_prediction_only(self):
+        # even a mislabelled row is caught by the decision vocabulary
+        assert infer_modality(
+            {"label": "positive", "prediction": "silence"}
+        ) == "vad"
+
 
 class TestParseRow:
     def test_known_fields_mapped(self):

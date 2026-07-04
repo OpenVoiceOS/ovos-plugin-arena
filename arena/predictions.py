@@ -26,6 +26,9 @@ logger = logging.getLogger(__name__)
 # Modality is inferred per row from the §3.2 payload fields.
 _INTENT_FIELDS = {"reference_intent", "exact_match"}
 _STT_FIELDS = {"reference_text", "wer"}
+# VAD rows label clips speech vs non-speech and decide speech vs silence
+# (see runner.vad_bench); wake-word rows use positive/detected vocabulary.
+_VAD_VALUES = {"speech", "silence", "non_speech"}
 
 
 def infer_modality(row: dict) -> str:
@@ -38,6 +41,13 @@ def infer_modality(row: dict) -> str:
     if _STT_FIELDS & row.keys():
         return "stt"
     if "label" in row:
+        values = {
+            str(row.get(key)).strip().lower()
+            for key in ("label", "prediction")
+            if row.get(key) is not None
+        }
+        if values & _VAD_VALUES:
+            return "vad"
         return "wake_word"
     return "unknown"
 

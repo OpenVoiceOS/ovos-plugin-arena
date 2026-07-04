@@ -24,6 +24,7 @@ from registry.loaders import (
     load_dataset,
     list_competitors,
     list_datasets,
+    list_prediction_repos,
     get_competitor_by_alias,
     REGISTRY_ROOT,
 )
@@ -258,6 +259,46 @@ class TestLoaders:
     def test_get_competitor_by_alias_missing(self):
         result = get_competitor_by_alias("stt", "totally-unknown-plugin-xyz-123")
         assert result is None
+
+
+class TestPredictionRepos:
+    def test_datasets_carry_predictions_hf(self):
+        for ds in list_datasets():
+            assert ds.predictions_hf, f"{ds.dataset_id} lacks predictions_hf"
+            # runner convention: <owner>/ovos-<modality>-bench-<dataset_id>
+            modality = ds.modality.value.replace("_", "-")
+            assert ds.predictions_hf.endswith(
+                f"/ovos-{modality}-bench-{ds.dataset_id}"
+            )
+
+    def test_sorted_unique(self):
+        repos = list_prediction_repos()
+        assert repos == sorted(set(repos))
+
+    def test_eval_repos_across_modalities(self):
+        repos = set(list_prediction_repos())
+        assert "OpenVoiceOS/ovos-intent-bench-intents-for-eval" in repos
+        assert "OpenVoiceOS/ovos-stt-bench-minds14-en-US" in repos
+        assert "OpenVoiceOS/ovos-tts-bench-massive-prompts" in repos
+        assert "OpenVoiceOS/ovos-wake-word-bench-community-computer" in repos
+        assert "OpenVoiceOS/ovos-vad-bench-speech-vs-nonspeech-en-US" in repos
+
+    def test_intent_paradigm_league_repos_derived(self):
+        """Intent eval corpora add one repo per paradigm they can train."""
+        repos = set(list_prediction_repos())
+        # intents-for-eval trains both paradigms
+        assert "OpenVoiceOS/ovos-intent-template-bench-intents-for-eval" in repos
+        assert "OpenVoiceOS/ovos-intent-keyword-bench-intents-for-eval" in repos
+        # massive-templates trains templates only
+        assert "OpenVoiceOS/ovos-intent-template-bench-massive-templates" in repos
+        assert ("OpenVoiceOS/ovos-intent-keyword-bench-massive-templates"
+                not in repos)
+
+    def test_train_datasets_excluded(self):
+        repos = set(list_prediction_repos())
+        # role=train corpora produce no predictions
+        assert not any("intents-for-eval-templates" in r for r in repos)
+        assert not any("intents-for-eval-keywords" in r for r in repos)
 
 
 # ---------------------------------------------------------------------------

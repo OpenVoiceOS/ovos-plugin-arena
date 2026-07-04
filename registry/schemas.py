@@ -177,6 +177,16 @@ class DatasetDef(BaseModel):
             "Overrides ``negatives_hf``."
         ),
     )
+    predictions_hf: Optional[str] = Field(
+        None,
+        description=(
+            "HF dataset repo holding the arena's prediction rows for this "
+            "benchmark corpus, following the runner convention "
+            "``<owner>/ovos-<modality>-bench-<dataset_id>`` (modality with "
+            "'_' replaced by '-'). The ``assemble`` step pulls predictions "
+            "from these repos when no explicit source list is given."
+        ),
+    )
     notes: Optional[str] = None
 
 

@@ -10,7 +10,7 @@ import json
 from pathlib import Path
 from typing import List, Optional
 
-from registry.schemas import CompetitorDef, DatasetDef
+from registry.schemas import INTENT_MODALITIES, CompetitorDef, DatasetDef
 
 # Root of the registry tree — two levels up from this file (repo root)
 REGISTRY_ROOT: Path = Path(__file__).parent
@@ -139,3 +139,27 @@ def list_datasets(modality: Optional[str] = None) -> List[DatasetDef]:
             import warnings
             warnings.warn(f"Skipping invalid dataset file {path}: {exc}")
     return results
+
+
+def list_prediction_repos() -> List[str]:
+    """Sorted unique HF prediction repos across all eval datasets.
+
+    Each eval dataset names its predictions repo via ``predictions_hf`` —
+    one dedicated repo per benchmark modality, following the runner
+    convention ``<owner>/ovos-<modality>-bench-<dataset_id>``.  Intent eval
+    corpora additionally feed the paradigm sub-leagues, whose fighters
+    publish to their own ``ovos-intent-<paradigm>-bench-<dataset_id>``
+    repos — one per paradigm the corpus provides training data for.
+    """
+    repos: set = set()
+    for dataset in list_datasets():
+        if dataset.role != "eval" or not dataset.predictions_hf:
+            continue
+        repos.add(dataset.predictions_hf)
+        if dataset.modality in INTENT_MODALITIES:
+            owner = dataset.predictions_hf.split("/")[0]
+            for paradigm in dataset.train_datasets or {}:
+                repos.add(
+                    f"{owner}/ovos-intent-{paradigm}-bench-{dataset.dataset_id}"
+                )
+    return sorted(repos)

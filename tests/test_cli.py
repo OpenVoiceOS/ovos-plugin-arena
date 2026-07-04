@@ -292,6 +292,100 @@ def main_args_assemble(preds: Path, out: Path) -> int:
     return 0
 
 
+class TestRegistryDefaultPredictions:
+    def test_empty_predictions_uses_registry_repos(self, tmp_path, monkeypatch):
+        """Without --predictions, sources come from list_prediction_repos()."""
+        import registry.loaders as loaders
+
+        preds = _write_predictions(tmp_path)
+        monkeypatch.setattr(
+            loaders, "list_prediction_repos", lambda: [str(preds)]
+        )
+        out = tmp_path / "data"
+        with pytest.raises(SystemExit) as exc:
+            main(["assemble", "--output", str(out)])
+        assert exc.value.code == 0
+        assert (out / "leaderboard-intent-en-US.json").exists()
+
+    def test_explicit_predictions_override_registry(self, tmp_path, monkeypatch):
+        import registry.loaders as loaders
+
+        preds = _write_predictions(tmp_path)
+        monkeypatch.setattr(
+            loaders, "list_prediction_repos",
+            lambda: (_ for _ in ()).throw(AssertionError("must not be called")),
+        )
+        out = tmp_path / "data"
+        assert main_args_assemble(preds, out) == 0
+
+
+class TestTimestampStability:
+    def test_reassemble_leaves_identical_artifacts_untouched(self, tmp_path):
+        """Same predictions twice → byte-identical artifacts (stable
+        generated_at), so the workflow commit guard sees an empty diff."""
+        preds = _write_predictions(tmp_path)
+        out = tmp_path / "data"
+        assert main_args_assemble(preds, out) == 0
+        before = {p.name: p.read_bytes() for p in out.glob("*.json")}
+        assert main_args_assemble(preds, out) == 0
+        after = {p.name: p.read_bytes() for p in out.glob("*.json")}
+        assert before == after
+
+    def test_changed_content_still_rewrites(self, tmp_path):
+        preds = _write_predictions(tmp_path)
+        out = tmp_path / "data"
+        assert main_args_assemble(preds, out) == 0
+        board_path = out / "benchmark-intent-intents-for-eval-en-US.json"
+        board = json.loads(board_path.read_text())
+        board["entries"] = []
+        board_path.write_text(json.dumps(board))
+        assert main_args_assemble(preds, out) == 0
+        assert json.loads(board_path.read_text())["entries"]
+
+    def test_export_index_stable(self, tmp_path):
+        preds = _write_predictions(tmp_path)
+        out = tmp_path / "data"
+        assert main_args_assemble(preds, out) == 0
+        index_path = out / "index.json"
+        for _ in range(2):
+            with pytest.raises(SystemExit) as exc:
+                main(["export-index", "--data-dir", str(out),
+                      "--output", str(index_path)])
+            assert exc.value.code == 0
+        first = index_path.read_bytes()
+        with pytest.raises(SystemExit):
+            main(["export-index", "--data-dir", str(out),
+                  "--output", str(index_path)])
+        assert index_path.read_bytes() == first
+
+    def test_export_bestiary_stable(self, tmp_path):
+        registry_root = Path(__file__).parent.parent / "registry"
+        out = tmp_path / "competitors.json"
+        for _ in range(2):
+            with pytest.raises(SystemExit) as exc:
+                main(["export-bestiary", "--registry", str(registry_root),
+                      "--output", str(out)])
+            assert exc.value.code == 0
+        first = out.read_bytes()
+        with pytest.raises(SystemExit):
+            main(["export-bestiary", "--registry", str(registry_root),
+                  "--output", str(out)])
+        assert out.read_bytes() == first
+
+    def test_tally_zero_votes_skips_board_rewrite(self, tmp_path):
+        """No new valid votes → leaderboards are not rewritten at all."""
+        preds = _write_predictions(tmp_path)
+        out = tmp_path / "data"
+        assert main_args_assemble(preds, out) == 0
+        board_path = out / "leaderboard-intent-en-US.json"
+        # Sentinel suffix: any rewrite would drop it
+        board_path.write_text(board_path.read_text() + "// sentinel\n")
+        with pytest.raises(SystemExit) as exc:
+            main(["tally", "--data-dir", str(out), "--output", str(out)])
+        assert exc.value.code == 0
+        assert board_path.read_text().endswith("// sentinel\n")
+
+
 class TestExportBestiary:
     def test_real_registry_export(self, tmp_path):
         registry_root = Path(__file__).parent.parent / "registry"
