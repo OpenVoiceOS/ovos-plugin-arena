@@ -18,6 +18,11 @@ class TestEngineRegistry:
             "ovos-nebulento-pipeline-plugin",
             "ovos-adapt-pipeline-plugin",
             "ovos-palavreado-pipeline-plugin",
+            "ovos-jurebes-pipeline-plugin",
+            "ovos-linha-fina-pipeline-plugin",
+            "ovos-markov-pipeline-plugin",
+            "ovos-m2v-pipeline",
+            "ovos-hierarchical-knn-pipeline",
         }
 
     def test_paradigms(self):
