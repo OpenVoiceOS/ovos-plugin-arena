@@ -237,7 +237,6 @@ def _dataset_info_lookup(prediction_sources: List[str]) -> Dict[str, Dict[str, A
     except ImportError:
         return info
     hf_repos = [s for s in prediction_sources if not Path(s).is_dir()]
-    predictions_urls = [f"https://huggingface.co/datasets/{r}" for r in hf_repos]
     datasets = list_datasets()
     by_id = {d.dataset_id: d for d in datasets}
     for dataset in datasets:
@@ -249,8 +248,13 @@ def _dataset_info_lookup(prediction_sources: List[str]) -> Dict[str, Dict[str, A
             entry["license"] = dataset.license
         if dataset.notes:
             entry["notes"] = dataset.notes
-        if predictions_urls:
-            entry["predictions"] = predictions_urls
+        own_repos = [r for r in hf_repos
+                     if r.endswith(f"-bench-{dataset.dataset_id}")]
+        if getattr(dataset, "predictions_hf", None):
+            own_repos = sorted(set(own_repos) | {dataset.predictions_hf})
+        if own_repos:
+            entry["predictions"] = [
+                f"https://huggingface.co/datasets/{r}" for r in own_repos]
         if dataset.train_datasets:
             trains: Dict[str, Any] = {}
             for paradigm, train_id in dataset.train_datasets.items():
