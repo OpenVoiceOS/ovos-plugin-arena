@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-03T06:32:03.671638+00:00",
+  "generated_at": "2026-07-04T06:18:48.257076+00:00",
   "competitors": [
     {
       "competitor_id": "frankenparse",
@@ -67,7 +67,7 @@
       "links": {
         "source": "https://github.com/OpenVoiceOS/ovos-hierarchical-knn-pipeline"
       },
-      "notes": "Single-stage pipeline at the plugin's own medium-confidence gate; per-plugin config keeps the shipped defaults."
+      "notes": "Single-stage pipeline at the plugin's own medium-confidence gate; per-plugin config keeps the shipped defaults. Published predictions are migrated from the legacy ovos-intent-benchmark, where this engine was trained on the benchmark's own corpora; the pinned pretrained model targets real OVOS skill intents and cannot emit this benchmark's label space, so native re-sweeps require a dataset-trained variant."
     },
     {
       "competitor_id": "m2v-medium",
@@ -97,7 +97,7 @@
       "links": {
         "source": "https://github.com/OpenVoiceOS/ovos-m2v-pipeline"
       },
-      "notes": "Single-stage pipeline at the plugin's own medium-confidence gate; per-plugin config keeps the shipped defaults."
+      "notes": "Single-stage pipeline at the plugin's own medium-confidence gate; per-plugin config keeps the shipped defaults. Published predictions are migrated from the legacy ovos-intent-benchmark, where this engine was trained on the benchmark's own corpora; the pinned pretrained model targets real OVOS skill intents and cannot emit this benchmark's label space, so native re-sweeps require a dataset-trained variant."
     },
     {
       "competitor_id": "nebulapt",
@@ -124,7 +124,7 @@
       "description": "Nebulento × Adapt fusion — precise keyword rules take the first shot, fuzzy matching mops up typos and ASR noise, and Adapt medium catches the remainder.",
       "size": "micro",
       "links": {
-        "source": "https://github.com/OpenVoiceOS/nebulento"
+        "source": "https://github.com/OpenVoiceOS/ovos-adapt-pipeline-plugin"
       },
       "notes": "Demonstration fusion: keyword precision first, fuzzy recall second."
     },
@@ -153,7 +153,7 @@
       "description": "Padatious × Nebulento fusion — the neural parser leads at high confidence, fuzzy string matching mops up typos and ASR noise, neural medium catches the rest.",
       "size": "micro",
       "links": {
-        "source": "https://github.com/OpenVoiceOS/nebulento"
+        "source": "https://github.com/OpenVoiceOS/ovos-padatious-pipeline-plugin"
       },
       "notes": "Neural-first template cascade with a fuzzy middle stage for noisy input."
     },
@@ -182,7 +182,7 @@
       "description": "Padatious × Adapt fusion — the intent-classifier stages of the stock OVOS pipeline in shipped order: Padatious high, Adapt high, then Adapt medium. First stage whose own confidence gate fires wins.",
       "size": "micro",
       "links": {
-        "source": "https://github.com/OpenVoiceOS/ovos-config"
+        "source": "https://github.com/OpenVoiceOS/ovos-padatious-pipeline-plugin"
       },
       "notes": "Mirrors the default mycroft.conf intents.pipeline restricted to arena-supported engines (m2v stage omitted until it joins the roster)."
     },
@@ -240,7 +240,7 @@
       "description": "Adapt × Palavreado fusion — the keyword family closes ranks: both rule engines at their high gates first, then both again at medium.",
       "size": "micro",
       "links": {
-        "source": "https://github.com/OpenVoiceOS/palavreado"
+        "source": "https://github.com/OpenVoiceOS/ovos-adapt-pipeline-plugin"
       },
       "notes": "All-keyword cascade; useful as the keyword league's pooled upper bound."
     },
@@ -820,37 +820,6 @@
       "notes": "faster-whisper small model, int8 quantised, low-memory profile; flat config keys mirror the stt fragment for the prediction runner"
     },
     {
-      "competitor_id": "mynorthai-whisper-small-pt",
-      "modality": "stt",
-      "plugin": "ovos-stt-plugin-MyNorthAI",
-      "config": {
-        "stt": {
-          "module": "ovos-stt-plugin-MyNorthAI",
-          "ovos-stt-plugin-MyNorthAI": {
-            "model": "my-north-ai/whisper-small-pt"
-          }
-        }
-      },
-      "langs": [
-        "pt"
-      ],
-      "alias": [
-        "ovos-stt-plugin-MyNorthAI"
-      ],
-      "display_name": "MyNorth AI Whisper (small, pt)",
-      "species": "MyNorthAISTT",
-      "types": [
-        "neural-net",
-        "transformer"
-      ],
-      "description": "Portuguese fine-tuned Whisper checkpoints from MyNorth AI, served through the transformers Whisper loader. Defaults to the small variant; medium and large-v3 are also published.",
-      "model": "my-north-ai/whisper-small-pt",
-      "links": {
-        "source": "https://github.com/TigreGotico/ovos-stt-plugin-MyNorthAI"
-      },
-      "notes": "Plugin default model."
-    },
-    {
       "competitor_id": "nemo-quartznet15x5-en",
       "modality": "stt",
       "plugin": "ovos-stt-plugin-nemo",
@@ -914,6 +883,518 @@
         "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
       },
       "notes": "Plugin default model; int8 quantization available via the 'quantization' key."
+    },
+    {
+      "competitor_id": "onnx-asr-conformer-ctc-en",
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-onnx-asr",
+      "config": {
+        "stt": {
+          "module": "ovos-stt-plugin-onnx-asr",
+          "ovos-stt-plugin-onnx-asr": {
+            "model": "OpenVoiceOS/nvidia-en-conformer-ctc-large-onnx"
+          }
+        }
+      },
+      "langs": [
+        "en"
+      ],
+      "alias": [
+        "ovos-stt-plugin-onnx-asr"
+      ],
+      "display_name": "ONNX-ASR (Conformer CTC Large, en)",
+      "species": "OnnxASR",
+      "types": [
+        "neural-net",
+        "conformer"
+      ],
+      "description": "Runs ASR models exported to ONNX through the onnx-asr library, without a PyTorch dependency. This fighter runs NVIDIA Conformer CTC Large for English.",
+      "model": "OpenVoiceOS/nvidia-en-conformer-ctc-large-onnx",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
+      },
+      "notes": "Model from the OpenVoiceOS 'stt-asr-onnx' HuggingFace collection."
+    },
+    {
+      "competitor_id": "onnx-asr-conformer-ctc-gl",
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-onnx-asr",
+      "config": {
+        "stt": {
+          "module": "ovos-stt-plugin-onnx-asr",
+          "ovos-stt-plugin-onnx-asr": {
+            "model": "OpenVoiceOS/proxectonos-gl-conformer-ctc-large-onnx"
+          }
+        }
+      },
+      "langs": [
+        "gl"
+      ],
+      "alias": [
+        "ovos-stt-plugin-onnx-asr"
+      ],
+      "display_name": "ONNX-ASR (Conformer CTC Large, gl)",
+      "species": "OnnxASR",
+      "types": [
+        "neural-net",
+        "conformer"
+      ],
+      "description": "Runs ASR models exported to ONNX through the onnx-asr library, without a PyTorch dependency. This fighter runs Proxecto Nós' Conformer CTC Large model for Galician.",
+      "model": "OpenVoiceOS/proxectonos-gl-conformer-ctc-large-onnx",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
+      },
+      "notes": "Model from the OpenVoiceOS 'stt-asr-onnx' HuggingFace collection."
+    },
+    {
+      "competitor_id": "onnx-asr-conformer-ctc-it",
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-onnx-asr",
+      "config": {
+        "stt": {
+          "module": "ovos-stt-plugin-onnx-asr",
+          "ovos-stt-plugin-onnx-asr": {
+            "model": "OpenVoiceOS/nvidia-it-conformer-ctc-large-onnx"
+          }
+        }
+      },
+      "langs": [
+        "it"
+      ],
+      "alias": [
+        "ovos-stt-plugin-onnx-asr"
+      ],
+      "display_name": "ONNX-ASR (Conformer CTC Large, it)",
+      "species": "OnnxASR",
+      "types": [
+        "neural-net",
+        "conformer"
+      ],
+      "description": "Runs ASR models exported to ONNX through the onnx-asr library, without a PyTorch dependency. This fighter runs NVIDIA Conformer CTC Large for Italian.",
+      "model": "OpenVoiceOS/nvidia-it-conformer-ctc-large-onnx",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
+      },
+      "notes": "Model from the OpenVoiceOS 'stt-asr-onnx' HuggingFace collection."
+    },
+    {
+      "competitor_id": "onnx-asr-conformer-transducer-ca",
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-onnx-asr",
+      "config": {
+        "stt": {
+          "module": "ovos-stt-plugin-onnx-asr",
+          "ovos-stt-plugin-onnx-asr": {
+            "model": "OpenVoiceOS/nvidia-ca-conformer-transducer-large-onnx"
+          }
+        }
+      },
+      "langs": [
+        "ca"
+      ],
+      "alias": [
+        "ovos-stt-plugin-onnx-asr"
+      ],
+      "display_name": "ONNX-ASR (Conformer Transducer Large, ca)",
+      "species": "OnnxASR",
+      "types": [
+        "neural-net",
+        "conformer",
+        "transducer"
+      ],
+      "description": "Runs ASR models exported to ONNX through the onnx-asr library, without a PyTorch dependency. This fighter runs NVIDIA Conformer Transducer Large for Catalan.",
+      "model": "OpenVoiceOS/nvidia-ca-conformer-transducer-large-onnx",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
+      },
+      "notes": "Model from the OpenVoiceOS 'stt-asr-onnx' HuggingFace collection."
+    },
+    {
+      "competitor_id": "onnx-asr-conformer-transducer-de",
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-onnx-asr",
+      "config": {
+        "stt": {
+          "module": "ovos-stt-plugin-onnx-asr",
+          "ovos-stt-plugin-onnx-asr": {
+            "model": "OpenVoiceOS/nvidia-de-conformer-transducer-large-onnx"
+          }
+        }
+      },
+      "langs": [
+        "de"
+      ],
+      "alias": [
+        "ovos-stt-plugin-onnx-asr"
+      ],
+      "display_name": "ONNX-ASR (Conformer Transducer Large, de)",
+      "species": "OnnxASR",
+      "types": [
+        "neural-net",
+        "conformer",
+        "transducer"
+      ],
+      "description": "Runs ASR models exported to ONNX through the onnx-asr library, without a PyTorch dependency. This fighter runs NVIDIA Conformer Transducer Large for German.",
+      "model": "OpenVoiceOS/nvidia-de-conformer-transducer-large-onnx",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
+      },
+      "notes": "Model from the OpenVoiceOS 'stt-asr-onnx' HuggingFace collection."
+    },
+    {
+      "competitor_id": "onnx-asr-conformer-transducer-es",
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-onnx-asr",
+      "config": {
+        "stt": {
+          "module": "ovos-stt-plugin-onnx-asr",
+          "ovos-stt-plugin-onnx-asr": {
+            "model": "OpenVoiceOS/nvidia-es-conformer-transducer-large-onnx"
+          }
+        }
+      },
+      "langs": [
+        "es"
+      ],
+      "alias": [
+        "ovos-stt-plugin-onnx-asr"
+      ],
+      "display_name": "ONNX-ASR (Conformer Transducer Large, es)",
+      "species": "OnnxASR",
+      "types": [
+        "neural-net",
+        "conformer",
+        "transducer"
+      ],
+      "description": "Runs ASR models exported to ONNX through the onnx-asr library, without a PyTorch dependency. This fighter runs NVIDIA Conformer Transducer Large for Spanish.",
+      "model": "OpenVoiceOS/nvidia-es-conformer-transducer-large-onnx",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
+      },
+      "notes": "Model from the OpenVoiceOS 'stt-asr-onnx' HuggingFace collection."
+    },
+    {
+      "competitor_id": "onnx-asr-conformer-transducer-eu",
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-onnx-asr",
+      "config": {
+        "stt": {
+          "module": "ovos-stt-plugin-onnx-asr",
+          "ovos-stt-plugin-onnx-asr": {
+            "model": "OpenVoiceOS/stt-eu-conformer-transducer-large-onnx"
+          }
+        }
+      },
+      "langs": [
+        "eu"
+      ],
+      "alias": [
+        "ovos-stt-plugin-onnx-asr"
+      ],
+      "display_name": "ONNX-ASR (Conformer Transducer Large, eu)",
+      "species": "OnnxASR",
+      "types": [
+        "neural-net",
+        "conformer",
+        "transducer"
+      ],
+      "description": "Runs ASR models exported to ONNX through the onnx-asr library, without a PyTorch dependency. This fighter runs a Conformer Transducer Large model for Basque.",
+      "model": "OpenVoiceOS/stt-eu-conformer-transducer-large-onnx",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
+      },
+      "notes": "Model from the OpenVoiceOS 'stt-asr-onnx' HuggingFace collection."
+    },
+    {
+      "competitor_id": "onnx-asr-conformer-transducer-fr",
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-onnx-asr",
+      "config": {
+        "stt": {
+          "module": "ovos-stt-plugin-onnx-asr",
+          "ovos-stt-plugin-onnx-asr": {
+            "model": "OpenVoiceOS/nvidia-fr-conformer-transducer-large-onnx"
+          }
+        }
+      },
+      "langs": [
+        "fr"
+      ],
+      "alias": [
+        "ovos-stt-plugin-onnx-asr"
+      ],
+      "display_name": "ONNX-ASR (Conformer Transducer Large, fr)",
+      "species": "OnnxASR",
+      "types": [
+        "neural-net",
+        "conformer",
+        "transducer"
+      ],
+      "description": "Runs ASR models exported to ONNX through the onnx-asr library, without a PyTorch dependency. This fighter runs NVIDIA Conformer Transducer Large for French.",
+      "model": "OpenVoiceOS/nvidia-fr-conformer-transducer-large-onnx",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
+      },
+      "notes": "Model from the OpenVoiceOS 'stt-asr-onnx' HuggingFace collection."
+    },
+    {
+      "competitor_id": "onnx-asr-conformer-transducer-ru",
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-onnx-asr",
+      "config": {
+        "stt": {
+          "module": "ovos-stt-plugin-onnx-asr",
+          "ovos-stt-plugin-onnx-asr": {
+            "model": "OpenVoiceOS/nvidia-ru-conformer-transducer-large-onnx"
+          }
+        }
+      },
+      "langs": [
+        "ru"
+      ],
+      "alias": [
+        "ovos-stt-plugin-onnx-asr"
+      ],
+      "display_name": "ONNX-ASR (Conformer Transducer Large, ru)",
+      "species": "OnnxASR",
+      "types": [
+        "neural-net",
+        "conformer",
+        "transducer"
+      ],
+      "description": "Runs ASR models exported to ONNX through the onnx-asr library, without a PyTorch dependency. This fighter runs NVIDIA Conformer Transducer Large for Russian.",
+      "model": "OpenVoiceOS/nvidia-ru-conformer-transducer-large-onnx",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
+      },
+      "notes": "Model from the OpenVoiceOS 'stt-asr-onnx' HuggingFace collection."
+    },
+    {
+      "competitor_id": "onnx-asr-parakeet-nl",
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-onnx-asr",
+      "config": {
+        "stt": {
+          "module": "ovos-stt-plugin-onnx-asr",
+          "ovos-stt-plugin-onnx-asr": {
+            "model": "OpenVoiceOS/yuriyvnv-parakeet-tdt-0.6b-nl-onnx"
+          }
+        }
+      },
+      "langs": [
+        "nl"
+      ],
+      "alias": [
+        "ovos-stt-plugin-onnx-asr"
+      ],
+      "display_name": "ONNX-ASR (Parakeet TDT 0.6B, nl)",
+      "species": "OnnxASR",
+      "types": [
+        "neural-net",
+        "transducer"
+      ],
+      "description": "Runs ASR models exported to ONNX through the onnx-asr library, without a PyTorch dependency. This fighter runs a Parakeet TDT 0.6B fine-tune for Dutch.",
+      "model": "OpenVoiceOS/yuriyvnv-parakeet-tdt-0.6b-nl-onnx",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
+      },
+      "notes": "Model from the OpenVoiceOS 'stt-asr-onnx' HuggingFace collection."
+    },
+    {
+      "competitor_id": "onnx-asr-parakeet-pl",
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-onnx-asr",
+      "config": {
+        "stt": {
+          "module": "ovos-stt-plugin-onnx-asr",
+          "ovos-stt-plugin-onnx-asr": {
+            "model": "OpenVoiceOS/yuriyvnv-parakeet-tdt-0.6b-pl-onnx"
+          }
+        }
+      },
+      "langs": [
+        "pl"
+      ],
+      "alias": [
+        "ovos-stt-plugin-onnx-asr"
+      ],
+      "display_name": "ONNX-ASR (Parakeet TDT 0.6B, pl)",
+      "species": "OnnxASR",
+      "types": [
+        "neural-net",
+        "transducer"
+      ],
+      "description": "Runs ASR models exported to ONNX through the onnx-asr library, without a PyTorch dependency. This fighter runs a Parakeet TDT 0.6B fine-tune for Polish.",
+      "model": "OpenVoiceOS/yuriyvnv-parakeet-tdt-0.6b-pl-onnx",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
+      },
+      "notes": "Model from the OpenVoiceOS 'stt-asr-onnx' HuggingFace collection."
+    },
+    {
+      "competitor_id": "onnx-asr-parakeet-pt",
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-onnx-asr",
+      "config": {
+        "stt": {
+          "module": "ovos-stt-plugin-onnx-asr",
+          "ovos-stt-plugin-onnx-asr": {
+            "model": "OpenVoiceOS/yuriyvnv-parakeet-tdt-0.6b-pt-onnx"
+          }
+        }
+      },
+      "langs": [
+        "pt"
+      ],
+      "alias": [
+        "ovos-stt-plugin-onnx-asr"
+      ],
+      "display_name": "ONNX-ASR (Parakeet TDT 0.6B, pt)",
+      "species": "OnnxASR",
+      "types": [
+        "neural-net",
+        "transducer"
+      ],
+      "description": "Runs ASR models exported to ONNX through the onnx-asr library, without a PyTorch dependency. This fighter runs a Parakeet TDT 0.6B fine-tune for Portuguese.",
+      "model": "OpenVoiceOS/yuriyvnv-parakeet-tdt-0.6b-pt-onnx",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
+      },
+      "notes": "Model from the OpenVoiceOS 'stt-asr-onnx' HuggingFace collection."
+    },
+    {
+      "competitor_id": "onnx-asr-parakeet-tdt-06b-v3",
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-onnx-asr",
+      "config": {
+        "stt": {
+          "module": "ovos-stt-plugin-onnx-asr",
+          "ovos-stt-plugin-onnx-asr": {
+            "model": "nemo-parakeet-tdt-0.6b-v3"
+          }
+        }
+      },
+      "langs": [
+        "en",
+        "de",
+        "fr",
+        "es",
+        "it",
+        "pt",
+        "pl",
+        "nl",
+        "ru",
+        "hu",
+        "cs"
+      ],
+      "alias": [
+        "ovos-stt-plugin-onnx-asr"
+      ],
+      "display_name": "ONNX-ASR (Parakeet TDT 0.6B v3)",
+      "species": "OnnxASR",
+      "types": [
+        "neural-net",
+        "transducer"
+      ],
+      "description": "Runs ASR models exported to ONNX through the onnx-asr library, without a PyTorch dependency. This fighter runs NVIDIA Parakeet TDT 0.6B v3, a multilingual transducer covering 25 European languages.",
+      "model": "nemo-parakeet-tdt-0.6b-v3",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
+      },
+      "notes": "Plugin-supported model alias; multilingual European coverage restricted here to arena eval languages."
+    },
+    {
+      "competitor_id": "onnx-asr-parakeet-tdt-11b",
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-onnx-asr",
+      "config": {
+        "stt": {
+          "module": "ovos-stt-plugin-onnx-asr",
+          "ovos-stt-plugin-onnx-asr": {
+            "model": "OpenVoiceOS/nvidia-parakeet-tdt-1.1b-onnx"
+          }
+        }
+      },
+      "langs": [
+        "en"
+      ],
+      "alias": [
+        "ovos-stt-plugin-onnx-asr"
+      ],
+      "display_name": "ONNX-ASR (Parakeet TDT 1.1B, en)",
+      "species": "OnnxASR",
+      "types": [
+        "neural-net",
+        "transducer"
+      ],
+      "description": "Runs ASR models exported to ONNX through the onnx-asr library, without a PyTorch dependency. This fighter runs NVIDIA Parakeet TDT 1.1B, an English FastConformer token-and-duration transducer.",
+      "model": "OpenVoiceOS/nvidia-parakeet-tdt-1.1b-onnx",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
+      },
+      "notes": "Model from the OpenVoiceOS 'stt-asr-onnx' HuggingFace collection."
+    },
+    {
+      "competitor_id": "onnx-asr-parakeet-tdt-ctc-110m",
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-onnx-asr",
+      "config": {
+        "stt": {
+          "module": "ovos-stt-plugin-onnx-asr",
+          "ovos-stt-plugin-onnx-asr": {
+            "model": "OpenVoiceOS/nvidia-parakeet-tdt_ctc-110m-onnx"
+          }
+        }
+      },
+      "langs": [
+        "en"
+      ],
+      "alias": [
+        "ovos-stt-plugin-onnx-asr"
+      ],
+      "display_name": "ONNX-ASR (Parakeet TDT-CTC 110M, en)",
+      "species": "OnnxASR",
+      "types": [
+        "neural-net",
+        "transducer"
+      ],
+      "description": "Runs ASR models exported to ONNX through the onnx-asr library, without a PyTorch dependency. This fighter runs NVIDIA Parakeet TDT-CTC 110M, a lightweight English hybrid transducer/CTC model.",
+      "model": "OpenVoiceOS/nvidia-parakeet-tdt_ctc-110m-onnx",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
+      },
+      "notes": "Model from the OpenVoiceOS 'stt-asr-onnx' HuggingFace collection."
+    },
+    {
+      "competitor_id": "onnx-asr-whisper-small-pt",
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-onnx-asr",
+      "config": {
+        "stt": {
+          "module": "ovos-stt-plugin-onnx-asr",
+          "ovos-stt-plugin-onnx-asr": {
+            "model": "OpenVoiceOS/whisper-small-pt-onnx"
+          }
+        }
+      },
+      "langs": [
+        "pt"
+      ],
+      "alias": [
+        "ovos-stt-plugin-onnx-asr"
+      ],
+      "display_name": "ONNX-ASR (Whisper Small, pt)",
+      "species": "OnnxASR",
+      "types": [
+        "neural-net",
+        "transformer"
+      ],
+      "description": "Runs ASR models exported to ONNX through the onnx-asr library, without a PyTorch dependency. This fighter runs a Whisper Small fine-tune for Portuguese.",
+      "model": "OpenVoiceOS/whisper-small-pt-onnx",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
+      },
+      "notes": "Model from the OpenVoiceOS 'stt-asr-onnx' HuggingFace collection."
     },
     {
       "competitor_id": "rover-whisper-vosk-en",
@@ -1614,6 +2095,276 @@
       "notes": "Requires the mimic binary; README reference configuration with the ap voice."
     },
     {
+      "competitor_id": "phoonnx-dii-es-es",
+      "modality": "tts",
+      "plugin": "ovos-tts-plugin-phoonnx",
+      "config": {
+        "tts": {
+          "module": "ovos-tts-plugin-phoonnx",
+          "ovos-tts-plugin-phoonnx": {
+            "voice": "OpenVoiceOS/phoonnx_es-ES_dii_espeak"
+          }
+        }
+      },
+      "langs": [
+        "es-ES"
+      ],
+      "alias": [
+        "ovos-tts-plugin-phoonnx"
+      ],
+      "display_name": "Phoonnx (Dii, es-ES)",
+      "species": "PhoonnxTTSPlugin",
+      "types": [
+        "neural-net"
+      ],
+      "description": "ONNX-runtime TTS with pluggable phonemizers (eSpeak, Gruut, Epitran) and a shared adapter framework for VITS and OptiSpeech voices. This fighter runs the Dii Spanish voice with the eSpeak phonemizer.",
+      "model": "OpenVoiceOS/phoonnx_es-ES_dii_espeak",
+      "links": {
+        "source": "https://github.com/TigreGotico/phoonnx"
+      },
+      "notes": "Voice from the OpenVoiceOS phoonnx voice collection on HuggingFace (OpenVoiceOS/phoonnx_es-ES_dii_espeak)."
+    },
+    {
+      "competitor_id": "phoonnx-dii-eu-es",
+      "modality": "tts",
+      "plugin": "ovos-tts-plugin-phoonnx",
+      "config": {
+        "tts": {
+          "module": "ovos-tts-plugin-phoonnx",
+          "ovos-tts-plugin-phoonnx": {
+            "voice": "OpenVoiceOS/phoonnx_eu-ES_dii_espeak"
+          }
+        }
+      },
+      "langs": [
+        "eu-ES"
+      ],
+      "alias": [
+        "ovos-tts-plugin-phoonnx"
+      ],
+      "display_name": "Phoonnx (Dii, eu-ES)",
+      "species": "PhoonnxTTSPlugin",
+      "types": [
+        "neural-net"
+      ],
+      "description": "ONNX-runtime TTS with pluggable phonemizers (eSpeak, Gruut, Epitran) and a shared adapter framework for VITS and OptiSpeech voices. This fighter runs the Dii Basque voice with the eSpeak phonemizer.",
+      "model": "OpenVoiceOS/phoonnx_eu-ES_dii_espeak",
+      "links": {
+        "source": "https://github.com/TigreGotico/phoonnx"
+      },
+      "notes": "Voice from the OpenVoiceOS phoonnx voice collection on HuggingFace (OpenVoiceOS/phoonnx_eu-ES_dii_espeak)."
+    },
+    {
+      "competitor_id": "phoonnx-dii-pt-pt",
+      "modality": "tts",
+      "plugin": "ovos-tts-plugin-phoonnx",
+      "config": {
+        "tts": {
+          "module": "ovos-tts-plugin-phoonnx",
+          "ovos-tts-plugin-phoonnx": {
+            "voice": "OpenVoiceOS/phoonnx_pt-PT_dii_tugaphone"
+          }
+        }
+      },
+      "langs": [
+        "pt-PT"
+      ],
+      "alias": [
+        "ovos-tts-plugin-phoonnx"
+      ],
+      "display_name": "Phoonnx (Dii, pt-PT)",
+      "species": "PhoonnxTTSPlugin",
+      "types": [
+        "neural-net"
+      ],
+      "description": "ONNX-runtime TTS with pluggable phonemizers (eSpeak, Gruut, Epitran) and a shared adapter framework for VITS and OptiSpeech voices. This fighter runs the Dii European Portuguese voice with the tugaphone phonemizer.",
+      "model": "OpenVoiceOS/phoonnx_pt-PT_dii_tugaphone",
+      "links": {
+        "source": "https://github.com/TigreGotico/phoonnx"
+      },
+      "notes": "Voice from the OpenVoiceOS phoonnx voice collection on HuggingFace (OpenVoiceOS/phoonnx_pt-PT_dii_tugaphone)."
+    },
+    {
+      "competitor_id": "phoonnx-miro-ar-sa",
+      "modality": "tts",
+      "plugin": "ovos-tts-plugin-phoonnx",
+      "config": {
+        "tts": {
+          "module": "ovos-tts-plugin-phoonnx",
+          "ovos-tts-plugin-phoonnx": {
+            "voice": "OpenVoiceOS/phoonnx_ar_miro_espeak_V2"
+          }
+        }
+      },
+      "langs": [
+        "ar-SA"
+      ],
+      "alias": [
+        "ovos-tts-plugin-phoonnx"
+      ],
+      "display_name": "Phoonnx (Miro, ar-SA)",
+      "species": "PhoonnxTTSPlugin",
+      "types": [
+        "neural-net"
+      ],
+      "description": "ONNX-runtime TTS with pluggable phonemizers (eSpeak, Gruut, Epitran) and a shared adapter framework for VITS and OptiSpeech voices. This fighter runs the Miro Arabic voice (V2) with the eSpeak phonemizer.",
+      "model": "OpenVoiceOS/phoonnx_ar_miro_espeak_V2",
+      "links": {
+        "source": "https://github.com/TigreGotico/phoonnx"
+      },
+      "notes": "Voice from the OpenVoiceOS phoonnx voice collection on HuggingFace (OpenVoiceOS/phoonnx_ar_miro_espeak_V2)."
+    },
+    {
+      "competitor_id": "phoonnx-miro-ca-es",
+      "modality": "tts",
+      "plugin": "ovos-tts-plugin-phoonnx",
+      "config": {
+        "tts": {
+          "module": "ovos-tts-plugin-phoonnx",
+          "ovos-tts-plugin-phoonnx": {
+            "voice": "OpenVoiceOS/phoonnx_ca_miro_espeak"
+          }
+        }
+      },
+      "langs": [
+        "ca-ES"
+      ],
+      "alias": [
+        "ovos-tts-plugin-phoonnx"
+      ],
+      "display_name": "Phoonnx (Miro, ca-ES)",
+      "species": "PhoonnxTTSPlugin",
+      "types": [
+        "neural-net"
+      ],
+      "description": "ONNX-runtime TTS with pluggable phonemizers (eSpeak, Gruut, Epitran) and a shared adapter framework for VITS and OptiSpeech voices. This fighter runs the Miro Catalan voice with the eSpeak phonemizer.",
+      "model": "OpenVoiceOS/phoonnx_ca_miro_espeak",
+      "links": {
+        "source": "https://github.com/TigreGotico/phoonnx"
+      },
+      "notes": "Voice from the OpenVoiceOS phoonnx voice collection on HuggingFace (OpenVoiceOS/phoonnx_ca_miro_espeak)."
+    },
+    {
+      "competitor_id": "phoonnx-miro-da-dk",
+      "modality": "tts",
+      "plugin": "ovos-tts-plugin-phoonnx",
+      "config": {
+        "tts": {
+          "module": "ovos-tts-plugin-phoonnx",
+          "ovos-tts-plugin-phoonnx": {
+            "voice": "OpenVoiceOS/phoonnx_da-DK_miro_espeak"
+          }
+        }
+      },
+      "langs": [
+        "da-DK"
+      ],
+      "alias": [
+        "ovos-tts-plugin-phoonnx"
+      ],
+      "display_name": "Phoonnx (Miro, da-DK)",
+      "species": "PhoonnxTTSPlugin",
+      "types": [
+        "neural-net"
+      ],
+      "description": "ONNX-runtime TTS with pluggable phonemizers (eSpeak, Gruut, Epitran) and a shared adapter framework for VITS and OptiSpeech voices. This fighter runs the Miro Danish voice with the eSpeak phonemizer.",
+      "model": "OpenVoiceOS/phoonnx_da-DK_miro_espeak",
+      "links": {
+        "source": "https://github.com/TigreGotico/phoonnx"
+      },
+      "notes": "Voice from the OpenVoiceOS phoonnx voice collection on HuggingFace (OpenVoiceOS/phoonnx_da-DK_miro_espeak)."
+    },
+    {
+      "competitor_id": "phoonnx-miro-eu-es",
+      "modality": "tts",
+      "plugin": "ovos-tts-plugin-phoonnx",
+      "config": {
+        "tts": {
+          "module": "ovos-tts-plugin-phoonnx",
+          "ovos-tts-plugin-phoonnx": {
+            "voice": "OpenVoiceOS/phoonnx_eu-ES_miro_espeak"
+          }
+        }
+      },
+      "langs": [
+        "eu-ES"
+      ],
+      "alias": [
+        "ovos-tts-plugin-phoonnx"
+      ],
+      "display_name": "Phoonnx (Miro, eu-ES)",
+      "species": "PhoonnxTTSPlugin",
+      "types": [
+        "neural-net"
+      ],
+      "description": "ONNX-runtime TTS with pluggable phonemizers (eSpeak, Gruut, Epitran) and a shared adapter framework for VITS and OptiSpeech voices. This fighter runs the Miro Basque voice with the eSpeak phonemizer.",
+      "model": "OpenVoiceOS/phoonnx_eu-ES_miro_espeak",
+      "links": {
+        "source": "https://github.com/TigreGotico/phoonnx"
+      },
+      "notes": "Voice from the OpenVoiceOS phoonnx voice collection on HuggingFace (OpenVoiceOS/phoonnx_eu-ES_miro_espeak)."
+    },
+    {
+      "competitor_id": "phoonnx-miro-gl-es",
+      "modality": "tts",
+      "plugin": "ovos-tts-plugin-phoonnx",
+      "config": {
+        "tts": {
+          "module": "ovos-tts-plugin-phoonnx",
+          "ovos-tts-plugin-phoonnx": {
+            "voice": "OpenVoiceOS/phoonnx_gl-ES_miro_unicode"
+          }
+        }
+      },
+      "langs": [
+        "gl-ES"
+      ],
+      "alias": [
+        "ovos-tts-plugin-phoonnx"
+      ],
+      "display_name": "Phoonnx (Miro, gl-ES)",
+      "species": "PhoonnxTTSPlugin",
+      "types": [
+        "neural-net"
+      ],
+      "description": "ONNX-runtime TTS with pluggable phonemizers (eSpeak, Gruut, Epitran) and a shared adapter framework for VITS and OptiSpeech voices. This fighter runs the Miro Galician voice with the unicode phonemizer.",
+      "model": "OpenVoiceOS/phoonnx_gl-ES_miro_unicode",
+      "links": {
+        "source": "https://github.com/TigreGotico/phoonnx"
+      },
+      "notes": "Voice from the OpenVoiceOS phoonnx voice collection on HuggingFace (OpenVoiceOS/phoonnx_gl-ES_miro_unicode)."
+    },
+    {
+      "competitor_id": "phoonnx-miro-sv-se",
+      "modality": "tts",
+      "plugin": "ovos-tts-plugin-phoonnx",
+      "config": {
+        "tts": {
+          "module": "ovos-tts-plugin-phoonnx",
+          "ovos-tts-plugin-phoonnx": {
+            "voice": "OpenVoiceOS/phoonnx_sv-SE_miro_espeak"
+          }
+        }
+      },
+      "langs": [
+        "sv-SE"
+      ],
+      "alias": [
+        "ovos-tts-plugin-phoonnx"
+      ],
+      "display_name": "Phoonnx (Miro, sv-SE)",
+      "species": "PhoonnxTTSPlugin",
+      "types": [
+        "neural-net"
+      ],
+      "description": "ONNX-runtime TTS with pluggable phonemizers (eSpeak, Gruut, Epitran) and a shared adapter framework for VITS and OptiSpeech voices. This fighter runs the Miro Swedish voice with the eSpeak phonemizer.",
+      "model": "OpenVoiceOS/phoonnx_sv-SE_miro_espeak",
+      "links": {
+        "source": "https://github.com/TigreGotico/phoonnx"
+      },
+      "notes": "Voice from the OpenVoiceOS phoonnx voice collection on HuggingFace (OpenVoiceOS/phoonnx_sv-SE_miro_espeak)."
+    },
+    {
       "competitor_id": "phoonnx-miro-tugaphone",
       "modality": "tts",
       "plugin": "ovos-tts-plugin-phoonnx",
@@ -1642,6 +2393,36 @@
         "source": "https://github.com/TigreGotico/phoonnx"
       },
       "notes": "README reference configuration with the Miro (pt-PT, tugaphone) voice."
+    },
+    {
+      "competitor_id": "phoonnx-miro-unicode-pt-pt",
+      "modality": "tts",
+      "plugin": "ovos-tts-plugin-phoonnx",
+      "config": {
+        "tts": {
+          "module": "ovos-tts-plugin-phoonnx",
+          "ovos-tts-plugin-phoonnx": {
+            "voice": "OpenVoiceOS/phoonnx_pt-PT_miro_unicode"
+          }
+        }
+      },
+      "langs": [
+        "pt-PT"
+      ],
+      "alias": [
+        "ovos-tts-plugin-phoonnx"
+      ],
+      "display_name": "Phoonnx (Miro unicode, pt-PT)",
+      "species": "PhoonnxTTSPlugin",
+      "types": [
+        "neural-net"
+      ],
+      "description": "ONNX-runtime TTS with pluggable phonemizers (eSpeak, Gruut, Epitran) and a shared adapter framework for VITS and OptiSpeech voices. This fighter runs the Miro European Portuguese voice with the unicode phonemizer.",
+      "model": "OpenVoiceOS/phoonnx_pt-PT_miro_unicode",
+      "links": {
+        "source": "https://github.com/TigreGotico/phoonnx"
+      },
+      "notes": "Voice from the OpenVoiceOS phoonnx voice collection on HuggingFace (OpenVoiceOS/phoonnx_pt-PT_miro_unicode)."
     },
     {
       "competitor_id": "pico-en-us",
@@ -2120,7 +2901,7 @@
           "threshold": 0.5
         },
         "hotword_verifier": {
-          "module": "ovos-ww-verifier-plugin-speaker"
+          "module": "ovos-ww-verifier-speaker"
         }
       },
       "langs": [
@@ -2155,7 +2936,7 @@
           }
         },
         "hotword_verifier": {
-          "module": "ovos-ww-verifier-plugin-speaker"
+          "module": "ovos-ww-verifier-speaker"
         }
       },
       "langs": [
