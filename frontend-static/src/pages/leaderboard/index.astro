@@ -145,10 +145,10 @@ import Base from '../../layouts/Base.astro';
 
     const LEAGUE_LABELS = {
       intent_template: 'Intent · Template', intent_keyword: 'Intent · Keyword',
-      intent: 'Intent · Fusions', stt: 'STT', tts: 'TTS', wake_word: 'Wake Word',
+      intent: 'Intent · Fusions', stt: 'STT', tts: 'TTS', wake_word: 'Wake Word', vad: 'VAD',
     };
-    const LEAGUE_ORDER = ['intent_template', 'intent_keyword', 'intent', 'stt', 'tts', 'wake_word'];
-    const BATTLE_GROUP = { intent_template: 'intent', intent_keyword: 'intent', intent: 'intent', stt: 'stt', tts: 'tts', wake_word: 'wake_word' };
+    const LEAGUE_ORDER = ['intent_template', 'intent_keyword', 'intent', 'stt', 'tts', 'wake_word', 'vad'];
+    const BATTLE_GROUP = { intent_template: 'intent', intent_keyword: 'intent', intent: 'intent', stt: 'stt', tts: 'tts', wake_word: 'wake_word', vad: 'vad' };
     const METRIC_COLUMNS = [
       ['accuracy', 'Accuracy', true], ['macro_f1', 'Macro F1', true],
       ['ood_fpr', 'OOD FPR', true], ['slot_exact_match', 'Slot EM', true],
@@ -213,6 +213,8 @@ import Base from '../../layouts/Base.astro';
         ? 'Ranked by human listening votes only — no benchmark seed. Vote in the Battle page.'
         : league === 'wake_word'
           ? 'One ranking per wake word — detectors only compete on the same phrase.'
+        : league === 'vad'
+          ? 'Voice Activity Detection — fighters are language-agnostic; boards are grouped by the dataset’s language.'
         : (league && league.startsWith('intent')
             ? 'One ladder for every intent engine — template, keyword and fusions compete together.' : '');
       const head = `<div class="lb-section-head">
@@ -331,9 +333,11 @@ import Base from '../../layouts/Base.astro';
 
     async function init() {
       const index = await fetchJson(`${BASE}data/index.json`);
-      benchmarks = (await Promise.all((index?.benchmarks || []).map(r => fetchJson(`${BASE}data/${r.file}`)))).filter(Boolean);
-      elos = (await Promise.all((index?.leaderboards || []).map(r => fetchJson(`${BASE}data/${r.file}`)))).filter(Boolean);
-      const bestiary = await fetchJson(`${BASE}data/competitors.json`);
+      // cache-bust per-board fetches with the index build stamp so CDN staleness can't mask fresh boards
+      const v = index?.generated_at ? `?v=${encodeURIComponent(index.generated_at)}` : '';
+      benchmarks = (await Promise.all((index?.benchmarks || []).map(r => fetchJson(`${BASE}data/${r.file}${v}`)))).filter(Boolean);
+      elos = (await Promise.all((index?.leaderboards || []).map(r => fetchJson(`${BASE}data/${r.file}${v}`)))).filter(Boolean);
+      const bestiary = await fetchJson(`${BASE}data/competitors.json${v}`);
       for (const f of bestiary?.competitors || []) fighters[f.competitor_id] = f;
 
       document.getElementById('lb-loading').style.display = 'none';

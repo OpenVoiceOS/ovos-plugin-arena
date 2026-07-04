@@ -74,7 +74,7 @@ import Base from '../../layouts/Base.astro';
 
     const BASE = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
     const GITHUB_REPO = import.meta.env.VITE_GITHUB_REPO || 'OpenVoiceOS/ovos-plugin-arena';
-    const LEAGUE_LABELS = { intent: 'Intent', stt: 'STT', tts: 'TTS', wake_word: 'Wake Word' };
+    const LEAGUE_LABELS = { intent: 'Intent', stt: 'STT', tts: 'TTS', wake_word: 'Wake Word', vad: 'VAD' };
 
     let pools = [];        // {modality, lang, battles:[...]}
     let fighters = {};
@@ -167,8 +167,10 @@ import Base from '../../layouts/Base.astro';
 
     async function init() {
       const index = await fetchJson(`${BASE}data/index.json`);
-      pools = (await Promise.all((index?.freeform_pools || []).map(r => fetchJson(`${BASE}data/${r.file}`)))).filter(Boolean);
-      const bestiary = await fetchJson(`${BASE}data/competitors.json`);
+      // cache-bust per-pool fetches with the index build stamp so CDN staleness can't mask fresh data
+      const v = index?.generated_at ? `?v=${encodeURIComponent(index.generated_at)}` : '';
+      pools = (await Promise.all((index?.freeform_pools || []).map(r => fetchJson(`${BASE}data/${r.file}${v}`)))).filter(Boolean);
+      const bestiary = await fetchJson(`${BASE}data/competitors.json${v}`);
       for (const f of bestiary?.competitors || []) fighters[f.competitor_id] = f;
 
       document.getElementById('fv-loading').style.display = 'none';

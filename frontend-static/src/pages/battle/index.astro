@@ -155,13 +155,14 @@ import Base from '../../layouts/Base.astro';
     const BASE = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
     const GITHUB_REPO = import.meta.env.VITE_GITHUB_REPO || 'OpenVoiceOS/ovos-plugin-arena';
 
-    const BADGE_CLASS = { stt: 'badge-stt', tts: 'badge-tts', wake_word: 'badge-ww', intent: 'badge-intent', intent_template: 'badge-intent', intent_keyword: 'badge-intent' };
-    const MODALITY_LABELS = { stt: 'STT', tts: 'TTS', wake_word: 'Wake Word', intent: 'Intent · Fusions', intent_template: 'Intent · Template', intent_keyword: 'Intent · Keyword' };
-    const MODALITY_KICKER = { stt: 'spoken audio — what was said?', tts: 'text to read aloud', wake_word: 'audio clip — did the wake word fire?', intent: 'heard utterance', intent_template: 'heard utterance', intent_keyword: 'heard utterance' };
+    const BADGE_CLASS = { stt: 'badge-stt', tts: 'badge-tts', wake_word: 'badge-ww', vad: 'badge-vad', intent: 'badge-intent', intent_template: 'badge-intent', intent_keyword: 'badge-intent' };
+    const MODALITY_LABELS = { stt: 'STT', tts: 'TTS', wake_word: 'Wake Word', vad: 'VAD', intent: 'Intent · Fusions', intent_template: 'Intent · Template', intent_keyword: 'Intent · Keyword' };
+    const MODALITY_KICKER = { stt: 'spoken audio — what was said?', tts: 'text to read aloud', wake_word: 'audio clip — did the wake word fire?', vad: 'audio clip — is anyone speaking?', intent: 'heard utterance', intent_template: 'heard utterance', intent_keyword: 'heard utterance' };
     const MODALITY_PROMPT = {
       stt: 'Which candidate is the more accurate transcription?',
       tts: 'Listen to both voices reading the same line — which sounds better?',
       wake_word: 'Which detector made the right call on this clip?',
+      vad: 'Which detector made the right call on this clip?',
     };
 
     let allBattles = [];
@@ -384,14 +385,16 @@ import Base from '../../layouts/Base.astro';
       const fetchJson = p => fetch(p).then(r => r.ok ? r.json() : null).catch(() => null);
 
       const index = await fetchJson(`${BASE}data/index.json`);
+      // cache-bust per-pool fetches with the index build stamp so CDN staleness can't mask fresh data
+      const v = index?.generated_at ? `?v=${encodeURIComponent(index.generated_at)}` : '';
       for (const ref of index?.battles_pools || []) {
-        const data = await fetchJson(`${BASE}data/${ref.file}`);
+        const data = await fetchJson(`${BASE}data/${ref.file}${v}`);
         for (const b of data?.battles || []) {
           b.dataset_info = data.dataset_info || null;
           allBattles.push(b);
         }
       }
-      const bestiary = await fetchJson(`${BASE}data/competitors.json`);
+      const bestiary = await fetchJson(`${BASE}data/competitors.json${v}`);
       for (const f of bestiary?.competitors || []) fightersById[f.competitor_id] = f;
 
       document.getElementById('battle-loading').style.display = 'none';
