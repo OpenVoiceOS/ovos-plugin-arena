@@ -1,0 +1,30 @@
+{
+  "competitor_id": "nebulento-low",
+  "modality": "intent_template",
+  "config": {
+    "intents": {
+      "pipeline": [
+        "ovos-nebulento-pipeline-plugin-low"
+      ],
+      "ovos-nebulento-pipeline-plugin": {
+        "conf_high": 0.95,
+        "conf_med": 0.8,
+        "conf_low": 0.5,
+        "workers": 4
+      }
+    }
+  },
+  "langs": [],
+  "display_name": "Nebulento (low gate)",
+  "species": "NebulentoPipeline",
+  "types": [
+    "fuzzy-match",
+    "template-match"
+  ],
+  "description": "Fuzzy-matching intent engine: compares utterances against example sentences with string-similarity ratios instead of exact rules, trading precision for resilience to typos and ASR noise.",
+  "links": {
+    "source": "https://github.com/OpenVoiceOS/nebulento"
+  },
+  "notes": "Single-stage pipeline at the plugin's own low-confidence gate: any match clearing the plugin's low-confidence threshold fires, trading precision for recall versus the -medium fighter. Per-plugin config is identical to the -medium fighter.",
+  "size": "micro"
+}

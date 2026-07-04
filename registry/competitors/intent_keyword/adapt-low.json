@@ -1,0 +1,29 @@
+{
+  "competitor_id": "adapt-low",
+  "modality": "intent_keyword",
+  "config": {
+    "intents": {
+      "pipeline": [
+        "ovos-adapt-pipeline-plugin-low"
+      ],
+      "ovos-adapt-pipeline-plugin": {
+        "conf_high": 0.65,
+        "conf_med": 0.45,
+        "conf_low": 0.25
+      }
+    }
+  },
+  "langs": [],
+  "display_name": "Adapt (low gate)",
+  "species": "AdaptPipeline",
+  "types": [
+    "GOFAI",
+    "keyword-match"
+  ],
+  "description": "Classic rule-based keyword intent parser from the Mycroft era: intents are built from required and optional vocabulary groups, matched by keyword presence regardless of word order.",
+  "links": {
+    "source": "https://github.com/OpenVoiceOS/ovos-adapt-pipeline-plugin"
+  },
+  "notes": "Single-stage pipeline at the plugin's own low-confidence gate: any match clearing the plugin's low-confidence threshold fires, trading precision for recall versus the -medium fighter. Per-plugin config is identical to the -medium fighter.",
+  "size": "micro"
+}

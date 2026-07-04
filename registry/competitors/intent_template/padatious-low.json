@@ -1,0 +1,34 @@
+{
+  "competitor_id": "padatious-low",
+  "modality": "intent_template",
+  "config": {
+    "intents": {
+      "pipeline": [
+        "ovos-padatious-pipeline-plugin-low"
+      ],
+      "ovos-padatious-pipeline-plugin": {
+        "conf_high": 0.95,
+        "conf_med": 0.8,
+        "conf_low": 0.5,
+        "domain_engine": false,
+        "cast_to_ascii": false,
+        "stem": false,
+        "disable_padaos": false,
+        "instant_train": false
+      }
+    }
+  },
+  "langs": [],
+  "display_name": "Padatious (low gate)",
+  "species": "PadatiousPipeline",
+  "types": [
+    "neural-net",
+    "template-match"
+  ],
+  "description": "Lightweight neural intent parser trained on expanded example sentences. The OVOS default intent engine: fast to train, fast to match, tolerant to small variations in phrasing.",
+  "links": {
+    "source": "https://github.com/OpenVoiceOS/ovos-padatious-pipeline-plugin"
+  },
+  "notes": "Single-stage pipeline at the plugin's own low-confidence gate: any match clearing the plugin's low-confidence threshold fires, trading precision for recall versus the -medium fighter. Per-plugin config is identical to the -medium fighter.",
+  "size": "micro"
+}

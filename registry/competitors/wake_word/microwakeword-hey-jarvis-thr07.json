@@ -1,0 +1,36 @@
+{
+  "competitor_id": "microwakeword-hey-jarvis-thr07",
+  "modality": "wake_word",
+  "plugin": "ovos-ww-plugin-microwakeword",
+  "config": {
+    "listener": {
+      "wake_word": "hey_jarvis"
+    },
+    "hotwords": {
+      "hey_jarvis": {
+        "module": "ovos-ww-plugin-microwakeword",
+        "listen": true,
+        "model": "https://github.com/esphome/micro-wake-word-models/raw/main/models/hey_jarvis.tflite",
+        "model_name": "hey_jarvis",
+        "model_version": 1,
+        "probability_cutoff": 0.7,
+        "sliding_window_size": 10,
+        "refractory_frames": 40
+      }
+    }
+  },
+  "langs": [
+    "en"
+  ],
+  "display_name": "microWakeWord (hey jarvis, cutoff 0.7)",
+  "species": "MicroWakeWordPlugin",
+  "types": [
+    "neural-net"
+  ],
+  "description": "microWakeWord streaming TFLite model for 'hey jarvis' (the tiny inception-style network used on ESP32 devices), auto-downloaded from the official ESPHome model repository.",
+  "model": "hey_jarvis.tflite (ESPHome micro-wake-word-models)",
+  "links": {
+    "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-microwakeword"
+  },
+  "notes": "Threshold variant of microwakeword-hey-jarvis: probability_cutoff raised from the plugin default 0.5 to 0.7, trading recall for fewer false activations. Same ESPHome hey_jarvis.tflite model."
+}

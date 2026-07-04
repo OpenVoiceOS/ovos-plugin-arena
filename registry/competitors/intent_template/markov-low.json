@@ -1,0 +1,38 @@
+{
+  "competitor_id": "markov-low",
+  "modality": "intent_template",
+  "config": {
+    "intents": {
+      "pipeline": [
+        "ovos-markov-pipeline-plugin-low"
+      ],
+      "ovos-markov-pipeline-plugin": {
+        "order": 2,
+        "kneser_ney": true,
+        "backoff": true,
+        "smoothing": 1e-05,
+        "stem": false,
+        "char_fallback": false,
+        "conf_high": 0.75,
+        "conf_med": 0.55,
+        "conf_low": 0.3,
+        "char_fallback_threshold": 0.05,
+        "online_learning": false,
+        "max_words": 50,
+        "instant_train": false
+      }
+    }
+  },
+  "langs": [],
+  "display_name": "Markov (low gate)",
+  "species": "MarkovPipeline",
+  "types": [
+    "statistical"
+  ],
+  "description": "Trains one word-level Markov chain per intent from example utterances and picks the intent whose chain yields the lowest perplexity; confidence is derived from perplexity. Trains in milliseconds with no GPU.",
+  "links": {
+    "source": "https://github.com/TigreGotico/ovos-markov-pipeline-plugin"
+  },
+  "model": "order-2 word-level Markov chains, Kneser-Ney smoothing with backoff",
+  "notes": "Single-stage pipeline at the plugin's own low-confidence gate: any match clearing the plugin's low-confidence threshold fires, trading precision for recall versus the -medium fighter. Per-plugin config is identical to the -medium fighter."
+}

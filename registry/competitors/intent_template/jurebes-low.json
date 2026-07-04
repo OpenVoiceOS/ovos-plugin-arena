@@ -1,0 +1,30 @@
+{
+  "competitor_id": "jurebes-low",
+  "modality": "intent_template",
+  "config": {
+    "intents": {
+      "pipeline": [
+        "ovos-jurebes-pipeline-plugin-low"
+      ],
+      "ovos-jurebes-pipeline-plugin": {
+        "baseline": "linear_svc",
+        "enable_slots": true,
+        "conf_high": 0.8,
+        "conf_med": 0.6,
+        "conf_low": 0.4
+      }
+    }
+  },
+  "langs": [],
+  "display_name": "Jurebes (low gate)",
+  "species": "JurebesPipeline",
+  "types": [
+    "classical-ML"
+  ],
+  "description": "Scikit-learn text classification behind the OVOS pipeline API: any sklearn featurizer plus classifier can be wired in, with probability calibration applied automatically. The default baseline is a calibrated linear SVM.",
+  "model": "linear_svc (TF-IDF word featurizer + calibrated LinearSVC)",
+  "links": {
+    "source": "https://github.com/TigreGotico/jurebes"
+  },
+  "notes": "Single-stage pipeline at the plugin's own low-confidence gate: any match clearing the plugin's low-confidence threshold fires, trading precision for recall versus the -medium fighter. Per-plugin config is identical to the -medium fighter."
+}
