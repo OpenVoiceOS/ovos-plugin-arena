@@ -202,6 +202,18 @@ Voting options MUST include: candidate A, candidate B, tie, both-wrong.
   metric (intent: exact match incl. OOD rejection; STT: lower WER) for every
   (sample, pair) with signal, replayed in deterministic order at **K/4**.
   Auto votes are never attributed to users and are reported separately.
+- **R5a — Significance gate.** A competitor pair contributes auto-battles
+  for a dataset only when their aggregate primary-metric confidence
+  intervals (R11) do not overlap (`arena.metrics.pair_metric_significant`).
+  Per-sample disagreement within a pair whose overall performance is
+  statistically indistinguishable is benchmark noise and MUST NOT seed the
+  rating.
+- **R5b — Weight cap.** A pair's total Bradley-Terry auto-vote weight is
+  capped at `MAX_AUTO_WEIGHT_PER_PAIR` (5 human-vote-equivalents),
+  proportionally scaled to preserve the observed win rate — dataset size
+  MUST NOT be a lever on how much the auto-vote seed can move a pair's
+  rating. `ovos-arena audit-seeds` reports every pair's weight and whether
+  it sits at the cap.
 
 ## 5. Rating system
 

@@ -466,3 +466,40 @@ class TestExportBestiary:
                      if c["competitor_id"] == "padatious-medium")
         assert entry["species"] == "PadatiousPipeline"
         assert entry["types"]
+
+
+class TestAuditSeeds:
+    def test_reports_capped_pair(self, tmp_path, capsys):
+        preds = tmp_path / "predictions"
+        preds.mkdir()
+        for competitor, correct in (("good", True), ("bad", False)):
+            rows = [
+                {
+                    "competitor_id": competitor, "sample_id": f"en-US/{i:05d}",
+                    "dataset_id": "intents-for-eval", "lang": "en-US",
+                    "plugin_id": f"plugin-{competitor}", "utterance": f"utterance {i}",
+                    "reference_intent": "media:play_song",
+                    "prediction": "media:play_song" if correct else f"wrong{i}",
+                    "exact_match": correct,
+                }
+                for i in range(220)
+            ]
+            (preds / f"{competitor}.jsonl").write_text(
+                "\n".join(json.dumps(r) for r in rows) + "\n"
+            )
+        out = tmp_path / "data"
+        assert main_args_assemble(preds, out) == 0
+
+        with pytest.raises(SystemExit) as exc:
+            main(["audit-seeds", "--data-dir", str(out)])
+        assert exc.value.code == 0
+        printed = capsys.readouterr().out
+        assert "CAPPED" in printed
+        assert "1/1 pair(s) at the auto-vote weight cap." in printed
+
+    def test_no_seeds_found_exits_cleanly(self, tmp_path):
+        empty = tmp_path / "empty"
+        empty.mkdir()
+        with pytest.raises(SystemExit) as exc:
+            main(["audit-seeds", "--data-dir", str(empty)])
+        assert exc.value.code == 0

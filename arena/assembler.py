@@ -24,7 +24,12 @@ import itertools
 import logging
 
 from arena.elo import EloLedger
-from arena.metrics import row_is_correct, row_wer, ww_row_correct
+from arena.metrics import (
+    pair_metric_significant,
+    row_is_correct,
+    row_wer,
+    ww_row_correct,
+)
 from arena.models import (
     Battle,
     EloSeed,
@@ -37,6 +42,13 @@ from arena.models import (
 logger = logging.getLogger(__name__)
 
 DEFAULT_MAX_BATTLES = 200
+
+# §4 seed-battle bias audit — a benchmark dataset can have thousands of
+# samples; without a cap its auto-battles would dwarf a modest number of
+# real human votes in the Bradley-Terry fit regardless of BT_AUTO_WEIGHT.
+# Capped at the weighted-game-total level (arena/rating.py PairwiseGames),
+# in human-vote-equivalent units, per (competitor_a, competitor_b) pair.
+MAX_AUTO_WEIGHT_PER_PAIR = 5.0
 
 
 # ---------------------------------------------------------------------------
@@ -242,6 +254,36 @@ def freeform_battles(
 # ---------------------------------------------------------------------------
 
 
+def _rows_by_competitor(
+    samples: dict[str, dict[str, PredictionRow]],
+) -> dict[str, list[PredictionRow]]:
+    """Flatten a dataset's ``{sample_id: {competitor: row}}`` map into
+    ``{competitor: [row, ...]}`` — the shape ``primary_metric_ci`` needs."""
+    out: dict[str, list[PredictionRow]] = {}
+    for sample_id in sorted(samples):
+        for competitor, row in samples[sample_id].items():
+            out.setdefault(competitor, []).append(row)
+    return out
+
+
+def _cap_auto_pairwise_weight(
+    ledger: EloLedger, max_weight: float = MAX_AUTO_WEIGHT_PER_PAIR
+) -> None:
+    """Scale down each pair's total auto-battle weight to at most
+    *max_weight* (in human-vote-equivalent BT weight units), preserving the
+    observed win rate. Every entry in ``ledger.pairwise_wins/games`` at seed
+    time is purely auto-vote weight (seeding runs before any human vote is
+    known), so this caps the whole ledger in place.
+    """
+    for i in list(ledger.pairwise_games):
+        for j, g in list(ledger.pairwise_games[i].items()):
+            if g <= max_weight or g <= 0:
+                continue
+            scale = max_weight / g
+            ledger.pairwise_games[i][j] = g * scale
+            ledger.pairwise_wins[i][j] = ledger.pairwise_wins[i].get(j, 0.0) * scale
+
+
 def seed_elo(
     modality: str,
     lang: str,
@@ -251,7 +293,14 @@ def seed_elo(
     """Derive the initial ELO ledger from benchmark metrics.
 
     Replays an auto-battle for every (sample, competitor-pair) where the
-    reference metric picks a winner, in deterministic order, at reduced K.
+    reference metric picks a winner and the pair's *aggregate* metrics are
+    statistically distinguishable (§4 seed-battle bias audit —
+    ``pair_metric_significant``; a pair whose overall CIs overlap
+    contributes no auto-battles, even if individual samples happen to
+    disagree), in deterministic order, at reduced K. The resulting
+    Bradley-Terry pairwise weight is further capped per pair
+    (``MAX_AUTO_WEIGHT_PER_PAIR``) so a large benchmark dataset can never
+    outweigh a modest number of real human votes.
     """
     ledger = EloLedger()
     competitor_plugin: dict[str, str] = {}
@@ -259,6 +308,9 @@ def seed_elo(
 
     for dataset_id in sorted(samples_by_dataset):
         samples = samples_by_dataset[dataset_id]
+        rows_by_competitor = _rows_by_competitor(samples)
+        significant: dict[tuple[str, str], bool] = {}
+
         for sample_id in sorted(samples):
             rows = samples[sample_id]
             # every competitor that ran is listed on the board, even with no
@@ -268,12 +320,21 @@ def seed_elo(
                 competitor_plugin.setdefault(competitor, row.plugin_id)
                 ledger.ensure(competitor)
             for comp_a, comp_b in itertools.combinations(sorted(rows), 2):
+                pair = (comp_a, comp_b)
+                if pair not in significant:
+                    significant[pair] = pair_metric_significant(
+                        modality, rows_by_competitor[comp_a], rows_by_competitor[comp_b]
+                    )
+                if not significant[pair]:
+                    continue
                 row_a, row_b = rows[comp_a], rows[comp_b]
                 outcome = auto_outcome(row_a, row_b, modality)
                 if outcome is None:
                     continue
                 ledger.apply(comp_a, comp_b, outcome, auto=True)
                 auto_votes += 1
+
+    _cap_auto_pairwise_weight(ledger)
 
     return EloSeed(
         modality=modality,

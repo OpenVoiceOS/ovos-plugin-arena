@@ -264,3 +264,58 @@ class TestSeedElo:
         ])
         seeds = [seed_elo("intent", "en-US", {"d": samples}, "t") for _ in range(2)]
         assert seeds[0].ratings == seeds[1].ratings
+
+
+class TestSeedEloBiasAudit:
+    """§4 seed-battle bias audit (A1.3): significance gate + weight cap."""
+
+    def test_no_signal_pair_contributes_no_auto_battles(self):
+        # x and y each get it right ~50% of the time, on the *same* samples
+        # in a way that keeps their aggregate accuracy statistically
+        # indistinguishable — individual per-sample disagreements exist,
+        # but the pair as a whole has no real signal.
+        samples = _samples(*[
+            [_row("x", "media:play_song" if i % 2 == 0 else "wrong"),
+             _row("y", "media:play_song" if i % 2 == 1 else "wrong")]
+            for i in range(20)
+        ])
+        seed = seed_elo("intent", "en-US", {"d": samples}, "t")
+        assert seed.auto_vote_count == 0
+        assert seed.pairwise_games == {}
+        # still listed on the board at baseline
+        assert seed.ratings == {"x": INITIAL_ELO, "y": INITIAL_ELO}
+
+    def test_clear_signal_pair_still_seeds(self):
+        # x is correct on every sample, y never is — an unambiguous,
+        # statistically significant gap that must still seed the rating.
+        samples = _samples(*[
+            [_row("x", "media:play_song"), _row("y", "wrong")]
+            for _ in range(20)
+        ])
+        seed = seed_elo("intent", "en-US", {"d": samples}, "t")
+        assert seed.auto_vote_count == 20
+        assert seed.ratings["x"] > INITIAL_ELO > seed.ratings["y"]
+
+    def test_auto_weight_capped_per_pair(self):
+        # A large dataset (200 samples, clear signal) must not accumulate
+        # unbounded Bradley-Terry weight for one pair.
+        samples = _samples(*[
+            [_row("x", "media:play_song"), _row("y", "wrong")]
+            for _ in range(200)
+        ])
+        seed = seed_elo("intent", "en-US", {"d": samples}, "t")
+        assert seed.auto_vote_count == 200  # legacy sequential-ELO count is uncapped
+        assert seed.pairwise_games["x"]["y"] == pytest.approx(5.0)  # BT weight is capped
+        assert seed.pairwise_games["y"]["x"] == pytest.approx(5.0)
+        # win rate is preserved by the cap (x won every capped "game")
+        assert seed.pairwise_wins["x"]["y"] == pytest.approx(5.0)
+        assert seed.pairwise_wins["y"]["x"] == pytest.approx(0.0)
+
+    def test_small_signal_pair_under_cap_is_unaffected(self):
+        samples = _samples(*[
+            [_row("x", "media:play_song"), _row("y", "wrong")]
+            for _ in range(4)
+        ])
+        seed = seed_elo("intent", "en-US", {"d": samples}, "t")
+        # 4 auto votes * BT_AUTO_WEIGHT (0.25) = 1.0, well under the 5.0 cap
+        assert seed.pairwise_games["x"]["y"] == pytest.approx(1.0)

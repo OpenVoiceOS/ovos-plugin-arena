@@ -182,11 +182,40 @@ rather than a strict rank ordering, and prefer showing a compact tier
 grouping over a false-precision numeric rank for entries that are
 statistically indistinguishable from the leader.
 
+## Seed-battle bias audit
+
+A benchmark dataset can have thousands of samples; without a check, its
+auto-battles would both (a) dwarf a modest number of real human votes, and
+(b) manufacture apparent rating separation out of per-sample noise even
+when the two competitors' overall performance is not meaningfully
+different. Two independent controls in `arena/assembler.py:seed_elo`:
+
+- **Significance gate** (`pair_metric_significant`, using the same bootstrap
+  CIs as the benchmark boards — see above). Before any per-sample
+  auto-battle is generated for a competitor pair, their *aggregate* primary
+  metric confidence intervals for the dataset are compared. If the
+  intervals overlap, the pair contributes **zero** auto-battles for that
+  dataset — individual samples may still disagree, but that disagreement is
+  benchmark noise, not a real capability gap, so it must not seed the
+  rating. A pair with a genuinely wide gap (non-overlapping CIs) seeds
+  normally.
+- **Weight cap** (`MAX_AUTO_WEIGHT_PER_PAIR = 5.0`). Even a pair that clears
+  the significance gate has its total Bradley-Terry pairwise weight capped
+  at the equivalent of 5 human votes, scaled down proportionally so the
+  observed win rate is preserved. A benchmark run with 10,000 samples and a
+  benchmark run with 250 samples contribute the same maximum seed weight to
+  a pair once both clear the significance gate — dataset size stops being a
+  lever on how much the rating can move. This cap applies only to the
+  Bradley-Terry pairwise statistics; it does not change the legacy
+  sequential ELO's `auto_vote_count` bookkeeping.
+
+Run `ovos-arena audit-seeds --data-dir <path>` to see, per (modality, lang),
+every scored pair's weight and whether it sits at the cap.
+
 ## Open items
 
 The following sections are placeholders for work tracked elsewhere in the
-roadmap and will be filled in as that work lands: seed-battle weight cap
-mechanics and its rationale (seed-battle bias audit), vote fraud / dedup
-rules (vote fraud resistance), the TTS objective-metric judge-bias
-disclosure (TTS intelligibility), and the RTF hardware-disclosure convention
-(TTS latency/RTF).
+roadmap and will be filled in as that work lands: vote fraud / dedup rules
+(vote fraud resistance), the TTS objective-metric judge-bias disclosure (TTS
+intelligibility), and the RTF hardware-disclosure convention (TTS
+latency/RTF).

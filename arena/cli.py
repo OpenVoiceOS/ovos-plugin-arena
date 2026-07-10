@@ -34,7 +34,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from arena.assembler import assemble_battles, freeform_battles, seed_elo
+from arena.assembler import (
+    MAX_AUTO_WEIGHT_PER_PAIR,
+    assemble_battles,
+    freeform_battles,
+    seed_elo,
+)
 from arena.elo import EloLedger
 from arena.metrics import build_benchmark_board
 from arena.models import (
@@ -646,6 +651,48 @@ def cmd_export_bestiary(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_audit_seeds(args: argparse.Namespace) -> int:
+    """Diagnostic report on the seed-battle weight cap (§4, A1.3).
+
+    For every ``elo-seed-*.json`` in *data_dir*, lists each competitor pair's
+    Bradley-Terry weighted game total and flags pairs sitting at the cap
+    (``MAX_AUTO_WEIGHT_PER_PAIR``) — i.e. a benchmark dataset large enough
+    that the cap, not the dataset size, is now what bounds how much the
+    auto-vote seed can move that pair's rating.
+    """
+    data_dir = Path(args.data_dir)
+    seeds = load_elo_seeds(data_dir)
+    if not seeds:
+        log.warning("No elo-seed-*.json files found in %s", data_dir)
+        return 0
+
+    total_pairs = 0
+    capped_pairs = 0
+    for (modality, lang), seed in sorted(seeds.items()):
+        seen: set[tuple[str, str]] = set()
+        rows = []
+        for i, games_i in sorted(seed.pairwise_games.items()):
+            for j, weight in sorted(games_i.items()):
+                a, b = sorted((i, j))
+                pair = (a, b)
+                if pair in seen:
+                    continue
+                seen.add(pair)
+                is_capped = weight >= MAX_AUTO_WEIGHT_PER_PAIR - 1e-9
+                rows.append((pair, weight, is_capped))
+
+        print(f"\n{modality} / {lang} — {len(rows)} scored pair(s), "
+              f"{seed.auto_vote_count} auto vote(s)")
+        for (a, b), weight, is_capped in sorted(rows, key=lambda r: -r[1]):
+            flag = " [CAPPED]" if is_capped else ""
+            print(f"  {a} vs {b}: weight={weight:.2f}/{MAX_AUTO_WEIGHT_PER_PAIR:.2f}{flag}")
+            total_pairs += 1
+            capped_pairs += int(is_capped)
+
+    print(f"\n{capped_pairs}/{total_pairs} pair(s) at the auto-vote weight cap.")
+    return 0
+
+
 # ---------------------------------------------------------------------------
 # entrypoint
 # ---------------------------------------------------------------------------
@@ -683,12 +730,19 @@ def main(argv=None):
     p.add_argument("--registry", default="registry")
     p.add_argument("--output", default="frontend-static/public/data/competitors.json")
 
+    p = sub.add_parser(
+        "audit-seeds",
+        help="Report seed-battle Bradley-Terry weight per pair, flagging capped pairs (§4)",
+    )
+    p.add_argument("--data-dir", default="frontend-static/public/data")
+
     args = parser.parse_args(argv)
     commands = {
         "assemble": cmd_assemble,
         "tally": cmd_tally,
         "export-index": cmd_export_index,
         "export-bestiary": cmd_export_bestiary,
+        "audit-seeds": cmd_audit_seeds,
     }
     if args.command not in commands:
         parser.print_help()

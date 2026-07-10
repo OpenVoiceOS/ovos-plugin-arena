@@ -413,6 +413,24 @@ def _ci_overlaps(a: tuple[float, float] | None, b: tuple[float, float] | None) -
     return a[0] <= b[1] and b[0] <= a[1]
 
 
+def pair_metric_significant(
+    modality: str, rows_a: list[PredictionRow], rows_b: list[PredictionRow]
+) -> bool:
+    """True when two competitors' primary-metric CIs (§4 A1.2, same dataset)
+    do not overlap — i.e. there is a statistically meaningful difference to
+    seed a rating with, rather than benchmark noise (§4 seed-battle bias
+    audit). Modalities without a CI strategy, or with too few scoreable
+    rows for either competitor to fit one, default to significant (no
+    gate) — that preserves per-sample auto-battle behavior for anything not
+    covered by a bootstrap strategy.
+    """
+    ci_a = primary_metric_ci(modality, rows_a)
+    ci_b = primary_metric_ci(modality, rows_b)
+    if ci_a is None or ci_b is None:
+        return True
+    return not _ci_overlaps(ci_a, ci_b)
+
+
 def build_benchmark_board(
     modality: str,
     dataset_id: str,
