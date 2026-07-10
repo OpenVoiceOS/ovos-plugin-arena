@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 
+import arena.cli as arena_cli
 from arena.cli import (
     build_elo_board,
     dedupe_votes,
@@ -503,3 +504,132 @@ class TestAuditSeeds:
         with pytest.raises(SystemExit) as exc:
             main(["audit-seeds", "--data-dir", str(empty)])
         assert exc.value.code == 0
+
+
+class TestTallyFraudIntegration:
+    """cmd_tally wired to arena.fraud — network calls monkeypatched."""
+
+    def _setup_board(self, tmp_path):
+        preds = _write_predictions(tmp_path)
+        out = tmp_path / "data"
+        assert main_args_assemble(preds, out) == 0
+        battles = load_battles_pools(out)
+        battle_id = next(iter(battles))
+        return out, battle_id
+
+    def _fake_issue(self, number, author, battle_id, choice="a",
+                     created_at="2026-06-01T00:00:00Z", state="OPEN"):
+        return {
+            "number": number,
+            "title": f"vote|{battle_id}|{choice}",
+            "author": {"login": author},
+            "createdAt": created_at,
+            "state": state,
+            "labels": [],
+        }
+
+    def test_new_account_vote_excluded_from_board(self, tmp_path, monkeypatch):
+        out, battle_id = self._setup_board(tmp_path)
+        issue = self._fake_issue(1, "newbie", battle_id,
+                                  created_at="2026-06-05T00:00:00Z")
+        monkeypatch.setattr(arena_cli, "fetch_vote_issues", lambda repo: [issue])
+        monkeypatch.setattr(
+            arena_cli, "fetch_account_created_at",
+            lambda login: "2026-06-01T00:00:00Z",  # 4 days old, gate is 7
+        )
+        closed: list[int] = []
+        monkeypatch.setattr(
+            arena_cli, "close_issue",
+            lambda repo, number, comment, add_label="": closed.append(number),
+        )
+
+        with pytest.raises(SystemExit) as exc:
+            main(["tally", "--data-dir", str(out), "--output", str(out),
+                  "--repo", "fake/repo"])
+        assert exc.value.code == 0
+
+        board = json.loads((out / "leaderboard-intent-en-US.json").read_text())
+        assert board["human_vote_count"] == 0  # excluded, not counted
+
+        audit = json.loads((out / "vote-audit.json").read_text())
+        assert audit["counted"] == 0
+        assert audit["discarded"][0]["reason"] == "account_too_new"
+        assert closed == [1]  # still commented/closed despite not counting
+
+    def test_established_account_vote_counted(self, tmp_path, monkeypatch):
+        out, battle_id = self._setup_board(tmp_path)
+        issue = self._fake_issue(2, "veteran", battle_id,
+                                  created_at="2026-06-10T00:00:00Z")
+        monkeypatch.setattr(arena_cli, "fetch_vote_issues", lambda repo: [issue])
+        monkeypatch.setattr(
+            arena_cli, "fetch_account_created_at",
+            lambda login: "2020-01-01T00:00:00Z",
+        )
+        monkeypatch.setattr(arena_cli, "close_issue", lambda *a, **k: None)
+
+        with pytest.raises(SystemExit) as exc:
+            main(["tally", "--data-dir", str(out), "--output", str(out),
+                  "--repo", "fake/repo"])
+        assert exc.value.code == 0
+
+        board = json.loads((out / "leaderboard-intent-en-US.json").read_text())
+        assert board["human_vote_count"] == 1
+        audit = json.loads((out / "vote-audit.json").read_text())
+        assert audit["counted"] == 1
+        assert audit["discarded"] == []
+
+    def test_age_cache_persisted_and_reused(self, tmp_path, monkeypatch):
+        out, battle_id = self._setup_board(tmp_path)
+        issue = self._fake_issue(3, "cached-user", battle_id,
+                                  created_at="2026-06-10T00:00:00Z")
+        monkeypatch.setattr(arena_cli, "fetch_vote_issues", lambda repo: [issue])
+        monkeypatch.setattr(arena_cli, "close_issue", lambda *a, **k: None)
+
+        fetch_calls = []
+
+        def _fetch(login):
+            fetch_calls.append(login)
+            return "2020-01-01T00:00:00Z"
+
+        monkeypatch.setattr(arena_cli, "fetch_account_created_at", _fetch)
+
+        with pytest.raises(SystemExit):
+            main(["tally", "--data-dir", str(out), "--output", str(out),
+                  "--repo", "fake/repo"])
+        assert fetch_calls == ["cached-user"]
+        assert (out / "voter-age-cache.json").exists()
+
+        # second run: same author, network must not be hit again
+        monkeypatch.setattr(
+            arena_cli, "fetch_account_created_at",
+            lambda login: (_ for _ in ()).throw(AssertionError("should be cached")),
+        )
+        with pytest.raises(SystemExit):
+            main(["tally", "--data-dir", str(out), "--output", str(out),
+                  "--repo", "fake/repo"])
+
+    def test_only_open_issues_get_closed(self, tmp_path, monkeypatch):
+        out, battle_id = self._setup_board(tmp_path)
+        open_issue = self._fake_issue(4, "alice", battle_id, state="OPEN")
+        closed_issue = self._fake_issue(5, "bob", battle_id, choice="b", state="CLOSED")
+        monkeypatch.setattr(
+            arena_cli, "fetch_vote_issues", lambda repo: [open_issue, closed_issue]
+        )
+        monkeypatch.setattr(
+            arena_cli, "fetch_account_created_at", lambda login: "2020-01-01T00:00:00Z",
+        )
+        closed_calls: list[int] = []
+        monkeypatch.setattr(
+            arena_cli, "close_issue",
+            lambda repo, number, comment, add_label="": closed_calls.append(number),
+        )
+
+        with pytest.raises(SystemExit):
+            main(["tally", "--data-dir", str(out), "--output", str(out),
+                  "--repo", "fake/repo"])
+
+        # both votes count toward the board (full history replay)...
+        board = json.loads((out / "leaderboard-intent-en-US.json").read_text())
+        assert board["human_vote_count"] == 2
+        # ...but only the still-open issue gets a close/comment action
+        assert closed_calls == [4]

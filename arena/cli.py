@@ -41,6 +41,7 @@ from arena.assembler import (
     seed_elo,
 )
 from arena.elo import EloLedger
+from arena.fraud import resolve_vote_weights
 from arena.metrics import build_benchmark_board
 from arena.models import (
     BattlesPool,
@@ -164,10 +165,19 @@ def build_elo_board(
     """Replay *human_votes* (ordered) on top of *seed* and rank the result.
 
     Two ratings are computed from the same replayed vote log: the legacy
-    sequential ELO (``EloEntry.elo``, order-dependent, kept for continuity)
-    and a batch Bradley-Terry fit with bootstrap confidence intervals
-    (``EloEntry.bt_rating`` / ``ci_lower`` / ``ci_upper``, order-independent
-    — see ``arena/rating.py``). Ranking is by ``bt_rating``.
+    sequential ELO (``EloEntry.elo``, order-dependent, kept for continuity,
+    always applied at full strength) and a batch Bradley-Terry fit with
+    bootstrap confidence intervals (``EloEntry.bt_rating`` / ``ci_lower`` /
+    ``ci_upper``, order-independent — see ``arena/rating.py``). Ranking is
+    by ``bt_rating``.
+
+    Each vote dict may carry an optional ``"weight"`` key (§4 A1.4 vote
+    fraud rules, default 1.0 when absent) that scales only its
+    Bradley-Terry pairwise contribution — a down-weighted vote (e.g. a
+    one-sided voter) still shows up in the legacy ELO column and vote
+    counts, but its influence on the statistically-rigorous rating is
+    reduced. Fully discarded votes (weight 0) should be filtered out of
+    *human_votes* by the caller before this function ever sees them.
     """
     ledger = _ledger_from_seed(seed) if seed else EloLedger()
     competitor_plugin = dict(seed.competitor_plugin) if seed else {}
@@ -182,11 +192,12 @@ def build_elo_board(
             continue
         comp_a = battle["competitor_a"]
         comp_b = battle["competitor_b"]
+        weight = vote.get("weight", 1.0)
         competitor_plugin.setdefault(comp_a, battle.get("plugin_a", ""))
         competitor_plugin.setdefault(comp_b, battle.get("plugin_b", ""))
-        ledger.apply(comp_a, comp_b, CHOICE_TO_OUTCOME[vote["choice"]])
+        ledger.apply(comp_a, comp_b, CHOICE_TO_OUTCOME[vote["choice"]], bt_weight=weight)
         human_results.append(
-            PairResult(comp_a, comp_b, _CHOICE_TO_SCORE_A[vote["choice"]])
+            PairResult(comp_a, comp_b, _CHOICE_TO_SCORE_A[vote["choice"]], weight=weight)
         )
         counted += 1
 
@@ -456,20 +467,46 @@ def _clean_merged_artifacts(data_dir: Path, modalities: set) -> None:
 
 
 def fetch_vote_issues(repo: str) -> list[dict]:
-    """List open ``vote``-labelled issues via the gh CLI."""
+    """List every ``vote``-labelled issue (open AND closed) via the gh CLI.
+
+    §6/§P5: the vote log **is** the issue history, public and replayable —
+    that only holds if every tally run sees the *complete* history, not
+    just issues opened since the last run. Fetching ``--state all`` (not
+    ``open``) means ``build_elo_board`` genuinely replays the full log
+    every time, byte-reproducibly, rather than the leaderboard silently
+    losing already-processed votes once their issues are closed.
+    """
     result = subprocess.run(
         ["gh", "issue", "list",
          "--repo", repo,
          "--label", "vote",
-         "--state", "open",
-         "--limit", "1000",
-         "--json", "number,title,author,createdAt"],
-        capture_output=True, timeout=60,
+         "--state", "all",
+         "--limit", "5000",
+         "--json", "number,title,author,createdAt,state,labels"],
+        capture_output=True, timeout=90,
     )
     if result.returncode != 0:
         log.warning("gh issue list failed: %s", result.stderr.decode())
         return []
     return json.loads(result.stdout.decode())
+
+
+def fetch_account_created_at(login: str) -> str | None:
+    """GitHub account creation timestamp for *login*, or None on failure.
+
+    Only called for authors missing from the persisted age cache (§4
+    A1.4) — every subsequent tally run reuses the cached value instead of
+    re-fetching, so replay stays network-free and deterministic.
+    """
+    result = subprocess.run(
+        ["gh", "api", f"users/{login}", "--jq", ".created_at"],
+        capture_output=True, timeout=30,
+    )
+    if result.returncode != 0:
+        log.warning("Could not fetch account age for %s: %s", login, result.stderr.decode())
+        return None
+    value = result.stdout.decode().strip()
+    return value or None
 
 
 def close_issue(repo: str, number: int, comment: str, add_label: str = "") -> None:
@@ -489,6 +526,31 @@ def close_issue(repo: str, number: int, comment: str, add_label: str = "") -> No
         log.warning("Could not close issue #%d: %s", number, exc)
 
 
+def _load_json_dict(path: Path) -> dict:
+    if not path.exists():
+        return {}
+    try:
+        return json.loads(path.read_text())
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+
+def _account_age_cache(data_dir: Path, authors: set[str]) -> dict[str, str]:
+    """Load the persisted GitHub account-creation-date cache, fetching any
+    missing author via the network exactly once and extending the cache
+    (§4 A1.4 — ingest touches the network, replay never does)."""
+    cache_path = data_dir / "voter-age-cache.json"
+    cache = _load_json_dict(cache_path)
+    missing = sorted(a for a in authors if a and a not in cache)
+    for login in missing:
+        created = fetch_account_created_at(login)
+        if created:
+            cache[login] = created
+    if missing:
+        cache_path.write_text(json.dumps(cache, indent=2, sort_keys=True) + "\n")
+    return cache
+
+
 def cmd_tally(args: argparse.Namespace) -> int:
     data_dir = Path(args.data_dir)
     out_dir = Path(args.output)
@@ -502,7 +564,10 @@ def cmd_tally(args: argparse.Namespace) -> int:
     if args.repo:
         log.info("Fetching vote issues from %s …", args.repo)
         issues = fetch_vote_issues(args.repo)
-        log.info("  → %d open vote issues", len(issues))
+        log.info("  → %d vote issue(s) (open + closed)", len(issues))
+    open_issue_numbers = {
+        issue["number"] for issue in issues if issue.get("state") == "OPEN"
+    }
 
     raw_votes: list[dict] = []
     invalid: list[tuple[int, str]] = []
@@ -531,16 +596,33 @@ def cmd_tally(args: argparse.Namespace) -> int:
     duplicates = {v["issue_number"] for v in raw_votes} - {
         v["issue_number"] for v in votes
     }
-    log.info("  → %d valid votes (%d duplicates, %d invalid)",
+    log.info("  → %d deduped vote(s) (%d duplicates, %d invalid)",
              len(votes), len(duplicates), len(invalid))
 
-    if votes:
-        # Group votes per (modality, lang) board
+    # §4 A1.4 vote fraud rules — daily cap, account-age gate, one-sided
+    # downweight. Only the age-gate cache lookup touches the network
+    # (ingest); resolve_vote_weights itself is pure and replay-deterministic.
+    modality_by_battle = {
+        bid: b["modality"] for bid, b in battles_pool.items()
+    }
+    account_created_at = (
+        _account_age_cache(data_dir, {v["author"] for v in votes})
+        if args.repo else {}
+    )
+    decisions = resolve_vote_weights(votes, modality_by_battle, account_created_at)
+    counted_decisions = [d for d in decisions if d.weight > 0]
+    discarded_decisions = [d for d in decisions if d.weight <= 0]
+    log.info("  → %d counted vote(s), %d discarded by fraud rules",
+             len(counted_decisions), len(discarded_decisions))
+
+    if counted_decisions:
+        # Group votes per (modality, lang) board, carrying each vote's
+        # fraud-rule weight through to the rating.
         votes_by_board: dict[tuple[str, str], list[dict]] = {}
-        for vote in votes:
-            battle = battles_pool[vote["battle_id"]]
+        for d in counted_decisions:
+            battle = battles_pool[d.vote["battle_id"]]
             key = (battle["modality"], battle["lang"])
-            votes_by_board.setdefault(key, []).append(vote)
+            votes_by_board.setdefault(key, []).append({**d.vote, "weight": d.weight})
 
         boards = set(seeds) | set(votes_by_board)
         for modality, lang in sorted(boards):
@@ -552,28 +634,65 @@ def cmd_tally(args: argparse.Namespace) -> int:
             )
             _write_json(out_dir / f"leaderboard-{modality}-{lang}.json", board)
     else:
-        # No new valid votes → the boards cannot change; leave them alone so
+        # No counted votes → the boards cannot change; leave them alone so
         # the workflow's empty-diff guard skips the commit.
-        log.info("No new valid votes — leaderboards left untouched.")
+        log.info("No counted votes — leaderboards left untouched.")
 
-    # Close processed issues (votes counted, duplicates, invalid)
+    # Discards are recorded, never silently dropped (§4 A1.4) — this file
+    # reflects the complete current vote log's audit trail every run.
+    audit_path = out_dir / "vote-audit.json"
+    audit_payload = {
+        "generated_at": _now_iso(),
+        "counted": len(counted_decisions),
+        "discarded": [
+            {"issue_number": d.vote["issue_number"], "author": d.vote["author"],
+             "battle_id": d.vote["battle_id"], "reason": d.discarded_reason}
+            for d in discarded_decisions
+        ],
+        "downweighted": [
+            {"issue_number": d.vote["issue_number"], "author": d.vote["author"],
+             "battle_id": d.vote["battle_id"], "weight": d.weight}
+            for d in counted_decisions if d.weight < 1.0
+        ],
+    }
+    _write_json_payload(audit_path, audit_payload)
+
+    # Comment/close only issues not yet actioned (still open) — every prior
+    # run's already-closed issues stay untouched even though they're
+    # re-fetched every time for full-history replay.
     if args.repo and not args.keep_issues_open:
-        for vote in votes:
+        for d in counted_decisions:
+            number = d.vote["issue_number"]
+            if number not in open_issue_numbers:
+                continue
             close_issue(
-                args.repo, vote["issue_number"],
+                args.repo, number,
                 "Your vote has been counted — thank you! The leaderboard "
                 "will reflect it once this run's commit deploys.",
                 add_label="processed",
             )
+        for d in discarded_decisions:
+            number = d.vote["issue_number"]
+            if number not in open_issue_numbers:
+                continue
+            close_issue(
+                args.repo, number,
+                "Your vote was recorded but did not count toward the "
+                f"rating ({d.discarded_reason}).",
+                add_label="processed",
+            )
         for vote in raw_votes:
-            if vote["issue_number"] in duplicates:
+            number = vote["issue_number"]
+            if number in duplicates and number in open_issue_numbers:
                 close_issue(
-                    args.repo, vote["issue_number"],
+                    args.repo, number,
                     "Duplicate vote on this battle — your earlier vote was "
                     "already counted.",
+                    add_label="processed",
                 )
         for number, reason in invalid:
-            close_issue(args.repo, number, reason)
+            if number in open_issue_numbers:
+                close_issue(args.repo, number, reason, add_label="processed")
 
     return 0
 

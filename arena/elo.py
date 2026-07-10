@@ -113,8 +113,18 @@ class EloLedger:
         competitor_b: str,
         outcome: VoteOutcome,
         auto: bool = False,
+        bt_weight: float | None = None,
     ) -> None:
-        """Apply one vote (from A's perspective) to the ledger."""
+        """Apply one vote (from A's perspective) to the ledger.
+
+        ``bt_weight`` overrides the Bradley-Terry pairwise weight
+        (``arena/rating.py``) for this vote — used by the vote fraud rules
+        (§4 A1.4) to down-weight or zero out a vote's effect on the
+        statistically-rigorous BT rating while the legacy sequential ELO
+        column (secondary/display-only) still records the vote at full
+        strength. Defaults to ``BT_AUTO_WEIGHT`` for auto votes, ``1.0`` for
+        human votes, same as before this parameter existed.
+        """
         self.ensure(competitor_a)
         self.ensure(competitor_b)
 
@@ -145,8 +155,9 @@ class EloLedger:
         counter[competitor_a] += 1
         counter[competitor_b] += 1
 
-        weight = BT_AUTO_WEIGHT if auto else 1.0
-        accumulate(
-            self.pairwise_wins, self.pairwise_games,
-            competitor_a, competitor_b, _outcome_score_a(outcome), weight,
-        )
+        weight = bt_weight if bt_weight is not None else (BT_AUTO_WEIGHT if auto else 1.0)
+        if weight > 0:
+            accumulate(
+                self.pairwise_wins, self.pairwise_games,
+                competitor_a, competitor_b, _outcome_score_a(outcome), weight,
+            )

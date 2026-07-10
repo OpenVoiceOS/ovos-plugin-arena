@@ -212,10 +212,69 @@ different. Two independent controls in `arena/assembler.py:seed_elo`:
 Run `ovos-arena audit-seeds --data-dir <path>` to see, per (modality, lang),
 every scored pair's weight and whether it sits at the cap.
 
+## Vote fraud / dedup resistance
+
+The vote log is public (§6: "the vote log **is** the issue history") — and
+a public, easy-to-participate voting mechanism is a predictable target for
+brigading and low-effort automated voting. `arena/fraud.py` applies a
+sequence of deterministic rules, none of which deletes anything: every rule
+records a `discarded_reason` or a reduced `weight` rather than silently
+dropping a vote, and the full audit trail is written to `vote-audit.json`
+alongside the leaderboards on every tally run.
+
+- **One vote per (voter, battle).** Handled upstream by
+  `arena.cli.dedupe_votes`, keyed on `(author, battle_id)` — since
+  `battle_id` already encodes `(dataset, sample, competitor pair)` (§4 R4),
+  this is exactly "one vote per voter per battle-pair-on-a-dataset-entry".
+- **Per-voter, per-league, per-day cap** (`DAILY_VOTE_CAP = 50`,
+  `apply_daily_cap`). Votes are processed in their deterministic order
+  (issue number ascending); once a voter passes the cap for a given
+  modality on a given UTC calendar day, further votes that day are
+  discarded with reason `daily_vote_cap_exceeded`. The cap is per
+  modality, not global, so a voter legitimately evaluating multiple
+  leagues in one sitting is not penalized.
+- **Account-age gate** (`NEW_ACCOUNT_MIN_DAYS = 7`,
+  `apply_account_age_gate`). A vote from an account created less than 7
+  days before the vote is discarded with reason `account_too_new`. The
+  account creation timestamp is fetched from the GitHub API **once per
+  author** and persisted to `voter-age-cache.json` in the committed data
+  directory — every subsequent tally run reuses the cached value instead of
+  re-fetching, so the pure `resolve_vote_weights` replay never touches the
+  network (`tests/test_fraud.py::test_pure_no_network` enforces this
+  structurally, and `docs/SPECIFICATION.md` §4 requires it for §P5).
+- **One-sided voter down-weight** (`ONE_SIDED_MIN_VOTES = 20`,
+  `ONE_SIDED_THRESHOLD = 0.95`, `apply_one_sided_downweight`). A voter whose
+  surviving votes are more than 95% for the same literal **A** or **B**
+  side across at least 20 votes has every one of those votes down-weighted
+  to 0.5 rather than discarded outright. This is deliberately keyed on the
+  literal A/B choice, not competitor identity — blind battles randomize
+  which competitor is shown as "A" per battle from the battle-id hash (§4
+  R4), so "always clicks the left button" is the low-effort/bot-like
+  signal; "always prefers competitor X" is not detectable this way and
+  would be indistinguishable from a voter with a genuine, consistent
+  preference.
+
+**Weighting only affects the Bradley-Terry rating, not the legacy
+sequential ELO column.** A down-weighted vote (weight 0.5) still updates
+`EloEntry.elo` at full strength — that column is secondary/display-only
+(see "Reading a leaderboard" above) and does not need this level of rigor.
+A fully discarded vote (weight 0) is excluded from both ratings entirely
+and is never passed into `build_elo_board`'s human-vote list — it exists
+only in the `vote-audit.json` record.
+
+**The full vote-issue history is refetched every run**
+(`fetch_vote_issues` lists both open and closed `vote`-labelled issues), so
+every tally run genuinely replays the complete log from scratch rather than
+only the issues opened since the last run — the earlier design fetched
+`--state open` only, which meant closing a processed issue silently
+dropped its vote from every future leaderboard rebuild. Already-closed
+issues are never re-commented-on or re-closed; `arena.cli.cmd_tally` only
+takes GitHub actions (comment + close) on issues that are still `OPEN` in
+the freshly-fetched list.
+
 ## Open items
 
-The following sections are placeholders for work tracked elsewhere in the
-roadmap and will be filled in as that work lands: vote fraud / dedup rules
-(vote fraud resistance), the TTS objective-metric judge-bias disclosure (TTS
-intelligibility), and the RTF hardware-disclosure convention (TTS
-latency/RTF).
+The TTS objective-metric judge-bias disclosure (TTS intelligibility) and
+the RTF hardware-disclosure convention (TTS latency/RTF) are placeholders
+for work tracked elsewhere in the roadmap and will be filled in as that
+work lands.

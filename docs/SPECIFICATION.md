@@ -214,6 +214,25 @@ Voting options MUST include: candidate A, candidate B, tie, both-wrong.
   MUST NOT be a lever on how much the auto-vote seed can move a pair's
   rating. `ovos-arena audit-seeds` reports every pair's weight and whether
   it sits at the cap.
+- **R12 — Full-history replay.** `tally` MUST fetch every `vote`-labelled
+  issue (open and closed), not only issues opened since the previous run —
+  the vote log is the complete issue history (§6), and every tally run
+  replays it from scratch. Already-closed issues MUST NOT be re-commented
+  on or re-closed.
+- **R13 — Vote fraud rules** (`arena/fraud.py`, pure functions of the vote
+  log — see `docs/methodology.md` for the full rationale):
+  - one vote per (voter, battle) — R1's battle identity dedupe;
+  - a per-voter, per-league, per-UTC-day cap (`DAILY_VOTE_CAP = 50`);
+  - an account-age gate (`NEW_ACCOUNT_MIN_DAYS = 7`) using a creation-date
+    cache fetched once per author and persisted (`voter-age-cache.json`) —
+    the replay step itself MUST NOT touch the network;
+  - a one-sided-voter down-weight (`ONE_SIDED_MIN_VOTES = 20`,
+    `ONE_SIDED_THRESHOLD = 0.95`, weight `ONE_SIDED_WEIGHT = 0.5`), keyed on
+    the literal A/B choice (blind, randomized per battle-id hash), not
+    competitor identity.
+  Discards and down-weights MUST be recorded (`vote-audit.json`), never
+  silently dropped. Weighting affects only the Bradley-Terry rating (R6-R10
+  above); the legacy sequential ELO column is unaffected.
 
 ## 5. Rating system
 
