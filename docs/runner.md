@@ -11,20 +11,32 @@ queue and sleeping between cycles.
 
 ## Row schema
 
-Each row written to the JSONL output and uploaded to HF matches the legacy
-`ovos-stt-bench-*` column layout; the arena §3.2 contract (docs/SPECIFICATION.md) is the convergence target for a future STT bench script:
+Each row written to the JSONL output and uploaded to HF is the canonical
+arena §3.2 contract (`docs/SPECIFICATION.md`) directly — the runner has no
+registry dependency by design (it can run standalone on a plugin-execution
+box), so it never resolves `competitor_id`; `arena.predictions` re-keys
+`plugin_id` to a `competitor_id` at load time via
+`registry.loaders.get_competitor_by_alias` (§4 A2 schema convergence).
 
 | column | type | notes |
 |---|---|---|
-| `dataset_entry_id` | str | stable filename within source corpus |
-| `plugin_name` | str | OPM entry-point name |
-| `model_id` | str | composite `plugin/model[/cfghash]` |
-| `prediction_transcript` | str | STT output |
-| `transcript` | str | ground truth |
-| `prediction_confidence` | float | 0.0–1.0 |
-| `prediction_type` | str | always `"STT"` |
+| `sample_id` | str | stable filename within source corpus (was `dataset_entry_id`) |
+| `plugin_id` | str | OPM entry-point name (was `plugin_name`) |
+| `extras.model_id` | str | composite `plugin/model[/cfghash]` |
+| `prediction` | str | STT output (was `prediction_transcript`) |
+| `reference_text` | str | ground truth (was `transcript`) |
+| `confidence` | float | 0.0–1.0 (was `prediction_confidence`) |
+| `modality` | str | always `"stt"` (was `prediction_type: "STT"`) |
 | `dataset_id` | str | source corpus + split path |
 | `lang` | str | BCP-47 |
+
+Already-published data in the old column layout (`dataset_entry_id` /
+`plugin_name` / `prediction_transcript` / `transcript` /
+`prediction_confidence` / `prediction_type`) is still readable —
+`runner/schema.py:STTRow` is kept as a read-compat shim, and
+`arena.predictions.parse_row` detects and converts that shape
+automatically, tagging the resulting row `schema_version: 1` for
+provenance. New runs never construct an `STTRow`.
 
 ---
 

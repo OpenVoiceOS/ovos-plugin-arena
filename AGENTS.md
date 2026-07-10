@@ -47,8 +47,13 @@ description.
 - `runner/` — plugin adapters + shared bench engines. Intent:
   `intent_bench.py` + `intent_pipeline.py` (OPM intent plugins over FakeBus).
   Audio: `media_bench.py` (shared driver) + `stt_bench.py` / `ww_bench.py` /
-  `tts_bench.py` adapters + `audio_io.py` (decode/stream). Legacy off-repo STT
-  runner (`plugin_runner.py` + `queue.yaml`) still feeds `ovos-stt-bench-*`.
+  `tts_bench.py` adapters + `audio_io.py` (decode/stream). Off-repo 24/7 STT
+  daemon (`plugin_runner.py` + `daemon.py` + `queue.yaml`) feeds
+  `ovos-stt-bench-*` — writes the canonical §3.2 row shape directly (no
+  registry dependency, so `competitor_id` is absent; `arena.predictions`
+  re-keys via `plugin_id` + `registry.loaders.get_competitor_by_alias` at
+  load time). `runner/schema.py:STTRow` is read-compat only, for
+  already-published rows in the old column layout (§4 A2).
 - `frontend-static/` — Astro site; generated data lives in `public/data/`
   (committed by CI, owned by the workflows).
 - `.github/workflows/` — `assemble.yml` (daily), `tally.yml` (hourly),

@@ -22,6 +22,25 @@ from arena.models import PredictionRow
 
 logger = logging.getLogger(__name__)
 
+# §4 A2 schema convergence — memoized plugin_id -> competitor_id re-keying
+# (registry.loaders.get_competitor_by_alias scans every registry JSON file;
+# doing that per-row for a large legacy dataset would be far too slow).
+# Cleared implicitly per process; registry content doesn't change mid-run.
+_alias_cache: dict[tuple[str, str], str | None] = {}
+
+
+def _resolve_competitor_id(modality: str, plugin_id: str) -> str | None:
+    key = (modality, plugin_id)
+    if key not in _alias_cache:
+        try:
+            from registry.loaders import get_competitor_by_alias
+            comp = get_competitor_by_alias(modality, plugin_id)
+            _alias_cache[key] = comp.competitor_id if comp else None
+        except Exception as exc:
+            logger.warning("Alias re-keying unavailable (%s): %s", plugin_id, exc)
+            _alias_cache[key] = None
+    return _alias_cache[key]
+
 # Modality is inferred per row from the §3.2 payload fields.
 _INTENT_FIELDS = {"reference_intent", "exact_match"}
 _STT_FIELDS = {"reference_text", "wer"}
@@ -54,14 +73,39 @@ def infer_modality(row: dict) -> str:
 def parse_row(raw: dict, competitor_id: str) -> PredictionRow:
     """Validate one raw JSONL row into a PredictionRow.
 
-    Unknown keys are preserved in ``extras``; the ``competitor_id`` falls
-    back to the filename stem when absent from the row.
+    §4 A2 schema convergence: rows in the legacy ``STTRow`` column layout
+    (``dataset_entry_id``/``plugin_name``, no ``sample_id`` — already
+    published to ``ovos-stt-bench-*`` before the runner switched to writing
+    the canonical shape directly) are converted first via
+    ``STTRow.to_prediction_row_dict``.
+
+    Unknown keys are preserved in ``extras``. ``competitor_id`` resolution,
+    in order: the row's own value → registry alias re-keying from
+    ``plugin_id`` (canonical rows written by ``runner/plugin_runner.py``
+    carry ``plugin_id`` but not ``competitor_id`` — the runner has no
+    registry dependency by design) → the filename stem (the canonical
+    per-competitor-file layout, §3.2).
     """
+    if raw.get("dataset_entry_id") and not raw.get("sample_id"):
+        from runner.schema import STTRow
+        legacy = STTRow.from_dict(raw)
+        resolved = _resolve_competitor_id("stt", legacy.plugin_name)
+        raw = legacy.to_prediction_row_dict(resolved or "")
+        if not resolved:
+            del raw["competitor_id"]  # let the fallback chain below decide
+        raw["schema_version"] = 1  # provenance: converted from the legacy layout
+
     known = set(PredictionRow.model_fields)
     data = {k: v for k, v in raw.items() if k in known}
     extras = {k: v for k, v in raw.items() if k not in known}
+    data.setdefault("extras", {})
+    data["extras"] = {**extras, **data.get("extras", {})}
+
+    if not data.get("competitor_id") and data.get("plugin_id") and data.get("modality"):
+        resolved = _resolve_competitor_id(data["modality"], data["plugin_id"])
+        if resolved:
+            data["competitor_id"] = resolved
     data.setdefault("competitor_id", competitor_id)
-    data["extras"] = extras
     return PredictionRow(**data)
 
 

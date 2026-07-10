@@ -98,6 +98,10 @@ class PredictionRow(BaseModel):
     lang: str
     plugin_id: str
     modality: str | None = None  # league; inferred from fields when absent
+    # §4 A2 schema convergence — 2 is the canonical §3.2 row contract this
+    # class defines; legacy STTRow-shaped rows are converted to it at load
+    # time (arena.predictions) and get schema_version 1 to mark provenance.
+    schema_version: int = 2
     plugin_version: str = ""
     prediction: str | None = None
     runner_version: str = ""

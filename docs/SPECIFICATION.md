@@ -141,6 +141,12 @@ declaring **one HF split per language**. One row per (language, sample).
 Minimum columns, all modalities: `competitor_id`, `sample_id`, `dataset_id`,
 `lang`, `plugin_id`, `plugin_version`, `prediction`, `runner_version`,
 `created_at`. Reproducibility columns SHOULD include `dataset_revision`.
+`schema_version` (default 2) marks provenance — 1 identifies a row
+converted from the legacy `STTRow` column layout at load time (§4 A2); new
+rows are always written directly in this shape (`competitor_id` MAY be
+absent when the writer has no registry dependency, e.g. the off-repo STT
+runner — `arena.predictions` re-keys via `plugin_id` and
+`registry.loaders.get_competitor_by_alias`).
 
 Per modality:
 

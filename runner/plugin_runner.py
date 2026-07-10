@@ -3,6 +3,14 @@ STT prediction runner — single-job execution logic.
 
 Each job runs in its own worker process so model state is fully isolated and
 ORT/BLAS thread counts can be applied before any import.
+
+§4 A2 schema convergence: rows are written directly in the canonical §3.2
+``PredictionRow`` shape (see ``arena.models.PredictionRow`` /
+``docs/SPECIFICATION.md``) — never the legacy ``STTRow`` layout. This runner
+does not resolve ``competitor_id`` (it has no registry dependency by
+design, so it can run standalone on a plugin-execution box); ``plugin_id``
+is written instead, and ``arena.predictions`` re-keys it to a
+``competitor_id`` at load time via ``registry.loaders.get_competitor_by_alias``.
 """
 from __future__ import annotations
 
@@ -12,7 +20,7 @@ from collections.abc import Iterator
 from pathlib import Path
 
 from runner.queue_config import DatasetSpec, JobSpec, PluginSpec
-from runner.schema import JobManifest, STTRow
+from runner.schema import JobManifest
 
 logger = logging.getLogger(__name__)
 
@@ -292,18 +300,18 @@ def run_job(
                     signal.alarm(0)
                 continue
 
-            row = STTRow(
-                dataset_entry_id=entry_id,
-                plugin_name=plugin.plugin_name,
-                model_id=mid,
-                prediction_transcript=text,
-                transcript=ground_truth,
-                prediction_confidence=conf,
-                prediction_type="STT",
-                dataset_id=dataset.dataset_id,
-                lang=plugin.lang,
-            )
-            fh.write(row.to_jsonl() + "\n")
+            row = {
+                "sample_id": entry_id,
+                "dataset_id": dataset.dataset_id,
+                "lang": plugin.lang,
+                "plugin_id": plugin.plugin_name,
+                "modality": "stt",
+                "prediction": text,
+                "reference_text": ground_truth,
+                "confidence": conf,
+                "extras": {"model_id": mid},
+            }
+            fh.write(json.dumps(row, ensure_ascii=False, sort_keys=True) + "\n")
             fh.flush()  # flush every row so output is visible immediately
             written += 1
 

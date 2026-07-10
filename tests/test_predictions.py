@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 
+import arena.predictions as predictions_mod
 from arena.predictions import (
     group_rows,
     infer_modality,
@@ -137,3 +138,88 @@ class TestGroupRows:
                            "dataset_id": "d", "lang": "x", "plugin_id": "p",
                            "prediction": "?"}, "c")]
         assert group_rows(rows) == {}
+
+
+def _legacy_stt_row(**over):
+    row = {
+        "dataset_entry_id": "pt-PT/00007",
+        "plugin_name": "ovos-stt-plugin-fasterwhisper",
+        "model_id": "ovos-stt-plugin-fasterwhisper/small",
+        "prediction_transcript": "ola mundo",
+        "transcript": "olá mundo",
+        "prediction_confidence": 0.91,
+        "prediction_type": "STT",
+        "dataset_id": "minds14-pt-PT",
+        "lang": "pt-PT",
+    }
+    row.update(over)
+    return row
+
+
+class TestLegacySttSchemaConvergence:
+    """§4 A2 — legacy STTRow-shaped rows convert to canonical PredictionRow
+    at load time, and are re-keyed via registry alias when possible."""
+
+    def setup_method(self):
+        predictions_mod._alias_cache.clear()
+
+    def test_legacy_shape_detected_and_converted(self, monkeypatch):
+        monkeypatch.setattr(
+            predictions_mod, "_resolve_competitor_id", lambda modality, plugin_id: None
+        )
+        row = parse_row(_legacy_stt_row(), "fallback-competitor")
+        assert row.sample_id == "pt-PT/00007"
+        assert row.reference_text == "olá mundo"
+        assert row.prediction == "ola mundo"
+        assert row.confidence == 0.91
+        assert row.modality == "stt"
+        assert row.schema_version == 1
+        assert row.extras["model_id"] == "ovos-stt-plugin-fasterwhisper/small"
+        assert row.competitor_id == "fallback-competitor"  # alias resolution failed
+
+    def test_legacy_shape_rekeyed_via_alias(self, monkeypatch):
+        monkeypatch.setattr(
+            predictions_mod, "_resolve_competitor_id",
+            lambda modality, plugin_id: "fasterwhisper-small-pt" if plugin_id.endswith(
+                "fasterwhisper") else None,
+        )
+        row = parse_row(_legacy_stt_row(), "fallback-competitor")
+        assert row.competitor_id == "fasterwhisper-small-pt"
+
+    def test_canonical_row_missing_competitor_id_rekeyed_via_plugin_id(self, monkeypatch):
+        # Rows written by the current runner (no registry dependency) carry
+        # plugin_id but not competitor_id.
+        monkeypatch.setattr(
+            predictions_mod, "_resolve_competitor_id",
+            lambda modality, plugin_id: "resolved-id",
+        )
+        raw = {
+            "sample_id": "s1", "dataset_id": "d", "lang": "en-US",
+            "plugin_id": "ovos-stt-plugin-x", "modality": "stt",
+            "prediction": "hi", "reference_text": "hi",
+        }
+        row = parse_row(raw, "filename-fallback")
+        assert row.competitor_id == "resolved-id"
+
+    def test_canonical_row_with_explicit_competitor_id_not_rekeyed(self, monkeypatch):
+        monkeypatch.setattr(
+            predictions_mod, "_resolve_competitor_id",
+            lambda modality, plugin_id: (_ for _ in ()).throw(
+                AssertionError("should not be called")),
+        )
+        row = parse_row(_intent_row(), "fallback")
+        assert row.competitor_id == "padatious-medium"
+
+    def test_alias_resolution_is_memoized(self, monkeypatch):
+        calls = []
+
+        def _fake_get_by_alias(modality, plugin_id):
+            calls.append((modality, plugin_id))
+            return None
+
+        import registry.loaders
+        monkeypatch.setattr(registry.loaders, "get_competitor_by_alias", _fake_get_by_alias)
+
+        parse_row(_legacy_stt_row(), "fallback")
+        parse_row(_legacy_stt_row(), "fallback")
+        assert len(calls) == 1  # second call hits the cache
