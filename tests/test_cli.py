@@ -81,6 +81,11 @@ def _seed(**over):
         losses={"x": 0, "y": 4},
         ties={"x": 0, "y": 0},
         competitor_plugin={"x": "plug-x", "y": "plug-y"},
+        # x beat y every time, at the reduced auto-vote weight
+        # (BT_AUTO_WEIGHT = 0.25) — mirrors what EloLedger.apply(auto=True)
+        # would have accumulated for 4 auto battles.
+        pairwise_wins={"x": {"y": 1.0}, "y": {"x": 0.0}},
+        pairwise_games={"x": {"y": 1.0}, "y": {"x": 1.0}},
     )
     base.update(over)
     return EloSeed(**base)
@@ -125,6 +130,47 @@ class TestBuildEloBoard:
                   "issue_number": 1, "created_at": ""}]
         board = build_elo_board("intent", "en-US", None, votes, {"bid1": BATTLE})
         assert all(e.elo == pytest.approx(INITIAL_ELO) for e in board.entries)
+
+    def test_bt_rating_ranks_and_bounds_by_ci(self):
+        votes = [{"battle_id": "bid1", "choice": "b", "author": "alice",
+                  "issue_number": 1, "created_at": ""}]
+        board = build_elo_board("intent", "en-US", _seed(), votes, {"bid1": BATTLE})
+        x = next(e for e in board.entries if e.competitor_id == "x")
+        y = next(e for e in board.entries if e.competitor_id == "y")
+        assert x.bt_rating is not None and y.bt_rating is not None
+        assert x.ci_lower is not None and x.ci_upper is not None
+        assert x.ci_lower <= x.bt_rating <= x.ci_upper
+        assert board.entries[0].rank == 1
+        # ranking follows bt_rating, not the legacy sequential elo column
+        assert board.entries == sorted(
+            board.entries, key=lambda e: (-e.bt_rating, e.competitor_id)
+        )
+
+    def test_bt_rating_deterministic_across_rebuilds(self):
+        votes = [
+            {"battle_id": "bid1", "choice": "b", "author": "alice",
+             "issue_number": 1, "created_at": ""},
+            {"battle_id": "bid1", "choice": "a", "author": "bob",
+             "issue_number": 2, "created_at": ""},
+        ]
+        board1 = build_elo_board("intent", "en-US", _seed(), votes, {"bid1": BATTLE})
+        board2 = build_elo_board("intent", "en-US", _seed(), votes, {"bid1": BATTLE})
+        ratings1 = {e.competitor_id: (e.bt_rating, e.ci_lower, e.ci_upper) for e in board1.entries}
+        ratings2 = {e.competitor_id: (e.bt_rating, e.ci_lower, e.ci_upper) for e in board2.entries}
+        assert ratings1 == ratings2
+
+    def test_provisional_flag_below_threshold(self):
+        board = build_elo_board("intent", "en-US", _seed(), [], {})
+        assert board.provisional is True
+
+    def test_provisional_flag_clears_with_enough_human_votes(self):
+        votes = [
+            {"battle_id": "bid1", "choice": "b", "author": f"voter{i}",
+             "issue_number": i, "created_at": ""}
+            for i in range(10)
+        ]
+        board = build_elo_board("intent", "en-US", _seed(), votes, {"bid1": BATTLE})
+        assert board.provisional is False
 
 
 def _write_predictions(tmp_path: Path) -> Path:
@@ -214,6 +260,25 @@ class TestAssemblePipeline:
         ids1 = sorted(load_battles_pools(out1))
         ids2 = sorted(load_battles_pools(out2))
         assert ids1 == ids2
+
+    def test_assemble_then_tally_deterministic_end_to_end(self, tmp_path):
+        """§P5: rerunning assemble + tally over the same corpus and vote log
+        is byte-identical, including the Bradley-Terry rating and its
+        bootstrap CI — not just the legacy sequential ELO."""
+        preds = _write_predictions(tmp_path)
+        out1, out2 = tmp_path / "d1", tmp_path / "d2"
+        assert main_args_assemble(preds, out1) == 0
+        assert main_args_assemble(preds, out2) == 0
+        with pytest.raises(SystemExit):
+            main(["tally", "--data-dir", str(out1), "--output", str(out1)])
+        with pytest.raises(SystemExit):
+            main(["tally", "--data-dir", str(out2), "--output", str(out2)])
+
+        board1 = json.loads((out1 / "leaderboard-intent-en-US.json").read_text())
+        board2 = json.loads((out2 / "leaderboard-intent-en-US.json").read_text())
+        board1.pop("generated_at")
+        board2.pop("generated_at")
+        assert board1 == board2
 
 
 def _write_cross_league_predictions(tmp_path: Path) -> Path:

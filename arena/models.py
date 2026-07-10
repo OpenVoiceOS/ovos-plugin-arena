@@ -230,6 +230,13 @@ class EloEntry(BaseModel):
     win_rate: float = 0.0
     human_votes: int = 0
     auto_votes: int = 0
+    # Bradley-Terry batch rating (§4, arena/rating.py) — order-independent,
+    # with a bootstrap 95% confidence interval. ``elo`` above is the legacy
+    # sequential rating, kept as a secondary display column; ``rank`` is
+    # derived from ``bt_rating``, not ``elo``.
+    bt_rating: float | None = None
+    ci_lower: float | None = None
+    ci_upper: float | None = None
 
 
 class EloBoard(BaseModel):
@@ -240,6 +247,11 @@ class EloBoard(BaseModel):
     generated_at: str
     vote_count: int = 0
     human_vote_count: int = 0
+    # True when human_vote_count < rating.PROVISIONAL_MIN_HUMAN_VOTES — the
+    # board is ranked from the benchmark-derived seed with too few human
+    # votes yet to narrow the bootstrap CIs meaningfully; the frontend
+    # should show a "provisional" badge rather than a firm ranking.
+    provisional: bool = True
     entries: list[EloEntry] = Field(default_factory=list)
 
 
@@ -259,3 +271,8 @@ class EloSeed(BaseModel):
     losses: dict[str, int] = Field(default_factory=dict)
     ties: dict[str, int] = Field(default_factory=dict)
     competitor_plugin: dict[str, str] = Field(default_factory=dict)
+    # Bradley-Terry sufficient statistics (§4, arena/rating.py), already
+    # weighted by BT_AUTO_WEIGHT — the fixed (never bootstrap-resampled)
+    # contribution every leaderboard rebuild starts from.
+    pairwise_wins: dict[str, dict[str, float]] = Field(default_factory=dict)
+    pairwise_games: dict[str, dict[str, float]] = Field(default_factory=dict)

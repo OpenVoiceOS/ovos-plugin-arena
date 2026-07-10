@@ -1,0 +1,159 @@
+# Rating methodology
+
+This page is the normative explanation behind `EloEntry.bt_rating` and its
+confidence interval — the primary ranking signal on every leaderboard (§5 of
+`SPECIFICATION.md`). It exists so a skeptical reader can check the arena's
+math without reading `arena/rating.py`.
+
+## Why not sequential ELO alone
+
+Sequential ELO (`arena/elo.py`, still shown as the secondary `elo` column)
+updates two ratings after every single vote, in whatever order the votes
+happen to arrive. That has a real problem: **the same set of votes, replayed
+in a different order, produces a different final rating.** A competitor that
+happens to get its toughest matchups early in the vote log ends up rated
+differently than if those same matchups had come later. For an arena whose
+entire premise is "the vote log is public and replayable" (§P5), an order
+dependency in the headline number undermines the premise — two people
+replaying the identical, public vote log by hand in a different order would
+get different rankings, with no way to say which one is "right".
+
+**Bradley-Terry**, fit as a batch over the whole vote log at once, does not
+have this problem. It asks a single, order-independent question: *what set
+of competitor strengths makes the observed vote log most likely?* Shuffle
+the votes and refit — you get the identical answer (see
+`tests/test_rating.py::TestFitBradleyTerry::test_shuffle_invariant`).
+
+## Why not TrueSkill
+
+TrueSkill (Microsoft, used in Xbox Live matchmaking) is a plausible
+alternative, and was considered. It was rejected for two reasons specific to
+this arena:
+
+1. **TrueSkill is fundamentally sequential** — it maintains a Gaussian
+   belief per player and updates it incrementally per game, exactly the
+   property that makes sequential ELO order-dependent in the first place.
+   Batch-refitting a TrueSkill model over a full vote log to get an
+   order-independent result is possible but loses the closed-form
+   incremental-update convenience that is TrueSkill's main selling point —
+   at that point a batch Bradley-Terry fit is simpler and has a much longer
+   track record of transparent, reproducible use in exactly this setting
+   (this is what [Chatbot Arena / lmarena](https://lmarena.ai) uses for
+   ranking LLMs by blind human vote, the closest prior art to this arena).
+2. **TrueSkill's uncertainty model (a per-player Gaussian variance) answers
+   a different question than the one this arena needs.** This arena wants a
+   confidence interval that answers "how much could this specific
+   competitor's rank move if a few more human votes came in the other
+   direction?" — which a nonparametric bootstrap over the actual vote log
+   answers directly (see below), without assuming Gaussian belief dynamics.
+
+## The fit: Bradley-Terry via minorization-maximization
+
+Every pairwise vote — a blind battle choice, a free-form vote, or a
+benchmark-derived auto vote — is one observation: competitor `a` beat
+competitor `b` with score `1.0` (win), `0.5` (tie / both-wrong), or `0.0`
+(loss). These are aggregated into weighted win/game totals per ordered pair,
+`wins[i][j]` and `games[i][j] == games[j][i]`.
+
+The Bradley-Terry model assigns every competitor a strength `π > 0` such
+that the probability `i` beats `j` is `π_i / (π_i + π_j)`. The
+maximum-likelihood strengths are found by the classic
+[Zermelo/Hunter (2004)](https://sites.stat.washington.edu/fritz/DATAFILES2/MMAlgorithms.pdf)
+minorization-maximization iteration:
+
+```
+π_i ← (Σ_j wins[i][j]) / (Σ_j games[i][j] / (π_i + π_j))
+```
+
+repeated until the log-strengths stop moving (`arena/rating.py:MM_TOLERANCE`,
+default `1e-9`, capped at `MM_MAX_ITER = 200` rounds). This is deterministic:
+the same input totals always converge to the same strengths (up to floating
+point, which is itself deterministic for a fixed Python/platform — the
+result is reproduced byte-for-byte by `arena assemble` on every CI run over
+the same vote log).
+
+Strengths are on an arbitrary multiplicative scale (only ratios matter for
+Bradley-Terry). `to_rating_scale()` anchors them to a familiar ELO-shaped
+number: the geometric mean of the fitted strengths is placed at 1200, with
+`400 / ln(10)` points per natural-log unit of strength — the same
+points-per-decade convention as classic ELO, so a `bt_rating` of 1600 vs
+1200 still means "10× as likely to win a random matchup" the way it always
+has.
+
+### The convergence prior
+
+A raw Bradley-Terry fit has two failure modes with sparse real-world vote
+data: a competitor that has never lost gets an unbounded strength (formally,
+the MLE is at infinity), and the fit is undefined if the "who played whom"
+graph is disconnected (two competitors that never played each other,
+directly or through a chain of shared opponents, have no relative order at
+all).
+
+Both are solved the same way: every competitor gets one virtual weighted tie
+(`PRIOR_WEIGHT = 1.0`) against a fixed-strength "field average" phantom
+opponent that is never itself updated. This connects every competitor to
+every other competitor through the phantom (so the graph is always
+connected) and guarantees every competitor has a nonzero recorded win
+fraction (so no strength collapses to zero or diverges). A brand-new fighter
+with zero real battles rates near the phantom's anchor (1200) rather than
+being undefined — see
+`tests/test_rating.py::TestFitBradleyTerry::test_undefeated_and_winless_fighters_converge`.
+
+### Auto vs. human weighting
+
+Auto (benchmark-derived) votes carry `BT_AUTO_WEIGHT = 0.25` — the same §4
+R5 intent as sequential ELO's `K/4`, expressed as a pairwise weight instead
+of a K-factor. This is capped further at the board level (§4, seed-battle
+bias audit) so a large benchmark dataset can never outweigh a modest number
+of real human votes; see that section once implemented for the cap
+mechanism.
+
+## The confidence interval: bootstrap over human votes only
+
+`bootstrap_confidence_intervals()` resamples the **human vote list only**,
+with replacement, `DEFAULT_BOOTSTRAP_ROUNDS = 100` times, using a seeded
+`random.Random` (§P5: same seed ⇒ byte-identical CIs on every rerun). Each
+round refits Bradley-Terry over (resampled human votes) + (the unchanged
+auto-vote seed) and records where every competitor's rating landed; the
+reported interval is the 2.5th–97.5th percentile of that distribution — a
+standard nonparametric bootstrap 95% CI.
+
+**The auto-vote seed is deliberately never resampled.** It is a
+deterministic function of a fixed benchmark corpus (the same reference
+audio/text run through the same plugin gives the same metric every time) —
+it has no sampling variability to model. What genuinely varies from one
+arena snapshot to the next is *how many human votes have been cast, and by
+whom* — that is exactly what resampling the human vote list captures. A
+board with zero human votes therefore has every CI collapse to a single
+point (the seed-only rating; see
+`tests/test_rating.py::TestBootstrapConfidenceIntervals::test_zero_human_votes_collapses_to_seed_point`),
+and CIs visibly narrow as more human votes accumulate for a matchup (see
+`test_ci_narrows_with_more_votes`).
+
+A board with fewer than `PROVISIONAL_MIN_HUMAN_VOTES = 10` human votes sets
+`EloBoard.provisional = true` — its ranking is real (computed the same way)
+but should be read as a placeholder ordering from the benchmark seed, not a
+settled result.
+
+## Reading a leaderboard
+
+- **`bt_rating`** is the number to look at. Two competitors whose confidence
+  intervals overlap are statistically indistinguishable from the current
+  vote log — treat them as tied, not as strictly ranked, regardless of what
+  order they happen to be listed in.
+- **`elo`** is kept for continuity with earlier snapshots of this arena but
+  is not the ranking key and can disagree with `bt_rating`'s ordering,
+  particularly early in a board's life or after a burst of lopsided votes —
+  that disagreement is expected and is exactly the order-dependency problem
+  `bt_rating` was built to avoid.
+- **`provisional`** boards should be captioned as such in the frontend
+  rather than presented with the same confidence as an established board.
+
+## Open items
+
+The following sections are placeholders for work tracked elsewhere in the
+roadmap and will be filled in as that work lands: seed-battle weight cap
+mechanics and its rationale (seed-battle bias audit), vote fraud / dedup
+rules (vote fraud resistance), the TTS objective-metric judge-bias
+disclosure (TTS intelligibility), and the RTF hardware-disclosure convention
+(TTS latency/RTF).

@@ -1,6 +1,8 @@
 """Unit tests for arena.assembler — battles and ELO seeding."""
 from __future__ import annotations
 
+import pytest
+
 from arena.assembler import (
     assemble_battles,
     auto_outcome,
@@ -229,6 +231,12 @@ class TestSeedElo:
         assert seed.auto_vote_count == 10
         assert seed.wins["good"] == 10
         assert seed.competitor_plugin["good"] == "plugin-good"
+        # Bradley-Terry sufficient statistics (arena/rating.py) are captured
+        # too, at the reduced auto-vote weight — not just the legacy ELO
+        # ledger's ratings/wins/losses.
+        assert seed.pairwise_wins["good"]["bad"] == pytest.approx(2.5)  # 10 * 0.25
+        assert seed.pairwise_games["good"]["bad"] == pytest.approx(2.5)
+        assert seed.pairwise_games["bad"]["good"] == pytest.approx(2.5)
 
     def test_no_signal_pairs_not_counted(self):
         samples = _samples([_row("x", "media:play_song"),

@@ -286,4 +286,6 @@ def seed_elo(
         losses=ledger.losses,
         ties=ledger.ties,
         competitor_plugin=competitor_plugin,
+        pairwise_wins=ledger.pairwise_wins,
+        pairwise_games=ledger.pairwise_games,
     )

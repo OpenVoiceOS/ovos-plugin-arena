@@ -9,7 +9,9 @@ scores and how* — the metric formulas here are exactly what
 
 The arena ranks competitors with two signals (see [SPECIFICATION.md](SPECIFICATION.md)):
 a **benchmark board** (objective metric straight from predictions) and an **ELO
-ladder** (benchmark-seeded, then refined by human blind-A/B votes). The
+ladder** (benchmark-seeded, then refined by human blind-A/B votes; ranked by
+`bt_rating`, a batch Bradley-Terry fit with bootstrap confidence intervals —
+see [methodology.md](methodology.md)). The
 *primary metric* of a league is the number that (a) sorts its benchmark board
 and (b) decides the auto-vote outcome that seeds ELO (§4 R5).
 

@@ -16,12 +16,26 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from arena.models import VoteOutcome
+from arena.rating import PairwiseGames, PairwiseWins, accumulate
 
 INITIAL_ELO: float = 1200.0
 K_FACTOR: float = 32.0
 K_FACTOR_VETERAN: float = 16.0
 VETERAN_THRESHOLD: int = 30  # battles before using the lower K
 AUTO_K_DIVISOR: float = 4.0  # §4 R5 — auto votes carry K/4 weight
+
+# Bradley-Terry (arena/rating.py) weight for a benchmark-derived auto vote,
+# relative to a human vote's weight of 1.0. Same §4 R5 intent as
+# AUTO_K_DIVISOR for sequential ELO, expressed as a BT pairwise weight.
+BT_AUTO_WEIGHT: float = 1.0 / AUTO_K_DIVISOR
+
+
+def _outcome_score_a(outcome: VoteOutcome) -> float:
+    if outcome == VoteOutcome.CANDIDATE_A:
+        return 1.0
+    if outcome == VoteOutcome.CANDIDATE_B:
+        return 0.0
+    return 0.5
 
 
 def expected_score(rating_a: float, rating_b: float) -> float:
@@ -78,6 +92,14 @@ class EloLedger:
     auto_votes: dict[str, int] = field(default_factory=dict)
     human_votes: dict[str, int] = field(default_factory=dict)
 
+    # Bradley-Terry sufficient statistics (arena/rating.py) — every vote
+    # applied here also accumulates into these, weighted by BT_AUTO_WEIGHT
+    # for auto votes and 1.0 for human votes. Kept alongside the sequential
+    # ELO bookkeeping above rather than computed separately so both rating
+    # systems are always derived from exactly the same replayed vote log.
+    pairwise_wins: PairwiseWins = field(default_factory=dict)
+    pairwise_games: PairwiseGames = field(default_factory=dict)
+
     def ensure(self, competitor_id: str) -> None:
         if competitor_id not in self.ratings:
             self.ratings[competitor_id] = INITIAL_ELO
@@ -122,3 +144,9 @@ class EloLedger:
         counter = self.auto_votes if auto else self.human_votes
         counter[competitor_a] += 1
         counter[competitor_b] += 1
+
+        weight = BT_AUTO_WEIGHT if auto else 1.0
+        accumulate(
+            self.pairwise_wins, self.pairwise_games,
+            competitor_a, competitor_b, _outcome_score_a(outcome), weight,
+        )

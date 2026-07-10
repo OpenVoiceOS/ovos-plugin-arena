@@ -45,6 +45,13 @@ from arena.models import (
     VoteOutcome,
     battle_group,
 )
+from arena.rating import (
+    PROVISIONAL_MIN_HUMAN_VOTES,
+    PairResult,
+    bootstrap_confidence_intervals,
+    fit_bradley_terry,
+    to_rating_scale,
+)
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s  %(message)s")
 log = logging.getLogger(__name__)
@@ -134,7 +141,12 @@ def _ledger_from_seed(seed: EloSeed) -> EloLedger:
         ledger.losses[competitor] = seed.losses.get(competitor, 0)
         ledger.ties[competitor] = seed.ties.get(competitor, 0)
         ledger.auto_votes[competitor] = seed.battles.get(competitor, 0)
+    ledger.pairwise_wins = {i: dict(js) for i, js in seed.pairwise_wins.items()}
+    ledger.pairwise_games = {i: dict(js) for i, js in seed.pairwise_games.items()}
     return ledger
+
+
+_CHOICE_TO_SCORE_A = {"a": 1.0, "b": 0.0, "tie": 0.5, "both_wrong": 0.5}
 
 
 def build_elo_board(
@@ -144,11 +156,21 @@ def build_elo_board(
     human_votes: list[dict],
     battles_pool: dict[str, dict[str, Any]],
 ) -> EloBoard:
-    """Replay *human_votes* (ordered) on top of *seed* and rank the result."""
+    """Replay *human_votes* (ordered) on top of *seed* and rank the result.
+
+    Two ratings are computed from the same replayed vote log: the legacy
+    sequential ELO (``EloEntry.elo``, order-dependent, kept for continuity)
+    and a batch Bradley-Terry fit with bootstrap confidence intervals
+    (``EloEntry.bt_rating`` / ``ci_lower`` / ``ci_upper``, order-independent
+    — see ``arena/rating.py``). Ranking is by ``bt_rating``.
+    """
     ledger = _ledger_from_seed(seed) if seed else EloLedger()
     competitor_plugin = dict(seed.competitor_plugin) if seed else {}
+    fixed_wins = {i: dict(js) for i, js in seed.pairwise_wins.items()} if seed else {}
+    fixed_games = {i: dict(js) for i, js in seed.pairwise_games.items()} if seed else {}
 
     counted = 0
+    human_results: list[PairResult] = []
     for vote in human_votes:
         battle = battles_pool.get(vote["battle_id"])
         if not battle:
@@ -158,12 +180,23 @@ def build_elo_board(
         competitor_plugin.setdefault(comp_a, battle.get("plugin_a", ""))
         competitor_plugin.setdefault(comp_b, battle.get("plugin_b", ""))
         ledger.apply(comp_a, comp_b, CHOICE_TO_OUTCOME[vote["choice"]])
+        human_results.append(
+            PairResult(comp_a, comp_b, _CHOICE_TO_SCORE_A[vote["choice"]])
+        )
         counted += 1
+
+    competitors = sorted(ledger.ratings)
+    bt_strengths = fit_bradley_terry(ledger.pairwise_wins, ledger.pairwise_games, competitors)
+    bt_ratings = to_rating_scale(bt_strengths)
+    cis = bootstrap_confidence_intervals(
+        human_results, fixed_wins, fixed_games, competitors,
+    )
 
     entries = []
     for competitor, rating in ledger.ratings.items():
         battles = ledger.battles[competitor]
         wins = ledger.wins[competitor]
+        ci_lower, ci_upper = cis.get(competitor, (None, None))
         entries.append(
             EloEntry(
                 competitor_id=competitor,
@@ -176,9 +209,12 @@ def build_elo_board(
                 win_rate=round(wins / battles, 4) if battles else 0.0,
                 human_votes=ledger.human_votes[competitor],
                 auto_votes=ledger.auto_votes[competitor],
+                bt_rating=round(bt_ratings.get(competitor, 1200.0), 2),
+                ci_lower=round(ci_lower, 2) if ci_lower is not None else None,
+                ci_upper=round(ci_upper, 2) if ci_upper is not None else None,
             )
         )
-    entries.sort(key=lambda e: (-e.elo, e.competitor_id))
+    entries.sort(key=lambda e: (-(e.bt_rating or 0.0), e.competitor_id))
     for i, entry in enumerate(entries, 1):
         entry.rank = i
 
@@ -188,6 +224,7 @@ def build_elo_board(
         generated_at=_now_iso(),
         vote_count=(seed.auto_vote_count if seed else 0) + counted,
         human_vote_count=counted,
+        provisional=counted < PROVISIONAL_MIN_HUMAN_VOTES,
         entries=entries,
     )
 

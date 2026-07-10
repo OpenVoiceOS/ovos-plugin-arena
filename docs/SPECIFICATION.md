@@ -205,10 +205,38 @@ Voting options MUST include: candidate A, candidate B, tie, both-wrong.
 
 ## 5. Rating system
 
-- Standard ELO: initial 1200, K=32 (K=16 after 30 battles), expected score
-  with the 400-point logistic curve.
+- **R6 — Primary rating is Bradley-Terry, batch-fit.** `EloEntry.bt_rating`
+  (`arena/rating.py`, minorization-maximization, Hunter 2004) is the ranking
+  key for every leaderboard. It is a **batch fit over the full replayed vote
+  log**, not a sequential update — re-ordering the vote log (same votes,
+  different order) MUST NOT change the result, since a battle's outcome
+  should not depend on which other battles happened to be voted on first.
+  See `docs/methodology.md` for the full derivation and the "why not
+  sequential ELO alone" / "why not TrueSkill" rationale.
+- **R7 — Sequential ELO is a secondary display column.** `EloEntry.elo`
+  (initial 1200, K=32, K=16 after 30 battles, 400-point logistic curve) is
+  kept for continuity with earlier boards but is never the ranking key.
+- **R8 — Bootstrap confidence intervals.** `EloEntry.ci_lower` /
+  `ci_upper` are a seeded bootstrap (§P5: fixed seed ⇒ reproducible) over the
+  human vote log only. The auto-vote seed is held fixed in every bootstrap
+  round — it is a deterministic function of a fixed benchmark corpus, not an
+  i.i.d. sample, so resampling it would not model a real source of
+  uncertainty. A board with fewer than `PROVISIONAL_MIN_HUMAN_VOTES` (10)
+  human votes sets `EloBoard.provisional = true`; the frontend MUST show a
+  provisional badge rather than presenting the ranking as settled.
+- **R9 — Auto/human weighting.** Auto (benchmark-seed) votes carry weight
+  `BT_AUTO_WEIGHT = 1/4` in the Bradley-Terry fit — the same §4 R5 intent as
+  the legacy K/4, expressed as a pairwise weight rather than a K-factor.
+- **R10 — Convergence prior.** Every competitor gets one virtual weighted
+  tie against a fixed-strength "field average" phantom opponent
+  (`PRIOR_WEIGHT = 1.0`). This connects the comparison graph (competitors
+  that never played each other, directly or transitively, still get a
+  well-defined relative order) and guarantees a competitor with zero
+  recorded wins or zero recorded losses converges to a finite, ordered
+  rating rather than collapsing to 0 or diverging to infinity.
 - Human votes: tie and both-wrong score 0.5/0.5.
-- Auto votes (seeding): K/4, outcomes from benchmark metrics only.
+- Auto votes (seeding): K/4 (sequential ELO) / weight 1/4 (Bradley-Terry),
+  outcomes from benchmark metrics only.
 - Separate standings per (modality, lang).
 - **Two human-vote sources, one ladder.** *Blind battles* pair two predictions
   for the same sample. *Free-form votes* are direct subjective preferences
