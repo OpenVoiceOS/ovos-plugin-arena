@@ -72,5 +72,9 @@ No enforced linter config; match the existing style (PEP 8, ~80-90 cols).
 - Commit identity: JarbasAi <jarbasai@mailfence.com>.
 - Reference OpenVoiceOS/gh-automations reusable workflows at `@dev`.
 - No meta-commentary in docs/commits/code — describe current state only.
-- This repo is private until the user flips visibility; never make it public
-  unprompted.
+- This repo is public; the Pages deploy job runs on every build.
+- Work is planned in `ROADMAP.md` (local, gitignored per org rule; durable copy in the workspace wiki under `knowledge/wiki/plans/`) — pick tasks from it and follow each task's
+  test/docs/acceptance requirements. Never push `dev`/`master`: feature branch →
+  draft PR into `dev`. Use `uv`, never `pip`. Run the full test suite locally
+  before opening/undrafting a PR (CI billing may be unavailable) and paste the
+  evidence in the PR description.
