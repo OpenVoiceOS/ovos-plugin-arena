@@ -29,7 +29,7 @@ import importlib.metadata
 import logging
 import time
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from registry.schemas import split_pipeline_stage
 
@@ -48,12 +48,12 @@ class EngineSpec:
 
     import_path: str  # "module:ClassName"
     paradigm: str  # "template" | "keyword"
-    train_message: Optional[str]  # bus message that triggers training
+    train_message: str | None  # bus message that triggers training
     dist: str  # python distribution name, for plugin_version
     short_name: str  # legacy mycroft.conf config key (e.g. "adapt")
 
 
-ENGINE_REGISTRY: Dict[str, EngineSpec] = {
+ENGINE_REGISTRY: dict[str, EngineSpec] = {
     "ovos-padatious-pipeline-plugin": EngineSpec(
         "ovos_padatious.opm:PadatiousPipeline", "template",
         "mycroft.skills.train", "ovos-padatious", "padatious"),
@@ -97,7 +97,7 @@ def plugin_version(plugin_id: str) -> str:
         return plugin_id
 
 
-def expand_template(template: str, slots: List[dict], cap: int = 6) -> List[str]:
+def expand_template(template: str, slots: list[dict], cap: int = 6) -> list[str]:
     """Expand ``{slot}`` placeholders with example values.
 
     Engines that natively parse ``{slot}`` / ``(a|b)`` syntax also receive
@@ -134,7 +134,7 @@ class IntentPipeline:
         BCP-47 language to train and match in.
     """
 
-    def __init__(self, intents_config: Dict[str, Any], lang: str = "en-US"):
+    def __init__(self, intents_config: dict[str, Any], lang: str = "en-US"):
         # Validate the pipeline before touching the OVOS runtime so config
         # errors raise even where the engines are not installed.
         pipeline = intents_config.get("pipeline") or []
@@ -142,7 +142,7 @@ class IntentPipeline:
             raise ValueError("intents config carries no pipeline stages")
 
         self.lang = lang
-        self.stages: List[Tuple[str, str]] = []  # (plugin_id, tier), ordered
+        self.stages: list[tuple[str, str]] = []  # (plugin_id, tier), ordered
         for stage in pipeline:
             plugin_id, tier = split_pipeline_stage(stage)
             if plugin_id not in ENGINE_REGISTRY:
@@ -152,18 +152,17 @@ class IntentPipeline:
                 )
             self.stages.append((plugin_id, tier))
 
-        from ovos_utils.fakebus import FakeBus
-
         # The OPM pipeline plugins read the active language from the global
         # ovos-config singleton, not from their plugin config — set it before
         # instantiation or every non-default language trains zero containers.
         from ovos_config.config import Configuration
+        from ovos_utils.fakebus import FakeBus
         Configuration()["lang"] = lang
 
         # One plugin instance per unique plugin id, shared across tiers,
         # each with its own per-plugin config block from the intents section
-        self.plugins: Dict[str, Any] = {}
-        self.buses: Dict[str, Any] = {}
+        self.plugins: dict[str, Any] = {}
+        self.buses: dict[str, Any] = {}
         for plugin_id, _tier in self.stages:
             if plugin_id in self.plugins:
                 continue
@@ -180,12 +179,12 @@ class IntentPipeline:
             self.buses[plugin_id] = bus
 
     @property
-    def stage_names(self) -> List[str]:
+    def stage_names(self) -> list[str]:
         return [f"{plugin_id}-{tier}" for plugin_id, tier in self.stages]
 
     # -- training ----------------------------------------------------------
 
-    def train(self, train_data: Dict[str, List[dict]]) -> None:
+    def train(self, train_data: dict[str, list[dict]]) -> None:
         """Train every stage plugin from its paradigm's training corpus.
 
         *train_data* maps paradigm → rows in that paradigm's datashape
@@ -216,11 +215,11 @@ class IntentPipeline:
                 except TypeError:
                     pass  # train() signatures vary; bus message already fired
 
-    def _register_templates(self, bus, rows: List[dict]) -> None:
+    def _register_templates(self, bus, rows: list[dict]) -> None:
         from ovos_bus_client.message import Message
 
-        by_intent: Dict[str, List[dict]] = {}
-        entities: Dict[str, List[str]] = {}
+        by_intent: dict[str, list[dict]] = {}
+        entities: dict[str, list[str]] = {}
         for row in rows:
             by_intent.setdefault(row["intent_id"], []).append(row)
             for slot in row.get("slots") or []:
@@ -234,7 +233,7 @@ class IntentPipeline:
             # Raw templates keep the {slot} placeholders for engines that
             # parse them natively (slot capture); the expanded forms give
             # engines without template support concrete utterances.
-            samples: List[str] = []
+            samples: list[str] = []
             for row in intent_rows:
                 template = row.get("template", "")
                 samples.append(template)
@@ -259,7 +258,7 @@ class IntentPipeline:
                 "skill_id": "arena",
             }))
 
-    def _register_keywords(self, bus, rows: List[dict]) -> None:
+    def _register_keywords(self, bus, rows: list[dict]) -> None:
         from ovos_adapt.intent import IntentBuilder
         from ovos_bus_client.message import Message
 
@@ -292,7 +291,7 @@ class IntentPipeline:
 
     def predict(
         self, utterance: str
-    ) -> Tuple[Optional[str], Dict[str, str], Optional[float], float, Optional[str]]:
+    ) -> tuple[str | None, dict[str, str], float | None, float, str | None]:
         """Run one utterance through the cascade.
 
         Returns ``(intent_id, slots, confidence, latency_ms, fired_stage)``;
@@ -337,7 +336,7 @@ class IntentPipeline:
         return match_type
 
     @staticmethod
-    def _extract_slots(match_data: dict) -> Dict[str, str]:
+    def _extract_slots(match_data: dict) -> dict[str, str]:
         """Best-effort slot extraction from IntentHandlerMatch.match_data.
 
         Vocabulary groups named ``*Kw`` are keyword triggers, not slots
@@ -347,7 +346,7 @@ class IntentPipeline:
         if isinstance(entities, dict):
             return {str(k): str(v) for k, v in entities.items()}
 
-        slots: Dict[str, str] = {}
+        slots: dict[str, str] = {}
         # palavreado style: {"keywords": {"<intent>__<group>": [values]}}
         keywords = match_data.get("keywords")
         if isinstance(keywords, dict):

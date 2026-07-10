@@ -2,16 +2,18 @@
 from __future__ import annotations
 
 import json
-import sys
-from pathlib import Path
 
 import pytest
 
-# Ensure registry/ is importable
-REPO_ROOT = Path(__file__).parent.parent
-if str(REPO_ROOT) not in sys.path:
-    sys.path.insert(0, str(REPO_ROOT))
-
+from registry.loaders import (
+    REGISTRY_ROOT,
+    get_competitor_by_alias,
+    list_competitors,
+    list_datasets,
+    list_prediction_repos,
+    load_competitor,
+    load_dataset,
+)
 from registry.schemas import (
     CompetitorDef,
     DatasetDef,
@@ -19,16 +21,6 @@ from registry.schemas import (
     Modality,
     PathSource,
 )
-from registry.loaders import (
-    load_competitor,
-    load_dataset,
-    list_competitors,
-    list_datasets,
-    list_prediction_repos,
-    get_competitor_by_alias,
-    REGISTRY_ROOT,
-)
-
 
 # ---------------------------------------------------------------------------
 # CompetitorDef schema
@@ -195,6 +187,7 @@ class TestLoaders:
 
     def test_intent_competitor_requires_pipeline(self):
         import pytest as _pytest
+
         from registry.schemas import CompetitorDef
         with _pytest.raises(Exception):
             CompetitorDef(
@@ -351,6 +344,7 @@ class TestQueueConfigRegistry:
     def test_inline_job_unchanged(self, tmp_path):
         """Original inline format still works."""
         import textwrap
+
         from runner.queue_config import load_queue
 
         q = tmp_path / "queue.yaml"
@@ -375,6 +369,7 @@ class TestQueueConfigRegistry:
     def test_competitor_ref_job(self, tmp_path):
         """Registry-reference format resolves to correct plugin/config."""
         import textwrap
+
         from runner.queue_config import load_queue
 
         q = tmp_path / "queue.yaml"
@@ -399,6 +394,7 @@ class TestQueueConfigRegistry:
     def test_mixed_competitor_inline_dataset(self, tmp_path):
         """Competitor + inline dataset block."""
         import textwrap
+
         from runner.queue_config import load_queue
 
         q = tmp_path / "queue.yaml"
@@ -419,6 +415,7 @@ class TestQueueConfigRegistry:
 
     def test_competitor_not_found_raises(self, tmp_path):
         import textwrap
+
         from runner.queue_config import load_queue
 
         q = tmp_path / "queue.yaml"

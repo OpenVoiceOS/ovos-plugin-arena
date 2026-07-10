@@ -11,10 +11,9 @@ from __future__ import annotations
 
 import enum
 import hashlib
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field
-
 
 # ---------------------------------------------------------------------------
 # Enums
@@ -98,33 +97,33 @@ class PredictionRow(BaseModel):
     dataset_id: str
     lang: str
     plugin_id: str
-    modality: Optional[str] = None  # league; inferred from fields when absent
+    modality: str | None = None  # league; inferred from fields when absent
     plugin_version: str = ""
-    prediction: Optional[str] = None
+    prediction: str | None = None
     runner_version: str = ""
     created_at: str = ""
     # intent modality
-    utterance: Optional[str] = None
-    reference_intent: Optional[str] = None
-    exact_match: Optional[bool] = None
-    confidence: Optional[float] = None
-    bucket: Optional[str] = None
-    reference_slots: Optional[Dict[str, str]] = None
-    predicted_slots: Optional[Dict[str, str]] = None
+    utterance: str | None = None
+    reference_intent: str | None = None
+    exact_match: bool | None = None
+    confidence: float | None = None
+    bucket: str | None = None
+    reference_slots: dict[str, str] | None = None
+    predicted_slots: dict[str, str] | None = None
     # stt modality
-    reference_text: Optional[str] = None
-    wer: Optional[float] = None
+    reference_text: str | None = None
+    wer: float | None = None
     # tts modality — source text read aloud; ``prediction`` holds the audio ref
-    input_text: Optional[str] = None
+    input_text: str | None = None
     # wake_word modality — ground-truth presence ("positive"/"negative"),
     # ``prediction`` holds the detector decision
-    label: Optional[str] = None
+    label: str | None = None
     # audio stimulus URL for the voter (source clip for stt/wake_word;
     # synthesised clip for tts when ``prediction`` is not itself a URL)
-    audio_url: Optional[str] = None
+    audio_url: str | None = None
     # shared diagnostics
-    latency_ms: Optional[float] = None
-    extras: Dict[str, Any] = Field(default_factory=dict)
+    latency_ms: float | None = None
+    extras: dict[str, Any] = Field(default_factory=dict)
 
 
 # ---------------------------------------------------------------------------
@@ -155,11 +154,11 @@ class Battle(BaseModel):
     lang: str
     sample_id: str
     # candidate payloads — what the voter sees (NO competitor identity)
-    input_text: Optional[str] = None  # utterance (intent) / source text (tts)
-    audio_url: Optional[str] = None  # source audio clip (stt / wake_word)
-    reference: Optional[str] = None  # gold label / reference transcript
-    prediction_a: Optional[Any] = None
-    prediction_b: Optional[Any] = None
+    input_text: str | None = None  # utterance (intent) / source text (tts)
+    audio_url: str | None = None  # source audio clip (stt / wake_word)
+    reference: str | None = None  # gold label / reference transcript
+    prediction_a: Any | None = None
+    prediction_b: Any | None = None
     # identity — revealed by the UI only after the vote is cast
     competitor_a: str
     competitor_b: str
@@ -174,14 +173,14 @@ class BattlesPool(BaseModel):
     dataset_id: str
     lang: str
     generated_at: str
-    dataset_info: Optional[Dict[str, Any]] = Field(
+    dataset_info: dict[str, Any] | None = Field(
         None,
         description=(
             "Registry metadata for the eval corpus, including the "
             "paradigm-specific training corpora the fighters trained on."
         ),
     )
-    battles: List[Battle] = Field(default_factory=list)
+    battles: list[Battle] = Field(default_factory=list)
 
 
 # ---------------------------------------------------------------------------
@@ -196,7 +195,7 @@ class BenchmarkEntry(BaseModel):
     competitor_id: str
     plugin_id: str = ""
     samples: int = 0
-    metrics: Dict[str, float] = Field(default_factory=dict)
+    metrics: dict[str, float] = Field(default_factory=dict)
 
 
 class BenchmarkBoard(BaseModel):
@@ -207,14 +206,14 @@ class BenchmarkBoard(BaseModel):
     lang: str
     generated_at: str
     primary_metric: str
-    dataset_info: Optional[Dict[str, Any]] = Field(
+    dataset_info: dict[str, Any] | None = Field(
         None,
         description=(
             "Registry metadata for the eval corpus: url, license, notes, "
             "and the HF predictions repo(s) the board was assembled from."
         ),
     )
-    entries: List[BenchmarkEntry] = Field(default_factory=list)
+    entries: list[BenchmarkEntry] = Field(default_factory=list)
 
 
 class EloEntry(BaseModel):
@@ -241,7 +240,7 @@ class EloBoard(BaseModel):
     generated_at: str
     vote_count: int = 0
     human_vote_count: int = 0
-    entries: List[EloEntry] = Field(default_factory=list)
+    entries: list[EloEntry] = Field(default_factory=list)
 
 
 class EloSeed(BaseModel):
@@ -254,9 +253,9 @@ class EloSeed(BaseModel):
     lang: str
     generated_at: str
     auto_vote_count: int = 0
-    ratings: Dict[str, float] = Field(default_factory=dict)
-    battles: Dict[str, int] = Field(default_factory=dict)
-    wins: Dict[str, int] = Field(default_factory=dict)
-    losses: Dict[str, int] = Field(default_factory=dict)
-    ties: Dict[str, int] = Field(default_factory=dict)
-    competitor_plugin: Dict[str, str] = Field(default_factory=dict)
+    ratings: dict[str, float] = Field(default_factory=dict)
+    battles: dict[str, int] = Field(default_factory=dict)
+    wins: dict[str, int] = Field(default_factory=dict)
+    losses: dict[str, int] = Field(default_factory=dict)
+    ties: dict[str, int] = Field(default_factory=dict)
+    competitor_plugin: dict[str, str] = Field(default_factory=dict)

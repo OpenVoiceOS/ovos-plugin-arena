@@ -33,7 +33,6 @@ import json
 import logging
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, Optional
 
 from registry.loaders import load_all_competitors
 
@@ -41,7 +40,7 @@ log = logging.getLogger("migrate-intent")
 
 # Legacy single-engine pipeline dir -> arena competitor_id. Only unambiguous
 # one-engine mappings; cascades are intentionally excluded.
-PIPELINE_TO_COMPETITOR: Dict[str, str] = {
+PIPELINE_TO_COMPETITOR: dict[str, str] = {
     "padacioso_only": "padacioso-medium",
     "padatious_only": "padatious-medium",
     "nebulento_only": "nebulento-medium",
@@ -55,7 +54,7 @@ PIPELINE_TO_COMPETITOR: Dict[str, str] = {
 }
 
 # Legacy dataset dir name -> arena dataset_id.
-DATASET_MAP: Dict[str, str] = {
+DATASET_MAP: dict[str, str] = {
     "intents_for_eval": "intents-for-eval",
     "massive_templates": "massive-templates",
 }
@@ -73,7 +72,7 @@ def _sample_id(lang: str, utterance: str) -> str:
     return f"{lang}/m{digest}"
 
 
-def _clean_slots(slots: Optional[dict]) -> Optional[dict]:
+def _clean_slots(slots: dict | None) -> dict | None:
     """Drop null/empty slot values (legacy rows pad every slot key with null)."""
     if not slots:
         return None

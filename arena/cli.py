@@ -32,7 +32,7 @@ import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from arena.assembler import assemble_battles, freeform_battles, seed_elo
 from arena.elo import EloLedger
@@ -71,7 +71,7 @@ def _now_iso() -> str:
 # ---------------------------------------------------------------------------
 
 
-def parse_vote_title(title: str) -> Optional[Tuple[str, str]]:
+def parse_vote_title(title: str) -> tuple[str, str] | None:
     """Parse ``vote|<battle_id>|<choice>`` — returns (battle_id, choice) or None."""
     m = VOTE_TITLE_RE.match(title.strip())
     if not m:
@@ -79,10 +79,10 @@ def parse_vote_title(title: str) -> Optional[Tuple[str, str]]:
     return m.group("battle_id"), m.group("choice").lower()
 
 
-def dedupe_votes(raw_votes: List[Dict]) -> List[Dict]:
+def dedupe_votes(raw_votes: list[dict]) -> list[dict]:
     """Keep the first vote per (author, battle_id), ordered by issue number."""
     seen: set = set()
-    out: List[Dict] = []
+    out: list[dict] = []
     ordered = sorted(
         raw_votes, key=lambda v: (v["issue_number"], v.get("created_at", ""))
     )
@@ -99,9 +99,9 @@ def dedupe_votes(raw_votes: List[Dict]) -> List[Dict]:
 # ---------------------------------------------------------------------------
 
 
-def load_battles_pools(data_dir: Path) -> Dict[str, Dict[str, Any]]:
+def load_battles_pools(data_dir: Path) -> dict[str, dict[str, Any]]:
     """Map battle_id → battle dict from every ``battles-*.json`` pool."""
-    battles: Dict[str, Dict[str, Any]] = {}
+    battles: dict[str, dict[str, Any]] = {}
     for path in sorted(data_dir.glob("battles-*.json")):
         try:
             payload = json.loads(path.read_text())
@@ -112,9 +112,9 @@ def load_battles_pools(data_dir: Path) -> Dict[str, Dict[str, Any]]:
     return battles
 
 
-def load_elo_seeds(data_dir: Path) -> Dict[Tuple[str, str], EloSeed]:
+def load_elo_seeds(data_dir: Path) -> dict[tuple[str, str], EloSeed]:
     """Map (modality, lang) → EloSeed from every ``elo-seed-*.json``."""
-    seeds: Dict[Tuple[str, str], EloSeed] = {}
+    seeds: dict[tuple[str, str], EloSeed] = {}
     for path in sorted(data_dir.glob("elo-seed-*.json")):
         try:
             seed = EloSeed(**json.loads(path.read_text()))
@@ -140,9 +140,9 @@ def _ledger_from_seed(seed: EloSeed) -> EloLedger:
 def build_elo_board(
     modality: str,
     lang: str,
-    seed: Optional[EloSeed],
-    human_votes: List[Dict],
-    battles_pool: Dict[str, Dict[str, Any]],
+    seed: EloSeed | None,
+    human_votes: list[dict],
+    battles_pool: dict[str, dict[str, Any]],
 ) -> EloBoard:
     """Replay *human_votes* (ordered) on top of *seed* and rank the result."""
     ledger = _ledger_from_seed(seed) if seed else EloLedger()
@@ -192,7 +192,7 @@ def build_elo_board(
     )
 
 
-def _unchanged(path: Path, payload: Dict[str, Any]) -> bool:
+def _unchanged(path: Path, payload: dict[str, Any]) -> bool:
     """True when *payload* matches the file on disk apart from ``generated_at``.
 
     Keeps artifact timestamps stable: an identical regeneration is not
@@ -212,7 +212,7 @@ def _unchanged(path: Path, payload: Dict[str, Any]) -> bool:
             == {k: v for k, v in payload.items() if k != drop})
 
 
-def _write_json_payload(path: Path, payload: Dict[str, Any]) -> None:
+def _write_json_payload(path: Path, payload: dict[str, Any]) -> None:
     if _unchanged(path, payload):
         log.info("Unchanged %s", path)
         return
@@ -229,9 +229,9 @@ def _write_json(path: Path, model) -> None:
 # ---------------------------------------------------------------------------
 
 
-def _dataset_info_lookup(prediction_sources: List[str]) -> Dict[str, Dict[str, Any]]:
+def _dataset_info_lookup(prediction_sources: list[str]) -> dict[str, dict[str, Any]]:
     """Registry metadata per dataset_id, for the benchmark board UI."""
-    info: Dict[str, Dict[str, Any]] = {}
+    info: dict[str, dict[str, Any]] = {}
     try:
         from registry.loaders import list_datasets
     except ImportError:
@@ -240,7 +240,7 @@ def _dataset_info_lookup(prediction_sources: List[str]) -> Dict[str, Dict[str, A
     datasets = list_datasets()
     by_id = {d.dataset_id: d for d in datasets}
     for dataset in datasets:
-        entry: Dict[str, Any] = {}
+        entry: dict[str, Any] = {}
         hf_id = getattr(dataset.source, "hf_id", None)
         if hf_id:
             entry["url"] = f"https://huggingface.co/datasets/{hf_id}"
@@ -250,13 +250,13 @@ def _dataset_info_lookup(prediction_sources: List[str]) -> Dict[str, Dict[str, A
             entry["notes"] = dataset.notes
         own_repos = [r for r in hf_repos
                      if r.endswith(f"-bench-{dataset.dataset_id}")]
-        if getattr(dataset, "predictions_hf", None):
+        if dataset.predictions_hf:
             own_repos = sorted(set(own_repos) | {dataset.predictions_hf})
         if own_repos:
             entry["predictions"] = [
                 f"https://huggingface.co/datasets/{r}" for r in own_repos]
         if dataset.train_datasets:
-            trains: Dict[str, Any] = {}
+            trains: dict[str, Any] = {}
             for paradigm, train_id in dataset.train_datasets.items():
                 train_def = by_id.get(train_id)
                 train_hf = (getattr(train_def.source, "hf_id", None)
@@ -307,7 +307,7 @@ def cmd_assemble(args: argparse.Namespace) -> int:
     for (modality, dataset_id, lang), samples in sorted(grouped.items()):
         if args.modality and modality != args.modality:
             continue
-        by_competitor: Dict[str, List] = {}
+        by_competitor: dict[str, list] = {}
         for sample_rows in samples.values():
             for competitor_id, row in sample_rows.items():
                 by_competitor.setdefault(competitor_id, []).append(row)
@@ -318,8 +318,8 @@ def cmd_assemble(args: argparse.Namespace) -> int:
     # Battles + ELO pool by battle group: every plugin that answered the same
     # stimulus in a language competes, so the intent paradigm leagues merge into
     # one open arena (battles across all plugins, same language).
-    battle_samples: Dict[Tuple[str, str, str], Dict[str, Dict[str, Any]]] = {}
-    elo_samples: Dict[Tuple[str, str], Dict[str, Dict[str, Dict[str, Any]]]] = {}
+    battle_samples: dict[tuple[str, str, str], dict[str, dict[str, Any]]] = {}
+    elo_samples: dict[tuple[str, str], dict[str, dict[str, dict[str, Any]]]] = {}
     for (modality, dataset_id, lang), samples in grouped.items():
         if args.modality and modality != args.modality:
             continue
@@ -371,15 +371,15 @@ def cmd_assemble(args: argparse.Namespace) -> int:
         # Bootstrap the ELO board when none exists yet; `tally` owns it after
         board_path = data_dir / f"leaderboard-{group}-{lang}.json"
         if not board_path.exists():
-            board = build_elo_board(group, lang, seed, [], {})
-            _write_json(board_path, board)
+            elo_board = build_elo_board(group, lang, seed, [], {})
+            _write_json(board_path, elo_board)
 
     return 0
 
 
-def _wakeword_phrases() -> Dict[str, str]:
+def _wakeword_phrases() -> dict[str, str]:
     """Map each wake-word competitor id → its phrase (its hotword config key)."""
-    phrases: Dict[str, str] = {}
+    phrases: dict[str, str] = {}
     try:
         from registry.loaders import list_competitors
     except ImportError:
@@ -413,7 +413,7 @@ def _clean_merged_artifacts(data_dir: Path, modalities: set) -> None:
 # ---------------------------------------------------------------------------
 
 
-def fetch_vote_issues(repo: str) -> List[Dict]:
+def fetch_vote_issues(repo: str) -> list[dict]:
     """List open ``vote``-labelled issues via the gh CLI."""
     result = subprocess.run(
         ["gh", "issue", "list",
@@ -456,14 +456,14 @@ def cmd_tally(args: argparse.Namespace) -> int:
     seeds = load_elo_seeds(data_dir)
     log.info("Loaded %d battles, %d ELO seeds", len(battles_pool), len(seeds))
 
-    issues: List[Dict] = []
+    issues: list[dict] = []
     if args.repo:
         log.info("Fetching vote issues from %s …", args.repo)
         issues = fetch_vote_issues(args.repo)
         log.info("  → %d open vote issues", len(issues))
 
-    raw_votes: List[Dict] = []
-    invalid: List[Tuple[int, str]] = []
+    raw_votes: list[dict] = []
+    invalid: list[tuple[int, str]] = []
     for issue in issues:
         number = issue["number"]
         author = (issue.get("author") or {}).get("login", "unknown")
@@ -494,7 +494,7 @@ def cmd_tally(args: argparse.Namespace) -> int:
 
     if votes:
         # Group votes per (modality, lang) board
-        votes_by_board: Dict[Tuple[str, str], List[Dict]] = {}
+        votes_by_board: dict[tuple[str, str], list[dict]] = {}
         for vote in votes:
             battle = battles_pool[vote["battle_id"]]
             key = (battle["modality"], battle["lang"])
@@ -541,7 +541,7 @@ def cmd_tally(args: argparse.Namespace) -> int:
 # ---------------------------------------------------------------------------
 
 
-def _index_entry(path: Path, count_key: str) -> Dict[str, Any]:
+def _index_entry(path: Path, count_key: str) -> dict[str, Any]:
     payload = json.loads(path.read_text())
     counts = {
         "leaderboards": len(payload.get("entries", [])),
@@ -561,7 +561,7 @@ def _index_entry(path: Path, count_key: str) -> Dict[str, Any]:
 
 def cmd_export_index(args: argparse.Namespace) -> int:
     data_dir = Path(args.data_dir)
-    index: Dict[str, Any] = {"generated_at": _now_iso()}
+    index: dict[str, Any] = {"generated_at": _now_iso()}
     for key in ("leaderboards", "benchmarks", "battles_pools", "freeform_pools"):
         index[key] = []
     for path in sorted(data_dir.glob("leaderboard-*.json")):

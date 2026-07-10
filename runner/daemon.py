@@ -17,7 +17,6 @@ import os
 import sys
 import time
 from pathlib import Path
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +29,7 @@ def run_daemon(
     flush_every: int = 100,
     sleep_seconds: int = 300,
     ort_threads: int = 1,
-    hf_token: Optional[str] = None,
+    hf_token: str | None = None,
     publish: bool = True,
 ) -> None:
     """Main daemon loop.  Never returns under normal operation."""

@@ -24,7 +24,6 @@ import json
 import logging
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import List, Optional
 
 from arena.version import __version__ as ARENA_VERSION
 from registry.loaders import load_all_competitors, load_dataset
@@ -142,11 +141,11 @@ def make_row(
     lang: str,
     sample_index: int,
     test_row: dict,
-    prediction: Optional[str],
+    prediction: str | None,
     slots: dict,
-    confidence: Optional[float],
+    confidence: float | None,
     latency_ms: float,
-    stage: Optional[str],
+    stage: str | None,
     dataset_revision: str,
 ) -> dict:
     reference_intent = test_row.get("expected_intent")
@@ -261,7 +260,7 @@ def run_competitor_lang(
 # ---------------------------------------------------------------------------
 
 
-def _dataset_card(modality: str, dataset_id: str, eval_def, langs: List[str]) -> str:
+def _dataset_card(modality: str, dataset_id: str, eval_def, langs: list[str]) -> str:
     configs = "\n".join(
         f"  - split: {split_name(lang)}\n"
         f"    path: predictions/{lang}/*.jsonl"

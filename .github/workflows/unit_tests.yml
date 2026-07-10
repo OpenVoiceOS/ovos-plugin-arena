@@ -21,3 +21,15 @@ jobs:
     with:
       install_extras: "test"
       test_path: "tests/"
+
+  lint:
+    uses: OpenVoiceOS/gh-automations/.github/workflows/lint.yml@dev
+    with:
+      ruff_args: "."
+
+  type_check:
+    uses: OpenVoiceOS/gh-automations/.github/workflows/type-check.yml@dev
+    with:
+      mypy_args: "arena registry"
+      test_extras: "lint"
+      test_extras_fallback: "test"

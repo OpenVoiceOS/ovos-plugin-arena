@@ -21,8 +21,9 @@ from __future__ import annotations
 import inspect
 import logging
 import time
+from collections.abc import Iterator
 from dataclasses import dataclass
-from typing import Any, Iterator, Optional, Tuple
+from typing import Any
 
 from runner.audio_io import (
     stream_audio_dataset,
@@ -86,8 +87,8 @@ class WWStack:
     """
 
     ww: Any
-    vad: Optional[Any] = None
-    verifier: Optional[Any] = None
+    vad: Any | None = None
+    verifier: Any | None = None
 
 
 class WakeWordBench(MediaBenchAdapter):
@@ -97,7 +98,7 @@ class WakeWordBench(MediaBenchAdapter):
 
     def iter_samples(
         self, dataset_def, lang: str, revision: str, max_samples: int
-    ) -> Iterator[Tuple[str, dict]]:
+    ) -> Iterator[tuple[str, dict]]:
         source = dataset_def.source
         fields = dataset_def.reference_fields or {}
         if getattr(dataset_def, "wakeword", None):
@@ -171,7 +172,7 @@ def _load_verifier(config: dict):
     return clazz(dict(ver_cfg))
 
 
-def _detect_stack(stack: "WWStack", array) -> bool:
+def _detect_stack(stack: WWStack, array) -> bool:
     """Run a clip through the full pre-VAD → wake-word → verifier stack.
 
     Pre-wake VAD gates the clip: if the VAD hears no speech, the detector never

@@ -4,7 +4,6 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Set
 
 
 @dataclass
@@ -57,7 +56,7 @@ class JobManifest:
     """Tracks which (sample_id) have been completed for one job."""
 
     job_key: str           # "{plugin_name}|{model_name}|{dataset_id}"
-    done_ids: Set[str] = field(default_factory=set)
+    done_ids: set[str] = field(default_factory=set)
     output_file: str = ""  # path to the .jsonl output
 
     # ------------------------------------------------------------------
@@ -70,7 +69,7 @@ class JobManifest:
         return base_dir / f"manifest_{safe}.json"
 
     @classmethod
-    def load(cls, base_dir: Path, job_key: str) -> "JobManifest":
+    def load(cls, base_dir: Path, job_key: str) -> JobManifest:
         path = cls._manifest_path(base_dir, job_key)
         if path.exists():
             data = json.loads(path.read_text())

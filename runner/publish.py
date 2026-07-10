@@ -10,7 +10,6 @@ from __future__ import annotations
 import logging
 import re
 from pathlib import Path
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -36,8 +35,8 @@ def _next_shard_index(api, repo_id: str, stem: str) -> int:
 def publish_output(
     output_file: Path,
     hf_repo: str,
-    token: Optional[str] = None,
-    commit_message: Optional[str] = None,
+    token: str | None = None,
+    commit_message: str | None = None,
 ) -> list[str]:
     """
     Upload *output_file* to *hf_repo* as one or more shards.

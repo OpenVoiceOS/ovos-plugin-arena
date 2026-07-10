@@ -22,7 +22,6 @@ from __future__ import annotations
 
 import itertools
 import logging
-from typing import Dict, List, Optional, Tuple
 
 from arena.elo import EloLedger
 from arena.metrics import row_is_correct, row_wer, ww_row_correct
@@ -45,7 +44,7 @@ DEFAULT_MAX_BATTLES = 200
 # ---------------------------------------------------------------------------
 
 
-def _is_correct(row: PredictionRow, modality: str) -> Optional[bool]:
+def _is_correct(row: PredictionRow, modality: str) -> bool | None:
     """Reference-metric correctness for one row, if computable."""
     if is_intent_modality(modality):
         return row_is_correct(row)
@@ -59,7 +58,7 @@ def _is_correct(row: PredictionRow, modality: str) -> Optional[bool]:
 
 def auto_outcome(
     row_a: PredictionRow, row_b: PredictionRow, modality: str
-) -> Optional[VoteOutcome]:
+) -> VoteOutcome | None:
     """Benchmark-derived outcome of A vs B, or None when there is no signal."""
     if modality == "stt":
         wer_a, wer_b = row_wer(row_a), row_wer(row_b)
@@ -90,7 +89,7 @@ def _battle_priority(
 def _payload(row: PredictionRow, modality: str):
     """What the voter sees for one candidate."""
     if is_intent_modality(modality):
-        out = {"intent": row.prediction}
+        out: dict[str, object] = {"intent": row.prediction}
         if row.predicted_slots:
             out["slots"] = row.predicted_slots
         return out
@@ -125,9 +124,9 @@ def assemble_battles(
     modality: str,
     dataset_id: str,
     lang: str,
-    samples: Dict[str, Dict[str, PredictionRow]],
+    samples: dict[str, dict[str, PredictionRow]],
     max_battles: int = DEFAULT_MAX_BATTLES,
-) -> List[Battle]:
+) -> list[Battle]:
     """Assemble a deterministic battle pool from grouped prediction rows.
 
     *samples* maps ``sample_id`` → ``competitor_id`` → row.  Pairs whose
@@ -135,7 +134,7 @@ def assemble_battles(
     pool interleaves competitor pairs so no single pair dominates, and
     prefers discriminative samples within each pair.
     """
-    candidates: Dict[Tuple[str, str], List[Tuple[int, str, Battle]]] = {}
+    candidates: dict[tuple[str, str], list[tuple[int, str, Battle]]] = {}
 
     for sample_id in sorted(samples):
         rows = samples[sample_id]
@@ -170,15 +169,15 @@ def assemble_battles(
                 plugin_b=row_b.plugin_id,
             )
             priority = _battle_priority(row_a, row_b, modality)
-            pair = tuple(sorted((comp_a, comp_b)))
-            candidates.setdefault(pair, []).append((priority, bid, battle))
+            pair_a, pair_b = sorted((comp_a, comp_b))
+            candidates.setdefault((pair_a, pair_b), []).append((priority, bid, battle))
 
     # Sort within each pair by (priority, battle_id) — deterministic
     for pair_candidates in candidates.values():
         pair_candidates.sort(key=lambda c: (c[0], c[1]))
 
     # Round-robin across pairs (sorted) until the cap is hit
-    battles: List[Battle] = []
+    battles: list[Battle] = []
     queues = [candidates[pair] for pair in sorted(candidates)]
     while queues and len(battles) < max_battles:
         next_queues = []
@@ -203,9 +202,9 @@ def assemble_battles(
 
 
 def freeform_battles(
-    group: str, lang: str, competitor_plugin: Dict[str, str],
-    subgroups: Optional[Dict[str, str]] = None,
-) -> List[Battle]:
+    group: str, lang: str, competitor_plugin: dict[str, str],
+    subgroups: dict[str, str] | None = None,
+) -> list[Battle]:
     """Every competitor pair as a stimulus-less matchup for direct voting.
 
     A free-form vote is a subjective head-to-head ("which plugin do you
@@ -219,7 +218,7 @@ def freeform_battles(
     comparable (you cannot prefer a 'hey jarvis' detector over a 'computer'
     detector).
     """
-    battles: List[Battle] = []
+    battles: list[Battle] = []
     for comp_a, comp_b in itertools.combinations(sorted(competitor_plugin), 2):
         if subgroups and subgroups.get(comp_a) != subgroups.get(comp_b):
             continue
@@ -246,7 +245,7 @@ def freeform_battles(
 def seed_elo(
     modality: str,
     lang: str,
-    samples_by_dataset: Dict[str, Dict[str, Dict[str, PredictionRow]]],
+    samples_by_dataset: dict[str, dict[str, dict[str, PredictionRow]]],
     generated_at: str,
 ) -> EloSeed:
     """Derive the initial ELO ledger from benchmark metrics.
@@ -255,7 +254,7 @@ def seed_elo(
     reference metric picks a winner, in deterministic order, at reduced K.
     """
     ledger = EloLedger()
-    competitor_plugin: Dict[str, str] = {}
+    competitor_plugin: dict[str, str] = {}
     auto_votes = 0
 
     for dataset_id in sorted(samples_by_dataset):

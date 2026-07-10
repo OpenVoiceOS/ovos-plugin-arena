@@ -13,14 +13,14 @@ Usage::
     all_stt = list_competitors("stt")
 """
 
-from registry.schemas import CompetitorDef, DatasetDef, DatasetSource
 from registry.loaders import (
-    load_competitor,
-    load_dataset,
+    REGISTRY_ROOT,
     list_competitors,
     list_datasets,
-    REGISTRY_ROOT,
+    load_competitor,
+    load_dataset,
 )
+from registry.schemas import CompetitorDef, DatasetDef, DatasetSource
 
 __all__ = [
     "CompetitorDef",

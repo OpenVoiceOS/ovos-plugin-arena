@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Iterator, Tuple
+from collections.abc import Iterator
 
 from runner.audio_io import stream_vad
 from runner.media_bench import (
@@ -37,7 +37,7 @@ class VADBench(MediaBenchAdapter):
 
     def iter_samples(
         self, dataset_def, lang: str, revision: str, max_samples: int
-    ) -> Iterator[Tuple[str, dict]]:
+    ) -> Iterator[tuple[str, dict]]:
         yield from stream_vad(dataset_def, revision, max_per_class=max_samples)
 
     def load_engine(self, competitor, lang: str):

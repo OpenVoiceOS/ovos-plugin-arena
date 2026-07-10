@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import List, Optional
 
 from registry.schemas import INTENT_MODALITIES, CompetitorDef, DatasetDef
 
@@ -46,9 +45,9 @@ def load_competitor(modality: str, competitor_id: str) -> CompetitorDef:
     return CompetitorDef.model_validate(json.loads(path.read_text()))
 
 
-def list_competitors(modality: Optional[str] = None) -> List[CompetitorDef]:
+def list_competitors(modality: str | None = None) -> list[CompetitorDef]:
     """Return all competitor definitions, optionally filtered by modality."""
-    results: List[CompetitorDef] = []
+    results: list[CompetitorDef] = []
     search_root = _COMPETITORS_DIR if modality is None else _COMPETITORS_DIR / modality
     if not search_root.exists():
         return results
@@ -57,20 +56,20 @@ def list_competitors(modality: Optional[str] = None) -> List[CompetitorDef]:
             results.append(CompetitorDef.model_validate(json.loads(path.read_text())))
         except Exception as exc:
             import warnings
-            warnings.warn(f"Skipping invalid competitor file {path}: {exc}")
+            warnings.warn(f"Skipping invalid competitor file {path}: {exc}", stacklevel=2)
     return results
 
 
 def load_all_competitors(
-    registry_root: Optional[Path] = None,
-) -> List[CompetitorDef]:
+    registry_root: Path | None = None,
+) -> list[CompetitorDef]:
     """Return every competitor definition across all modalities.
 
     *registry_root* overrides the default registry location (used by the
     CLI when run from outside the repo root).
     """
     root = (registry_root or REGISTRY_ROOT) / "competitors"
-    results: List[CompetitorDef] = []
+    results: list[CompetitorDef] = []
     if not root.exists():
         return results
     for path in sorted(root.glob("**/*.json")):
@@ -78,14 +77,14 @@ def load_all_competitors(
             results.append(CompetitorDef.model_validate(json.loads(path.read_text())))
         except Exception as exc:
             import warnings
-            warnings.warn(f"Skipping invalid competitor file {path}: {exc}")
+            warnings.warn(f"Skipping invalid competitor file {path}: {exc}", stacklevel=2)
     return results
 
 
 def get_competitor_by_alias(
     modality: str,
     plugin_id: str,
-) -> Optional[CompetitorDef]:
+) -> CompetitorDef | None:
     """Find a competitor whose plugin field or alias list matches *plugin_id*.
 
     Used by the ingestion layer to re-key legacy ``plugin_id`` values.
@@ -126,9 +125,9 @@ def load_dataset(modality: str, dataset_id: str) -> DatasetDef:
     return DatasetDef.model_validate(json.loads(path.read_text()))
 
 
-def list_datasets(modality: Optional[str] = None) -> List[DatasetDef]:
+def list_datasets(modality: str | None = None) -> list[DatasetDef]:
     """Return all dataset definitions, optionally filtered by modality."""
-    results: List[DatasetDef] = []
+    results: list[DatasetDef] = []
     search_root = _DATASETS_DIR if modality is None else _DATASETS_DIR / modality
     if not search_root.exists():
         return results
@@ -137,11 +136,11 @@ def list_datasets(modality: Optional[str] = None) -> List[DatasetDef]:
             results.append(DatasetDef.model_validate(json.loads(path.read_text())))
         except Exception as exc:
             import warnings
-            warnings.warn(f"Skipping invalid dataset file {path}: {exc}")
+            warnings.warn(f"Skipping invalid dataset file {path}: {exc}", stacklevel=2)
     return results
 
 
-def list_prediction_repos() -> List[str]:
+def list_prediction_repos() -> list[str]:
     """Sorted unique HF prediction repos across all eval datasets.
 
     Each eval dataset names its predictions repo via ``predictions_hf`` —

@@ -28,8 +28,8 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Iterator, List, Optional, Tuple
 
 from arena.version import __version__ as ARENA_VERSION
 from registry.loaders import list_competitors, load_dataset
@@ -60,10 +60,10 @@ class MediaBenchAdapter:
 
     modality: str = ""
     #: HF dataset card tags and one-line task description for the modality.
-    card_tags: Tuple[str, ...] = ()
+    card_tags: tuple[str, ...] = ()
     card_task: str = ""
 
-    def competitor_langs(self, competitor, dataset_langs: List[str]) -> List[str]:
+    def competitor_langs(self, competitor, dataset_langs: list[str]) -> list[str]:
         """Languages to benchmark this competitor in (intersection with data).
 
         Matches on the primary subtag too, so a plugin advertising ``en`` runs
@@ -77,7 +77,7 @@ class MediaBenchAdapter:
 
     def iter_samples(
         self, dataset_def, lang: str, revision: str, max_samples: int
-    ) -> Iterator[Tuple[str, dict]]:
+    ) -> Iterator[tuple[str, dict]]:
         """Yield ``(sample_id, sample)`` for one language of the eval set."""
         raise NotImplementedError
 
@@ -85,7 +85,7 @@ class MediaBenchAdapter:
         """Instantiate the competitor's OVOS plugin for one language."""
         raise NotImplementedError
 
-    def predict(self, engine, sample: dict, ctx: "PredictContext") -> dict:
+    def predict(self, engine, sample: dict, ctx: PredictContext) -> dict:
         """Run one sample → modality-specific §3.2 row fields.
 
         Returns a dict merged into the base row: e.g. ``prediction``,
@@ -196,7 +196,7 @@ def _lang_matches(a: str, b: str) -> bool:
     return a.lower() == b.lower() or _primary(a) == _primary(b)
 
 
-def competitors_for(modality: str, wanted: Optional[set] = None) -> list:
+def competitors_for(modality: str, wanted: set | None = None) -> list:
     """Registry competitors for *modality*, optionally filtered to *wanted* ids."""
     comps = list_competitors(modality)
     if wanted:
@@ -264,7 +264,7 @@ def run_competitor_lang(
 
 
 def dataset_card(
-    adapter: MediaBenchAdapter, dataset_id: str, eval_def, langs: List[str]
+    adapter: MediaBenchAdapter, dataset_id: str, eval_def, langs: list[str]
 ) -> str:
     """Generate the HF dataset card for one modality's predictions repo."""
     configs = "\n".join(

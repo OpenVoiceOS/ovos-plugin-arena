@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Iterator, Tuple
+from collections.abc import Iterator
 
 from runner.audio_io import stream_audio_dataset, stream_manifest_audio
 from runner.media_bench import MediaBenchAdapter, PredictContext, load_plugin_class
@@ -26,7 +26,7 @@ class STTBench(MediaBenchAdapter):
 
     def iter_samples(
         self, dataset_def, lang: str, revision: str, max_samples: int
-    ) -> Iterator[Tuple[str, dict]]:
+    ) -> Iterator[tuple[str, dict]]:
         fields = dataset_def.reference_fields or {}
         audio_key = fields.get("audio", "audio")
         gt_col = fields.get("ground_truth", "transcription")
@@ -75,7 +75,7 @@ class STTBench(MediaBenchAdapter):
         }
 
 
-def _first_hypothesis(result) -> Tuple[str, float]:
+def _first_hypothesis(result) -> tuple[str, float]:
     """Normalise the STT.transcribe return into (text, confidence)."""
     if isinstance(result, list) and result:
         head = result[0]

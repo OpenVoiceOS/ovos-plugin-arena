@@ -20,7 +20,6 @@ from __future__ import annotations
 
 from collections import defaultdict
 from statistics import median
-from typing import Dict, List, Optional
 
 from arena.models import BenchmarkBoard, BenchmarkEntry, PredictionRow
 
@@ -54,12 +53,12 @@ def row_is_correct(row: PredictionRow) -> bool:
     return row.prediction == row.reference_intent
 
 
-def score_intent(rows: List[PredictionRow]) -> Dict[str, float]:
+def score_intent(rows: list[PredictionRow]) -> dict[str, float]:
     """Aggregate intent rows into accuracy / macro-F1 / OOD-FPR / slot metrics."""
-    per_intent: Dict[str, Dict[str, int]] = defaultdict(
+    per_intent: dict[str, dict[str, int]] = defaultdict(
         lambda: {"tp": 0, "fp": 0, "fn": 0}
     )
-    per_bucket: Dict[str, Dict[str, int]] = defaultdict(
+    per_bucket: dict[str, dict[str, int]] = defaultdict(
         lambda: {"correct": 0, "total": 0}
     )
     correct = 0
@@ -67,7 +66,7 @@ def score_intent(rows: List[PredictionRow]) -> Dict[str, float]:
     ood_n = 0
     slot_correct = 0
     slot_total = 0
-    latencies: List[float] = []
+    latencies: list[float] = []
 
     for row in rows:
         bucket = row.bucket or "test"
@@ -106,7 +105,7 @@ def score_intent(rows: List[PredictionRow]) -> Dict[str, float]:
 
     n = len(rows)
     f1s = [_f1(v["tp"], v["fp"], v["fn"]) for v in per_intent.values()]
-    metrics: Dict[str, float] = {
+    metrics: dict[str, float] = {
         "accuracy": round(correct / n, 4) if n else 0.0,
         "macro_f1": round(sum(f1s) / len(f1s), 4) if f1s else 0.0,
     }
@@ -149,10 +148,10 @@ def row_wer(row: PredictionRow) -> float | None:
     return None
 
 
-def score_stt(rows: List[PredictionRow]) -> Dict[str, float]:
+def score_stt(rows: list[PredictionRow]) -> dict[str, float]:
     wers = [w for w in (row_wer(r) for r in rows) if w is not None]
     latencies = [r.latency_ms for r in rows if r.latency_ms is not None]
-    metrics: Dict[str, float] = {}
+    metrics: dict[str, float] = {}
     if wers:
         metrics["wer_mean"] = round(sum(wers) / len(wers), 4)
         metrics["wer_median"] = round(median(wers), 4)
@@ -174,7 +173,7 @@ _WW_POSITIVE = {"positive", "wake", "wakeword", "detected", "hit",
                 "true", "yes", "1", "speech", "voice"}
 
 
-def _ww_is_positive(value: object) -> Optional[bool]:
+def _ww_is_positive(value: object) -> bool | None:
     """Normalise a wake-word label/decision to a boolean, or None if unknown."""
     if value is None:
         return None
@@ -188,17 +187,17 @@ def _ww_is_positive(value: object) -> Optional[bool]:
     return False
 
 
-def ww_reference(row: PredictionRow) -> Optional[bool]:
+def ww_reference(row: PredictionRow) -> bool | None:
     """Ground truth for a wake-word row: was the wake word actually present?"""
     return _ww_is_positive(row.label)
 
 
-def ww_detected(row: PredictionRow) -> Optional[bool]:
+def ww_detected(row: PredictionRow) -> bool | None:
     """Detector decision for a wake-word row: did it fire?"""
     return _ww_is_positive(row.prediction)
 
 
-def ww_row_correct(row: PredictionRow) -> Optional[bool]:
+def ww_row_correct(row: PredictionRow) -> bool | None:
     """Whether one wake-word decision matches the ground-truth label."""
     ref = ww_reference(row)
     pred = ww_detected(row)
@@ -207,7 +206,7 @@ def ww_row_correct(row: PredictionRow) -> Optional[bool]:
     return ref == pred
 
 
-def score_wake_word(rows: List[PredictionRow]) -> Dict[str, float]:
+def score_wake_word(rows: list[PredictionRow]) -> dict[str, float]:
     """Detection metrics for a wake-word competitor.
 
     ``error_rate`` (primary, lower is better) is the share of all samples
@@ -218,7 +217,7 @@ def score_wake_word(rows: List[PredictionRow]) -> Dict[str, float]:
     positives = negatives = 0
     false_accepts = false_rejects = 0
     scored = 0
-    latencies: List[float] = []
+    latencies: list[float] = []
     for row in rows:
         if row.latency_ms is not None:
             latencies.append(row.latency_ms)
@@ -236,7 +235,7 @@ def score_wake_word(rows: List[PredictionRow]) -> Dict[str, float]:
             if pred:
                 false_accepts += 1
 
-    metrics: Dict[str, float] = {}
+    metrics: dict[str, float] = {}
     if scored:
         errors = false_accepts + false_rejects
         metrics["error_rate"] = round(errors / scored, 4)
@@ -268,13 +267,13 @@ def build_benchmark_board(
     modality: str,
     dataset_id: str,
     lang: str,
-    by_competitor: Dict[str, List[PredictionRow]],
+    by_competitor: dict[str, list[PredictionRow]],
     generated_at: str,
 ) -> BenchmarkBoard:
     """Build one benchmark board from per-competitor row lists."""
     scorer = _SCORERS.get(modality)
     primary = PRIMARY_METRIC.get(modality, "accuracy")
-    entries: List[BenchmarkEntry] = []
+    entries: list[BenchmarkEntry] = []
     if scorer is not None:
         for competitor_id, rows in by_competitor.items():
             entries.append(

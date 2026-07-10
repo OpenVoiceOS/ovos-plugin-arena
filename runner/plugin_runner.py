@@ -8,9 +8,8 @@ from __future__ import annotations
 
 import json
 import logging
-import time
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Iterator, Optional, Tuple
 
 from runner.queue_config import DatasetSpec, JobSpec, PluginSpec
 from runner.schema import JobManifest, STTRow
@@ -37,7 +36,7 @@ def _model_id(plugin: PluginSpec) -> str:
 # ---------------------------------------------------------------------------
 
 
-def _entry_id(sample: dict, audio_key: str, entry_id_key: Optional[str]) -> str:
+def _entry_id(sample: dict, audio_key: str, entry_id_key: str | None) -> str:
     if entry_id_key and entry_id_key in sample:
         return sample[entry_id_key]
     audio = sample.get(audio_key, {})
@@ -56,6 +55,7 @@ def _decode_audio_bytes(raw_bytes: bytes, target_sr: int = 16000):
     Returns (array, sample_rate).
     """
     import io
+
     import numpy as np
     import soundfile as sf
 
@@ -93,7 +93,7 @@ def _decode_audio_bytes(raw_bytes: bytes, target_sr: int = 16000):
     return array, sr
 
 
-def _list_parquet_files(hf_repo: str, subset: Optional[str], split: str) -> list:
+def _list_parquet_files(hf_repo: str, subset: str | None, split: str) -> list:
     """Return list of parquet file paths for a HF dataset split."""
     from huggingface_hub import HfApi
     api = HfApi()
@@ -120,7 +120,7 @@ def _list_parquet_files(hf_repo: str, subset: Optional[str], split: str) -> list
     return sorted(candidates)
 
 
-def _stream_dataset(spec: DatasetSpec) -> Iterator[Tuple[str, str, object, int]]:
+def _stream_dataset(spec: DatasetSpec) -> Iterator[tuple[str, str, object, int]]:
     """
     Yield (entry_id, ground_truth, audio_array, sample_rate) per sample.
 
@@ -204,7 +204,7 @@ def _load_plugin(plugin: PluginSpec):
     return clazz(cfg)
 
 
-def _transcribe(stt_instance, array, sample_rate: int, lang: str) -> Tuple[str, float]:
+def _transcribe(stt_instance, array, sample_rate: int, lang: str) -> tuple[str, float]:
     from ovos_plugin_manager.utils.audio import AudioData
 
     audio_data = AudioData.from_array(array, sample_rate=sample_rate, sample_width=2)
@@ -277,9 +277,7 @@ def run_job(
                 if hasattr(signal, "SIGALRM"):
                     signal.alarm(per_sample_timeout)
 
-                t0 = time.perf_counter()
                 text, conf = _transcribe(stt, array, sample_rate, plugin.lang)
-                elapsed = time.perf_counter() - t0
 
                 if hasattr(signal, "SIGALRM"):
                     signal.alarm(0)

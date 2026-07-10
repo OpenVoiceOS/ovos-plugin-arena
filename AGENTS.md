@@ -10,19 +10,28 @@ are GitHub issues. See `README.md` for the data flow and
 ## Setup
 
 ```bash
-pip install -e ".[hf,test]"
+uv sync --extra hf --extra test --extra lint
 cd frontend-static && npm install
 ```
 
 ## Test
 
 ```bash
-python -m pytest tests/ -q          # fast, no network
+uv run pytest tests/ -q                                             # fast, no network
+uv run pytest tests/ -q --cov=arena --cov=registry --cov=runner \
+  --cov-report=term-missing                                         # coverage gate (see pyproject fail_under)
 ```
 
 ## Lint
 
-No enforced linter config; match the existing style (PEP 8, ~80-90 cols).
+```bash
+uv run ruff check .        # style + import order (tool.ruff in pyproject.toml)
+uv run mypy arena registry # strict on arena/registry; runner/ is advisory (ignore_errors)
+```
+
+Run both locally before opening/undrafting a PR — CI billing on this org can be
+unavailable, so the local run is the real gate; paste its output in the PR
+description.
 
 ## Layout
 
@@ -43,7 +52,8 @@ No enforced linter config; match the existing style (PEP 8, ~80-90 cols).
 - `frontend-static/` — Astro site; generated data lives in `public/data/`
   (committed by CI, owned by the workflows).
 - `.github/workflows/` — `assemble.yml` (daily), `tally.yml` (hourly),
-  `pages.yml` (build+deploy), `unit_tests.yml` (gh-automations build-tests).
+  `pages.yml` (build+deploy), `unit_tests.yml` (gh-automations build-tests +
+  lint + type-check, all reusable `@dev`).
 
 ## Gotchas
 
@@ -72,5 +82,8 @@ No enforced linter config; match the existing style (PEP 8, ~80-90 cols).
 - Commit identity: JarbasAi <jarbasai@mailfence.com>.
 - Reference OpenVoiceOS/gh-automations reusable workflows at `@dev`.
 - No meta-commentary in docs/commits/code — describe current state only.
-- This repo is private until the user flips visibility; never make it public
-  unprompted.
+- This repo is public; the Pages deploy job runs on every build.
+- Work is planned in `ROADMAP.md` (local file, not committed — see
+  `.gitignore`; durable copy in the workspace wiki at
+  `knowledge/wiki/plans/roadmap-plugin-arena.md`). Pick tasks from it and
+  follow each task's test/docs/acceptance requirements.

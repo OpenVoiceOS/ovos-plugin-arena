@@ -40,8 +40,13 @@ audio = [
 ]
 test = [
     "pytest>=7.4",
+    "pytest-cov>=4.1",
     "huggingface_hub>=0.24",
     "numpy",
+]
+lint = [
+    "ruff>=0.6",
+    "mypy>=1.10",
 ]
 
 [project.scripts]
@@ -58,3 +63,32 @@ testpaths = ["tests"]
 markers = [
     "network: tests that hit external services (HuggingFace, GitHub)",
 ]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+exclude = ["frontend-static", "predictions"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["B017"]  # pydantic raises plain ValidationError/ValueError in tests; pytest.raises(Exception) is intentional
+
+[tool.mypy]
+plugins = ["pydantic.mypy"]
+check_untyped_defs = true
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["arena.elo", "arena.models", "registry.schemas"]
+disallow_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = ["runner.*"]
+ignore_errors = true
+
+[tool.coverage.run]
+source = ["arena", "registry", "runner"]
+omit = ["runner/migrate/*", "benchmarks/*"]
+
+[tool.coverage.report]
+fail_under = 56

@@ -49,7 +49,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import yaml
 
@@ -60,10 +60,10 @@ class DatasetSpec:
 
     hf_repo: str
     split: str = "train"
-    subset: Optional[str] = None
+    subset: str | None = None
     ground_truth_key: str = "transcription"
     audio_key: str = "audio"
-    entry_id_key: Optional[str] = None  # if None, derived from audio path
+    entry_id_key: str | None = None  # if None, derived from audio path
     trust_remote_code: bool = False
     # Maximum samples to process per run (0 = all)
     max_samples: int = 0
@@ -86,9 +86,9 @@ class PluginSpec:
     plugin_name: str
     model_name: str
     lang: str
-    extra_config: Dict[str, Any] = field(default_factory=dict)
+    extra_config: dict[str, Any] = field(default_factory=dict)
     # Populated when loaded from a competitor file (None for inline jobs)
-    competitor_id: Optional[str] = None
+    competitor_id: str | None = None
 
 
 @dataclass
@@ -99,9 +99,9 @@ class JobSpec:
     dataset: DatasetSpec
     hf_output_dataset: str  # e.g. "OpenVoiceOS/ovos-stt-bench-pt-PT"
     # Set when this job was loaded from a competitor registry file
-    competitor_id: Optional[str] = None
+    competitor_id: str | None = None
     # Set when this job was loaded from a dataset registry file
-    dataset_registry_id: Optional[str] = None
+    dataset_registry_id: str | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -138,8 +138,8 @@ def _load_dataset(d: dict) -> DatasetSpec:
 
 def _plugin_from_competitor(
     competitor_id: str,
-    registry_root: Optional[Path] = None,
-    lang_override: Optional[str] = None,
+    registry_root: Path | None = None,
+    lang_override: str | None = None,
 ) -> PluginSpec:
     """Load a PluginSpec from ``registry/competitors/<modality>/<id>.json``.
 
@@ -147,7 +147,7 @@ def _plugin_from_competitor(
     """
     root = registry_root or _default_registry_root()
     comp_dir = root / "competitors"
-    path: Optional[Path] = None
+    path: Path | None = None
     for mod_dir in sorted(comp_dir.iterdir()) if comp_dir.exists() else []:
         candidate = mod_dir / f"{competitor_id}.json"
         if candidate.exists():
@@ -176,13 +176,13 @@ def _plugin_from_competitor(
 
 def _dataset_spec_from_registry(
     dataset_id: str,
-    registry_root: Optional[Path] = None,
+    registry_root: Path | None = None,
     max_samples: int = 0,
 ) -> DatasetSpec:
     """Load a DatasetSpec from ``registry/datasets/<modality>/<id>.json``."""
     root = registry_root or _default_registry_root()
     ds_dir = root / "datasets"
-    path: Optional[Path] = None
+    path: Path | None = None
     for mod_dir in sorted(ds_dir.iterdir()) if ds_dir.exists() else []:
         candidate = mod_dir / f"{dataset_id}.json"
         if candidate.exists():
@@ -226,20 +226,20 @@ def _default_registry_root() -> Path:
 
 def load_queue(
     path: str | Path,
-    registry_root: Optional[Path] = None,
-) -> List[JobSpec]:
+    registry_root: Path | None = None,
+) -> list[JobSpec]:
     """Parse a queue YAML file and return a list of JobSpec objects.
 
     Accepts both the original inline format and the new registry-reference
     format.  A job may mix the two (e.g. ``competitor`` + inline ``dataset``).
     """
     raw = yaml.safe_load(Path(path).read_text())
-    jobs: List[JobSpec] = []
+    jobs: list[JobSpec] = []
     rr = registry_root  # may be None — loaders fall back to default
 
     for entry in raw.get("jobs", []):
-        competitor_id: Optional[str] = entry.get("competitor")
-        dataset_ref: Optional[str] = entry.get("dataset_ref")
+        competitor_id: str | None = entry.get("competitor")
+        dataset_ref: str | None = entry.get("dataset_ref")
         max_samples: int = int(entry.get("max_samples", 0))
 
         # Resolve plugin spec

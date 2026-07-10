@@ -9,7 +9,7 @@ arena core and tests do not pull in audio stacks.
 from __future__ import annotations
 
 import logging
-from typing import Dict, Iterable, Iterator, List, Optional, Tuple
+from collections.abc import Iterable, Iterator
 
 logger = logging.getLogger(__name__)
 
@@ -54,8 +54,8 @@ def decode_audio_bytes(raw_bytes: bytes, target_sr: int = TARGET_SR):
     return array, sr
 
 
-def _parquet_files(hf_repo: str, subset: Optional[str], split: str,
-                   revision: str) -> List[str]:
+def _parquet_files(hf_repo: str, subset: str | None, split: str,
+                   revision: str) -> list[str]:
     from huggingface_hub import HfApi
 
     files = list(HfApi().list_repo_files(hf_repo, repo_type="dataset",
@@ -70,7 +70,7 @@ def _parquet_files(hf_repo: str, subset: Optional[str], split: str,
 
 
 def _sample_id(sample: dict, audio_cell, audio_key: str,
-               id_key: Optional[str], index: int) -> str:
+               id_key: str | None, index: int) -> str:
     if id_key and sample.get(id_key) is not None:
         return str(sample[id_key])
     if isinstance(audio_cell, dict):
@@ -84,7 +84,7 @@ def _sample_id(sample: dict, audio_cell, audio_key: str,
 _AUDIO_EXT = (".wav", ".flac", ".mp3", ".ogg", ".opus", ".m4a")
 
 
-def _even(paths: List[str], cap: int) -> List[str]:
+def _even(paths: list[str], cap: int) -> list[str]:
     """Pick *cap* paths evenly spaced across the sorted list (deterministic).
 
     Striding spans the full range — across TTS voices within a folder and
@@ -97,7 +97,7 @@ def _even(paths: List[str], cap: int) -> List[str]:
     return [paths[int(i * step)] for i in range(cap)]
 
 
-def _repo_audio(hf_id: str, revision: str) -> List[str]:
+def _repo_audio(hf_id: str, revision: str) -> list[str]:
     from huggingface_hub import HfApi
 
     return [f for f in HfApi().list_repo_files(hf_id, repo_type="dataset",
@@ -105,7 +105,7 @@ def _repo_audio(hf_id: str, revision: str) -> List[str]:
             if f.lower().endswith(_AUDIO_EXT) and "/" in f]
 
 
-def _all_audio(hf_id: str, revision: str, subdir: Optional[str] = None) -> List[str]:
+def _all_audio(hf_id: str, revision: str, subdir: str | None = None) -> list[str]:
     """Every audio file in a repo (root-level too), optionally under *subdir*."""
     from huggingface_hub import HfApi
 
@@ -179,7 +179,7 @@ def _pool_negatives(sources, max_per_class):
 
 
 def stream_vad(dataset_def, revision: str, max_per_class: int = 0
-               ) -> Iterator[Tuple[str, dict]]:
+               ) -> Iterator[tuple[str, dict]]:
     """Yield labelled clips for the VAD league: speech vs non-speech.
 
     Positives are speech recordings from ``dataset_def.source`` (the whole
@@ -215,7 +215,7 @@ def stream_vad(dataset_def, revision: str, max_per_class: int = 0
 
 
 def stream_ww(dataset_def, revision: str, max_per_class: int = 0
-              ) -> Iterator[Tuple[str, dict]]:
+              ) -> Iterator[tuple[str, dict]]:
     """Yield labelled wake-word clips for a benchmark.
 
     Positives are the wake-word clips of ``dataset_def`` (a ``<wakeword>/``
@@ -242,7 +242,7 @@ def stream_ww(dataset_def, revision: str, max_per_class: int = 0
         # ``data/<wakeword>/``); the wake phrase is the first component below it.
         prefix = (src.subset.rstrip("/") + "/") if src.subset else ""
 
-        def _phrase(f: str) -> Optional[str]:
+        def _phrase(f: str) -> str | None:
             if prefix:
                 if not f.startswith(prefix):
                     return None
@@ -282,10 +282,10 @@ def stream_ww(dataset_def, revision: str, max_per_class: int = 0
 def stream_manifest_audio(
     source,
     audio_key: str,
-    extra_keys: Dict[str, str],
+    extra_keys: dict[str, str],
     revision: str,
     max_samples: int = 0,
-) -> Iterator[Tuple[str, dict]]:
+) -> Iterator[tuple[str, dict]]:
     """Yield ``(sample_id, {"array", "sr", **extras})`` from a manifest file.
 
     For datasets stored as a per-sample manifest beside audio files: a
@@ -348,11 +348,11 @@ def stream_manifest_audio(
 def stream_audio_dataset(
     source,
     audio_key: str,
-    extra_keys: Dict[str, str],
+    extra_keys: dict[str, str],
     revision: str,
     max_samples: int = 0,
-    id_key: Optional[str] = None,
-) -> Iterator[Tuple[str, dict]]:
+    id_key: str | None = None,
+) -> Iterator[tuple[str, dict]]:
     """Yield ``(sample_id, {"array", "sr", **extras})`` per audio sample.
 
     *extra_keys* maps an output field name to its source column name (e.g.

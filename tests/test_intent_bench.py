@@ -1,13 +1,13 @@
 """Unit tests for runner.intent_bench — pure helpers, no engines needed."""
 from __future__ import annotations
 
+from registry.loaders import load_competitor
 from runner.intent_bench import (
     make_row,
     needed_paradigms,
     results_repo_for,
     split_name,
 )
-from registry.loaders import load_competitor
 
 
 class TestNaming:

@@ -14,7 +14,6 @@ functions here always produce the same standings.  Two vote classes exist:
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, Tuple
 
 from arena.models import VoteOutcome
 
@@ -42,7 +41,7 @@ def update_ratings(
     battles_a: int = 0,
     battles_b: int = 0,
     auto: bool = False,
-) -> Tuple[float, float]:
+) -> tuple[float, float]:
     """Compute updated ELO ratings for a single vote outcome.
 
     ``outcome`` is from A's perspective; TIE and BOTH_WRONG score 0.5/0.5.
@@ -71,13 +70,13 @@ class EloLedger:
     order; the ledger never reorders anything itself.
     """
 
-    ratings: Dict[str, float] = field(default_factory=dict)
-    battles: Dict[str, int] = field(default_factory=dict)
-    wins: Dict[str, int] = field(default_factory=dict)
-    losses: Dict[str, int] = field(default_factory=dict)
-    ties: Dict[str, int] = field(default_factory=dict)
-    auto_votes: Dict[str, int] = field(default_factory=dict)
-    human_votes: Dict[str, int] = field(default_factory=dict)
+    ratings: dict[str, float] = field(default_factory=dict)
+    battles: dict[str, int] = field(default_factory=dict)
+    wins: dict[str, int] = field(default_factory=dict)
+    losses: dict[str, int] = field(default_factory=dict)
+    ties: dict[str, int] = field(default_factory=dict)
+    auto_votes: dict[str, int] = field(default_factory=dict)
+    human_votes: dict[str, int] = field(default_factory=dict)
 
     def ensure(self, competitor_id: str) -> None:
         if competitor_id not in self.ratings:

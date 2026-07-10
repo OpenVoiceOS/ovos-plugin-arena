@@ -17,7 +17,6 @@ import json
 import logging
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, List, Tuple
 
 from arena.models import PredictionRow
 
@@ -66,9 +65,9 @@ def parse_row(raw: dict, competitor_id: str) -> PredictionRow:
     return PredictionRow(**data)
 
 
-def read_jsonl(path: Path) -> List[PredictionRow]:
+def read_jsonl(path: Path) -> list[PredictionRow]:
     """Read one per-competitor prediction file, skipping malformed lines."""
-    rows: List[PredictionRow] = []
+    rows: list[PredictionRow] = []
     competitor_id = path.stem
     with path.open(encoding="utf-8") as fh:
         for lineno, line in enumerate(fh, 1):
@@ -82,10 +81,10 @@ def read_jsonl(path: Path) -> List[PredictionRow]:
     return rows
 
 
-def load_predictions_dir(predictions_dir: Path) -> List[PredictionRow]:
+def load_predictions_dir(predictions_dir: Path) -> list[PredictionRow]:
     """Load every ``*.jsonl`` under *predictions_dir* (nested per-lang dirs
     and the flat legacy layout alike)."""
-    rows: List[PredictionRow] = []
+    rows: list[PredictionRow] = []
     for path in sorted(predictions_dir.glob("**/*.jsonl")):
         file_rows = read_jsonl(path)
         logger.info("Loaded %d rows from %s",
@@ -111,7 +110,7 @@ def fetch_hf_predictions(repo_id: str, revision: str = "main") -> Path:
     return Path(local) / "predictions"
 
 
-def load_predictions(source: str, revision: str = "main") -> List[PredictionRow]:
+def load_predictions(source: str, revision: str = "main") -> list[PredictionRow]:
     """Load predictions from a local directory or an HF dataset repo id."""
     path = Path(source)
     if path.is_dir():
@@ -120,14 +119,14 @@ def load_predictions(source: str, revision: str = "main") -> List[PredictionRow]
 
 
 def group_rows(
-    rows: List[PredictionRow],
-) -> Dict[Tuple[str, str, str], Dict[str, Dict[str, PredictionRow]]]:
+    rows: list[PredictionRow],
+) -> dict[tuple[str, str, str], dict[str, dict[str, PredictionRow]]]:
     """Group rows as (modality, dataset_id, lang) → sample_id → competitor → row.
 
     Rows whose modality cannot be inferred are dropped (with a warning).
     Duplicate (sample, competitor) rows keep the last occurrence.
     """
-    grouped: Dict[Tuple[str, str, str], Dict[str, Dict[str, PredictionRow]]] = (
+    grouped: dict[tuple[str, str, str], dict[str, dict[str, PredictionRow]]] = (
         defaultdict(lambda: defaultdict(dict))
     )
     dropped = 0

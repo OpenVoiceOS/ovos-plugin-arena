@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Iterator, List, Tuple
+from collections.abc import Iterator
 
 from runner.media_bench import MediaBenchAdapter, PredictContext, load_plugin_class
 
@@ -26,7 +26,7 @@ class TTSBench(MediaBenchAdapter):
 
     def iter_samples(
         self, dataset_def, lang: str, revision: str, max_samples: int
-    ) -> Iterator[Tuple[str, dict]]:
+    ) -> Iterator[tuple[str, dict]]:
         text_col = (dataset_def.reference_fields or {}).get("text", "text")
         rows = _load_prompts(dataset_def, lang, revision, text_col)
         if max_samples:
@@ -69,7 +69,7 @@ def _safe(text: str) -> str:
     return hashlib.sha1(text.encode("utf-8")).hexdigest()[:16]
 
 
-def _load_prompts(dataset_def, lang: str, revision: str, text_col: str) -> List[str]:
+def _load_prompts(dataset_def, lang: str, revision: str, text_col: str) -> list[str]:
     """Read prompt strings for one language (HF split or per-lang file)."""
     source = dataset_def.source
     if getattr(source, "file_pattern", None):
@@ -83,7 +83,7 @@ def _load_prompts(dataset_def, lang: str, revision: str, text_col: str) -> List[
 
     from runner.audio_io import _parquet_files
 
-    out: List[str] = []
+    out: list[str] = []
     for pfile in _parquet_files(source.hf_id, source.subset, source.split,
                                 revision):
         local = hf_hub_download(source.hf_id, pfile, repo_type="dataset",

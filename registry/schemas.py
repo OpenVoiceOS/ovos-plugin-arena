@@ -21,10 +21,9 @@ metrics; ``role: unrestricted`` marks openly-available training/development data
 from __future__ import annotations
 
 from enum import Enum
-from typing import Any, Dict, List, Literal, Optional, Union
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field, model_validator
-
 
 # ---------------------------------------------------------------------------
 # Modality
@@ -60,8 +59,8 @@ class HuggingFaceSource(BaseModel):
     hf_id: str = Field(..., description="HuggingFace dataset identifier, e.g. PolyAI/minds14")
     revision: str = "main"
     split: str = "train"
-    subset: Optional[str] = None
-    file_pattern: Optional[str] = Field(
+    subset: str | None = None
+    file_pattern: str | None = Field(
         None,
         description=(
             "Raw repo file path per language, e.g. '{lang}/test.jsonl'. "
@@ -85,7 +84,7 @@ class PathSource(BaseModel):
     format: str = "jsonl"  # jsonl | csv | parquet
 
 
-DatasetSource = Union[HuggingFaceSource, PathSource]
+DatasetSource = HuggingFaceSource | PathSource
 
 
 # ---------------------------------------------------------------------------
@@ -106,7 +105,7 @@ class DatasetDef(BaseModel):
     dataset_id: str = Field(..., description="Stable unique identifier for this dataset")
     modality: Modality
     source: DatasetSource = Field(..., discriminator="type")
-    reference_fields: Dict[str, str] = Field(
+    reference_fields: dict[str, str] = Field(
         default_factory=dict,
         description=(
             "Map from semantic role to column name in the source corpus — "
@@ -120,27 +119,27 @@ class DatasetDef(BaseModel):
         ...,
         description="BCP-47 language tag, or 'multi' for multilingual corpora",
     )
-    langs: Optional[List[str]] = Field(
+    langs: list[str] | None = Field(
         None,
         description="Language list for multilingual corpora (lang='multi')",
     )
-    license: Optional[str] = None
+    license: str | None = None
     role: Literal["eval", "train", "unrestricted"] = "eval"
-    paradigm: Optional[Literal["template", "keyword"]] = Field(
+    paradigm: Literal["template", "keyword"] | None = Field(
         None,
         description=(
             "For role=train intent corpora: which engine paradigm this "
             "datashape feeds (template engines vs keyword engines)."
         ),
     )
-    train_datasets: Optional[Dict[str, str]] = Field(
+    train_datasets: dict[str, str] | None = Field(
         None,
         description=(
             "For role=eval corpora: paradigm → dataset_id of the matching "
             "training corpus, e.g. {'template': 'intents-for-eval-templates'}."
         ),
     )
-    wakeword: Optional[str] = Field(
+    wakeword: str | None = Field(
         None,
         description=(
             "Wake-word audiofolder corpora: the top-level folder holding "
@@ -148,14 +147,14 @@ class DatasetDef(BaseModel):
             "Clips in other folders are negatives."
         ),
     )
-    negative_dirs: Optional[List[str]] = Field(
+    negative_dirs: list[str] | None = Field(
         None,
         description=(
             "Wake-word audiofolder corpora: which top-level folders to draw "
             "negatives from (default: every folder except ``wakeword``)."
         ),
     )
-    negatives_hf: Optional[str] = Field(
+    negatives_hf: str | None = Field(
         None,
         description=(
             "Wake word: a separate HF dataset to draw negatives from — a "
@@ -164,11 +163,11 @@ class DatasetDef(BaseModel):
             "same-corpus negatives."
         ),
     )
-    negatives_dir: Optional[str] = Field(
+    negatives_dir: str | None = Field(
         None,
         description="Folder within ``negatives_hf`` holding the negative clips.",
     )
-    negatives_sources: Optional[List[str]] = Field(
+    negatives_sources: list[str] | None = Field(
         None,
         description=(
             "Wake word: several not-wake-word corpora to pool negatives from, "
@@ -177,7 +176,7 @@ class DatasetDef(BaseModel):
             "Overrides ``negatives_hf``."
         ),
     )
-    predictions_hf: Optional[str] = Field(
+    predictions_hf: str | None = Field(
         None,
         description=(
             "HF dataset repo holding the arena's prediction rows for this "
@@ -187,7 +186,7 @@ class DatasetDef(BaseModel):
             "from these repos when no explicit source list is given."
         ),
     )
-    notes: Optional[str] = None
+    notes: str | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -234,25 +233,25 @@ class CompetitorDef(BaseModel):
         ..., description="Stable unique identifier for this competitor"
     )
     modality: Modality
-    plugin: Optional[str] = Field(
+    plugin: str | None = Field(
         None,
         description=(
             "OPM plugin entry-point name. Optional for intent fighters — "
             "derived from the pipeline (None for ensembles)."
         ),
     )
-    config: Dict[str, Any] = Field(
+    config: dict[str, Any] = Field(
         default_factory=dict,
         description=(
             "Valid mycroft.conf fragment. Intent fighters carry an 'intents' "
             "section: {'pipeline': ['<plugin>-<tier>', …], '<plugin>': {…}}."
         ),
     )
-    langs: List[str] = Field(
+    langs: list[str] = Field(
         default_factory=list,
         description="BCP-47 language tags this competitor supports",
     )
-    alias: Optional[List[str]] = Field(
+    alias: list[str] | None = Field(
         None,
         description=(
             "Legacy plugin_id values that map to this competitor in ingested rows. "
@@ -260,33 +259,32 @@ class CompetitorDef(BaseModel):
         ),
     )
     # Bestiary card fields (fighter-browser UI)
-    display_name: Optional[str] = Field(
+    display_name: str | None = Field(
         None, description="Human-friendly fighter name shown in the UI"
     )
-    species: Optional[str] = Field(
+    species: str | None = Field(
         None,
         description=(
             "Parent plugin class this fighter is an instance of, "
             "e.g. 'PadatiousPipeline'"
         ),
     )
-    types: List[str] = Field(
+    types: list[str] = Field(
         default_factory=list,
         description=(
             "Architecture tags, e.g. 'GOFAI', 'fuzzy-match', 'embedding', "
             "'neural-net', 'LLM'"
         ),
     )
-    description: Optional[str] = Field(
+    description: str | None = Field(
         None, description="Short blurb about how this fighter works"
     )
-    model: Optional[str] = Field(
+    model: str | None = Field(
         None, description="Underlying model identifier, when one exists"
     )
-    size: Optional[Literal[
-        "micro", "tiny", "small", "base", "medium",
-        "large", "x-large", "giant", "titan",
-    ]] = Field(
+    size: Literal[
+        "micro", "tiny", "small", "base", "medium", "large", "x-large", "giant", "titan",
+    ] | None = Field(
         None,
         description=(
             "Installed footprint class (package + models): "
@@ -295,14 +293,14 @@ class CompetitorDef(BaseModel):
             "giant 20-80GB · titan >80GB (LLM-class)"
         ),
     )
-    links: Dict[str, str] = Field(
+    links: dict[str, str] = Field(
         default_factory=dict,
         description="Named URLs: source, pypi, paper, …",
     )
-    notes: Optional[str] = None
+    notes: str | None = None
 
     @model_validator(mode="after")
-    def _validate_pipeline_and_alias(self) -> "CompetitorDef":
+    def _validate_pipeline_and_alias(self) -> CompetitorDef:
         """Validate the intents pipeline and derive plugin/alias fields.
 
         Intent fighters MUST carry ``config.intents.pipeline`` (non-empty,
@@ -332,21 +330,21 @@ class CompetitorDef(BaseModel):
         return self
 
     @property
-    def pipeline(self) -> List[str]:
+    def pipeline(self) -> list[str]:
         """The ordered pipeline stage names (empty for non-intent fighters)."""
         return list((self.config.get("intents") or {}).get("pipeline") or [])
 
     @property
-    def pipeline_plugins(self) -> List[str]:
+    def pipeline_plugins(self) -> list[str]:
         """Unique plugin ids referenced by the pipeline, in stage order."""
-        plugins: List[str] = []
+        plugins: list[str] = []
         for stage in self.pipeline:
             plugin_id, _tier = split_pipeline_stage(stage)
             if plugin_id not in plugins:
                 plugins.append(plugin_id)
         return plugins
 
-    def plugin_config(self, plugin_id: str, short_name: str = "") -> Dict[str, Any]:
+    def plugin_config(self, plugin_id: str, short_name: str = "") -> dict[str, Any]:
         """Per-plugin config block from the intents section.
 
         Accepts both the full entry-point key and the legacy short key
