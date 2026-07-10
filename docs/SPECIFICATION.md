@@ -234,6 +234,15 @@ Voting options MUST include: candidate A, candidate B, tie, both-wrong.
   well-defined relative order) and guarantees a competitor with zero
   recorded wins or zero recorded losses converges to a finite, ordered
   rating rather than collapsing to 0 or diverging to infinity.
+- **R11 — Benchmark boards carry confidence intervals.** Every
+  `BenchmarkEntry` (§3, `benchmark-<mod>-<lang>.json`) carries a seeded
+  bootstrap 95% CI on its primary metric
+  (`arena/metrics.py:primary_metric_ci`) — mean-of-indicator bootstrap for
+  accuracy/error-rate metrics, ratio-of-summed-counts bootstrap (resampling
+  `(errors, reference_words)` pairs, never per-utterance WER values) for
+  STT's `wer_mean`. `BenchmarkEntry.tied_with_leader` marks entries whose CI
+  overlaps the #1 entry's CI; see `docs/methodology.md` for the full
+  rationale.
 - Human votes: tie and both-wrong score 0.5/0.5.
 - Auto votes (seeding): K/4 (sequential ELO) / weight 1/4 (Bradley-Terry),
   outcomes from benchmark metrics only.

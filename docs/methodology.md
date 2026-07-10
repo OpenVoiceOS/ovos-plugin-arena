@@ -149,6 +149,39 @@ settled result.
 - **`provisional`** boards should be captioned as such in the frontend
   rather than presented with the same confidence as an established board.
 
+## Benchmark boards: significance, not just a point estimate
+
+The objective benchmark boards (`benchmark-<modality>-<dataset>-<lang>.json`,
+straight from prediction rows — no votes involved) carry the same discipline.
+A 0.3% WER gap on 500 clips, or a 96% vs 95% intent accuracy gap on a few
+hundred samples, is very often noise rather than a real capability
+difference; showing only the point estimate implies more precision than the
+sample size supports.
+
+Every `BenchmarkEntry` carries a seeded bootstrap 95% CI
+(`arena/metrics.py:primary_metric_ci`, `BOOTSTRAP_ROUNDS = 1000`) on its
+primary metric, using one of two strategies depending on what kind of number
+the metric is:
+
+- **Mean of a per-row indicator** (intent `accuracy`, wake-word/VAD
+  `error_rate`) — bootstrap the 0/1 indicator list directly and report the
+  percentile interval of the resampled mean.
+- **Ratio of summed counts** (STT `wer_mean` = total word errors / total
+  reference words) — a per-utterance WER is not directly comparable across
+  utterances of different length, so this bootstraps **(errors,
+  reference-word-count) pairs**, recomputing `sum(errors) / sum(ref_words)`
+  each round, rather than averaging per-utterance WER values as if they were
+  i.i.d. — a one-word command with one error and a twenty-word sentence with
+  one error are not the same signal, and the ratio bootstrap weights them
+  correctly by how much reference text they actually contain (see
+  `tests/test_metrics_ci.py::test_weighted_by_denominator_not_per_pair_average`).
+
+`BenchmarkEntry.tied_with_leader` marks every entry whose CI overlaps the
+#1-ranked entry's CI — the frontend should render those as "≈ tied with #1"
+rather than a strict rank ordering, and prefer showing a compact tier
+grouping over a false-precision numeric rank for entries that are
+statistically indistinguishable from the leader.
+
 ## Open items
 
 The following sections are placeholders for work tracked elsewhere in the

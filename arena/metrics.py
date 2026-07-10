@@ -18,10 +18,17 @@ Intent scoring conventions
 
 from __future__ import annotations
 
+import random
 from collections import defaultdict
 from statistics import median
 
 from arena.models import BenchmarkBoard, BenchmarkEntry, PredictionRow
+from arena.rating import percentile
+
+BOOTSTRAP_ROUNDS = 1000
+CI_LOWER_PCT = 2.5
+CI_UPPER_PCT = 97.5
+BOOTSTRAP_SEED = 0
 
 PRIMARY_METRIC = {
     "intent": "accuracy",
@@ -121,12 +128,12 @@ def score_intent(rows: list[PredictionRow]) -> dict[str, float]:
     return metrics
 
 
-def _wer(reference: str, hypothesis: str) -> float:
-    """Word error rate via word-level Levenshtein distance."""
+def _wer_components(reference: str, hypothesis: str) -> tuple[int, int]:
+    """(word edit distance, reference word count) via word-level Levenshtein."""
     ref_tokens = reference.lower().split()
     hyp_tokens = hypothesis.lower().split()
     if not ref_tokens:
-        return 0.0
+        return 0, 0
     dp = list(range(len(hyp_tokens) + 1))
     for i in range(1, len(ref_tokens) + 1):
         prev = dp[:]
@@ -137,7 +144,13 @@ def _wer(reference: str, hypothesis: str) -> float:
                 if ref_tokens[i - 1] == hyp_tokens[j - 1]
                 else 1 + min(prev[j - 1], prev[j], dp[j - 1])
             )
-    return round(dp[-1] / len(ref_tokens), 4)
+    return dp[-1], len(ref_tokens)
+
+
+def _wer(reference: str, hypothesis: str) -> float:
+    """Word error rate via word-level Levenshtein distance."""
+    errors, ref_words = _wer_components(reference, hypothesis)
+    return round(errors / ref_words, 4) if ref_words else 0.0
 
 
 def row_wer(row: PredictionRow) -> float | None:
@@ -145,6 +158,28 @@ def row_wer(row: PredictionRow) -> float | None:
         return row.wer
     if row.reference_text is not None and row.prediction is not None:
         return _wer(row.reference_text, row.prediction)
+    return None
+
+
+def row_wer_components(row: PredictionRow) -> tuple[float, float] | None:
+    """(word errors, reference word count) for one row, for WER bootstrap CIs.
+
+    Word-level errors are aggregated as ``sum(errors) / sum(ref_words)``
+    across a resample (§4 A1.2) rather than averaging per-row WER, since
+    per-utterance WER is not comparable across utterances of different
+    length — a single error in a 2-word command is not the same signal as
+    one error in a 20-word sentence.
+
+    Falls back to unit weight (``errors=row.wer, ref_words=1.0``) when only
+    a precomputed ``row.wer`` is available with no ``reference_text`` to
+    recover the true word count from — that degrades gracefully to
+    per-row-equal-weight averaging for that row, rather than raising.
+    """
+    if row.reference_text is not None and row.prediction is not None:
+        errors, ref_words = _wer_components(row.reference_text, row.prediction)
+        return float(errors), float(ref_words)
+    if row.wer is not None:
+        return row.wer, 1.0
     return None
 
 
@@ -263,6 +298,121 @@ _SCORERS = {
 }
 
 
+# ---------------------------------------------------------------------------
+# Bootstrap confidence intervals on the primary metric (§4 A1.2)
+# ---------------------------------------------------------------------------
+#
+# A point-estimate gap on a few hundred samples is often noise. Every
+# BenchmarkEntry carries a seeded bootstrap 95% CI on its primary metric so
+# the frontend can show "≈ tied with #1" instead of implying false
+# precision. Two extraction strategies:
+#
+# - "mean": the metric is the mean of a per-row 0/1 indicator (accuracy,
+#   error_rate) — bootstrap the indicator list directly.
+# - "ratio": the metric is sum(numerator)/sum(denominator) over rows (WER —
+#   errors/reference_words). Per-utterance WER is not directly comparable
+#   across utterances of different length, so the bootstrap resamples
+#   (errors, ref_words) *pairs* and recomputes the ratio each round, rather
+#   than averaging per-row WER values as if they were i.i.d.
+
+
+def _intent_correct_indicators(rows: list[PredictionRow]) -> list[float]:
+    return [1.0 if row_is_correct(r) else 0.0 for r in rows]
+
+
+def _ww_error_indicators(rows: list[PredictionRow]) -> list[float]:
+    out = []
+    for r in rows:
+        correct = ww_row_correct(r)
+        if correct is None:
+            continue
+        out.append(0.0 if correct else 1.0)
+    return out
+
+
+def _stt_wer_pairs(rows: list[PredictionRow]) -> list[tuple[float, float]]:
+    pairs = (row_wer_components(r) for r in rows)
+    return [p for p in pairs if p is not None]
+
+
+# modality -> "mean" extractor (returns per-row 0/1 indicators)
+_CI_MEAN_EXTRACTORS = {
+    "intent": _intent_correct_indicators,
+    "intent_template": _intent_correct_indicators,
+    "intent_keyword": _intent_correct_indicators,
+    "wake_word": _ww_error_indicators,
+    "vad": _ww_error_indicators,
+}
+
+# modality -> "ratio" extractor (returns (numerator, denominator) pairs)
+_CI_RATIO_EXTRACTORS = {
+    "stt": _stt_wer_pairs,
+}
+
+
+def bootstrap_mean_ci(
+    values: list[float], seed: int = BOOTSTRAP_SEED, rounds: int = BOOTSTRAP_ROUNDS
+) -> tuple[float, float] | None:
+    """Seeded bootstrap 95% CI for the mean of *values* (e.g. 0/1 indicators)."""
+    if not values:
+        return None
+    if len(values) == 1:
+        return (values[0], values[0])
+    rng = random.Random(seed)
+    n = len(values)
+    means = []
+    for _ in range(rounds):
+        total = 0.0
+        for _ in range(n):
+            total += values[rng.randrange(n)]
+        means.append(total / n)
+    means.sort()
+    return (percentile(means, CI_LOWER_PCT), percentile(means, CI_UPPER_PCT))
+
+
+def bootstrap_ratio_ci(
+    pairs: list[tuple[float, float]], seed: int = BOOTSTRAP_SEED, rounds: int = BOOTSTRAP_ROUNDS
+) -> tuple[float, float] | None:
+    """Seeded bootstrap 95% CI for sum(numerator)/sum(denominator) over *pairs*."""
+    pairs = [(n, d) for n, d in pairs if d > 0]
+    if not pairs:
+        return None
+    if len(pairs) == 1:
+        num, den = pairs[0]
+        v = num / den
+        return (v, v)
+    rng = random.Random(seed)
+    n = len(pairs)
+    ratios = []
+    for _ in range(rounds):
+        num_sum = den_sum = 0.0
+        for _ in range(n):
+            num, den = pairs[rng.randrange(n)]
+            num_sum += num
+            den_sum += den
+        ratios.append(num_sum / den_sum if den_sum else 0.0)
+    ratios.sort()
+    return (percentile(ratios, CI_LOWER_PCT), percentile(ratios, CI_UPPER_PCT))
+
+
+def primary_metric_ci(modality: str, rows: list[PredictionRow]) -> tuple[float, float] | None:
+    """Bootstrap 95% CI for *rows*' primary metric under *modality*, or None
+    when the modality has no CI strategy or too few scoreable rows."""
+    mean_extractor = _CI_MEAN_EXTRACTORS.get(modality)
+    if mean_extractor is not None:
+        return bootstrap_mean_ci(mean_extractor(rows))
+    ratio_extractor = _CI_RATIO_EXTRACTORS.get(modality)
+    if ratio_extractor is not None:
+        return bootstrap_ratio_ci(ratio_extractor(rows))
+    return None
+
+
+def _ci_overlaps(a: tuple[float, float] | None, b: tuple[float, float] | None) -> bool:
+    if a is None or b is None:
+        return False
+    return a[0] <= b[1] and b[0] <= a[1]
+
+
 def build_benchmark_board(
     modality: str,
     dataset_id: str,
@@ -274,14 +424,19 @@ def build_benchmark_board(
     scorer = _SCORERS.get(modality)
     primary = PRIMARY_METRIC.get(modality, "accuracy")
     entries: list[BenchmarkEntry] = []
+    cis: dict[str, tuple[float, float] | None] = {}
     if scorer is not None:
         for competitor_id, rows in by_competitor.items():
+            ci = primary_metric_ci(modality, rows)
+            cis[competitor_id] = ci
             entries.append(
                 BenchmarkEntry(
                     competitor_id=competitor_id,
                     plugin_id=rows[0].plugin_id if rows else "",
                     samples=len(rows),
                     metrics=scorer(rows),
+                    primary_metric_ci_lower=ci[0] if ci else None,
+                    primary_metric_ci_upper=ci[1] if ci else None,
                 )
             )
 
@@ -290,6 +445,13 @@ def build_benchmark_board(
     entries.sort(key=lambda e: e.metrics.get(primary, worst), reverse=reverse)
     for i, entry in enumerate(entries, 1):
         entry.rank = i
+
+    if entries:
+        leader_ci = cis.get(entries[0].competitor_id)
+        for entry in entries:
+            entry.tied_with_leader = _ci_overlaps(
+                leader_ci, cis.get(entry.competitor_id)
+            )
 
     return BenchmarkBoard(
         modality=modality,

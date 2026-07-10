@@ -218,11 +218,11 @@ def bootstrap_confidence_intervals(
     out: dict[str, tuple[float, float]] = {}
     for c in competitors:
         vals = sorted(samples[c])
-        out[c] = (_percentile(vals, CI_LOWER_PCT), _percentile(vals, CI_UPPER_PCT))
+        out[c] = (percentile(vals, CI_LOWER_PCT), percentile(vals, CI_UPPER_PCT))
     return out
 
 
-def _percentile(sorted_values: list[float], pct: float) -> float:
+def percentile(sorted_values: list[float], pct: float) -> float:
     if not sorted_values:
         return 0.0
     if len(sorted_values) == 1:

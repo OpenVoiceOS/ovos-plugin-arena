@@ -196,6 +196,15 @@ class BenchmarkEntry(BaseModel):
     plugin_id: str = ""
     samples: int = 0
     metrics: dict[str, float] = Field(default_factory=dict)
+    # Bootstrap 95% CI on ``metrics[primary_metric]`` (§4 A1.2, see
+    # arena/metrics.py:primary_metric_ci) — None when the modality has no CI
+    # strategy or too few scoreable rows.
+    primary_metric_ci_lower: float | None = None
+    primary_metric_ci_upper: float | None = None
+    # True when this entry's CI overlaps the #1-ranked entry's CI — the
+    # frontend should show these entries as "≈ tied with #1" rather than
+    # implying the point-estimate ordering is statistically significant.
+    tied_with_leader: bool = False
 
 
 class BenchmarkBoard(BaseModel):
