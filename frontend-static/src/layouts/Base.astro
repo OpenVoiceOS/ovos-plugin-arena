@@ -20,7 +20,19 @@ const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : As
     <meta property="og:url" content={canonical} />
     <meta property="og:site_name" content="OVOS Plugin Arena" />
     <link rel="canonical" href={canonical} />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="theme-color" content="#0c0a0a" />
     <title>{fullTitle}</title>
+    <script type="application/ld+json" set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "OVOS Plugin Arena",
+      "url": Astro.site ? Astro.site.href : canonical,
+      "description": "Reproducible benchmarks and blind A/B voting that rank OpenVoiceOS plugins.",
+      "publisher": { "@type": "Organization", "name": "OpenVoiceOS", "url": "https://openvoiceos.org" }
+    })} />
     <link rel="icon" href={`${base}favicon.svg`} type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -275,6 +287,19 @@ const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : As
         white-space: nowrap; border-width: 0;
       }
 
+      .skip-link {
+        position: absolute;
+        left: 0.75rem; top: -3rem;
+        z-index: 20;
+        background: var(--accent);
+        color: #fff;
+        padding: 0.5rem 1rem;
+        border-radius: var(--radius);
+        transition: top 0.15s ease;
+      }
+      .skip-link:focus { top: 0.75rem; }
+      main:focus { outline: none; }
+
       @media (max-width: 640px) {
         header nav ul { gap: 1rem; }
         main { padding: 0 1rem; }
@@ -283,6 +308,7 @@ const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : As
     </style>
   </head>
   <body>
+    <a href="#main" class="skip-link">Skip to main content</a>
     <div class="wip-banner" role="status">
       🚧 <strong>Work in progress</strong> — this arena is under active
       development. Leaderboards, fighters and data are incomplete and may change
@@ -301,7 +327,7 @@ const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : As
         </ul>
       </nav>
     </header>
-    <main>
+    <main id="main" tabindex="-1">
       <slot />
     </main>
     <footer>
