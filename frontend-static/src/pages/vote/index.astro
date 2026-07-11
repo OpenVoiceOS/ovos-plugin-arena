@@ -45,8 +45,9 @@ import Base from '../../layouts/Base.astro';
         <button class="btn btn-primary vote-btn" id="fv-win-a">🅰 A is better</button>
         <button class="btn btn-primary vote-btn" id="fv-win-b">🅱 B is better</button>
         <button class="btn vote-btn" id="fv-tie">🤝 Tie</button>
+        <button class="btn vote-btn" id="fv-both-wrong">👎 Both wrong</button>
       </div>
-      <p id="fv-hint" style="margin:0.9rem 0 0;font-size:0.85rem">
+      <p id="fv-hint" aria-live="polite" style="margin:0.9rem 0 0;font-size:0.85rem">
         Voting opens a prefilled GitHub issue — submit it to record your preference.
       </p>
     </div>
@@ -129,7 +130,7 @@ import Base from '../../layouts/Base.astro';
       return `https://github.com/${GITHUB_REPO}/issues/new?${params}`;
     }
 
-    function vote(winner) {  // winner: 'a' | 'b' | 'tie'
+    function vote(winner) {  // winner: 'a' | 'b' | 'tie' | 'both_wrong'
       const hint = document.getElementById('fv-hint');
       const a = document.getElementById('fv-a').value;
       const b = document.getElementById('fv-b').value;
@@ -138,12 +139,14 @@ import Base from '../../layouts/Base.astro';
       if (!battle) { hint.textContent = 'That matchup is not available.'; return; }
       let choice;
       if (winner === 'tie') choice = 'tie';
+      else if (winner === 'both_wrong') choice = 'both_wrong';
       else {
         const winnerId = winner === 'a' ? a : b;
         choice = winnerId === battle.competitor_a ? 'a' : 'b';
       }
       window.open(buildIssueUrl(battle.battle_id, choice), '_blank', 'noopener,noreferrer');
-      hint.textContent = 'Opening a GitHub issue — submit it to record your vote. One vote per matchup counts.';
+      hint.textContent = 'Opening a GitHub issue — submit it to record your vote. '
+        + 'One vote per matchup counts; the tally runs hourly, so it lands on the board within the hour.';
     }
 
     function setLeagueLang() {
@@ -190,6 +193,7 @@ import Base from '../../layouts/Base.astro';
       document.getElementById('fv-win-a').addEventListener('click', () => vote('a'));
       document.getElementById('fv-win-b').addEventListener('click', () => vote('b'));
       document.getElementById('fv-tie').addEventListener('click', () => vote('tie'));
+      document.getElementById('fv-both-wrong').addEventListener('click', () => vote('both_wrong'));
 
       document.getElementById('fv-app').style.display = '';
       refreshLangs();
