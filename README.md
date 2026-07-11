@@ -158,6 +158,7 @@ python -m pytest tests/ -q
 | `.github/workflows/pages.yml` | Astro build + Pages deploy |
 | `.github/ISSUE_TEMPLATE/vote.yml` | The vote issue form (applies the `vote` label) |
 | `docs/SPECIFICATION.md` | Full specification |
+| `docs/add-a-fighter.md` | How to add your plugin as a fighter |
 
 ---
 
