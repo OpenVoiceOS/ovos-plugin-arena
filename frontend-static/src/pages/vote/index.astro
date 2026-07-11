@@ -50,6 +50,7 @@ import Base from '../../layouts/Base.astro';
       <p id="fv-hint" aria-live="polite" style="margin:0.9rem 0 0;font-size:0.85rem">
         Voting opens a prefilled GitHub issue — submit it to record your preference.
       </p>
+      <button class="btn" id="fv-share" type="button" style="margin-top:0.75rem">🔗 Share this matchup</button>
     </div>
   </section>
 
@@ -149,6 +150,39 @@ import Base from '../../layouts/Base.astro';
         + 'One vote per matchup counts; the tally runs hourly, so it lands on the board within the hour.';
     }
 
+    // Deep-link support: a shared ?a=&b= URL preselects the matchup. Fails
+    // gracefully (returns) if the params are absent or the pair isn't a valid
+    // battle, so the page still works for manual selection.
+    function applyShareLink() {
+      const p = new URLSearchParams(location.search);
+      const a = p.get('a'), b = p.get('b');
+      if (!a || !b) return;
+      const target = pools.find(pl => {
+        const ids = competitorsOf(pl);
+        return ids.includes(a) && ids.includes(b);
+      });
+      if (!target) return;
+      document.getElementById('fv-league').value = target.modality;
+      refreshLangs();
+      document.getElementById('fv-lang').value = target.lang;
+      setLeagueLang();
+      const aSel = document.getElementById('fv-a');
+      if ([...aSel.options].some(o => o.value === a)) { aSel.value = a; side('a'); refreshB(); }
+      const bSel = document.getElementById('fv-b');
+      if ([...bSel.options].some(o => o.value === b)) { bSel.value = b; side('b'); }
+    }
+
+    function shareMatchup() {
+      const a = document.getElementById('fv-a').value;
+      const b = document.getElementById('fv-b').value;
+      const url = `${location.origin}${location.pathname}?a=${encodeURIComponent(a)}&b=${encodeURIComponent(b)}`;
+      const btn = document.getElementById('fv-share');
+      navigator.clipboard.writeText(url).then(() => {
+        btn.textContent = '🔗 Link copied!';
+        setTimeout(() => (btn.textContent = '🔗 Share this matchup'), 1500);
+      }).catch(() => { btn.textContent = 'Copy failed'; });
+    }
+
     function setLeagueLang() {
       const league = document.getElementById('fv-league').value;
       const lang = document.getElementById('fv-lang').value;
@@ -194,9 +228,11 @@ import Base from '../../layouts/Base.astro';
       document.getElementById('fv-win-b').addEventListener('click', () => vote('b'));
       document.getElementById('fv-tie').addEventListener('click', () => vote('tie'));
       document.getElementById('fv-both-wrong').addEventListener('click', () => vote('both_wrong'));
+      document.getElementById('fv-share').addEventListener('click', shareMatchup);
 
       document.getElementById('fv-app').style.display = '';
       refreshLangs();
+      applyShareLink();
     }
 
     init();
