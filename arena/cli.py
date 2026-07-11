@@ -40,6 +40,7 @@ from arena.assembler import (
     freeform_battles,
     seed_elo,
 )
+from arena.badges import emit_badges
 from arena.elo import EloLedger
 from arena.fraud import resolve_vote_weights
 from arena.metrics import build_benchmark_board
@@ -633,6 +634,8 @@ def cmd_tally(args: argparse.Namespace) -> int:
                 battles_pool,
             )
             _write_json(out_dir / f"leaderboard-{modality}-{lang}.json", board)
+            # Emit embeddable rank badges (growth loop, §A5.3).
+            emit_badges(board, out_dir)
     else:
         # No counted votes → the boards cannot change; leave them alone so
         # the workflow's empty-diff guard skips the commit.

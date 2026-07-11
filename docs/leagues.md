@@ -140,3 +140,14 @@ its ladder accrues purely from blind-A/B human votes.
 [SPECIFICATION.md §7](SPECIFICATION.md); media-classification and agent-plugin
 leagues are tracked for later absorption in
 [NGI0-Commons-Fund#14](https://github.com/OpenVoiceOS/NGI0-Commons-Fund/issues/14).
+
+## Rank badges
+
+Every `tally` run writes an embeddable SVG badge per fighter to
+`badges/<modality>/<competitor-id>.svg` (served from the same Pages site as the
+boards). The badge shows the fighter's league rank and rating and is
+byte-stable between rebuilds when nothing changed. Embed it in a plugin README:
+
+```markdown
+[![OVOS Arena](https://openvoiceos.github.io/ovos-plugin-arena/badges/stt/<competitor-id>.svg)](https://openvoiceos.github.io/ovos-plugin-arena/leaderboard/)
+```
