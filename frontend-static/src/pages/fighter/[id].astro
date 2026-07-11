@@ -1,0 +1,109 @@
+---
+import fs from 'node:fs';
+import path from 'node:path';
+import Base from '../../layouts/Base.astro';
+import { spriteSvg } from '../../lib/sprite.js';
+
+export function getStaticPaths() {
+  // Read the competitor registry at build time so every fighter gets a real,
+  // crawlable static path (great for SEO — see §A5.2 / §A5.6).
+  const root = path.join(process.cwd(), '..', 'registry', 'competitors');
+  const paths = [];
+  for (const mod of fs.readdirSync(root)) {
+    const dir = path.join(root, mod);
+    if (!fs.statSync(dir).isDirectory()) continue;
+    for (const file of fs.readdirSync(dir)) {
+      if (!file.endsWith('.json')) continue;
+      const c = JSON.parse(fs.readFileSync(path.join(dir, file), 'utf-8'));
+      paths.push({ params: { id: c.competitor_id }, props: { fighter: c } });
+    }
+  }
+  return paths;
+}
+
+const { fighter } = Astro.props;
+const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
+const name = fighter.display_name || fighter.competitor_id;
+const primaryType = (fighter.types || [])[0] || '';
+const sprite = spriteSvg(fighter.competitor_id, primaryType, 96);
+const configSnippet = JSON.stringify(fighter.config || {}, null, 2);
+const desc = fighter.description
+  || `${name} — a ${fighter.modality} fighter in the OVOS Plugin Arena.`;
+---
+<Base title={name} description={desc}>
+  <p style="margin-bottom:1rem"><a href={`${base}fighters/`}>← All fighters</a></p>
+
+  <div class="card" style="display:flex;gap:1.5rem;align-items:flex-start;flex-wrap:wrap">
+    <div set:html={sprite} aria-hidden="true"></div>
+    <div style="flex:1;min-width:15rem">
+      <h1 style="margin-bottom:0.3rem">{name}</h1>
+      <p class="eyebrow" style="margin-bottom:0.6rem">{fighter.modality}{fighter.species ? ` · ${fighter.species}` : ''}</p>
+      <div style="display:flex;gap:0.35rem;flex-wrap:wrap;margin-bottom:0.75rem">
+        {(fighter.types || []).map((t) => (
+          <span class={`type-chip type-${t.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}>{t}</span>
+        ))}
+      </div>
+      <p style="color:var(--text)">{desc}</p>
+      <div id="fighter-stats" class="eyebrow" aria-live="polite" style="margin-top:0.5rem"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Details</h2>
+    <table>
+      <tbody>
+        <tr><th scope="row">Competitor id</th><td><code>{fighter.competitor_id}</code></td></tr>
+        {fighter.plugin && <tr><th scope="row">Plugin</th><td><code>{fighter.plugin}</code></td></tr>}
+        {fighter.model && <tr><th scope="row">Model</th><td>{fighter.model}</td></tr>}
+        {fighter.size && <tr><th scope="row">Size</th><td>{fighter.size}</td></tr>}
+        {(fighter.langs || []).length > 0 && <tr><th scope="row">Languages</th><td>{fighter.langs.join(', ')}</td></tr>}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Configuration</h2>
+    <p>The <code>mycroft.conf</code> fragment this fighter ships. Copy it to run this exact config.</p>
+    <button class="btn" id="copy-config" type="button">Copy config</button>
+    <pre style="margin-top:0.75rem;overflow-x:auto"><code id="config-json">{configSnippet}</code></pre>
+  </div>
+
+  {fighter.links && Object.keys(fighter.links).length > 0 && (
+    <div class="card">
+      <h2>Links</h2>
+      <ul role="list" style="list-style:none;padding:0;margin:0;display:flex;gap:1rem;flex-wrap:wrap">
+        {Object.entries(fighter.links).map(([k, v]) => (
+          <li><a href={v} rel="noopener noreferrer" target="_blank">{k}</a></li>
+        ))}
+      </ul>
+    </div>
+  )}
+
+  <script define:vars={{ base, fighter }}>
+    // Copy-config button
+    const btn = document.getElementById('copy-config');
+    btn?.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(document.getElementById('config-json').textContent);
+        btn.textContent = 'Copied!';
+        setTimeout(() => (btn.textContent = 'Copy config'), 1500);
+      } catch { btn.textContent = 'Copy failed'; }
+    });
+
+    // Live rank/rating: look this fighter up in its league leaderboards.
+    (async () => {
+      const langs = (fighter.langs && fighter.langs.length) ? fighter.langs : ['en-US'];
+      for (const lang of langs) {
+        const board = await fetch(`${base}data/leaderboard-${fighter.modality}-${lang}.json`)
+          .then((r) => (r.ok ? r.json() : null)).catch(() => null);
+        const entry = board && (board.entries || []).find((e) => e.competitor_id === fighter.competitor_id);
+        if (entry) {
+          const rating = entry.bt_rating ?? entry.elo;
+          document.getElementById('fighter-stats').textContent =
+            `Rank #${entry.rank} · rating ${Math.round(rating)} · ${lang}`;
+          return;
+        }
+      }
+    })();
+  </script>
+</Base>

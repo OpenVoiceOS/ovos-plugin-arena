@@ -106,7 +106,7 @@ import Base from '../../layouts/Base.astro';
                  data-langs="${escHtml(langs.join('|').toLowerCase())}">
           <div class="fighter-hero">
             ${spriteSvg(c.competitor_id, (c.types || [])[0] || '', 84)}
-            <h2>${escHtml(name)}</h2>
+            <h2><a href="${BASE}fighter/${encodeURIComponent(c.competitor_id)}/" style="color:inherit">${escHtml(name)}</a></h2>
             <span class="badge ${BADGE_CLASS[c.modality] || ''}">${escHtml(MODALITY_LABELS[c.modality] || c.modality)}</span>
             <div class="fighter-types">${types}</div>
           </div>
