@@ -1,0 +1,69 @@
+---
+import Base from '../../layouts/Base.astro';
+const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
+const gh = 'https://github.com/OpenVoiceOS/ovos-plugin-arena/blob/dev/docs';
+---
+<Base title="Methodology" description="How the arena ranks: Bradley-Terry batch ratings, bootstrap confidence intervals, seed-battle bias caps, and deterministic vote-fraud rules — every number replayable from public logs.">
+  <p class="eyebrow" style="margin-bottom:0.4rem">OVOS Plugin Arena · How the numbers work</p>
+  <h1>Methodology</h1>
+  <p style="max-width:65ch">
+    Every ranking here is <strong>reproducible from public data</strong>: the vote
+    log is a folder of GitHub issues, the datasets are pinned, and the whole board
+    rebuilds deterministically. This page is the short version — the
+    <a href={`${gh}/methodology.md`}>full methodology</a> and the
+    <a href={`${gh}/SPECIFICATION.md`}>specification</a> have the math and the
+    normative rules.
+  </p>
+
+  <h2>Ratings: Bradley-Terry, not sequential ELO</h2>
+  <p style="max-width:65ch">
+    Sequential ELO depends on the order votes arrive — replay the same votes in a
+    different order and you get different numbers. The arena instead fits a
+    <strong>Bradley-Terry</strong> model in one batch over the whole vote log
+    (minorization-maximization), so the result is order-independent and the
+    board is byte-identical on every rebuild. The legacy ELO column is kept for
+    continuity but ranking is by the Bradley-Terry rating.
+  </p>
+  <p style="max-width:65ch">
+    A <strong>convergence prior</strong> (one virtual tie against the mean per
+    fighter) guarantees finite ratings even for a fighter that has only ever won
+    or only ever lost, and connects otherwise-disconnected comparison graphs.
+    Benchmark-seeded "auto" votes enter at a fraction of a human vote's weight.
+  </p>
+
+  <h2>Confidence, not false precision</h2>
+  <p style="max-width:65ch">
+    Each rating carries a <strong>bootstrap 95% confidence interval</strong>
+    (seeded, so it is replayable) computed by resampling the human votes. A board
+    with too few human votes is flagged <em>provisional</em> rather than shown as
+    a firm ranking. On the benchmark boards, any fighter whose interval overlaps
+    the leader's is marked <strong>≈ tied with #1</strong> — the arena reports
+    ranges, not decimal points it can't defend.
+  </p>
+
+  <h2>Seed-battle bias cap</h2>
+  <p style="max-width:65ch">
+    Benchmarks bootstrap the boards before humans have voted, but a huge dataset
+    must not drown out real votes. Auto-generated battles are only created from
+    <strong>statistically significant</strong> metric gaps, and the total auto
+    weight per fighter-pair is <strong>capped</strong> at roughly a handful of
+    human votes regardless of dataset size. Seeds break the cold start; they
+    never own the ranking.
+  </p>
+
+  <h2>Vote-fraud resistance — deterministic and replayable</h2>
+  <p style="max-width:65ch">
+    Anti-abuse rules are pure functions of the committed vote log, so anyone can
+    replay them: one counted vote per (voter, matchup); a per-voter daily cap;
+    new accounts (recorded age at ingest, never re-fetched) carry zero weight;
+    and heavily one-sided voters are down-weighted. Discarded votes are
+    <strong>recorded, never deleted</strong> — the audit trail is public.
+  </p>
+
+  <h2>Replay the whole arena</h2>
+  <p style="max-width:65ch">
+    Nothing here is a black box. Clone the repo, run <code>assemble</code> then
+    <code>tally</code>, and you reproduce every board, badge, and confidence
+    interval on this site. If you disagree with a number, you can check it.
+  </p>
+</Base>
