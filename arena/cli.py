@@ -52,6 +52,7 @@ from arena.models import (
     VoteOutcome,
     battle_group,
 )
+from arena.patch_notes import build_patch_notes, diff_board, load_board
 from arena.rating import (
     PROVISIONAL_MIN_HUMAN_VOTES,
     PairResult,
@@ -626,6 +627,7 @@ def cmd_tally(args: argparse.Namespace) -> int:
             votes_by_board.setdefault(key, []).append({**d.vote, "weight": d.weight})
 
         boards = set(seeds) | set(votes_by_board)
+        patch_note_entries: list[dict] = []
         for modality, lang in sorted(boards):
             board = build_elo_board(
                 modality, lang,
@@ -633,9 +635,17 @@ def cmd_tally(args: argparse.Namespace) -> int:
                 votes_by_board.get((modality, lang), []),
                 battles_pool,
             )
-            _write_json(out_dir / f"leaderboard-{modality}-{lang}.json", board)
+            board_path = out_dir / f"leaderboard-{modality}-{lang}.json"
+            # Diff against the board currently on disk (git-tracked) before we
+            # overwrite it, so patch notes reflect this run's movement (§A5.4).
+            patch_note_entries.extend(diff_board(load_board(board_path), board))
+            _write_json(board_path, board)
             # Emit embeddable rank badges (growth loop, §A5.3).
             emit_badges(board, out_dir)
+        _write_json_payload(
+            out_dir / "patch-notes.json",
+            build_patch_notes(patch_note_entries, _now_iso()),
+        )
     else:
         # No counted votes → the boards cannot change; leave them alone so
         # the workflow's empty-diff guard skips the commit.

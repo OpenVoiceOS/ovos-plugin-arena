@@ -1,0 +1,55 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="Patch Notes" description="What changed in the arena — rank climbs, drops, new fighters and the day's biggest upset.">
+  <p class="eyebrow" style="margin-bottom:0.4rem">OVOS Plugin Arena · Changelog</p>
+  <h1 style="font-size:clamp(1.8rem,5vw,2.6rem);margin-bottom:0.35rem">Patch Notes</h1>
+  <p style="max-width:62ch">
+    Every <a href="../vote/">vote tally</a> reshuffles the ladders. Here's what
+    moved — climbs, drops, new challengers, and the day's biggest upset.
+  </p>
+
+  <div id="pn-loading" class="card" aria-live="polite">Loading the changelog…</div>
+  <div id="pn-empty" class="card" style="display:none">
+    No changes recorded yet. Once votes are tallied, movement shows up here.
+  </div>
+
+  <div id="pn-upset" class="card" style="display:none"></div>
+  <ul id="pn-list" role="list" style="list-style:none;padding:0;margin:1rem 0 0"></ul>
+
+  <script>
+    const BASE = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
+    const KIND = { up: '▲', down: '▼', new: '✦' };
+    const KIND_COLOR = { up: 'var(--win)', down: 'var(--loss)', new: 'var(--tie)' };
+
+    fetch(BASE + 'data/patch-notes.json')
+      .then(r => r.ok ? r.json() : null).catch(() => null)
+      .then(data => {
+        document.getElementById('pn-loading').style.display = 'none';
+        const notes = (data && data.notes) || [];
+        if (!notes.length) { document.getElementById('pn-empty').style.display = 'block'; return; }
+
+        if (data.upset_of_the_day) {
+          const u = data.upset_of_the_day;
+          const box = document.getElementById('pn-upset');
+          box.style.display = 'block';
+          box.innerHTML = `<strong>Upset of the day —</strong> ${escapeHtml(u.text || (u.fighter + ' climbs'))}`;
+        }
+
+        const list = document.getElementById('pn-list');
+        for (const n of notes) {
+          const li = document.createElement('li');
+          li.className = 'card';
+          li.style.marginBottom = '0.5rem';
+          const icon = KIND[n.kind] || '·';
+          li.innerHTML = `<span aria-hidden="true" style="color:${KIND_COLOR[n.kind] || 'var(--muted)'};margin-right:0.5rem">${icon}</span>${escapeHtml(n.text || '')}`;
+          list.appendChild(li);
+        }
+      });
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => (
+        { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+  </script>
+</Base>
