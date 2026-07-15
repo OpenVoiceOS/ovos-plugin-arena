@@ -209,6 +209,12 @@ class BenchmarkEntry(BaseModel):
     # frontend should show these entries as "≈ tied with #1" rather than
     # implying the point-estimate ordering is statistically significant.
     tied_with_leader: bool = False
+    # §G version-blend guard: distinct ``plugin_version`` values seen across
+    # this competitor's rows, and whether more than one was blended into a
+    # single metrics aggregate. A single-version competitor always has
+    # exactly one entry here and ``version_blended=False``.
+    plugin_versions: list[str] = Field(default_factory=list)
+    version_blended: bool = False
 
 
 class BenchmarkBoard(BaseModel):
@@ -224,6 +230,23 @@ class BenchmarkBoard(BaseModel):
         description=(
             "Registry metadata for the eval corpus: url, license, notes, "
             "and the HF predictions repo(s) the board was assembled from."
+        ),
+    )
+    predictions_revisions: dict[str, str] | None = Field(
+        None,
+        description=(
+            "Map from HF predictions repo id to the immutable commit SHA it "
+            "was pinned to for this board (§C reproducibility) — lets a "
+            "third party re-fetch the exact predictions that produced any "
+            "row here, instead of a floating branch."
+        ),
+    )
+    wer_normalizer_version: int | None = Field(
+        None,
+        description=(
+            "STT boards only: the ``arena.metrics.WER_NORMALIZER_VERSION`` "
+            "used to score this board's WER metrics, so past scores stay "
+            "distinguishable from future normalizer revisions."
         ),
     )
     entries: list[BenchmarkEntry] = Field(default_factory=list)
