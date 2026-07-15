@@ -18,12 +18,17 @@ Intent scoring conventions
 
 from __future__ import annotations
 
+import logging
 import random
+import re
+import unicodedata
 from collections import defaultdict
 from statistics import median
 
 from arena.models import BenchmarkBoard, BenchmarkEntry, PredictionRow
 from arena.rating import percentile
+
+log = logging.getLogger(__name__)
 
 BOOTSTRAP_ROUNDS = 1000
 CI_LOWER_PCT = 2.5
@@ -128,10 +133,75 @@ def score_intent(rows: list[PredictionRow]) -> dict[str, float]:
     return metrics
 
 
+# ---------------------------------------------------------------------------
+# Canonical transcript normalization for WER scoring (§E)
+# ---------------------------------------------------------------------------
+#
+# WER is only comparable across runners/competitors when both sides of the
+# comparison go through the *same* normalization before tokenizing. This is
+# a versioned, documented, dependency-free convention:
+#
+#   1. Unicode NFKC normalization (canonicalizes compatibility characters,
+#      e.g. full-width digits/letters, ligatures).
+#   2. Casefold (Unicode-aware lowercasing, stronger than ``str.lower()``).
+#   3. Strip punctuation — anything that is not a Unicode letter, digit,
+#      or whitespace is dropped (so "hello." and "hello" compare equal,
+#      and "don't" becomes "dont" — apostrophes are punctuation here).
+#   4. Numeral policy: every run of ASCII digits is spelled out digit-by-digit
+#      as English number words joined by spaces (e.g. "123" -> "one two
+#      three", "7" -> "seven"). This keeps "7" and "seven" comparable without
+#      guessing at magnitude words (hundred/thousand) or locale-specific
+#      grouping, and needs no numeral-to-word dependency.
+#   5. Collapse all whitespace runs to a single space and strip the ends.
+#
+# ``WER_NORMALIZER_VERSION`` is bumped whenever this convention changes, and
+# recorded on generated STT benchmark boards so historical scores stay
+# distinguishable from scores produced under a different convention.
+
+WER_NORMALIZER_VERSION = 1
+
+_DIGIT_WORDS = {
+    "0": "zero", "1": "one", "2": "two", "3": "three", "4": "four",
+    "5": "five", "6": "six", "7": "seven", "8": "eight", "9": "nine",
+}
+
+_DIGIT_RUN_RE = re.compile(r"\d+")
+_NON_ALNUM_SPACE_RE = re.compile(r"[^\w\s]", re.UNICODE)
+_UNDERSCORE_RE = re.compile(r"_")
+_WHITESPACE_RE = re.compile(r"\s+")
+
+
+def _spell_digits(match: re.Match[str]) -> str:
+    return " ".join(_DIGIT_WORDS[d] for d in match.group(0))
+
+
+def normalize_transcript(text: str) -> str:
+    """Canonical WER-scoring normalization (§E, version ``WER_NORMALIZER_VERSION``).
+
+    Applies NFKC normalization, casefolding, punctuation stripping, the
+    digit-by-digit numeral spelling policy, and whitespace collapsing — see
+    the module-level convention notes above. Both the reference and the
+    hypothesis MUST be passed through this before tokenizing so WER is
+    computed on a consistent surface form.
+    """
+    text = unicodedata.normalize("NFKC", text)
+    text = text.casefold()
+    text = _DIGIT_RUN_RE.sub(_spell_digits, text)
+    text = _UNDERSCORE_RE.sub(" ", text)
+    text = _NON_ALNUM_SPACE_RE.sub("", text)
+    text = _WHITESPACE_RE.sub(" ", text).strip()
+    return text
+
+
 def _wer_components(reference: str, hypothesis: str) -> tuple[int, int]:
-    """(word edit distance, reference word count) via word-level Levenshtein."""
-    ref_tokens = reference.lower().split()
-    hyp_tokens = hypothesis.lower().split()
+    """(word edit distance, reference word count) via word-level Levenshtein.
+
+    Both sides are passed through ``normalize_transcript`` (§E) before
+    tokenizing, so WER is comparable across runners regardless of raw
+    punctuation/casing/numeral-formatting differences in the source text.
+    """
+    ref_tokens = normalize_transcript(reference).split()
+    hyp_tokens = normalize_transcript(hypothesis).split()
     if not ref_tokens:
         return 0, 0
     dp = list(range(len(hyp_tokens) + 1))
@@ -154,10 +224,15 @@ def _wer(reference: str, hypothesis: str) -> float:
 
 
 def row_wer(row: PredictionRow) -> float | None:
-    if row.wer is not None:
-        return row.wer
+    """WER for one row, preferring canonical recomputation (§E) over a
+    stored precomputed ``row.wer`` when the raw reference/prediction text is
+    available — so scores are comparable across runners that may have
+    normalized differently before persisting their own WER. Falls back to
+    the stored value only when the raw text is unavailable."""
     if row.reference_text is not None and row.prediction is not None:
         return _wer(row.reference_text, row.prediction)
+    if row.wer is not None:
+        return row.wer
     return None
 
 
@@ -447,6 +522,17 @@ def build_benchmark_board(
         for competitor_id, rows in by_competitor.items():
             ci = primary_metric_ci(modality, rows)
             cis[competitor_id] = ci
+            # §G version-blend guard: flag (never silently aggregate) when a
+            # competitor's rows span more than one distinct plugin_version.
+            versions = sorted({r.plugin_version for r in rows if r.plugin_version})
+            version_blended = len(versions) > 1
+            if version_blended:
+                log.warning(
+                    "%s/%s/%s: competitor %r blends metrics across plugin "
+                    "versions %s — scores are not attributable to a single "
+                    "version",
+                    modality, dataset_id, lang, competitor_id, versions,
+                )
             entries.append(
                 BenchmarkEntry(
                     competitor_id=competitor_id,
@@ -455,6 +541,8 @@ def build_benchmark_board(
                     metrics=scorer(rows),
                     primary_metric_ci_lower=ci[0] if ci else None,
                     primary_metric_ci_upper=ci[1] if ci else None,
+                    plugin_versions=versions,
+                    version_blended=version_blended,
                 )
             )
 
@@ -477,5 +565,6 @@ def build_benchmark_board(
         lang=lang,
         generated_at=generated_at,
         primary_metric=primary,
+        wer_normalizer_version=WER_NORMALIZER_VERSION if modality == "stt" else None,
         entries=entries,
     )
