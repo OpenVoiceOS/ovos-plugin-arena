@@ -140,6 +140,59 @@ def list_datasets(modality: str | None = None) -> list[DatasetDef]:
     return results
 
 
+def load_all_datasets(
+    registry_root: Path | None = None,
+) -> list[DatasetDef]:
+    """Return every dataset definition across all modalities.
+
+    *registry_root* overrides the default registry location (used by the
+    CLI when run from outside the repo root).
+    """
+    root = (registry_root or REGISTRY_ROOT) / "datasets"
+    results: list[DatasetDef] = []
+    if not root.exists():
+        return results
+    for path in sorted(root.glob("**/*.json")):
+        try:
+            results.append(DatasetDef.model_validate(json.loads(path.read_text())))
+        except Exception as exc:
+            import warnings
+            warnings.warn(f"Skipping invalid dataset file {path}: {exc}", stacklevel=2)
+    return results
+
+
+def validate_registry(registry_root: Path | None = None) -> list[str]:
+    """Strictly validate every registry JSON file.
+
+    Unlike ``list_competitors``/``list_datasets`` (which warn and skip bad
+    files so runtime code keeps working off the good ones), this collects
+    every validation failure — including unknown/typo'd keys, now that the
+    schemas are closed (``extra="forbid"``) — and returns them as
+    ``"<path>: <message>"`` strings. An empty list means every file in the
+    registry validates cleanly.
+    """
+    root = registry_root or REGISTRY_ROOT
+    errors: list[str] = []
+
+    competitors_dir = root / "competitors"
+    if competitors_dir.exists():
+        for path in sorted(competitors_dir.glob("**/*.json")):
+            try:
+                CompetitorDef.model_validate(json.loads(path.read_text()))
+            except Exception as exc:
+                errors.append(f"{path}: {exc}")
+
+    datasets_dir = root / "datasets"
+    if datasets_dir.exists():
+        for path in sorted(datasets_dir.glob("**/*.json")):
+            try:
+                DatasetDef.model_validate(json.loads(path.read_text()))
+            except Exception as exc:
+                errors.append(f"{path}: {exc}")
+
+    return errors
+
+
 def list_prediction_repos() -> list[str]:
     """Sorted unique HF prediction repos across all eval datasets.
 

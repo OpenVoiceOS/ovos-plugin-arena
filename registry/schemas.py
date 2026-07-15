@@ -23,7 +23,7 @@ from __future__ import annotations
 from enum import Enum
 from typing import Any, Literal
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 # ---------------------------------------------------------------------------
 # Modality
@@ -55,6 +55,8 @@ INTENT_MODALITIES = (
 
 
 class HuggingFaceSource(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     type: Literal["huggingface"] = "huggingface"
     hf_id: str = Field(..., description="HuggingFace dataset identifier, e.g. PolyAI/minds14")
     revision: str = "main"
@@ -79,6 +81,8 @@ class HuggingFaceSource(BaseModel):
 
 
 class PathSource(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     type: Literal["path"] = "path"
     path: str = Field(..., description="Local filesystem path to the dataset")
     format: str = "jsonl"  # jsonl | csv | parquet
@@ -102,7 +106,12 @@ class DatasetDef(BaseModel):
     ``train_datasets``.
     """
 
+    model_config = ConfigDict(extra="forbid")
+
     dataset_id: str = Field(..., description="Stable unique identifier for this dataset")
+    # Schema revision of this registry entry's shape — 1 is the only shape
+    # defined so far; bump when the DatasetDef contract changes.
+    schema_version: int = 1
     modality: Modality
     source: DatasetSource = Field(..., discriminator="type")
     reference_fields: dict[str, str] = Field(
@@ -187,6 +196,15 @@ class DatasetDef(BaseModel):
         ),
     )
     notes: str | None = None
+    predictions_revision: str | None = Field(
+        None,
+        description=(
+            "Immutable HF commit SHA to pin the predictions dataset "
+            "(``predictions_hf``) to for reproducible board assembly. "
+            "None means the assemble step tracks whatever revision it is "
+            "invoked with (e.g. a floating branch) instead of a fixed SHA."
+        ),
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -229,9 +247,14 @@ class CompetitorDef(BaseModel):
     ``competitor_id`` on ingestion.
     """
 
+    model_config = ConfigDict(extra="forbid")
+
     competitor_id: str = Field(
         ..., description="Stable unique identifier for this competitor"
     )
+    # Schema revision of this registry entry's shape — 1 is the only shape
+    # defined so far; bump when the CompetitorDef contract changes.
+    schema_version: int = 1
     modality: Modality
     plugin: str | None = Field(
         None,

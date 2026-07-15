@@ -16,6 +16,16 @@ on:
   workflow_dispatch: {}
 
 jobs:
+  validate_registry:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install .
+      - run: python -m arena.cli validate-registry --registry registry
+
   build_tests:
     uses: OpenVoiceOS/gh-automations/.github/workflows/build-tests.yml@dev
     with:
