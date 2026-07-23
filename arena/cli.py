@@ -326,6 +326,44 @@ def _dataset_info_lookup(prediction_sources: list[str]) -> dict[str, dict[str, A
     return info
 
 
+def _predictions_revision_for(source: str, default_revision: str) -> tuple[str, dict[str, Any]]:
+    """The revision to pin *source* to for reproducible assembly (§C).
+
+    Uses the source dataset's registry ``predictions_revision`` pin when one
+    exists, else *default_revision* (typically ``--revision``, often
+    ``"main"``). Resolves whichever revision is chosen to an immutable HF
+    commit SHA via ``arena.predictions.resolve_predictions_revision``, so
+    the board's provenance is a fixed commit rather than a floating ref.
+
+    Returns ``(revision_to_fetch, meta)`` where *meta* carries the resolved
+    SHA (``meta["resolved_sha"]``) when resolution succeeded, or is empty
+    when the source is a local directory or resolution failed (in which
+    case the caller falls back to fetching at *revision_to_fetch* as-is).
+    """
+    if Path(source).is_dir():
+        return default_revision, {}
+
+    revision = default_revision
+    try:
+        from registry.loaders import list_datasets
+
+        for dataset in list_datasets():
+            if dataset.predictions_hf == source and dataset.predictions_revision:
+                revision = dataset.predictions_revision
+                break
+    except Exception as exc:
+        log.warning("Could not consult registry for %s pin: %s", source, exc)
+
+    try:
+        from arena.predictions import resolve_predictions_revision
+
+        sha = resolve_predictions_revision(source, revision=revision)
+        return sha, {"resolved_sha": sha}
+    except Exception as exc:
+        log.warning("Could not resolve %s@%s to a commit SHA: %s", source, revision, exc)
+        return revision, {}
+
+
 def cmd_assemble(args: argparse.Namespace) -> int:
     from arena.predictions import group_rows, load_predictions
 
@@ -342,11 +380,18 @@ def cmd_assemble(args: argparse.Namespace) -> int:
                  "repos", len(sources))
     dataset_info = _dataset_info_lookup(sources)
 
+    # §C reproducibility — pin every HF predictions source to an immutable
+    # commit SHA (registry ``predictions_revision`` when set, else
+    # ``--revision``) and record the resolved mapping for the boards.
+    resolved_revisions: dict[str, str] = {}
     rows = []
     for source in sources:
-        log.info("Loading predictions from %s …", source)
+        fetch_revision, meta = _predictions_revision_for(source, args.revision)
+        if meta.get("resolved_sha"):
+            resolved_revisions[source] = meta["resolved_sha"]
+        log.info("Loading predictions from %s@%s …", source, fetch_revision)
         try:
-            rows.extend(load_predictions(source, revision=args.revision))
+            rows.extend(load_predictions(source, revision=fetch_revision))
         except Exception as exc:
             log.error("Skipping %s: %s", source, exc)
 
@@ -368,6 +413,11 @@ def cmd_assemble(args: argparse.Namespace) -> int:
                 by_competitor.setdefault(competitor_id, []).append(row)
         board = build_benchmark_board(modality, dataset_id, lang, by_competitor, now)
         board.dataset_info = dataset_info.get(dataset_id)
+        own_revisions = {
+            src: sha for src, sha in resolved_revisions.items()
+            if src.endswith(f"-bench-{dataset_id}")
+        }
+        board.predictions_revisions = own_revisions or None
         _write_json(data_dir / f"benchmark-{modality}-{dataset_id}-{lang}.json", board)
 
     # Battles + ELO pool by battle group: every plugin that answered the same
@@ -740,8 +790,17 @@ def cmd_export_index(args: argparse.Namespace) -> int:
         index[key] = []
     for path in sorted(data_dir.glob("leaderboard-*.json")):
         index["leaderboards"].append(_index_entry(path, "leaderboards"))
+    predictions_revisions: dict[str, str] = {}
     for path in sorted(data_dir.glob("benchmark-*.json")):
         index["benchmarks"].append(_index_entry(path, "benchmarks"))
+        payload = json.loads(path.read_text())
+        predictions_revisions.update(payload.get("predictions_revisions") or {})
+    if predictions_revisions:
+        # §C reproducibility — top-level {repo: resolved_commit_sha} map
+        # gathered from every board, so a third party can re-fetch the
+        # exact predictions that produced any row without hunting through
+        # individual board files.
+        index["predictions_revisions"] = predictions_revisions
     # blind sample battles vs free-form matchup pools (different voting UIs)
     for path in sorted(data_dir.glob("battles-*.json")):
         if "-freeform-" in path.name:
@@ -780,6 +839,23 @@ def cmd_export_bestiary(args: argparse.Namespace) -> int:
         out_file, {"generated_at": _now_iso(), "competitors": competitors}
     )
     log.info("Exported %d competitors", len(competitors))
+    return 0
+
+
+def cmd_validate_registry(args: argparse.Namespace) -> int:
+    """Strictly validate every registry JSON file; nonzero exit on any error."""
+    registry_root = Path(args.registry).resolve()
+    if str(registry_root.parent) not in sys.path:
+        sys.path.insert(0, str(registry_root.parent))
+    from registry.loaders import validate_registry
+
+    errors = validate_registry(registry_root=registry_root)
+    if errors:
+        for error in errors:
+            print(error)
+        log.error("%d registry validation error(s)", len(errors))
+        return 1
+    log.info("Registry OK — every competitor/dataset file validated cleanly.")
     return 0
 
 
@@ -863,6 +939,12 @@ def main(argv=None):
     p.add_argument("--output", default="frontend-static/public/data/competitors.json")
 
     p = sub.add_parser(
+        "validate-registry",
+        help="Strictly validate every registry competitor/dataset JSON file",
+    )
+    p.add_argument("--registry", default="registry")
+
+    p = sub.add_parser(
         "audit-seeds",
         help="Report seed-battle Bradley-Terry weight per pair, flagging capped pairs (§4)",
     )
@@ -874,6 +956,7 @@ def main(argv=None):
         "tally": cmd_tally,
         "export-index": cmd_export_index,
         "export-bestiary": cmd_export_bestiary,
+        "validate-registry": cmd_validate_registry,
         "audit-seeds": cmd_audit_seeds,
     }
     if args.command not in commands:

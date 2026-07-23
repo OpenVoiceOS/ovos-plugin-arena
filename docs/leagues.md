@@ -56,6 +56,28 @@ None → prediction is None`); `accuracy` counts those correct rejections.
 `massive-templates` (52 langs, template-only). Each eval corpus links its
 paradigm-specific `role: train` sets via `train_datasets`.
 
+## STT league (`stt`)
+
+**Task**: transcribe a spoken clip; scored against the gold `reference_text`
+by word error rate (word-level Levenshtein over word tokens).
+
+| Metric | Definition | Direction |
+|---|---|---|
+| **`wer_mean`** *(primary → ELO seed)* | mean WER across scored rows | lower better |
+| `wer_median` | median WER across scored rows | lower better |
+| `latency_ms_median` | median per-utterance transcription latency | lower better |
+
+Before tokenizing, both the reference and the hypothesis pass through
+`arena.metrics.normalize_transcript` (`WER_NORMALIZER_VERSION`) — Unicode
+NFKC normalization, casefolding, punctuation stripping, digit runs spelled
+out digit-by-digit (`"7"` → `"seven"`), whitespace collapsing — so WER is
+comparable across runners regardless of raw formatting differences, and
+scored deterministically without mutating the stored prediction rows. See
+[SPECIFICATION.md §5 R14](SPECIFICATION.md#5-rating-system) for the full
+convention. `row_wer` prefers recomputing from `reference_text`/`prediction`
+over a row's stored `wer`, falling back to the stored value only when raw
+text is unavailable.
+
 ## Wake-word league (`wake_word`)
 
 **Task**: per-clip detection. Each fighter's real OVOS `HotWordEngine` is fed

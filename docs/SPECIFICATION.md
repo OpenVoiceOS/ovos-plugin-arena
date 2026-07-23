@@ -130,6 +130,25 @@ rules). A `role: eval` corpus links its paradigm-specific training sets via
 `train_datasets`, and every stage plugin trains from the corpus matching its
 paradigm.
 
+Both `CompetitorDef` and `DatasetDef` are **closed schemas** (unknown keys
+MUST be rejected, not silently ignored) and carry a `schema_version` field
+(currently `1`) marking the entry's shape. `ovos-arena validate-registry`
+strictly validates every `registry/**/*.json` file against these schemas
+and exits non-zero on the first failure — a typo'd field name (e.g.
+`"revison"`) or a value of the wrong type is a registry bug and MUST fail
+CI, not degrade to a runtime warning. Runtime loaders (`list_competitors`,
+`list_datasets`, …) keep their warn-and-skip behavior for resilience
+against a stray bad file; `validate_registry` is the strict gate.
+
+A `DatasetDef` MAY pin `predictions_revision` — an immutable HF commit SHA
+for its `predictions_hf` predictions repo. `assemble` uses this pin (falling
+back to `--revision`, typically the floating `main` branch, when unset),
+resolves whichever revision it ends up with to a concrete commit SHA before
+fetching, and records the resolved `{repo: sha}` mapping on the generated
+`benchmark-*.json` boards (`predictions_revisions`) and at the top level of
+`index.json` — so a benchmark board's provenance is always a fixed commit,
+and a third party can re-fetch the exact predictions that produced any row.
+
 ### 3.2 Prediction contract
 
 Predictions live in HF dataset repos — **one dedicated repo per benchmark
@@ -280,6 +299,29 @@ Voting options MUST include: candidate A, candidate B, tie, both-wrong.
   STT's `wer_mean`. `BenchmarkEntry.tied_with_leader` marks entries whose CI
   overlaps the #1 entry's CI; see `docs/methodology.md` for the full
   rationale.
+- **R14 — WER normalization is canonical and versioned.** Before computing
+  word-level edit distance, both the reference and the hypothesis text pass
+  through `arena.metrics.normalize_transcript`
+  (`WER_NORMALIZER_VERSION`, currently `1`): Unicode NFKC normalization,
+  casefolding, punctuation stripping, ASCII digit runs spelled out
+  digit-by-digit as English words (`"7"` → `"seven"`, `"123"` → `"one two
+  three"` — no magnitude words, no locale grouping), and whitespace
+  collapsing. This is scoring-time only — ingested prediction rows are never
+  mutated. `arena.metrics.row_wer` (used by `score_stt`) prefers
+  recomputing WER from `reference_text`/`prediction` through this
+  normalizer over a row's precomputed `wer`, so scores stay comparable
+  across runners that may have normalized differently before publishing;
+  it falls back to the stored `wer` only when the raw text is unavailable.
+  `benchmark-stt-*.json` boards carry `wer_normalizer_version` so scores
+  produced under a future normalizer revision are distinguishable from
+  past ones.
+- **R15 — Version-blend guard.** When a competitor's rows for one benchmark
+  board span more than one distinct `plugin_version`, `build_benchmark_board`
+  MUST NOT silently aggregate them into one indistinguishable score. Every
+  `BenchmarkEntry` carries `plugin_versions` (the distinct versions present)
+  and `version_blended` (true when more than one) — the frontend can flag
+  blended entries, and CI/tooling can grep for them — rather than a reader
+  assuming a single score reflects a single shipped version.
 - Human votes: tie and both-wrong score 0.5/0.5.
 - Auto votes (seeding): K/4 (sequential ELO) / weight 1/4 (Bradley-Terry),
   outcomes from benchmark metrics only.

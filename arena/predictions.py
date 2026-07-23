@@ -137,6 +137,21 @@ def load_predictions_dir(predictions_dir: Path) -> list[PredictionRow]:
     return rows
 
 
+def resolve_predictions_revision(repo_id: str, revision: str = "main") -> str:
+    """Resolve *revision* (a branch, tag, or SHA) to an immutable commit SHA.
+
+    Used by ``assemble`` (§C — pinned predictions revision) so a benchmark
+    board's provenance is a fixed commit, not a floating ref that could
+    change under it after the board is published.
+    """
+    from huggingface_hub import HfApi
+
+    info = HfApi().dataset_info(repo_id, revision=revision)
+    if not info.sha:
+        raise ValueError(f"HF did not return a commit sha for {repo_id}@{revision}")
+    return info.sha
+
+
 def fetch_hf_predictions(repo_id: str, revision: str = "main") -> Path:
     """Download the ``predictions/`` folder of an HF dataset repo.
 
