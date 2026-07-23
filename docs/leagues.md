@@ -122,6 +122,54 @@ entry — `openwakeword-hey-mycroft-thr03` (sensitive) and `-thr07` (strict)
 compete alongside the 0.5 default. The same holds for VAD thresholds
 (`silero-vad-thr03` / `-thr07`) and webrtcvad aggressiveness (`webrtcvad-mode1`).
 
+## Streaming wake-word league (`ww_stream`) — §A3.2 / R14
+
+Isolated-clip benchmarking (above) structurally favors clip-shaped detectors:
+a streaming detector never gets to fire the way it does against a live mic —
+its rolling feature buffer, temporal smoothing and re-arming behaviour only
+show up over continuous audio — and a false-accept rate needs **hours** of
+continuous negative audio, not seconds-long clips. `ww_stream` is a separate
+board for that: fighters run continuously over long ground-truth-event clips
+(`runner/ww_bench.py:WakeWordStreamBench`), and every activation is recorded
+as a `(timestamp_s, score)` event instead of one binary per-clip decision
+(`prediction: "WW_STREAM"`, `extras.events` / `extras.truth_onsets` /
+`extras.duration_s`). This is intended to become the **primary** WW board
+once the corpus ships; the clip board is retained for engines that can't run
+this way and as a regression guard on per-clip behaviour.
+
+**Eligibility — `capabilities`.** A wake-word competitor's registry entry
+carries `capabilities: ["clip"]` (the default) or `["clip", "stream"]`.
+Only `"stream"` fighters ever run here
+(`WakeWordStreamBench.filter_competitors`) — a clip-only fighter is excluded
+outright, never zero-scored, so it neither pollutes nor is unfairly penalised
+on a board it structurally can't compete on. Today that's openWakeWord,
+microWakeWord and the precise-onnx family — engines built on rolling
+streaming feature buffers; everything else defaults to clip-only until
+verified otherwise.
+
+**Metrics** (`score_ww_stream`), per `(dataset, lang)` — an event within
+`EVENT_TOLERANCE_S` (1.5 s) of a truth onset is a true positive; an unmatched
+onset is a false reject; an unmatched fired event is a false accept:
+
+| Metric | Meaning | Direction |
+|---|---|---|
+| **`error_at_2fa_per_hour`** *(primary)* | FRR at the lowest scanned threshold keeping FA/hour ≤ `TARGET_FA_PER_HOUR` (2/hour) — the FRR a deployer actually gets at a usable operating point | lower better |
+| `frr` | false-reject rate at threshold 0.5 | lower better |
+| `fa_per_hour` | false accepts per hour of streamed audio, at threshold 0.5 | lower better |
+| `negative_hours` | total streamed audio hours scored (FA/hour denominator) | — |
+| `latency_s_median` | median detection latency vs. the matched onset, at threshold 0.5 | lower better |
+| `det_frr@<thr>` / `det_fa_per_hour@<thr>` | a small DET curve (thresholds 0.1–0.9), flattened into float metrics | — |
+
+**Dataset**: `ww_stream_hey_mycroft` (`registry/datasets/ww_stream/`) — a
+planned corpus (`TigreGotico/ww-stream-bench-hey_mycroft`, not yet published)
+of long continuous clips with a ground-truth-event manifest (onset
+timestamps + duration, 16 kHz pinned). Until it exists, this league is
+inert: `assemble` already skips a dataset whose `predictions_hf` repo 404s,
+so no board is produced and no other league is affected. Building the corpus
+and running the sweep across `capabilities`-eligible fighters is separate,
+later operational work — this scaffolding (registry entry, scorer, runner
+adapter, dedicated benchmark script) is what that work will run against.
+
 ## VAD league (`vad`)
 
 **Task**: per-clip speech / non-speech detection — the same binary-detection
