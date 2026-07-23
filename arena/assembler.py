@@ -11,8 +11,8 @@ Matchmaking (§4):
 - **R3** — samples where both competitors erred are preferred; disagreements
   where exactly one erred come next; identical outputs are never battled.
 - **R5** — auto-battles derive an outcome from the reference metric
-  (intent: exact match; STT: lower WER) and seed the ELO ledger at reduced
-  K.  Auto votes are never attributed to users.
+  (intent: exact match; STT: lower WER; TTS: higher UTMOS) and seed the ELO
+  ledger at reduced K.  Auto votes are never attributed to users.
 
 Candidate A/B order is blind: derived from the battle-id hash, not from
 competitor names, so the voter cannot infer identity from position.
@@ -27,6 +27,7 @@ from arena.elo import EloLedger
 from arena.metrics import (
     pair_metric_significant,
     row_is_correct,
+    row_utmos,
     row_wer,
     ww_row_correct,
 )
@@ -77,6 +78,15 @@ def auto_outcome(
         if wer_a is None or wer_b is None or wer_a == wer_b:
             return None
         return VoteOutcome.CANDIDATE_A if wer_a < wer_b else VoteOutcome.CANDIDATE_B
+
+    if modality == "tts":
+        # No ground-truth reference to call "correct" against — UTMOS
+        # (objective naturalness MOS, higher is better) picks the winner
+        # instead, same shape as STT's WER comparison above (§4 R14).
+        utmos_a, utmos_b = row_utmos(row_a), row_utmos(row_b)
+        if utmos_a is None or utmos_b is None or utmos_a == utmos_b:
+            return None
+        return VoteOutcome.CANDIDATE_A if utmos_a > utmos_b else VoteOutcome.CANDIDATE_B
 
     correct_a = _is_correct(row_a, modality)
     correct_b = _is_correct(row_b, modality)
@@ -314,8 +324,9 @@ def seed_elo(
         for sample_id in sorted(samples):
             rows = samples[sample_id]
             # every competitor that ran is listed on the board, even with no
-            # auto-battle signal (e.g. TTS, which is human-vote-only) — start
-            # them at the baseline rating so the board shows who is competing.
+            # auto-battle signal (e.g. a competitor whose rows never got a
+            # UTMOS score) — start them at the baseline rating so the board
+            # shows who is competing.
             for competitor, row in rows.items():
                 competitor_plugin.setdefault(competitor, row.plugin_id)
                 ledger.ensure(competitor)
