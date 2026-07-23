@@ -37,7 +37,15 @@ const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : As
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Press+Start+2P&display=swap" rel="stylesheet" />
-    <style>
+    <style is:global>
+      /*
+        Global (unscoped) on purpose: most of this site's content — leaderboard
+        rows, battle candidates, fighter cards, chips — is rendered client-side
+        via innerHTML from page <script> tags, so it never receives Astro's
+        scoped-style attribute. A scoped <style> here would silently fail to
+        style that injected markup (e.g. links would fall back to the browser's
+        default blue, which fails contrast against this dark theme).
+      */
       *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
       :root {
