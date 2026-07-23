@@ -59,9 +59,23 @@ class MediaBenchAdapter:
     """
 
     modality: str = ""
+    #: Registry modality to pull competitors/fighters from, when it differs
+    #: from ``modality`` (e.g. `ww_stream`'s board reuses `wake_word`
+    #: fighter definitions — §A3.2 / R14). Empty means "same as modality".
+    competitor_modality: str = ""
     #: HF dataset card tags and one-line task description for the modality.
     card_tags: tuple[str, ...] = ()
     card_task: str = ""
+
+    def filter_competitors(self, competitors: list) -> list:
+        """Narrow the candidate fighter list before a run (default: no-op).
+
+        Lets an adapter exclude fighters that share its ``competitor_modality``
+        registry pool but aren't eligible for this particular benchmark
+        (e.g. clip-only wake-word fighters never run the streaming bench —
+        see ``runner.ww_bench.WakeWordStreamBench``).
+        """
+        return competitors
 
     def competitor_langs(self, competitor, dataset_langs: list[str]) -> list[str]:
         """Languages to benchmark this competitor in (intersection with data).
@@ -136,15 +150,23 @@ def make_row(
     sample_id: str,
     dataset_revision: str,
     fields: dict,
+    modality: str | None = None,
 ) -> dict:
-    """Build one §3.2 prediction row from base metadata + adapter ``fields``."""
+    """Build one §3.2 prediction row from base metadata + adapter ``fields``.
+
+    *modality* names the board this row is scored under; it defaults to the
+    competitor's own registry modality but MAY differ (§A3.2 / R14: a
+    `wake_word` fighter's streaming rows carry ``modality="ww_stream"`` so
+    ``arena.predictions.group_rows`` sorts them onto the separate streaming
+    board instead of the isolated-clip one).
+    """
     row = {
         "competitor_id": competitor.competitor_id,
         "sample_id": sample_id,
         "dataset_id": dataset_id,
         "dataset_revision": dataset_revision,
         "lang": lang,
-        "modality": competitor.modality.value,
+        "modality": modality or competitor.modality.value,
         "plugin_id": competitor.plugin or competitor.competitor_id,
         "plugin_version": _plugin_version(competitor),
         "runner_version": f"ovos-plugin-arena=={ARENA_VERSION}",
@@ -246,7 +268,8 @@ def run_competitor_lang(
                             competitor.competitor_id, lang, sample_id, exc)
                 continue
             row = make_row(
-                competitor, dataset_id, lang, sample_id, revision, fields
+                competitor, dataset_id, lang, sample_id, revision, fields,
+                modality=adapter.modality,
             )
             fh.write(json.dumps(row, ensure_ascii=False) + "\n")
             written += 1
@@ -378,7 +401,8 @@ def run_benchmark(
     log.info("Dataset %s @ %s", eval_def.source.hf_id, revision[:12])
 
     wanted = {c.strip() for c in args.competitors.split(",") if c.strip()} or None
-    competitors = competitors_for(adapter.modality, wanted)
+    comp_modality = adapter.competitor_modality or adapter.modality
+    competitors = adapter.filter_competitors(competitors_for(comp_modality, wanted))
     if wanted:
         missing = wanted - {c.competitor_id for c in competitors}
         if missing:

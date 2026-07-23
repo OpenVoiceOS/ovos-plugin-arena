@@ -259,6 +259,106 @@ def _to_pcm16(array) -> bytes:
     return (arr * 32767.0).astype("<i2").tobytes()
 
 
+class WakeWordStreamBench(WakeWordBench):
+    """Continuous-stream wake-word benchmark adapter (§A3.2 / R14).
+
+    Same real OVOS `HotWordEngine` stack as :class:`WakeWordBench`, but each
+    sample is one long continuous clip (many onsets, or none — negative-hours
+    audio) instead of one isolated labelled clip. The engine runs
+    continuously over the whole clip and every activation is recorded as a
+    ``(timestamp_s, score)`` event (:func:`_detect_stream`); the arena scores
+    those events against the clip's ground-truth onset timestamps
+    (:func:`arena.metrics.score_ww_stream`) rather than a single per-clip
+    binary decision.
+
+    Only competitors that declare ``"stream"`` in their registry
+    ``capabilities`` are eligible here — the rest are clip-only and are
+    excluded outright, never zero-scored (see :meth:`filter_competitors`).
+    """
+
+    modality = "ww_stream"
+    # Fighters live in the wake_word registry pool — same plugin configs,
+    # just a different benchmark shape (see WakeWordBench docstring).
+    competitor_modality = "wake_word"
+    card_tags = ("keyword-spotting", "wake-word", "streaming")
+    card_task = "Continuous-stream detection events"
+
+    def filter_competitors(self, competitors: list) -> list:
+        return [c for c in competitors if "stream" in (c.capabilities or [])]
+
+    def iter_samples(
+        self, dataset_def, lang: str, revision: str, max_samples: int
+    ) -> Iterator[tuple[str, dict]]:
+        fields = dataset_def.reference_fields or {}
+        yield from stream_manifest_audio(
+            dataset_def.source,
+            audio_key=fields.get("audio", "audio"),
+            extra_keys={"truth_onsets": fields.get("onsets", "onsets")},
+            revision=revision,
+            max_samples=max_samples,
+        )
+
+    def predict(self, stack: WWStack, sample: dict, ctx: PredictContext) -> dict:
+        array = sample["array"]
+        events = _detect_stream(stack, array)
+        truth_onsets = [float(t) for t in (sample.get("truth_onsets") or [])]
+        duration_s = round(len(array) / SAMPLE_RATE, 3)
+        return {
+            "label": "positive" if truth_onsets else "negative",
+            "prediction": "WW_STREAM",
+            "audio_url": sample.get("audio_url"),
+            "extras": {
+                "events": [list(e) for e in events],
+                "truth_onsets": truth_onsets,
+                "duration_s": duration_s,
+            },
+        }
+
+
+def _detect_stream(stack: WWStack, array) -> list[tuple[float, float]]:
+    """Run one long continuous clip through the wake-word stack, frame by
+    frame, recording every activation as ``(timestamp_s, score)``.
+
+    Mirrors :func:`_detect`: ``reset()`` is called once up front (same as an
+    isolated clip), then every frame is fed through ``update()`` /
+    ``found_wake_word()`` for the whole clip — no per-firing reset. A single
+    continuous clip can still hold many onsets because each plugin's own
+    latch/refractory logic (patience, debounce, cooldown — the engine owns
+    its own threshold and re-arm behaviour, same as P2) decides when it is
+    ready to fire again, exactly as it would against a live mic; the arena
+    does not force a re-arm the plugin didn't ask for. An activation still
+    has to clear a configured verifier, if any. Score defaults to 1.0: most
+    OVOS hotword engines only expose a binary latch (``found_wake_word()``),
+    not a calibrated confidence — the arena does not invent one. Engines
+    that do expose a numeric ``.confidence``/``.score`` after firing get it
+    recorded, enabling a real DET curve for those fighters instead of a
+    degenerate single-point one.
+    """
+    events: list[tuple[float, float]] = []
+    engine = stack.ww
+    if hasattr(engine, "reset"):
+        try:
+            engine.reset()
+        except Exception:
+            pass
+    fww = engine.found_wake_word
+    fww_takes_arg = len(inspect.signature(fww).parameters) >= 1
+    has_update = hasattr(engine, "update")
+    pcm = _to_pcm16(array)
+    frame_dur = FRAME_SAMPLES / SAMPLE_RATE
+    t = 0.0
+    for off in range(0, len(pcm), FRAME_SAMPLES * 2):
+        chunk = pcm[off:off + FRAME_SAMPLES * 2]
+        if has_update:
+            engine.update(chunk)
+        fired = fww(chunk) if fww_takes_arg else fww()
+        if fired and (stack.verifier is None or _verify(stack.verifier, array)):
+            score = getattr(engine, "confidence", None) or getattr(engine, "score", None)
+            events.append((round(t, 3), float(score) if score is not None else 1.0))
+        t += frame_dur
+    return events
+
+
 def _norm_label(raw) -> str:
     """Map a dataset label to ``positive`` / ``negative``."""
     from arena.metrics import _ww_is_positive

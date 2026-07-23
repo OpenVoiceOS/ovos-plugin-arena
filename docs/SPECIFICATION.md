@@ -341,6 +341,21 @@ Voting options MUST include: candidate A, candidate B, tie, both-wrong.
   and `version_blended` (true when more than one) — the frontend can flag
   blended entries, and CI/tooling can grep for them — rather than a reader
   assuming a single score reflects a single shipped version.
+- **R16 — Streaming wake word is a separate board, not a compat shim.**
+  Isolated-clip benchmarking (§3, wake_word league) structurally favors
+  clip-shaped detectors: a streaming detector never gets to fire the way it
+  does against a live mic, and a false-accept rate needs hours of continuous
+  negative audio, not seconds-long clips. `ww_stream` (`arena/metrics.py:
+  score_ww_stream`) is therefore a distinct modality/board scored from
+  continuous-audio detection events (`(timestamp_s, score)` per activation)
+  matched against ground-truth onsets within `EVENT_TOLERANCE_S` (1.5 s).
+  `CompetitorDef.capabilities` MUST list `"stream"` for a fighter to be
+  eligible (`runner.ww_bench.WakeWordStreamBench.filter_competitors`) —
+  clip-only fighters are excluded outright, never zero-scored. The primary
+  metric, `error_at_2fa_per_hour`, is FRR at the lowest scanned threshold
+  keeping FA/hour within `TARGET_FA_PER_HOUR` (2/hour), not raw
+  threshold-0.5 FRR alone. The `wake_word` board and `score_wake_word` are
+  unchanged by this rule.
 - Human votes: tie and both-wrong score 0.5/0.5.
 - Auto votes (seeding): K/4 (sequential ELO) / weight 1/4 (Bradley-Terry),
   outcomes from benchmark metrics only.
