@@ -61,7 +61,7 @@ class MediaBenchAdapter:
     modality: str = ""
     #: Registry modality to pull competitors/fighters from, when it differs
     #: from ``modality`` (e.g. `ww_stream`'s board reuses `wake_word`
-    #: fighter definitions — §A3.2 / R14). Empty means "same as modality".
+    #: fighter definitions — §A3.2 / R15). Empty means "same as modality".
     competitor_modality: str = ""
     #: HF dataset card tags and one-line task description for the modality.
     card_tags: tuple[str, ...] = ()
@@ -155,7 +155,7 @@ def make_row(
     """Build one §3.2 prediction row from base metadata + adapter ``fields``.
 
     *modality* names the board this row is scored under; it defaults to the
-    competitor's own registry modality but MAY differ (§A3.2 / R14: a
+    competitor's own registry modality but MAY differ (§A3.2 / R15: a
     `wake_word` fighter's streaming rows carry ``modality="ww_stream"`` so
     ``arena.predictions.group_rows`` sorts them onto the separate streaming
     board instead of the isolated-clip one).

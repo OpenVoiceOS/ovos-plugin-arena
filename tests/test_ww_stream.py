@@ -1,4 +1,4 @@
-"""Tests for the streaming wake-word league (§A3.2 / R14).
+"""Tests for the streaming wake-word league (§A3.2 / R15).
 
 Synthetic-first (per the roadmap): no real audio corpus or plugin is
 required. ``TestDetectStream`` drives the runner's frame-loop against an

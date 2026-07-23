@@ -37,7 +37,7 @@ class Modality(str, enum.Enum):
     INTENT = "intent"  # open league — mixed-paradigm pipeline fusions
     INTENT_TEMPLATE = "intent_template"  # template-paradigm engines
     INTENT_KEYWORD = "intent_keyword"  # keyword-paradigm engines
-    # Streaming wake-word league (§A3.2 / R14): same fighters as WAKE_WORD,
+    # Streaming wake-word league (§A3.2 / R15): same fighters as WAKE_WORD,
     # a separate benchmark board scored from continuous-audio detection
     # events rather than isolated clips (arena.metrics.score_ww_stream).
     WW_STREAM = "ww_stream"
