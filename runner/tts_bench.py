@@ -8,7 +8,7 @@ reads a prompt corpus, calls each registry fighter's real OVOS TTS plugin to
 render every prompt, stores the clip and records its URL as the prediction.
 The arena assembles those clips into blind A/B listening battles for human
 voting *and* scores every clip with UTMOS (reference-free naturalness MOS,
-§4 R-UTMOS) to drive an objective benchmark board and benchmark-seeded ELO
+§4 R14) to drive an objective benchmark board and benchmark-seeded ELO
 votes, exactly like the other leagues.
 """
 from __future__ import annotations
@@ -21,7 +21,7 @@ from runner.media_bench import MediaBenchAdapter, PredictContext, load_plugin_cl
 
 log = logging.getLogger("tts-bench")
 
-#: Judge identity recorded on every scored row (§4 R-UTMOS) — provenance for
+#: Judge identity recorded on every scored row (§4 R14) — provenance for
 #: the objective TTS board, since a different judge revision is not directly
 #: comparable to this one.
 UTMOS_JUDGE = "TigreGotico/utmos-onnx"
@@ -89,6 +89,9 @@ class TTSBench(MediaBenchAdapter):
         latency_ms = (time.perf_counter() - start) * 1000
 
         judge = _get_utmos_judge()
+        # ``sr`` here is the *input's* sample rate, not the model's — for a
+        # path input it is ignored anyway (the loader reads the real rate
+        # from the wav header), so this value is only a placeholder.
         score = judge(str(wav_path), judge.sample_rate)
 
         return {
@@ -96,9 +99,15 @@ class TTSBench(MediaBenchAdapter):
             "prediction": ctx.hf_audio_url(rel),
             "audio_url": ctx.hf_audio_url(rel),
             "latency_ms": round(latency_ms, 3),
-            "utmos": round(float(score), 4),
-            "utmos_judge": UTMOS_JUDGE,
-            "utmos_judge_revision": UTMOS_JUDGE_REVISION,
+            # PredictionRow has no modeled utmos field — these MUST be nested
+            # under "extras" (§3.2) or pydantic silently drops them and the
+            # objective board goes empty; see runner/media_bench.py:make_row
+            # (row.update(fields)) and arena/predictions.py:parse_row.
+            "extras": {
+                "utmos": round(float(score), 4),
+                "utmos_judge": UTMOS_JUDGE,
+                "utmos_judge_revision": UTMOS_JUDGE_REVISION,
+            },
         }
 
 

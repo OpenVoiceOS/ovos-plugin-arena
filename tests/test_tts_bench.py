@@ -110,9 +110,13 @@ class TestPredict:
 
         assert fields["input_text"] == "hello"
         assert fields["prediction"].endswith(".wav")
-        assert fields["utmos"] == pytest.approx(4.37)
-        assert fields["utmos_judge"] == "TigreGotico/utmos-onnx"
-        assert fields["utmos_judge_revision"] == (
+        # §3.2: PredictionRow has no modeled utmos field — these MUST live
+        # under "extras", not as flat top-level keys, or pydantic silently
+        # drops them (see TestPredictionRowRoundTrip below).
+        assert "utmos" not in fields
+        assert fields["extras"]["utmos"] == pytest.approx(4.37)
+        assert fields["extras"]["utmos_judge"] == "TigreGotico/utmos-onnx"
+        assert fields["extras"]["utmos_judge_revision"] == (
             "ff41b8f440cb12ecda18261f9ff7326d058275ce"
         )
         assert "latency_ms" in fields
@@ -124,8 +128,8 @@ class TestPredict:
         monkeypatch.setattr(tts_bench, "_get_utmos_judge", lambda: fake_judge)
         fields = tts_bench.TTSBench().predict(
             FakeEngine(), {"input_text": "x"}, _ctx(tmp_path))
-        assert isinstance(fields["utmos"], float)
-        assert fields["utmos"] == pytest.approx(4.0)
+        assert isinstance(fields["extras"]["utmos"], float)
+        assert fields["extras"]["utmos"] == pytest.approx(4.0)
 
     def test_scoring_is_not_skipped_when_judge_missing(self, tmp_path, monkeypatch):
         # scoring is NOT optional for TTS runs — a missing dependency must
@@ -137,3 +141,43 @@ class TestPredict:
         with pytest.raises(RuntimeError, match="speechonnxmetrics"):
             tts_bench.TTSBench().predict(
                 FakeEngine(), {"input_text": "x"}, _ctx(tmp_path))
+
+
+class TestPredictionRowRoundTrip:
+    """Regression: predict()'s output must survive the real make_row /
+    JSONL / parse_row round-trip with utmos still readable via row_utmos().
+
+    A hand-built ``PredictionRow(extras={...})`` (as in test_metrics.py)
+    would NOT have caught the original bug — the bug was that ``predict()``
+    returned flat top-level keys, which ``PredictionRow`` silently drops.
+    This test builds the row exactly the way the real pipeline does:
+    ``make_row(competitor, ..., fields=TTSBench.predict(...))`` -> JSON ->
+    ``PredictionRow(**parsed)``.
+    """
+
+    def test_utmos_survives_make_row_and_parse(self, tmp_path, monkeypatch):
+        import json
+
+        from arena.metrics import row_utmos
+        from arena.models import PredictionRow
+        from registry.loaders import load_competitor
+        from runner.media_bench import make_row
+
+        fake_judge = FakeJudge(score=4.3755)
+        monkeypatch.setattr(tts_bench, "_get_utmos_judge", lambda: fake_judge)
+
+        competitor = load_competitor("tts", "piper-amy-en-us")
+        ctx = _ctx(tmp_path, competitor_id=competitor.competitor_id)
+        ctx.competitor = competitor
+        fields = tts_bench.TTSBench().predict(
+            FakeEngine(), {"input_text": "hello there"}, ctx)
+
+        row = make_row(competitor, "d", "en-US", "en-US/00000", "rev", fields)
+        # round-trip through JSON, exactly like the JSONL file on disk
+        parsed = PredictionRow(**json.loads(json.dumps(row)))
+
+        assert row_utmos(parsed) == pytest.approx(4.3755)
+        assert parsed.extras["utmos_judge"] == "TigreGotico/utmos-onnx"
+        assert parsed.extras["utmos_judge_revision"] == (
+            "ff41b8f440cb12ecda18261f9ff7326d058275ce"
+        )
