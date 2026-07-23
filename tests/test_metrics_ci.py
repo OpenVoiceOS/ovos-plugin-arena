@@ -107,7 +107,17 @@ class TestPrimaryMetricCi:
         assert lo <= 0.1 <= hi
 
     def test_unknown_modality_returns_none(self):
-        assert primary_metric_ci("tts", [_row()]) is None
+        assert primary_metric_ci("unknown_modality", [_row()]) is None
+
+    def test_tts_uses_mean_strategy_over_utmos(self):
+        rows = [_row(extras={"utmos": 4.0})] * 9 + [_row(extras={"utmos": 2.0})]
+        ci = primary_metric_ci("tts", rows)
+        assert ci is not None
+        lo, hi = ci
+        assert lo <= 3.8 <= hi
+
+    def test_tts_no_scored_rows_returns_none(self):
+        assert primary_metric_ci("tts", [_row(extras={})]) is None
 
     def test_no_scoreable_rows_returns_none(self):
         # wake_word rows with unrecognisable label/prediction tokens score
@@ -141,9 +151,9 @@ class TestBuildBenchmarkBoardCi:
         assert board.entries[0].competitor_id == "good"
         assert board.entries[0].rank == 1
 
-    def test_tts_has_no_scorer_or_ci_and_stays_vote_only(self):
-        # TTS is human-vote only (no objective board, no benchmark ELO
-        # seed) — build_benchmark_board must not synthesize entries for it.
-        rows = [_row(competitor_id="voice_a")]
+    def test_tts_board_carries_utmos_ci(self):
+        rows = [_row(competitor_id="voice_a", extras={"utmos": 4.0})] * 10
         board = build_benchmark_board("tts", "d", "en-US", {"voice_a": rows}, "t")
-        assert board.entries == []
+        assert board.primary_metric == "utmos"
+        assert board.entries[0].primary_metric_ci_lower is not None
+        assert board.entries[0].primary_metric_ci_upper is not None

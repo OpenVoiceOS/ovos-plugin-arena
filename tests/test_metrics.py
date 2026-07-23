@@ -6,9 +6,11 @@ import pytest
 from arena.metrics import (
     build_benchmark_board,
     row_is_correct,
+    row_utmos,
     row_wer,
     score_intent,
     score_stt,
+    score_tts,
     score_wake_word,
     ww_row_correct,
 )
@@ -162,6 +164,60 @@ class TestScoreWakeWord:
         assert score_wake_word(rows)["latency_ms_median"] == 10.0
 
 
+class TestRowUtmos:
+    def test_present(self):
+        assert row_utmos(_row(extras={"utmos": 3.5})) == 3.5
+
+    def test_missing(self):
+        assert row_utmos(_row()) is None
+
+    def test_non_numeric_ignored(self):
+        assert row_utmos(_row(extras={"utmos": "not-a-number"})) is None
+
+    def test_nan_guard(self):
+        assert row_utmos(_row(extras={"utmos": float("nan")})) is None
+
+
+class TestScoreTts:
+    def test_mean(self):
+        rows = [_row(extras={"utmos": 3.0}), _row(extras={"utmos": 4.0})]
+        metrics = score_tts(rows)
+        assert metrics["utmos"] == pytest.approx(3.5)
+        assert metrics["n_scored"] == 2.0
+
+    def test_missing_rows_excluded_not_fatal(self):
+        rows = [_row(extras={"utmos": 4.0}), _row(extras={}),
+                _row(extras={"utmos": None})]
+        metrics = score_tts(rows)
+        assert metrics["utmos"] == pytest.approx(4.0)
+        assert metrics["n_scored"] == 1.0
+
+    def test_all_rows_missing_utmos(self):
+        rows = [_row(extras={}), _row(extras={})]
+        metrics = score_tts(rows)
+        assert "utmos" not in metrics
+        assert metrics["n_scored"] == 0.0
+
+    def test_single_row(self):
+        metrics = score_tts([_row(extras={"utmos": 4.2})])
+        assert metrics["utmos"] == pytest.approx(4.2)
+
+    def test_empty(self):
+        assert score_tts([]) == {"n_scored": 0.0}
+
+    def test_latency(self):
+        rows = [_row(extras={"utmos": 4.0}, latency_ms=5.0),
+                _row(extras={"utmos": 3.0}, latency_ms=15.0)]
+        assert score_tts(rows)["latency_ms_median"] == 10.0
+
+    def test_nan_score_excluded(self):
+        rows = [_row(extras={"utmos": 4.0}),
+                _row(extras={"utmos": float("nan")})]
+        metrics = score_tts(rows)
+        assert metrics["utmos"] == pytest.approx(4.0)
+        assert metrics["n_scored"] == 1.0
+
+
 class TestBenchmarkBoard:
     def test_intent_ranked_by_accuracy_desc(self):
         by_competitor = {
@@ -194,6 +250,15 @@ class TestBenchmarkBoard:
         assert board.primary_metric == "error_rate"
         assert [e.competitor_id for e in board.entries] == ["clean", "noisy"]
 
-    def test_unscored_modality_yields_empty_board(self):
-        board = build_benchmark_board("tts", "d", "en-US", {"x": []}, "t")
+    def test_no_competitors_yields_empty_board(self):
+        board = build_benchmark_board("tts", "d", "en-US", {}, "t")
         assert board.entries == []
+
+    def test_tts_ranked_by_utmos_desc(self):
+        by_competitor = {
+            "bad": [_row(competitor_id="bad", extras={"utmos": 2.0})],
+            "good": [_row(competitor_id="good", extras={"utmos": 4.0})],
+        }
+        board = build_benchmark_board("tts", "d", "en-US", by_competitor, "t")
+        assert board.primary_metric == "utmos"
+        assert [e.competitor_id for e in board.entries] == ["good", "bad"]
