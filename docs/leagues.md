@@ -122,7 +122,7 @@ entry — `openwakeword-hey-mycroft-thr03` (sensitive) and `-thr07` (strict)
 compete alongside the 0.5 default. The same holds for VAD thresholds
 (`silero-vad-thr03` / `-thr07`) and webrtcvad aggressiveness (`webrtcvad-mode1`).
 
-## Streaming wake-word league (`ww_stream`) — §A3.2 / R14
+## Streaming wake-word league (`ww_stream`) — §A3.2 / R15
 
 Isolated-clip benchmarking (above) structurally favors clip-shaped detectors:
 a streaming detector never gets to fire the way it does against a live mic —

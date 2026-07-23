@@ -42,7 +42,7 @@ class Modality(str, Enum):
     INTENT = "intent"  # open league — mixed-paradigm fusions
     INTENT_TEMPLATE = "intent_template"
     INTENT_KEYWORD = "intent_keyword"
-    # Streaming wake-word league (§A3.2 / R14) — same fighters as WAKE_WORD,
+    # Streaming wake-word league (§A3.2 / R15) — same fighters as WAKE_WORD,
     # a distinct board scored from continuous-audio detection events rather
     # than isolated clips. See registry/datasets/ww_stream/*.json.
     WW_STREAM = "ww_stream"
@@ -199,7 +199,7 @@ class DatasetDef(BaseModel):
             "from these repos when no explicit source list is given."
         ),
     )
-    # ``ww_stream`` (§A3.2 / R14) — continuous-audio ground-truth-event
+    # ``ww_stream`` (§A3.2 / R15) — continuous-audio ground-truth-event
     # corpora. Isolated-clip benchmarking structurally favors clip-shaped
     # detectors and can't exercise streaming false-accept behaviour, which
     # needs hours of continuous negative audio, not seconds-long clips.
@@ -332,7 +332,7 @@ class CompetitorDef(BaseModel):
     capabilities: list[Capability] = Field(
         default_factory=_default_capabilities,
         description=(
-            "Wake-word fighters only (§A3.2 / R14): which benchmarking shapes "
+            "Wake-word fighters only (§A3.2 / R15): which benchmarking shapes "
             "this engine genuinely supports. 'clip' — scored on isolated "
             "labelled clips (every wake-word fighter). 'stream' — the "
             "underlying detector is designed to run continuously over "

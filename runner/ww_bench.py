@@ -260,7 +260,7 @@ def _to_pcm16(array) -> bytes:
 
 
 class WakeWordStreamBench(WakeWordBench):
-    """Continuous-stream wake-word benchmark adapter (§A3.2 / R14).
+    """Continuous-stream wake-word benchmark adapter (§A3.2 / R15).
 
     Same real OVOS `HotWordEngine` stack as :class:`WakeWordBench`, but each
     sample is one long continuous clip (many onsets, or none — negative-hours
