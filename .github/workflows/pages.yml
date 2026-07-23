@@ -50,6 +50,19 @@ jobs:
           cd frontend-static
           npm run build
 
+      # Non-blocking for now (§A5.7): reports axe-core critical/serious
+      # violations on a representative page set without failing the deploy.
+      # Flip to blocking (drop `continue-on-error`) once the team has signed
+      # off on making it a hard gate.
+      - name: Accessibility gate (axe-core, non-blocking)
+        continue-on-error: true
+        env:
+          ASTRO_BASE: ${{ vars.ASTRO_BASE || '/ovos-plugin-arena' }}
+        run: |
+          cd frontend-static
+          npx playwright install --with-deps chromium
+          npm run a11y
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
