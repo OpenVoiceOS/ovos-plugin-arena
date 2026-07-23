@@ -157,8 +157,12 @@ Per modality:
 - **STT**: `reference_text`, `prediction` (transcript), `wer` (computed on
   ingest when absent), `latency_ms`.
 - **Wake word**: `label`, `prediction` (decision), `latency_ms`.
-- **TTS**: `input_text`, `prediction` (audio ref); no objective metric —
-  TTS ranks by human votes only.
+- **TTS**: `input_text`, `prediction` (audio ref), `latency_ms`. No
+  ground-truth reference (there is no single "correct" waveform for a
+  prompt), so human votes stay the primary ranking signal; each clip is
+  additionally scored with an objective, reference-free naturalness metric
+  (**R14**) whose per-row value and judge provenance live in `extras`:
+  `utmos` (1-5, higher better), `utmos_judge`, `utmos_judge_revision`.
 
 ### 3.3 Benchmark scripts
 
@@ -239,6 +243,21 @@ Voting options MUST include: candidate A, candidate B, tie, both-wrong.
   Discards and down-weights MUST be recorded (`vote-audit.json`), never
   silently dropped. Weighting affects only the Bradley-Terry rating (R6-R10
   above); the legacy sequential ELO column is unaffected.
+- **R14 — Objective TTS scoring.** `runner/tts_bench.py` MUST score every
+  synthesised clip with a reference-free naturalness metric (UTMOS) and
+  record the per-row score plus judge identity/revision in `extras`
+  (`utmos`, `utmos_judge`, `utmos_judge_revision`) — scoring is not optional
+  for a TTS run. `arena/metrics.py:score_tts` aggregates it into the `tts`
+  benchmark board's primary metric (mean `utmos`, higher better,
+  `n_scored` reported); `arena/assembler.py:seed_elo` treats a
+  significantly-higher-UTMOS clip as an auto-battle win (§4 R5) under the
+  same significance gate (R5a) and per-pair weight cap (R5b) as every other
+  league; it also carries a bootstrap confidence interval (R11) like every
+  other benchmark board. This objective board and its ELO seed sit
+  *alongside* human votes,
+  which remain the TTS league's primary ranking signal (§2.1, §3.2) — there
+  is still no ground-truth reference to call a synthesis definitively
+  "correct".
 
 ## 5. Rating system
 
