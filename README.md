@@ -2,6 +2,8 @@
 
 *Which plugin should I use?* — answered with data.
 
+**Live site:** https://openvoiceos.github.io/ovos-plugin-arena
+
 A fully GitHub-native benchmarking and voting arena for
 [OpenVoiceOS](https://github.com/OpenVoiceOS) plugins. Reproducible benchmark
 scripts rank plugins on labelled datasets; blind A/B battles let humans refine
@@ -159,6 +161,7 @@ python -m pytest tests/ -q
 | `.github/ISSUE_TEMPLATE/vote.yml` | The vote issue form (applies the `vote` label) |
 | `docs/SPECIFICATION.md` | Full specification |
 | `docs/add-a-fighter.md` | How to add your plugin as a fighter |
+| `docs/operations.md` | Maintainer runbook for the vote loop (verify, audit, replay, troubleshoot) |
 
 ---
 
