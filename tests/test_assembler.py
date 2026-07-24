@@ -78,9 +78,25 @@ class TestAutoOutcome:
         b = _row("y", "detected", reference=None, label="positive")
         assert auto_outcome(a, b, "wake_word") is None
 
-    def test_tts_has_no_auto_signal(self):
+    def test_tts_higher_utmos_wins(self):
+        a = _row("x", "https://hf/a.wav", reference=None, input_text="hi",
+                 extras={"utmos": 4.2})
+        b = _row("y", "https://hf/b.wav", reference=None, input_text="hi",
+                 extras={"utmos": 2.1})
+        assert auto_outcome(a, b, "tts") == VoteOutcome.CANDIDATE_A
+        assert auto_outcome(b, a, "tts") == VoteOutcome.CANDIDATE_B
+
+    def test_tts_equal_utmos_no_signal(self):
+        a = _row("x", "https://hf/a.wav", reference=None, input_text="hi",
+                 extras={"utmos": 3.5})
+        b = _row("y", "https://hf/b.wav", reference=None, input_text="hi",
+                 extras={"utmos": 3.5})
+        assert auto_outcome(a, b, "tts") is None
+
+    def test_tts_missing_utmos_no_signal(self):
         a = _row("x", "https://hf/a.wav", reference=None, input_text="hi")
-        b = _row("y", "https://hf/b.wav", reference=None, input_text="hi")
+        b = _row("y", "https://hf/b.wav", reference=None, input_text="hi",
+                 extras={"utmos": 3.5})
         assert auto_outcome(a, b, "tts") is None
 
 
@@ -246,8 +262,9 @@ class TestSeedElo:
         # competitors still listed (known to the board)
         assert set(seed.competitor_plugin) == {"x", "y"}
 
-    def test_human_vote_only_lists_fighters_at_baseline(self):
-        # tts has no auto-outcome; fighters must still appear at baseline ELO
+    def test_tts_unscored_rows_list_fighters_at_baseline(self):
+        # rows with no utmos score at all give no auto-signal; fighters must
+        # still appear on the board at baseline ELO.
         a = _row("voice_a", "https://hf/a.wav", reference=None, input_text="hi")
         b = _row("voice_b", "https://hf/b.wav", reference=None, input_text="hi")
         samples = {"s0": {"voice_a": a, "voice_b": b}}
@@ -255,6 +272,44 @@ class TestSeedElo:
         assert seed.auto_vote_count == 0
         assert seed.ratings == {"voice_a": INITIAL_ELO, "voice_b": INITIAL_ELO}
         assert seed.battles == {"voice_a": 0, "voice_b": 0}
+
+    def test_tts_significant_utmos_gap_seeds_higher(self):
+        samples = _samples(*[
+            [_row("good", "https://hf/g.wav", reference=None, input_text="hi",
+                  extras={"utmos": 4.5}),
+             _row("bad", "https://hf/b.wav", reference=None, input_text="hi",
+                  extras={"utmos": 2.0})]
+            for _ in range(10)
+        ])
+        seed = seed_elo("tts", "en-US", {"d": samples}, "t")
+        assert seed.ratings["good"] > INITIAL_ELO > seed.ratings["bad"]
+        assert seed.auto_vote_count == 10
+
+    def test_tts_overlapping_utmos_cis_no_seed(self):
+        # near-identical UTMOS scores across the pair — CIs overlap, no
+        # significant gap to seed a rating from.
+        samples = _samples(*[
+            [_row("x", "https://hf/x.wav", reference=None, input_text="hi",
+                  extras={"utmos": 3.50 + (0.01 if i % 2 else -0.01)}),
+             _row("y", "https://hf/y.wav", reference=None, input_text="hi",
+                  extras={"utmos": 3.50 + (-0.01 if i % 2 else 0.01)})]
+            for i in range(20)
+        ])
+        seed = seed_elo("tts", "en-US", {"d": samples}, "t")
+        assert seed.auto_vote_count == 0
+        assert seed.ratings == {"x": INITIAL_ELO, "y": INITIAL_ELO}
+
+    def test_tts_auto_weight_capped_per_pair(self):
+        samples = _samples(*[
+            [_row("good", "https://hf/g.wav", reference=None, input_text="hi",
+                  extras={"utmos": 4.5}),
+             _row("bad", "https://hf/b.wav", reference=None, input_text="hi",
+                  extras={"utmos": 2.0})]
+            for _ in range(200)
+        ])
+        seed = seed_elo("tts", "en-US", {"d": samples}, "t")
+        assert seed.pairwise_games["good"]["bad"] == pytest.approx(5.0)
+        assert seed.pairwise_games["bad"]["good"] == pytest.approx(5.0)
 
     def test_deterministic(self):
         samples = _samples(*[

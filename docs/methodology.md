@@ -272,9 +272,72 @@ issues are never re-commented-on or re-closed; `arena.cli.cmd_tally` only
 takes GitHub actions (comment + close) on issues that are still `OPEN` in
 the freshly-fetched list.
 
+## Objective TTS scoring: UTMOS (§4 R14)
+
+TTS has no ground-truth reference — there is no single "correct" waveform
+for a prompt — so **blind human A/B votes remain the league's primary
+ranking signal**, exactly as for every other league's Bradley-Terry rating.
+Alongside those votes, `runner/tts_bench.py` scores every synthesised clip
+with **UTMOS**, a reference-free (no reference recording needed) naturalness
+MOS predictor from the [`speechonnxmetrics`](https://pypi.org/project/speechonnxmetrics/)
+package (`speechonnxmetrics.mos.utmos.UTMOS`), on the same 1-5 scale a human
+MOS rater would use, higher is better.
+
+**Provenance.** Each scored row records the judge's identity and pinned
+revision in `extras`:
+
+- `utmos` — the clip's score (float, 1.0-5.0);
+- `utmos_judge` — `"TigreGotico/utmos-onnx"`, the HF repo the ONNX judge
+  model came from;
+- `utmos_judge_revision` — the pinned commit the arena has validated against
+  (`ff41b8f440cb12ecda18261f9ff7326d058275ce`).
+
+A judge upgrade is a *new* revision, not a silent swap — comparing scores
+across judge revisions is not sound, so the revision travels with every row
+rather than being assumed from the package version alone.
+
+**What it feeds.** `arena/metrics.py:score_tts` aggregates per-row `utmos`
+into the `tts` benchmark board (mean, with the same seeded-bootstrap 95% CI
+every other board's primary metric gets — §4 R11); rows a clip failed to
+score for are excluded from the mean, and the board still reports
+`n_scored` so a partial run does not read as a full one. `arena/assembler.py`
+feeds a significantly-higher-UTMOS clip into the same benchmark-seeded ELO
+machinery as every other league (§4 R5/R5a/R5b) — significance-gated,
+per-pair weight capped — so a large synthetic benchmark run can never drown
+out a modest number of real human votes.
+
+**Known biases — read before trusting a UTMOS gap across languages.**
+UTMOS-style MOS predictors are themselves trained models with their own
+distributional blind spots:
+
+- The public UTMOS training data skews toward 16 kHz, English-adjacent,
+  studio-clean recordings (VoiceMOS-challenge-style corpora). A judge
+  trained mostly on that distribution tends to reward *clean, familiar-
+  sounding* speech and can under- or over-score accented, non-English, or
+  differently-recorded material for reasons that have nothing to do with
+  how natural the speech actually sounds to a listener of that language.
+- **Cross-language UTMOS comparisons are not sound.** A `pt-PT` fighter
+  scoring lower than an `en-US` fighter on this metric is not evidence the
+  Portuguese voice is worse — it may just be further from the judge's
+  training distribution. This is why boards stay **per-language**
+  (`benchmark-tts-<lang>.json`) rather than pooling UTMOS across languages
+  into one global TTS number; a UTMOS gap is only meaningful *within* the
+  same `(dataset, lang)` board, between fighters the judge is equally
+  (un)familiar with.
+- Because of the above, UTMOS is deliberately a **secondary, objective
+  cross-check**, not a replacement for human votes — a synthetic-MOS
+  regression is a signal to go listen, not a verdict on its own.
+
+**NISQA is deliberately not used anywhere in this aggregate.** NISQA's
+released model weights are licensed CC BY-NC — non-commercial only — which
+is incompatible with an Apache-2.0 arena whose leaderboard artifacts are
+meant to be freely reusable (including by commercial OVOS deployments
+deciding which TTS plugin to ship). UTMOS's ONNX export (via
+`speechonnxmetrics`) carries an MIT license with no such restriction, which
+is why it was chosen as the judge here.
+
 ## Open items
 
-The TTS objective-metric judge-bias disclosure (TTS intelligibility) and
-the RTF hardware-disclosure convention (TTS latency/RTF) are placeholders
+The RTF hardware-disclosure convention (TTS latency/RTF) is a placeholder
 for work tracked elsewhere in the roadmap and will be filled in as that
 work lands.

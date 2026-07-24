@@ -153,13 +153,17 @@ primary metric separates the two fighters: the correct one "wins" that battle,
 replayed in deterministic order at **K/4** to seed the ladder before any human
 vote (§4 R5, §5). Intent uses per-row correctness (incl. OOD rejection);
 wake-word uses per-clip correctness; both reduce to "exactly one fighter right
-on this sample → it wins". TTS has no objective metric and therefore no seed —
-its ladder accrues purely from blind-A/B human votes.
+on this sample → it wins". TTS has no ground-truth reference, but it does have
+an objective, reference-free naturalness score (UTMOS, §4 R14): the
+higher-scoring clip "wins" that battle, same shape as the others, gated by the
+same significance check (R5a) and per-pair weight cap (R5b). Human votes
+remain the TTS league's primary ranking signal — the UTMOS board and its ELO
+seed are a secondary, objective cross-check alongside them.
 
 ## Out of scope here
 
-`stt` (WER) and `tts` (human-vote only) are defined in
-[SPECIFICATION.md §7](SPECIFICATION.md); media-classification and agent-plugin
+`stt` (WER) and `tts` (human-vote primary, UTMOS objective board — §4 R14) are
+defined in [SPECIFICATION.md §7](SPECIFICATION.md); media-classification and agent-plugin
 leagues are tracked for later absorption in
 [NGI0-Commons-Fund#14](https://github.com/OpenVoiceOS/NGI0-Commons-Fund/issues/14).
 

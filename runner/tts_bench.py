@@ -1,12 +1,15 @@
 """
 TTS benchmark adapter (§3.2) for :mod:`runner.media_bench`.
 
-TTS has no objective reference metric — voices are ranked by human preference
-only (spec §2.1, §3.2).  This benchmark therefore *synthesises*: it reads a
-prompt corpus, calls each registry fighter's real OVOS TTS plugin to render
-every prompt, stores the clip and records its URL as the prediction.  The
-arena assembles those clips into blind A/B listening battles; there is no
-benchmark board and no ELO seed for TTS.
+TTS has no *ground-truth* reference metric — there is no single correct
+waveform for a given prompt — so blind human preference votes stay the
+league's primary signal (spec §2.1, §3.2).  This benchmark synthesises: it
+reads a prompt corpus, calls each registry fighter's real OVOS TTS plugin to
+render every prompt, stores the clip and records its URL as the prediction.
+The arena assembles those clips into blind A/B listening battles for human
+voting *and* scores every clip with UTMOS (reference-free naturalness MOS,
+§4 R14) to drive an objective benchmark board and benchmark-seeded ELO
+votes, exactly like the other leagues.
 """
 from __future__ import annotations
 
@@ -17,6 +20,37 @@ from collections.abc import Iterator
 from runner.media_bench import MediaBenchAdapter, PredictContext, load_plugin_class
 
 log = logging.getLogger("tts-bench")
+
+#: Judge identity recorded on every scored row (§4 R14) — provenance for
+#: the objective TTS board, since a different judge revision is not directly
+#: comparable to this one.
+UTMOS_JUDGE = "TigreGotico/utmos-onnx"
+UTMOS_JUDGE_REVISION = "ff41b8f440cb12ecda18261f9ff7326d058275ce"
+
+_utmos_judge = None  # module-cached lazy singleton, one ONNX session per process
+
+
+def _get_utmos_judge():
+    """Lazily import and cache the UTMOS judge.
+
+    ``speechonnxmetrics`` is an optional (``audio`` extra) dependency —
+    importing it at module load would break every environment that doesn't
+    run TTS benchmarks. Scoring is NOT optional for a TTS run though: if the
+    package is missing when a clip is actually synthesised, this raises a
+    clear, actionable error rather than silently skipping the score.
+    """
+    global _utmos_judge
+    if _utmos_judge is None:
+        try:
+            from speechonnxmetrics.mos.utmos import UTMOS
+        except ImportError as exc:
+            raise RuntimeError(
+                "TTS benchmarking requires the 'speechonnxmetrics' package "
+                "(objective UTMOS scoring is not optional for TTS runs) — "
+                "install the 'audio' extra: pip install ovos-plugin-arena[audio]"
+            ) from exc
+        _utmos_judge = UTMOS()
+    return _utmos_judge
 
 
 class TTSBench(MediaBenchAdapter):
@@ -54,11 +88,26 @@ class TTSBench(MediaBenchAdapter):
         engine.get_tts(text, str(wav_path), lang=ctx.lang)
         latency_ms = (time.perf_counter() - start) * 1000
 
+        judge = _get_utmos_judge()
+        # ``sr`` here is the *input's* sample rate, not the model's — for a
+        # path input it is ignored anyway (the loader reads the real rate
+        # from the wav header), so this value is only a placeholder.
+        score = judge(str(wav_path), judge.sample_rate)
+
         return {
             "input_text": text,
             "prediction": ctx.hf_audio_url(rel),
             "audio_url": ctx.hf_audio_url(rel),
             "latency_ms": round(latency_ms, 3),
+            # PredictionRow has no modeled utmos field — these MUST be nested
+            # under "extras" (§3.2) or pydantic silently drops them and the
+            # objective board goes empty; see runner/media_bench.py:make_row
+            # (row.update(fields)) and arena/predictions.py:parse_row.
+            "extras": {
+                "utmos": round(float(score), 4),
+                "utmos_judge": UTMOS_JUDGE,
+                "utmos_judge_revision": UTMOS_JUDGE_REVISION,
+            },
         }
 
 

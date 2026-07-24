@@ -42,12 +42,14 @@ PRIMARY_METRIC = {
     "stt": "wer_mean",
     "wake_word": "error_rate",
     "vad": "error_rate",
+    "tts": "utmos",
 }
 
 # Higher is better for these primary metrics; lower for the rest (error rates,
 # WER, latency).  ``accuracy`` is the only intent/wake-word board ranked
-# descending; every other primary metric ranks ascending.
-_HIGHER_BETTER = {"accuracy"}
+# descending; ``utmos`` (TTS naturalness MOS, 1-5) is likewise ascending-bad —
+# every other primary metric ranks ascending.
+_HIGHER_BETTER = {"accuracy", "utmos"}
 
 
 def _f1(tp: int, fp: int, fn: int) -> float:
@@ -363,6 +365,50 @@ def score_wake_word(rows: list[PredictionRow]) -> dict[str, float]:
 # / FN (misses speech) scoring as wake word, so it reuses the scorer.
 score_vad = score_wake_word
 
+
+# ---------------------------------------------------------------------------
+# TTS — objective UTMOS board (§4 R14)
+# ---------------------------------------------------------------------------
+#
+# TTS has no ground-truth reference (no single "correct" waveform for a
+# prompt), so human preference votes stay primary (spec §2.1, §3.2). UTMOS —
+# a reference-free naturalness MOS predictor scored per-clip by
+# ``runner/tts_bench.py`` and stashed in ``row.extras["utmos"]`` — gives the
+# league an objective, reproducible *secondary* board and feeds the same
+# benchmark-seeded-ELO machinery every other league gets (§4 R5).
+
+
+def row_utmos(row: PredictionRow) -> float | None:
+    """Per-row UTMOS score, or None when the row wasn't scored (or is NaN)."""
+    value = row.extras.get("utmos")
+    if value is None:
+        return None
+    try:
+        value = float(value)
+    except (TypeError, ValueError):
+        return None
+    if value != value:  # NaN guard
+        return None
+    return value
+
+
+def score_tts(rows: list[PredictionRow]) -> dict[str, float]:
+    """Aggregate TTS rows into a mean UTMOS board metric.
+
+    Rows missing a ``utmos`` score (or carrying a non-finite one) are
+    excluded from the mean rather than crashing the whole board; ``n_scored``
+    reports how many rows actually contributed.
+    """
+    scores = [u for u in (row_utmos(r) for r in rows) if u is not None]
+    latencies = [r.latency_ms for r in rows if r.latency_ms is not None]
+    metrics: dict[str, float] = {"n_scored": float(len(scores))}
+    if scores:
+        metrics["utmos"] = round(sum(scores) / len(scores), 4)
+    if latencies:
+        metrics["latency_ms_median"] = round(median(latencies), 2)
+    return metrics
+
+
 _SCORERS = {
     "intent": score_intent,
     "intent_template": score_intent,
@@ -370,6 +416,7 @@ _SCORERS = {
     "stt": score_stt,
     "wake_word": score_wake_word,
     "vad": score_vad,
+    "tts": score_tts,
 }
 
 
@@ -410,13 +457,19 @@ def _stt_wer_pairs(rows: list[PredictionRow]) -> list[tuple[float, float]]:
     return [p for p in pairs if p is not None]
 
 
-# modality -> "mean" extractor (returns per-row 0/1 indicators)
+def _tts_utmos_values(rows: list[PredictionRow]) -> list[float]:
+    return [u for u in (row_utmos(r) for r in rows) if u is not None]
+
+
+# modality -> "mean" extractor (returns per-row 0/1 indicators, or raw values
+# for tts's UTMOS mean)
 _CI_MEAN_EXTRACTORS = {
     "intent": _intent_correct_indicators,
     "intent_template": _intent_correct_indicators,
     "intent_keyword": _intent_correct_indicators,
     "wake_word": _ww_error_indicators,
     "vad": _ww_error_indicators,
+    "tts": _tts_utmos_values,
 }
 
 # modality -> "ratio" extractor (returns (numerator, denominator) pairs)

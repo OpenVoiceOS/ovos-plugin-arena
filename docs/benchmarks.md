@@ -89,11 +89,16 @@ python benchmarks/tts_intents_prompts.py --langs en-US --max-samples 30
 python benchmarks/tts_intents_prompts.py --langs en-US --upload
 ```
 
-TTS has **no objective metric** (spec §2.1, §3.2): each fighter synthesises
-every prompt, the clip is stored under `audio/<lang>/<competitor>/<hash>.wav`
-and its HF resolve URL becomes the §3.2 `prediction`. The arena assembles the
-clips into blind A/B listening battles; there is no benchmark board and no ELO
-seed — the TTS ELO board accrues purely from human votes.
+TTS has **no ground-truth reference** (spec §2.1, §3.2) — there is no single
+"correct" waveform for a prompt — so human votes stay the league's primary
+ranking signal. Each fighter synthesises every prompt, the clip is stored
+under `audio/<lang>/<competitor>/<hash>.wav`, its HF resolve URL becomes the
+§3.2 `prediction`, and the clip is scored with UTMOS (reference-free
+naturalness MOS, §4 R14) — the score and judge provenance
+(`utmos`/`utmos_judge`/`utmos_judge_revision`) land in the row's `extras`.
+The arena assembles the clips into blind A/B listening battles for human
+voting *and* builds an objective `tts` benchmark board from the UTMOS mean,
+feeding a benchmark-seeded ELO contribution alongside the human votes.
 
 ## Adding a benchmark
 
