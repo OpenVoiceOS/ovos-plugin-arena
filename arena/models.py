@@ -24,10 +24,19 @@ class Modality(str, enum.Enum):
     """Supported arena modalities — each is an independent league with its
     own benchmarks, battles and ELO standings.
 
-    Keyword-paradigm and template-paradigm intent engines consume different
+    Leagues are keyed by *training-data format*, never by strategy: keyword-
+    paradigm and template-paradigm intent engines consume different
     supervision (hand-written vocabulary rules vs phrase-template corpora),
     so they compete in separate leagues; the open ``intent`` league hosts
-    mixed-paradigm pipeline fusions.
+    mixed-paradigm pipeline fusions. A single-stage embedding classifier is
+    not a league of its own — it is a *strategy* trained from one of these
+    two data formats (see ``runner/intent_pipeline.py`` ``EngineSpec.paradigm``)
+    and competes within that format's league.
+
+    §R# — each of the three intent leagues now runs its own ELO pool (own
+    battles, own ``elo-seed``/``leaderboard`` files) instead of collapsing
+    into a shared ``intent`` battle group; see ``battle_group()`` below and
+    docs/methodology.md.
     """
 
     TTS = "tts"
@@ -41,12 +50,11 @@ class Modality(str, enum.Enum):
     # a separate benchmark board scored from continuous-audio detection
     # events rather than isolated clips (arena.metrics.score_ww_stream).
     WW_STREAM = "ww_stream"
-    INTENT_EMBEDDING = "intent_embedding"  # single-stage embedding classifiers
 
 
 INTENT_MODALITIES = frozenset(
     {Modality.INTENT.value, Modality.INTENT_TEMPLATE.value,
-     Modality.INTENT_KEYWORD.value, Modality.INTENT_EMBEDDING.value}
+     Modality.INTENT_KEYWORD.value}
 )
 
 
@@ -57,14 +65,18 @@ def is_intent_modality(modality: str) -> bool:
 def battle_group(modality: str) -> str:
     """The blind-battle / ELO group a modality competes in.
 
-    Benchmark *boards* stay per-modality (paradigm-pure), but battles and ELO
-    pool every plugin that answers the same stimulus in a language — so the
-    three intent paradigm leagues collapse into one open ``intent`` arena
-    where a template engine can be voted against a keyword engine.  STT, TTS
-    and wake word are each their own group.
+    §R# — each league is its own battle group (identity mapping): the three
+    intent leagues (``intent``, ``intent_template``, ``intent_keyword``) each
+    get a fully separate battles pool, ELO seed and leaderboard — a template
+    engine is never paired against a keyword engine, and the open ``intent``
+    fusion league never pools with either paradigm-pure league. Benchmark
+    *boards* were already per-modality (paradigm-pure) and stay that way.
+
+    ``ww_stream`` keeps its existing (unchanged) identity mapping: it is a
+    benchmark-only modality (see ``arena.metrics.score_ww_stream``) that
+    never produces its own battles/ELO artifacts, so ``battle_group`` maps
+    it to itself exactly as before this change.
     """
-    if modality in INTENT_MODALITIES:
-        return Modality.INTENT.value
     return modality
 
 
@@ -78,7 +90,6 @@ def battle_group(modality: str) -> str:
 LEAGUE_LABELS: dict[str, str] = {
     Modality.INTENT_TEMPLATE.value: "Intent · Template",
     Modality.INTENT_KEYWORD.value: "Intent · Keyword",
-    Modality.INTENT_EMBEDDING.value: "Intent · Embedding",
     Modality.INTENT.value: "Intent · Fusions",
     Modality.STT.value: "STT",
     Modality.TTS.value: "TTS",
@@ -89,7 +100,6 @@ LEAGUE_LABELS: dict[str, str] = {
 LEAGUE_ORDER: tuple[str, ...] = (
     Modality.INTENT_TEMPLATE.value,
     Modality.INTENT_KEYWORD.value,
-    Modality.INTENT_EMBEDDING.value,
     Modality.INTENT.value,
     Modality.STT.value,
     Modality.TTS.value,
@@ -100,9 +110,9 @@ LEAGUE_ORDER: tuple[str, ...] = (
 
 def leagues() -> list[dict[str, Any]]:
     """League descriptors for ``data/index.json``: ``{id, label, battle_group,
-    order}`` in tab order, one per :class:`Modality`. Preserves current
-    semantics exactly — intent modalities collapse to battle_group
-    ``"intent"``."""
+    order}`` in tab order, one per :class:`Modality`. §R# — each of the three
+    intent leagues is now its own battle_group (identity mapping); they no
+    longer collapse into a shared ``"intent"`` pool."""
     return [
         {
             "id": modality,

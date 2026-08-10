@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-10T21:55:35.800615+00:00",
+  "generated_at": "2026-08-10T22:12:53.251198+00:00",
   "competitors": [
     {
       "competitor_id": "frankenparse",
@@ -298,91 +298,6 @@
       "notes": "All-keyword cascade; useful as the keyword league's pooled upper bound."
     },
     {
-      "competitor_id": "hierarchical-knn-medium",
-      "schema_version": 1,
-      "modality": "intent_embedding",
-      "plugin": "ovos-hierarchical-knn-pipeline",
-      "config": {
-        "intents": {
-          "pipeline": [
-            "ovos-hierarchical-knn-pipeline-medium"
-          ],
-          "ovos-hierarchical-knn-pipeline": {
-            "hf_repo_id": "fdemelo/ovos-hierarchical-knn-granite-97m-multilingual-r2",
-            "ignore_intents": [],
-            "timeout": 1,
-            "renormalize": false,
-            "conf_high": 0.7,
-            "conf_medium": 0.5,
-            "conf_low": 0.15
-          }
-        }
-      },
-      "langs": [],
-      "alias": [
-        "ovos-hierarchical-knn-pipeline"
-      ],
-      "capabilities": [
-        "clip"
-      ],
-      "display_name": "Hierarchical KNN",
-      "species": "HierarchicalKNNIntentPipeline",
-      "types": [
-        "embedding",
-        "neural-net"
-      ],
-      "description": "Two-stage hierarchical k-NN over a pre-built FAISS IVF+PQ index of IBM Granite multilingual embeddings: domain-level search scoped to loaded skills, then intent-level scoring with Wu-Lin pairwise probability estimation.",
-      "model": "IBM Granite Embedding 97M Multilingual R2 (quint8 ONNX) + FAISS index",
-      "size": "medium",
-      "links": {
-        "source": "https://github.com/OpenVoiceOS/ovos-hierarchical-knn-pipeline"
-      },
-      "notes": "Single-stage pipeline at the plugin's own medium-confidence gate; per-plugin config keeps the shipped defaults. Published predictions are migrated from the legacy ovos-intent-benchmark, where this engine was trained on the benchmark's own corpora; the pinned pretrained model targets real OVOS skill intents and cannot emit this benchmark's label space, so native re-sweeps require a dataset-trained variant."
-    },
-    {
-      "competitor_id": "m2v-medium",
-      "schema_version": 1,
-      "modality": "intent_embedding",
-      "plugin": "ovos-m2v-pipeline",
-      "config": {
-        "intents": {
-          "pipeline": [
-            "ovos-m2v-pipeline-medium"
-          ],
-          "ovos-m2v-pipeline": {
-            "model": "Jarbas/ovos-model2vec-intents-distiluse-base-multilingual-cased-v2",
-            "mode": "classifier",
-            "ignore_intents": [],
-            "timeout": 1,
-            "renormalize": false,
-            "conf_high": 0.7,
-            "conf_medium": 0.5,
-            "conf_low": 0.15
-          }
-        }
-      },
-      "langs": [],
-      "alias": [
-        "ovos-m2v-pipeline"
-      ],
-      "capabilities": [
-        "clip"
-      ],
-      "display_name": "Model2Vec",
-      "species": "Model2VecIntentPipeline",
-      "types": [
-        "embedding",
-        "neural-net"
-      ],
-      "description": "Classifies utterances with a pretrained Model2Vec static-embedding intent classifier restricted to intents registered by loaded skills. The default model is multilingual, distilled from LaBSE.",
-      "model": "Jarbas/ovos-model2vec-intents-distiluse-base-multilingual-cased-v2",
-      "size": "medium",
-      "links": {
-        "source": "https://github.com/OpenVoiceOS/ovos-m2v-pipeline"
-      },
-      "notes": "Single-stage pipeline at the plugin's own medium-confidence gate; per-plugin config keeps the shipped defaults. Published predictions are migrated from the legacy ovos-intent-benchmark, where this engine was trained on the benchmark's own corpora; the pinned pretrained model targets real OVOS skill intents and cannot emit this benchmark's label space, so native re-sweeps require a dataset-trained variant."
-    },
-    {
       "competitor_id": "adapt-medium",
       "schema_version": 1,
       "modality": "intent_keyword",
@@ -458,6 +373,48 @@
       "notes": "Single-stage pipeline at the plugin's own medium-confidence gate; per-plugin config keeps the shipped defaults."
     },
     {
+      "competitor_id": "hierarchical-knn-medium",
+      "schema_version": 1,
+      "modality": "intent_template",
+      "plugin": "ovos-hierarchical-knn-pipeline",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-hierarchical-knn-pipeline-medium"
+          ],
+          "ovos-hierarchical-knn-pipeline": {
+            "hf_repo_id": "fdemelo/ovos-hierarchical-knn-granite-97m-multilingual-r2",
+            "ignore_intents": [],
+            "timeout": 1,
+            "renormalize": false,
+            "conf_high": 0.7,
+            "conf_medium": 0.5,
+            "conf_low": 0.15
+          }
+        }
+      },
+      "langs": [],
+      "alias": [
+        "ovos-hierarchical-knn-pipeline"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "Hierarchical KNN",
+      "species": "HierarchicalKNNIntentPipeline",
+      "types": [
+        "embedding",
+        "neural-net"
+      ],
+      "description": "Two-stage hierarchical k-NN over a pre-built FAISS IVF+PQ index of IBM Granite multilingual embeddings: domain-level search scoped to loaded skills, then intent-level scoring with Wu-Lin pairwise probability estimation.",
+      "model": "IBM Granite Embedding 97M Multilingual R2 (quint8 ONNX) + FAISS index",
+      "size": "medium",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-hierarchical-knn-pipeline"
+      },
+      "notes": "Single-stage pipeline at the plugin's own medium-confidence gate; per-plugin config keeps the shipped defaults. Published predictions are migrated from the legacy ovos-intent-benchmark, where this engine was trained on the benchmark's own corpora; the pinned pretrained model targets real OVOS skill intents and cannot emit this benchmark's label space, so native re-sweeps require a dataset-trained variant."
+    },
+    {
       "competitor_id": "jurebes-medium",
       "schema_version": 1,
       "modality": "intent_template",
@@ -530,6 +487,49 @@
         "source": "https://github.com/TigreGotico/linha-fina"
       },
       "notes": "Single-stage pipeline at the plugin's own medium-confidence gate; the per-plugin config pins the documented confidence thresholds. The engine itself is fixed: one SVM per intent over one-hot keyword vectors."
+    },
+    {
+      "competitor_id": "m2v-medium",
+      "schema_version": 1,
+      "modality": "intent_template",
+      "plugin": "ovos-m2v-pipeline",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-m2v-pipeline-medium"
+          ],
+          "ovos-m2v-pipeline": {
+            "model": "Jarbas/ovos-model2vec-intents-distiluse-base-multilingual-cased-v2",
+            "mode": "classifier",
+            "ignore_intents": [],
+            "timeout": 1,
+            "renormalize": false,
+            "conf_high": 0.7,
+            "conf_medium": 0.5,
+            "conf_low": 0.15
+          }
+        }
+      },
+      "langs": [],
+      "alias": [
+        "ovos-m2v-pipeline"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "Model2Vec",
+      "species": "Model2VecIntentPipeline",
+      "types": [
+        "embedding",
+        "neural-net"
+      ],
+      "description": "Classifies utterances with a pretrained Model2Vec static-embedding intent classifier restricted to intents registered by loaded skills. The default model is multilingual, distilled from LaBSE.",
+      "model": "Jarbas/ovos-model2vec-intents-distiluse-base-multilingual-cased-v2",
+      "size": "medium",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-m2v-pipeline"
+      },
+      "notes": "Single-stage pipeline at the plugin's own medium-confidence gate; per-plugin config keeps the shipped defaults. Published predictions are migrated from the legacy ovos-intent-benchmark, where this engine was trained on the benchmark's own corpora; the pinned pretrained model targets real OVOS skill intents and cannot emit this benchmark's label space, so native re-sweeps require a dataset-trained variant."
     },
     {
       "competitor_id": "markov-medium",
