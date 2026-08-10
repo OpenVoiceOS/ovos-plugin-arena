@@ -225,6 +225,44 @@ def _wer(reference: str, hypothesis: str) -> float:
     return round(errors / ref_words, 4) if ref_words else 0.0
 
 
+def _cer_components(reference: str, hypothesis: str) -> tuple[int, int]:
+    """(character edit distance, reference char count) after normalization.
+
+    Same §E normalization as WER, then Levenshtein over characters instead
+    of whitespace-split words — CER is comparable across languages where
+    word segmentation is not meaningful (e.g. some low-resource or
+    non-whitespace-delimited orthographies) in a way word-level WER isn't.
+    """
+    ref_chars = list(normalize_transcript(reference).replace(" ", ""))
+    hyp_chars = list(normalize_transcript(hypothesis).replace(" ", ""))
+    if not ref_chars:
+        return 0, 0
+    dp = list(range(len(hyp_chars) + 1))
+    for i in range(1, len(ref_chars) + 1):
+        prev = dp[:]
+        dp[0] = i
+        for j in range(1, len(hyp_chars) + 1):
+            dp[j] = (
+                prev[j - 1]
+                if ref_chars[i - 1] == hyp_chars[j - 1]
+                else 1 + min(prev[j - 1], prev[j], dp[j - 1])
+            )
+    return dp[-1], len(ref_chars)
+
+
+def _cer(reference: str, hypothesis: str) -> float:
+    """Character error rate via character-level Levenshtein distance."""
+    errors, ref_chars = _cer_components(reference, hypothesis)
+    return round(errors / ref_chars, 4) if ref_chars else 0.0
+
+
+def intelligibility_scores(reference: str, hypothesis: str) -> tuple[float, float]:
+    """(WER, CER) for one STT round-trip transcript against its prompt text
+    (§4 R16) — reuses the canonical §E normalizer so intelligibility scores
+    are computed the same way as every other WER in the arena."""
+    return _wer(reference, hypothesis), _cer(reference, hypothesis)
+
+
 def row_wer(row: PredictionRow) -> float | None:
     """WER for one row, preferring canonical recomputation (§E) over a
     stored precomputed ``row.wer`` when the raw reference/prediction text is
@@ -392,18 +430,46 @@ def row_utmos(row: PredictionRow) -> float | None:
     return value
 
 
+def row_intelligibility_wer(row: PredictionRow) -> float | None:
+    """Per-row STT round-trip WER (§4 R16), or None when unscored/non-finite."""
+    value = row.extras.get("intelligibility_wer")
+    if value is None:
+        return None
+    try:
+        value = float(value)
+    except (TypeError, ValueError):
+        return None
+    if value != value:  # NaN guard
+        return None
+    return value
+
+
 def score_tts(rows: list[PredictionRow]) -> dict[str, float]:
     """Aggregate TTS rows into a mean UTMOS board metric.
 
     Rows missing a ``utmos`` score (or carrying a non-finite one) are
     excluded from the mean rather than crashing the whole board; ``n_scored``
     reports how many rows actually contributed.
+
+    UTMOS stays the board's primary metric (§4 R14). Alongside it, the mean
+    STT round-trip intelligibility WER (§4 R16) is reported as a secondary
+    metric with its own bootstrap 95% CI — a synthesis crash or nonsense
+    render still gets a row (WER forced to 1.0, §4 R16), so this mean is
+    never silently computed over a partial, best-case-only subset of rows.
     """
     scores = [u for u in (row_utmos(r) for r in rows) if u is not None]
+    wers = [w for w in (row_intelligibility_wer(r) for r in rows) if w is not None]
     latencies = [r.latency_ms for r in rows if r.latency_ms is not None]
     metrics: dict[str, float] = {"n_scored": float(len(scores))}
     if scores:
         metrics["utmos"] = round(sum(scores) / len(scores), 4)
+    if wers:
+        metrics["intelligibility_wer"] = round(sum(wers) / len(wers), 4)
+        metrics["intelligibility_n_scored"] = float(len(wers))
+        ci = bootstrap_mean_ci(wers)
+        if ci:
+            metrics["intelligibility_wer_ci_lower"] = round(ci[0], 4)
+            metrics["intelligibility_wer_ci_upper"] = round(ci[1], 4)
     if latencies:
         metrics["latency_ms_median"] = round(median(latencies), 2)
     return metrics

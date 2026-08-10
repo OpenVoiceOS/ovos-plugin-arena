@@ -5,6 +5,8 @@ import pytest
 
 from arena.metrics import (
     build_benchmark_board,
+    intelligibility_scores,
+    row_intelligibility_wer,
     row_is_correct,
     row_utmos,
     row_wer,
@@ -216,6 +218,63 @@ class TestScoreTts:
         metrics = score_tts(rows)
         assert metrics["utmos"] == pytest.approx(4.0)
         assert metrics["n_scored"] == 1.0
+
+    def test_intelligibility_wer_mean_and_ci(self):
+        rows = [_row(extras={"utmos": 4.0, "intelligibility_wer": 0.0}),
+                _row(extras={"utmos": 3.0, "intelligibility_wer": 0.5})]
+        metrics = score_tts(rows)
+        # UTMOS stays primary, intelligibility_wer rides along as secondary
+        assert metrics["utmos"] == pytest.approx(3.5)
+        assert metrics["intelligibility_wer"] == pytest.approx(0.25)
+        assert metrics["intelligibility_n_scored"] == 2.0
+        assert "intelligibility_wer_ci_lower" in metrics
+        assert "intelligibility_wer_ci_upper" in metrics
+        assert (metrics["intelligibility_wer_ci_lower"]
+                <= metrics["intelligibility_wer"]
+                <= metrics["intelligibility_wer_ci_upper"])
+
+    def test_intelligibility_wer_missing_rows_excluded_not_fatal(self):
+        rows = [_row(extras={"intelligibility_wer": 0.2}), _row(extras={})]
+        metrics = score_tts(rows)
+        assert metrics["intelligibility_wer"] == pytest.approx(0.2)
+        assert metrics["intelligibility_n_scored"] == 1.0
+
+    def test_no_intelligibility_data_omits_secondary_metric(self):
+        rows = [_row(extras={"utmos": 4.0})]
+        metrics = score_tts(rows)
+        assert "intelligibility_wer" not in metrics
+
+
+class TestRowIntelligibilityWer:
+    def test_present(self):
+        assert row_intelligibility_wer(_row(extras={"intelligibility_wer": 0.3})) == 0.3
+
+    def test_missing(self):
+        assert row_intelligibility_wer(_row()) is None
+
+    def test_non_numeric_ignored(self):
+        assert row_intelligibility_wer(
+            _row(extras={"intelligibility_wer": "nope"})) is None
+
+    def test_nan_guard(self):
+        assert row_intelligibility_wer(
+            _row(extras={"intelligibility_wer": float("nan")})) is None
+
+
+class TestIntelligibilityScores:
+    def test_perfect_transcript_zero_wer_cer(self):
+        wer, cer = intelligibility_scores("hello there", "hello there")
+        assert wer == 0.0
+        assert cer == 0.0
+
+    def test_mismatched_transcript_nonzero(self):
+        wer, cer = intelligibility_scores("hello there", "goodbye world")
+        assert wer > 0.0
+        assert cer > 0.0
+
+    def test_reuses_canonical_normalizer_punct_and_case_insensitive(self):
+        wer, _cer = intelligibility_scores("Hello, there!", "hello there")
+        assert wer == 0.0
 
 
 class TestBenchmarkBoard:

@@ -328,6 +328,68 @@ distributional blind spots:
   cross-check**, not a replacement for human votes — a synthetic-MOS
   regression is a signal to go listen, not a verdict on its own.
 
+## Objective TTS scoring: intelligibility (§4 R16)
+
+Alongside UTMOS, `runner/tts_bench.py` scores every synthesised clip for
+**intelligibility**: it transcribes the rendered clip back to text with a
+pinned STT judge (`faster-whisper`) and scores the transcript against the
+original prompt with the same canonical WER (and a companion CER) the STT
+league uses (`arena.metrics.normalize_transcript`, §E) — this is the
+"round trip" check: can a listener's own ears/ASR actually recover the words
+the fighter was asked to say, as distinct from how *natural* it sounded
+(UTMOS's job).
+
+**Provenance.** Each scored row records the judge's identity and pinned
+revision in `extras`, mirroring the UTMOS convention:
+
+- `intelligibility_wer` / `intelligibility_cer` — word/character error rate
+  of the STT judge's transcript against the prompt text (§E normalization,
+  lower is better);
+- `intelligibility_judge` — the pinned faster-whisper model (`Systran/faster-whisper-small`);
+- `intelligibility_judge_revision` — the pinned commit the arena has
+  validated against.
+
+**Pitfalls this metric is designed around.** These are production failure
+modes, not hypotheticals — each one has a dedicated regression test in
+`tests/test_tts_bench.py`:
+
+- **Synthesis must go through the direct `get_tts` path**, never an
+  audio-player/playback round trip — playback adds device/driver noise the
+  metric has no business measuring.
+- **A synthesis crash must still produce a row.** `predict()` catches the
+  exception itself (rather than letting it propagate into
+  `runner/media_bench.py`'s per-sample handler, which just skips the
+  sample) and records `intelligibility_wer = intelligibility_cer = 1.0`
+  plus a `synthesis_error` note — a crashing fighter shows up as maximally
+  unintelligible on the board, not as a shrinking sample count nobody
+  notices.
+- **Non-wav output must be transcoded, never read as raw PCM.** Some
+  plugins render mp3/opus; reading those bytes as if they were headerless
+  PCM samples produces garbage audio and a meaningless score with no error
+  to flag it. The clip is decoded through `runner.audio_io.decode_audio_bytes`
+  (soundfile, falling back to `av`), the same decoder the STT/wake-word
+  benchmarks use.
+- **Audio must always be resampled to 16 kHz mono before transcription.**
+  Reading a 44.1 kHz (or stereo) file as if it were already 16 kHz mono is
+  a known footgun: the judge effectively hears a stretched, garbled clip
+  and returns a false ~1.7 WER — silent corruption, not a crash.
+  `decode_audio_bytes` always resamples/downmixes regardless of the source
+  container.
+
+**What it feeds.** `arena/metrics.py:score_tts` aggregates
+`intelligibility_wer` into the `tts` benchmark board as a **secondary**
+metric (mean, with the same seeded-bootstrap 95% CI convention as every
+other board metric — §4 R11); UTMOS remains the board's primary metric.
+
+**Warn-only across languages.** Like UTMOS, the STT judge is itself a model
+with its own blind spots — it transcribes some low-resource languages far
+worse than others. A high `intelligibility_wer` for such a language is not
+necessarily evidence the TTS clip was unintelligible to a human listener of
+that language; it may just be the judge mishearing it. The real score is
+always recorded (never suppressed or clamped) and always reported, but it
+never gates a board or blocks a benchmark run — it is a signal to go listen,
+exactly like a UTMOS regression.
+
 **NISQA is deliberately not used anywhere in this aggregate.** NISQA's
 released model weights are licensed CC BY-NC — non-commercial only — which
 is incompatible with an Apache-2.0 arena whose leaderboard artifacts are
