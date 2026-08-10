@@ -369,6 +369,34 @@ Voting options MUST include: candidate A, candidate B, tie, both-wrong.
   never gates a board or blocks a run, since a high round-trip WER there
   reflects the STT judge's own blind spot as often as the TTS clip's actual
   intelligibility.
+- **R18 — Each intent league is its own ELO pool.** `battle_group()`
+  (`arena/models.py`) is an identity mapping for every modality, including
+  all three intent leagues (`intent`, `intent_template`, `intent_keyword`):
+  matchmaking (`arena/assembler.py`) only ever pairs two fighters from the
+  *same* league, so a template engine is never blind-battled against a
+  keyword engine, nor against an open-league fusion. Each league gets its
+  own `battles-<league>-*.json` pool, `elo-seed-<league>-*.json`, and
+  `leaderboard-<league>-*.json` — there is no shared "intent" pool any
+  three leagues fall back into. A single-stage embedding classifier is not
+  a league of its own — it is a strategy trained from template-paradigm or
+  keyword-paradigm data (§2.1) and competes inside that data format's
+  league, same as any other engine.
+
+  **Cross-league vote replay policy.** A historical vote counts toward a
+  league's Bradley-Terry/ELO replay only if the battle it references is
+  present in *that league's currently committed* battles pool — which, by
+  construction (matchmaking never pairs across leagues), only ever contains
+  battles between two same-league fighters. A vote cast against a battle
+  id that predates a league split (e.g. one minted under a former shared
+  pool, pairing fighters that are now in different leagues) is therefore
+  absent from every current league's pool and is discarded exactly like any
+  other "battle not in pool" vote (`arena/cli.py:cmd_tally`) — recorded in
+  `vote-audit.json`, never silently dropped, but withheld from every
+  league's rating. This is a pure function of the vote log plus the
+  currently committed battles pools (themselves a pure function of the
+  registry and published predictions, P5), so replay stays deterministic
+  and network-free per league, same as the rest of `tally`. The public vote
+  log (the GitHub issue) itself is never edited or deleted by this rule.
 - **R17 — Streaming wake word is a separate board, not a compat shim.**
   Isolated-clip benchmarking (§3, wake_word league) structurally favors
   clip-shaped detectors: a streaming detector never gets to fire the way it

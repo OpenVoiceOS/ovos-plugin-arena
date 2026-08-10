@@ -256,15 +256,15 @@ class TestAssemblePipeline:
         # §leagues — single source of truth for the frontend's league tabs
         league_ids = [entry["id"] for entry in index["leagues"]]
         assert league_ids == [
-            "intent_template", "intent_keyword", "intent_embedding", "intent",
+            "intent_template", "intent_keyword", "intent",
             "stt", "tts", "wake_word", "vad",
         ]
         for entry in index["leagues"]:
             assert set(entry) == {"id", "label", "battle_group", "order"}
         intent_entries = {e["id"]: e for e in index["leagues"]}
-        # intent paradigms collapse to the open "intent" battle group
-        assert intent_entries["intent_template"]["battle_group"] == "intent"
-        assert intent_entries["intent_keyword"]["battle_group"] == "intent"
+        # each intent league is its own battle group — no shared pool
+        assert intent_entries["intent_template"]["battle_group"] == "intent_template"
+        assert intent_entries["intent_keyword"]["battle_group"] == "intent_keyword"
         assert intent_entries["intent"]["battle_group"] == "intent"
         assert intent_entries["stt"]["battle_group"] == "stt"
 
@@ -327,42 +327,63 @@ def _write_cross_league_predictions(tmp_path: Path) -> Path:
 
 
 class TestBattleMerge:
-    def test_intent_leagues_merge_for_battles_and_elo(self, tmp_path):
+    def test_intent_leagues_never_pool_battles_or_elo(self, tmp_path):
+        """§R# — each intent league (keyword/template/open) is fully separate:
+        its own battles pool and its own ELO seed. A template engine is
+        never paired against a keyword engine."""
         preds = _write_cross_league_predictions(tmp_path)
         out = tmp_path / "data"
         assert main_args_assemble(preds, out) == 0
 
-        # battles + ELO merge into the open intent group...
-        assert (out / "battles-intent-intents-for-eval-en-US.json").exists()
-        assert (out / "elo-seed-intent-en-US.json").exists()
-        # ...and the per-paradigm battle/ELO artifacts are NOT written
-        assert not (out / "battles-intent_template-intents-for-eval-en-US.json").exists()
-        assert not (out / "elo-seed-intent_template-en-US.json").exists()
-        assert not (out / "elo-seed-intent_keyword-en-US.json").exists()
+        # no merged "intent" battle/ELO pool is produced — the fixture only
+        # has template + keyword fighters, no open-league ones
+        assert not (out / "battles-intent-intents-for-eval-en-US.json").exists()
+        assert not (out / "elo-seed-intent-en-US.json").exists()
 
-        # a battle pairs the template engine against the keyword engine
-        pool = json.loads(
-            (out / "battles-intent-intents-for-eval-en-US.json").read_text())
-        pairs = {tuple(sorted((b["competitor_a"], b["competitor_b"])))
-                 for b in pool["battles"]}
-        assert ("adapt-medium", "padatious-medium") in pairs
+        # each paradigm gets its own battles pool and ELO seed
+        assert (out / "battles-intent_template-intents-for-eval-en-US.json").exists()
+        assert (out / "battles-intent_keyword-intents-for-eval-en-US.json").exists()
+        assert (out / "elo-seed-intent_template-en-US.json").exists()
+        assert (out / "elo-seed-intent_keyword-en-US.json").exists()
 
-        # benchmark boards stay per paradigm league
+        # a template-league battle only ever pairs template fighters (here,
+        # just the one, so no battles are assembled) — the keyword and
+        # template engines are never paired against each other
+        template_pool = json.loads(
+            (out / "battles-intent_template-intents-for-eval-en-US.json").read_text())
+        keyword_pool = json.loads(
+            (out / "battles-intent_keyword-intents-for-eval-en-US.json").read_text())
+        all_pairs = {
+            tuple(sorted((b["competitor_a"], b["competitor_b"])))
+            for pool in (template_pool, keyword_pool) for b in pool["battles"]
+        }
+        assert ("adapt-medium", "padatious-medium") not in all_pairs
+
+        # benchmark boards stay per paradigm league (unchanged)
         assert (out / "benchmark-intent_template-intents-for-eval-en-US.json").exists()
         assert (out / "benchmark-intent_keyword-intents-for-eval-en-US.json").exists()
 
-        # one merged ELO seed across both engines
-        seed = json.loads((out / "elo-seed-intent-en-US.json").read_text())
-        assert set(seed["ratings"]) == {"padatious-medium", "adapt-medium"}
+        # each ELO seed only rates its own league's fighter
+        template_seed = json.loads(
+            (out / "elo-seed-intent_template-en-US.json").read_text())
+        keyword_seed = json.loads(
+            (out / "elo-seed-intent_keyword-en-US.json").read_text())
+        assert set(template_seed["ratings"]) == {"padatious-medium"}
+        assert set(keyword_seed["ratings"]) == {"adapt-medium"}
 
-    def test_stale_subleague_files_removed(self, tmp_path):
+    def test_no_stale_subleague_cleanup_needed(self, tmp_path):
+        """§R# — battle_group is now identity for every modality, so
+        ``_clean_merged_artifacts`` never removes a live league's own
+        files; a pre-existing file for a still-active league survives."""
         preds = _write_cross_league_predictions(tmp_path)
         out = tmp_path / "data"
         out.mkdir()
-        # a stale per-paradigm battle pool from a previous design
         (out / "battles-intent_template-intents-for-eval-en-US.json").write_text("{}")
         assert main_args_assemble(preds, out) == 0
-        assert not (out / "battles-intent_template-intents-for-eval-en-US.json").exists()
+        # overwritten with real content by this run, not deleted
+        pool = json.loads(
+            (out / "battles-intent_template-intents-for-eval-en-US.json").read_text())
+        assert pool.get("modality") == "intent_template"
 
 
 def main_args_assemble(preds: Path, out: Path) -> int:

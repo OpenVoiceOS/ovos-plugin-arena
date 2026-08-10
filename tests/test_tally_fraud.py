@@ -384,3 +384,192 @@ class TestOfflineReplayPurity:
 
         board = json.loads((data_dir / "leaderboard-intent-en-US.json").read_text())
         assert board["human_vote_count"] == 1
+
+
+# ---------------------------------------------------------------------------
+# §R# — per-league ELO pools: a historical vote only replays into a
+# league's board if the battle it references is IN that league's current
+# committed battles pool. Since matchmaking (arena.assembler / battle_group)
+# now only ever pairs same-league fighters, any battle_id minted under the
+# old shared "intent" pool (a template fighter vs. a keyword fighter) simply
+# has no home in ANY of the new per-league pools once they're regenerated —
+# it is excluded from every league's replay, deterministically, as a pure
+# function of the vote log + the currently committed battles pools (which
+# are themselves a pure function of the registry + predictions). The public
+# vote log (the GitHub issue) is untouched; only its rating influence is
+# withheld, exactly like any other "battle not in pool" discard.
+# ---------------------------------------------------------------------------
+class TestCrossLeagueVoteExclusion:
+    def test_stale_cross_league_battle_id_excluded_from_every_league(
+        self, tmp_path, monkeypatch
+    ):
+        """A vote cast against a battle_id that only ever existed in the old
+        merged 'intent' pool (paired a template vs. a keyword fighter) is
+        not present in either new per-league pool after the split, so it is
+        discarded — not counted toward intent_template OR intent_keyword."""
+        data_dir = tmp_path / "data"
+        data_dir.mkdir()
+        # per-league pools as regenerated post-split — neither one contains
+        # the stale cross-paradigm battle_id from the old merged pool.
+        _write_battles_pool(
+            data_dir,
+            [_battle("tmpl-b0", modality="intent_template")],
+            modality="intent_template",
+        )
+        _write_battles_pool(
+            data_dir,
+            [_battle("kw-b0", modality="intent_keyword")],
+            modality="intent_keyword",
+        )
+        (data_dir / "voter-age-cache.json").write_text(
+            json.dumps({"alice": "2020-01-01T00:00:00Z"}))
+
+        stale_cross_league_battle_id = "old-merged-intent-b-cross"
+        issues = [
+            _issue(1, "alice", stale_cross_league_battle_id, "a",
+                   "2026-02-01T00:00:00Z"),
+        ]
+        monkeypatch.setattr(arena_cli, "fetch_vote_issues", lambda repo: issues)
+        monkeypatch.setattr(subprocess, "run",
+                             lambda *a, **kw: (_ for _ in ()).throw(
+                                 AssertionError("no network expected")))
+        monkeypatch.setattr(arena_cli, "close_issue", lambda *a, **kw: None)
+        monkeypatch.setattr(arena_cli, "_now_iso",
+                             lambda: "2026-02-01T12:00:00+00:00")
+
+        with pytest.raises(SystemExit) as exc:
+            main(["tally", "--data-dir", str(data_dir), "--output", str(data_dir),
+                  "--repo", "OpenVoiceOS/ovos-plugin-arena", "--keep-issues-open"])
+        assert exc.value.code == 0
+
+        audit = json.loads((data_dir / "vote-audit.json").read_text())
+        assert audit["counted"] == 0
+        assert not (data_dir / "leaderboard-intent_template-en-US.json").exists()
+        assert not (data_dir / "leaderboard-intent_keyword-en-US.json").exists()
+
+    def test_same_league_vote_still_replays_normally(self, tmp_path, monkeypatch):
+        """Control case: a vote whose battle_id genuinely lives in one
+        league's current pool still counts, proving the split doesn't
+        discard legitimate same-league votes."""
+        data_dir = tmp_path / "data"
+        data_dir.mkdir()
+        _write_battles_pool(
+            data_dir,
+            [_battle("tmpl-b0", modality="intent_template")],
+            modality="intent_template",
+        )
+        (data_dir / "voter-age-cache.json").write_text(
+            json.dumps({"alice": "2020-01-01T00:00:00Z"}))
+        issues = [_issue(1, "alice", "tmpl-b0", "a", "2026-02-01T00:00:00Z")]
+        monkeypatch.setattr(arena_cli, "fetch_vote_issues", lambda repo: issues)
+        monkeypatch.setattr(subprocess, "run",
+                             lambda *a, **kw: (_ for _ in ()).throw(
+                                 AssertionError("no network expected")))
+        monkeypatch.setattr(arena_cli, "close_issue", lambda *a, **kw: None)
+        monkeypatch.setattr(arena_cli, "_now_iso",
+                             lambda: "2026-02-01T12:00:00+00:00")
+
+        with pytest.raises(SystemExit) as exc:
+            main(["tally", "--data-dir", str(data_dir), "--output", str(data_dir),
+                  "--repo", "OpenVoiceOS/ovos-plugin-arena", "--keep-issues-open"])
+        assert exc.value.code == 0
+
+        audit = json.loads((data_dir / "vote-audit.json").read_text())
+        assert audit["counted"] == 1
+        board = json.loads(
+            (data_dir / "leaderboard-intent_template-en-US.json").read_text())
+        assert board["human_vote_count"] == 1
+        assert not (data_dir / "leaderboard-intent_keyword-en-US.json").exists()
+
+    def test_per_league_replay_is_deterministic(self, tmp_path, monkeypatch):
+        """Replaying the same vote log against the same per-league pools
+        twice, in two different directories, produces byte-identical
+        per-league boards — determinism holds per league, not just for a
+        single shared pool."""
+        data_dir1, data_dir2 = tmp_path / "d1", tmp_path / "d2"
+        for d in (data_dir1, data_dir2):
+            d.mkdir()
+            _write_battles_pool(
+                d, [_battle("tmpl-b0", modality="intent_template")],
+                modality="intent_template",
+            )
+            _write_battles_pool(
+                d, [_battle("kw-b0", modality="intent_keyword")],
+                modality="intent_keyword",
+            )
+            (d / "voter-age-cache.json").write_text(
+                json.dumps({"alice": "2020-01-01T00:00:00Z",
+                            "bob": "2020-01-01T00:00:00Z"}))
+        issues = [
+            _issue(1, "alice", "tmpl-b0", "a", "2026-02-01T00:00:00Z"),
+            _issue(2, "bob", "kw-b0", "tie", "2026-02-01T01:00:00Z"),
+        ]
+        monkeypatch.setattr(arena_cli, "fetch_vote_issues", lambda repo: issues)
+        monkeypatch.setattr(subprocess, "run",
+                             lambda *a, **kw: (_ for _ in ()).throw(
+                                 AssertionError("no network expected")))
+        monkeypatch.setattr(arena_cli, "close_issue", lambda *a, **kw: None)
+        monkeypatch.setattr(arena_cli, "_now_iso",
+                             lambda: "2026-02-01T12:00:00+00:00")
+
+        for d in (data_dir1, data_dir2):
+            with pytest.raises(SystemExit) as exc:
+                main(["tally", "--data-dir", str(d), "--output", str(d),
+                      "--repo", "OpenVoiceOS/ovos-plugin-arena", "--keep-issues-open"])
+            assert exc.value.code == 0
+
+        for name in ("leaderboard-intent_template-en-US.json",
+                     "leaderboard-intent_keyword-en-US.json"):
+            assert (data_dir1 / name).read_text() == (data_dir2 / name).read_text()
+
+    def test_league_with_zero_votes_gets_seed_only_board_without_crashing(
+        self, tmp_path, monkeypatch
+    ):
+        """A league that assembled battles but received no votes at all
+        (e.g. intent_keyword has fighters but nobody voted yet) must not
+        crash tally, and produces a provisional, seed-only board when one
+        was pre-seeded by assemble."""
+        data_dir = tmp_path / "data"
+        data_dir.mkdir()
+        _write_battles_pool(
+            data_dir, [_battle("tmpl-b0", modality="intent_template")],
+            modality="intent_template",
+        )
+        # intent_keyword assembled a battles pool but has an empty ELO seed
+        # pre-board (as `assemble` bootstraps when no board exists yet).
+        _write_battles_pool(
+            data_dir, [], modality="intent_keyword",
+        )
+        pre_board = {
+            "modality": "intent_keyword",
+            "lang": "en-US",
+            "generated_at": "2026-01-01T00:00:00+00:00",
+            "vote_count": 0,
+            "human_vote_count": 0,
+            "provisional": True,
+            "entries": [],
+        }
+        (data_dir / "leaderboard-intent_keyword-en-US.json").write_text(
+            json.dumps(pre_board))
+        (data_dir / "voter-age-cache.json").write_text(
+            json.dumps({"alice": "2020-01-01T00:00:00Z"}))
+        issues = [_issue(1, "alice", "tmpl-b0", "a", "2026-02-01T00:00:00Z")]
+        monkeypatch.setattr(arena_cli, "fetch_vote_issues", lambda repo: issues)
+        monkeypatch.setattr(subprocess, "run",
+                             lambda *a, **kw: (_ for _ in ()).throw(
+                                 AssertionError("no network expected")))
+        monkeypatch.setattr(arena_cli, "close_issue", lambda *a, **kw: None)
+        monkeypatch.setattr(arena_cli, "_now_iso",
+                             lambda: "2026-02-01T12:00:00+00:00")
+
+        with pytest.raises(SystemExit) as exc:
+            main(["tally", "--data-dir", str(data_dir), "--output", str(data_dir),
+                  "--repo", "OpenVoiceOS/ovos-plugin-arena", "--keep-issues-open"])
+        assert exc.value.code == 0
+
+        # intent_keyword's pre-existing seed-only board survives untouched —
+        # no crash, no fabricated votes.
+        kw_board = json.loads(
+            (data_dir / "leaderboard-intent_keyword-en-US.json").read_text())
+        assert kw_board["human_vote_count"] == 0
+        assert kw_board["entries"] == []

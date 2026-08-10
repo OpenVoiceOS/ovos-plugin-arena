@@ -149,6 +149,64 @@ settled result.
 - **`provisional`** boards should be captioned as such in the frontend
   rather than presented with the same confidence as an established board.
 
+## Per-league ELO pools and cross-league vote replay (§4 R18)
+
+Every modality — including all three intent leagues, `intent`,
+`intent_template` and `intent_keyword` — runs its own battle pool and its
+own ELO ladder. `arena.models.battle_group()` is an identity mapping: a
+league's battle group is itself, so `arena.assembler` only ever pairs two
+fighters that already share a league. A template-paradigm engine (e.g.
+Padatious) is never blind-battled against a keyword-paradigm engine (e.g.
+Adapt), and neither paradigm-pure league pools with the open `intent`
+fusion league. This mirrors the leagues already being paradigm-pure on the
+benchmark side (§2.1) — battles and ELO were the one place paradigms used
+to mix, and now don't.
+
+A single-stage embedding classifier (Model2Vec, Hierarchical KNN) is not a
+fourth league. It is a *strategy*, trained from one of the two intent
+training-data formats — both shipped competitors here train from
+template-paradigm corpora (`runner/intent_pipeline.py`'s `EngineSpec.paradigm
+== "template"` for both `ovos-m2v-pipeline` and
+`ovos-hierarchical-knn-pipeline`) — so both live in `registry/competitors/
+intent_template/` and compete in the `intent_template` league, same as any
+other template engine.
+
+**Historical votes and the league split.** Before this split, all three
+intent leagues shared one `intent` battle pool and one ELO ladder — a
+battle's id was a content hash of `(battle_group, dataset, lang, sample,
+sorted(competitor_a, competitor_b))`, and `battle_group` used to collapse
+all three modalities to the literal string `"intent"`. After the split,
+`battle_group` no longer collapses anything, so every battle id computed
+from here on is scoped to its own league and cannot collide with — or be
+confused with — a battle id from a different league.
+
+Any vote already cast against an old, pre-split battle id is handled by the
+tally pipeline's existing "battle not in the current pool" check
+(`arena/cli.py:cmd_tally`): once the committed battles pools are
+regenerated post-split, a pre-split battle id (which necessarily hashed the
+collapsed `"intent"` group, not a real per-league group) is absent from
+every per-league pool — the fighters it paired may have ended up in the
+same league or in different ones, but the *id itself* no longer resolves
+anywhere, so the vote is uniformly discarded and reported in
+`vote-audit.json` rather than silently dropped or, worse, misattributed to
+whichever league happens to load first. This is deliberately conservative:
+it never lets a genuinely cross-league historical vote leak into a
+post-split league's rating, at the cost of not being able to salvage
+same-league historical votes that happened to be cast under the old shared
+pool. In this arena's committed vote log that cost is zero — no human vote
+has ever been counted yet (`vote-audit.json` has `"counted": 0`) — so the
+split is a clean cut, not a data-loss event.
+
+Going forward, the same mechanism is what enforces the policy on paper: a
+vote counts toward league X's replay if and only if its battle id is
+present in league X's currently committed battles pool, and — because
+matchmaking never mixes leagues — every battle in that pool necessarily
+pairs two league-X fighters. The check is a pure function of the vote log
+plus the currently committed battles pools, which are themselves a pure
+function of the registry and published predictions (P5), so replay stays
+deterministic and network-free per league, exactly like the rest of
+`tally`.
+
 ## Benchmark boards: significance, not just a point estimate
 
 The objective benchmark boards (`benchmark-<modality>-<dataset>-<lang>.json`,
