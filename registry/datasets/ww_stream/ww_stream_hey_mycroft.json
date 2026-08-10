@@ -1,0 +1,35 @@
+{
+  "dataset_id": "ww_stream_hey_mycroft",
+  "modality": "ww_stream",
+  "source": {
+    "type": "huggingface",
+    "hf_id": "TigreGotico/ww-stream-bench-hey_mycroft",
+    "revision": "main",
+    "file_pattern": "manifest.jsonl"
+  },
+  "reference_fields": {
+    "audio": "audio",
+    "onsets": "onsets"
+  },
+  "wakeword": "hey_mycroft",
+  "negatives_sources": [
+    "TigreGotico/not-wake-words-speech-en/not_wake_word_subset",
+    "TigreGotico/public_domain_sounds_3secs/pd_3sec",
+    "TigreGotico/ESC-50",
+    "TigreGotico/FMA_3secs",
+    "TigreGotico/ambient_noises"
+  ],
+  "lang": "en",
+  "license": "CC-BY-4.0",
+  "role": "eval",
+  "sample_rate_hz": 16000,
+  "event_manifest_fields": {
+    "audio": "audio",
+    "onsets": "onsets",
+    "duration_s": "duration_s"
+  },
+  "min_negative_hours": 10.0,
+  "event_tolerance_s": 1.5,
+  "predictions_hf": "OpenVoiceOS/ovos-ww-stream-bench-ww_stream_hey_mycroft",
+  "notes": "PLANNED (§A3.2) — not yet built. Continuous-audio ground-truth-event corpus for the 'hey mycroft' streaming board: long clips (many minutes to hours), each with a manifest row giving 'audio' (repo-relative path), 'onsets' (wake-word onset timestamps in seconds, empty for negative-only clips) and 'duration_s'. Isolated-clip benchmarking structurally favors clip-shaped detectors — streaming engines (openWakeWord, microWakeWord, precise-onnx; see competitor 'capabilities') can't fire on isolated clips the way they do in the live listener, and a false-accept-per-hour estimate needs hours of continuous negative audio, not seconds-long clips. Until 'TigreGotico/ww-stream-bench-hey_mycroft' is published this entry is inert: `arena assemble` already skips any dataset whose predictions_hf repo 404s (arena/cli.py:cmd_assemble logs and continues), so no runner ever tries to run this benchmark and no board is produced. Building the corpus and running the sweep is a separate, later operational task."
+}

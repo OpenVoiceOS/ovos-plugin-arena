@@ -24,6 +24,7 @@ import re
 import unicodedata
 from collections import defaultdict
 from statistics import median
+from typing import Any
 
 from arena.models import BenchmarkBoard, BenchmarkEntry, PredictionRow
 from arena.rating import percentile
@@ -43,6 +44,11 @@ PRIMARY_METRIC = {
     "wake_word": "error_rate",
     "vad": "error_rate",
     "tts": "utmos",
+    # §A3.2 / R17 — FRR at a fixed 2-false-accepts/hour operating point, not
+    # raw threshold-0.5 FRR alone: a streaming detector's usable operating
+    # point is a trade-off curve, and ranking on FRR alone would reward a
+    # fighter that only "wins" by firing so eagerly its FA/hour is unusable.
+    "ww_stream": "error_at_2fa_per_hour",
 }
 
 # Higher is better for these primary metrics; lower for the rest (error rates,
@@ -475,6 +481,139 @@ def score_tts(rows: list[PredictionRow]) -> dict[str, float]:
     return metrics
 
 
+# ---------------------------------------------------------------------------
+# Streaming wake word (§A3.2 / R17)
+# ---------------------------------------------------------------------------
+#
+# Isolated-clip benchmarking (score_wake_word above) structurally favors
+# clip-shaped detectors: a streaming detector never gets to fire the way it
+# does against a live mic, and a false-accept rate needs hours of continuous
+# negative audio, not seconds-long clips. This is a genuinely separate
+# league (`ww_stream`), scored from continuous-audio detection *events*
+# rather than per-clip binary decisions — it does NOT change score_wake_word
+# or the `wake_word` board above. Only competitors whose registry entry
+# declares `"stream"` in `capabilities` are ever benchmarked here
+# (`runner.ww_bench.WakeWordStreamBench.filter_competitors`).
+#
+# Row shape (one row per long continuous clip, `prediction == "WW_STREAM"`):
+#   extras.events        — [[timestamp_s, score], ...] every candidate
+#                           activation the engine produced over the clip.
+#                           Score defaults to 1.0 for engines that only
+#                           expose a binary latch (the arena does not invent
+#                           a confidence the plugin doesn't provide — P2:
+#                           the plugin owns its own threshold).
+#   extras.truth_onsets   — [timestamp_s, ...] ground-truth wake-word onsets
+#                           in that clip (empty for negative-only clips).
+#   extras.duration_s     — total clip length, for the FA/hour denominator.
+
+EVENT_TOLERANCE_S = 1.5  # ± window for matching an event to a truth onset
+TARGET_FA_PER_HOUR = 2.0  # operating point for the primary metric
+_DET_THRESHOLDS = [round(0.1 * i, 2) for i in range(1, 10)]  # 0.1 .. 0.9
+
+
+def _stream_clips(
+    rows: list[PredictionRow],
+) -> list[tuple[list[float], list[tuple[float, float]], float]]:
+    """(truth_onsets, events, duration_s) per streaming row, others ignored."""
+    clips = []
+    for row in rows:
+        if row.prediction != "WW_STREAM":
+            continue
+        extras = row.extras or {}
+        truth = [float(t) for t in (extras.get("truth_onsets") or [])]
+        events = [(float(t), float(s)) for t, s in (extras.get("events") or [])]
+        duration = float(extras.get("duration_s") or 0.0)
+        clips.append((truth, events, duration))
+    return clips
+
+
+def _stream_stats_at_threshold(
+    clips: list[tuple[list[float], list[tuple[float, float]], float]],
+    threshold: float,
+) -> dict[str, Any]:
+    """FRR / FA-per-hour / latencies at one detection threshold.
+
+    Each truth onset matches at most one fired event within
+    ``EVENT_TOLERANCE_S`` (closest in time); every fired event left
+    unmatched is a false accept.
+    """
+    total_onsets = 0
+    missed = 0
+    false_accepts = 0
+    total_duration = 0.0
+    latencies: list[float] = []
+    for truth, events, duration in clips:
+        total_duration += duration
+        fired = [(t, s) for t, s in events if s >= threshold]
+        matched_events: set[int] = set()
+        for onset in truth:
+            best_idx, best_gap = None, None
+            for idx, (t, _s) in enumerate(fired):
+                if idx in matched_events:
+                    continue
+                gap = abs(t - onset)
+                if gap <= EVENT_TOLERANCE_S and (best_gap is None or gap < best_gap):
+                    best_idx, best_gap = idx, gap
+            total_onsets += 1
+            if best_idx is None:
+                missed += 1
+            else:
+                matched_events.add(best_idx)
+                latencies.append(fired[best_idx][0] - onset)
+        false_accepts += len(fired) - len(matched_events)
+
+    hours = total_duration / 3600.0
+    return {
+        "frr": round(missed / total_onsets, 4) if total_onsets else 0.0,
+        "fa_per_hour": round(false_accepts / hours, 4) if hours else 0.0,
+        "latencies": latencies,
+        "total_onsets": total_onsets,
+        "false_accepts": false_accepts,
+        "hours": hours,
+    }
+
+
+def score_ww_stream(rows: list[PredictionRow]) -> dict[str, float]:
+    """Continuous-stream detection metrics for a `ww_stream` competitor.
+
+    ``error_at_2fa_per_hour`` (primary, lower is better) is the FRR at the
+    lowest scanned threshold whose FA/hour stays within
+    ``TARGET_FA_PER_HOUR`` — the FRR a deployer would actually get while
+    respecting a 2-false-accepts-per-hour budget, rather than a raw
+    threshold-0.5 number that hides the trade-off. ``det_frr@<thr>`` /
+    ``det_fa_per_hour@<thr>`` flatten a small DET curve into float metrics
+    (``BenchmarkEntry.metrics`` is ``dict[str, float]``, so the curve can't
+    be nested).
+    """
+    clips = _stream_clips(rows)
+    if not clips:
+        return {}
+
+    base = _stream_stats_at_threshold(clips, 0.5)
+    metrics: dict[str, float] = {
+        "frr": base["frr"],
+        "fa_per_hour": base["fa_per_hour"],
+        "negative_hours": round(base["hours"], 3),
+        "n_onsets": float(base["total_onsets"]),
+    }
+    if base["latencies"]:
+        metrics["latency_s_median"] = round(median(base["latencies"]), 3)
+
+    det_points = []
+    for thr in _DET_THRESHOLDS:
+        stats = _stream_stats_at_threshold(clips, thr)
+        det_points.append((thr, stats["frr"], stats["fa_per_hour"]))
+        metrics[f"det_frr@{thr}"] = stats["frr"]
+        metrics[f"det_fa_per_hour@{thr}"] = stats["fa_per_hour"]
+
+    within_budget = [p for p in det_points if p[2] <= TARGET_FA_PER_HOUR]
+    # Ascending threshold order: the first (lowest) threshold within budget
+    # gives the best (lowest) FRR achievable at that FA/hour ceiling.
+    chosen = within_budget[0] if within_budget else det_points[-1]
+    metrics["error_at_2fa_per_hour"] = chosen[1]
+    return metrics
+
+
 _SCORERS = {
     "intent": score_intent,
     "intent_template": score_intent,
@@ -483,6 +622,7 @@ _SCORERS = {
     "wake_word": score_wake_word,
     "vad": score_vad,
     "tts": score_tts,
+    "ww_stream": score_ww_stream,
 }
 
 

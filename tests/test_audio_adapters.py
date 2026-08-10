@@ -180,25 +180,95 @@ class UpdateStyleWW:
 
 
 class TestWWDetect:
+    """Bare-engine detection now runs through ``ovoscope.wakeword_probe.
+    WakeWordProbe`` (``_detect_stack`` with no VAD/verifier), not a
+    hand-rolled loop — see ``runner.ww_bench._detect_stack``."""
+
     def _audio(self, n=6400):
         import numpy as np
         return np.zeros(n, dtype="float32")
 
     def test_frame_style_detection(self):
-        from runner.ww_bench import _detect
-        assert _detect(FrameStyleWW(fire_on_index=1), self._audio()) is True
-        assert _detect(FrameStyleWW(fire_on_index=None), self._audio()) is False
+        from runner.ww_bench import _detect_stack
+        assert _detect_stack(WWStack(FrameStyleWW(fire_on_index=1)),
+                              self._audio()) is True
+        assert _detect_stack(WWStack(FrameStyleWW(fire_on_index=None)),
+                              self._audio()) is False
 
     def test_update_style_detection(self):
-        from runner.ww_bench import _detect
-        assert _detect(UpdateStyleWW(fire_after=1), self._audio()) is True
-        assert _detect(UpdateStyleWW(fire_after=None), self._audio()) is False
+        from runner.ww_bench import _detect_stack
+        assert _detect_stack(WWStack(UpdateStyleWW(fire_after=1)),
+                              self._audio()) is True
+        assert _detect_stack(WWStack(UpdateStyleWW(fire_after=None)),
+                              self._audio()) is False
 
     def test_reset_called_each_clip(self):
-        from runner.ww_bench import _detect
+        from runner.ww_bench import _detect_stack
         eng = UpdateStyleWW(fire_after=None)
-        _detect(eng, self._audio())
+        _detect_stack(WWStack(eng), self._audio())
         assert eng.resets == 1
+
+
+class TestWWDetectStackRoutesThroughWakeWordProbe:
+    """Regression: a (engine, VAD, verifier) stack fighter's bare-engine
+    decision is delegated to ``ovoscope.wakeword_probe.WakeWordProbe`` —
+    not a parallel hand-rolled detector — while the VAD gate and verifier
+    stay arena-side orchestration around it (§ migration to ovoscope#97)."""
+
+    def _audio(self, n=6400):
+        import numpy as np
+        return np.zeros(n, dtype="float32")
+
+    def test_engine_only_stack_calls_wakewordprobe_detect(self):
+        from unittest.mock import patch
+
+        from ovoscope.wakeword_probe import WakeWordDetection
+
+        from runner.ww_bench import _detect_stack
+
+        engine = FakeWWEngine(fire_after=1)
+        stack = WWStack(engine)
+        with patch("ovoscope.wakeword_probe.WakeWordProbe.detect") as mock_detect:
+            mock_detect.return_value = WakeWordDetection(True, 1.0, 1)
+            out = _detect_stack(stack, self._audio())
+        assert out is True
+        mock_detect.assert_called_once()
+        # patching the unbound class attribute: `self` isn't auto-passed by
+        # Mock (it isn't a real descriptor), so the recorded call is just the
+        # array — the important thing is *some* WakeWordProbe.detect() ran.
+        (_array,), _kwargs = mock_detect.call_args
+
+    def test_full_stack_vad_gate_then_probe_then_verifier(self):
+        """The full (engine, VAD, verifier) stack: VAD gate runs first (as
+        arena orchestration, unchanged), the bare-engine call goes through
+        WakeWordProbe, and a rejecting verifier still overrides a probe
+        detection — exactly the WWStack semantics, now with WakeWordProbe
+        driving the engine tier."""
+        from unittest.mock import patch
+
+        from ovoscope.wakeword_probe import WakeWordDetection
+
+        from runner.ww_bench import _detect_stack
+
+        stack = WWStack(FakeWWEngine(fire_after=1),
+                        vad=_FakeVAD(speech=True),
+                        verifier=_FakeVerifier(ok=False))
+        with patch("ovoscope.wakeword_probe.WakeWordProbe.detect") as mock_detect:
+            mock_detect.return_value = WakeWordDetection(True, 1.0, 1)
+            out = _detect_stack(stack, self._audio())
+        mock_detect.assert_called_once()
+        assert out is False  # verifier rejected the probe's activation
+
+    def test_vad_gate_short_circuits_before_probe_runs(self):
+        from unittest.mock import patch
+
+        from runner.ww_bench import _detect_stack
+
+        stack = WWStack(FakeWWEngine(fire_after=1), vad=_FakeVAD(speech=False))
+        with patch("ovoscope.wakeword_probe.WakeWordProbe.detect") as mock_detect:
+            out = _detect_stack(stack, self._audio())
+        assert out is False
+        mock_detect.assert_not_called()  # VAD gate suppressed it upstream
 
 
 class TestEvenSampler:

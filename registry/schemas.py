@@ -42,6 +42,10 @@ class Modality(str, Enum):
     INTENT = "intent"  # open league — mixed-paradigm fusions
     INTENT_TEMPLATE = "intent_template"
     INTENT_KEYWORD = "intent_keyword"
+    # Streaming wake-word league (§A3.2 / R15) — same fighters as WAKE_WORD,
+    # a distinct board scored from continuous-audio detection events rather
+    # than isolated clips. See registry/datasets/ww_stream/*.json.
+    WW_STREAM = "ww_stream"
 
 
 INTENT_MODALITIES = (
@@ -195,6 +199,44 @@ class DatasetDef(BaseModel):
             "from these repos when no explicit source list is given."
         ),
     )
+    # ``ww_stream`` (§A3.2 / R15) — continuous-audio ground-truth-event
+    # corpora. Isolated-clip benchmarking structurally favors clip-shaped
+    # detectors and can't exercise streaming false-accept behaviour, which
+    # needs hours of continuous negative audio, not seconds-long clips.
+    sample_rate_hz: int | None = Field(
+        None,
+        description=(
+            "Pinned sample rate (Hz) for a streaming/event corpus, e.g. "
+            "16000 — every clip MUST be resampled to this rate before "
+            "onset timestamps are meaningful."
+        ),
+    )
+    event_manifest_fields: dict[str, str] | None = Field(
+        None,
+        description=(
+            "Column names for a streaming ground-truth-event manifest: "
+            "{'audio': <path column>, 'onsets': <wake-word onset "
+            "timestamps column, seconds>, 'duration_s': <clip length "
+            "column>}. Each manifest row is one long continuous clip; "
+            "'onsets' is empty for negative-hours-only clips."
+        ),
+    )
+    min_negative_hours: float | None = Field(
+        None,
+        description=(
+            "Target/minimum hours of negative (non-wake) continuous audio "
+            "the corpus must provide for a stable false-accept-per-hour "
+            "estimate (a handful of clips is not enough)."
+        ),
+    )
+    event_tolerance_s: float | None = Field(
+        None,
+        description=(
+            "± tolerance window (seconds) for matching a detection event "
+            "to a ground-truth onset when scoring (see "
+            "``arena.metrics.EVENT_TOLERANCE_S``)."
+        ),
+    )
     notes: str | None = None
     predictions_revision: str | None = Field(
         None,
@@ -213,6 +255,12 @@ class DatasetDef(BaseModel):
 
 
 PIPELINE_TIERS = ("high", "medium", "low")
+
+Capability = Literal["clip", "stream"]
+
+
+def _default_capabilities() -> list[Capability]:
+    return ["clip"]
 
 
 def split_pipeline_stage(stage: str) -> tuple:
@@ -279,6 +327,21 @@ class CompetitorDef(BaseModel):
         description=(
             "Legacy plugin_id values that map to this competitor in ingested rows. "
             "Enables backward-compat without re-running old prediction jobs."
+        ),
+    )
+    capabilities: list[Capability] = Field(
+        default_factory=_default_capabilities,
+        description=(
+            "Wake-word fighters only (§A3.2 / R15): which benchmarking shapes "
+            "this engine genuinely supports. 'clip' — scored on isolated "
+            "labelled clips (every wake-word fighter). 'stream' — the "
+            "underlying detector is designed to run continuously over "
+            "streamed audio and accumulate false accepts across hours of "
+            "negative audio (openWakeWord, microWakeWord, precise-onnx); "
+            "only these compete on the `ww_stream` board "
+            "(`runner.ww_bench.WakeWordStreamBench.filter_competitors`). "
+            "Defaults to clip-only for back-compat and for genuinely "
+            "clip-shaped or unverified engines."
         ),
     )
     # Bestiary card fields (fighter-browser UI)
