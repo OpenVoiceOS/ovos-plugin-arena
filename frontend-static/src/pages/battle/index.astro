@@ -24,6 +24,9 @@ import Base from '../../layouts/Base.astro';
         <span style="color:var(--muted);font-size:0.8rem">Languages you speak:</span>
         <div id="lang-chips" role="group" aria-label="Languages you speak — only these battles are shown"
              style="display:flex;gap:0.35rem;flex-wrap:wrap"></div>
+        <span style="color:var(--muted);font-size:0.8rem">Modalities:</span>
+        <div id="modality-chips" role="group" aria-label="Modalities to battle — only these are loaded"
+             style="display:flex;gap:0.35rem;flex-wrap:wrap"></div>
         <span id="battle-count" style="color:var(--muted);font-size:0.8rem;margin-left:auto"></span>
         <span id="battle-id" style="color:var(--muted);font-size:0.72rem;font-family:var(--mono)"></span>
         <button id="btn-skip" class="btn" style="padding:0.3rem 0.8rem">Skip ↻</button>
@@ -165,11 +168,20 @@ import Base from '../../layouts/Base.astro';
       vad: 'Which detector made the right call on this clip?',
     };
 
+    const fetchJson_ = p => fetch(p).then(r => r.ok ? r.json() : null).catch(() => null);
+    let poolsMeta = [];      // {file, modality, dataset_id, lang, count} from index.json — never fetched in bulk
+    const poolCache = new Map(); // file -> battles[] already fetched, so re-selecting a modality/lang is free
+    let cacheV = '';
+    let allModalities = [];
     let allBattles = [];
     let battles = [];
     let fightersById = {};
     let currentIdx = 0;
     let currentBattle = null;
+
+    // guards against a slow lazy-fetch resolving after the voter has since
+    // changed their lang/modality selection again
+    let loadSeq = 0;
 
     function shuffle(arr) {
       for (let i = arr.length - 1; i > 0; i--) {
@@ -179,9 +191,11 @@ import Base from '../../layouts/Base.astro';
       return arr;
     }
 
-    // The voter declares the languages they speak; only those battles are
-    // shown, so nobody votes on output in a language they cannot judge.
+    // The voter declares the languages they speak and modalities they want to
+    // judge; only matching pool files are ever fetched, so the page never has
+    // to pull the full ~102-file / 18k-battle corpus just to show one lang.
     let spokenLangs = new Set();
+    let spokenModalities = new Set();
 
     function defaultLangs(langs) {
       const saved = JSON.parse(localStorage.getItem('arena-battle-langs') || 'null');
@@ -201,18 +215,65 @@ import Base from '../../layouts/Base.astro';
       return picked;
     }
 
-    function applyLangs() {
+    function defaultModalities(modalities) {
+      const urlModality = new URLSearchParams(window.location.search).get('modality');
+      if (urlModality) {
+        const valid = urlModality.split(',').filter(m => modalities.includes(m));
+        if (valid.length) return new Set(valid);
+      }
+      const saved = JSON.parse(localStorage.getItem('arena-battle-modalities') || 'null');
+      if (Array.isArray(saved) && saved.length) {
+        const valid = saved.filter(m => modalities.includes(m));
+        if (valid.length) return new Set(valid);
+      }
+      return new Set(modalities); // default: everything, same as pre-filtering behavior
+    }
+
+    function syncBattleUrl() {
+      const params = new URLSearchParams(window.location.search);
+      if (spokenModalities.size && spokenModalities.size < allModalities.length)
+        params.set('modality', [...spokenModalities].join(','));
+      else params.delete('modality');
+      const qs = params.toString();
+      window.history.replaceState(null, '', `${window.location.pathname}${qs ? '?' + qs : ''}${window.location.hash}`);
+    }
+
+    // fetch (with in-memory caching) just the pool files matching the current
+    // lang+modality selection — never the whole corpus, and in parallel.
+    async function loadPools() {
+      const seq = ++loadSeq;
+      const wanted = poolsMeta.filter(m => spokenLangs.has(m.lang) && spokenModalities.has(m.modality));
+      await Promise.all(wanted.map(async m => {
+        if (!poolCache.has(m.file)) {
+          const data = await fetchJson_(`${BASE}data/${m.file}${cacheV}`);
+          const bs = (data?.battles || []).map(b => { b.dataset_info = data.dataset_info || null; return b; });
+          poolCache.set(m.file, bs);
+        }
+      }));
+      if (seq !== loadSeq) return; // a newer selection superseded this fetch
+      allBattles = wanted.flatMap(m => poolCache.get(m.file) || []);
+      applySelection();
+    }
+
+    function applySelection() {
       localStorage.setItem('arena-battle-langs', JSON.stringify([...spokenLangs]));
+      localStorage.setItem('arena-battle-modalities', JSON.stringify([...spokenModalities]));
       document.querySelectorAll('.lang-chip').forEach(c =>
         c.setAttribute('aria-pressed', spokenLangs.has(c.dataset.lang) ? 'true' : 'false'));
-      battles = shuffle(allBattles.filter(b => spokenLangs.has(b.lang)));
+      document.querySelectorAll('.modality-chip').forEach(c =>
+        c.setAttribute('aria-pressed', spokenModalities.has(c.dataset.modality) ? 'true' : 'false'));
+      syncBattleUrl();
+      battles = shuffle([...allBattles]);
       currentIdx = 0;
-      if (battles.length) loadBattle(battles[0]);
-      else {
+      if (battles.length) {
+        document.getElementById('battle-empty').style.display = 'none';
+        document.getElementById('battle-ui').style.display = '';
+        loadBattle(battles[0]);
+      } else {
         document.getElementById('battle-ui').style.display = 'none';
         document.getElementById('battle-empty').style.display = '';
         document.getElementById('battle-empty').textContent =
-          'No battles in your selected languages. Pick another language above.';
+          'No battles for this language/modality combination. Pick another option above.';
       }
     }
 
@@ -221,10 +282,17 @@ import Base from '../../layouts/Base.astro';
         if (spokenLangs.size > 1) spokenLangs.delete(lang);  // keep at least one
       } else {
         spokenLangs.add(lang);
-        document.getElementById('battle-empty').style.display = 'none';
-        document.getElementById('battle-ui').style.display = '';
       }
-      applyLangs();
+      loadPools();
+    }
+
+    function toggleModality(modality) {
+      if (spokenModalities.has(modality)) {
+        if (spokenModalities.size > 1) spokenModalities.delete(modality);  // keep at least one
+      } else {
+        spokenModalities.add(modality);
+      }
+      loadPools();
     }
 
     function renderLangChips(langs) {
@@ -234,6 +302,15 @@ import Base from '../../layouts/Base.astro';
       ).join('');
       box.querySelectorAll('.lang-chip').forEach(c =>
         c.addEventListener('click', () => toggleLang(c.dataset.lang)));
+    }
+
+    function renderModalityChips(modalities) {
+      const box = document.getElementById('modality-chips');
+      box.innerHTML = modalities.map(m =>
+        `<button class="lang-chip modality-chip" data-modality="${esc(m)}" aria-pressed="false">${esc(MODALITY_LABELS[m] || m)}</button>`
+      ).join('');
+      box.querySelectorAll('.modality-chip').forEach(c =>
+        c.addEventListener('click', () => toggleModality(c.dataset.modality)));
     }
 
     const esc = s => String(s).replace(/[&<>"']/g, c =>
@@ -382,31 +459,26 @@ import Base from '../../layouts/Base.astro';
     }
 
     async function init() {
-      const fetchJson = p => fetch(p).then(r => r.ok ? r.json() : null).catch(() => null);
-
-      const index = await fetchJson(`${BASE}data/index.json`);
+      const index = await fetchJson_(`${BASE}data/index.json`);
       // cache-bust per-pool fetches with the index build stamp so CDN staleness can't mask fresh data
-      const v = index?.generated_at ? `?v=${encodeURIComponent(index.generated_at)}` : '';
-      for (const ref of index?.battles_pools || []) {
-        const data = await fetchJson(`${BASE}data/${ref.file}${v}`);
-        for (const b of data?.battles || []) {
-          b.dataset_info = data.dataset_info || null;
-          allBattles.push(b);
-        }
-      }
-      const bestiary = await fetchJson(`${BASE}data/competitors.json${v}`);
+      cacheV = index?.generated_at ? `?v=${encodeURIComponent(index.generated_at)}` : '';
+      poolsMeta = index?.battles_pools || [];
+      const bestiary = await fetchJson_(`${BASE}data/competitors.json${cacheV}`);
       for (const f of bestiary?.competitors || []) fightersById[f.competitor_id] = f;
 
       document.getElementById('battle-loading').style.display = 'none';
-      if (!allBattles.length) {
+      if (!poolsMeta.length) {
         document.getElementById('battle-empty').style.display = '';
         return;
       }
 
-      const langs = [...new Set(allBattles.map(b => b.lang))].sort();
+      const langs = [...new Set(poolsMeta.map(b => b.lang))].sort();
+      allModalities = [...new Set(poolsMeta.map(b => b.modality))].sort();
       renderLangChips(langs);
+      renderModalityChips(allModalities);
       spokenLangs = defaultLangs(langs);
-      applyLangs();
+      spokenModalities = defaultModalities(allModalities);
+      loadPools();
 
       document.getElementById('vote-a').addEventListener('click', () => castVote('a'));
       document.getElementById('vote-b').addEventListener('click', () => castVote('b'));

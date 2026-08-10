@@ -24,6 +24,10 @@ import Base from '../../layouts/Base.astro';
         <span>Language</span>
         <select id="sel-lang"></select>
       </label>
+      <label for="sel-dataset" class="lb-lang">
+        <span>Dataset</span>
+        <select id="sel-dataset"></select>
+      </label>
       <div id="dataset-info" class="lb-meta"></div>
     </div>
 
@@ -175,7 +179,7 @@ import Base from '../../layouts/Base.astro';
     // hold in full since the frontend needs it to know what's fetchable.
     let benchmarksMeta = [], leaderboardsMeta = [];
     let fighters = {};
-    let league = '', lang = '', cacheV = '';
+    let league = '', lang = '', dataset = '', cacheV = '';
     // lazily fetched board bodies, keyed by file name — a selection change
     // only ever fetches the files that match it, never the full corpus.
     const fileCache = new Map();
@@ -337,7 +341,8 @@ import Base from '../../layouts/Base.astro';
     async function render() {
       const seq = ++renderSeq;
       const group = leagueById[league]?.battle_group;
-      const benchMeta = benchmarksMeta.filter(b => b.modality === league && b.lang === lang);
+      const benchMeta = benchmarksMeta.filter(b => b.modality === league && b.lang === lang &&
+        (!dataset || b.dataset_id === dataset));
       const eloMeta = leaderboardsMeta.filter(b => b.modality === group && b.lang === lang);
       const [benches, eloBoards] = await Promise.all([fetchBoards(benchMeta), fetchBoards(eloMeta)]);
       if (seq !== renderSeq) return; // a newer render superseded this one
@@ -361,6 +366,31 @@ import Base from '../../layouts/Base.astro';
       });
     }
 
+    // reflect league/lang/dataset in the URL so a view is linkable/shareable —
+    // replaceState (not push) so tab/select changes don't spam browser history
+    function syncUrl() {
+      const params = new URLSearchParams(window.location.search);
+      league ? params.set('league', league) : params.delete('league');
+      lang ? params.set('lang', lang) : params.delete('lang');
+      dataset ? params.set('dataset', dataset) : params.delete('dataset');
+      const qs = params.toString();
+      const url = `${window.location.pathname}${qs ? '?' + qs : ''}${window.location.hash}`;
+      window.history.replaceState(null, '', url);
+    }
+
+    function populateDatasets() {
+      const datasets = [...new Set(benchmarksMeta
+        .filter(b => b.modality === league && b.lang === lang)
+        .map(b => b.dataset_id))].sort();
+      const sel = document.getElementById('sel-dataset');
+      sel.innerHTML = `<option value="">All datasets</option>` +
+        datasets.map(d => `<option value="${esc(d)}">${esc(d)}</option>`).join('');
+      dataset = datasets.includes(dataset) ? dataset : '';
+      sel.value = dataset;
+      // no per-dataset ladder distinction yet — hide the control when it can't narrow anything
+      sel.closest('label').style.display = datasets.length > 1 ? '' : 'none';
+    }
+
     function setLeague(next) {
       league = next;
       const group = leagueById[league]?.battle_group;
@@ -374,6 +404,8 @@ import Base from '../../layouts/Base.astro';
       sel.innerHTML = langs.map(l => `<option value="${esc(l)}">${esc(l)}</option>`).join('');
       lang = langs.includes(lang) ? lang : (langs.includes('en-US') ? 'en-US' : langs[0] || '');
       sel.value = lang;
+      populateDatasets();
+      syncUrl();
       render();
     }
 
@@ -403,10 +435,25 @@ import Base from '../../layouts/Base.astro';
         `<button class="lb-tab" role="tab" data-league="${l.id}" aria-selected="false">${esc(l.label)}</button>`).join('');
       tabs.querySelectorAll('.lb-tab').forEach(t =>
         t.addEventListener('click', () => setLeague(t.dataset.league)));
-      document.getElementById('sel-lang').addEventListener('change', e => { lang = e.target.value; render(); });
+      document.getElementById('sel-lang').addEventListener('change', e => {
+        lang = e.target.value; dataset = ''; populateDatasets(); syncUrl(); render();
+      });
+      document.getElementById('sel-dataset').addEventListener('change', e => {
+        dataset = e.target.value; syncUrl(); render();
+      });
 
       document.getElementById('lb-app').style.display = '';
-      setLeague(activeLeagues[0].id);
+
+      // initialize selection from URL params, falling back to the first
+      // active league (and its default lang/dataset) as before
+      const urlParams = new URLSearchParams(window.location.search);
+      const wantLeague = urlParams.get('league');
+      const wantLang = urlParams.get('lang');
+      const wantDataset = urlParams.get('dataset');
+      const startLeague = activeLeagues.some(l => l.id === wantLeague) ? wantLeague : activeLeagues[0].id;
+      if (wantLang) lang = wantLang;
+      if (wantDataset) dataset = wantDataset;
+      setLeague(startLeague);
     }
 
     init();
