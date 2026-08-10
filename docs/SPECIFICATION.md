@@ -182,6 +182,9 @@ Per modality:
   additionally scored with an objective, reference-free naturalness metric
   (**R14**) whose per-row value and judge provenance live in `extras`:
   `utmos` (1-5, higher better), `utmos_judge`, `utmos_judge_revision`.
+  Alongside it, each clip also gets an STT round-trip intelligibility score
+  (**R16**): `intelligibility_wer`, `intelligibility_cer`,
+  `intelligibility_judge`, `intelligibility_judge_revision`.
 
 ### 3.3 Benchmark scripts
 
@@ -341,6 +344,31 @@ Voting options MUST include: candidate A, candidate B, tie, both-wrong.
   and `version_blended` (true when more than one) — the frontend can flag
   blended entries, and CI/tooling can grep for them — rather than a reader
   assuming a single score reflects a single shipped version.
+- **R16 — TTS intelligibility (STT round-trip WER/CER).** Alongside UTMOS
+  (R14), `runner/tts_bench.py` MUST transcribe every rendered clip back to
+  text with a pinned STT judge (faster-whisper, model + revision recorded
+  in `extras` as `intelligibility_judge`/`intelligibility_judge_revision`,
+  same provenance discipline as the UTMOS judge) and score it against the
+  prompt text with the canonical `normalize_transcript` WER/CER (§E),
+  recorded per row as `intelligibility_wer`/`intelligibility_cer`. This
+  metric is computed via the plugin's direct `get_tts` synthesis path (no
+  audio-player/playback round trip); rendered audio MUST be transcoded and
+  resampled to 16 kHz mono before transcription regardless of the source
+  container/rate — feeding the judge raw bytes at the wrong sample rate or
+  an undecoded non-wav container produces a meaningless score, not an
+  error, so this is a silent-corruption risk rather than a crash. A
+  synthesis failure MUST still emit a row — scored `intelligibility_wer =
+  intelligibility_cer = 1.0` — rather than being silently dropped by the
+  runner's per-sample exception handling (§3.3), and a judge-side failure
+  (e.g. transcribing silence/noise) forces the same worst-case score rather
+  than leaving the row's intelligibility fields missing.
+  `arena/metrics.py:score_tts` aggregates `intelligibility_wer` into the
+  `tts` benchmark board as a **secondary** metric (mean + bootstrap 95% CI,
+  R11) — UTMOS (R14) stays primary. Low-resource languages the judge
+  transcribes weakly are warn-only: the real WER is always recorded and
+  never gates a board or blocks a run, since a high round-trip WER there
+  reflects the STT judge's own blind spot as often as the TTS clip's actual
+  intelligibility.
 - Human votes: tie and both-wrong score 0.5/0.5.
 - Auto votes (seeding): K/4 (sequential ELO) / weight 1/4 (Bradley-Terry),
   outcomes from benchmark metrics only.
