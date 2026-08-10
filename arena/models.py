@@ -63,6 +63,50 @@ def battle_group(modality: str) -> str:
     return modality
 
 
+# ---------------------------------------------------------------------------
+# Leagues — the frontend's single source of truth for tabs
+# ---------------------------------------------------------------------------
+
+# Display label per league, and the tab order the leaderboard page renders
+# them in. This is the ONE place these are defined — the frontend derives its
+# tabs from ``LEAGUES`` (via data/index.json) instead of hardcoding them.
+LEAGUE_LABELS: dict[str, str] = {
+    Modality.INTENT_TEMPLATE.value: "Intent · Template",
+    Modality.INTENT_KEYWORD.value: "Intent · Keyword",
+    Modality.INTENT.value: "Intent · Fusions",
+    Modality.STT.value: "STT",
+    Modality.TTS.value: "TTS",
+    Modality.WAKE_WORD.value: "Wake Word",
+    Modality.VAD.value: "VAD",
+}
+
+LEAGUE_ORDER: tuple[str, ...] = (
+    Modality.INTENT_TEMPLATE.value,
+    Modality.INTENT_KEYWORD.value,
+    Modality.INTENT.value,
+    Modality.STT.value,
+    Modality.TTS.value,
+    Modality.WAKE_WORD.value,
+    Modality.VAD.value,
+)
+
+
+def leagues() -> list[dict[str, Any]]:
+    """League descriptors for ``data/index.json``: ``{id, label, battle_group,
+    order}`` in tab order, one per :class:`Modality`. Preserves current
+    semantics exactly — intent modalities collapse to battle_group
+    ``"intent"``."""
+    return [
+        {
+            "id": modality,
+            "label": LEAGUE_LABELS[modality],
+            "battle_group": battle_group(modality),
+            "order": i,
+        }
+        for i, modality in enumerate(LEAGUE_ORDER)
+    ]
+
+
 class VoteOutcome(str, enum.Enum):
     """Outcome of a single blind battle vote."""
 
