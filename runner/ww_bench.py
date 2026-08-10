@@ -38,40 +38,16 @@ from runner.media_bench import (
 
 log = logging.getLogger("ww-bench")
 
+# Mirror ovoscope.wakeword_probe's constants (kept in sync with the pinned
+# ovoscope floor) rather than importing them at module scope: the `ovoscope`
+# package's __init__ pulls the full ovos-core stack (bus client, config,
+# intent services, ...), and this module — like the rest of runner/media_bench
+# — must stay importable without those heavy deps installed (only the audio
+# extra needs them; see the module docstring in runner/media_bench.py). The
+# WakeWordProbe class itself is imported lazily, inside the functions that
+# actually drive an engine.
 FRAME_SAMPLES = 1280  # 80 ms @ 16 kHz, the OVOS listener chunk size
-# Leading silence that warms streaming feature buffers. Streaming detectors
-# (openWakeWord) only emit predictions once their rolling mel/embedding window
-# is full (~2.5 s of frames); a clip fed with too little lead never fills it,
-# so the activation is missed (false reject) — and on the shortest clips the
-# half-full buffer raises a shape mismatch that drops the sample entirely,
-# biasing the false-reject rate. A few seconds of leading silence primes the
-# window before the keyword arrives, exactly as a live mic keeps the loop warm.
-# Uniform across fighters, so it stays fair-per-task.
-PRIME_SECONDS = 3.0
-TAIL_SECONDS = 0.5    # trailing silence so a late activation can settle
 SAMPLE_RATE = 16000
-
-
-def _apply_hotword_compat() -> None:
-    """Let hotword plugins written for a newer plugin-manager load here.
-
-    Recent wake-word plugins call ``super().__init__(key_phrase, config, lang)``;
-    older ``HotWordEngine`` bases accept only ``(key_phrase, config)``.  Widen
-    the base signature to ignore the extra argument.  A no-op when the installed
-    base already accepts ``lang``.
-    """
-    from ovos_plugin_manager.templates import hotwords as hw
-
-    base = hw.HotWordEngine
-    if "lang" in inspect.signature(base.__init__).parameters:
-        return
-    _orig = base.__init__
-
-    def _compat(self, key_phrase="hey_mycroft", config=None, lang=None,
-                *args, **kwargs):
-        _orig(self, key_phrase, config)
-
-    base.__init__ = _compat
 
 
 @dataclass
@@ -122,8 +98,8 @@ class WakeWordBench(MediaBenchAdapter):
 
     def load_engine(self, competitor, lang: str) -> WWStack:
         from ovos_plugin_manager.wakewords import load_wake_word_plugin
+        from ovoscope.wakeword_probe import hotword_compat
 
-        _apply_hotword_compat()
         hotwords = competitor.config.get("hotwords", {})
         # one hotword block per wake-word fighter; the key is the phrase id
         # (underscored), which engines like openWakeWord match against their
@@ -131,7 +107,12 @@ class WakeWordBench(MediaBenchAdapter):
         key_phrase, hw_cfg = next(iter(hotwords.items()), ("hey_mycroft", {}))
         module = hw_cfg.get("module") or competitor.plugin
         clazz = load_plugin_class(load_wake_word_plugin, module)
-        ww = clazz(key_phrase, dict(hw_cfg))
+        # ovoscope.wakeword_probe.hotword_compat(): scoped shim so a newer
+        # plugin's `super().__init__(key_phrase, config, lang)` still loads
+        # against an older `HotWordEngine` base — and stays scoped to this
+        # construction, unlike a process-wide monkeypatch.
+        with hotword_compat():
+            ww = clazz(key_phrase, dict(hw_cfg))
         return WWStack(ww,
                        vad=_load_vad(competitor.config),
                        verifier=_load_verifier(competitor.config))
@@ -176,7 +157,10 @@ def _detect_stack(stack: WWStack, array) -> bool:
     """Run a clip through the full pre-VAD → wake-word → verifier stack.
 
     Pre-wake VAD gates the clip: if the VAD hears no speech, the detector never
-    runs (this is how the stack suppresses false-accepts on non-speech). A
+    runs (this is how the stack suppresses false-accepts on non-speech). The
+    bare-engine decision is delegated to :class:`ovoscope.wakeword_probe.
+    WakeWordProbe` — same priming, reset and ``update``/``found_wake_word``
+    signature handling ovoscope drives its own plugin test suites with. A
     verifier, if present, must confirm an activation for it to count.
     """
     if stack.vad is not None:
@@ -184,7 +168,9 @@ def _detect_stack(stack: WWStack, array) -> bool:
 
         if not _has_speech(stack.vad, array):
             return False
-    detected = _detect(stack.ww, array)
+    from ovoscope.wakeword_probe import WakeWordProbe
+
+    detected = WakeWordProbe(stack.ww).detect(array).detected
     if detected and stack.verifier is not None:
         detected = _verify(stack.verifier, array)
     return detected
@@ -193,70 +179,26 @@ def _detect_stack(stack: WWStack, array) -> bool:
 def _verify(verifier, array) -> bool:
     """Run a hotword verifier over the primed clip; default to confirm on error."""
     try:
-        return bool(verifier.verify(_to_pcm16(_prime_pad(array))))
+        from ovoscope.wakeword_probe import WakeWordProbe
+
+        # engine-less probe: prime_pad()/to_pcm16() never touch self.engine
+        primed = WakeWordProbe(engine=None).prime_pad(array)
+        return bool(verifier.verify(WakeWordProbe.to_pcm16(primed)))
     except Exception as exc:
         log.debug("verifier failed, accepting activation: %s", exc)
         return True
 
 
-def _prime_pad(array):
-    """Wrap a clip in leading + trailing silence.
-
-    Streaming wake-word engines build mel/feature buffers over time; a cold
-    engine fed an isolated clip misses activations.  Leading silence primes the
-    buffers exactly as continuous mic audio would, the way a real listener sees
-    it (mirrors ovoscope's file-driven listener); trailing silence lets a late
-    activation settle.
-    """
-    import numpy as np
-
-    arr = np.asarray(array, dtype="float32")
-    lead = np.zeros(int(SAMPLE_RATE * PRIME_SECONDS), dtype="float32")
-    tail = np.zeros(int(SAMPLE_RATE * TAIL_SECONDS), dtype="float32")
-    out = np.concatenate([lead, arr, tail])
-    # pad up to a whole number of frames — a short final frame (<25 ms) makes
-    # openWakeWord raise and abort the whole clip
-    rem = len(out) % FRAME_SAMPLES
-    if rem:
-        out = np.concatenate([out, np.zeros(FRAME_SAMPLES - rem, dtype="float32")])
-    return out
-
-
-def _detect(engine, array) -> bool:
-    """Run one clip through a hotword engine, streaming it as a live mic would.
-
-    The OVOS contract is ``update(chunk_bytes)`` to feed audio, then
-    ``found_wake_word()`` to read the latch.  Some plugins (openWakeWord) keep a
-    vestigial ``found_wake_word(frame_data)`` argument that they ignore — we
-    pass the chunk through so the signature matches, but the detection still
-    happens in ``update``.  The clip is primed with silence first so streaming
-    engines warm their buffers and activate.
-    """
-    array = _prime_pad(array)
-    if hasattr(engine, "reset"):
-        try:
-            engine.reset()
-        except Exception:
-            pass
-    fww = engine.found_wake_word
-    fww_takes_arg = len(inspect.signature(fww).parameters) >= 1
-    has_update = hasattr(engine, "update")
-    pcm = _to_pcm16(array)
-    for off in range(0, len(pcm), FRAME_SAMPLES * 2):
-        chunk = pcm[off:off + FRAME_SAMPLES * 2]
-        if has_update:
-            engine.update(chunk)
-        if (fww(chunk) if fww_takes_arg else fww()):
-            return True
-    return False
-
-
 def _to_pcm16(array) -> bytes:
-    """Float32 [-1, 1] mono array → 16-bit little-endian PCM bytes."""
-    import numpy as np
+    """Float32 ``[-1, 1]`` mono array → 16-bit little-endian PCM bytes.
 
-    arr = np.clip(np.asarray(array, dtype="float32"), -1.0, 1.0)
-    return (arr * 32767.0).astype("<i2").tobytes()
+    Thin wrapper over :meth:`ovoscope.wakeword_probe.WakeWordProbe.to_pcm16`
+    (imported lazily — see the module-level comment on why ``ovoscope`` isn't
+    imported at module scope).
+    """
+    from ovoscope.wakeword_probe import WakeWordProbe
+
+    return WakeWordProbe.to_pcm16(array)
 
 
 class WakeWordStreamBench(WakeWordBench):
@@ -319,18 +261,26 @@ def _detect_stream(stack: WWStack, array) -> list[tuple[float, float]]:
     """Run one long continuous clip through the wake-word stack, frame by
     frame, recording every activation as ``(timestamp_s, score)``.
 
-    Mirrors :func:`_detect`: ``reset()`` is called once up front (same as an
-    isolated clip), then every frame is fed through ``update()`` /
-    ``found_wake_word()`` for the whole clip — no per-firing reset. A single
-    continuous clip can still hold many onsets because each plugin's own
-    latch/refractory logic (patience, debounce, cooldown — the engine owns
-    its own threshold and re-arm behaviour, same as P2) decides when it is
-    ready to fire again, exactly as it would against a live mic; the arena
-    does not force a re-arm the plugin didn't ask for. An activation still
-    has to clear a configured verifier, if any. Score defaults to 1.0: most
-    OVOS hotword engines only expose a binary latch (``found_wake_word()``),
-    not a calibrated confidence — the arena does not invent one. Engines
-    that do expose a numeric ``.confidence``/``.score`` after firing get it
+    Deliberately NOT delegated to :class:`ovoscope.wakeword_probe.
+    WakeWordProbe`: the probe's ``detect()`` is a per-clip primitive — it
+    returns the *first* activation and stops (see its module docstring:
+    "self-contained... over primed audio", one :class:`WakeWordDetection`
+    per call). A continuous negative-hours clip can hold many onsets, so
+    this loop keeps driving the engine directly to keep recording after the
+    first latch, exactly as :func:`ovoscope.wakeword_probe.WakeWordProbe.
+    detect` does internally for one clip — just without returning early.
+    ``reset()`` is called once up front (same as an isolated clip), then
+    every frame is fed through ``update()`` / ``found_wake_word()`` for the
+    whole clip — no per-firing reset. A single continuous clip can still
+    hold many onsets because each plugin's own latch/refractory logic
+    (patience, debounce, cooldown — the engine owns its own threshold and
+    re-arm behaviour, same as P2) decides when it is ready to fire again,
+    exactly as it would against a live mic; the arena does not force a
+    re-arm the plugin didn't ask for. An activation still has to clear a
+    configured verifier, if any. Score defaults to 1.0: most OVOS hotword
+    engines only expose a binary latch (``found_wake_word()``), not a
+    calibrated confidence — the arena does not invent one. Engines that do
+    expose a numeric ``.confidence``/``.score`` after firing get it
     recorded, enabling a real DET curve for those fighters instead of a
     degenerate single-point one.
     """
