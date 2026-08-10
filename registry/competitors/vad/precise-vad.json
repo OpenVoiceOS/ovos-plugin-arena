@@ -1,0 +1,28 @@
+{
+  "competitor_id": "precise-vad",
+  "modality": "vad",
+  "plugin": "ovos-vad-plugin-precise",
+  "config": {
+    "listener": {
+      "VAD": {
+        "module": "ovos-vad-plugin-precise",
+        "threshold": 0.35,
+        "ovos-vad-plugin-precise": {
+          "threshold": 0.35
+        }
+      }
+    }
+  },
+  "langs": [],
+  "display_name": "Precise VAD",
+  "species": "PreciseVAD",
+  "types": [
+    "neural-net"
+  ],
+  "description": "A tiny recurrent (precise-lite) TFLite VAD trained with precise-lite-trainer on a mix of wake-word and non-wake-word audio (Common Voice, ESC-50, UrbanSound8K, FSD50K, AudioSet, and community wake-word data), run at its plugin default threshold.",
+  "model": "vad.tflite (precise-lite-trainer), threshold 0.35",
+  "links": {
+    "source": "https://github.com/OpenVoiceOS/ovos-vad-plugin-precise"
+  },
+  "notes": "Baseline at the plugin's default threshold (0.35). The flat key is read by the listener's VAD manager and the nested key is read by the plugin itself, matching the other VAD fighters' key-duplication convention. A -thr03/-thr07-style threshold variant can follow once this baseline is on a board."
+}

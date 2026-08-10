@@ -1,0 +1,55 @@
+{
+  "competitor_id": "wakeforge-hey-jarvis-silero-speaker",
+  "modality": "wake_word",
+  "plugin": "ovos-ww-plugin-wakeforge",
+  "config": {
+    "listener": {
+      "wake_word": "hey_jarvis",
+      "VAD": {
+        "module": "ovos-vad-plugin-silero",
+        "threshold": 0.5,
+        "ovos-vad-plugin-silero": {
+          "threshold": 0.5
+        }
+      }
+    },
+    "hotwords": {
+      "hey_jarvis": {
+        "module": "ovos-ww-plugin-wakeforge",
+        "listen": true,
+        "featurizer": "https://huggingface.co/OpenVoiceOS/wakeforge-hey_jarvis/resolve/main/featurizer.onnx",
+        "model": "https://huggingface.co/OpenVoiceOS/wakeforge-hey_jarvis/resolve/main/best_f1.onnx",
+        "threshold": 0.5,
+        "smoothing": "ema",
+        "patience": 3,
+        "debounce_sec": 1.0,
+        "window_size": 5,
+        "ema_alpha": 0.3,
+        "streaming": false
+      }
+    },
+    "hotword_verifier": {
+      "module": "ovos-ww-verifier-speaker",
+      "model": "wespeaker-resnet34",
+      "threshold": 0.45,
+      "fail_open": true,
+      "per_profile_thresholds": {}
+    }
+  },
+  "langs": [
+    "en"
+  ],
+  "display_name": "wakeforge + Silero VAD + speaker verifier (hey jarvis)",
+  "species": "WakeForgeHotwordPlugin",
+  "types": [
+    "neural-net",
+    "vad-gated",
+    "verified"
+  ],
+  "description": "The full listener stack for 'hey jarvis' on wakeforge: a Silero pre-wake VAD gate, then the wakeforge featurizer+classifier, then a speaker-verification confirm.",
+  "model": "silero-vad -> wakeforge hey_jarvis -> speaker verifier",
+  "links": {
+    "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge"
+  },
+  "notes": "Combo fighter: pre-wake VAD + wake-word engine + verifier. Each distinct (engine, VAD, verifier) triple is its own competitor."
+}

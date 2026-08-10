@@ -1,0 +1,47 @@
+{
+  "competitor_id": "wakeforge-hey-jarvis-speaker",
+  "modality": "wake_word",
+  "plugin": "ovos-ww-plugin-wakeforge",
+  "config": {
+    "listener": {
+      "wake_word": "hey_jarvis"
+    },
+    "hotwords": {
+      "hey_jarvis": {
+        "module": "ovos-ww-plugin-wakeforge",
+        "listen": true,
+        "featurizer": "https://huggingface.co/OpenVoiceOS/wakeforge-hey_jarvis/resolve/main/featurizer.onnx",
+        "model": "https://huggingface.co/OpenVoiceOS/wakeforge-hey_jarvis/resolve/main/best_f1.onnx",
+        "threshold": 0.5,
+        "smoothing": "ema",
+        "patience": 3,
+        "debounce_sec": 1.0,
+        "window_size": 5,
+        "ema_alpha": 0.3,
+        "streaming": false
+      }
+    },
+    "hotword_verifier": {
+      "module": "ovos-ww-verifier-speaker",
+      "model": "wespeaker-resnet34",
+      "threshold": 0.45,
+      "fail_open": true,
+      "per_profile_thresholds": {}
+    }
+  },
+  "langs": [
+    "en"
+  ],
+  "display_name": "wakeforge + speaker verifier (hey jarvis)",
+  "species": "WakeForgeHotwordPlugin",
+  "types": [
+    "neural-net",
+    "verified"
+  ],
+  "description": "wakeforge 'hey jarvis' followed by a speaker-verification gate: an activation only counts when the verifier confirms it.",
+  "model": "wakeforge hey_jarvis + speaker verifier",
+  "links": {
+    "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge"
+  },
+  "notes": "Combo fighter: wake-word engine + verifier. The same engine without the verifier is a different competitor."
+}

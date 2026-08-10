@@ -1,0 +1,42 @@
+{
+  "competitor_id": "wakewordlab-hey-jarvis-speaker",
+  "modality": "wake_word",
+  "plugin": "ovos-ww-plugin-wakewordlab",
+  "config": {
+    "listener": {
+      "wake_word": "hey_jarvis"
+    },
+    "hotwords": {
+      "hey_jarvis": {
+        "module": "ovos-ww-plugin-wakewordlab",
+        "listen": true,
+        "model": "hey_jarvis",
+        "threshold": 0.5,
+        "vad": false,
+        "vad_threshold": 0.5
+      }
+    },
+    "hotword_verifier": {
+      "module": "ovos-ww-verifier-speaker",
+      "model": "wespeaker-resnet34",
+      "threshold": 0.45,
+      "fail_open": true,
+      "per_profile_thresholds": {}
+    }
+  },
+  "langs": [
+    "en"
+  ],
+  "display_name": "wakewordlab + speaker verifier (hey jarvis)",
+  "species": "WakewordLabHotwordPlugin",
+  "types": [
+    "neural-net",
+    "verified"
+  ],
+  "description": "wakewordlab 'hey jarvis' followed by a speaker-verification gate: an activation only counts when the verifier confirms it. The plugin's own built-in VAD gate is disabled (vad:false) for this fighter.",
+  "model": "hey_jarvis (wakewordlab) + speaker verifier",
+  "links": {
+    "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakewordlab"
+  },
+  "notes": "Combo fighter: wake-word engine + verifier. The plugin's own config.hotwords.hey_jarvis.vad is set to false here so the verifier is isolated from the built-in VAD gate; compare against the bare wakewordlab-hey-jarvis fighter (built-in VAD on, no verifier)."
+}

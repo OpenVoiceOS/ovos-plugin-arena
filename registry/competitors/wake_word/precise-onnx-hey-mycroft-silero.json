@@ -1,0 +1,45 @@
+{
+  "competitor_id": "precise-onnx-hey-mycroft-silero",
+  "modality": "wake_word",
+  "plugin": "ovos-ww-plugin-precise-onnx",
+  "config": {
+    "listener": {
+      "wake_word": "hey_mycroft",
+      "VAD": {
+        "module": "ovos-vad-plugin-silero",
+        "threshold": 0.5,
+        "ovos-vad-plugin-silero": {
+          "threshold": 0.5
+        }
+      }
+    },
+    "hotwords": {
+      "hey_mycroft": {
+        "module": "ovos-ww-plugin-precise-onnx",
+        "listen": true,
+        "model": "https://github.com/OpenVoiceOS/precise-lite-models/raw/master/wakewords/en/hey_mycroft.onnx",
+        "sensitivity": 0.5,
+        "trigger_level": 3
+      }
+    }
+  },
+  "langs": [
+    "en"
+  ],
+  "display_name": "Precise ONNX + Silero VAD (hey mycroft)",
+  "species": "PreciseOnnxHotwordPlugin",
+  "types": [
+    "neural-net",
+    "vad-gated"
+  ],
+  "description": "Precise ONNX 'hey mycroft' fronted by a Silero pre-wake VAD gate: the detector only runs on clips the VAD calls speech.",
+  "model": "hey_mycroft.onnx (precise-lite-models) + silero-vad",
+  "links": {
+    "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-precise-onnx"
+  },
+  "notes": "Combo fighter: wake-word engine + pre-wake VAD. The same engine without the VAD, or with a different VAD, is a different competitor. 'hey mycroft' used to stay comparable with the openWakeWord combo fighters.",
+  "capabilities": [
+    "clip",
+    "stream"
+  ]
+}

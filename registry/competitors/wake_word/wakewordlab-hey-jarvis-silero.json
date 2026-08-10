@@ -1,0 +1,42 @@
+{
+  "competitor_id": "wakewordlab-hey-jarvis-silero",
+  "modality": "wake_word",
+  "plugin": "ovos-ww-plugin-wakewordlab",
+  "config": {
+    "listener": {
+      "wake_word": "hey_jarvis",
+      "VAD": {
+        "module": "ovos-vad-plugin-silero",
+        "threshold": 0.5,
+        "ovos-vad-plugin-silero": {
+          "threshold": 0.5
+        }
+      }
+    },
+    "hotwords": {
+      "hey_jarvis": {
+        "module": "ovos-ww-plugin-wakewordlab",
+        "listen": true,
+        "model": "hey_jarvis",
+        "threshold": 0.5,
+        "vad": false,
+        "vad_threshold": 0.5
+      }
+    }
+  },
+  "langs": [
+    "en"
+  ],
+  "display_name": "wakewordlab + Silero VAD (hey jarvis)",
+  "species": "WakewordLabHotwordPlugin",
+  "types": [
+    "neural-net",
+    "vad-gated"
+  ],
+  "description": "wakewordlab 'hey jarvis' fronted by an external Silero pre-wake VAD gate (the plugin's own built-in VAD is disabled to avoid double-gating).",
+  "model": "hey_jarvis (wakewordlab) + silero-vad",
+  "links": {
+    "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakewordlab"
+  },
+  "notes": "Combo fighter: wake-word engine + pre-wake VAD. The plugin's own config.hotwords.hey_jarvis.vad is set to false and an external listener.VAD stage is used instead, so this gate is the same mechanism as the openWakeWord -silero combo fighters (vs. the bare wakewordlab-hey-jarvis fighter, which uses the plugin's built-in VAD gate)."
+}
