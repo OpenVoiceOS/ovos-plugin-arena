@@ -33,28 +33,44 @@ def _extract_js_map_keys(source: str, name: str) -> set:
     return set(re.findall(r"['\"]?([A-Za-z0-9_]+)['\"]?\s*:", m.group(1)))
 
 
-def _extract_js_array(source: str, name: str) -> set:
-    """Elements of an inline ``const <name> = [ 'a', 'b', … ]`` array."""
-    m = re.search(rf"const\s+{name}\s*=\s*\[(.*?)\]", source, re.DOTALL)
-    assert m, f"could not find 'const {name} = […]'"
-    return set(re.findall(r"['\"]([A-Za-z0-9_]+)['\"]", m.group(1)))
+def _default_leagues_block(source: str) -> str:
+    """The inline ``const DEFAULT_LEAGUES = [ … ];`` array body."""
+    m = re.search(r"const\s+DEFAULT_LEAGUES\s*=\s*\[(.*?)\];", source, re.DOTALL)
+    assert m, "could not find 'const DEFAULT_LEAGUES = […]'"
+    return m.group(1)
 
 
 class TestLeagueParity:
     def test_registry_has_leagues(self):
         assert registry_modalities()
 
-    def test_leaderboard_league_order(self):
+    def test_leaderboard_default_leagues_cover_registry(self):
         source = (PAGES_DIR / "leaderboard" / "index.astro").read_text()
-        leagues = _extract_js_array(source, "LEAGUE_ORDER")
-        missing = registry_modalities() - leagues
-        assert not missing, f"LEAGUE_ORDER (leaderboard) missing: {missing}"
+        ids = set(
+            re.findall(r"\{\s*id:\s*'([A-Za-z0-9_]+)'", _default_leagues_block(source))
+        )
+        missing = registry_modalities() - ids
+        assert not missing, f"DEFAULT_LEAGUES (leaderboard) missing: {missing}"
 
-    def test_leaderboard_battle_group(self):
+    def test_leaderboard_default_leagues_mirror_models(self):
+        """DEFAULT_LEAGUES is the stale-index fallback and must stay in exact
+        lockstep with arena/models.py::leagues() — id, battle_group and order."""
+        from arena.models import leagues
+
         source = (PAGES_DIR / "leaderboard" / "index.astro").read_text()
-        groups = _extract_js_map_keys(source, "BATTLE_GROUP")
-        missing = registry_modalities() - groups
-        assert not missing, f"BATTLE_GROUP (leaderboard) missing: {missing}"
+        block = _default_leagues_block(source)
+        js = [
+            {"id": m.group(1), "battle_group": m.group(2), "order": int(m.group(3))}
+            for m in re.finditer(
+                r"\{\s*id:\s*'([A-Za-z0-9_]+)'.*?battle_group:\s*'([A-Za-z0-9_]+)',\s*order:\s*(\d+)",
+                block,
+            )
+        ]
+        py = [
+            {"id": l["id"], "battle_group": l["battle_group"], "order": l["order"]}
+            for l in leagues()
+        ]
+        assert js == py, "DEFAULT_LEAGUES drifted from arena.models.leagues()"
 
     def test_battle_modality_labels(self):
         source = (PAGES_DIR / "battle" / "index.astro").read_text()
