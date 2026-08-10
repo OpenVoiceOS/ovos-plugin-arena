@@ -80,10 +80,22 @@ def dataset_langs(dataset: DatasetDef) -> list[str]:
 
 def is_compatible(competitor: CompetitorDef, dataset: DatasetDef) -> bool:
     """A fighter is compatible with a dataset when their language sets
-    overlap. An *empty* ``langs`` list on the fighter means "any language"."""
+    overlap. An *empty* ``langs`` list on the fighter means "any language".
+
+    Registry fighters commonly pin bare primary subtags (``de``) while
+    datasets carry full BCP-47 tags (``de-DE``) — comparison goes through
+    :func:`runner.media_bench._lang_matches` (primary-subtag equality), the
+    same rule every bench adapter uses, so the queue diff and the benches
+    agree on what "compatible" means."""
+    from runner.media_bench import _lang_matches
+
     if not competitor.langs:
         return True
-    return bool(set(competitor.langs) & set(dataset_langs(dataset)))
+    return any(
+        _lang_matches(cl, dl)
+        for cl in competitor.langs
+        for dl in dataset_langs(dataset)
+    )
 
 
 def enumerate_pairs(
