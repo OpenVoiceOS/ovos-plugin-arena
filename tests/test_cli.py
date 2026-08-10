@@ -253,6 +253,21 @@ class TestAssemblePipeline:
         assert len(index["battles_pools"]) == 1
         assert index["battles_pools"][0]["count"] == 6
 
+        # §leagues — single source of truth for the frontend's league tabs
+        league_ids = [entry["id"] for entry in index["leagues"]]
+        assert league_ids == [
+            "intent_template", "intent_keyword", "intent",
+            "stt", "tts", "wake_word", "vad",
+        ]
+        for entry in index["leagues"]:
+            assert set(entry) == {"id", "label", "battle_group", "order"}
+        intent_entries = {e["id"]: e for e in index["leagues"]}
+        # intent paradigms collapse to the open "intent" battle group
+        assert intent_entries["intent_template"]["battle_group"] == "intent"
+        assert intent_entries["intent_keyword"]["battle_group"] == "intent"
+        assert intent_entries["intent"]["battle_group"] == "intent"
+        assert intent_entries["stt"]["battle_group"] == "stt"
+
     def test_assemble_deterministic_battle_ids(self, tmp_path):
         preds = _write_predictions(tmp_path)
         out1, out2 = tmp_path / "d1", tmp_path / "d2"

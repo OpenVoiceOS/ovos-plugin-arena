@@ -51,6 +51,7 @@ from arena.models import (
     EloSeed,
     VoteOutcome,
     battle_group,
+    leagues,
 )
 from arena.patch_notes import build_patch_notes, diff_board, load_board
 from arena.rating import (
@@ -808,6 +809,7 @@ def cmd_export_index(args: argparse.Namespace) -> int:
         else:
             index["battles_pools"].append(_index_entry(path, "battles_pools"))
     index["has_bestiary"] = (data_dir / "competitors.json").exists()
+    index["leagues"] = leagues()
 
     out_file = Path(args.output)
     if _unchanged(out_file, index):

@@ -143,12 +143,6 @@ import Base from '../../layouts/Base.astro';
 
     const BASE = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
 
-    const LEAGUE_LABELS = {
-      intent_template: 'Intent · Template', intent_keyword: 'Intent · Keyword',
-      intent: 'Intent · Fusions', stt: 'STT', tts: 'TTS', wake_word: 'Wake Word', vad: 'VAD',
-    };
-    const LEAGUE_ORDER = ['intent_template', 'intent_keyword', 'intent', 'stt', 'tts', 'wake_word', 'vad'];
-    const BATTLE_GROUP = { intent_template: 'intent', intent_keyword: 'intent', intent: 'intent', stt: 'stt', tts: 'tts', wake_word: 'wake_word', vad: 'vad' };
     const METRIC_COLUMNS = [
       ['accuracy', 'Accuracy', true], ['macro_f1', 'Macro F1', true],
       ['ood_fpr', 'OOD FPR', true], ['slot_exact_match', 'Slot EM', true],
@@ -157,8 +151,33 @@ import Base from '../../layouts/Base.astro';
       ['false_reject_rate', 'False rej.', true], ['latency_ms_median', 'Latency ms', false],
     ];
 
-    let benchmarks = [], elos = [], fighters = {};
-    let league = '', lang = '';
+    // leagues: [{id, label, battle_group, order}] from data/index.json — the
+    // frontend has no hardcoded notion of what leagues exist or how they map
+    // to battle groups; that's owned by arena/models.py (leagues()).
+    //
+    // index.json itself is fetched WITHOUT a cache-bust param, so a stale
+    // CDN edge can serve a pre-this-PR copy that has no `leagues` array at
+    // all. DEFAULT_LEAGUES mirrors arena/models.py::leagues() exactly, so a
+    // stale index degrades to the old pre-PR behavior instead of crashing
+    // on an empty tab list.
+    const DEFAULT_LEAGUES = [
+      { id: 'intent_template', label: 'Intent · Template', battle_group: 'intent', order: 0 },
+      { id: 'intent_keyword', label: 'Intent · Keyword', battle_group: 'intent', order: 1 },
+      { id: 'intent', label: 'Intent · Fusions', battle_group: 'intent', order: 2 },
+      { id: 'stt', label: 'STT', battle_group: 'stt', order: 3 },
+      { id: 'tts', label: 'TTS', battle_group: 'tts', order: 4 },
+      { id: 'wake_word', label: 'Wake Word', battle_group: 'wake_word', order: 5 },
+      { id: 'vad', label: 'VAD', battle_group: 'vad', order: 6 },
+    ];
+    let leagues = [], leagueById = {};
+    // metadata only — {file, modality, dataset_id, lang, count}, cheap to
+    // hold in full since the frontend needs it to know what's fetchable.
+    let benchmarksMeta = [], leaderboardsMeta = [];
+    let fighters = {};
+    let league = '', lang = '', cacheV = '';
+    // lazily fetched board bodies, keyed by file name — a selection change
+    // only ever fetches the files that match it, never the full corpus.
+    const fileCache = new Map();
 
     const esc = s => String(s).replace(/[&<>"']/g, c =>
       ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c]);
@@ -295,10 +314,35 @@ import Base from '../../layouts/Base.astro';
       return parts.join('');
     }
 
-    function render() {
-      const benches = benchmarks.filter(b => b.modality === league && b.lang === lang)
-        .sort((a, b) => (a.dataset_id || '').localeCompare(b.dataset_id || ''));
-      const elo = elos.find(b => b.modality === BATTLE_GROUP[league] && b.lang === lang);
+    // fetch (with in-memory caching) just the board files a metadata list
+    // points at — never the whole 260-file corpus.
+    async function fetchBoards(metaList) {
+      await Promise.all(metaList.map(async m => {
+        if (!fileCache.has(m.file)) {
+          const body = await fetchJson(`${BASE}data/${m.file}${cacheV}`);
+          // only cache a successful fetch — a transient failure (or a stale
+          // CDN edge) must not poison the cache with a permanent null
+          if (body != null) fileCache.set(m.file, body);
+        }
+      }));
+      return metaList.map(m => fileCache.get(m.file)).filter(Boolean);
+    }
+
+    // monotonic token guarding against out-of-order async renders: a slow
+    // fetch for a league the user has since navigated away from must not
+    // overwrite the panels with stale content once it resolves.
+    let renderSeq = 0;
+
+    async function render() {
+      const seq = ++renderSeq;
+      const group = leagueById[league]?.battle_group;
+      const benchMeta = benchmarksMeta.filter(b => b.modality === league && b.lang === lang);
+      const eloMeta = leaderboardsMeta.filter(b => b.modality === group && b.lang === lang);
+      const [benches, eloBoards] = await Promise.all([fetchBoards(benchMeta), fetchBoards(eloMeta)]);
+      if (seq !== renderSeq) return; // a newer render superseded this one
+      benches.sort((a, b) => (a.dataset_id || '').localeCompare(b.dataset_id || ''));
+      const elo = eloBoards[0];
+
       document.getElementById('dataset-info').innerHTML = datasetInfoHtml(benches[0]);
       const panels = document.getElementById('lb-panels');
       panels.innerHTML = eloSection(elo, league) + `<section class="lb-section">
@@ -318,11 +362,12 @@ import Base from '../../layouts/Base.astro';
 
     function setLeague(next) {
       league = next;
+      const group = leagueById[league]?.battle_group;
       document.querySelectorAll('.lb-tab').forEach(t =>
         t.setAttribute('aria-selected', t.dataset.league === league ? 'true' : 'false'));
       const langs = [...new Set([
-        ...benchmarks.filter(b => b.modality === league),
-        ...elos.filter(b => b.modality === BATTLE_GROUP[league]),
+        ...benchmarksMeta.filter(b => b.modality === league),
+        ...leaderboardsMeta.filter(b => b.modality === group),
       ].map(b => b.lang))].sort();
       const sel = document.getElementById('sel-lang');
       sel.innerHTML = langs.map(l => `<option value="${esc(l)}">${esc(l)}</option>`).join('');
@@ -334,29 +379,33 @@ import Base from '../../layouts/Base.astro';
     async function init() {
       const index = await fetchJson(`${BASE}data/index.json`);
       // cache-bust per-board fetches with the index build stamp so CDN staleness can't mask fresh boards
-      const v = index?.generated_at ? `?v=${encodeURIComponent(index.generated_at)}` : '';
-      benchmarks = (await Promise.all((index?.benchmarks || []).map(r => fetchJson(`${BASE}data/${r.file}${v}`)))).filter(Boolean);
-      elos = (await Promise.all((index?.leaderboards || []).map(r => fetchJson(`${BASE}data/${r.file}${v}`)))).filter(Boolean);
-      const bestiary = await fetchJson(`${BASE}data/competitors.json${v}`);
+      cacheV = index?.generated_at ? `?v=${encodeURIComponent(index.generated_at)}` : '';
+      benchmarksMeta = index?.benchmarks || [];
+      leaderboardsMeta = index?.leaderboards || [];
+      leagues = (index?.leagues && index.leagues.length) ? index.leagues : DEFAULT_LEAGUES;
+      leagueById = Object.fromEntries(leagues.map(l => [l.id, l]));
+      const bestiary = await fetchJson(`${BASE}data/competitors.json${cacheV}`);
       for (const f of bestiary?.competitors || []) fighters[f.competitor_id] = f;
 
       document.getElementById('lb-loading').style.display = 'none';
-      if (!benchmarks.length && !elos.length) {
+      if (!benchmarksMeta.length && !leaderboardsMeta.length) {
         document.getElementById('lb-empty').style.display = '';
         return;
       }
 
-      const leagues = LEAGUE_ORDER.filter(m =>
-        benchmarks.some(b => b.modality === m) || elos.some(b => b.modality === BATTLE_GROUP[m]));
+      const activeLeagues = leagues
+        .filter(l => benchmarksMeta.some(b => b.modality === l.id) ||
+          leaderboardsMeta.some(b => b.modality === l.battle_group))
+        .sort((a, b) => a.order - b.order);
       const tabs = document.getElementById('league-tabs');
-      tabs.innerHTML = leagues.map(m =>
-        `<button class="lb-tab" role="tab" data-league="${m}" aria-selected="false">${LEAGUE_LABELS[m] || m}</button>`).join('');
+      tabs.innerHTML = activeLeagues.map(l =>
+        `<button class="lb-tab" role="tab" data-league="${l.id}" aria-selected="false">${esc(l.label)}</button>`).join('');
       tabs.querySelectorAll('.lb-tab').forEach(t =>
         t.addEventListener('click', () => setLeague(t.dataset.league)));
       document.getElementById('sel-lang').addEventListener('change', e => { lang = e.target.value; render(); });
 
       document.getElementById('lb-app').style.display = '';
-      setLeague(leagues[0]);
+      setLeague(activeLeagues[0].id);
     }
 
     init();
