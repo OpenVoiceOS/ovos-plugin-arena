@@ -256,7 +256,7 @@ class TestAssemblePipeline:
         # §leagues — single source of truth for the frontend's league tabs
         league_ids = [entry["id"] for entry in index["leagues"]]
         assert league_ids == [
-            "intent_template", "intent_keyword", "intent",
+            "intent_template", "intent_keyword", "intent_embedding", "intent",
             "stt", "tts", "wake_word", "vad",
         ]
         for entry in index["leagues"]:

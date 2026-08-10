@@ -23,12 +23,13 @@
   "display_name": "wakewordlab (hey jarvis)",
   "species": "WakewordLabHotwordPlugin",
   "types": [
-    "neural-net"
+    "neural-net",
+    "vad-gated"
   ],
   "description": "wakewordlab pretrained 'hey jarvis' model on a shared mel/embedding frontend with an optional Silero VAD pre-filter; models are auto-downloaded by name and cached.",
   "model": "hey_jarvis (wakewordlab pretrained)",
   "links": {
     "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakewordlab"
   },
-  "notes": "Pretrained model selected by name; threshold and the built-in VAD pre-filter are config. A different model/threshold is a different competitor."
+  "notes": "Pretrained model selected by name; threshold and the built-in VAD pre-filter are config. A different model/threshold is a different competitor. The VAD gate (config.hotwords.hey_jarvis.vad / vad_threshold) is built into the plugin's own config block, not a separate listener.VAD pipeline stage — do not expect a listener.VAD block when diffing this against the openWakeWord -silero combo fighters."
 }

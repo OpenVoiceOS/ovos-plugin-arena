@@ -68,6 +68,26 @@ pipelines, so you can omit it.
 }
 ```
 
+### Note: VAD fighters duplicate config keys on purpose
+
+Every VAD competitor places its tunables both flat under `listener.VAD` and
+again nested under the module's own key inside `listener.VAD`, e.g.:
+
+```jsonc
+"listener": {
+  "VAD": {
+    "module": "ovos-vad-plugin-silero",
+    "threshold": 0.5,
+    "ovos-vad-plugin-silero": { "threshold": 0.5 }
+  }
+}
+```
+
+This is not copy-paste residue — the flat key is read by the listener's VAD
+manager (the value a user pastes straight into `mycroft.conf`), while the
+nested key is read by the plugin itself. Both copies must stay in sync when
+you add or edit a VAD fighter; do not deduplicate them.
+
 ## 2. Field reference
 
 | Field | Required | Notes |

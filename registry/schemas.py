@@ -46,10 +46,12 @@ class Modality(str, Enum):
     # a distinct board scored from continuous-audio detection events rather
     # than isolated clips. See registry/datasets/ww_stream/*.json.
     WW_STREAM = "ww_stream"
+    INTENT_EMBEDDING = "intent_embedding"  # single-stage embedding classifiers
 
 
 INTENT_MODALITIES = (
     Modality.INTENT, Modality.INTENT_TEMPLATE, Modality.INTENT_KEYWORD,
+    Modality.INTENT_EMBEDDING,
 )
 
 

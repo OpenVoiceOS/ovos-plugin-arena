@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-24T06:22:11.631722+00:00",
+  "generated_at": "2026-08-10T21:55:35.800615+00:00",
   "competitors": [
     {
       "competitor_id": "frankenparse",
@@ -54,6 +54,9 @@
       },
       "langs": [],
       "alias": [],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "Frankenparse",
       "types": [
         "ensemble",
@@ -68,85 +71,6 @@
         "source": "https://github.com/OpenVoiceOS/ovos-plugin-arena"
       },
       "notes": "The kitchen-sink fusion — every arena engine in one pipeline, precision stages before recall stages."
-    },
-    {
-      "competitor_id": "hierarchical-knn-medium",
-      "schema_version": 1,
-      "modality": "intent",
-      "plugin": "ovos-hierarchical-knn-pipeline",
-      "config": {
-        "intents": {
-          "pipeline": [
-            "ovos-hierarchical-knn-pipeline-medium"
-          ],
-          "ovos-hierarchical-knn-pipeline": {
-            "hf_repo_id": "fdemelo/ovos-hierarchical-knn-granite-97m-multilingual-r2",
-            "ignore_intents": [],
-            "timeout": 1,
-            "renormalize": false,
-            "conf_high": 0.7,
-            "conf_medium": 0.5,
-            "conf_low": 0.15
-          }
-        }
-      },
-      "langs": [],
-      "alias": [
-        "ovos-hierarchical-knn-pipeline"
-      ],
-      "display_name": "Hierarchical KNN",
-      "species": "HierarchicalKNNIntentPipeline",
-      "types": [
-        "embedding",
-        "neural-net"
-      ],
-      "description": "Two-stage hierarchical k-NN over a pre-built FAISS IVF+PQ index of IBM Granite multilingual embeddings: domain-level search scoped to loaded skills, then intent-level scoring with Wu-Lin pairwise probability estimation.",
-      "model": "IBM Granite Embedding 97M Multilingual R2 (quint8 ONNX) + FAISS index",
-      "size": "medium",
-      "links": {
-        "source": "https://github.com/OpenVoiceOS/ovos-hierarchical-knn-pipeline"
-      },
-      "notes": "Single-stage pipeline at the plugin's own medium-confidence gate; per-plugin config keeps the shipped defaults. Published predictions are migrated from the legacy ovos-intent-benchmark, where this engine was trained on the benchmark's own corpora; the pinned pretrained model targets real OVOS skill intents and cannot emit this benchmark's label space, so native re-sweeps require a dataset-trained variant."
-    },
-    {
-      "competitor_id": "m2v-medium",
-      "schema_version": 1,
-      "modality": "intent",
-      "plugin": "ovos-m2v-pipeline",
-      "config": {
-        "intents": {
-          "pipeline": [
-            "ovos-m2v-pipeline-medium"
-          ],
-          "ovos-m2v-pipeline": {
-            "model": "Jarbas/ovos-model2vec-intents-distiluse-base-multilingual-cased-v2",
-            "mode": "classifier",
-            "ignore_intents": [],
-            "timeout": 1,
-            "renormalize": false,
-            "conf_high": 0.7,
-            "conf_medium": 0.5,
-            "conf_low": 0.15
-          }
-        }
-      },
-      "langs": [],
-      "alias": [
-        "ovos-m2v-pipeline"
-      ],
-      "display_name": "Model2Vec",
-      "species": "Model2VecIntentPipeline",
-      "types": [
-        "embedding",
-        "neural-net"
-      ],
-      "description": "Classifies utterances with a pretrained Model2Vec static-embedding intent classifier restricted to intents registered by loaded skills. The default model is multilingual, distilled from LaBSE.",
-      "model": "Jarbas/ovos-model2vec-intents-distiluse-base-multilingual-cased-v2",
-      "size": "medium",
-      "links": {
-        "source": "https://github.com/OpenVoiceOS/ovos-m2v-pipeline"
-      },
-      "notes": "Single-stage pipeline at the plugin's own medium-confidence gate; per-plugin config keeps the shipped defaults. Published predictions are migrated from the legacy ovos-intent-benchmark, where this engine was trained on the benchmark's own corpora; the pinned pretrained model targets real OVOS skill intents and cannot emit this benchmark's label space, so native re-sweeps require a dataset-trained variant."
     },
     {
       "competitor_id": "nebulapt",
@@ -174,6 +98,9 @@
       },
       "langs": [],
       "alias": [],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "Nebulapt",
       "types": [
         "ensemble",
@@ -218,6 +145,9 @@
       },
       "langs": [],
       "alias": [],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "Nebulatious",
       "types": [
         "ensemble",
@@ -261,6 +191,9 @@
       },
       "langs": [],
       "alias": [],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "Padapt",
       "types": [
         "ensemble",
@@ -305,6 +238,9 @@
       },
       "langs": [],
       "alias": [],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "Padatioso",
       "types": [
         "ensemble",
@@ -345,6 +281,9 @@
       },
       "langs": [],
       "alias": [],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "Palavadapt",
       "types": [
         "ensemble",
@@ -359,72 +298,89 @@
       "notes": "All-keyword cascade; useful as the keyword league's pooled upper bound."
     },
     {
-      "competitor_id": "adapt-high",
+      "competitor_id": "hierarchical-knn-medium",
       "schema_version": 1,
-      "modality": "intent_keyword",
-      "plugin": "ovos-adapt-pipeline-plugin",
+      "modality": "intent_embedding",
+      "plugin": "ovos-hierarchical-knn-pipeline",
       "config": {
         "intents": {
           "pipeline": [
-            "ovos-adapt-pipeline-plugin-high"
+            "ovos-hierarchical-knn-pipeline-medium"
           ],
-          "ovos-adapt-pipeline-plugin": {
-            "conf_high": 0.65,
-            "conf_med": 0.45,
-            "conf_low": 0.25
+          "ovos-hierarchical-knn-pipeline": {
+            "hf_repo_id": "fdemelo/ovos-hierarchical-knn-granite-97m-multilingual-r2",
+            "ignore_intents": [],
+            "timeout": 1,
+            "renormalize": false,
+            "conf_high": 0.7,
+            "conf_medium": 0.5,
+            "conf_low": 0.15
           }
         }
       },
       "langs": [],
       "alias": [
-        "ovos-adapt-pipeline-plugin"
+        "ovos-hierarchical-knn-pipeline"
       ],
-      "display_name": "Adapt (high gate)",
-      "species": "AdaptPipeline",
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "Hierarchical KNN",
+      "species": "HierarchicalKNNIntentPipeline",
       "types": [
-        "GOFAI",
-        "keyword-match"
+        "embedding",
+        "neural-net"
       ],
-      "description": "Classic rule-based keyword intent parser from the Mycroft era: intents are built from required and optional vocabulary groups, matched by keyword presence regardless of word order.",
-      "size": "micro",
+      "description": "Two-stage hierarchical k-NN over a pre-built FAISS IVF+PQ index of IBM Granite multilingual embeddings: domain-level search scoped to loaded skills, then intent-level scoring with Wu-Lin pairwise probability estimation.",
+      "model": "IBM Granite Embedding 97M Multilingual R2 (quint8 ONNX) + FAISS index",
+      "size": "medium",
       "links": {
-        "source": "https://github.com/OpenVoiceOS/ovos-adapt-pipeline-plugin"
+        "source": "https://github.com/OpenVoiceOS/ovos-hierarchical-knn-pipeline"
       },
-      "notes": "Single-stage pipeline at the plugin's own high-confidence gate: only matches the plugin itself scores as high confidence fire, trading recall for precision versus the -medium fighter. Per-plugin config is identical to the -medium fighter."
+      "notes": "Single-stage pipeline at the plugin's own medium-confidence gate; per-plugin config keeps the shipped defaults. Published predictions are migrated from the legacy ovos-intent-benchmark, where this engine was trained on the benchmark's own corpora; the pinned pretrained model targets real OVOS skill intents and cannot emit this benchmark's label space, so native re-sweeps require a dataset-trained variant."
     },
     {
-      "competitor_id": "adapt-low",
+      "competitor_id": "m2v-medium",
       "schema_version": 1,
-      "modality": "intent_keyword",
-      "plugin": "ovos-adapt-pipeline-plugin",
+      "modality": "intent_embedding",
+      "plugin": "ovos-m2v-pipeline",
       "config": {
         "intents": {
           "pipeline": [
-            "ovos-adapt-pipeline-plugin-low"
+            "ovos-m2v-pipeline-medium"
           ],
-          "ovos-adapt-pipeline-plugin": {
-            "conf_high": 0.65,
-            "conf_med": 0.45,
-            "conf_low": 0.25
+          "ovos-m2v-pipeline": {
+            "model": "Jarbas/ovos-model2vec-intents-distiluse-base-multilingual-cased-v2",
+            "mode": "classifier",
+            "ignore_intents": [],
+            "timeout": 1,
+            "renormalize": false,
+            "conf_high": 0.7,
+            "conf_medium": 0.5,
+            "conf_low": 0.15
           }
         }
       },
       "langs": [],
       "alias": [
-        "ovos-adapt-pipeline-plugin"
+        "ovos-m2v-pipeline"
       ],
-      "display_name": "Adapt (low gate)",
-      "species": "AdaptPipeline",
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "Model2Vec",
+      "species": "Model2VecIntentPipeline",
       "types": [
-        "GOFAI",
-        "keyword-match"
+        "embedding",
+        "neural-net"
       ],
-      "description": "Classic rule-based keyword intent parser from the Mycroft era: intents are built from required and optional vocabulary groups, matched by keyword presence regardless of word order.",
-      "size": "micro",
+      "description": "Classifies utterances with a pretrained Model2Vec static-embedding intent classifier restricted to intents registered by loaded skills. The default model is multilingual, distilled from LaBSE.",
+      "model": "Jarbas/ovos-model2vec-intents-distiluse-base-multilingual-cased-v2",
+      "size": "medium",
       "links": {
-        "source": "https://github.com/OpenVoiceOS/ovos-adapt-pipeline-plugin"
+        "source": "https://github.com/OpenVoiceOS/ovos-m2v-pipeline"
       },
-      "notes": "Single-stage pipeline at the plugin's own low-confidence gate: any match clearing the plugin's low-confidence threshold fires, trading precision for recall versus the -medium fighter. Per-plugin config is identical to the -medium fighter."
+      "notes": "Single-stage pipeline at the plugin's own medium-confidence gate; per-plugin config keeps the shipped defaults. Published predictions are migrated from the legacy ovos-intent-benchmark, where this engine was trained on the benchmark's own corpora; the pinned pretrained model targets real OVOS skill intents and cannot emit this benchmark's label space, so native re-sweeps require a dataset-trained variant."
     },
     {
       "competitor_id": "adapt-medium",
@@ -447,6 +403,9 @@
       "alias": [
         "ovos-adapt-pipeline-plugin"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "Adapt",
       "species": "AdaptPipeline",
       "types": [
@@ -459,76 +418,6 @@
         "source": "https://github.com/OpenVoiceOS/ovos-adapt-pipeline-plugin"
       },
       "notes": "Single-stage pipeline at the plugin's own medium-confidence gate; per-plugin config keeps the shipped defaults."
-    },
-    {
-      "competitor_id": "palavreado-high",
-      "schema_version": 1,
-      "modality": "intent_keyword",
-      "plugin": "ovos-palavreado-pipeline-plugin",
-      "config": {
-        "intents": {
-          "pipeline": [
-            "ovos-palavreado-pipeline-plugin-high"
-          ],
-          "ovos-palavreado-pipeline-plugin": {
-            "conf_high": 0.65,
-            "conf_med": 0.45,
-            "conf_low": 0.25,
-            "max_words": 50
-          }
-        }
-      },
-      "langs": [],
-      "alias": [
-        "ovos-palavreado-pipeline-plugin"
-      ],
-      "display_name": "Palavreado (high gate)",
-      "species": "PalavreadoPipeline",
-      "types": [
-        "GOFAI",
-        "keyword-match"
-      ],
-      "description": "Keyword-rule intent engine in the Adapt lineage, rebuilt for OVOS with better multilingual tokenisation. Intents are vocabulary-group rules; matching is order-independent keyword presence.",
-      "size": "micro",
-      "links": {
-        "source": "https://github.com/OpenVoiceOS/palavreado"
-      },
-      "notes": "Single-stage pipeline at the plugin's own high-confidence gate: only matches the plugin itself scores as high confidence fire, trading recall for precision versus the -medium fighter. Per-plugin config is identical to the -medium fighter."
-    },
-    {
-      "competitor_id": "palavreado-low",
-      "schema_version": 1,
-      "modality": "intent_keyword",
-      "plugin": "ovos-palavreado-pipeline-plugin",
-      "config": {
-        "intents": {
-          "pipeline": [
-            "ovos-palavreado-pipeline-plugin-low"
-          ],
-          "ovos-palavreado-pipeline-plugin": {
-            "conf_high": 0.65,
-            "conf_med": 0.45,
-            "conf_low": 0.25,
-            "max_words": 50
-          }
-        }
-      },
-      "langs": [],
-      "alias": [
-        "ovos-palavreado-pipeline-plugin"
-      ],
-      "display_name": "Palavreado (low gate)",
-      "species": "PalavreadoPipeline",
-      "types": [
-        "GOFAI",
-        "keyword-match"
-      ],
-      "description": "Keyword-rule intent engine in the Adapt lineage, rebuilt for OVOS with better multilingual tokenisation. Intents are vocabulary-group rules; matching is order-independent keyword presence.",
-      "size": "micro",
-      "links": {
-        "source": "https://github.com/OpenVoiceOS/palavreado"
-      },
-      "notes": "Single-stage pipeline at the plugin's own low-confidence gate: any match clearing the plugin's low-confidence threshold fires, trading precision for recall versus the -medium fighter. Per-plugin config is identical to the -medium fighter."
     },
     {
       "competitor_id": "palavreado-medium",
@@ -552,6 +441,9 @@
       "alias": [
         "ovos-palavreado-pipeline-plugin"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "Palavreado",
       "species": "PalavreadoPipeline",
       "types": [
@@ -564,76 +456,6 @@
         "source": "https://github.com/OpenVoiceOS/palavreado"
       },
       "notes": "Single-stage pipeline at the plugin's own medium-confidence gate; per-plugin config keeps the shipped defaults."
-    },
-    {
-      "competitor_id": "jurebes-high",
-      "schema_version": 1,
-      "modality": "intent_template",
-      "plugin": "ovos-jurebes-pipeline-plugin",
-      "config": {
-        "intents": {
-          "pipeline": [
-            "ovos-jurebes-pipeline-plugin-high"
-          ],
-          "ovos-jurebes-pipeline-plugin": {
-            "baseline": "linear_svc",
-            "enable_slots": true,
-            "conf_high": 0.8,
-            "conf_med": 0.6,
-            "conf_low": 0.4
-          }
-        }
-      },
-      "langs": [],
-      "alias": [
-        "ovos-jurebes-pipeline-plugin"
-      ],
-      "display_name": "Jurebes (high gate)",
-      "species": "JurebesPipeline",
-      "types": [
-        "classical-ML"
-      ],
-      "description": "Scikit-learn text classification behind the OVOS pipeline API: any sklearn featurizer plus classifier can be wired in, with probability calibration applied automatically. The default baseline is a calibrated linear SVM.",
-      "model": "linear_svc (TF-IDF word featurizer + calibrated LinearSVC)",
-      "links": {
-        "source": "https://github.com/TigreGotico/jurebes"
-      },
-      "notes": "Single-stage pipeline at the plugin's own high-confidence gate: only matches the plugin itself scores as high confidence fire, trading recall for precision versus the -medium fighter. Per-plugin config is identical to the -medium fighter."
-    },
-    {
-      "competitor_id": "jurebes-low",
-      "schema_version": 1,
-      "modality": "intent_template",
-      "plugin": "ovos-jurebes-pipeline-plugin",
-      "config": {
-        "intents": {
-          "pipeline": [
-            "ovos-jurebes-pipeline-plugin-low"
-          ],
-          "ovos-jurebes-pipeline-plugin": {
-            "baseline": "linear_svc",
-            "enable_slots": true,
-            "conf_high": 0.8,
-            "conf_med": 0.6,
-            "conf_low": 0.4
-          }
-        }
-      },
-      "langs": [],
-      "alias": [
-        "ovos-jurebes-pipeline-plugin"
-      ],
-      "display_name": "Jurebes (low gate)",
-      "species": "JurebesPipeline",
-      "types": [
-        "classical-ML"
-      ],
-      "description": "Scikit-learn text classification behind the OVOS pipeline API: any sklearn featurizer plus classifier can be wired in, with probability calibration applied automatically. The default baseline is a calibrated linear SVM.",
-      "model": "linear_svc (TF-IDF word featurizer + calibrated LinearSVC)",
-      "links": {
-        "source": "https://github.com/TigreGotico/jurebes"
-      },
-      "notes": "Single-stage pipeline at the plugin's own low-confidence gate: any match clearing the plugin's low-confidence threshold fires, trading precision for recall versus the -medium fighter. Per-plugin config is identical to the -medium fighter."
     },
     {
       "competitor_id": "jurebes-medium",
@@ -658,6 +480,9 @@
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "Jurebes",
       "species": "JurebesPipeline",
       "types": [
@@ -669,72 +494,6 @@
         "source": "https://github.com/TigreGotico/jurebes"
       },
       "notes": "Single-stage pipeline at the plugin's own medium-confidence gate; the per-plugin config pins the documented linear_svc baseline (TF-IDF word featurizer + CalibratedClassifierCV-wrapped LinearSVC), slot tagging and confidence thresholds."
-    },
-    {
-      "competitor_id": "linha-fina-high",
-      "schema_version": 1,
-      "modality": "intent_template",
-      "plugin": "ovos-linha-fina-pipeline-plugin",
-      "config": {
-        "intents": {
-          "pipeline": [
-            "ovos-linha-fina-pipeline-plugin-high"
-          ],
-          "ovos-linha-fina-pipeline-plugin": {
-            "conf_high": 0.8,
-            "conf_med": 0.6,
-            "conf_low": 0.4
-          }
-        }
-      },
-      "langs": [],
-      "alias": [
-        "ovos-linha-fina-pipeline-plugin"
-      ],
-      "display_name": "Linha Fina (high gate)",
-      "species": "LinhaFinaPipeline",
-      "types": [
-        "classical-ML",
-        "keyword-match"
-      ],
-      "description": "Trains one SVM per intent over one-hot keyword vectors, selecting the most relevant negative samples by fuzzy token-set ratio. Entities come from simplematch templates and wordlists.",
-      "links": {
-        "source": "https://github.com/TigreGotico/linha-fina"
-      },
-      "notes": "Single-stage pipeline at the plugin's own high-confidence gate: only matches the plugin itself scores as high confidence fire, trading recall for precision versus the -medium fighter. Per-plugin config is identical to the -medium fighter."
-    },
-    {
-      "competitor_id": "linha-fina-low",
-      "schema_version": 1,
-      "modality": "intent_template",
-      "plugin": "ovos-linha-fina-pipeline-plugin",
-      "config": {
-        "intents": {
-          "pipeline": [
-            "ovos-linha-fina-pipeline-plugin-low"
-          ],
-          "ovos-linha-fina-pipeline-plugin": {
-            "conf_high": 0.8,
-            "conf_med": 0.6,
-            "conf_low": 0.4
-          }
-        }
-      },
-      "langs": [],
-      "alias": [
-        "ovos-linha-fina-pipeline-plugin"
-      ],
-      "display_name": "Linha Fina (low gate)",
-      "species": "LinhaFinaPipeline",
-      "types": [
-        "classical-ML",
-        "keyword-match"
-      ],
-      "description": "Trains one SVM per intent over one-hot keyword vectors, selecting the most relevant negative samples by fuzzy token-set ratio. Entities come from simplematch templates and wordlists.",
-      "links": {
-        "source": "https://github.com/TigreGotico/linha-fina"
-      },
-      "notes": "Single-stage pipeline at the plugin's own low-confidence gate: any match clearing the plugin's low-confidence threshold fires, trading precision for recall versus the -medium fighter. Per-plugin config is identical to the -medium fighter."
     },
     {
       "competitor_id": "linha-fina-medium",
@@ -757,6 +516,9 @@
       "alias": [
         "ovos-linha-fina-pipeline-plugin"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "Linha Fina",
       "species": "LinhaFinaPipeline",
       "types": [
@@ -768,92 +530,6 @@
         "source": "https://github.com/TigreGotico/linha-fina"
       },
       "notes": "Single-stage pipeline at the plugin's own medium-confidence gate; the per-plugin config pins the documented confidence thresholds. The engine itself is fixed: one SVM per intent over one-hot keyword vectors."
-    },
-    {
-      "competitor_id": "markov-high",
-      "schema_version": 1,
-      "modality": "intent_template",
-      "plugin": "ovos-markov-pipeline-plugin",
-      "config": {
-        "intents": {
-          "pipeline": [
-            "ovos-markov-pipeline-plugin-high"
-          ],
-          "ovos-markov-pipeline-plugin": {
-            "order": 2,
-            "kneser_ney": true,
-            "backoff": true,
-            "smoothing": 1e-05,
-            "stem": false,
-            "char_fallback": false,
-            "conf_high": 0.75,
-            "conf_med": 0.55,
-            "conf_low": 0.3,
-            "char_fallback_threshold": 0.05,
-            "online_learning": false,
-            "max_words": 50,
-            "instant_train": false
-          }
-        }
-      },
-      "langs": [],
-      "alias": [
-        "ovos-markov-pipeline-plugin"
-      ],
-      "display_name": "Markov (high gate)",
-      "species": "MarkovPipeline",
-      "types": [
-        "statistical"
-      ],
-      "description": "Trains one word-level Markov chain per intent from example utterances and picks the intent whose chain yields the lowest perplexity; confidence is derived from perplexity. Trains in milliseconds with no GPU.",
-      "model": "order-2 word-level Markov chains, Kneser-Ney smoothing with backoff",
-      "links": {
-        "source": "https://github.com/TigreGotico/ovos-markov-pipeline-plugin"
-      },
-      "notes": "Single-stage pipeline at the plugin's own high-confidence gate: only matches the plugin itself scores as high confidence fire, trading recall for precision versus the -medium fighter. Per-plugin config is identical to the -medium fighter."
-    },
-    {
-      "competitor_id": "markov-low",
-      "schema_version": 1,
-      "modality": "intent_template",
-      "plugin": "ovos-markov-pipeline-plugin",
-      "config": {
-        "intents": {
-          "pipeline": [
-            "ovos-markov-pipeline-plugin-low"
-          ],
-          "ovos-markov-pipeline-plugin": {
-            "order": 2,
-            "kneser_ney": true,
-            "backoff": true,
-            "smoothing": 1e-05,
-            "stem": false,
-            "char_fallback": false,
-            "conf_high": 0.75,
-            "conf_med": 0.55,
-            "conf_low": 0.3,
-            "char_fallback_threshold": 0.05,
-            "online_learning": false,
-            "max_words": 50,
-            "instant_train": false
-          }
-        }
-      },
-      "langs": [],
-      "alias": [
-        "ovos-markov-pipeline-plugin"
-      ],
-      "display_name": "Markov (low gate)",
-      "species": "MarkovPipeline",
-      "types": [
-        "statistical"
-      ],
-      "description": "Trains one word-level Markov chain per intent from example utterances and picks the intent whose chain yields the lowest perplexity; confidence is derived from perplexity. Trains in milliseconds with no GPU.",
-      "model": "order-2 word-level Markov chains, Kneser-Ney smoothing with backoff",
-      "links": {
-        "source": "https://github.com/TigreGotico/ovos-markov-pipeline-plugin"
-      },
-      "notes": "Single-stage pipeline at the plugin's own low-confidence gate: any match clearing the plugin's low-confidence threshold fires, trading precision for recall versus the -medium fighter. Per-plugin config is identical to the -medium fighter."
     },
     {
       "competitor_id": "markov-medium",
@@ -886,6 +562,9 @@
       "alias": [
         "ovos-markov-pipeline-plugin"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "Markov",
       "species": "MarkovPipeline",
       "types": [
@@ -897,76 +576,6 @@
         "source": "https://github.com/TigreGotico/ovos-markov-pipeline-plugin"
       },
       "notes": "Single-stage pipeline at the plugin's own medium-confidence gate; the per-plugin config pins the documented model parameters (n-gram order, smoothing, backoff, stemming, char fallback) and confidence thresholds."
-    },
-    {
-      "competitor_id": "nebulento-high",
-      "schema_version": 1,
-      "modality": "intent_template",
-      "plugin": "ovos-nebulento-pipeline-plugin",
-      "config": {
-        "intents": {
-          "pipeline": [
-            "ovos-nebulento-pipeline-plugin-high"
-          ],
-          "ovos-nebulento-pipeline-plugin": {
-            "conf_high": 0.95,
-            "conf_med": 0.8,
-            "conf_low": 0.5,
-            "workers": 4
-          }
-        }
-      },
-      "langs": [],
-      "alias": [
-        "ovos-nebulento-pipeline-plugin"
-      ],
-      "display_name": "Nebulento (high gate)",
-      "species": "NebulentoPipeline",
-      "types": [
-        "fuzzy-match",
-        "template-match"
-      ],
-      "description": "Fuzzy-matching intent engine: compares utterances against example sentences with string-similarity ratios instead of exact rules, trading precision for resilience to typos and ASR noise.",
-      "size": "micro",
-      "links": {
-        "source": "https://github.com/OpenVoiceOS/nebulento"
-      },
-      "notes": "Single-stage pipeline at the plugin's own high-confidence gate: only matches the plugin itself scores as high confidence fire, trading recall for precision versus the -medium fighter. Per-plugin config is identical to the -medium fighter."
-    },
-    {
-      "competitor_id": "nebulento-low",
-      "schema_version": 1,
-      "modality": "intent_template",
-      "plugin": "ovos-nebulento-pipeline-plugin",
-      "config": {
-        "intents": {
-          "pipeline": [
-            "ovos-nebulento-pipeline-plugin-low"
-          ],
-          "ovos-nebulento-pipeline-plugin": {
-            "conf_high": 0.95,
-            "conf_med": 0.8,
-            "conf_low": 0.5,
-            "workers": 4
-          }
-        }
-      },
-      "langs": [],
-      "alias": [
-        "ovos-nebulento-pipeline-plugin"
-      ],
-      "display_name": "Nebulento (low gate)",
-      "species": "NebulentoPipeline",
-      "types": [
-        "fuzzy-match",
-        "template-match"
-      ],
-      "description": "Fuzzy-matching intent engine: compares utterances against example sentences with string-similarity ratios instead of exact rules, trading precision for resilience to typos and ASR noise.",
-      "size": "micro",
-      "links": {
-        "source": "https://github.com/OpenVoiceOS/nebulento"
-      },
-      "notes": "Single-stage pipeline at the plugin's own low-confidence gate: any match clearing the plugin's low-confidence threshold fires, trading precision for recall versus the -medium fighter. Per-plugin config is identical to the -medium fighter."
     },
     {
       "competitor_id": "nebulento-medium",
@@ -990,6 +599,9 @@
       "alias": [
         "ovos-nebulento-pipeline-plugin"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "Nebulento",
       "species": "NebulentoPipeline",
       "types": [
@@ -1002,78 +614,6 @@
         "source": "https://github.com/OpenVoiceOS/nebulento"
       },
       "notes": "Single-stage pipeline at the plugin's own medium-confidence gate; per-plugin config keeps the shipped defaults."
-    },
-    {
-      "competitor_id": "padacioso-high",
-      "schema_version": 1,
-      "modality": "intent_template",
-      "plugin": "ovos-padacioso-pipeline-plugin",
-      "config": {
-        "intents": {
-          "pipeline": [
-            "ovos-padacioso-pipeline-plugin-high"
-          ],
-          "ovos-padacioso-pipeline-plugin": {
-            "conf_high": 0.95,
-            "conf_med": 0.8,
-            "conf_low": 0.5,
-            "workers": 4,
-            "fuzz": false
-          }
-        }
-      },
-      "langs": [],
-      "alias": [
-        "ovos-padacioso-pipeline-plugin"
-      ],
-      "display_name": "Padacioso (high gate)",
-      "species": "PadaciosoPipeline",
-      "types": [
-        "GOFAI",
-        "template-match"
-      ],
-      "description": "Deterministic, regex-based drop-in replacement for Padatious. No training step and no false positives on unseen phrasings — what you template is exactly what you match.",
-      "size": "micro",
-      "links": {
-        "source": "https://github.com/OpenVoiceOS/padacioso"
-      },
-      "notes": "Single-stage pipeline at the plugin's own high-confidence gate: only matches the plugin itself scores as high confidence fire, trading recall for precision versus the -medium fighter. Per-plugin config is identical to the -medium fighter."
-    },
-    {
-      "competitor_id": "padacioso-low",
-      "schema_version": 1,
-      "modality": "intent_template",
-      "plugin": "ovos-padacioso-pipeline-plugin",
-      "config": {
-        "intents": {
-          "pipeline": [
-            "ovos-padacioso-pipeline-plugin-low"
-          ],
-          "ovos-padacioso-pipeline-plugin": {
-            "conf_high": 0.95,
-            "conf_med": 0.8,
-            "conf_low": 0.5,
-            "workers": 4,
-            "fuzz": false
-          }
-        }
-      },
-      "langs": [],
-      "alias": [
-        "ovos-padacioso-pipeline-plugin"
-      ],
-      "display_name": "Padacioso (low gate)",
-      "species": "PadaciosoPipeline",
-      "types": [
-        "GOFAI",
-        "template-match"
-      ],
-      "description": "Deterministic, regex-based drop-in replacement for Padatious. No training step and no false positives on unseen phrasings — what you template is exactly what you match.",
-      "size": "micro",
-      "links": {
-        "source": "https://github.com/OpenVoiceOS/padacioso"
-      },
-      "notes": "Single-stage pipeline at the plugin's own low-confidence gate: any match clearing the plugin's low-confidence threshold fires, trading precision for recall versus the -medium fighter. Per-plugin config is identical to the -medium fighter."
     },
     {
       "competitor_id": "padacioso-medium",
@@ -1098,6 +638,9 @@
       "alias": [
         "ovos-padacioso-pipeline-plugin"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "Padacioso",
       "species": "PadaciosoPipeline",
       "types": [
@@ -1110,84 +653,6 @@
         "source": "https://github.com/OpenVoiceOS/padacioso"
       },
       "notes": "Single-stage pipeline at the plugin's own medium-confidence gate; per-plugin config keeps the shipped defaults."
-    },
-    {
-      "competitor_id": "padatious-high",
-      "schema_version": 1,
-      "modality": "intent_template",
-      "plugin": "ovos-padatious-pipeline-plugin",
-      "config": {
-        "intents": {
-          "pipeline": [
-            "ovos-padatious-pipeline-plugin-high"
-          ],
-          "ovos-padatious-pipeline-plugin": {
-            "conf_high": 0.95,
-            "conf_med": 0.8,
-            "conf_low": 0.5,
-            "domain_engine": false,
-            "cast_to_ascii": false,
-            "stem": false,
-            "disable_padaos": false,
-            "instant_train": false
-          }
-        }
-      },
-      "langs": [],
-      "alias": [
-        "ovos-padatious-pipeline-plugin"
-      ],
-      "display_name": "Padatious (high gate)",
-      "species": "PadatiousPipeline",
-      "types": [
-        "neural-net",
-        "template-match"
-      ],
-      "description": "Lightweight neural intent parser trained on expanded example sentences. The OVOS default intent engine: fast to train, fast to match, tolerant to small variations in phrasing.",
-      "size": "micro",
-      "links": {
-        "source": "https://github.com/OpenVoiceOS/ovos-padatious-pipeline-plugin"
-      },
-      "notes": "Single-stage pipeline at the plugin's own high-confidence gate: only matches the plugin itself scores as high confidence fire, trading recall for precision versus the -medium fighter. Per-plugin config is identical to the -medium fighter."
-    },
-    {
-      "competitor_id": "padatious-low",
-      "schema_version": 1,
-      "modality": "intent_template",
-      "plugin": "ovos-padatious-pipeline-plugin",
-      "config": {
-        "intents": {
-          "pipeline": [
-            "ovos-padatious-pipeline-plugin-low"
-          ],
-          "ovos-padatious-pipeline-plugin": {
-            "conf_high": 0.95,
-            "conf_med": 0.8,
-            "conf_low": 0.5,
-            "domain_engine": false,
-            "cast_to_ascii": false,
-            "stem": false,
-            "disable_padaos": false,
-            "instant_train": false
-          }
-        }
-      },
-      "langs": [],
-      "alias": [
-        "ovos-padatious-pipeline-plugin"
-      ],
-      "display_name": "Padatious (low gate)",
-      "species": "PadatiousPipeline",
-      "types": [
-        "neural-net",
-        "template-match"
-      ],
-      "description": "Lightweight neural intent parser trained on expanded example sentences. The OVOS default intent engine: fast to train, fast to match, tolerant to small variations in phrasing.",
-      "size": "micro",
-      "links": {
-        "source": "https://github.com/OpenVoiceOS/ovos-padatious-pipeline-plugin"
-      },
-      "notes": "Single-stage pipeline at the plugin's own low-confidence gate: any match clearing the plugin's low-confidence threshold fires, trading precision for recall versus the -medium fighter. Per-plugin config is identical to the -medium fighter."
     },
     {
       "competitor_id": "padatious-medium",
@@ -1214,6 +679,9 @@
       "langs": [],
       "alias": [
         "ovos-padatious-pipeline-plugin"
+      ],
+      "capabilities": [
+        "clip"
       ],
       "display_name": "Padatious",
       "species": "PadatiousPipeline",
@@ -1250,6 +718,9 @@
       "alias": [
         "ovos-stt-plugin-azure"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "Azure STT (en-US)",
       "species": "OVOSAzureSTT",
       "types": [
@@ -1282,6 +753,9 @@
       "alias": [
         "ovos-stt-plugin-chromium"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "Chromium (Google) STT (en-US)",
       "species": "ChromiumSTT",
       "types": [
@@ -1313,6 +787,9 @@
       ],
       "alias": [
         "ovos-stt-plugin-citrinet"
+      ],
+      "capabilities": [
+        "clip"
       ],
       "display_name": "Citrinet-512 (ca)",
       "species": "CitrinetSTT",
@@ -1354,6 +831,9 @@
       ],
       "alias": [
         "ovos-stt-plugin-fasterwhisper"
+      ],
+      "capabilities": [
+        "clip"
       ],
       "display_name": "FasterWhisper (base)",
       "species": "FasterWhisperSTT",
@@ -1398,6 +878,9 @@
       "alias": [
         "ovos-stt-plugin-fasterwhisper"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "FasterWhisper (base)",
       "species": "FasterWhisperSTT",
       "types": [
@@ -1440,6 +923,9 @@
       ],
       "alias": [
         "ovos-stt-plugin-fasterwhisper"
+      ],
+      "capabilities": [
+        "clip"
       ],
       "display_name": "FasterWhisper (base)",
       "species": "FasterWhisperSTT",
@@ -1484,6 +970,9 @@
       "alias": [
         "ovos-stt-plugin-fasterwhisper"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "FasterWhisper (base)",
       "species": "FasterWhisperSTT",
       "types": [
@@ -1526,6 +1015,9 @@
       ],
       "alias": [
         "ovos-stt-plugin-fasterwhisper"
+      ],
+      "capabilities": [
+        "clip"
       ],
       "display_name": "FasterWhisper (base)",
       "species": "FasterWhisperSTT",
@@ -1570,6 +1062,9 @@
       "alias": [
         "ovos-stt-plugin-fasterwhisper"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "FasterWhisper (medium)",
       "species": "FasterWhisperSTT",
       "types": [
@@ -1612,6 +1107,9 @@
       ],
       "alias": [
         "ovos-stt-plugin-fasterwhisper"
+      ],
+      "capabilities": [
+        "clip"
       ],
       "display_name": "FasterWhisper (small)",
       "species": "FasterWhisperSTT",
@@ -1656,6 +1154,9 @@
       "alias": [
         "ovos-stt-plugin-fasterwhisper"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "FasterWhisper (small)",
       "species": "FasterWhisperSTT",
       "types": [
@@ -1692,6 +1193,9 @@
       "alias": [
         "ovos-stt-plugin-nemo"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "NVIDIA NeMo (QuartzNet15x5, en)",
       "species": "NemoSTT",
       "types": [
@@ -1726,6 +1230,9 @@
       "alias": [
         "ovos-stt-plugin-onnx-asr"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "ONNX-ASR (Canary 1B v2)",
       "species": "OnnxASR",
       "types": [
@@ -1758,6 +1265,9 @@
       ],
       "alias": [
         "ovos-stt-plugin-onnx-asr"
+      ],
+      "capabilities": [
+        "clip"
       ],
       "display_name": "ONNX-ASR (Conformer CTC Large, en)",
       "species": "OnnxASR",
@@ -1792,6 +1302,9 @@
       "alias": [
         "ovos-stt-plugin-onnx-asr"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "ONNX-ASR (Conformer CTC Large, gl)",
       "species": "OnnxASR",
       "types": [
@@ -1825,6 +1338,9 @@
       "alias": [
         "ovos-stt-plugin-onnx-asr"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "ONNX-ASR (Conformer CTC Large, it)",
       "species": "OnnxASR",
       "types": [
@@ -1857,6 +1373,9 @@
       ],
       "alias": [
         "ovos-stt-plugin-onnx-asr"
+      ],
+      "capabilities": [
+        "clip"
       ],
       "display_name": "ONNX-ASR (Conformer Transducer Large, ca)",
       "species": "OnnxASR",
@@ -1892,6 +1411,9 @@
       "alias": [
         "ovos-stt-plugin-onnx-asr"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "ONNX-ASR (Conformer Transducer Large, de)",
       "species": "OnnxASR",
       "types": [
@@ -1925,6 +1447,9 @@
       ],
       "alias": [
         "ovos-stt-plugin-onnx-asr"
+      ],
+      "capabilities": [
+        "clip"
       ],
       "display_name": "ONNX-ASR (Conformer Transducer Large, es)",
       "species": "OnnxASR",
@@ -1960,6 +1485,9 @@
       "alias": [
         "ovos-stt-plugin-onnx-asr"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "ONNX-ASR (Conformer Transducer Large, eu)",
       "species": "OnnxASR",
       "types": [
@@ -1993,6 +1521,9 @@
       ],
       "alias": [
         "ovos-stt-plugin-onnx-asr"
+      ],
+      "capabilities": [
+        "clip"
       ],
       "display_name": "ONNX-ASR (Conformer Transducer Large, fr)",
       "species": "OnnxASR",
@@ -2028,6 +1559,9 @@
       "alias": [
         "ovos-stt-plugin-onnx-asr"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "ONNX-ASR (Conformer Transducer Large, ru)",
       "species": "OnnxASR",
       "types": [
@@ -2062,6 +1596,9 @@
       "alias": [
         "ovos-stt-plugin-onnx-asr"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "ONNX-ASR (Parakeet TDT 0.6B, nl)",
       "species": "OnnxASR",
       "types": [
@@ -2095,6 +1632,9 @@
       "alias": [
         "ovos-stt-plugin-onnx-asr"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "ONNX-ASR (Parakeet TDT 0.6B, pl)",
       "species": "OnnxASR",
       "types": [
@@ -2127,6 +1667,9 @@
       ],
       "alias": [
         "ovos-stt-plugin-onnx-asr"
+      ],
+      "capabilities": [
+        "clip"
       ],
       "display_name": "ONNX-ASR (Parakeet TDT 0.6B, pt)",
       "species": "OnnxASR",
@@ -2170,6 +1713,9 @@
       "alias": [
         "ovos-stt-plugin-onnx-asr"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "ONNX-ASR (Parakeet TDT 0.6B v3)",
       "species": "OnnxASR",
       "types": [
@@ -2202,6 +1748,9 @@
       ],
       "alias": [
         "ovos-stt-plugin-onnx-asr"
+      ],
+      "capabilities": [
+        "clip"
       ],
       "display_name": "ONNX-ASR (Parakeet TDT 1.1B, en)",
       "species": "OnnxASR",
@@ -2236,6 +1785,9 @@
       "alias": [
         "ovos-stt-plugin-onnx-asr"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "ONNX-ASR (Parakeet TDT-CTC 110M, en)",
       "species": "OnnxASR",
       "types": [
@@ -2268,6 +1820,9 @@
       ],
       "alias": [
         "ovos-stt-plugin-onnx-asr"
+      ],
+      "capabilities": [
+        "clip"
       ],
       "display_name": "ONNX-ASR (Whisper Small, pt)",
       "species": "OnnxASR",
@@ -2318,6 +1873,9 @@
       "alias": [
         "ovos-stt-plugin-rover"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "ROVER (Whisper + Vosk)",
       "species": "ROVERSTT",
       "types": [
@@ -2356,6 +1914,9 @@
       "alias": [
         "ovos-stt-plugin-sherpa-onnx"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "Sherpa-ONNX Zipformer (en)",
       "species": "SherpaOnnxSTT",
       "types": [
@@ -2389,6 +1950,9 @@
       ],
       "alias": [
         "ovos-stt-plugin-vosk"
+      ],
+      "capabilities": [
+        "clip"
       ],
       "display_name": "Vosk (big, en-US)",
       "species": "VoskKaldiSTT",
@@ -2424,6 +1988,9 @@
       "alias": [
         "ovos-stt-plugin-vosk"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "Vosk (small, de)",
       "species": "VoskKaldiSTT",
       "types": [
@@ -2456,6 +2023,9 @@
       ],
       "alias": [
         "ovos-stt-plugin-vosk"
+      ],
+      "capabilities": [
+        "clip"
       ],
       "display_name": "Vosk (small, en-US)",
       "species": "VoskKaldiSTT",
@@ -2490,6 +2060,9 @@
       "alias": [
         "ovos-stt-plugin-vosk"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "Vosk (small, fr)",
       "species": "VoskKaldiSTT",
       "types": [
@@ -2522,6 +2095,9 @@
       ],
       "alias": [
         "ovos-stt-plugin-vosk"
+      ],
+      "capabilities": [
+        "clip"
       ],
       "display_name": "Vosk (small, it)",
       "species": "VoskKaldiSTT",
@@ -2556,6 +2132,9 @@
       "alias": [
         "ovos-stt-plugin-wav2vec"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "Wav2Vec2 XLSR (en)",
       "species": "Wav2VecSTT",
       "types": [
@@ -2582,9 +2161,18 @@
           }
         }
       },
-      "langs": [],
+      "langs": [
+        "de",
+        "en",
+        "es",
+        "fr",
+        "it"
+      ],
       "alias": [
         "ovos-stt-plugin-whisper"
+      ],
+      "capabilities": [
+        "clip"
       ],
       "display_name": "Whisper (large-v3-turbo)",
       "species": "WhisperSTT",
@@ -2597,7 +2185,7 @@
       "links": {
         "source": "https://github.com/TigreGotico/ovos-stt-plugin-whisper"
       },
-      "notes": "Plugin default model; CUDA optional via 'use_cuda'."
+      "notes": "Plugin default model; CUDA optional via 'use_cuda'. Langs pinned to the language set actually exercised in scoring (Whisper is auto-detect/multilingual by design, but an empty langs list made this fighter eligible against every board rather than only the ones it was evaluated on)."
     },
     {
       "competitor_id": "whisper-lm-eu",
@@ -2623,6 +2211,9 @@
       ],
       "alias": [
         "ovos-stt-plugin-whisper-lm"
+      ],
+      "capabilities": [
+        "clip"
       ],
       "display_name": "Whisper-LM (Basque)",
       "species": "WhisperLMSTT",
@@ -2651,9 +2242,18 @@
           }
         }
       },
-      "langs": [],
+      "langs": [
+        "de",
+        "en",
+        "es",
+        "fr",
+        "it"
+      ],
       "alias": [
         "ovos-stt-plugin-whispercpp"
+      ],
+      "capabilities": [
+        "clip"
       ],
       "display_name": "Whisper.cpp (base)",
       "species": "WhispercppSTT",
@@ -2667,7 +2267,7 @@
       "links": {
         "source": "https://github.com/OpenVoiceOS/ovos-stt-plugin-whispercpp"
       },
-      "notes": "Plugin default model; ggml weights auto-downloaded on first load."
+      "notes": "Plugin default model; ggml weights auto-downloaded on first load. Langs pinned to the language set actually exercised in scoring (Whisper is auto-detect/multilingual by design, but an empty langs list made this fighter eligible against every board rather than only the ones it was evaluated on)."
     },
     {
       "competitor_id": "whispercpp-small",
@@ -2682,9 +2282,18 @@
           }
         }
       },
-      "langs": [],
+      "langs": [
+        "de",
+        "en",
+        "es",
+        "fr",
+        "it"
+      ],
       "alias": [
         "ovos-stt-plugin-whispercpp"
+      ],
+      "capabilities": [
+        "clip"
       ],
       "display_name": "Whisper.cpp (small)",
       "species": "WhispercppSTT",
@@ -2698,7 +2307,7 @@
       "links": {
         "source": "https://github.com/OpenVoiceOS/ovos-stt-plugin-whispercpp"
       },
-      "notes": "Size-tier variant of whispercpp-base: same plugin defaults, one size up; ggml weights auto-downloaded on first load."
+      "notes": "Size-tier variant of whispercpp-base: same plugin defaults, one size up; ggml weights auto-downloaded on first load. Langs pinned to the language set actually exercised in scoring (Whisper is auto-detect/multilingual by design, but an empty langs list made this fighter eligible against every board rather than only the ones it was evaluated on)."
     },
     {
       "competitor_id": "ahotts-eu",
@@ -2719,6 +2328,9 @@
       ],
       "alias": [
         "ovos-tts-plugin-ahotts"
+      ],
+      "capabilities": [
+        "clip"
       ],
       "display_name": "AhoTTS (Basque)",
       "species": "AhoTTSPlugin",
@@ -2751,6 +2363,9 @@
       ],
       "alias": [
         "ovos-tts-plugin-azure"
+      ],
+      "capabilities": [
+        "clip"
       ],
       "display_name": "Azure TTS (Jenny)",
       "species": "AzureTTSPlugin",
@@ -2785,6 +2400,9 @@
       "alias": [
         "ovos-tts-plugin-beepspeak"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "BeepSpeak",
       "species": "BeepSpeak",
       "types": [
@@ -2816,6 +2434,9 @@
       ],
       "alias": [
         "ovos-tts-plugin-coqui"
+      ],
+      "capabilities": [
+        "clip"
       ],
       "display_name": "Coqui TTS (LJSpeech VITS)",
       "species": "CoquiTTSPlugin",
@@ -2851,6 +2472,9 @@
       "alias": [
         "ovos-tts-plugin-cotovia"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "Cotovia (Sabela)",
       "species": "CotoviaTTSPlugin",
       "types": [
@@ -2884,6 +2508,9 @@
       "alias": [
         "ovos-tts-plugin-edge-tts"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "Edge TTS (Aria)",
       "species": "EdgeTTSPlugin",
       "types": [
@@ -2915,6 +2542,9 @@
       ],
       "alias": [
         "ovos-tts-plugin-espeakng"
+      ],
+      "capabilities": [
+        "clip"
       ],
       "display_name": "eSpeak NG (f1)",
       "species": "EspeakNGTTS",
@@ -2948,6 +2578,9 @@
       ],
       "alias": [
         "ovos-tts-plugin-espeakng"
+      ],
+      "capabilities": [
+        "clip"
       ],
       "display_name": "eSpeak NG (m1)",
       "species": "EspeakNGTTS",
@@ -2985,6 +2618,9 @@
       "alias": [
         "ovos-tts-plugin-google-tx"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "Google Translate TTS (UK)",
       "species": "GoogleTranslateTTS",
       "types": [
@@ -3018,6 +2654,9 @@
       ],
       "alias": [
         "ovos-tts-plugin-google-tx"
+      ],
+      "capabilities": [
+        "clip"
       ],
       "display_name": "Google Translate TTS (en-US)",
       "species": "GoogleTranslateTTS",
@@ -3060,6 +2699,9 @@
       "alias": [
         "ovos-tts-plugin-lux"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "LuxTTS (cloned)",
       "species": "LuxTTS",
       "types": [
@@ -3094,6 +2736,9 @@
       "alias": [
         "ovos-tts-plugin-marytts"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "MaryTTS (cmu-slt-hsmm)",
       "species": "MaryTTS",
       "types": [
@@ -3125,6 +2770,9 @@
       ],
       "alias": [
         "ovos-tts-plugin-mimic"
+      ],
+      "capabilities": [
+        "clip"
       ],
       "display_name": "Mimic 1 (ap)",
       "species": "MimicTTSPlugin",
@@ -3159,6 +2807,9 @@
       "alias": [
         "ovos-tts-plugin-phoonnx"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "Phoonnx (Dii, es-ES)",
       "species": "PhoonnxTTSPlugin",
       "types": [
@@ -3191,6 +2842,9 @@
       ],
       "alias": [
         "ovos-tts-plugin-phoonnx"
+      ],
+      "capabilities": [
+        "clip"
       ],
       "display_name": "Phoonnx (Dii, eu-ES)",
       "species": "PhoonnxTTSPlugin",
@@ -3225,6 +2879,9 @@
       "alias": [
         "ovos-tts-plugin-phoonnx"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "Phoonnx (Dii, pt-PT)",
       "species": "PhoonnxTTSPlugin",
       "types": [
@@ -3257,6 +2914,9 @@
       ],
       "alias": [
         "ovos-tts-plugin-phoonnx"
+      ],
+      "capabilities": [
+        "clip"
       ],
       "display_name": "Phoonnx (Miro, ar-SA)",
       "species": "PhoonnxTTSPlugin",
@@ -3291,6 +2951,9 @@
       "alias": [
         "ovos-tts-plugin-phoonnx"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "Phoonnx (Miro, ca-ES)",
       "species": "PhoonnxTTSPlugin",
       "types": [
@@ -3323,6 +2986,9 @@
       ],
       "alias": [
         "ovos-tts-plugin-phoonnx"
+      ],
+      "capabilities": [
+        "clip"
       ],
       "display_name": "Phoonnx (Miro, da-DK)",
       "species": "PhoonnxTTSPlugin",
@@ -3357,6 +3023,9 @@
       "alias": [
         "ovos-tts-plugin-phoonnx"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "Phoonnx (Miro, eu-ES)",
       "species": "PhoonnxTTSPlugin",
       "types": [
@@ -3389,6 +3058,9 @@
       ],
       "alias": [
         "ovos-tts-plugin-phoonnx"
+      ],
+      "capabilities": [
+        "clip"
       ],
       "display_name": "Phoonnx (Miro, gl-ES)",
       "species": "PhoonnxTTSPlugin",
@@ -3423,6 +3095,9 @@
       "alias": [
         "ovos-tts-plugin-phoonnx"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "Phoonnx (Miro, sv-SE)",
       "species": "PhoonnxTTSPlugin",
       "types": [
@@ -3455,6 +3130,9 @@
       ],
       "alias": [
         "ovos-tts-plugin-phoonnx"
+      ],
+      "capabilities": [
+        "clip"
       ],
       "display_name": "Phoonnx (Miro, pt-PT)",
       "species": "PhoonnxTTSPlugin",
@@ -3489,6 +3167,9 @@
       "alias": [
         "ovos-tts-plugin-phoonnx"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "Phoonnx (Miro unicode, pt-PT)",
       "species": "PhoonnxTTSPlugin",
       "types": [
@@ -3520,6 +3201,9 @@
       ],
       "alias": [
         "ovos-tts-plugin-pico"
+      ],
+      "capabilities": [
+        "clip"
       ],
       "display_name": "SVOX Pico (en-US)",
       "species": "PicoTTS",
@@ -3554,6 +3238,9 @@
       "alias": [
         "ovos-tts-plugin-piper"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "Piper (Amy, en-US)",
       "species": "PiperTTSPlugin",
       "types": [
@@ -3586,6 +3273,9 @@
       ],
       "alias": [
         "ovos-tts-plugin-piper"
+      ],
+      "capabilities": [
+        "clip"
       ],
       "display_name": "Piper (Lessac medium, en-US)",
       "species": "PiperTTSPlugin",
@@ -3620,6 +3310,9 @@
       "alias": [
         "ovos-tts-plugin-piper"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "Piper (Lessac high, en-US)",
       "species": "PiperTTSPlugin",
       "types": [
@@ -3652,6 +3345,9 @@
       ],
       "alias": [
         "ovos-tts-plugin-piper"
+      ],
+      "capabilities": [
+        "clip"
       ],
       "display_name": "Piper (Ryan, en-US)",
       "species": "PiperTTSPlugin",
@@ -3686,6 +3382,9 @@
       ],
       "alias": [
         "ovos-tts-plugin-polly"
+      ],
+      "capabilities": [
+        "clip"
       ],
       "display_name": "Amazon Polly (Matthew)",
       "species": "PollyTTS",
@@ -3723,6 +3422,9 @@
       "alias": [
         "ovos-tts-plugin-SAM"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "S.A.M.",
       "species": "SAMTTS",
       "types": [
@@ -3758,6 +3460,9 @@
       "langs": [],
       "alias": [
         "ovos-vad-plugin-noise"
+      ],
+      "capabilities": [
+        "clip"
       ],
       "display_name": "Noise VAD",
       "species": "NoiseVAD",
@@ -3795,6 +3500,9 @@
       "alias": [
         "ovos-vad-plugin-noise"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "Noise VAD (strict)",
       "species": "NoiseVAD",
       "types": [
@@ -3826,6 +3534,9 @@
       "langs": [],
       "alias": [
         "ovos-vad-plugin-silero"
+      ],
+      "capabilities": [
+        "clip"
       ],
       "display_name": "Silero VAD",
       "species": "SileroVAD",
@@ -3859,6 +3570,9 @@
       "alias": [
         "ovos-vad-plugin-silero"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "Silero VAD @0.3",
       "species": "SileroVAD",
       "types": [
@@ -3890,6 +3604,9 @@
       "langs": [],
       "alias": [
         "ovos-vad-plugin-silero"
+      ],
+      "capabilities": [
+        "clip"
       ],
       "display_name": "Silero VAD @0.7",
       "species": "SileroVAD",
@@ -3929,6 +3646,9 @@
       "alias": [
         "ovos-vad-plugin-webrtcvad"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "WebRTC VAD",
       "species": "WebRTCVAD",
       "types": [
@@ -3966,6 +3686,9 @@
       "langs": [],
       "alias": [
         "ovos-vad-plugin-webrtcvad"
+      ],
+      "capabilities": [
+        "clip"
       ],
       "display_name": "WebRTC VAD (mode 1)",
       "species": "WebRTCVAD",
@@ -4007,6 +3730,10 @@
       "alias": [
         "ovos-ww-plugin-microwakeword"
       ],
+      "capabilities": [
+        "clip",
+        "stream"
+      ],
       "display_name": "microWakeWord (hey jarvis)",
       "species": "MicroWakeWordPlugin",
       "types": [
@@ -4047,6 +3774,10 @@
       "alias": [
         "ovos-ww-plugin-microwakeword"
       ],
+      "capabilities": [
+        "clip",
+        "stream"
+      ],
       "display_name": "microWakeWord (hey jarvis, cutoff 0.7)",
       "species": "MicroWakeWordPlugin",
       "types": [
@@ -4084,6 +3815,10 @@
       "alias": [
         "ovos-ww-plugin-openwakeword"
       ],
+      "capabilities": [
+        "clip",
+        "stream"
+      ],
       "display_name": "openWakeWord (alexa)",
       "species": "OwwHotwordPlugin",
       "types": [
@@ -4119,6 +3854,10 @@
       ],
       "alias": [
         "ovos-ww-plugin-openwakeword"
+      ],
+      "capabilities": [
+        "clip",
+        "stream"
       ],
       "display_name": "openWakeWord (hey jarvis)",
       "species": "OwwHotwordPlugin",
@@ -4156,6 +3895,10 @@
       ],
       "alias": [
         "ovos-ww-plugin-openwakeword"
+      ],
+      "capabilities": [
+        "clip",
+        "stream"
       ],
       "display_name": "openWakeWord (hey mycroft)",
       "species": "OwwHotwordPlugin",
@@ -4200,6 +3943,10 @@
       ],
       "alias": [
         "ovos-ww-plugin-openwakeword"
+      ],
+      "capabilities": [
+        "clip",
+        "stream"
       ],
       "display_name": "openWakeWord + Silero VAD (hey mycroft)",
       "species": "OwwHotwordPlugin",
@@ -4253,6 +4000,10 @@
       "alias": [
         "ovos-ww-plugin-openwakeword"
       ],
+      "capabilities": [
+        "clip",
+        "stream"
+      ],
       "display_name": "openWakeWord + Silero VAD + speaker verifier (hey mycroft)",
       "species": "OwwHotwordPlugin",
       "types": [
@@ -4299,6 +4050,10 @@
       "alias": [
         "ovos-ww-plugin-openwakeword"
       ],
+      "capabilities": [
+        "clip",
+        "stream"
+      ],
       "display_name": "openWakeWord + speaker verifier (hey mycroft)",
       "species": "OwwHotwordPlugin",
       "types": [
@@ -4337,6 +4092,10 @@
       "alias": [
         "ovos-ww-plugin-openwakeword"
       ],
+      "capabilities": [
+        "clip",
+        "stream"
+      ],
       "display_name": "openWakeWord @0.3 (hey mycroft)",
       "species": "OwwHotwordPlugin",
       "types": [
@@ -4373,6 +4132,10 @@
       ],
       "alias": [
         "ovos-ww-plugin-openwakeword"
+      ],
+      "capabilities": [
+        "clip",
+        "stream"
       ],
       "display_name": "openWakeWord @0.7 (hey mycroft)",
       "species": "OwwHotwordPlugin",
@@ -4411,6 +4174,10 @@
       "alias": [
         "ovos-ww-plugin-precise-onnx"
       ],
+      "capabilities": [
+        "clip",
+        "stream"
+      ],
       "display_name": "Precise-lite ONNX (athena)",
       "species": "PreciseOnnxHotwordPlugin",
       "types": [
@@ -4446,6 +4213,10 @@
       ],
       "alias": [
         "ovos-ww-plugin-precise-onnx"
+      ],
+      "capabilities": [
+        "clip",
+        "stream"
       ],
       "display_name": "Precise ONNX (computer)",
       "species": "PreciseOnnxHotwordPlugin",
@@ -4484,6 +4255,10 @@
       "alias": [
         "ovos-ww-plugin-precise-onnx"
       ],
+      "capabilities": [
+        "clip",
+        "stream"
+      ],
       "display_name": "Precise-lite ONNX (ey ordenador)",
       "species": "PreciseOnnxHotwordPlugin",
       "types": [
@@ -4519,6 +4294,10 @@
       ],
       "alias": [
         "ovos-ww-plugin-precise-onnx"
+      ],
+      "capabilities": [
+        "clip",
+        "stream"
       ],
       "display_name": "Precise-lite ONNX (hey chatterbox)",
       "species": "PreciseOnnxHotwordPlugin",
@@ -4556,6 +4335,10 @@
       "alias": [
         "ovos-ww-plugin-precise-onnx"
       ],
+      "capabilities": [
+        "clip",
+        "stream"
+      ],
       "display_name": "Precise-lite ONNX (hey k9)",
       "species": "PreciseOnnxHotwordPlugin",
       "types": [
@@ -4591,6 +4374,10 @@
       ],
       "alias": [
         "ovos-ww-plugin-precise-onnx"
+      ],
+      "capabilities": [
+        "clip",
+        "stream"
       ],
       "display_name": "Precise ONNX (hey mycroft)",
       "species": "PreciseOnnxHotwordPlugin",
@@ -4629,6 +4416,10 @@
       "alias": [
         "ovos-ww-plugin-precise-onnx"
       ],
+      "capabilities": [
+        "clip",
+        "stream"
+      ],
       "display_name": "Precise-lite ONNX (hey robin)",
       "species": "PreciseOnnxHotwordPlugin",
       "types": [
@@ -4664,6 +4455,10 @@
       ],
       "alias": [
         "ovos-ww-plugin-precise-onnx"
+      ],
+      "capabilities": [
+        "clip",
+        "stream"
       ],
       "display_name": "Precise-lite ONNX (hey scout)",
       "species": "PreciseOnnxHotwordPlugin",
@@ -4701,6 +4496,10 @@
       "alias": [
         "ovos-ww-plugin-precise-onnx"
       ],
+      "capabilities": [
+        "clip",
+        "stream"
+      ],
       "display_name": "Precise-lite ONNX (jarvis)",
       "species": "PreciseOnnxHotwordPlugin",
       "types": [
@@ -4736,6 +4535,10 @@
       ],
       "alias": [
         "ovos-ww-plugin-precise-onnx"
+      ],
+      "capabilities": [
+        "clip",
+        "stream"
       ],
       "display_name": "Precise-lite ONNX (marvin)",
       "species": "PreciseOnnxHotwordPlugin",
@@ -4781,6 +4584,9 @@
       "alias": [
         "ovos-ww-plugin-vosk"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "Vosk wake word (alexa)",
       "species": "VoskWakeWordPlugin",
       "types": [
@@ -4824,6 +4630,9 @@
       ],
       "alias": [
         "ovos-ww-plugin-vosk"
+      ],
+      "capabilities": [
+        "clip"
       ],
       "display_name": "Vosk wake word (amelia)",
       "species": "VoskWakeWordPlugin",
@@ -4869,6 +4678,9 @@
       "alias": [
         "ovos-ww-plugin-vosk"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "Vosk wake word (athena)",
       "species": "VoskWakeWordPlugin",
       "types": [
@@ -4912,6 +4724,9 @@
       ],
       "alias": [
         "ovos-ww-plugin-vosk"
+      ],
+      "capabilities": [
+        "clip"
       ],
       "display_name": "Vosk wake word (computer)",
       "species": "VoskWakeWordPlugin",
@@ -4959,6 +4774,9 @@
       "alias": [
         "ovos-ww-plugin-vosk"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "Vosk wake word (ey ordenador)",
       "species": "VoskWakeWordPlugin",
       "types": [
@@ -5002,6 +4820,9 @@
       ],
       "alias": [
         "ovos-ww-plugin-vosk"
+      ],
+      "capabilities": [
+        "clip"
       ],
       "display_name": "Vosk wake word (hey andromeda)",
       "species": "VoskWakeWordPlugin",
@@ -5048,6 +4869,9 @@
       "alias": [
         "ovos-ww-plugin-vosk"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "Vosk wake word (hey chatterbox)",
       "species": "VoskWakeWordPlugin",
       "types": [
@@ -5091,6 +4915,9 @@
       ],
       "alias": [
         "ovos-ww-plugin-vosk"
+      ],
+      "capabilities": [
+        "clip"
       ],
       "display_name": "Vosk wake word (hey computer)",
       "species": "VoskWakeWordPlugin",
@@ -5138,6 +4965,9 @@
       "alias": [
         "ovos-ww-plugin-vosk"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "Vosk wake word (hey eggbert)",
       "species": "VoskWakeWordPlugin",
       "types": [
@@ -5181,6 +5011,9 @@
       ],
       "alias": [
         "ovos-ww-plugin-vosk"
+      ],
+      "capabilities": [
+        "clip"
       ],
       "display_name": "Vosk wake word (hey floyd)",
       "species": "VoskWakeWordPlugin",
@@ -5228,6 +5061,9 @@
       "alias": [
         "ovos-ww-plugin-vosk"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "Vosk wake word (hey k9)",
       "species": "VoskWakeWordPlugin",
       "types": [
@@ -5271,6 +5107,9 @@
       ],
       "alias": [
         "ovos-ww-plugin-vosk"
+      ],
+      "capabilities": [
+        "clip"
       ],
       "display_name": "Vosk wake word (hey marvin)",
       "species": "VoskWakeWordPlugin",
@@ -5316,6 +5155,9 @@
       "alias": [
         "ovos-ww-plugin-vosk"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "Vosk wake word (hey neon)",
       "species": "VoskWakeWordPlugin",
       "types": [
@@ -5359,6 +5201,9 @@
       ],
       "alias": [
         "ovos-ww-plugin-vosk"
+      ],
+      "capabilities": [
+        "clip"
       ],
       "display_name": "Vosk wake word (hey robin)",
       "species": "VoskWakeWordPlugin",
@@ -5404,6 +5249,9 @@
       "alias": [
         "ovos-ww-plugin-vosk"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "Vosk wake word (hey savant)",
       "species": "VoskWakeWordPlugin",
       "types": [
@@ -5447,6 +5295,9 @@
       ],
       "alias": [
         "ovos-ww-plugin-vosk"
+      ],
+      "capabilities": [
+        "clip"
       ],
       "display_name": "Vosk wake word (hey scout)",
       "species": "VoskWakeWordPlugin",
@@ -5492,6 +5343,9 @@
       "alias": [
         "ovos-ww-plugin-vosk"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "Vosk wake word (hey ziggy)",
       "species": "VoskWakeWordPlugin",
       "types": [
@@ -5535,6 +5389,9 @@
       ],
       "alias": [
         "ovos-ww-plugin-vosk"
+      ],
+      "capabilities": [
+        "clip"
       ],
       "display_name": "Vosk wake word (jarvis)",
       "species": "VoskWakeWordPlugin",
@@ -5580,6 +5437,9 @@
       "alias": [
         "ovos-ww-plugin-vosk"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "Vosk wake word (sam)",
       "species": "VoskWakeWordPlugin",
       "types": [
@@ -5623,6 +5483,9 @@
       ],
       "alias": [
         "ovos-ww-plugin-vosk"
+      ],
+      "capabilities": [
+        "clip"
       ],
       "display_name": "Vosk wake word (smart mirror)",
       "species": "VoskWakeWordPlugin",
@@ -5669,6 +5532,9 @@
       "alias": [
         "ovos-ww-plugin-vosk"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "Vosk wake word (snowboy)",
       "species": "VoskWakeWordPlugin",
       "types": [
@@ -5714,6 +5580,9 @@
       "alias": [
         "ovos-ww-plugin-vosk"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "Vosk wake word (view glass)",
       "species": "VoskWakeWordPlugin",
       "types": [
@@ -5757,6 +5626,9 @@
       "alias": [
         "ovos-ww-plugin-wakeforge"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "wakeforge (hey jarvis)",
       "species": "WakeForgeHotwordPlugin",
       "types": [
@@ -5795,17 +5667,21 @@
       "alias": [
         "ovos-ww-plugin-wakewordlab"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "wakewordlab (hey jarvis)",
       "species": "WakewordLabHotwordPlugin",
       "types": [
-        "neural-net"
+        "neural-net",
+        "vad-gated"
       ],
       "description": "wakewordlab pretrained 'hey jarvis' model on a shared mel/embedding frontend with an optional Silero VAD pre-filter; models are auto-downloaded by name and cached.",
       "model": "hey_jarvis (wakewordlab pretrained)",
       "links": {
         "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakewordlab"
       },
-      "notes": "Pretrained model selected by name; threshold and the built-in VAD pre-filter are config. A different model/threshold is a different competitor."
+      "notes": "Pretrained model selected by name; threshold and the built-in VAD pre-filter are config. A different model/threshold is a different competitor. The VAD gate (config.hotwords.hey_jarvis.vad / vad_threshold) is built into the plugin's own config block, not a separate listener.VAD pipeline stage — do not expect a listener.VAD block when diffing this against the openWakeWord -silero combo fighters."
     },
     {
       "competitor_id": "wakewordlab-hey-jarvis-thr07",
@@ -5833,17 +5709,21 @@
       "alias": [
         "ovos-ww-plugin-wakewordlab"
       ],
+      "capabilities": [
+        "clip"
+      ],
       "display_name": "wakewordlab @0.7 (hey jarvis)",
       "species": "WakewordLabHotwordPlugin",
       "types": [
-        "neural-net"
+        "neural-net",
+        "vad-gated"
       ],
       "description": "wakewordlab 'hey jarvis' at a strict 0.7 threshold — fewer activations (lower false-accept, higher false-reject) than the 0.5 default.",
       "model": "hey_jarvis (wakewordlab pretrained), threshold 0.7",
       "links": {
         "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakewordlab"
       },
-      "notes": "Threshold variant of wakewordlab-hey-jarvis."
+      "notes": "Threshold variant of wakewordlab-hey-jarvis. The VAD gate (config.hotwords.hey_jarvis.vad / vad_threshold) is built into the plugin's own config block, not a separate listener.VAD pipeline stage — do not expect a listener.VAD block when diffing this against the openWakeWord -silero combo fighters."
     }
   ]
 }

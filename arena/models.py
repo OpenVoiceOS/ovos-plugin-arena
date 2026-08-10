@@ -41,11 +41,12 @@ class Modality(str, enum.Enum):
     # a separate benchmark board scored from continuous-audio detection
     # events rather than isolated clips (arena.metrics.score_ww_stream).
     WW_STREAM = "ww_stream"
+    INTENT_EMBEDDING = "intent_embedding"  # single-stage embedding classifiers
 
 
 INTENT_MODALITIES = frozenset(
     {Modality.INTENT.value, Modality.INTENT_TEMPLATE.value,
-     Modality.INTENT_KEYWORD.value}
+     Modality.INTENT_KEYWORD.value, Modality.INTENT_EMBEDDING.value}
 )
 
 
@@ -77,6 +78,7 @@ def battle_group(modality: str) -> str:
 LEAGUE_LABELS: dict[str, str] = {
     Modality.INTENT_TEMPLATE.value: "Intent · Template",
     Modality.INTENT_KEYWORD.value: "Intent · Keyword",
+    Modality.INTENT_EMBEDDING.value: "Intent · Embedding",
     Modality.INTENT.value: "Intent · Fusions",
     Modality.STT.value: "STT",
     Modality.TTS.value: "TTS",
@@ -87,6 +89,7 @@ LEAGUE_LABELS: dict[str, str] = {
 LEAGUE_ORDER: tuple[str, ...] = (
     Modality.INTENT_TEMPLATE.value,
     Modality.INTENT_KEYWORD.value,
+    Modality.INTENT_EMBEDDING.value,
     Modality.INTENT.value,
     Modality.STT.value,
     Modality.TTS.value,
