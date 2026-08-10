@@ -70,6 +70,50 @@ The daemon reloads the queue file on the next cycle whenever its mtime changes
 
 ---
 
+## Generating a full-sweep queue
+
+`runner/queue_tools.py` diffs the declarative registry (every competitor ×
+every compatible `role: eval` dataset, per modality) against what is
+actually published on HuggingFace, and prints `queue.yaml`-shaped job
+entries for pairs that are missing or incomplete. It never writes
+`runner/queue.yaml` itself and never runs a benchmark — review its output
+and paste the entries you want in.
+
+"Missing or incomplete" means: no `predictions/<competitor_id>.jsonl` file
+in the dataset's `predictions_hf` repo, a 0-byte file (this happens — e.g.
+`onnx-asr-parakeet-tdt-11b.jsonl` today), or fewer rows than `--min-rows`
+(default 1; dataset size isn't tracked in the registry, so this is a
+heuristic, not an exact "smaller than the corpus" check). A fighter with an
+empty `langs` list is treated as compatible with every dataset language.
+
+```bash
+# Human-readable table of what's missing, no downloads beyond file listings
+python -m runner.queue_tools --dry-run --modality stt
+
+# Full sweep across all modalities, skip per-file row counting (listing only)
+python -m runner.queue_tools --no-row-check --out /tmp/sweep-queue.yaml
+
+# One modality, default row-count check (downloads only files that exist
+# and are non-empty, to count rows — never a full snapshot_download)
+python -m runner.queue_tools --modality wake_word > /tmp/ww-queue.yaml
+```
+
+Entries are ordered cheapest-engine-first (a static weight heuristic — e.g.
+`vosk`/`webrtc` before `whisper`/cloud STT) then by competitor id, so a
+sweep run burns through fast/cheap fighters before slow/expensive ones.
+
+Emitted jobs use the registry-referenced job shape:
+
+```yaml
+jobs:
+  - competitor: vosk-pt
+    dataset_ref: minds14-pt-PT
+    hf_output_dataset: OpenVoiceOS/ovos-stt-bench-minds14-pt-PT
+    max_samples: 0
+```
+
+---
+
 ## Deploy on ser9
 
 ```bash
