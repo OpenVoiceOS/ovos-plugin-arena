@@ -23,12 +23,13 @@
   "display_name": "wakewordlab @0.7 (hey jarvis)",
   "species": "WakewordLabHotwordPlugin",
   "types": [
-    "neural-net"
+    "neural-net",
+    "vad-gated"
   ],
   "description": "wakewordlab 'hey jarvis' at a strict 0.7 threshold — fewer activations (lower false-accept, higher false-reject) than the 0.5 default.",
   "model": "hey_jarvis (wakewordlab pretrained), threshold 0.7",
   "links": {
     "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakewordlab"
   },
-  "notes": "Threshold variant of wakewordlab-hey-jarvis."
+  "notes": "Threshold variant of wakewordlab-hey-jarvis. The VAD gate (config.hotwords.hey_jarvis.vad / vad_threshold) is built into the plugin's own config block, not a separate listener.VAD pipeline stage — do not expect a listener.VAD block when diffing this against the openWakeWord -silero combo fighters."
 }
