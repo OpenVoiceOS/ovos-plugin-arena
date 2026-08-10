@@ -1,0 +1,39 @@
+name: Replay proof
+
+# CI-gated proof that replaying the public vote log deterministically
+# reproduces the published leaderboards (docs/operations.md "Replay
+# proof", §P5). Runs on every push to dev and once a day, and fails the
+# build loudly on any mismatch. Strict: published artifacts are derived
+# data — anything the replay path can't reproduce byte-for-field is a bug
+# in the committed data, not a tolerated exception.
+on:
+  push:
+    branches: [dev]
+  schedule:
+    - cron: '11 5 * * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  verify-replay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install arena
+        run: pip install --quiet .
+
+      - name: Replay the public vote log and verify published leaderboards
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python -m arena.cli verify-replay \
+            --data-dir frontend-static/public/data \
+            --repo "${GITHUB_REPOSITORY}"

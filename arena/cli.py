@@ -762,6 +762,196 @@ def cmd_tally(args: argparse.Namespace) -> int:
 
 
 # ---------------------------------------------------------------------------
+# verify-replay
+# ---------------------------------------------------------------------------
+
+
+_BOARD_ENTRY_FIELDS = (
+    "rank", "elo", "bt_rating", "battles", "wins", "losses", "ties",
+    "win_rate", "human_votes", "auto_votes", "ci_lower", "ci_upper",
+)
+
+
+def _diff_board(replayed: dict[str, Any], published: dict[str, Any]) -> dict[str, Any]:
+    """Field-by-field diff between a freshly-replayed board and the
+    published one on disk — ``generated_at`` (and any other timestamp) is
+    ignored since a byte-identical timestamp is never the point (§P5); the
+    *standings* (ratings, ranks, vote counts) are."""
+    ignore = {"generated_at"}
+    diff: dict[str, Any] = {}
+    for key in set(replayed) | set(published):
+        if key in ignore or key == "entries":
+            continue
+        if replayed.get(key) != published.get(key):
+            diff[key] = {"replayed": replayed.get(key), "published": published.get(key)}
+
+    r_entries = {e["competitor_id"]: e for e in replayed.get("entries", [])}
+    p_entries = {e["competitor_id"]: e for e in published.get("entries", [])}
+    entry_diff: dict[str, Any] = {}
+    for cid in sorted(set(r_entries) | set(p_entries)):
+        r, p = r_entries.get(cid), p_entries.get(cid)
+        if r is None:
+            entry_diff[cid] = {"missing_from": "replayed"}
+            continue
+        if p is None:
+            entry_diff[cid] = {"missing_from": "published"}
+            continue
+        field_diffs = {
+            f: {"replayed": r.get(f), "published": p.get(f)}
+            for f in _BOARD_ENTRY_FIELDS if r.get(f) != p.get(f)
+        }
+        if field_diffs:
+            entry_diff[cid] = field_diffs
+    if entry_diff:
+        diff["entries"] = entry_diff
+    return diff
+
+
+def cmd_verify_replay(args: argparse.Namespace) -> int:
+    """Replay the public vote log from scratch and prove it reproduces the
+    published leaderboards exactly (§P5, docs/operations.md "Replaying the
+    arena from public logs").
+
+    Reuses the *same* pure replay path as ``tally`` (``dedupe_votes`` →
+    ``resolve_vote_weights`` → ``build_elo_board``) — this command never
+    reimplements ELO, it only re-runs the existing functions against the
+    current vote log and diffs the result against what is already
+    committed, instead of overwriting it. Never touches the network for
+    the account-age gate: it reads the already-committed
+    ``voter-age-cache.json`` as-is, same as replay purity requires
+    elsewhere in this module.
+    """
+    data_dir = Path(args.data_dir)
+    battles_pool = load_battles_pools(data_dir)
+    seeds = load_elo_seeds(data_dir)
+    log.info("Loaded %d battles, %d ELO seeds", len(battles_pool), len(seeds))
+
+    if args.votes_file:
+        log.info("Reading vote issues from %s (offline)", args.votes_file)
+        issues = json.loads(Path(args.votes_file).read_text())
+    elif args.repo:
+        log.info("Fetching vote issues from %s …", args.repo)
+        issues = fetch_vote_issues(args.repo)
+    else:
+        log.error("verify-replay needs --votes-file (offline fixture/snapshot) "
+                   "or --repo (live GitHub vote log)")
+        return 2
+    log.info("  → %d vote issue(s)", len(issues))
+
+    raw_votes: list[dict] = []
+    for issue in issues:
+        parsed = parse_vote_title(issue.get("title", ""))
+        if parsed is None:
+            continue
+        battle_id, choice = parsed
+        if battle_id not in battles_pool:
+            continue
+        raw_votes.append({
+            "issue_number": issue["number"],
+            "battle_id": battle_id,
+            "choice": choice,
+            "author": (issue.get("author") or {}).get("login", "unknown"),
+            "created_at": issue.get("createdAt", ""),
+        })
+    votes = dedupe_votes(raw_votes)
+    log.info("  → %d deduped vote(s)", len(votes))
+
+    modality_by_battle = {bid: b["modality"] for bid, b in battles_pool.items()}
+    account_created_at = _load_json_dict(data_dir / "voter-age-cache.json")
+    decisions = resolve_vote_weights(votes, modality_by_battle, account_created_at)
+    counted_decisions = [d for d in decisions if d.weight > 0]
+    log.info("  → %d counted vote(s), %d discarded by fraud rules",
+             len(counted_decisions), len(decisions) - len(counted_decisions))
+
+    votes_by_board: dict[tuple[str, str], list[dict]] = {}
+    for d in counted_decisions:
+        battle = battles_pool[d.vote["battle_id"]]
+        key = (battle["modality"], battle["lang"])
+        votes_by_board.setdefault(key, []).append({**d.vote, "weight": d.weight})
+
+    boards = sorted(set(seeds) | set(votes_by_board))
+    mismatches: list[tuple[str, dict]] = []
+    missing_published: list[str] = []
+    checked = 0
+    for modality, lang in boards:
+        replayed = build_elo_board(
+            modality, lang, seeds.get((modality, lang)),
+            votes_by_board.get((modality, lang), []), battles_pool,
+        )
+        published_path = data_dir / f"leaderboard-{modality}-{lang}.json"
+        if not published_path.exists():
+            missing_published.append(published_path.name)
+            continue
+        published = json.loads(published_path.read_text())
+        diff = _diff_board(replayed.model_dump(mode="json"), published)
+        checked += 1
+        if diff:
+            mismatches.append((published_path.name, diff))
+
+    if missing_published:
+        mismatches.append((
+            "<not published>",
+            {"missing_published_boards": sorted(missing_published)},
+        ))
+
+    # Cross-check the audit trail too — a tampered vote-audit.json (e.g. a
+    # discard silently dropped or a weight edited by hand) is just as much
+    # of an integrity break as a tampered rating, and this is the same
+    # replay path that produces it in `tally`.
+    audit_path = data_dir / "vote-audit.json"
+    if audit_path.exists():
+        replayed_audit = {
+            "counted": len(counted_decisions),
+            "discarded": sorted(
+                (
+                    {"issue_number": d.vote["issue_number"], "author": d.vote["author"],
+                     "battle_id": d.vote["battle_id"], "reason": d.discarded_reason}
+                    for d in decisions if d.weight <= 0
+                ),
+                key=lambda e: e["issue_number"],
+            ),
+            "downweighted": sorted(
+                (
+                    {"issue_number": d.vote["issue_number"], "author": d.vote["author"],
+                     "battle_id": d.vote["battle_id"], "weight": d.weight}
+                    for d in counted_decisions if d.weight < 1.0
+                ),
+                key=lambda e: e["issue_number"],
+            ),
+        }
+        published_audit_raw = json.loads(audit_path.read_text())
+        published_audit = {
+            "counted": published_audit_raw.get("counted"),
+            "discarded": sorted(
+                published_audit_raw.get("discarded", []),
+                key=lambda e: e.get("issue_number", 0),
+            ),
+            "downweighted": sorted(
+                published_audit_raw.get("downweighted", []),
+                key=lambda e: e.get("issue_number", 0),
+            ),
+        }
+        if replayed_audit != published_audit:
+            mismatches.append(("vote-audit.json", {
+                "replayed": replayed_audit, "published": published_audit,
+            }))
+
+    if mismatches:
+        print("REPLAY MISMATCH — replayed standings diverge from the "
+              "published leaderboards:\n")
+        for path, diff in mismatches:
+            print(f"{path}:")
+            print(json.dumps(diff, indent=2, sort_keys=True))
+            print()
+        log.error("verify-replay FAILED — %d board(s)/artifact(s) mismatched", len(mismatches))
+        return 1
+
+    log.info("verify-replay OK — %d published board(s) reproduced exactly "
+              "by replaying the vote log", checked)
+    return 0
+
+
+# ---------------------------------------------------------------------------
 # export-index / export-bestiary
 # ---------------------------------------------------------------------------
 
@@ -932,6 +1122,17 @@ def main(argv=None):
     p.add_argument("--keep-issues-open", action="store_true",
                    help="Do not close processed issues (dry-run)")
 
+    p = sub.add_parser(
+        "verify-replay",
+        help="Replay the public vote log and verify it reproduces the "
+             "published leaderboards exactly (CI proof, §P5)",
+    )
+    p.add_argument("--data-dir", default="frontend-static/public/data")
+    p.add_argument("--votes-file", default="",
+                   help="Offline vote-issue JSON array (fixture/snapshot) "
+                        "instead of a live GitHub fetch")
+    p.add_argument("--repo", default=os.environ.get("GITHUB_REPOSITORY", ""))
+
     p = sub.add_parser("export-index", help="Regenerate data/index.json")
     p.add_argument("--data-dir", default="frontend-static/public/data")
     p.add_argument("--output", default="frontend-static/public/data/index.json")
@@ -956,6 +1157,7 @@ def main(argv=None):
     commands = {
         "assemble": cmd_assemble,
         "tally": cmd_tally,
+        "verify-replay": cmd_verify_replay,
         "export-index": cmd_export_index,
         "export-bestiary": cmd_export_bestiary,
         "validate-registry": cmd_validate_registry,
