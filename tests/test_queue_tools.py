@@ -175,6 +175,48 @@ class TestCompatibility:
         assert is_compatible(comp, ds)
         assert dataset_langs(ds) == ["en-US", "fr-FR"]
 
+    def test_bare_primary_subtag_matches_full_bcp47(self):
+        """Fighters commonly pin ``de`` while datasets carry ``de-DE`` —
+        exact-string overlap silently dropped ~90% of real pairs. Matching
+        must go through the primary-subtag rule the benches use."""
+        from registry.schemas import CompetitorDef, DatasetDef
+
+        comp = CompetitorDef(
+            competitor_id="c", modality="stt", plugin="p", langs=["de"]
+        )
+        ds = DatasetDef(
+            dataset_id="d",
+            modality="stt",
+            source={"type": "huggingface", "hf_id": "x"},
+            lang="de-DE",
+        )
+        assert is_compatible(comp, ds)
+        # and the reverse orientation (full tag on fighter, bare on dataset)
+        comp2 = CompetitorDef(
+            competitor_id="c2", modality="stt", plugin="p", langs=["ca-ES"]
+        )
+        ds2 = DatasetDef(
+            dataset_id="d2",
+            modality="stt",
+            source={"type": "huggingface", "hf_id": "x"},
+            lang="ca",
+        )
+        assert is_compatible(comp2, ds2)
+
+    def test_different_primary_subtags_still_excluded(self):
+        from registry.schemas import CompetitorDef, DatasetDef
+
+        comp = CompetitorDef(
+            competitor_id="c", modality="stt", plugin="p", langs=["pt-BR"]
+        )
+        ds = DatasetDef(
+            dataset_id="d",
+            modality="stt",
+            source={"type": "huggingface", "hf_id": "x"},
+            lang="pl-PL",
+        )
+        assert not is_compatible(comp, ds)
+
 
 # ---------------------------------------------------------------------------
 # find_missing_pairs — the diff logic
