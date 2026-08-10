@@ -146,6 +146,23 @@ import Base from '../../layouts/Base.astro';
                          || primaryLang(t) === primaryLang(wanted));
     }
 
+    // URL state so a filtered dex view is linkable/shareable — mirrors the
+    // leaderboard's ?league=&lang= pattern. No dataset filter here: mapping a
+    // fighter to "registered datasets" would mean guessing at an association
+    // (modality+lang overlap) the data doesn't actually encode per-fighter,
+    // and inventing that link would be a fake one — see task note in the PR.
+    function syncUrl() {
+      const params = new URLSearchParams(window.location.search);
+      const modality = document.getElementById('sel-modality').value;
+      const type = document.getElementById('sel-type').value;
+      const lang = document.getElementById('sel-flang').value;
+      modality ? params.set('modality', modality) : params.delete('modality');
+      type ? params.set('type', type) : params.delete('type');
+      lang ? params.set('lang', lang) : params.delete('lang');
+      const qs = params.toString();
+      window.history.replaceState(null, '', `${window.location.pathname}${qs ? '?' + qs : ''}${window.location.hash}`);
+    }
+
     function applyFilters() {
       const modality = document.getElementById('sel-modality').value;
       const type = document.getElementById('sel-type').value.toLowerCase();
@@ -156,6 +173,20 @@ import Base from '../../layouts/Base.astro';
                   && langMatches(el.dataset.langs, wanted);
         el.style.display = show ? '' : 'none';
       });
+      syncUrl();
+    }
+
+    function initFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      const modality = params.get('modality');
+      const type = params.get('type');
+      const lang = params.get('lang');
+      const selModality = document.getElementById('sel-modality');
+      const selType = document.getElementById('sel-type');
+      const selLang = document.getElementById('sel-flang');
+      if (modality && [...selModality.options].some(o => o.value === modality)) selModality.value = modality;
+      if (type && [...selType.options].some(o => o.value === type)) selType.value = type;
+      if (lang && [...selLang.options].some(o => o.value === lang)) selLang.value = lang;
     }
 
     async function init() {
@@ -194,6 +225,9 @@ import Base from '../../layouts/Base.astro';
 
       ['sel-modality', 'sel-type', 'sel-flang'].forEach(id =>
         document.getElementById(id).addEventListener('change', applyFilters));
+
+      initFromUrl();
+      applyFilters();
     }
 
     init();
