@@ -1,0 +1,48 @@
+{
+  "competitor_id": "microwakeword-hey-jarvis-silero",
+  "modality": "wake_word",
+  "plugin": "ovos-ww-plugin-microwakeword",
+  "config": {
+    "listener": {
+      "wake_word": "hey_jarvis",
+      "VAD": {
+        "module": "ovos-vad-plugin-silero",
+        "threshold": 0.5,
+        "ovos-vad-plugin-silero": {
+          "threshold": 0.5
+        }
+      }
+    },
+    "hotwords": {
+      "hey_jarvis": {
+        "module": "ovos-ww-plugin-microwakeword",
+        "listen": true,
+        "model": "https://github.com/esphome/micro-wake-word-models/raw/main/models/hey_jarvis.tflite",
+        "model_name": "hey_jarvis",
+        "model_version": 1,
+        "probability_cutoff": 0.5,
+        "sliding_window_size": 10,
+        "refractory_frames": 40
+      }
+    }
+  },
+  "langs": [
+    "en"
+  ],
+  "display_name": "microWakeWord + Silero VAD (hey jarvis)",
+  "species": "MicroWakeWordPlugin",
+  "types": [
+    "neural-net",
+    "vad-gated"
+  ],
+  "description": "microWakeWord 'hey jarvis' fronted by a Silero pre-wake VAD gate: the detector only runs on clips the VAD calls speech.",
+  "model": "hey_jarvis (microWakeWord) + silero-vad",
+  "links": {
+    "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-microwakeword"
+  },
+  "notes": "Combo fighter: wake-word engine + pre-wake VAD. The same engine without the VAD, or with a different VAD, is a different competitor.",
+  "capabilities": [
+    "clip",
+    "stream"
+  ]
+}

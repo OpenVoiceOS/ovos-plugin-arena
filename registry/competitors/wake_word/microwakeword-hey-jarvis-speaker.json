@@ -1,0 +1,48 @@
+{
+  "competitor_id": "microwakeword-hey-jarvis-speaker",
+  "modality": "wake_word",
+  "plugin": "ovos-ww-plugin-microwakeword",
+  "config": {
+    "listener": {
+      "wake_word": "hey_jarvis"
+    },
+    "hotwords": {
+      "hey_jarvis": {
+        "module": "ovos-ww-plugin-microwakeword",
+        "listen": true,
+        "model": "https://github.com/esphome/micro-wake-word-models/raw/main/models/hey_jarvis.tflite",
+        "model_name": "hey_jarvis",
+        "model_version": 1,
+        "probability_cutoff": 0.5,
+        "sliding_window_size": 10,
+        "refractory_frames": 40
+      }
+    },
+    "hotword_verifier": {
+      "module": "ovos-ww-verifier-speaker",
+      "model": "wespeaker-resnet34",
+      "threshold": 0.45,
+      "fail_open": true,
+      "per_profile_thresholds": {}
+    }
+  },
+  "langs": [
+    "en"
+  ],
+  "display_name": "microWakeWord + speaker verifier (hey jarvis)",
+  "species": "MicroWakeWordPlugin",
+  "types": [
+    "neural-net",
+    "verified"
+  ],
+  "description": "microWakeWord 'hey jarvis' followed by a speaker-verification gate: an activation only counts when the verifier confirms it.",
+  "model": "hey_jarvis (microWakeWord) + speaker verifier",
+  "links": {
+    "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-microwakeword"
+  },
+  "notes": "Combo fighter: wake-word engine + verifier. The same engine without the verifier is a different competitor.",
+  "capabilities": [
+    "clip",
+    "stream"
+  ]
+}

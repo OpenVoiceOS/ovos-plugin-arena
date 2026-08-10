@@ -1,0 +1,47 @@
+{
+  "competitor_id": "wakeforge-hey-jarvis-silero",
+  "modality": "wake_word",
+  "plugin": "ovos-ww-plugin-wakeforge",
+  "config": {
+    "listener": {
+      "wake_word": "hey_jarvis",
+      "VAD": {
+        "module": "ovos-vad-plugin-silero",
+        "threshold": 0.5,
+        "ovos-vad-plugin-silero": {
+          "threshold": 0.5
+        }
+      }
+    },
+    "hotwords": {
+      "hey_jarvis": {
+        "module": "ovos-ww-plugin-wakeforge",
+        "listen": true,
+        "featurizer": "https://huggingface.co/OpenVoiceOS/wakeforge-hey_jarvis/resolve/main/featurizer.onnx",
+        "model": "https://huggingface.co/OpenVoiceOS/wakeforge-hey_jarvis/resolve/main/best_f1.onnx",
+        "threshold": 0.5,
+        "smoothing": "ema",
+        "patience": 3,
+        "debounce_sec": 1.0,
+        "window_size": 5,
+        "ema_alpha": 0.3,
+        "streaming": false
+      }
+    }
+  },
+  "langs": [
+    "en"
+  ],
+  "display_name": "wakeforge + Silero VAD (hey jarvis)",
+  "species": "WakeForgeHotwordPlugin",
+  "types": [
+    "neural-net",
+    "vad-gated"
+  ],
+  "description": "wakeforge 'hey jarvis' fronted by a Silero pre-wake VAD gate: the featurizer+classifier only runs on clips the VAD calls speech.",
+  "model": "wakeforge hey_jarvis + silero-vad",
+  "links": {
+    "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge"
+  },
+  "notes": "Combo fighter: wake-word engine + pre-wake VAD. The same engine without the VAD, or with a different VAD, is a different competitor."
+}

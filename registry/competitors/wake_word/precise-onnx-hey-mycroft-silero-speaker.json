@@ -1,0 +1,53 @@
+{
+  "competitor_id": "precise-onnx-hey-mycroft-silero-speaker",
+  "modality": "wake_word",
+  "plugin": "ovos-ww-plugin-precise-onnx",
+  "config": {
+    "listener": {
+      "wake_word": "hey_mycroft",
+      "VAD": {
+        "module": "ovos-vad-plugin-silero",
+        "threshold": 0.5,
+        "ovos-vad-plugin-silero": {
+          "threshold": 0.5
+        }
+      }
+    },
+    "hotwords": {
+      "hey_mycroft": {
+        "module": "ovos-ww-plugin-precise-onnx",
+        "listen": true,
+        "model": "https://github.com/OpenVoiceOS/precise-lite-models/raw/master/wakewords/en/hey_mycroft.onnx",
+        "sensitivity": 0.5,
+        "trigger_level": 3
+      }
+    },
+    "hotword_verifier": {
+      "module": "ovos-ww-verifier-speaker",
+      "model": "wespeaker-resnet34",
+      "threshold": 0.45,
+      "fail_open": true,
+      "per_profile_thresholds": {}
+    }
+  },
+  "langs": [
+    "en"
+  ],
+  "display_name": "Precise ONNX + Silero VAD + speaker verifier (hey mycroft)",
+  "species": "PreciseOnnxHotwordPlugin",
+  "types": [
+    "neural-net",
+    "vad-gated",
+    "verified"
+  ],
+  "description": "The full listener stack for 'hey mycroft' on Precise ONNX: a Silero pre-wake VAD gate, then the Precise recurrent detector, then a speaker-verification confirm.",
+  "model": "silero-vad -> hey_mycroft.onnx (precise-lite-models) -> speaker verifier",
+  "links": {
+    "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-precise-onnx"
+  },
+  "notes": "Combo fighter: pre-wake VAD + wake-word engine + verifier. Each distinct (engine, VAD, verifier) triple is its own competitor. 'hey mycroft' is used here (not 'hey jarvis') because it's the phrase precise-onnx shares with openWakeWord, keeping the comparison apples-to-apples on synthetic-wakewords-hey_mycroft.",
+  "capabilities": [
+    "clip",
+    "stream"
+  ]
+}
