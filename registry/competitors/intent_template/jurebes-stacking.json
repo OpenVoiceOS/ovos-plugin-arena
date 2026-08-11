@@ -1,0 +1,30 @@
+{
+  "competitor_id": "jurebes-stacking",
+  "modality": "intent_template",
+  "config": {
+    "intents": {
+      "pipeline": [
+        "ovos-jurebes-pipeline-plugin-medium"
+      ],
+      "ovos-jurebes-pipeline-plugin": {
+        "baseline": "stacking",
+        "enable_slots": true,
+        "conf_high": 0.8,
+        "conf_med": 0.6,
+        "conf_low": 0.4
+      }
+    }
+  },
+  "langs": [],
+  "display_name": "Jurebes (stacking)",
+  "species": "JurebesPipeline",
+  "types": [
+    "classical-ML"
+  ],
+  "description": "Scikit-learn text classification behind the OVOS pipeline API using the jurebes 'stacking' baseline: TF-IDF word featurizer feeding a stacking ensemble (Logistic Regression, calibrated Linear SVM, Multinomial Naive Bayes) with a Logistic Regression meta-learner.",
+  "model": "stacking (TF-IDF word featurizer + stacked LogisticRegression/LinearSVC/MultinomialNB with LogisticRegression meta-learner)",
+  "links": {
+    "source": "https://github.com/TigreGotico/jurebes"
+  },
+  "notes": "Same engine as every other jurebes fighter, different featurizer x classifier recipe (registry baseline 'stacking', group(s): ensemble); single-stage pipeline at the plugin's own medium-confidence gate. The arena measures which sklearn recipe wins on assistant-style templates, not which fighter 'is' jurebes."
+}

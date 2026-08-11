@@ -1,0 +1,30 @@
+{
+  "competitor_id": "jurebes-word-pos-logreg",
+  "modality": "intent_template",
+  "config": {
+    "intents": {
+      "pipeline": [
+        "ovos-jurebes-pipeline-plugin-medium"
+      ],
+      "ovos-jurebes-pipeline-plugin": {
+        "baseline": "word_pos_logreg",
+        "enable_slots": true,
+        "conf_high": 0.8,
+        "conf_med": 0.6,
+        "conf_low": 0.4
+      }
+    }
+  },
+  "langs": [],
+  "display_name": "Jurebes (word_pos_logreg)",
+  "species": "JurebesPipeline",
+  "types": [
+    "classical-ML"
+  ],
+  "description": "Scikit-learn text classification behind the OVOS pipeline API using the jurebes 'word_pos_logreg' baseline: word+POS combined featurizer (English) + Logistic Regression.",
+  "model": "word_pos_logreg (word+POS combined featurizer (English) + Logistic Regression)",
+  "links": {
+    "source": "https://github.com/TigreGotico/jurebes"
+  },
+  "notes": "Same engine as every other jurebes fighter, different featurizer x classifier recipe (registry baseline 'word_pos_logreg', group(s): linguistic); single-stage pipeline at the plugin's own medium-confidence gate. The arena measures which sklearn recipe wins on assistant-style templates, not which fighter 'is' jurebes."
+}

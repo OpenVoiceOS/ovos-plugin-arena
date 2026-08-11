@@ -1,0 +1,30 @@
+{
+  "competitor_id": "jurebes-bm25-linear-svc",
+  "modality": "intent_template",
+  "config": {
+    "intents": {
+      "pipeline": [
+        "ovos-jurebes-pipeline-plugin-medium"
+      ],
+      "ovos-jurebes-pipeline-plugin": {
+        "baseline": "bm25_linear_svc",
+        "enable_slots": true,
+        "conf_high": 0.8,
+        "conf_med": 0.6,
+        "conf_low": 0.4
+      }
+    }
+  },
+  "langs": [],
+  "display_name": "Jurebes (bm25_linear_svc)",
+  "species": "JurebesPipeline",
+  "types": [
+    "classical-ML"
+  ],
+  "description": "Scikit-learn text classification behind the OVOS pipeline API using the jurebes 'bm25_linear_svc' baseline: BM25-weighted word featurizer + calibrated Linear SVM.",
+  "model": "bm25_linear_svc (BM25-weighted word featurizer + calibrated Linear SVM)",
+  "links": {
+    "source": "https://github.com/TigreGotico/jurebes"
+  },
+  "notes": "Same engine as every other jurebes fighter, different featurizer x classifier recipe (registry baseline 'bm25_linear_svc', group(s): linear); single-stage pipeline at the plugin's own medium-confidence gate. The arena measures which sklearn recipe wins on assistant-style templates, not which fighter 'is' jurebes."
+}

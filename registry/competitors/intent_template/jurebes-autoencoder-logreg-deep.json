@@ -1,0 +1,30 @@
+{
+  "competitor_id": "jurebes-autoencoder-logreg-deep",
+  "modality": "intent_template",
+  "config": {
+    "intents": {
+      "pipeline": [
+        "ovos-jurebes-pipeline-plugin-medium"
+      ],
+      "ovos-jurebes-pipeline-plugin": {
+        "baseline": "autoencoder_logreg_deep",
+        "enable_slots": true,
+        "conf_high": 0.8,
+        "conf_med": 0.6,
+        "conf_low": 0.4
+      }
+    }
+  },
+  "langs": [],
+  "display_name": "Jurebes (autoencoder_logreg_deep)",
+  "species": "JurebesPipeline",
+  "types": [
+    "neural-net"
+  ],
+  "description": "Scikit-learn text classification behind the OVOS pipeline API using the jurebes 'autoencoder_logreg_deep' baseline: TF-IDF word featurizer compressed via a deep MLP autoencoder bottleneck (256-128-64-128-256) + Logistic Regression.",
+  "model": "autoencoder_logreg_deep (TF-IDF word featurizer compressed via a deep MLP autoencoder bottleneck (256-128-64-128-256) + Logistic Regression)",
+  "links": {
+    "source": "https://github.com/TigreGotico/jurebes"
+  },
+  "notes": "Same engine as every other jurebes fighter, different featurizer x classifier recipe (registry baseline 'autoencoder_logreg_deep', group(s): reduced_dim); single-stage pipeline at the plugin's own medium-confidence gate. The arena measures which sklearn recipe wins on assistant-style templates, not which fighter 'is' jurebes."
+}

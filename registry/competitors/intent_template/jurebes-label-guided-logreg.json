@@ -1,0 +1,30 @@
+{
+  "competitor_id": "jurebes-label-guided-logreg",
+  "modality": "intent_template",
+  "config": {
+    "intents": {
+      "pipeline": [
+        "ovos-jurebes-pipeline-plugin-medium"
+      ],
+      "ovos-jurebes-pipeline-plugin": {
+        "baseline": "label_guided_logreg",
+        "enable_slots": true,
+        "conf_high": 0.8,
+        "conf_med": 0.6,
+        "conf_low": 0.4
+      }
+    }
+  },
+  "langs": [],
+  "display_name": "Jurebes (label_guided_logreg)",
+  "species": "JurebesPipeline",
+  "types": [
+    "neural-net"
+  ],
+  "description": "Scikit-learn text classification behind the OVOS pipeline API using the jurebes 'label_guided_logreg' baseline: TF-IDF word featurizer compressed via a supervised, label-guided neural embedding + Logistic Regression.",
+  "model": "label_guided_logreg (TF-IDF word featurizer compressed via a supervised, label-guided neural embedding + Logistic Regression)",
+  "links": {
+    "source": "https://github.com/TigreGotico/jurebes"
+  },
+  "notes": "Same engine as every other jurebes fighter, different featurizer x classifier recipe (registry baseline 'label_guided_logreg', group(s): reduced_dim); single-stage pipeline at the plugin's own medium-confidence gate. The arena measures which sklearn recipe wins on assistant-style templates, not which fighter 'is' jurebes."
+}
