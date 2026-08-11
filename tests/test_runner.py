@@ -263,3 +263,54 @@ class TestPluginFromCompetitor:
         # without an override, the fighter's own config.lang still wins
         spec2 = _plugin_from_competitor("vosk-small-it", registry_root=tmp_path)
         assert spec2.lang == "it"
+
+
+class TestRunJobAttribution:
+    """Regression: rows from competitor-referenced jobs must carry an explicit
+    competitor_id — ingestion's plugin_id alias fallback returns the FIRST
+    fighter matching the plugin name, so every multi-fighter plugin (8
+    fasterwhisper tiers, 5 vosk models) would collapse onto one competitor
+    and mis-score its board."""
+
+    def _run(self, tmp_path, monkeypatch, competitor_id):
+        import json
+        import numpy as np
+        import runner.plugin_runner as pr
+        from runner.queue_config import DatasetSpec, JobSpec, PluginSpec
+
+        class FakeSTT:
+            def execute(self, audio, language=None):
+                return "hello world"
+
+        monkeypatch.setattr(pr, "_load_plugin", lambda p: FakeSTT())
+        monkeypatch.setattr(
+            pr, "_stream_dataset",
+            lambda d: iter([("s1", "hello world",
+                             np.zeros(16000, dtype=np.float32), 16000)]))
+        monkeypatch.setattr(
+            pr, "_transcribe",
+            lambda stt, a, sr, lang: ("hello world", 0.9))
+        plugin = PluginSpec(
+            plugin_name="ovos-stt-plugin-vosk",
+            model_name="http://x/model.zip",
+            lang="en-US",
+            competitor_id=competitor_id,
+        )
+        dataset = DatasetSpec(hf_repo="fake/ds", subset="en-US", split="train",
+                              ground_truth_key="transcription")
+        out = pr.run_job(JobSpec(plugin=plugin, dataset=dataset,
+                                 hf_output_dataset="fake/out"),
+                         base_dir=tmp_path)
+        rows = [json.loads(l) for l in out.read_text().splitlines()]
+        return out, rows
+
+    def test_competitor_job_rows_carry_competitor_id(self, tmp_path, monkeypatch):
+        out, rows = self._run(tmp_path, monkeypatch, "vosk-small-it")
+        assert rows and rows[0]["competitor_id"] == "vosk-small-it"
+        # filename keyed by competitor_id, not the URL-mangled model name
+        assert out.name == "stt_en-US_vosk-small-it.jsonl"
+
+    def test_inline_job_rows_keep_legacy_shape(self, tmp_path, monkeypatch):
+        out, rows = self._run(tmp_path, monkeypatch, None)
+        assert rows and "competitor_id" not in rows[0]
+        assert "vosk" in out.name and "model.zip" in out.name

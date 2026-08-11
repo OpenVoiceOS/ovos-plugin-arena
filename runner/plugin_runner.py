@@ -253,10 +253,17 @@ def run_job(
 
     manifest = JobManifest.load(base_dir, job_key)
 
-    # Determine output file
+    # Determine output file. Competitor-referenced jobs are named by
+    # competitor_id (the spec's predictions layout and a stable, readable
+    # shard stem); inline jobs keep the legacy plugin+model stem — model
+    # names can be URLs (vosk), which produce grotesque but functional
+    # escaped filenames.
     safe_model = plugin.model_name.replace("/", "__")
     safe_plugin = plugin.plugin_name.replace("-", "_")
-    out_name = f"stt_{plugin.lang}_{safe_plugin}_{safe_model}.jsonl"
+    if plugin.competitor_id:
+        out_name = f"stt_{plugin.lang}_{plugin.competitor_id}.jsonl"
+    else:
+        out_name = f"stt_{plugin.lang}_{safe_plugin}_{safe_model}.jsonl"
     output_path = base_dir / "output" / out_name
     output_path.parent.mkdir(parents=True, exist_ok=True)
     manifest.output_file = str(output_path)
@@ -311,6 +318,13 @@ def run_job(
                 "confidence": conf,
                 "extras": {"model_id": mid},
             }
+            # Attribution must be explicit for competitor-referenced jobs:
+            # ingestion's plugin_id alias fallback returns the FIRST fighter
+            # matching the plugin name, so every multi-fighter plugin (8
+            # fasterwhisper tiers, 5 vosk models, ...) would collapse onto
+            # one competitor and mis-score its board.
+            if plugin.competitor_id:
+                row["competitor_id"] = plugin.competitor_id
             fh.write(json.dumps(row, ensure_ascii=False, sort_keys=True) + "\n")
             fh.flush()  # flush every row so output is visible immediately
             written += 1
