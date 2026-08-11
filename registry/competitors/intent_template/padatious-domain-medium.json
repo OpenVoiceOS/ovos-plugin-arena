@@ -1,0 +1,34 @@
+{
+  "competitor_id": "padatious-domain-medium",
+  "modality": "intent_template",
+  "config": {
+    "intents": {
+      "pipeline": [
+        "ovos-padatious-pipeline-plugin-medium"
+      ],
+      "ovos-padatious-pipeline-plugin": {
+        "conf_high": 0.95,
+        "conf_med": 0.8,
+        "conf_low": 0.5,
+        "domain_engine": true,
+        "cast_to_ascii": false,
+        "stem": false,
+        "disable_padaos": false,
+        "instant_train": false
+      }
+    }
+  },
+  "langs": [],
+  "display_name": "Padatious (Domain)",
+  "species": "PadatiousPipeline",
+  "types": [
+    "neural-net",
+    "template-match"
+  ],
+  "description": "Same Padatious engine as padatious-medium, with the plugin's own two-stage DomainIntentContainer switched on via 'domain_engine': true: utterances first route to a skill_id-scoped domain container, then match against that domain's intents only.",
+  "links": {
+    "source": "https://github.com/OpenVoiceOS/ovos-padatious-pipeline-plugin"
+  },
+  "notes": "Same plugin id and medium-confidence gate as padatious-medium; the only config change is flipping 'domain_engine' from false to true, which swaps the internal IntentContainer for DomainIntentContainer (ovos_padatious/domain_container.py). Hypothesis: domain-first two-stage routing should help precision on large multi-domain intent sets (fewer cross-domain false positives) at the cost of an extra routing step, and be roughly neutral-to-worse on small single-domain sets where there is no domain structure to exploit.",
+  "size": "micro"
+}

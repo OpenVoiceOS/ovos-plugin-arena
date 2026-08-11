@@ -85,6 +85,21 @@ ENGINE_REGISTRY: dict[str, EngineSpec] = {
         "ovos_hierarchical_knn_pipeline:HierarchicalKNNIntentPipeline",
         "template",
         "mycroft.ready", "ovos-hierarchical-knn-pipeline", "hknn"),
+    # Domain/hierarchical two-stage variants — separate OPM entry points
+    # (opm.pipeline) from the same distributions as their flat siblings
+    # above; wired in here so the arena can dispatch to them.
+    "ovos-nebulento-hierarchical-pipeline-plugin": EngineSpec(
+        "nebulento.opm:HierarchicalNebulentoPipeline", "template",
+        "mycroft.skills.train", "nebulento", "nebulento_hierarchical"),
+    "ovos-linha-fina-domain-pipeline-plugin": EngineSpec(
+        "linha_fina.opm:DomainLinhaFinaPipeline", "template",
+        "mycroft.ready", "linha-fina", "linha_fina_domain"),
+    "ovos-linha-fina-hierarchical-pipeline-plugin": EngineSpec(
+        "linha_fina.hierarchical_opm:HierarchicalLinhaFinaPipeline", "template",
+        "mycroft.ready", "linha-fina", "linha_fina_hierarchical"),
+    "ovos-markov-domain-pipeline-plugin": EngineSpec(
+        "ovos_markov_pipeline:DomainMarkovPipeline", "template",
+        "mycroft.skills.train", "ovos-markov-pipeline-plugin", "markov_domain"),
 }
 
 
