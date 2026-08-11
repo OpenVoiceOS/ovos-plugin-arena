@@ -399,8 +399,12 @@ class TestRendering:
         assert "jobs" in parsed
         assert len(parsed["jobs"]) == len(missing)
         for job in parsed["jobs"]:
-            assert set(job) == {"competitor", "dataset_ref", "hf_output_dataset", "max_samples"}
+            assert set(job) == {
+                "competitor", "dataset_ref", "lang", "hf_output_dataset", "max_samples",
+            }
             assert job["max_samples"] == 0
+            # every mini_registry dataset has a concrete lang (en-US/pt-PT)
+            assert job["lang"] in {"en-US", "pt-PT"}
 
     def test_queue_yaml_loads_via_queue_config(self, mini_registry, tmp_path, monkeypatch):
         """Rendered YAML must actually resolve through runner.queue_config.load_queue
@@ -518,10 +522,34 @@ class TestFindMissingPairsLangNestedLayout:
                   for mp in missing}
         assert ("vosk-en", "minds14-en-US") not in by_key
 
-    def test_rows_aggregate_across_lang_dirs(self, mini_registry):
-        """A multi-lang repo with per-lang files must sum rows, and only
-        non-empty files are counted."""
-        repo = "OpenVoiceOS/ovos-stt-bench-minds14-en-US"
+    def test_rows_aggregate_across_lang_dirs_for_multi_lang_dataset(self, tmp_path):
+        """Any-lang aggregation is only correct for a genuinely multi/unknown
+        -lang dataset (lang='multi') — a single-language dataset must NOT
+        aggregate rows across unrelated lang dirs (see
+        TestConcreteLangMatching below for why)."""
+        _write(
+            tmp_path / "competitors" / "stt" / "fasterwhisper-multi.json",
+            {
+                "competitor_id": "fasterwhisper-multi",
+                "modality": "stt",
+                "plugin": "ovos-stt-plugin-fasterwhisper",
+                "langs": [],
+            },
+        )
+        _write(
+            tmp_path / "datasets" / "stt" / "fleurs-multi.json",
+            {
+                "dataset_id": "fleurs-multi",
+                "modality": "stt",
+                "source": {"type": "huggingface", "hf_id": "google/fleurs"},
+                "reference_fields": {"audio": "audio", "ground_truth": "transcription"},
+                "lang": "multi",
+                "langs": ["en-US", "en-GB", "en-AU"],
+                "role": "eval",
+                "predictions_hf": "OpenVoiceOS/ovos-stt-bench-fleurs-multi",
+            },
+        )
+        repo = "OpenVoiceOS/ovos-stt-bench-fleurs-multi"
         lister = FakeLister(
             files={repo: {
                 "predictions/en-US/fasterwhisper-multi.jsonl": 300,
@@ -534,10 +562,10 @@ class TestFindMissingPairsLangNestedLayout:
             },
         )
         missing = find_missing_pairs(
-            "stt", registry_root=mini_registry, lister=lister, min_rows=5)
+            "stt", registry_root=tmp_path, lister=lister, min_rows=5)
         by_key = {(mp.competitor.competitor_id, mp.dataset.dataset_id): mp
                   for mp in missing}
-        assert ("fasterwhisper-multi", "minds14-en-US") not in by_key
+        assert ("fasterwhisper-multi", "fleurs-multi") not in by_key
         # 0-byte files are never row-counted
         assert (repo, "predictions/en-AU/fasterwhisper-multi.jsonl") \
             not in lister.count_calls
@@ -553,6 +581,122 @@ class TestFindMissingPairsLangNestedLayout:
         by_key = {(mp.competitor.competitor_id, mp.dataset.dataset_id): mp.reason
                   for mp in missing}
         assert by_key[("vosk-en", "minds14-en-US")] == "no_file"
+
+
+class TestConcreteLangMatching:
+    """Regression for the production bug: a multilingual fighter (e.g.
+    onnx-asr-canary, langs=[en, de, fr, es]) queued against a single-lang
+    dataset (speech-massive-de-DE) with no explicit ``lang`` resolved
+    lang=en (fighter default) in ``queue_config``, ran mis-conditioned, and
+    published to predictions/en/<id>.jsonl inside the de-DE dataset's repo.
+    ``find_missing_pairs``' old any-lang suffix match then treated that
+    wrong-lang shard as a completed pair and it was never re-queued."""
+
+    def test_generator_emits_lang_for_lang_suffixed_dataset(self, mini_registry):
+        lister = FakeLister(files={})
+        missing = find_missing_pairs("stt", registry_root=mini_registry, lister=lister)
+        rendered = render_queue_yaml(missing)
+        import yaml
+        parsed = yaml.safe_load(rendered)
+        by_key = {(j["competitor"], j["dataset_ref"]): j for j in parsed["jobs"]}
+        assert by_key[("vosk-en", "minds14-en-US")]["lang"] == "en-US"
+        assert by_key[("vosk-pt", "minds14-pt-PT")]["lang"] == "pt-PT"
+
+    def test_wrong_lang_published_shard_does_not_mark_pair_complete(self, tmp_path):
+        """A fighter's shard published under the wrong lang dir (e.g. the
+        fighter's own default "en" instead of the dataset's "de-DE") must
+        still count as missing/unpublished for THIS dataset."""
+        _write(
+            tmp_path / "competitors" / "stt" / "canary-multi.json",
+            {
+                "competitor_id": "canary-multi",
+                "modality": "stt",
+                "plugin": "ovos-stt-plugin-onnx-asr",
+                "langs": ["en", "de", "fr", "es"],
+            },
+        )
+        _write(
+            tmp_path / "datasets" / "stt" / "speech-massive-de-DE.json",
+            {
+                "dataset_id": "speech-massive-de-DE",
+                "modality": "stt",
+                "source": {"type": "huggingface", "hf_id": "FBK-MT/Speech-MASSIVE-test"},
+                "reference_fields": {"audio": "audio", "ground_truth": "utt"},
+                "lang": "de-DE",
+                "role": "eval",
+                "predictions_hf": "OpenVoiceOS/ovos-stt-bench-speech-massive-de-DE",
+            },
+        )
+        repo = "OpenVoiceOS/ovos-stt-bench-speech-massive-de-DE"
+        # Shard exists, but under the WRONG lang dir (fighter's own default
+        # "en", not the dataset's "de-DE").
+        lister = FakeLister(
+            files={repo: {"predictions/en/canary-multi.jsonl": 500}},
+            rows={(repo, "predictions/en/canary-multi.jsonl"): 200},
+        )
+        missing = find_missing_pairs("stt", registry_root=tmp_path, lister=lister)
+        by_key = {(mp.competitor.competitor_id, mp.dataset.dataset_id): mp.reason
+                  for mp in missing}
+        assert by_key[("canary-multi", "speech-massive-de-DE")] == "no_file"
+
+    def test_correct_lang_published_shard_marks_pair_complete(self, tmp_path):
+        """Sanity companion to the wrong-lang test: the SAME shard published
+        under the dataset's own lang dir must satisfy the pair."""
+        _write(
+            tmp_path / "competitors" / "stt" / "canary-multi.json",
+            {
+                "competitor_id": "canary-multi",
+                "modality": "stt",
+                "plugin": "ovos-stt-plugin-onnx-asr",
+                "langs": ["en", "de", "fr", "es"],
+            },
+        )
+        _write(
+            tmp_path / "datasets" / "stt" / "speech-massive-de-DE.json",
+            {
+                "dataset_id": "speech-massive-de-DE",
+                "modality": "stt",
+                "source": {"type": "huggingface", "hf_id": "FBK-MT/Speech-MASSIVE-test"},
+                "reference_fields": {"audio": "audio", "ground_truth": "utt"},
+                "lang": "de-DE",
+                "role": "eval",
+                "predictions_hf": "OpenVoiceOS/ovos-stt-bench-speech-massive-de-DE",
+            },
+        )
+        repo = "OpenVoiceOS/ovos-stt-bench-speech-massive-de-DE"
+        lister = FakeLister(
+            files={repo: {"predictions/de-DE/canary-multi.jsonl": 500}},
+            rows={(repo, "predictions/de-DE/canary-multi.jsonl"): 200},
+        )
+        missing = find_missing_pairs("stt", registry_root=tmp_path, lister=lister)
+        by_key = {(mp.competitor.competitor_id, mp.dataset.dataset_id): mp.reason
+                  for mp in missing}
+        assert ("canary-multi", "speech-massive-de-DE") not in by_key
+
+    def test_resolved_dataset_lang_falls_back_to_id_suffix(self):
+        from registry.schemas import DatasetDef
+        from runner.queue_tools import resolved_dataset_lang
+
+        ds = DatasetDef(
+            dataset_id="speech-massive-de-DE",
+            modality="stt",
+            source={"type": "huggingface", "hf_id": "x"},
+            lang="",
+        )
+        assert resolved_dataset_lang(ds) == "de-DE"
+
+    def test_resolved_dataset_lang_multi_returns_none(self):
+        from registry.schemas import DatasetDef
+        from runner.queue_tools import resolved_dataset_lang
+
+        ds = DatasetDef(
+            dataset_id="fleurs-multi",
+            modality="stt",
+            source={"type": "huggingface", "hf_id": "x"},
+            lang="multi",
+            langs=["en-US", "de-DE"],
+        )
+        assert resolved_dataset_lang(ds) is None
 
 
 class TestHubListerEmptyRepo:

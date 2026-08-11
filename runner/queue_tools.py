@@ -22,6 +22,7 @@ file (via ``hf_hub_download``) — still not "download everything".
 from __future__ import annotations
 
 import argparse
+import re
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -77,6 +78,33 @@ def dataset_langs(dataset: DatasetDef) -> list[str]:
     if dataset.lang == "multi" and dataset.langs:
         return list(dataset.langs)
     return [dataset.lang]
+
+
+_TRAILING_LOCALE_RE = re.compile(r"-([a-zA-Z]{2,3}(?:-[a-zA-Z]{2,3})?)$")
+
+
+def resolved_dataset_lang(dataset: DatasetDef) -> str | None:
+    """The single concrete BCP-47 tag this dataset runs jobs under, or
+    ``None`` when the dataset is genuinely multilingual/unknown.
+
+    A queued job that omits ``lang`` resolves against the *fighter's*
+    default lang (``queue_config._plugin_from_competitor``), not the
+    dataset's — for a multilingual fighter that silently runs the wrong
+    lang and publishes into the wrong ``predictions/<lang>/`` path (e.g.
+    onnx-asr-canary queued against ``speech-massive-de-DE`` running as
+    ``en`` instead of ``de-DE``). Every generated entry for a
+    single-language dataset must pin ``lang`` explicitly to this value.
+    """
+    lang = getattr(dataset, "lang", None)
+    if lang and lang != "multi":
+        return lang
+    # Registry lang is missing/multi/unknown — fall back to parsing a
+    # trailing "-xx-XX" (or "-xx") locale suffix off the dataset id itself,
+    # e.g. "speech-massive-de-DE" -> "de-DE".
+    match = _TRAILING_LOCALE_RE.search(dataset.dataset_id)
+    if match:
+        return match.group(1)
+    return None
 
 
 def is_compatible(competitor: CompetitorDef, dataset: DatasetDef) -> bool:
@@ -223,15 +251,30 @@ def find_missing_pairs(
         files = lister.list_files(dataset.predictions_hf)
         # The published layout nests per lang (predictions/<lang>/<id>.jsonl,
         # what media_bench and the daemon write — spec §3.2); the flat
-        # predictions/<id>.jsonl form predates it. Accept both, aggregating
-        # across langs: checking only the flat path reports "no_file" forever
-        # for every published pair and re-queues finished work.
-        suffix = f"/{competitor.competitor_id}.jsonl"
-        matches = {
-            path: size for path, size in files.items()
-            if path == f"predictions/{competitor.competitor_id}.jsonl"
-            or (path.startswith("predictions/") and path.endswith(suffix))
-        }
+        # predictions/<id>.jsonl form predates it and is always accepted too.
+        #
+        # For a dataset with a concrete lang, only the shard published under
+        # THAT lang counts: matching any lang dir by suffix let a
+        # wrong-lang run (e.g. a multilingual fighter defaulting to "en"
+        # against a de-DE dataset) satisfy the pair and never get re-queued
+        # — the shard existed, just under the wrong language and wrong
+        # transcription conditioning. Only a dataset that is genuinely
+        # multi/unknown-lang keeps the old any-lang suffix matching.
+        lang = resolved_dataset_lang(dataset)
+        flat_path = f"predictions/{competitor.competitor_id}.jsonl"
+        if lang:
+            lang_path = f"predictions/{lang}/{competitor.competitor_id}.jsonl"
+            matches = {
+                path: size for path, size in files.items()
+                if path == flat_path or path == lang_path
+            }
+        else:
+            suffix = f"/{competitor.competitor_id}.jsonl"
+            matches = {
+                path: size for path, size in files.items()
+                if path == flat_path
+                or (path.startswith("predictions/") and path.endswith(suffix))
+            }
 
         if not matches:
             missing.append(MissingPair(modality, competitor, dataset, "no_file"))
@@ -293,6 +336,14 @@ def render_queue_yaml(missing: list[MissingPair]) -> str:
         lines.append(f"  # {mp.reason}" + (f" (rows={mp.rows})" if mp.rows is not None else ""))
         lines.append(f"  - competitor: {comp.competitor_id}")
         lines.append(f"    dataset_ref: {ds.dataset_id}")
+        lang = resolved_dataset_lang(ds)
+        if lang:
+            # Pin the dataset's own lang so the job doesn't silently fall
+            # back to the fighter's default lang (queue_config resolves
+            # lang_override or cfg_lang or langs[0]) — see
+            # resolved_dataset_lang's docstring for the production bug this
+            # closes.
+            lines.append(f"    lang: {lang}")
         lines.append(f"    hf_output_dataset: {hf_out}")
         lines.append("    max_samples: 0")
         lines.append("")
