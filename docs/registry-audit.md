@@ -74,7 +74,8 @@ tier) rather than three copies of the same numbers wearing different pipeline-st
 Both are single-stage embedding classifiers (`ovos-hierarchical-knn-pipeline` and
 `ovos-m2v-pipeline`) sitting in the `intent` league, which per the roster's own convention
 is reserved for multi-engine fusion/ensemble pipelines (`frankenparse`, `nebulapt`,
-`nebulatious`, `padapt`, `padatioso`, `palavadapt` are all two-or-more-engine combinations).
+`nebulatious`, `padapt`, `palavadapt` are all two-or-more-engine combinations; `padatioso`
+was subsequently DROPped, see `docs/ensemble-rationale.md`).
 `hierarchical-knn-medium` and `m2v-medium` each run exactly one engine — they compete on a
 completely different axis (embedding similarity vs. rule/template fusion) and their own
 `notes` field flags a modeling caveat (pretrained on the legacy intent-benchmark corpus,
@@ -82,21 +83,34 @@ not native OVOS skill intents) that doesn't apply to the fusion fighters around 
 
 **FIX:** create an `intent_embedding` league (new `registry/competitors/intent_embedding/`
 directory) and move `hierarchical-knn-medium.json` and `m2v-medium.json` there unchanged.
-Leave the six genuine fusion pipelines (`frankenparse`, `nebulapt`, `nebulatious`, `padapt`,
-`padatioso`, `palavadapt`) as the `intent` league.
+Leave the genuine fusion pipelines (`frankenparse`, `nebulapt`, `nebulatious`, `padapt`,
+`palavadapt`) as the `intent` league. `padatioso` was DROPped in the 2026-08-11
+ensemble-justification pass — see `docs/ensemble-rationale.md`.
 
-### `frankenparse` — assessed, no fix needed
+### `frankenparse` — SUPERSEDED, see `docs/ensemble-rationale.md`
 
-`frankenparse`'s `pipeline` list is:
+The paragraph below reflects the pre-2026-08-11 config and is kept for history; the
+justification pass in `docs/ensemble-rationale.md` reached the opposite conclusion on the
+double-`padatious` stage and slimmed the pipeline. See that doc for the current rationale
+and config.
+
+`frankenparse`'s pre-justification `pipeline` list was:
 `padacioso-high → adapt-high → padatious-high → palavreado-medium → padatious-medium →
 nebulento-medium → adapt-low`.
 
-`ovos-padatious-pipeline-plugin` does appear twice, at `-high` and `-medium`. That's
-intentional pipeline design, not a registry bug: OVOS pipeline routing tries stages in
+`ovos-padatious-pipeline-plugin` did appear twice, at `-high` and `-medium`. That was
+argued at the time to be intentional pipeline design: OVOS pipeline routing tries stages in
 order and stops at the first one that fires, so listing the same plugin at its high gate
-early (favor precision) and again at its medium gate later (fallback for recall) is a
+early (favor precision) and again at its medium gate later (fallback for recall) reads as a
 legitimate two-chance strategy for that one engine, mirroring what the rest of the chain
-does for adapt (`-high` then `-low`). **KEEP as-is.**
+does for adapt (`-high` then `-low`). The 2026-08-11 ensemble-justification pass found this
+insufficient on its own — a second tier of the *same* trained classifier is not an
+independent paradigm — and additionally found the leading `padacioso-high` stage redundant:
+Padatious runs `padaos` (the same regex/exact-match engine padacioso wraps) internally
+unless `disable_padaos=true` (it is not, here), and returns `conf=1.0` for perfect matches
+before its neural score is even consulted (verified in
+`ovos_padatious/intent_container.py::IntentContainer.calc_intents`). Both stages were
+dropped; see `docs/ensemble-rationale.md` for the resulting 5-stage config and hypothesis.
 
 ## wake_word
 
