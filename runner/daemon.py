@@ -98,21 +98,43 @@ def run_daemon(
                             output_file)
 
                 if publish and output_file.exists():
-                    from runner.publish import publish_output
-                    uploaded = publish_output(
-                        output_file=output_file,
-                        hf_repo=job.hf_output_dataset,
-                        token=hf_token,
-                    )
-                    if uploaded:
-                        logger.info("published to %s: %s",
-                                    job.hf_output_dataset, uploaded)
-                        output_file.rename(
-                            output_file.with_suffix(".published.jsonl")
+                    if job.plugin.competitor_id:
+                        # Spec layout (§3.2): full-file overwrite at
+                        # predictions/<lang>/<competitor_id>.jsonl — the only
+                        # path the assembler and the sweep diff read. The
+                        # local file stays in place: it is the accumulated
+                        # source of truth that resume appends to, and the
+                        # remote copy is always its superset.
+                        from runner.publish import publish_competitor_output
+                        uploaded = publish_competitor_output(
+                            output_file=output_file,
+                            hf_repo=job.hf_output_dataset,
+                            lang=job.plugin.lang,
+                            competitor_id=job.plugin.competitor_id,
+                            token=hf_token,
                         )
+                        if uploaded:
+                            logger.info("published to %s: %s",
+                                        job.hf_output_dataset, uploaded)
+                        else:
+                            logger.warning("publish returned no files for %s",
+                                           output_file)
                     else:
-                        logger.warning("publish returned no files for %s",
-                                       output_file)
+                        from runner.publish import publish_output
+                        uploaded = publish_output(
+                            output_file=output_file,
+                            hf_repo=job.hf_output_dataset,
+                            token=hf_token,
+                        )
+                        if uploaded:
+                            logger.info("published to %s: %s",
+                                        job.hf_output_dataset, uploaded)
+                            output_file.rename(
+                                output_file.with_suffix(".published.jsonl")
+                            )
+                        else:
+                            logger.warning("publish returned no files for %s",
+                                           output_file)
 
             except Exception as exc:
                 logger.error("job failed (%s/%s): %s",
