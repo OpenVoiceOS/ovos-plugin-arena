@@ -187,7 +187,7 @@ class TestPredictionRowRoundTrip:
 # Intelligibility (STT round-trip WER/CER, §4 R16)
 # ---------------------------------------------------------------------------
 #
-# The real faster-whisper judge is never loaded here (no network, no model
+# The real onnx-asr judge is never loaded here (no network, no model
 # download): a fake judge is monkeypatched in via
 # ``runner.tts_bench._get_intelligibility_judge``, per §4 test policy.
 # ``runner.audio_io.decode_audio_bytes`` IS exercised for real (it is pure
@@ -195,21 +195,16 @@ class TestPredictionRowRoundTrip:
 # actually caught rather than assumed away by a mock.
 
 
-class FakeSegment:
-    def __init__(self, text):
-        self.text = text
-
-
 class FakeIntelligibilityJudge:
-    """Stand-in for faster_whisper.WhisperModel — records the array it saw."""
+    """Stand-in for an onnx_asr TextResultsAsrAdapter — records the array it saw."""
 
     def __init__(self, text="hello there"):
         self.text = text
         self.calls = []
 
-    def transcribe(self, array):
+    def recognize(self, array, sample_rate=16000):
         self.calls.append(array)
-        return [FakeSegment(self.text)], SimpleNamespace(language="en")
+        return self.text
 
 
 def _write_wav(path, seconds=0.5, sr=16000, channels=1):
@@ -258,17 +253,24 @@ class CrashingEngine:
 
 @pytest.fixture(autouse=True)
 def _reset_intelligibility_judge_cache(monkeypatch):
-    monkeypatch.setattr(tts_bench, "_intelligibility_judge", None)
+    monkeypatch.setattr(tts_bench, "_intelligibility_judges", {})
     yield
-    monkeypatch.setattr(tts_bench, "_intelligibility_judge", None)
+    monkeypatch.setattr(tts_bench, "_intelligibility_judges", {})
+
+
+def _patch_judge(monkeypatch, fake_judge, model_id="fake-model", revision="fake-rev"):
+    """Patch _get_intelligibility_judge to return a fake judge for any lang."""
+    monkeypatch.setattr(
+        tts_bench, "_get_intelligibility_judge",
+        lambda lang: (fake_judge, revision, model_id))
 
 
 class TestIntelligibility:
     def test_extras_carry_wer_cer_and_judge_provenance(self, tmp_path, monkeypatch):
         monkeypatch.setattr(tts_bench, "_get_utmos_judge", lambda: FakeJudge())
         fake_judge = FakeIntelligibilityJudge(text="hello there")
-        monkeypatch.setattr(
-            tts_bench, "_get_intelligibility_judge", lambda: fake_judge)
+        _patch_judge(monkeypatch, fake_judge, "nemo-parakeet-tdt-0.6b-v3",
+                     "8f23f0c03c8761650bdb5b40aaf3e40d2c15f1ce")
 
         engine = RealWavEngine()
         fields = tts_bench.TTSBench().predict(
@@ -276,11 +278,9 @@ class TestIntelligibility:
 
         assert fields["extras"]["intelligibility_wer"] == pytest.approx(0.0)
         assert fields["extras"]["intelligibility_cer"] == pytest.approx(0.0)
-        assert fields["extras"]["intelligibility_judge"] == (
-            tts_bench.INTELLIGIBILITY_JUDGE
-        )
+        assert fields["extras"]["intelligibility_judge"] == "nemo-parakeet-tdt-0.6b-v3"
         assert fields["extras"]["intelligibility_judge_revision"] == (
-            tts_bench.INTELLIGIBILITY_JUDGE_REVISION
+            "8f23f0c03c8761650bdb5b40aaf3e40d2c15f1ce"
         )
         assert len(fake_judge.calls) == 1
 
@@ -289,8 +289,7 @@ class TestIntelligibility:
         # judge mishears everything — WER/CER should be nonzero, not silently
         # clamped or dropped.
         fake_judge = FakeIntelligibilityJudge(text="completely different words")
-        monkeypatch.setattr(
-            tts_bench, "_get_intelligibility_judge", lambda: fake_judge)
+        _patch_judge(monkeypatch, fake_judge)
 
         fields = tts_bench.TTSBench().predict(
             RealWavEngine(), {"input_text": "hello there"}, _ctx(tmp_path))
@@ -313,6 +312,10 @@ class TestIntelligibility:
         assert fields["extras"]["intelligibility_cer"] == 1.0
         assert "synthesis_error" in fields["extras"]
         assert fields["prediction"] is None
+        # judge provenance is still recorded even though scoring never ran —
+        # resolve_judge_model() is pure lookup, no model load required.
+        assert fields["extras"]["intelligibility_judge"]
+        assert fields["extras"]["intelligibility_judge_revision"]
         # utmos was never attempted — there is no valid clip to score
         assert "utmos" not in fields["extras"]
 
@@ -324,7 +327,7 @@ class TestIntelligibility:
         # silently omit the metric; it forces the worst case instead.
         monkeypatch.setattr(tts_bench, "_get_utmos_judge", lambda: FakeJudge())
 
-        def boom():
+        def boom(lang):
             raise RuntimeError("judge blew up")
 
         monkeypatch.setattr(tts_bench, "_get_intelligibility_judge", boom)
@@ -334,6 +337,8 @@ class TestIntelligibility:
         assert fields["extras"]["intelligibility_wer"] == 1.0
         assert fields["extras"]["intelligibility_cer"] == 1.0
         assert "intelligibility_error" in fields["extras"]
+        assert fields["extras"]["intelligibility_judge"]
+        assert fields["extras"]["intelligibility_judge_revision"]
         # utmos scoring — a separate concern — still succeeded
         assert "utmos" in fields["extras"]
 
@@ -345,8 +350,7 @@ class TestIntelligibility:
         # only ever see a 16 kHz mono array regardless of the source format.
         monkeypatch.setattr(tts_bench, "_get_utmos_judge", lambda: FakeJudge())
         fake_judge = FakeIntelligibilityJudge(text="hello there")
-        monkeypatch.setattr(
-            tts_bench, "_get_intelligibility_judge", lambda: fake_judge)
+        _patch_judge(monkeypatch, fake_judge)
 
         engine = RealWavEngine(seconds=0.5, sr=44100, channels=2)
         tts_bench.TTSBench().predict(
@@ -367,8 +371,7 @@ class TestIntelligibility:
         # disk were already headerless PCM samples.
         monkeypatch.setattr(tts_bench, "_get_utmos_judge", lambda: FakeJudge())
         fake_judge = FakeIntelligibilityJudge(text="hello there")
-        monkeypatch.setattr(
-            tts_bench, "_get_intelligibility_judge", lambda: fake_judge)
+        _patch_judge(monkeypatch, fake_judge)
 
         engine = RealWavEngine(seconds=0.5, sr=16000, channels=1, fmt="MP3")
         fields = tts_bench.TTSBench().predict(
@@ -386,9 +389,7 @@ class TestIntelligibility:
         # §4 R16: the benchmark calls the TTS plugin's direct get_tts
         # synthesis path — no audio-player / playback-mode round trip.
         monkeypatch.setattr(tts_bench, "_get_utmos_judge", lambda: FakeJudge())
-        monkeypatch.setattr(
-            tts_bench, "_get_intelligibility_judge",
-            lambda: FakeIntelligibilityJudge())
+        _patch_judge(monkeypatch, FakeIntelligibilityJudge())
 
         engine = RealWavEngine()
         engine.play = lambda *a, **kw: (_ for _ in ()).throw(
@@ -396,3 +397,90 @@ class TestIntelligibility:
         tts_bench.TTSBench().predict(
             engine, {"input_text": "hello there"}, _ctx(tmp_path))
         assert len(engine.calls) == 1
+
+    def test_judge_constructed_with_full_model_id_and_pinned_revision(self, monkeypatch):
+        # Regression (was: faster-whisper basename bug): the onnx-asr judge
+        # must be constructed with the FULL resolved model id, and the row
+        # must carry the pinned revision from asr_judges._REVISIONS even
+        # though onnx_asr.load_model itself has no revision parameter.
+        constructed = {}
+
+        def fake_load_model(model, **kwargs):
+            constructed["model"] = model
+            return object()
+
+        import sys, types
+        fake_mod = types.ModuleType("onnx_asr")
+        fake_mod.load_model = fake_load_model
+        monkeypatch.setitem(sys.modules, "onnx_asr", fake_mod)
+        monkeypatch.setattr(tts_bench, "_intelligibility_judges", {})
+
+        judge, revision, model_id = tts_bench._get_intelligibility_judge("en-US")
+        assert model_id == "nemo-parakeet-tdt-0.6b-v3"
+        assert constructed["model"] == "nemo-parakeet-tdt-0.6b-v3"
+        assert revision == "8f23f0c03c8761650bdb5b40aaf3e40d2c15f1ce"
+
+
+class TestJudgeResolution:
+    """runner.asr_judges.resolve_judge_model — per-lang judge selection."""
+
+    def test_recommended_model_used_for_lang_in_ovos_config_recommends(self):
+        # pt-PT is one of ovos-config's offline_stt recommends — a dedicated
+        # whisper-medium-pt export, not the generic multilingual fallback.
+        from runner.asr_judges import resolve_judge_model
+
+        model_id, revision = resolve_judge_model("pt-PT")
+        assert model_id == "OpenVoiceOS/whisper-medium-pt-onnx"
+        assert revision == "7db38a22790ba3f831702db12cb19dd684642bf5"
+
+    def test_fallback_table_used_when_lang_missing_from_recommends(self):
+        # Vietnamese has no offline_stt/*.conf in ovos-config; the
+        # onnx-stt-plugin-onnx-asr LANG_DEFAULTS fallback picks the
+        # dedicated NVIDIA Vietnamese fine-tune instead of whisper-base.
+        from runner.asr_judges import resolve_judge_model
+
+        model_id, revision = resolve_judge_model("vi-VN")
+        assert model_id == "OpenVoiceOS/nvidia-parakeet-ctc-0.6b-vietnamese-onnx"
+        assert revision == "ed9f55ba980eb1c9eeba02a5733eba7cba02f6e7"
+
+    def test_universal_whisper_base_fallback_for_long_tail_lang(self):
+        # No dedicated onnx-asr export exists for Malagasy — it falls all
+        # the way through to onnx-asr's own bundled whisper-base wrapper
+        # (still the onnx-asr package, never faster-whisper).
+        from runner.asr_judges import resolve_judge_model
+
+        model_id, revision = resolve_judge_model("mg-MG")
+        assert model_id == "whisper-base"
+        assert revision == "998334d3bfe2deba3c8e6821f05388dbf2b706d2"
+
+    def test_full_tag_beats_primary_subtag_prefix_match(self):
+        # en-US is an exact recommends key; a made-up en-XX must still
+        # resolve via the primary-subtag prefix match to the same model.
+        from runner.asr_judges import resolve_judge_model
+
+        exact_id, exact_rev = resolve_judge_model("en-US")
+        prefix_id, prefix_rev = resolve_judge_model("en-XX")
+        assert exact_id == prefix_id == "nemo-parakeet-tdt-0.6b-v3"
+        assert exact_rev == prefix_rev
+
+    def test_two_langs_sharing_a_model_reuse_the_cached_judge(self, monkeypatch):
+        # en-US and de-DE both resolve to nemo-parakeet-tdt-0.6b-v3 — the
+        # model must load once per process, not once per language.
+        loads = {"n": 0}
+
+        def fake_load_model(model, **kwargs):
+            loads["n"] += 1
+            return object()
+
+        import sys, types
+        fake_mod = types.ModuleType("onnx_asr")
+        fake_mod.load_model = fake_load_model
+        monkeypatch.setitem(sys.modules, "onnx_asr", fake_mod)
+        monkeypatch.setattr(tts_bench, "_intelligibility_judges", {})
+
+        judge_en, _rev_en, id_en = tts_bench._get_intelligibility_judge("en-US")
+        judge_de, _rev_de, id_de = tts_bench._get_intelligibility_judge("de-DE")
+
+        assert id_en == id_de == "nemo-parakeet-tdt-0.6b-v3"
+        assert judge_en is judge_de
+        assert loads["n"] == 1

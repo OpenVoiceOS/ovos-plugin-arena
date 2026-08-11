@@ -390,7 +390,10 @@ distributional blind spots:
 
 Alongside UTMOS, `runner/tts_bench.py` scores every synthesised clip for
 **intelligibility**: it transcribes the rendered clip back to text with a
-pinned STT judge (`faster-whisper`) and scores the transcript against the
+pinned STT judge — the best offline `onnx-asr` model for the clip's
+language (usually a conformer), resolved by `runner/asr_judges.py` from
+ovos-config's offline-STT recommends with a per-language fallback table,
+never faster-whisper — and scores the transcript against the
 original prompt with the same canonical WER (and a companion CER) the STT
 league uses (`arena.metrics.normalize_transcript`, §E) — this is the
 "round trip" check: can a listener's own ears/ASR actually recover the words
@@ -403,9 +406,11 @@ revision in `extras`, mirroring the UTMOS convention:
 - `intelligibility_wer` / `intelligibility_cer` — word/character error rate
   of the STT judge's transcript against the prompt text (§E normalization,
   lower is better);
-- `intelligibility_judge` — the pinned faster-whisper model (`Systran/faster-whisper-small`);
-- `intelligibility_judge_revision` — the pinned commit the arena has
-  validated against.
+- `intelligibility_judge` — the per-language onnx-asr judge model id
+  (e.g. `nemo-parakeet-tdt-0.6b-v3` for en-US);
+- `intelligibility_judge_revision` — the HF commit sha pinned at authoring
+  time, recorded for provenance (`onnx_asr.load_model` cannot pin a
+  revision at load time — see `runner/asr_judges.py`).
 
 **Pitfalls this metric is designed around.** These are production failure
 modes, not hypotheticals — each one has a dedicated regression test in

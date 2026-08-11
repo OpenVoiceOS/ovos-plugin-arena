@@ -346,7 +346,10 @@ Voting options MUST include: candidate A, candidate B, tie, both-wrong.
   assuming a single score reflects a single shipped version.
 - **R16 — TTS intelligibility (STT round-trip WER/CER).** Alongside UTMOS
   (R14), `runner/tts_bench.py` MUST transcribe every rendered clip back to
-  text with a pinned STT judge (faster-whisper, model + revision recorded
+  text with a pinned STT judge — the best offline onnx-asr model for the
+  clip's language, resolved per `runner/asr_judges.py` from ovos-config's
+  offline-STT recommends with an onnx-asr fallback table, never
+  faster-whisper (model + revision recorded
   in `extras` as `intelligibility_judge`/`intelligibility_judge_revision`,
   same provenance discipline as the UTMOS judge) and score it against the
   prompt text with the canonical `normalize_transcript` WER/CER (§E),
