@@ -1,0 +1,24 @@
+{
+  "dataset_id": "clinc150",
+  "modality": "intent",
+  "source": {
+    "type": "huggingface",
+    "hf_id": "clinc/clinc_oos",
+    "revision": "main",
+    "subset": "plus",
+    "split": "test"
+  },
+  "reference_fields": {
+    "utterance": "text",
+    "intent": "intent"
+  },
+  "lang": "en-US",
+  "license": "cc-by-3.0",
+  "role": "eval",
+  "oos_label": "oos",
+  "train_datasets": {
+    "template": "clinc150-train"
+  },
+  "predictions_hf": "OpenVoiceOS/ovos-intent-bench-clinc150",
+  "notes": "CLINC150 (Larson et al. 2019) — 150 in-scope intents across 10 domains, English, plus an explicit out-of-scope class. Absorbed from ovos-intent-benchmark's dataset list. Uses the 'plus' config, whose 1000 out-of-scope test utterances are tagged bucket='far_ood' with expected_intent=None so the scorer treats a non-fire as correct — a genuine 'don't guess' regression test the other 3 absorbed corpora don't provide."
+}

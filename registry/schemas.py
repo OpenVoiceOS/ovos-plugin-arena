@@ -73,6 +73,20 @@ class HuggingFaceSource(BaseModel):
             "Used for datasets stored as plain files instead of HF splits."
         ),
     )
+    id_field: str | None = Field(
+        None,
+        description=(
+            "Column name holding a row's stable source id, for plain HF "
+            "classification datasets. When set, fetch_hf_classification_rows "
+            "deduplicates on this column, keeping the first occurrence — "
+            "guards against HF mirrors that ship the same row multiple "
+            "times (observed on AmazonScience/massive's "
+            "refs/convert/parquet conversion, which triplicates every row; "
+            "kept as general hygiene even though no currently-registered "
+            "dataset needs it). "
+            "None disables dedup for sources with no reliable id column."
+        ),
+    )
 
     @property
     def dataset_id_str(self) -> str:
@@ -245,6 +259,16 @@ class DatasetDef(BaseModel):
             "(``predictions_hf``) to for reproducible board assembly. "
             "None means the assemble step tracks whatever revision it is "
             "invoked with (e.g. a floating branch) instead of a fixed SHA."
+        ),
+    )
+    oos_label: str | None = Field(
+        None,
+        description=(
+            "Plain HF classification datasets only: the decoded label "
+            "value that marks an out-of-scope/negative row (e.g. CLINC150's "
+            "'oos'). Train corpora drop rows with this label; eval corpora "
+            "keep them with expected_intent=None and bucket='far_ood' so "
+            "the scorer treats a non-fire as the correct answer."
         ),
     )
 
