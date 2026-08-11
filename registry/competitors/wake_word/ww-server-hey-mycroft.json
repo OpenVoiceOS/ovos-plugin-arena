@@ -1,0 +1,32 @@
+{
+  "competitor_id": "ww-server-hey-mycroft",
+  "modality": "wake_word",
+  "plugin": "ovos-ww-plugin-server",
+  "config": {
+    "listener": {
+      "wake_word": "hey_mycroft"
+    },
+    "hotwords": {
+      "hey_mycroft": {
+        "module": "ovos-ww-plugin-server",
+        "listen": true,
+        "host": "ws://localhost:8338",
+        "sample_rate": 16000,
+        "sample_width": 2
+      }
+    }
+  },
+  "langs": [
+    "en"
+  ],
+  "display_name": "WW-Server (hey mycroft)",
+  "species": "ServerHotWordPlugin",
+  "types": [
+    "remote"
+  ],
+  "description": "Delegates wake-word detection to a shared remote host over a persistent WebSocket connection (satellite architecture): streams raw PCM frames to the server and receives detection events back, instead of running any model locally.",
+  "links": {
+    "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-server"
+  },
+  "notes": "Remote-dependent, like the Azure/Google cloud fighters: requires a reachable ovos-ww-plugin-server host (default ws://localhost:8338); optional 'api_key' config sends 'Authorization: Bearer <key>'. No local model weights. Streams raw PCM frames but is not tagged 'stream' capability here since that tag is reserved by tests/test_ww_stream.py for the openwakeword-/microwakeword-/precise-onnx- families."
+}
