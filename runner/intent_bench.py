@@ -304,8 +304,14 @@ def run_competitor_lang(
         return 0
 
     needed = needed_paradigms(competitor)
+    # The eval revision sha belongs to the EVAL repo. Train corpora may live
+    # in a different HF repo (meteocat trains from intents-for-eval), so each
+    # train dataset pins its own branch to its own repo's sha.
     train_data = {
-        paradigm: fetch_rows(train_def, lang, revision)
+        paradigm: fetch_rows(
+            train_def, lang,
+            resolve_revision(train_def.source.hf_id,
+                             train_def.source.revision))
         for paradigm, train_def in train_defs.items()
         if paradigm in needed
     }

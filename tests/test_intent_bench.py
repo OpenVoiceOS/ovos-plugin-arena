@@ -331,3 +331,48 @@ class TestFetchHFClassificationRows:
         with patch("datasets.load_dataset", return_value=fake_ds):
             out = fetch_hf_classification_rows(ds_def, "en-US", "rev123")
         assert len(out) == 1
+
+
+def test_train_fetch_uses_train_repo_revision():
+    """Train corpora pin their own repo's revision, not the eval repo's."""
+    from types import SimpleNamespace
+    from pathlib import Path
+    from runner import intent_bench
+
+    eval_def = SimpleNamespace(
+        source=SimpleNamespace(hf_id="org/eval-repo", revision="main",
+                               file_pattern=None, subset=None, split="test"),
+        train_datasets={"template": "train-ds"},
+    )
+    train_def = SimpleNamespace(
+        source=SimpleNamespace(hf_id="org/train-repo", revision="main",
+                               file_pattern="{lang}/train.jsonl",
+                               subset=None, split="train"),
+    )
+    seen = {}
+
+    def fake_resolve(hf_id, revision):
+        return {"org/eval-repo": "EVALSHA", "org/train-repo": "TRAINSHA"}[hf_id]
+
+    def fake_fetch(dataset_def, lang, revision):
+        seen[dataset_def.source.hf_id] = revision
+        if dataset_def is eval_def:
+            return [{"utterance": "quin temps fa", "expected_intent": "weather"}]
+        return []
+
+    competitor = SimpleNamespace(competitor_id="x")
+    with patch.object(intent_bench, "resolve_revision", side_effect=fake_resolve), \
+         patch.object(intent_bench, "fetch_rows", side_effect=fake_fetch), \
+         patch.object(intent_bench, "needed_paradigms", return_value={"template"}), \
+         patch.object(intent_bench, "done_samples", return_value=set()):
+        try:
+            intent_bench.run_competitor_lang(
+                competitor, "meteocat", "ca-ES", eval_def,
+                {"template": train_def}, "EVALSHA",
+                Path("/nonexistent/out.jsonl"))
+        except Exception:
+            # pipeline construction fails on the stub competitor —
+            # irrelevant: the train fetch has happened by then.
+            pass
+    assert seen.get("org/train-repo") == "TRAINSHA", \
+        "train corpus must pin its own repo's sha"
