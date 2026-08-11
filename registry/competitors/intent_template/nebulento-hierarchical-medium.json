@@ -1,0 +1,31 @@
+{
+  "competitor_id": "nebulento-hierarchical-medium",
+  "modality": "intent_template",
+  "config": {
+    "intents": {
+      "pipeline": [
+        "ovos-nebulento-hierarchical-pipeline-plugin-medium"
+      ],
+      "ovos-nebulento-hierarchical-pipeline-plugin": {
+        "conf_high": 0.95,
+        "conf_med": 0.8,
+        "conf_low": 0.5,
+        "workers": 4,
+        "domain_threshold": 0.0
+      }
+    }
+  },
+  "langs": [],
+  "display_name": "Nebulento (Hierarchical)",
+  "species": "HierarchicalNebulentoPipeline",
+  "types": [
+    "fuzzy-match",
+    "template-match"
+  ],
+  "description": "Two-stage variant of Nebulento: intents are filed under a domain == skill_id, a top-level classifier picks the domain first, then only that domain's sub-container fuzzy-matches the intent. Same nebulento distribution and confidence gate as nebulento-medium, registered under a separate opm.pipeline entry point (HierarchicalNebulentoPipeline in nebulento/opm.py).",
+  "links": {
+    "source": "https://github.com/OpenVoiceOS/nebulento"
+  },
+  "notes": "Same medium-confidence gate and thresholds as nebulento-medium; 'domain_threshold': 0.0 keeps the top-level domain gate disabled (matches the shipped default) so the comparison isolates the two-stage routing shape. Hypothesis: domain-first routing should help precision on large multi-domain intent sets by rejecting cross-domain fuzzy near-misses before they compete, and be roughly neutral-to-worse on small single-domain sets where there is no domain structure to exploit.",
+  "size": "micro"
+}

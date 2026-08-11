@@ -1,0 +1,29 @@
+{
+  "competitor_id": "linha-fina-domain-medium",
+  "modality": "intent_template",
+  "config": {
+    "intents": {
+      "pipeline": [
+        "ovos-linha-fina-domain-pipeline-plugin-medium"
+      ],
+      "ovos-linha-fina-domain-pipeline-plugin": {
+        "conf_high": 0.8,
+        "conf_med": 0.6,
+        "conf_low": 0.4
+      }
+    }
+  },
+  "langs": [],
+  "display_name": "Linha Fina (Domain)",
+  "species": "DomainLinhaFinaPipeline",
+  "types": [
+    "classical-ML",
+    "keyword-match"
+  ],
+  "description": "Domain-partitioned variant of Linha Fina: intents are grouped by skill_id into per-skill SVM engines held in one DomainIntentEngine per language; inference runs every per-skill engine in parallel and returns the global argmax. Same distribution and confidence gate as linha-fina-medium, registered under a separate opm.pipeline entry point (DomainLinhaFinaPipeline in linha_fina/opm.py).",
+  "links": {
+    "source": "https://github.com/TigreGotico/linha-fina"
+  },
+  "notes": "Single-stage pipeline at the plugin's own medium-confidence gate; the per-plugin config pins the same documented thresholds as linha-fina-medium. This variant is parallel (every domain engine scores, then argmax), not gated two-stage routing like the hierarchical variant — hypothesis: should improve precision over the flat pipeline on large multi-domain intent sets by keeping decision boundaries local to each skill's vocabulary, and be roughly neutral on small single-domain sets. KNOWN BROKEN as of linha-fina 0.3.0a1: LinhaFinaPipeline.handle_initial_train (linha_fina/opm.py:138) calls self.containers[lang].train(), but DomainLinhaFinaPipeline's containers are DomainIntentEngine instances which have no .train() method (AttributeError on 'mycroft.ready') -- confirmed by a live train/match sanity run in this PR. Needs an upstream fix in linha-fina before this fighter can produce real predictions; kept in the registry so a fix is picked up automatically.",
+  "size": "micro"
+}

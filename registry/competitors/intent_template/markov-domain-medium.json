@@ -1,0 +1,38 @@
+{
+  "competitor_id": "markov-domain-medium",
+  "modality": "intent_template",
+  "config": {
+    "intents": {
+      "pipeline": [
+        "ovos-markov-domain-pipeline-plugin-medium"
+      ],
+      "ovos-markov-domain-pipeline-plugin": {
+        "order": 2,
+        "kneser_ney": true,
+        "backoff": true,
+        "smoothing": 1e-05,
+        "stem": false,
+        "char_fallback": false,
+        "conf_high": 0.75,
+        "conf_med": 0.55,
+        "conf_low": 0.3,
+        "char_fallback_threshold": 0.05,
+        "online_learning": false,
+        "max_words": 50,
+        "instant_train": false
+      }
+    }
+  },
+  "langs": [],
+  "display_name": "Markov (Domain)",
+  "species": "DomainMarkovPipeline",
+  "types": [
+    "statistical"
+  ],
+  "description": "Domain-grouped variant of Markov: each intent is grouped under a domain == skill_id (from the 'skill_id:intent' label), and inference first routes the utterance to a domain via DomainMarkovIntentEngine, then resolves the intent inside it by lowest perplexity. Same distribution and confidence gate as markov-medium, registered under a separate opm.pipeline entry point (DomainMarkovPipeline in ovos_markov_pipeline/__init__.py).",
+  "links": {
+    "source": "https://github.com/TigreGotico/ovos-markov-pipeline-plugin"
+  },
+  "model": "order-2 word-level Markov chains, Kneser-Ney smoothing with backoff, domain-grouped",
+  "notes": "Same medium-confidence gate and model parameters as markov-medium; the per-plugin config pins the same n-gram order, smoothing, backoff, stemming, char fallback and confidence thresholds so the comparison isolates domain-first routing. Hypothesis: routing to a domain before scoring perplexity within it should help precision on large multi-domain intent sets (chains from other skills stop competing), and be roughly neutral-to-worse on small single-domain sets where the domain stage adds overhead without payoff."
+}

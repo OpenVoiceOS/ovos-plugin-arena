@@ -1,0 +1,30 @@
+{
+  "competitor_id": "linha-fina-hierarchical-medium",
+  "modality": "intent_template",
+  "config": {
+    "intents": {
+      "pipeline": [
+        "ovos-linha-fina-hierarchical-pipeline-plugin-medium"
+      ],
+      "ovos-linha-fina-hierarchical-pipeline-plugin": {
+        "conf_high": 0.8,
+        "conf_med": 0.6,
+        "conf_low": 0.4,
+        "domain_threshold": 0.0
+      }
+    }
+  },
+  "langs": [],
+  "display_name": "Linha Fina (Hierarchical)",
+  "species": "HierarchicalLinhaFinaPipeline",
+  "types": [
+    "classical-ML",
+    "keyword-match"
+  ],
+  "description": "Two-stage variant of Linha Fina: intents are partitioned by skill_id, a top-level classifier maps the query to a single skill_id first, and only that skill's per-intent SVM engine resolves the intent. Same distribution and confidence gate as linha-fina-medium, registered under a separate opm.pipeline entry point (HierarchicalLinhaFinaPipeline in linha_fina/hierarchical_opm.py). Needs at least 2 domains and 3 intents globally before either stage can train (the plugin's own constraint).",
+  "links": {
+    "source": "https://github.com/TigreGotico/linha-fina"
+  },
+  "notes": "Same medium-confidence gate and thresholds as linha-fina-medium; 'domain_threshold': 0.0 keeps the top-level domain gate disabled (shipped default) so the comparison isolates the two-stage routing shape from linha-fina-domain-medium's parallel-argmax shape. Hypothesis: domain-first gating should help precision on large multi-domain sets by rejecting cross-domain queries before any sub-engine scores, and be weaker or equal on small single-domain sets where the domain classifier has too little signal to train reliably. KNOWN BROKEN as of linha-fina 0.3.0a1: LinhaFinaPipeline.handle_initial_train (linha_fina/opm.py:138) calls self.containers[lang].train(), but HierarchicalLinhaFinaPipeline's containers are HierarchicalIntentEngine instances which have no .train() method (AttributeError on 'mycroft.ready') -- confirmed by a live train/match sanity run in this PR. Needs an upstream fix in linha-fina before this fighter can produce real predictions; kept in the registry so a fix is picked up automatically.",
+  "size": "micro"
+}
