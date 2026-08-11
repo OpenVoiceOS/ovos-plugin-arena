@@ -10,8 +10,8 @@ adapter and ``runner/media_bench.py`` for the shared engine.
 
 Usage::
 
-    python benchmarks/stt_fleurs.py                       # ca, all fighters
-    python benchmarks/stt_fleurs.py --dataset fleurs-gl
+    python benchmarks/stt_fleurs.py                       # ca-ES, all fighters
+    python benchmarks/stt_fleurs.py --dataset fleurs-gl-ES
     python benchmarks/stt_fleurs.py --competitors whispercpp-base \
         --max-samples 20                                  # smoke run
     python benchmarks/stt_fleurs.py --upload              # + publish to HF
@@ -27,4 +27,4 @@ from runner.media_bench import run_benchmark  # noqa: E402
 from runner.stt_bench import STTBench  # noqa: E402
 
 if __name__ == "__main__":
-    sys.exit(run_benchmark(STTBench(), "fleurs-ca", __doc__.split("\n")[1]))
+    sys.exit(run_benchmark(STTBench(), "fleurs-ca-ES", __doc__.split("\n")[1]))
