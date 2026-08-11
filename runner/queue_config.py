@@ -162,8 +162,25 @@ def _plugin_from_competitor(
     import json
     data = json.loads(path.read_text())
     cfg = dict(data.get("config", {}))
+    # Fighters are complete mycroft.conf snippets: the plugin's own settings
+    # live nested under config.stt.<module>, not at the top level. Flatten
+    # that section into the config handed to the plugin class — otherwise a
+    # fighter whose model is only defined there (e.g. the vosk model URLs)
+    # falls back to model_name=competitor_id and the plugin rejects it
+    # ("Invalid model: vosk-small-it").
+    stt_section = cfg.pop("stt", None)
+    if isinstance(stt_section, dict):
+        module = stt_section.get("module") or data["plugin"]
+        plugin_section = stt_section.get(module)
+        if isinstance(plugin_section, dict):
+            cfg = {**cfg, **plugin_section}
     model_name = cfg.pop("model", competitor_id)
-    lang = lang_override or (data.get("langs") or ["en-US"])[0]
+    # Pop the fighter's top-level config.lang instead of letting it ride in
+    # extra_config: _load_plugin builds {"lang": spec.lang, **extra_config},
+    # so a leaked "lang" key silently overrides a queue-supplied
+    # lang_override. The popped value still beats the langs[] fallback.
+    cfg_lang = cfg.pop("lang", None)
+    lang = lang_override or cfg_lang or (data.get("langs") or ["en-US"])[0]
 
     return PluginSpec(
         plugin_name=data["plugin"],

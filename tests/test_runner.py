@@ -178,3 +178,88 @@ class TestLoadQueue:
         jobs = load_queue(q)
         assert len(jobs) == 2
         assert jobs[1].plugin.lang == "en-US"
+
+
+class TestPluginFromCompetitor:
+    """Regression: fighters are complete mycroft.conf snippets — the plugin's
+    settings (including its model) live nested under config.stt.<module>. A
+    loader that only reads config["model"] hands the plugin
+    model=competitor_id and vosk-style fighters explode with
+    "Invalid model: vosk-small-it" on the runner (ser9, 2026-08-11)."""
+
+    def _write_fighter(self, root, competitor_id, config, langs):
+        import json
+        d = root / "competitors" / "stt"
+        d.mkdir(parents=True, exist_ok=True)
+        (d / f"{competitor_id}.json").write_text(json.dumps({
+            "competitor_id": competitor_id,
+            "modality": "stt",
+            "plugin": config["stt"]["module"],
+            "config": config,
+            "langs": langs,
+        }))
+
+    def test_nested_plugin_section_supplies_model_and_settings(self, tmp_path):
+        from runner.queue_config import _plugin_from_competitor
+        url = "https://alphacephei.com/vosk/models/vosk-model-small-it-0.22.zip"
+        self._write_fighter(tmp_path, "vosk-small-it", {
+            "lang": "it",
+            "stt": {
+                "module": "ovos-stt-plugin-vosk",
+                "ovos-stt-plugin-vosk": {"model": url, "verbose": False},
+            },
+        }, ["it"])
+        spec = _plugin_from_competitor("vosk-small-it", registry_root=tmp_path)
+        assert spec.plugin_name == "ovos-stt-plugin-vosk"
+        assert spec.model_name == url  # NOT the competitor_id
+        assert spec.extra_config.get("verbose") is False
+        # the raw mycroft.conf "stt" wrapper must not leak into the flat
+        # plugin config
+        assert "stt" not in spec.extra_config
+
+    def test_top_level_model_still_wins_when_no_nested_model(self, tmp_path):
+        from runner.queue_config import _plugin_from_competitor
+        self._write_fighter(tmp_path, "fw-base", {
+            "lang": "de",
+            "model": "base",
+            "stt": {
+                "module": "ovos-stt-plugin-fasterwhisper",
+                "ovos-stt-plugin-fasterwhisper": {"model": "base",
+                                                  "compute_type": "int8"},
+            },
+        }, ["de"])
+        spec = _plugin_from_competitor("fw-base", registry_root=tmp_path)
+        assert spec.model_name == "base"
+        assert spec.extra_config.get("compute_type") == "int8"
+
+    def test_fighter_without_nested_section_falls_back_to_competitor_id(self, tmp_path):
+        import json
+        from runner.queue_config import _plugin_from_competitor
+        d = tmp_path / "competitors" / "stt"
+        d.mkdir(parents=True)
+        (d / "bare.json").write_text(json.dumps({
+            "competitor_id": "bare", "modality": "stt",
+            "plugin": "ovos-stt-plugin-x", "config": {}, "langs": ["en-US"],
+        }))
+        spec = _plugin_from_competitor("bare", registry_root=tmp_path)
+        assert spec.model_name == "bare"
+
+    def test_lang_override_beats_fighter_config_lang(self, tmp_path):
+        """The fighter's top-level config.lang must not leak into
+        extra_config: _load_plugin builds {"lang": spec.lang, **extra_config},
+        so a leaked key silently discards a queue-supplied lang override."""
+        from runner.queue_config import _plugin_from_competitor
+        self._write_fighter(tmp_path, "vosk-small-it", {
+            "lang": "it",
+            "stt": {
+                "module": "ovos-stt-plugin-vosk",
+                "ovos-stt-plugin-vosk": {"model": "http://x/y.zip"},
+            },
+        }, ["it"])
+        spec = _plugin_from_competitor(
+            "vosk-small-it", registry_root=tmp_path, lang_override="en-US")
+        assert spec.lang == "en-US"
+        assert "lang" not in spec.extra_config
+        # without an override, the fighter's own config.lang still wins
+        spec2 = _plugin_from_competitor("vosk-small-it", registry_root=tmp_path)
+        assert spec2.lang == "it"
