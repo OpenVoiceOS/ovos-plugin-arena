@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-10T22:53:19.101022+00:00",
+  "generated_at": "2026-08-11T00:04:20.116572+00:00",
   "competitors": [
     {
       "competitor_id": "frankenparse",
@@ -8,21 +8,12 @@
       "config": {
         "intents": {
           "pipeline": [
-            "ovos-padacioso-pipeline-plugin-high",
-            "ovos-adapt-pipeline-plugin-high",
             "ovos-padatious-pipeline-plugin-high",
+            "ovos-adapt-pipeline-plugin-high",
             "ovos-palavreado-pipeline-plugin-medium",
-            "ovos-padatious-pipeline-plugin-medium",
             "ovos-nebulento-pipeline-plugin-medium",
             "ovos-adapt-pipeline-plugin-low"
           ],
-          "ovos-padacioso-pipeline-plugin": {
-            "conf_high": 0.95,
-            "conf_med": 0.8,
-            "conf_low": 0.5,
-            "workers": 4,
-            "fuzz": false
-          },
           "ovos-adapt-pipeline-plugin": {
             "conf_high": 0.65,
             "conf_med": 0.45,
@@ -60,17 +51,16 @@
       "display_name": "Frankenparse",
       "types": [
         "ensemble",
-        "GOFAI",
         "neural-net",
-        "fuzzy-match",
-        "keyword-match"
+        "keyword-match",
+        "fuzzy-match"
       ],
-      "description": "All five engines stitched into one monster: exact templates, keyword rules and the neural parser at their high gates, then medium keyword/neural/fuzzy recall, with Adapt low as the last resort.",
+      "description": "Four distinct paradigms, one engine each, staggered by tier: Padatious (neural template, exact matches included via its own internal padaos gate) leads, Adapt (keyword rules) backs it at high, then Palavreado (keyword bag) and Nebulento (fuzzy template) share medium recall, with Adapt low as the final catch-all.",
       "size": "micro",
       "links": {
         "source": "https://github.com/OpenVoiceOS/ovos-plugin-arena"
       },
-      "notes": "The kitchen-sink fusion — every arena engine in one pipeline, precision stages before recall stages."
+      "notes": "HYPOTHESIS: does a maximal-diversity cascade (one stage per paradigm, no paradigm repeated) beat curated 2-3 engine pairs? Slimmed from the original 7-stage config: dropped the explicit Padacioso-high stage because Padatious already runs padaos internally (disable_padaos=false) and returns conf=1.0 for perfect/regex matches before its neural score is even consulted, so a separate padacioso stage tested nothing padatious wasn't already doing; dropped the redundant padatious-medium retry since a second tier of the same trained classifier is not an independent paradigm and wasn't separately justified."
     },
     {
       "competitor_id": "nebulapt",
@@ -112,7 +102,7 @@
       "links": {
         "source": "https://github.com/OpenVoiceOS/ovos-adapt-pipeline-plugin"
       },
-      "notes": "Demonstration fusion: keyword precision first, fuzzy recall second."
+      "notes": "HYPOTHESIS: does a strict keyword-rule engine (Adapt, low false-positive but brittle to phrasing/typos) at high confidence, backstopped by a fuzzy keyword matcher (Nebulento, tolerant of ASR noise and near-misses) at medium, and a lower-bar Adapt retry, beat either engine alone? Adapt and Nebulento are different matching strategies (strict rule vs fuzzy), so this tests real precision/recall complementarity, not a duplicate."
     },
     {
       "competitor_id": "nebulatious",
@@ -159,7 +149,7 @@
       "links": {
         "source": "https://github.com/OpenVoiceOS/ovos-padatious-pipeline-plugin"
       },
-      "notes": "Neural-first template cascade with a fuzzy middle stage for noisy input."
+      "notes": "HYPOTHESIS: does a neural template classifier (Padatious) at high confidence, backed by a fuzzy template matcher (Nebulento) tuned for typos/ASR noise, beat either alone — and does retrying Padatious at a looser gate afterward recover cases the fuzzy stage still missed? Padatious's internal padaos exact-match gate already covers regex-perfect input (verified in ovos_padatious/intent_container.py), so this pair specifically probes the neural-vs-fuzzy paraphrase gap, not exact-match duplication."
     },
     {
       "competitor_id": "padapt",
@@ -205,54 +195,7 @@
       "links": {
         "source": "https://github.com/OpenVoiceOS/ovos-padatious-pipeline-plugin"
       },
-      "notes": "Mirrors the default mycroft.conf intents.pipeline restricted to arena-supported engines (m2v stage omitted until it joins the roster)."
-    },
-    {
-      "competitor_id": "padatioso",
-      "schema_version": 1,
-      "modality": "intent",
-      "config": {
-        "intents": {
-          "pipeline": [
-            "ovos-padacioso-pipeline-plugin-high",
-            "ovos-padatious-pipeline-plugin-medium"
-          ],
-          "ovos-padacioso-pipeline-plugin": {
-            "conf_high": 0.95,
-            "conf_med": 0.8,
-            "conf_low": 0.5,
-            "workers": 4,
-            "fuzz": false
-          },
-          "ovos-padatious-pipeline-plugin": {
-            "conf_high": 0.95,
-            "conf_med": 0.8,
-            "conf_low": 0.5,
-            "domain_engine": false,
-            "cast_to_ascii": false,
-            "stem": false,
-            "disable_padaos": false,
-            "instant_train": false
-          }
-        }
-      },
-      "langs": [],
-      "alias": [],
-      "capabilities": [
-        "clip"
-      ],
-      "display_name": "Padatioso",
-      "types": [
-        "ensemble",
-        "GOFAI",
-        "neural-net"
-      ],
-      "description": "Padacioso × Padatious fusion — deterministic regex templates take the exact matches, the neural parser sweeps up paraphrases the templates miss.",
-      "size": "micro",
-      "links": {
-        "source": "https://github.com/OpenVoiceOS/padacioso"
-      },
-      "notes": "Precision-first template cascade: exact match high, neural medium fallback."
+      "notes": "HYPOTHESIS: does the stock OVOS default order — neural template (Padatious) first, keyword rules (Adapt) as fallback at two tiers — beat either engine alone? Template and keyword-rule matching are different paradigms (learned similarity vs explicit vocab/grammar), so the fusion tests real complementary coverage; mirrors the shipped mycroft.conf pipeline restricted to arena-supported engines (m2v stage omitted until it joins the roster)."
     },
     {
       "competitor_id": "palavadapt",
@@ -295,7 +238,7 @@
       "links": {
         "source": "https://github.com/OpenVoiceOS/ovos-adapt-pipeline-plugin"
       },
-      "notes": "All-keyword cascade; useful as the keyword league's pooled upper bound."
+      "notes": "HYPOTHESIS: within the keyword paradigm, does a strict rule engine (Adapt: ordered IntentBuilder require/optional grammar) combined with a bag-of-keywords engine (Palavreado: order-independent, no grammar) at matching tiers cover more utterances than either alone? The two engines implement genuinely different keyword-matching strategies (structured rules vs unordered bag), so this is the keyword league's pooled-upper-bound probe, not a same-engine multi-tier stack."
     },
     {
       "competitor_id": "adapt-medium",

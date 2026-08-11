@@ -4,21 +4,12 @@
   "config": {
     "intents": {
       "pipeline": [
-        "ovos-padacioso-pipeline-plugin-high",
-        "ovos-adapt-pipeline-plugin-high",
         "ovos-padatious-pipeline-plugin-high",
+        "ovos-adapt-pipeline-plugin-high",
         "ovos-palavreado-pipeline-plugin-medium",
-        "ovos-padatious-pipeline-plugin-medium",
         "ovos-nebulento-pipeline-plugin-medium",
         "ovos-adapt-pipeline-plugin-low"
       ],
-      "ovos-padacioso-pipeline-plugin": {
-        "conf_high": 0.95,
-        "conf_med": 0.8,
-        "conf_low": 0.5,
-        "workers": 4,
-        "fuzz": false
-      },
       "ovos-adapt-pipeline-plugin": {
         "conf_high": 0.65,
         "conf_med": 0.45,
@@ -52,15 +43,14 @@
   "display_name": "Frankenparse",
   "types": [
     "ensemble",
-    "GOFAI",
     "neural-net",
-    "fuzzy-match",
-    "keyword-match"
+    "keyword-match",
+    "fuzzy-match"
   ],
-  "description": "All five engines stitched into one monster: exact templates, keyword rules and the neural parser at their high gates, then medium keyword/neural/fuzzy recall, with Adapt low as the last resort.",
+  "description": "Four distinct paradigms, one engine each, staggered by tier: Padatious (neural template, exact matches included via its own internal padaos gate) leads, Adapt (keyword rules) backs it at high, then Palavreado (keyword bag) and Nebulento (fuzzy template) share medium recall, with Adapt low as the final catch-all.",
   "links": {
     "source": "https://github.com/OpenVoiceOS/ovos-plugin-arena"
   },
   "size": "micro",
-  "notes": "The kitchen-sink fusion — every arena engine in one pipeline, precision stages before recall stages."
+  "notes": "HYPOTHESIS: does a maximal-diversity cascade (one stage per paradigm, no paradigm repeated) beat curated 2-3 engine pairs? Slimmed from the original 7-stage config: dropped the explicit Padacioso-high stage because Padatious already runs padaos internally (disable_padaos=false) and returns conf=1.0 for perfect/regex matches before its neural score is even consulted, so a separate padacioso stage tested nothing padatious wasn't already doing; dropped the redundant padatious-medium retry since a second tier of the same trained classifier is not an independent paradigm and wasn't separately justified."
 }
