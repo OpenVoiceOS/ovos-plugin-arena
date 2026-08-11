@@ -412,6 +412,26 @@ Voting options MUST include: candidate A, candidate B, tie, both-wrong.
   keeping FA/hour within `TARGET_FA_PER_HOUR` (2/hour), not raw
   threshold-0.5 FRR alone. The `wake_word` board and `score_wake_word` are
   unchanged by this rule.
+- **R19 — Published leaderboards must be provably reproducible from the
+  public vote log.** `arena/cli.py:cmd_verify_replay` (`verify-replay`
+  subcommand) re-runs the same pure replay path `tally` uses
+  (`dedupe_votes` → `resolve_vote_weights` → `build_elo_board`, never a
+  reimplementation) against the current vote log — either fetched live
+  (`--repo`) or from an offline snapshot (`--votes-file`, no network) —
+  and diffs the result field-by-field against the committed
+  `leaderboard-<league>-<lang>.json` and `vote-audit.json` (ratings,
+  ranks, vote counts; `generated_at` ignored). A mismatch means the
+  published data is not what the public log actually supports, and the
+  command exits non-zero with the exact diff.
+  `.github/workflows/replay-proof.yml` runs it on every push to `dev` and
+  daily, failing the build on any divergence — strictly: a league with
+  counted votes but no published board is itself a mismatch, not a
+  tolerated gap. Published leaderboard/ELO-seed/battles artifacts are
+  derived data, not a compatibility surface — when a change (e.g. a
+  league split such as R18, a new rating field) makes old committed
+  artifacts no longer reproducible from the current replay path, they are
+  deleted and regenerated (`assemble` + `tally`), never grandfathered in
+  to keep the proof passing.
 - Human votes: tie and both-wrong score 0.5/0.5.
 - Auto votes (seeding): K/4 (sequential ELO) / weight 1/4 (Bradley-Terry),
   outcomes from benchmark metrics only.

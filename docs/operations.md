@@ -124,6 +124,38 @@ replay itself fully offline and deterministic: the same committed data
 directory, tallied twice, produces byte-identical leaderboards (aside from
 each run's own `generated_at` timestamp).
 
+## Replay proof
+
+`verify-replay` (`.github/workflows/replay-proof.yml`, on every push to
+`dev` and daily) is the automated version of the manual replay above: it
+re-runs the exact same pure `dedupe_votes` → `resolve_vote_weights` →
+`build_elo_board` path `tally` uses, then diffs the freshly-replayed
+standings against the committed `leaderboard-<league>-<lang>.json` and
+`vote-audit.json` files field-by-field (ratings, ranks, vote counts —
+`generated_at` is ignored). Exit 0 means every published board is exactly
+reproducible from the public vote log; any other exit code means the
+published data has drifted from what the log actually supports, and the
+CI job fails loudly with a JSON diff of exactly which fields moved.
+
+```bash
+python -m arena.cli verify-replay --data-dir frontend-static/public/data \
+                                   --repo <owner>/<repo>
+# or, offline against a saved vote-issue snapshot:
+python -m arena.cli verify-replay --data-dir frontend-static/public/data \
+                                   --votes-file vote-log-snapshot.json
+```
+
+The check is strict: every committed `leaderboard-*.json` (and
+`vote-audit.json`) MUST be exactly what replaying the current vote log
+against the current battles pools produces, including a league that has
+no published board at all — a league with counted votes and no
+`leaderboard-<league>-<lang>.json` is a mismatch, not a tolerated gap.
+Published artifacts are derived data: if a code change (e.g. a league
+split, a new rating field) makes the committed boards no longer
+reproducible, the fix is to delete the stale artifacts and regenerate
+them with `assemble` + `tally`, not to grandfather the old shape into the
+proof.
+
 ## Troubleshooting
 
 - **A vote issue closes immediately with "does not match the vote title
