@@ -49,6 +49,10 @@ test = [
     "pytest-cov>=4.1",
     "huggingface_hub>=0.24",
     "numpy",
+    # The wake-word adapter tests exercise the real ovoscope WakeWordProbe
+    # (runner/ww_bench.py) — tests must fail loudly, never skip, on missing
+    # deps, so the probe dependency belongs in the test extra too.
+    "ovoscope>=1.6.0a1",
 ]
 lint = [
     "ruff>=0.6",
