@@ -63,6 +63,7 @@ function startServer() {
 const PAGES = [
   ['/', 'home'],
   ['/leaderboard/', 'leaderboard'],
+  ['/matchups/', 'matchup heatmap'],
   ['/battle/', 'battle (blind vote flow)'],
   ['/fighter/azure-stt-en/', 'fighter detail'],
   ['/fighters/', 'fighters bestiary'],
