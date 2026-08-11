@@ -145,7 +145,11 @@ class HubLister:
         if repo_id in self._file_cache:
             return self._file_cache[repo_id]
         from huggingface_hub import HfApi
-        from huggingface_hub.utils import RepositoryNotFoundError, RevisionNotFoundError
+        from huggingface_hub.utils import (
+            EntryNotFoundError,
+            RepositoryNotFoundError,
+            RevisionNotFoundError,
+        )
 
         files: dict[str, int] = {}
         try:
@@ -155,9 +159,13 @@ class HubLister:
                 size = getattr(entry, "size", None)
                 if size is not None:
                     files[entry.path] = size
-        except (RepositoryNotFoundError, RevisionNotFoundError):
-            # The repo (or its "predictions" path) genuinely does not exist —
-            # every competitor for this dataset is legitimately all-missing.
+        except (EntryNotFoundError, RepositoryNotFoundError,
+                RevisionNotFoundError):
+            # The repo, its revision, or its "predictions" path genuinely
+            # does not exist (EntryNotFoundError = repo exists but the
+            # predictions/ folder was never written — every freshly created
+            # prediction repo looks like this) — every competitor for this
+            # dataset is legitimately all-missing.
             files = {}
         # Anything else (network failure, rate limit, auth error, ...) is a
         # transient/ambient problem, not "nothing is published" — propagate

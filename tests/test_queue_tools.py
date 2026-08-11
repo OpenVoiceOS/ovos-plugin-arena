@@ -553,3 +553,22 @@ class TestFindMissingPairsLangNestedLayout:
         by_key = {(mp.competitor.competitor_id, mp.dataset.dataset_id): mp.reason
                   for mp in missing}
         assert by_key[("vosk-en", "minds14-en-US")] == "no_file"
+
+
+class TestHubListerEmptyRepo:
+    def test_entry_not_found_yields_empty_files(self, monkeypatch):
+        """Regression: a freshly created prediction repo has no predictions/
+        folder; list_repo_tree raises EntryNotFoundError, which must mean
+        'nothing published yet', not a crash (live failure: queue regen died
+        on ovos-stt-bench-fleurs-gl, 2026-08-11)."""
+        import runner.queue_tools as qt
+        from huggingface_hub.utils import EntryNotFoundError
+
+        class FakeApi:
+            def list_repo_tree(self, *a, **kw):
+                raise EntryNotFoundError("predictions does not exist on main")
+
+        import huggingface_hub
+        monkeypatch.setattr(huggingface_hub, "HfApi", FakeApi)
+        lister = qt.HubLister()
+        assert lister.list_files("OpenVoiceOS/ovos-stt-bench-fleurs-gl") == {}
