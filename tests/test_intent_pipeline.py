@@ -27,6 +27,9 @@ class TestEngineRegistry:
             "ovos-linha-fina-domain-pipeline-plugin",
             "ovos-linha-fina-hierarchical-pipeline-plugin",
             "ovos-markov-domain-pipeline-plugin",
+            "ovos-adapt-domain-pipeline-plugin",
+            "ovos-adapt-hierarchical-pipeline-plugin",
+            "ovos-palavreado-hierarchical-pipeline",
         }
 
     def test_paradigms(self):

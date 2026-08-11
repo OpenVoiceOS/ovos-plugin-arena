@@ -100,6 +100,15 @@ ENGINE_REGISTRY: dict[str, EngineSpec] = {
     "ovos-markov-domain-pipeline-plugin": EngineSpec(
         "ovos_markov_pipeline:DomainMarkovPipeline", "template",
         "mycroft.skills.train", "ovos-markov-pipeline-plugin", "markov_domain"),
+    "ovos-adapt-domain-pipeline-plugin": EngineSpec(
+        "ovos_adapt.opm:DomainAdaptPipeline", "keyword",
+        None, "ovos-adapt-parser", "adapt_domain"),
+    "ovos-adapt-hierarchical-pipeline-plugin": EngineSpec(
+        "ovos_adapt.opm:HierarchicalAdaptPipeline", "keyword",
+        None, "ovos-adapt-parser", "adapt_hierarchical"),
+    "ovos-palavreado-hierarchical-pipeline": EngineSpec(
+        "palavreado.opm:HierarchicalPalavreadoPipeline", "keyword",
+        None, "palavreado", "palavreado_hierarchical"),
 }
 
 

@@ -1,0 +1,30 @@
+{
+  "competitor_id": "palavreado-hierarchical-medium",
+  "modality": "intent_keyword",
+  "config": {
+    "intents": {
+      "pipeline": [
+        "ovos-palavreado-hierarchical-pipeline-medium"
+      ],
+      "ovos-palavreado-hierarchical-pipeline": {
+        "conf_high": 0.65,
+        "conf_med": 0.45,
+        "conf_low": 0.25,
+        "max_words": 50
+      }
+    }
+  },
+  "langs": [],
+  "display_name": "Palavreado (Hierarchical)",
+  "species": "HierarchicalPalavreadoPipeline",
+  "types": [
+    "GOFAI",
+    "keyword-match"
+  ],
+  "description": "Two-stage variant of Palavreado: intents are filed under a domain == skill_id, a top-level classifier picks the domain first, then only that domain's sub-container keyword-matches the intent. Same distribution and confidence gate as palavreado-medium, registered under a separate opm.pipeline entry point (HierarchicalPalavreadoPipeline in palavreado/opm.py).",
+  "links": {
+    "source": "https://github.com/OpenVoiceOS/palavreado"
+  },
+  "notes": "Same medium-confidence gate and thresholds as palavreado-medium; isolates the two-stage routing shape from the flat pipeline. Hypothesis: domain-first routing should help precision on large multi-domain intent sets by rejecting cross-domain keyword near-misses before they compete, and be roughly neutral-to-worse on small single-domain sets where there is no domain structure to exploit.",
+  "size": "micro"
+}

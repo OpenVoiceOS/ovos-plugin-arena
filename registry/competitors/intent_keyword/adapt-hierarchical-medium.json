@@ -1,0 +1,29 @@
+{
+  "competitor_id": "adapt-hierarchical-medium",
+  "modality": "intent_keyword",
+  "config": {
+    "intents": {
+      "pipeline": [
+        "ovos-adapt-hierarchical-pipeline-plugin-medium"
+      ],
+      "ovos-adapt-hierarchical-pipeline-plugin": {
+        "conf_high": 0.65,
+        "conf_med": 0.45,
+        "conf_low": 0.25
+      }
+    }
+  },
+  "langs": [],
+  "display_name": "Adapt (Hierarchical)",
+  "species": "HierarchicalAdaptPipeline",
+  "types": [
+    "GOFAI",
+    "keyword-match"
+  ],
+  "description": "Two-stage variant of Adapt: vocabulary and intents are filed under a domain == skill_id, a top-level classifier picks the domain first, then only that domain's sub-engine matches the intent. Same distribution and confidence gate as adapt-medium, registered under a separate opm.pipeline entry point (HierarchicalAdaptPipeline in ovos_adapt/opm.py).",
+  "links": {
+    "source": "https://github.com/OpenVoiceOS/ovos-adapt-pipeline-plugin"
+  },
+  "notes": "Same medium-confidence gate and thresholds as adapt-medium; isolates the two-stage routing shape from the flat pipeline. Hypothesis: domain-first routing should help precision on large multi-domain intent sets by rejecting cross-domain keyword near-misses before they compete, and be roughly neutral-to-worse on small single-domain sets where there is no domain structure to exploit.",
+  "size": "micro"
+}

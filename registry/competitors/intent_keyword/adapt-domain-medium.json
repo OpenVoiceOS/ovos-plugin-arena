@@ -1,0 +1,29 @@
+{
+  "competitor_id": "adapt-domain-medium",
+  "modality": "intent_keyword",
+  "config": {
+    "intents": {
+      "pipeline": [
+        "ovos-adapt-domain-pipeline-plugin-medium"
+      ],
+      "ovos-adapt-domain-pipeline-plugin": {
+        "conf_high": 0.65,
+        "conf_med": 0.45,
+        "conf_low": 0.25
+      }
+    }
+  },
+  "langs": [],
+  "display_name": "Adapt (Domain)",
+  "species": "DomainAdaptPipeline",
+  "types": [
+    "GOFAI",
+    "keyword-match"
+  ],
+  "description": "Domain-partitioned variant of Adapt: registered vocabulary and intents are grouped by skill_id into a per-skill IntentDeterminationEngine per language; inference runs every per-skill engine and returns the global argmax. Same distribution and confidence gate as adapt-medium, registered under a separate opm.pipeline entry point (DomainAdaptPipeline in ovos_adapt/opm.py).",
+  "links": {
+    "source": "https://github.com/OpenVoiceOS/ovos-adapt-pipeline-plugin"
+  },
+  "notes": "Single-stage pipeline at the plugin's own medium-confidence gate; per-plugin config keeps the same documented thresholds as adapt-medium. This variant is parallel (every domain engine scores, then argmax), not gated two-stage routing. Hypothesis: should improve precision over the flat pipeline on large multi-domain intent sets by keeping decision boundaries local to each skill's vocabulary, and be roughly neutral on small single-domain sets.",
+  "size": "micro"
+}
