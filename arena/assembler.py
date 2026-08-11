@@ -25,10 +25,11 @@ import logging
 
 from arena.elo import EloLedger
 from arena.metrics import (
-    pair_metric_significant,
+    primary_metric_ci,
     row_is_correct,
     row_utmos,
     row_wer,
+    significant_from_cis,
     ww_row_correct,
 )
 from arena.models import (
@@ -319,6 +320,19 @@ def seed_elo(
     for dataset_id in sorted(samples_by_dataset):
         samples = samples_by_dataset[dataset_id]
         rows_by_competitor = _rows_by_competitor(samples)
+        # Bootstrap a CI per *competitor* once (O(fighters)) instead of once
+        # per (comp_a, comp_b) *pair* (O(fighters²)) — a jurebes-scale roster
+        # (60+ fighters) turns ~1000-round bootstraps over full-size row
+        # lists into the dominant cost of assemble otherwise.
+        ci_cache: dict[str, tuple[float, float] | None] = {}
+
+        def _ci(competitor: str) -> tuple[float, float] | None:
+            if competitor not in ci_cache:
+                ci_cache[competitor] = primary_metric_ci(
+                    modality, rows_by_competitor[competitor]
+                )
+            return ci_cache[competitor]
+
         significant: dict[tuple[str, str], bool] = {}
 
         for sample_id in sorted(samples):
@@ -333,8 +347,8 @@ def seed_elo(
             for comp_a, comp_b in itertools.combinations(sorted(rows), 2):
                 pair = (comp_a, comp_b)
                 if pair not in significant:
-                    significant[pair] = pair_metric_significant(
-                        modality, rows_by_competitor[comp_a], rows_by_competitor[comp_b]
+                    significant[pair] = significant_from_cis(
+                        _ci(comp_a), _ci(comp_b)
                     )
                 if not significant[pair]:
                     continue

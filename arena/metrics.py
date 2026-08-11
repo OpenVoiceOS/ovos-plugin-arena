@@ -747,6 +747,20 @@ def _ci_overlaps(a: tuple[float, float] | None, b: tuple[float, float] | None) -
     return a[0] <= b[1] and b[0] <= a[1]
 
 
+def significant_from_cis(
+    ci_a: tuple[float, float] | None, ci_b: tuple[float, float] | None
+) -> bool:
+    """True when two already-computed primary-metric CIs (§4 A1.2) do not
+    overlap. Split out of ``pair_metric_significant`` so a caller iterating
+    every competitor pair (O(fighters²)) can bootstrap each competitor's CI
+    once (O(fighters)) and reuse it here, instead of recomputing the same
+    competitor's CI on every pair it appears in.
+    """
+    if ci_a is None or ci_b is None:
+        return True
+    return not _ci_overlaps(ci_a, ci_b)
+
+
 def pair_metric_significant(
     modality: str, rows_a: list[PredictionRow], rows_b: list[PredictionRow]
 ) -> bool:
@@ -760,9 +774,7 @@ def pair_metric_significant(
     """
     ci_a = primary_metric_ci(modality, rows_a)
     ci_b = primary_metric_ci(modality, rows_b)
-    if ci_a is None or ci_b is None:
-        return True
-    return not _ci_overlaps(ci_a, ci_b)
+    return significant_from_cis(ci_a, ci_b)
 
 
 def build_benchmark_board(
