@@ -20,6 +20,11 @@ export-index
 export-bestiary
     Flatten the competitor registry into ``competitors.json`` for the
     fighter-browser UI.
+
+export-evidence
+    Regenerate ``evidence.json`` — per-league completeness counts (fighters,
+    registered datasets, datasets with published predictions, benchmark
+    boards, ELO leaderboards) plus global totals, for the evidence page.
 """
 from __future__ import annotations
 
@@ -1034,6 +1039,123 @@ def cmd_export_bestiary(args: argparse.Namespace) -> int:
     return 0
 
 
+# Same definition regex ``tests/test_spec_coverage.py`` uses to enumerate
+# every normative requirement the spec defines — kept in sync deliberately
+# so the evidence page's "spec requirements" count always matches what that
+# test treats as the authoritative R-number set.
+_SPEC_REQUIREMENT_DEF_RE = re.compile(r"\*\*(R\d+[a-z]?)\b")
+
+
+def cmd_export_evidence(args: argparse.Namespace) -> int:
+    """Build ``evidence.json`` — per-league completeness counts, generated
+    straight from the registry and the data dir so the numbers can never
+    drift from what the site actually publishes (§P3, §P5).
+    """
+    registry_root = Path(args.registry).resolve()
+    if str(registry_root.parent) not in sys.path:
+        sys.path.insert(0, str(registry_root.parent))
+    from registry.loaders import load_all_competitors, load_all_datasets
+
+    data_dir = Path(args.data_dir)
+    all_competitors = load_all_competitors(registry_root=registry_root)
+    all_datasets = load_all_datasets(registry_root=registry_root)
+    eval_datasets = [d for d in all_datasets if d.role == "eval"]
+
+    league_rows: list[dict[str, Any]] = []
+    for entry in leagues():
+        modality = entry["id"]
+        fighters = [c for c in all_competitors if c.modality == modality]
+
+        # The two paradigm sub-leagues (§18) don't own registry datasets of
+        # their own — they re-use the open "intent" league's eval corpora
+        # via ``train_datasets``, publishing to their own
+        # ``ovos-intent-<paradigm>-bench-<dataset_id>`` HF repo (see
+        # ``registry.loaders.list_prediction_repos``).
+        paradigm = (
+            {"intent_template": "template", "intent_keyword": "keyword"}
+            .get(modality)
+        )
+        league_datasets: list[tuple[str, str | None]]
+        if paradigm:
+            league_datasets = []
+            for d in eval_datasets:
+                if d.modality != "intent" or paradigm not in (d.train_datasets or {}):
+                    continue
+                owner = (d.predictions_hf or "OpenVoiceOS/x").split("/")[0]
+                league_datasets.append((
+                    d.dataset_id,
+                    f"{owner}/ovos-intent-{paradigm}-bench-{d.dataset_id}",
+                ))
+            league_datasets.sort()
+        else:
+            league_datasets = sorted(
+                ((d.dataset_id, d.predictions_hf)
+                 for d in eval_datasets if d.modality == modality),
+            )
+
+        board_paths = sorted(data_dir.glob(f"benchmark-{modality}-*.json"))
+        board_dataset_ids: set[str] = set()
+        for path in board_paths:
+            try:
+                payload = json.loads(path.read_text())
+            except (OSError, json.JSONDecodeError) as exc:
+                log.warning("Could not read %s: %s", path, exc)
+                continue
+            ds_id = payload.get("dataset_id")
+            if ds_id:
+                board_dataset_ids.add(ds_id)
+
+        leaderboard_paths = sorted(data_dir.glob(f"leaderboard-{modality}-*.json"))
+
+        predictions_links = [
+            {
+                "dataset_id": dataset_id,
+                "predictions_hf": predictions_hf,
+                "url": f"https://huggingface.co/datasets/{predictions_hf}",
+                "has_predictions": dataset_id in board_dataset_ids,
+            }
+            for dataset_id, predictions_hf in league_datasets
+            if predictions_hf
+        ]
+
+        league_rows.append({
+            "id": modality,
+            "label": entry["label"],
+            "fighters": len(fighters),
+            "datasets": len(league_datasets),
+            "datasets_with_predictions": sum(
+                1 for dataset_id, _ in league_datasets
+                if dataset_id in board_dataset_ids
+            ),
+            "benchmark_boards": len(board_paths),
+            "elo_leaderboards": len(leaderboard_paths),
+            "predictions_links": predictions_links,
+            "spec_anchor": "docs/SPECIFICATION.md#21-leagues-modalities",
+        })
+
+    spec_path = Path(args.spec)
+    spec_text = spec_path.read_text(encoding="utf-8") if spec_path.exists() else ""
+    requirement_ids = sorted(set(_SPEC_REQUIREMENT_DEF_RE.findall(spec_text)))
+
+    evidence = {
+        "generated_at": _now_iso(),
+        "leagues": league_rows,
+        "totals": {
+            "fighters": len(all_competitors),
+            "datasets": len(eval_datasets),
+            "spec_requirements": len(requirement_ids),
+        },
+    }
+
+    out_file = Path(args.output)
+    out_file.parent.mkdir(parents=True, exist_ok=True)
+    _write_json_payload(out_file, evidence)
+    log.info("Exported evidence for %d league(s), %d fighter(s), %d dataset(s), "
+              "%d spec requirement(s)", len(league_rows), len(all_competitors),
+              len(eval_datasets), len(requirement_ids))
+    return 0
+
+
 def cmd_validate_registry(args: argparse.Namespace) -> int:
     """Strictly validate every registry JSON file; nonzero exit on any error."""
     registry_root = Path(args.registry).resolve()
@@ -1142,6 +1264,15 @@ def main(argv=None):
     p.add_argument("--output", default="frontend-static/public/data/competitors.json")
 
     p = sub.add_parser(
+        "export-evidence",
+        help="Regenerate data/evidence.json (per-league completeness counts)",
+    )
+    p.add_argument("--registry", default="registry")
+    p.add_argument("--data-dir", default="frontend-static/public/data")
+    p.add_argument("--spec", default="docs/SPECIFICATION.md")
+    p.add_argument("--output", default="frontend-static/public/data/evidence.json")
+
+    p = sub.add_parser(
         "validate-registry",
         help="Strictly validate every registry competitor/dataset JSON file",
     )
@@ -1160,6 +1291,7 @@ def main(argv=None):
         "verify-replay": cmd_verify_replay,
         "export-index": cmd_export_index,
         "export-bestiary": cmd_export_bestiary,
+        "export-evidence": cmd_export_evidence,
         "validate-registry": cmd_validate_registry,
         "audit-seeds": cmd_audit_seeds,
     }

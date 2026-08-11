@@ -70,6 +70,7 @@ const PAGES = [
   ['/methodology/', 'methodology'],
   ['/patch-notes/', 'patch notes'],
   ['/vote/', 'free vote flow'],
+  ['/evidence/', 'evidence (completeness page)'],
 ].map(([route, label]) => [route === '/' ? `${BASE}/` : `${BASE}${route}`, label]);
 
 const FAIL_IMPACTS = new Set(['critical', 'serious']);

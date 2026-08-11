@@ -1,0 +1,208 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="Evidence" description="What the arena actually has, generated straight from the data — fighters, datasets, published predictions and boards per league.">
+  <p class="eyebrow" style="margin-bottom:0.4rem">OVOS Plugin Arena · Completeness</p>
+  <h1 style="font-size:clamp(1.8rem,5vw,2.6rem);margin-bottom:0.35rem">Evidence</h1>
+  <p style="max-width:66ch">
+    This page is generated from the same data the site publishes — no hand-typed
+    numbers. It exists so an outside reviewer can check, league by league, what
+    is actually in place versus what is still a gap: how many fighters are
+    registered, how many datasets, how many of those datasets have <em>published</em>
+    predictions on Hugging Face, and how many benchmark boards and ELO
+    leaderboards exist as a result. Where a league has fighters but few or no
+    published predictions, that shows up as a gap here — not a rounded-up number.
+  </p>
+
+  <div id="ev-loading" class="card" aria-live="polite">Loading evidence…</div>
+  <div id="ev-empty" class="card" style="display:none">
+    No evidence data yet. Run <code>arena.cli export-evidence</code> (wired into
+    the <code>assemble.yml</code> action) to generate <code>data/evidence.json</code>.
+  </div>
+
+  <div id="ev-app" style="display:none">
+    <div id="ev-totals" class="ev-totals" role="group" aria-label="Arena-wide totals"></div>
+
+    <h2>Per league</h2>
+    <div class="table-scroll">
+      <table id="ev-table">
+        <caption class="sr-only">Completeness per league: fighters, registered datasets, datasets with published predictions, benchmark boards, and ELO leaderboards.</caption>
+        <thead>
+          <tr>
+            <th scope="col">League</th>
+            <th scope="col">Fighters</th>
+            <th scope="col">Datasets</th>
+            <th scope="col">With predictions</th>
+            <th scope="col">Benchmark boards</th>
+            <th scope="col">ELO leaderboards</th>
+          </tr>
+        </thead>
+        <tbody id="ev-tbody"></tbody>
+      </table>
+    </div>
+
+    <h2>Published predictions, per dataset</h2>
+    <p style="max-width:66ch">
+      Every dataset a league claims to score against, linked to its Hugging Face
+      predictions repo. <span class="ev-gap-dot" aria-hidden="true"></span> marks
+      a dataset that is registered but has no published predictions yet — no
+      benchmark board, no ELO seed for it.
+    </p>
+    <div id="ev-links"></div>
+
+    <h2>Verify it yourself</h2>
+    <ul role="list" class="ev-verify-list" id="ev-verify"></ul>
+
+    <p id="ev-generated" class="ev-generated"></p>
+  </div>
+
+  <style is:global>
+    .ev-totals {
+      display: flex; flex-wrap: wrap; gap: 0.9rem;
+      margin: 1.5rem 0 2rem;
+    }
+    .ev-stat {
+      flex: 1 1 160px;
+      background: linear-gradient(180deg, var(--surface-2) 0%, var(--surface) 100%);
+      border: 1px solid var(--border); border-radius: var(--radius);
+      padding: 1rem 1.1rem;
+    }
+    .ev-stat .n {
+      display: block; font-family: var(--display); font-weight: 700;
+      font-size: 1.9rem; color: var(--text); line-height: 1.1;
+    }
+    .ev-stat .l {
+      display: block; margin-top: 0.3rem; font-size: 0.8rem; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .table-scroll { overflow-x: auto; margin-bottom: 1.5rem; }
+    #ev-table td.num, #ev-table th.num { text-align: right; }
+    #ev-table td { font-variant-numeric: tabular-nums; }
+    .ev-gap { color: var(--tie); font-weight: 700; }
+    .ev-gap-dot {
+      display: inline-block; width: 0.55em; height: 0.55em; border-radius: 50%;
+      background: var(--tie); vertical-align: middle;
+    }
+    .ev-league-links { margin-bottom: 1.4rem; }
+    .ev-league-links h3 {
+      font-family: var(--display); font-weight: 600; font-size: 1rem;
+      margin: 0 0 0.6rem;
+    }
+    .ev-league-links ul { list-style: none; padding: 0; margin: 0; }
+    .ev-league-links li {
+      display: flex; align-items: baseline; gap: 0.5rem;
+      padding: 0.35rem 0; border-bottom: 1px solid var(--border);
+      font-size: 0.88rem;
+    }
+    .ev-league-links li:last-child { border-bottom: none; }
+    .ev-verify-list { padding-left: 1.2rem; margin-bottom: 1.5rem; }
+    .ev-verify-list li { margin-bottom: 0.5rem; color: var(--muted); }
+    .ev-generated { font-size: 0.8rem; color: var(--muted); }
+  </style>
+
+  <script>
+    const BASE = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
+
+    function escapeHtml(s: unknown): string {
+      return String(s).replace(/[&<>"']/g, c => (
+        { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' } as Record<string, string>
+      )[c]);
+    }
+
+    fetch(BASE + 'data/evidence.json')
+      .then(r => r.ok ? r.json() : null).catch(() => null)
+      .then(data => {
+        document.getElementById('ev-loading')!.style.display = 'none';
+        if (!data || !Array.isArray(data.leagues) || !data.leagues.length) {
+          document.getElementById('ev-empty')!.style.display = 'block';
+          return;
+        }
+        document.getElementById('ev-app')!.style.display = 'block';
+        renderTotals(data);
+        renderTable(data.leagues);
+        renderLinks(data.leagues);
+        renderVerify();
+        renderGeneratedAt(data.generated_at);
+      });
+
+    function renderTotals(data: any) {
+      const totals = data.totals || {};
+      const stats: [string, string][] = [
+        [String(totals.fighters ?? '—'), 'Fighters registered'],
+        [String(totals.datasets ?? '—'), 'Eval datasets registered'],
+        [String(totals.spec_requirements ?? '—'), 'Spec requirements (R#)'],
+        [String((data.leagues || []).length), 'Leagues'],
+      ];
+      const box = document.getElementById('ev-totals')!;
+      box.innerHTML = stats.map(([n, l]) => `
+        <div class="ev-stat"><span class="n">${escapeHtml(n)}</span><span class="l">${escapeHtml(l)}</span></div>
+      `).join('');
+    }
+
+    function gapCell(have: number, total: number): string {
+      const text = `${have}/${total}`;
+      return have < total
+        ? `<span class="ev-gap" title="${have} of ${total} datasets have published predictions">${escapeHtml(text)}</span>`
+        : escapeHtml(text);
+    }
+
+    function renderTable(leagues: any[]) {
+      const tbody = document.getElementById('ev-tbody')!;
+      tbody.innerHTML = leagues.map(l => `
+        <tr>
+          <th scope="row">${escapeHtml(l.label || l.id)}</th>
+          <td class="num">${escapeHtml(l.fighters)}</td>
+          <td class="num">${escapeHtml(l.datasets)}</td>
+          <td class="num">${gapCell(l.datasets_with_predictions, l.datasets)}</td>
+          <td class="num">${escapeHtml(l.benchmark_boards)}</td>
+          <td class="num">${escapeHtml(l.elo_leaderboards)}</td>
+        </tr>
+      `).join('');
+    }
+
+    function renderLinks(leagues: any[]) {
+      const box = document.getElementById('ev-links')!;
+      box.innerHTML = leagues.map(l => {
+        const links = l.predictions_links || [];
+        if (!links.length) {
+          return `
+            <div class="ev-league-links">
+              <h3>${escapeHtml(l.label || l.id)}</h3>
+              <p style="margin:0;font-size:0.85rem">No registered datasets with a predictions repo yet.</p>
+            </div>`;
+        }
+        const items = links.map((link: any) => `
+          <li>
+            ${link.has_predictions ? '' : '<span class="ev-gap-dot" aria-hidden="true"></span>'}
+            <span><code>${escapeHtml(link.dataset_id)}</code></span>
+            ${link.has_predictions
+              ? `<a href="${escapeHtml(link.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(link.predictions_hf)}</a>`
+              : `<span class="ev-gap-repo">${escapeHtml(link.predictions_hf)}</span>`}
+            ${link.has_predictions ? '' : '<span style="color:var(--muted);font-size:0.8rem">— registered, no predictions published</span>'}
+          </li>
+        `).join('');
+        return `
+          <div class="ev-league-links">
+            <h3>${escapeHtml(l.label || l.id)}</h3>
+            <ul role="list">${items}</ul>
+          </div>`;
+      }).join('');
+    }
+
+    function renderVerify() {
+      const list = document.getElementById('ev-verify')!;
+      list.innerHTML = `
+        <li>Read the normative spec: <a href="https://github.com/OpenVoiceOS/ovos-plugin-arena/blob/dev/docs/SPECIFICATION.md" target="_blank" rel="noopener noreferrer">docs/SPECIFICATION.md</a> — every R-number counted above is defined there.</li>
+        <li>Read how ratings and benchmarks are computed: <a href="${BASE}methodology/">Methodology</a>.</li>
+        <li>Check that a replayed vote log never touches the network or changes with re-runs: <a href="https://github.com/OpenVoiceOS/ovos-plugin-arena/blob/dev/tests/test_tally_fraud.py" target="_blank" rel="noopener noreferrer">tests/test_tally_fraud.py</a> (offline replay-purity tests). CI-gated proof that replay reproduces the published leaderboards byte-for-field runs on every push to <code>dev</code> and daily via <a href="https://github.com/OpenVoiceOS/ovos-plugin-arena/actions/workflows/replay-proof.yml" target="_blank" rel="noopener noreferrer"><img src="https://github.com/OpenVoiceOS/ovos-plugin-arena/actions/workflows/replay-proof.yml/badge.svg" alt="Replay proof status" style="vertical-align:middle;height:1em" /></a> (<a href="https://github.com/OpenVoiceOS/ovos-plugin-arena/blob/dev/.github/workflows/replay-proof.yml" target="_blank" rel="noopener noreferrer">replay-proof.yml</a>).</li>
+        <li>Regenerate this page's data yourself: <code>python -m arena.cli export-evidence</code> — it reads only the registry and the committed data dir, nothing hand-typed.</li>
+      `;
+    }
+
+    function renderGeneratedAt(ts: string) {
+      const el = document.getElementById('ev-generated')!;
+      if (!ts) { el.textContent = ''; return; }
+      el.textContent = `Generated at ${ts}`;
+    }
+  </script>
+</Base>

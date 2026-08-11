@@ -505,6 +505,134 @@ class TestExportBestiary:
         assert entry["types"]
 
 
+class TestExportEvidence:
+    """§ evidence page — counts must be an exact function of the fixture
+    registry + data dir, not guesses. Every number asserted here is
+    independently computed from the fixture below, not read back from the
+    command's own output."""
+
+    def _write_registry(self, root: Path) -> None:
+        (root / "competitors" / "stt").mkdir(parents=True)
+        (root / "competitors" / "tts").mkdir(parents=True)
+        (root / "datasets" / "stt").mkdir(parents=True)
+        (root / "datasets" / "tts").mkdir(parents=True)
+
+        for cid in ("whisper-tiny", "onnx-asr-a", "onnx-asr-b"):
+            (root / "competitors" / "stt" / f"{cid}.json").write_text(json.dumps({
+                "competitor_id": cid, "modality": "stt",
+                "plugin": f"ovos-stt-plugin-{cid}", "species": "Whisper",
+            }))
+        (root / "competitors" / "tts" / "piper-a.json").write_text(json.dumps({
+            "competitor_id": "piper-a", "modality": "tts",
+            "plugin": "ovos-tts-plugin-piper-a", "species": "Piper",
+        }))
+
+        # Two STT eval datasets: one with a published benchmark board, one
+        # without — the exact "gap" shape the evidence page must surface.
+        (root / "datasets" / "stt" / "fleurs-en.json").write_text(json.dumps({
+            "dataset_id": "fleurs-en", "modality": "stt",
+            "source": {"type": "huggingface", "hf_id": "google/fleurs",
+                       "revision": "main", "split": "test"},
+            "lang": "en", "role": "eval",
+            "predictions_hf": "OpenVoiceOS/ovos-stt-bench-fleurs-en",
+        }))
+        (root / "datasets" / "stt" / "fleurs-de.json").write_text(json.dumps({
+            "dataset_id": "fleurs-de", "modality": "stt",
+            "source": {"type": "huggingface", "hf_id": "google/fleurs",
+                       "revision": "main", "split": "test"},
+            "lang": "de", "role": "eval",
+            "predictions_hf": "OpenVoiceOS/ovos-stt-bench-fleurs-de",
+        }))
+        # One TTS eval dataset, no benchmark board published for it yet.
+        (root / "datasets" / "tts" / "intents-prompts.json").write_text(json.dumps({
+            "dataset_id": "intents-prompts", "modality": "tts",
+            "source": {"type": "huggingface", "hf_id": "OpenVoiceOS/x",
+                       "revision": "main", "split": "test"},
+            "lang": "en", "role": "eval",
+            "predictions_hf": "OpenVoiceOS/ovos-tts-bench-intents-prompts",
+        }))
+
+    def test_counts_match_fixture(self, tmp_path):
+        registry_root = tmp_path / "registry"
+        self._write_registry(registry_root)
+
+        data_dir = tmp_path / "data"
+        data_dir.mkdir()
+        (data_dir / "benchmark-stt-fleurs-en.json").write_text(json.dumps({
+            "modality": "stt", "dataset_id": "fleurs-en", "lang": "en",
+            "entries": [{"competitor_id": "whisper-tiny"}],
+        }))
+        (data_dir / "leaderboard-stt-en.json").write_text(json.dumps({
+            "modality": "stt", "lang": "en", "entries": [],
+        }))
+
+        # Built at runtime (not a literal "R1" etc. substring in this file)
+        # so tests/test_spec_coverage.py's raw-text R-number scan across
+        # tests/*.py doesn't mistake this fixture spec for a real citation.
+        r = "R"
+        spec_path = tmp_path / "SPECIFICATION.md"
+        spec_path.write_text(
+            f"- **{r}1 — One.** Text.\n- **{r}2 — Two.** Text.\n"
+            f"- **{r}2a — Two-a.** Text citing {r}1 again.\n"
+        )
+
+        out = tmp_path / "evidence.json"
+        with pytest.raises(SystemExit) as exc:
+            main(["export-evidence", "--registry", str(registry_root),
+                  "--data-dir", str(data_dir), "--spec", str(spec_path),
+                  "--output", str(out)])
+        assert exc.value.code == 0
+
+        payload = json.loads(out.read_text())
+        assert payload["totals"] == {
+            "fighters": 4, "datasets": 3, "spec_requirements": 3,
+        }
+
+        by_id = {row["id"]: row for row in payload["leagues"]}
+        stt = by_id["stt"]
+        assert stt["fighters"] == 3
+        assert stt["datasets"] == 2
+        assert stt["datasets_with_predictions"] == 1
+        assert stt["benchmark_boards"] == 1
+        assert stt["elo_leaderboards"] == 1
+        links = {link["dataset_id"]: link["has_predictions"]
+                 for link in stt["predictions_links"]}
+        assert links == {"fleurs-en": True, "fleurs-de": False}
+
+        tts = by_id["tts"]
+        assert tts["fighters"] == 1
+        assert tts["datasets"] == 1
+        assert tts["datasets_with_predictions"] == 0
+        assert tts["benchmark_boards"] == 0
+        assert tts["elo_leaderboards"] == 0
+
+        vad = by_id["vad"]
+        assert vad["fighters"] == 0
+        assert vad["datasets"] == 0
+
+    def test_stable_regeneration(self, tmp_path):
+        registry_root = tmp_path / "registry"
+        self._write_registry(registry_root)
+        data_dir = tmp_path / "data"
+        data_dir.mkdir()
+        spec_path = tmp_path / "SPECIFICATION.md"
+        spec_path.write_text(f"- **{'R'}1 — One.** Text.\n")
+        out = tmp_path / "evidence.json"
+
+        for _ in range(2):
+            with pytest.raises(SystemExit) as exc:
+                main(["export-evidence", "--registry", str(registry_root),
+                      "--data-dir", str(data_dir), "--spec", str(spec_path),
+                      "--output", str(out)])
+            assert exc.value.code == 0
+        first = out.read_bytes()
+        with pytest.raises(SystemExit):
+            main(["export-evidence", "--registry", str(registry_root),
+                  "--data-dir", str(data_dir), "--spec", str(spec_path),
+                  "--output", str(out)])
+        assert out.read_bytes() == first
+
+
 class TestAuditSeeds:
     def test_reports_capped_pair(self, tmp_path, capsys):
         preds = tmp_path / "predictions"

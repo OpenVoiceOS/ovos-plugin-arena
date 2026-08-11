@@ -60,6 +60,11 @@ jobs:
           python -m arena.cli export-index \
             --data-dir frontend-static/public/data \
             --output frontend-static/public/data/index.json
+          python -m arena.cli export-evidence \
+            --registry registry \
+            --data-dir frontend-static/public/data \
+            --spec docs/SPECIFICATION.md \
+            --output frontend-static/public/data/evidence.json
 
       - name: Commit updated data
         run: |
