@@ -38,7 +38,11 @@ audio = [
     "soundfile",
     "pyarrow>=14",
     "speechonnxmetrics>=0.0.1a1",
+    # faster-whisper stays ONLY for its decode_audio resample fallback in
+    # runner/audio_io.py / runner/plugin_runner.py — the intelligibility
+    # judge itself is per-language onnx-asr (runner/asr_judges.py, §4 R16).
     "faster-whisper",
+    "onnx-asr[hub]",
     # WakeWordProbe (per-clip hotword driver, PR ovoscope#97) landed in
     # 1.6.0a1; not yet in a stable ovoscope release (latest stable is 1.5.0),
     # so this is a prerelease floor pin, not a stable-release requirement.
