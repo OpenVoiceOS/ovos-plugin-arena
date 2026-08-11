@@ -1,0 +1,30 @@
+{
+  "competitor_id": "jurebes-qda-classifier",
+  "modality": "intent_template",
+  "config": {
+    "intents": {
+      "pipeline": [
+        "ovos-jurebes-pipeline-plugin-medium"
+      ],
+      "ovos-jurebes-pipeline-plugin": {
+        "baseline": "qda_classifier",
+        "enable_slots": true,
+        "conf_high": 0.8,
+        "conf_med": 0.6,
+        "conf_low": 0.4
+      }
+    }
+  },
+  "langs": [],
+  "display_name": "Jurebes (qda_classifier)",
+  "species": "JurebesPipeline",
+  "types": [
+    "classical-ML"
+  ],
+  "description": "Scikit-learn text classification behind the OVOS pipeline API using the jurebes 'qda_classifier' baseline: TF-IDF word featurizer reduced via truncated SVD (LSA, 20 components) + Quadratic Discriminant Analysis.",
+  "model": "qda_classifier (TF-IDF word featurizer reduced via truncated SVD (LSA, 20 components) + Quadratic Discriminant Analysis)",
+  "links": {
+    "source": "https://github.com/TigreGotico/jurebes"
+  },
+  "notes": "Same engine as every other jurebes fighter, different featurizer x classifier recipe (registry baseline 'qda_classifier', group(s): discriminant); single-stage pipeline at the plugin's own medium-confidence gate. The arena measures which sklearn recipe wins on assistant-style templates, not which fighter 'is' jurebes."
+}

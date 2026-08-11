@@ -1,0 +1,30 @@
+{
+  "competitor_id": "jurebes-union-pos-tfidf-logreg",
+  "modality": "intent_template",
+  "config": {
+    "intents": {
+      "pipeline": [
+        "ovos-jurebes-pipeline-plugin-medium"
+      ],
+      "ovos-jurebes-pipeline-plugin": {
+        "baseline": "union_pos_tfidf_logreg",
+        "enable_slots": true,
+        "conf_high": 0.8,
+        "conf_med": 0.6,
+        "conf_low": 0.4
+      }
+    }
+  },
+  "langs": [],
+  "display_name": "Jurebes (union_pos_tfidf_logreg)",
+  "species": "JurebesPipeline",
+  "types": [
+    "classical-ML"
+  ],
+  "description": "Scikit-learn text classification behind the OVOS pipeline API using the jurebes 'union_pos_tfidf_logreg' baseline: TF-IDF word + POS-sequence feature union (English) + Logistic Regression.",
+  "model": "union_pos_tfidf_logreg (TF-IDF word + POS-sequence feature union (English) + Logistic Regression)",
+  "links": {
+    "source": "https://github.com/TigreGotico/jurebes"
+  },
+  "notes": "Same engine as every other jurebes fighter, different featurizer x classifier recipe (registry baseline 'union_pos_tfidf_logreg', group(s): feature_engineering, linguistic); single-stage pipeline at the plugin's own medium-confidence gate. The arena measures which sklearn recipe wins on assistant-style templates, not which fighter 'is' jurebes."
+}
