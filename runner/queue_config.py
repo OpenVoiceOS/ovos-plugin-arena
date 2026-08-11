@@ -67,10 +67,17 @@ class DatasetSpec:
     trust_remote_code: bool = False
     # Maximum samples to process per run (0 = all)
     max_samples: int = 0
+    # Canonical registry dataset id (registry/datasets/<mod>/<id>.json). Set
+    # for registry-referenced jobs; rows and boards must be keyed by THIS,
+    # not the raw hf path — a dataset_id with slashes explodes the
+    # assembler's board filename into nonexistent directories.
+    registry_id: str | None = None
 
     @property
     def dataset_id(self) -> str:
-        """Mirrors ovos_plugin_bench.stt.STTDataset.dataset_id convention."""
+        """Canonical registry id when known, else the legacy hf-path form."""
+        if self.registry_id:
+            return self.registry_id
         did = self.hf_repo
         if self.subset:
             did += f"/{self.subset}"
@@ -228,6 +235,7 @@ def _dataset_spec_from_registry(
         ground_truth_key=ref.get("ground_truth", ref.get("transcription", "transcription")),
         audio_key=ref.get("audio", "audio"),
         max_samples=max_samples,
+        registry_id=data.get("dataset_id", dataset_id),
     )
 
 

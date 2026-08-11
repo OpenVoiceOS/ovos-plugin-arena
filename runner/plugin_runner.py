@@ -260,8 +260,14 @@ def run_job(
     # escaped filenames.
     safe_model = plugin.model_name.replace("/", "__")
     safe_plugin = plugin.plugin_name.replace("-", "_")
+    safe_ds = dataset.dataset_id.replace("/", "__")
     if plugin.competitor_id:
-        out_name = f"stt_{plugin.lang}_{plugin.competitor_id}.jsonl"
+        # Dataset in the local name: without it, every dataset sharing this
+        # (lang, competitor) appends into ONE file — publish then uploads
+        # rows of dataset A into dataset B's repo, and any change to job_key
+        # (e.g. the registry_id re-keying) dup-appends a fresh run into a
+        # file a prior run already filled.
+        out_name = f"stt_{plugin.lang}_{plugin.competitor_id}_{safe_ds}.jsonl"
     else:
         out_name = f"stt_{plugin.lang}_{safe_plugin}_{safe_model}.jsonl"
     output_path = base_dir / "output" / out_name
