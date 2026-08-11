@@ -442,7 +442,12 @@ class TestHubListerErrorHandling:
 
         class FakeApi:
             def list_repo_tree(self, *a, **kw):
-                raise RepositoryNotFoundError("no such repo")
+                # huggingface_hub >=1.0 makes `response` required — build a
+                # real (empty) Response so this constructs on every version.
+                import requests
+                resp = requests.Response()
+                resp.status_code = 404
+                raise RepositoryNotFoundError("no such repo", response=resp)
 
         import huggingface_hub
         monkeypatch.setattr(huggingface_hub, "HfApi", FakeApi)
