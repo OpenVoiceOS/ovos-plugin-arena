@@ -64,8 +64,25 @@ def _f1(tp: int, fp: int, fn: int) -> float:
     return 2 * p * r / (p + r) if p + r else 0.0
 
 
+def domain_of(value: str | None) -> str | None:
+    """Domain part of a ``skill_id:intent_name``-shaped prediction string.
+
+    Everything before the first ``:``; a value with no ``:`` is its own
+    domain (bare domain-only references, e.g. ``"weather"``, pass through
+    unchanged). ``None`` stays ``None``.
+    """
+    if value is None:
+        return None
+    return value.split(":", 1)[0]
+
+
 def row_is_correct(row: PredictionRow) -> bool:
-    """Whether one intent prediction row is correct (incl. OOD rejection)."""
+    """Whether one intent prediction row is correct (incl. OOD rejection).
+
+    ``row.exact_match`` is computed once at bench time (``runner.intent_bench
+    .make_row``), honouring the dataset's ``reference_granularity`` — this is
+    only a fallback for rows persisted before that field existed.
+    """
     if row.reference_intent is None:
         return row.prediction is None
     if row.exact_match is not None:
