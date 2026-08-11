@@ -1,0 +1,543 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="Matchups" description="Head-to-head matchup heatmaps for every OVOS plugin league — win rate from votes, or benchmark deltas.">
+  <p class="eyebrow" style="margin-bottom:0.4rem">OVOS Plugin Arena · Rankings</p>
+  <h1 style="font-size:clamp(1.8rem,5vw,2.6rem);margin-bottom:0.35rem">Matchups</h1>
+  <p style="max-width:62ch">
+    A head-to-head grid for every fighter in a league. Cell <code>(A, B)</code> reads as
+    <strong>A vs B</strong>. Pick a league and a language, then switch mode: <strong>Votes</strong>
+    shows a real win rate from decided battles; <strong>Benchmark</strong> shows the metric gap on
+    a benchmark dataset — useful while vote counts are still building up.
+  </p>
+
+  <div id="mu-loading" class="card" aria-live="polite">Loading the arena…</div>
+  <div id="mu-empty" class="card" style="display:none">
+    No matchup data yet. Run the <code>assemble.yml</code> action to build it from prediction data.
+  </div>
+
+  <div id="mu-app" style="display:none">
+    <div id="league-tabs" class="lb-tabs" role="tablist" aria-label="Leagues"></div>
+
+    <div class="lb-control">
+      <label for="sel-lang" class="lb-lang">
+        <span>Language</span>
+        <select id="sel-lang"></select>
+      </label>
+      <label for="sel-dataset" class="lb-lang">
+        <span>Benchmark dataset</span>
+        <select id="sel-dataset"></select>
+      </label>
+      <div class="mu-mode" role="group" aria-label="Matchup mode">
+        <button type="button" class="mu-mode-btn" id="mode-votes" aria-pressed="true">🗳️ Votes</button>
+        <button type="button" class="mu-mode-btn" id="mode-bench" aria-pressed="false">📊 Benchmark</button>
+      </div>
+    </div>
+
+    <div id="mu-note" class="lb-note"></div>
+    <div id="mu-panels"></div>
+  </div>
+
+  <style is:global>
+    .mu-mode { display:flex; gap:0.4rem; margin-left:auto; }
+    .mu-mode-btn {
+      font-family: var(--display); font-weight:600; font-size:0.78rem;
+      padding:0.4rem 0.8rem; cursor:pointer; color:var(--muted); background:var(--surface);
+      border:1px solid var(--border); border-radius:7px;
+    }
+    .mu-mode-btn[aria-pressed="true"] { color:#fff; border-color:transparent; background:var(--gradient); }
+    .lb-control { position:relative; }
+
+    .mu-wrap { overflow-x:auto; border:1px solid var(--border); border-radius:14px;
+      background:linear-gradient(180deg, var(--surface-2), var(--surface)); padding:1rem; }
+    .mu-grid { border-collapse:separate; border-spacing:2px; font-size:0.78rem; }
+    .mu-grid th, .mu-grid td { text-align:center; }
+    .mu-grid th { border:none; padding:0.3rem; }
+    .mu-col-head { writing-mode:vertical-rl; transform:rotate(180deg); white-space:nowrap;
+      font-family:var(--mono); font-size:0.72rem; color:var(--muted); max-height:9rem; }
+    .mu-row-head { font-family:var(--mono); font-size:0.72rem; color:var(--muted);
+      text-align:right !important; padding-right:0.6rem !important; white-space:nowrap; }
+    .mu-cell {
+      width:2.5rem; height:2.5rem; min-width:2.5rem; border-radius:5px; cursor:default;
+      font-family:var(--mono); font-weight:700; font-size:0.68rem; color:#fff; position:relative;
+      border:1px solid rgba(0,0,0,0.25);
+    }
+    .mu-cell.diag { background:repeating-linear-gradient(45deg, var(--surface) 0 6px, var(--border) 6px 8px); }
+    .mu-cell.nodata { background:var(--surface); color:var(--muted); border-style:dashed; }
+    .mu-cell:focus-visible, .mu-cell:hover { outline:2px solid var(--accent); outline-offset:1px; z-index:1; }
+
+    .mu-legend { display:flex; align-items:center; gap:0.6rem; margin:0.9rem 0 0; font-size:0.76rem; color:var(--muted); flex-wrap:wrap; }
+    .mu-legend .ramp { display:flex; height:12px; width:180px; border-radius:6px; overflow:hidden; border:1px solid var(--border); }
+    .mu-legend .ramp span { flex:1; }
+    .mu-legend .swatch { display:inline-block; width:12px; height:12px; border-radius:3px; vertical-align:middle; margin-right:0.3rem; }
+
+    .mu-tooltip {
+      position:fixed; pointer-events:none; z-index:50; background:var(--surface-2);
+      border:1px solid var(--border); border-radius:8px; padding:0.5rem 0.7rem;
+      font-size:0.78rem; color:var(--text); box-shadow:0 8px 24px rgba(0,0,0,0.4);
+      max-width:240px; display:none;
+    }
+    .mu-tooltip .nm { font-family:var(--display); font-weight:600; margin-bottom:0.2rem; }
+
+    .mu-table-toggle { font-size:0.76rem; color:var(--muted); margin:0.6rem 0; }
+    .mu-sr-table { position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+      overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border-width:0; }
+    .mu-sr-table.shown { position:static; width:auto; height:auto; padding:inherit; margin:inherit;
+      overflow:visible; clip:auto; white-space:normal; margin-top:1rem; }
+
+    @media (max-width:720px) {
+      .lb-control { flex-direction:column; align-items:stretch; }
+      .mu-mode { margin-left:0; }
+    }
+  </style>
+
+  <script>
+    const BASE = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
+
+    // Same stale-index fallback contract as leaderboard/index.astro — mirrors
+    // arena/models.py::leagues() exactly (kept in lockstep by test_league_parity).
+    const DEFAULT_LEAGUES = [
+      { id: 'intent_template', label: 'Intent · Template', battle_group: 'intent_template', order: 0 },
+      { id: 'intent_keyword', label: 'Intent · Keyword', battle_group: 'intent_keyword', order: 1 },
+      { id: 'intent', label: 'Intent · Fusions', battle_group: 'intent', order: 2 },
+      { id: 'stt', label: 'STT', battle_group: 'stt', order: 3 },
+      { id: 'tts', label: 'TTS', battle_group: 'tts', order: 4 },
+      { id: 'wake_word', label: 'Wake Word', battle_group: 'wake_word', order: 5 },
+      { id: 'vad', label: 'VAD', battle_group: 'vad', order: 6 },
+    ];
+
+    // Metrics where a HIGHER value is better; everything else in the benchmark
+    // boards is lower-is-better (WER, error/false-accept/false-reject rate,
+    // OOD false-positive rate, latency).
+    const HIGHER_BETTER = new Set(['accuracy', 'macro_f1', 'slot_exact_match']);
+
+    // Diverging ramp: loss-red → neutral surface → win-green, 5 steps either
+    // side of the 50%/even midpoint (site's own --win/--loss semantics reused
+    // rather than introducing a new palette — this *is* a win rate).
+    // All steps keep >=4.4:1 contrast against white cell text (checked with
+    // the WCAG relative-luminance formula) so the % / +−= label never relies
+    // on color alone and stays legible at every step of the ramp.
+    const LOSS_STEPS = ['#5c1e1c', '#742824', '#8f322a', '#a93c30', '#c24636'];
+    const WIN_STEPS = ['#1d4a26', '#25592d', '#2d6834', '#35773b', '#3d8642'];
+    const NEUTRAL = '#3a3336';
+
+    let leagues = [], leagueById = {};
+    let benchmarksMeta = [], leaderboardsMeta = [], battlesPoolsMeta = [], freeformPoolsMeta = [];
+    let fighters = {};
+    let league = '', lang = '', dataset = '', mode = 'votes', cacheV = '';
+    const fileCache = new Map();
+
+    const esc = s => String(s).replace(/[&<>"']/g, c =>
+      ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c]);
+    const fetchJson = p => fetch(p).then(r => r.ok ? r.json() : null).catch(() => null);
+    const nameOf = id => fighters[id]?.display_name || id;
+    const abbr = id => nameOf(id).replace(/[^A-Za-z0-9]+/g, ' ').trim()
+      .split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase() || id.slice(0, 2).toUpperCase();
+
+    async function fetchBoards(metaList) {
+      await Promise.all(metaList.map(async m => {
+        if (!fileCache.has(m.file)) {
+          const body = await fetchJson(`${BASE}data/${m.file}${cacheV}`);
+          if (body != null) fileCache.set(m.file, body);
+        }
+      }));
+      return metaList.map(m => fileCache.get(m.file)).filter(Boolean);
+    }
+
+    // --- Mode 1: votes -------------------------------------------------
+    //
+    // The battles-*.json pools ship the pairing only (competitor identity is
+    // revealed after a vote is cast, but the *outcome* of a cast vote lives
+    // in GitHub issues, not in this static export — see arena/cli.py
+    // fetch_vote_issues). What IS shipped, for benchmark-seeded pools, is the
+    // same reference/prediction ground truth the backend's own auto_outcome()
+    // uses to seed the ELO ladder (arena/assembler.py). We replay that same
+    // exact-match signal client-side to get a real per-pair record instead of
+    // faking one — freeform pools (no reference) simply contribute no signal
+    // and their pairs show as "no data" until real votes land.
+    function battleOutcome(b) {
+      if (b.reference == null || b.prediction_a == null || b.prediction_b == null) return null;
+      const norm = v => {
+        if (v && typeof v === 'object') v = v.intent ?? v.text ?? JSON.stringify(v);
+        return String(v ?? '').trim().toLowerCase();
+      };
+      const ref = norm(b.reference);
+      const correctA = norm(b.prediction_a) === ref;
+      const correctB = norm(b.prediction_b) === ref;
+      if (correctA && !correctB) return 'a';
+      if (correctB && !correctA) return 'b';
+      if (correctA && correctB) return 'tie';
+      return 'both_wrong';
+    }
+
+    async function buildVoteMatrix(ids) {
+      const group = leagueById[league]?.battle_group;
+      const meta = [...battlesPoolsMeta, ...freeformPoolsMeta]
+        .filter(m => m.modality === group && m.lang === lang);
+      const pools = await fetchBoards(meta);
+      const idSet = new Set(ids);
+      const rec = () => ({ wins: 0, losses: 0, ties: 0, total: 0 });
+      const m = {};
+      for (const a of ids) { m[a] = {}; for (const b of ids) if (a !== b) m[a][b] = rec(); }
+      for (const pool of pools) {
+        for (const b of pool.battles || []) {
+          const a1 = b.competitor_a, a2 = b.competitor_b;
+          if (!idSet.has(a1) || !idSet.has(a2)) continue;
+          const outcome = battleOutcome(b);
+          if (outcome == null) continue;
+          const cellAB = m[a1][a2], cellBA = m[a2][a1];
+          if (outcome === 'a') { cellAB.wins++; cellAB.total++; cellBA.losses++; cellBA.total++; }
+          else if (outcome === 'b') { cellAB.losses++; cellAB.total++; cellBA.wins++; cellBA.total++; }
+          else { // tie or both_wrong: half-credit either way, still a decided battle
+            cellAB.ties++; cellAB.total++; cellBA.ties++; cellBA.total++;
+          }
+        }
+      }
+      return m;
+    }
+
+    // --- Mode 2: benchmark delta ----------------------------------------
+    async function buildBenchMatrix(ids) {
+      const meta = benchmarksMeta.filter(b => b.modality === league && b.lang === lang &&
+        (!dataset || b.dataset_id === dataset));
+      const boards = await fetchBoards(meta);
+      const board = boards[0];
+      if (!board) return { matrix: null, board: null };
+      const primary = board.primary_metric;
+      const higher = HIGHER_BETTER.has(primary);
+      const values = {};
+      for (const e of board.entries || []) values[e.competitor_id] = e.metrics?.[primary];
+      const m = {};
+      for (const a of ids) { m[a] = {}; for (const b of ids) if (a !== b) m[a][b] = null; }
+      const finite = Object.values(values).filter(v => v != null);
+      const spread = finite.length ? Math.max(...finite) - Math.min(...finite) || 1 : 1;
+      for (const a of ids) for (const b of ids) {
+        if (a === b) continue;
+        const va = values[a], vb = values[b];
+        if (va == null || vb == null) continue;
+        let delta = va - vb;
+        if (!higher) delta = -delta;
+        m[a][b] = { delta, norm: Math.max(-1, Math.min(1, delta / spread)), a: va, b: vb, primary };
+      }
+      return { matrix: m, board, primary, higher };
+    }
+
+    function rampColor(t) {
+      // t in [-1, 1]; 0 = neutral (surface), -1 = full loss red, +1 = full win green
+      if (Math.abs(t) < 0.02) return NEUTRAL;
+      const steps = t < 0 ? LOSS_STEPS : WIN_STEPS;
+      const mag = Math.min(1, Math.abs(t));
+      const idx = Math.min(steps.length - 1, Math.floor(mag * steps.length));
+      return steps[idx];
+    }
+
+    function orderedFighters() {
+      const group = leagueById[league]?.battle_group;
+      const eloMeta = leaderboardsMeta.filter(b => b.modality === group && b.lang === lang);
+      return eloMeta; // resolved to ids in render() once the board is fetched
+    }
+
+    let tooltipEl;
+    function ensureTooltip() {
+      if (tooltipEl) return tooltipEl;
+      tooltipEl = document.createElement('div');
+      tooltipEl.className = 'mu-tooltip';
+      tooltipEl.setAttribute('role', 'status');
+      document.body.appendChild(tooltipEl);
+      return tooltipEl;
+    }
+    function showTooltip(evt, html) {
+      const t = ensureTooltip();
+      t.innerHTML = html;
+      t.style.display = 'block';
+      const x = Math.min(evt.clientX + 14, window.innerWidth - 260);
+      const y = Math.min(evt.clientY + 14, window.innerHeight - 100);
+      t.style.left = `${x}px`; t.style.top = `${y}px`;
+    }
+    function hideTooltip() { if (tooltipEl) tooltipEl.style.display = 'none'; }
+
+    function renderGrid(ids, cellFn, legendHtml, srCaption, srCellFn) {
+      if (ids.length < 2) {
+        return `<div class="card" style="margin:0">Need at least two fighters with data to draw a matchup grid.</div>`;
+      }
+      const head = `<tr><th></th>${ids.map(id => `<th class="mu-col-head" scope="col">${esc(nameOf(id))}</th>`).join('')}</tr>`;
+      const rows = ids.map(rowId => `<tr>
+        <th class="mu-row-head" scope="row">${esc(nameOf(rowId))}</th>
+        ${ids.map(colId => cellFn(rowId, colId)).join('')}
+      </tr>`).join('');
+      const srRows = ids.map(rowId => ids.map(colId => rowId === colId ? '' : srCellFn(rowId, colId)).join('')).join('');
+      return `
+        <div class="mu-wrap">
+          <table class="mu-grid"><thead>${head}</thead><tbody>${rows}</tbody></table>
+        </div>
+        <div class="mu-legend">${legendHtml}</div>
+        <p class="mu-table-toggle">
+          <button type="button" class="btn" id="mu-table-btn" aria-expanded="false" aria-controls="mu-sr-table">
+            Show as table
+          </button>
+        </p>
+        <div class="mu-sr-table" id="mu-sr-table">
+          <table>
+            <caption class="sr-only">${srCaption}</caption>
+            <thead><tr><th scope="col">A</th><th scope="col">B</th><th scope="col">Record</th></tr></thead>
+            <tbody>${srRows}</tbody>
+          </table>
+        </div>`;
+    }
+
+    function votesLegend() {
+      const ramp = [...LOSS_STEPS].reverse().concat([NEUTRAL]).concat(WIN_STEPS)
+        .map(c => `<span style="background:${c}"></span>`).join('');
+      return `<span class="ramp">${ramp}</span> 0% win rate <span style="margin:0 0.4rem">···</span>
+        <span class="swatch" style="background:${NEUTRAL}"></span> 50% (even) <span style="margin:0 0.4rem">···</span>
+        100% win rate
+        <span style="margin-left:1rem"><span class="swatch" style="background:var(--surface);border:1px dashed var(--border)"></span> no decided battles</span>`;
+    }
+
+    function benchLegend(primary, higher) {
+      const ramp = [...LOSS_STEPS].reverse().concat([NEUTRAL]).concat(WIN_STEPS)
+        .map(c => `<span style="background:${c}"></span>`).join('');
+      return `<span class="ramp">${ramp}</span> row worse on <code>${esc(primary || '')}</code>
+        <span style="margin:0 0.4rem">···</span> same <span style="margin:0 0.4rem">···</span>
+        row better ${higher === false ? '(lower is better, so lower flips green)' : ''}
+        <span style="margin-left:1rem"><span class="swatch" style="background:var(--surface);border:1px dashed var(--border)"></span> no benchmark overlap</span>`;
+    }
+
+    async function renderVotes(ids) {
+      const matrix = await buildVoteMatrix(ids);
+      const cellFn = (rowId, colId) => {
+        if (rowId === colId) return `<td class="mu-cell diag" aria-hidden="true"></td>`;
+        const rec = matrix[rowId][colId];
+        if (!rec || rec.total === 0) {
+          return `<td class="mu-cell nodata" tabindex="0"
+            data-row="${esc(rowId)}" data-col="${esc(colId)}" data-kind="nodata"></td>`;
+        }
+        const scored = rec.wins + rec.ties * 0.5;
+        const winRate = scored / rec.total;
+        const t = (winRate - 0.5) * 2;
+        return `<td class="mu-cell" tabindex="0" style="background:${rampColor(t)}"
+          data-row="${esc(rowId)}" data-col="${esc(colId)}" data-kind="votes"
+          data-wr="${(winRate * 100).toFixed(0)}" data-w="${rec.wins}" data-l="${rec.losses}"
+          data-t="${rec.ties}" data-n="${rec.total}">${(winRate * 100).toFixed(0)}</td>`;
+      };
+      const srCellFn = (rowId, colId) => {
+        const rec = matrix[rowId][colId];
+        const txt = !rec || rec.total === 0 ? 'no decided battles'
+          : `${rec.wins}W ${rec.losses}L ${rec.ties}T of ${rec.total}`;
+        return `<tr><td>${esc(nameOf(rowId))}</td><td>${esc(nameOf(colId))}</td><td>${txt}</td></tr>`;
+      };
+      return renderGrid(ids, cellFn, votesLegend(),
+        'Head-to-head win/loss/tie record for every fighter pair', srCellFn);
+    }
+
+    async function renderBench(ids) {
+      const { matrix, board, primary, higher } = await buildBenchMatrix(ids);
+      if (!matrix) {
+        return `<div class="card" style="margin:0">No benchmark board for this league, language and dataset.</div>`;
+      }
+      const cellFn = (rowId, colId) => {
+        if (rowId === colId) return `<td class="mu-cell diag" aria-hidden="true"></td>`;
+        const cell = matrix[rowId][colId];
+        if (!cell) {
+          return `<td class="mu-cell nodata" tabindex="0"
+            data-row="${esc(rowId)}" data-col="${esc(colId)}" data-kind="nodata"></td>`;
+        }
+        const label = cell.delta > 0 ? '+' : cell.delta < 0 ? '−' : '=';
+        return `<td class="mu-cell" tabindex="0" style="background:${rampColor(cell.norm)}"
+          data-row="${esc(rowId)}" data-col="${esc(colId)}" data-kind="bench"
+          data-metric="${esc(primary)}" data-a="${cell.a}" data-b="${cell.b}"
+          data-delta="${cell.delta.toFixed(4)}">${label}</td>`;
+      };
+      const srCellFn = (rowId, colId) => {
+        const cell = matrix[rowId][colId];
+        const txt = !cell ? 'no benchmark overlap'
+          : `${primary} ${cell.a} vs ${cell.b} (Δ ${cell.delta.toFixed(3)})`;
+        return `<tr><td>${esc(nameOf(rowId))}</td><td>${esc(nameOf(colId))}</td><td>${txt}</td></tr>`;
+      };
+      const note = `<p>Benchmark: <strong>${esc(board.dataset_id || '')}</strong> · primary metric
+        <code>${esc(primary)}</code>${higher === false ? ' (lower is better)' : ''}.
+        This is not a played match — it is each fighter's own score on the same dataset, compared pairwise.</p>`;
+      return note + renderGrid(ids, cellFn, benchLegend(primary, higher),
+        `Benchmark metric comparison per fighter pair on ${board.dataset_id || ''}`, srCellFn);
+    }
+
+    let renderSeq = 0;
+
+    async function render() {
+      const seq = ++renderSeq;
+      const group = leagueById[league]?.battle_group;
+
+      // Prefer ELO order (best-first); fall back to alphabetical by name for
+      // fighters that only appear in benchmark boards or battle pools.
+      const eloMeta = leaderboardsMeta.filter(b => b.modality === group && b.lang === lang);
+      const [eloBoards] = await Promise.all([fetchBoards(eloMeta)]);
+      if (seq !== renderSeq) return;
+      const elo = eloBoards[0];
+      const eloOrder = (elo?.entries || []).slice().sort((a, b) => b.elo - a.elo).map(e => e.competitor_id);
+
+      const poolMeta = [...battlesPoolsMeta, ...freeformPoolsMeta].filter(m => m.modality === group && m.lang === lang);
+      const benchMeta = benchmarksMeta.filter(b => b.modality === league && b.lang === lang &&
+        (!dataset || b.dataset_id === dataset));
+      const [pools, benches] = await Promise.all([fetchBoards(poolMeta), fetchBoards(benchMeta)]);
+      if (seq !== renderSeq) return;
+
+      const idSet = new Set(eloOrder);
+      for (const pool of pools) for (const b of pool.battles || []) { idSet.add(b.competitor_a); idSet.add(b.competitor_b); }
+      for (const board of benches) for (const e of board.entries || []) idSet.add(e.competitor_id);
+      const rest = [...idSet].filter(id => !eloOrder.includes(id)).sort((a, b) => nameOf(a).localeCompare(nameOf(b)));
+      const ids = [...eloOrder, ...rest];
+
+      const panels = document.getElementById('mu-panels');
+      const html = mode === 'votes' ? await renderVotes(ids) : await renderBench(ids);
+      if (seq !== renderSeq) return;
+      panels.innerHTML = html;
+
+      document.getElementById('mu-note').innerHTML = mode === 'votes'
+        ? 'Win rate from decided battles. Only benchmark-seeded battle pools carry a checkable outcome today — freeform pools populate once human votes accumulate.'
+        : '';
+
+      panels.querySelectorAll('.mu-cell[data-kind]').forEach(cell => {
+        cell.addEventListener('mouseenter', evt => cellTooltip(cell, evt));
+        cell.addEventListener('mousemove', evt => showTooltip(evt, tooltipHtml(cell)));
+        cell.addEventListener('focus', evt => showTooltip(evt, tooltipHtml(cell)));
+        cell.addEventListener('mouseleave', hideTooltip);
+        cell.addEventListener('blur', hideTooltip);
+      });
+      const tableBtn = document.getElementById('mu-table-btn');
+      if (tableBtn) tableBtn.addEventListener('click', () => {
+        const tbl = document.getElementById('mu-sr-table');
+        const shown = tbl.classList.toggle('shown');
+        tableBtn.setAttribute('aria-expanded', String(shown));
+        tableBtn.textContent = shown ? 'Hide table' : 'Show as table';
+      });
+    }
+
+    function cellTooltip(cell, evt) { showTooltip(evt, tooltipHtml(cell)); }
+
+    function tooltipHtml(cell) {
+      const rowId = cell.dataset.row, colId = cell.dataset.col, kind = cell.dataset.kind;
+      const title = `<div class="nm">${esc(nameOf(rowId))} vs ${esc(nameOf(colId))}</div>`;
+      if (kind === 'nodata') return title + 'No data yet.';
+      if (kind === 'votes') {
+        return title + `${cell.dataset.wr}% win rate — ${cell.dataset.w}W ${cell.dataset.l}L ${cell.dataset.t}T
+          of ${cell.dataset.n} decided battle(s).`;
+      }
+      const metric = cell.dataset.metric;
+      return title + `${esc(metric)}: ${esc(nameOf(rowId))} ${cell.dataset.a} vs ${esc(nameOf(colId))} ${cell.dataset.b}
+        (Δ ${cell.dataset.delta}).`;
+    }
+
+    function syncUrl() {
+      const params = new URLSearchParams(window.location.search);
+      league ? params.set('league', league) : params.delete('league');
+      lang ? params.set('lang', lang) : params.delete('lang');
+      dataset ? params.set('dataset', dataset) : params.delete('dataset');
+      mode !== 'votes' ? params.set('mode', mode) : params.delete('mode');
+      const qs = params.toString();
+      const url = `${window.location.pathname}${qs ? '?' + qs : ''}${window.location.hash}`;
+      window.history.replaceState(null, '', url);
+    }
+
+    function populateDatasets() {
+      const datasets = [...new Set(benchmarksMeta
+        .filter(b => b.modality === league && b.lang === lang)
+        .map(b => b.dataset_id))].sort();
+      const sel = document.getElementById('sel-dataset');
+      sel.innerHTML = `<option value="">All datasets</option>` +
+        datasets.map(d => `<option value="${esc(d)}">${esc(d)}</option>`).join('');
+      dataset = datasets.includes(dataset) ? dataset : '';
+      sel.value = dataset;
+      sel.closest('label').style.display = mode === 'bench' && datasets.length ? '' : 'none';
+    }
+
+    function setMode(next) {
+      mode = next;
+      document.getElementById('mode-votes').setAttribute('aria-pressed', String(mode === 'votes'));
+      document.getElementById('mode-bench').setAttribute('aria-pressed', String(mode === 'bench'));
+      populateDatasets();
+      syncUrl();
+      render();
+    }
+
+    function setLeague(next) {
+      league = next;
+      const group = leagueById[league]?.battle_group;
+      document.querySelectorAll('.lb-tab').forEach(t =>
+        t.setAttribute('aria-selected', t.dataset.league === league ? 'true' : 'false'));
+      const langs = [...new Set([
+        ...benchmarksMeta.filter(b => b.modality === league),
+        ...leaderboardsMeta.filter(b => b.modality === group),
+        ...battlesPoolsMeta.filter(b => b.modality === group),
+        ...freeformPoolsMeta.filter(b => b.modality === group),
+      ].map(b => b.lang))].sort();
+      const sel = document.getElementById('sel-lang');
+      sel.innerHTML = langs.map(l => `<option value="${esc(l)}">${esc(l)}</option>`).join('');
+      lang = langs.includes(lang) ? lang : (langs.includes('en-US') ? 'en-US' : langs[0] || '');
+      sel.value = lang;
+      populateDatasets();
+      syncUrl();
+      render();
+    }
+
+    async function init() {
+      const index = await fetchJson(`${BASE}data/index.json`);
+      cacheV = index?.generated_at ? `?v=${encodeURIComponent(index.generated_at)}` : '';
+      benchmarksMeta = index?.benchmarks || [];
+      leaderboardsMeta = index?.leaderboards || [];
+      battlesPoolsMeta = index?.battles_pools || [];
+      freeformPoolsMeta = index?.freeform_pools || [];
+      leagues = (index?.leagues && index.leagues.length) ? index.leagues : DEFAULT_LEAGUES;
+      leagueById = Object.fromEntries(leagues.map(l => [l.id, l]));
+      const bestiary = await fetchJson(`${BASE}data/competitors.json${cacheV}`);
+      for (const f of bestiary?.competitors || []) fighters[f.competitor_id] = f;
+
+      document.getElementById('mu-loading').style.display = 'none';
+      const hasAny = benchmarksMeta.length || leaderboardsMeta.length || battlesPoolsMeta.length || freeformPoolsMeta.length;
+      if (!hasAny) {
+        document.getElementById('mu-empty').style.display = '';
+        return;
+      }
+
+      const activeLeagues = leagues
+        .filter(l => benchmarksMeta.some(b => b.modality === l.id) ||
+          leaderboardsMeta.some(b => b.modality === l.battle_group) ||
+          battlesPoolsMeta.some(b => b.modality === l.battle_group) ||
+          freeformPoolsMeta.some(b => b.modality === l.battle_group))
+        .sort((a, b) => a.order - b.order);
+      if (!activeLeagues.length) {
+        document.getElementById('mu-empty').style.display = '';
+        return;
+      }
+      const tabs = document.getElementById('league-tabs');
+      tabs.innerHTML = activeLeagues.map(l =>
+        `<button class="lb-tab" role="tab" data-league="${l.id}" aria-selected="false">${esc(l.label)}</button>`).join('');
+      tabs.querySelectorAll('.lb-tab').forEach(t =>
+        t.addEventListener('click', () => setLeague(t.dataset.league)));
+      document.getElementById('sel-lang').addEventListener('change', e => {
+        lang = e.target.value; dataset = ''; populateDatasets(); syncUrl(); render();
+      });
+      document.getElementById('sel-dataset').addEventListener('change', e => {
+        dataset = e.target.value; syncUrl(); render();
+      });
+      document.getElementById('mode-votes').addEventListener('click', () => setMode('votes'));
+      document.getElementById('mode-bench').addEventListener('click', () => setMode('bench'));
+
+      document.getElementById('mu-app').style.display = '';
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const wantLeague = urlParams.get('league');
+      const wantLang = urlParams.get('lang');
+      const wantDataset = urlParams.get('dataset');
+      const wantMode = urlParams.get('mode');
+      const startLeague = activeLeagues.some(l => l.id === wantLeague) ? wantLeague : activeLeagues[0].id;
+      if (wantLang) lang = wantLang;
+      if (wantDataset) dataset = wantDataset;
+      if (wantMode === 'bench') mode = 'bench';
+      document.getElementById('mode-votes').setAttribute('aria-pressed', String(mode === 'votes'));
+      document.getElementById('mode-bench').setAttribute('aria-pressed', String(mode === 'bench'));
+      setLeague(startLeague);
+    }
+
+    init();
+  </script>
+</Base>
