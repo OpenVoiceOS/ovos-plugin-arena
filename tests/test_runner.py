@@ -308,9 +308,40 @@ class TestRunJobAttribution:
         out, rows = self._run(tmp_path, monkeypatch, "vosk-small-it")
         assert rows and rows[0]["competitor_id"] == "vosk-small-it"
         # filename keyed by competitor_id, not the URL-mangled model name
-        assert out.name == "stt_en-US_vosk-small-it.jsonl"
+        assert out.name == "stt_en-US_vosk-small-it_fake__ds__en-US__train.jsonl"
 
     def test_inline_job_rows_keep_legacy_shape(self, tmp_path, monkeypatch):
         out, rows = self._run(tmp_path, monkeypatch, None)
         assert rows and "competitor_id" not in rows[0]
         assert "vosk" in out.name and "model.zip" in out.name
+
+
+class TestDatasetSpecRegistryId:
+    """Regression: daemon rows keyed by the raw hf path
+    (FBK-MT/Speech-MASSIVE-test/de-DE/test) instead of the canonical
+    registry id crashed board assembly — the slashed id becomes a board
+    filename with nonexistent directories."""
+
+    def test_registry_referenced_dataset_uses_canonical_id(self, tmp_path):
+        import json
+        from runner.queue_config import _dataset_spec_from_registry
+        d = tmp_path / "datasets" / "stt"
+        d.mkdir(parents=True)
+        (d / "speech-massive-de-DE.json").write_text(json.dumps({
+            "dataset_id": "speech-massive-de-DE",
+            "modality": "stt",
+            "source": {"type": "huggingface",
+                       "hf_id": "FBK-MT/Speech-MASSIVE-test",
+                       "subset": "de-DE", "split": "test"},
+            "reference_fields": {"ground_truth": "utt"},
+        }))
+        spec = _dataset_spec_from_registry("speech-massive-de-DE",
+                                           registry_root=tmp_path)
+        assert spec.dataset_id == "speech-massive-de-DE"
+        assert "/" not in spec.dataset_id
+
+    def test_inline_dataset_keeps_legacy_id(self):
+        from runner.queue_config import DatasetSpec
+        spec = DatasetSpec(hf_repo="PolyAI/minds14", subset="pt-PT",
+                           split="train")
+        assert spec.dataset_id == "PolyAI/minds14/pt-PT/train"

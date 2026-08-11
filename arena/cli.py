@@ -406,6 +406,17 @@ def cmd_assemble(args: argparse.Namespace) -> int:
         return 1
 
     grouped = group_rows(rows)
+    # Legacy daemon rows keyed by the raw hf path (e.g.
+    # FBK-MT/Speech-MASSIVE-test/de-DE/test) instead of the canonical
+    # registry id: a board or battle filename built from such an id explodes
+    # into nonexistent directories. Filter ONCE, before every loop that
+    # embeds dataset_id in a filename; the runner-side fix re-keys new rows,
+    # and stale rows are re-run/replaced, not shimmed.
+    for modality, dataset_id, lang in [k for k in grouped
+                                       if "/" in k[1] or "\\" in k[1]]:
+        log.warning("skipping non-canonical dataset_id %r (%s/%s): "
+                    "contains a path separator", dataset_id, modality, lang)
+        del grouped[(modality, dataset_id, lang)]
     now = _now_iso()
 
     # Benchmark boards stay per (modality, dataset, lang) — paradigm-pure, so a
