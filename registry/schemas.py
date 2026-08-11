@@ -271,6 +271,29 @@ class DatasetDef(BaseModel):
             "the scorer treats a non-fire as the correct answer."
         ),
     )
+    reference_granularity: Literal["intent", "domain"] = Field(
+        "intent",
+        description=(
+            "What a prediction is scored against. 'intent' (default) "
+            "compares the full prediction string to expected_intent "
+            "verbatim. 'domain' compares only the text before the first "
+            "':' on both sides — for corpora that only carry a domain-level "
+            "label (e.g. a Catalan weather-query set with no per-intent "
+            "annotation), so a 'weather:current_conditions' prediction from "
+            "a domain/hierarchical fighter still scores correct against a "
+            "bare 'weather' reference. See ``arena.metrics.domain_of``."
+        ),
+    )
+    domain_label: str | None = Field(
+        None,
+        description=(
+            "Plain HF classification datasets only, paired with "
+            "reference_granularity='domain': a constant reference label "
+            "applied to every row when the source corpus has no label "
+            "column at all (e.g. a single-domain query set). Takes over "
+            "for reference_fields['intent'] when the latter is absent."
+        ),
+    )
 
 
 # ---------------------------------------------------------------------------

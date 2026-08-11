@@ -71,6 +71,58 @@ class TestMakeRow:
         assert row["reference_intent"] is None
 
 
+class TestMakeRowDomainGranularity:
+    """meteocat and other domain-only corpora set granularity='domain':
+    a prediction is correct as long as its domain (text before the first
+    ':') matches the bare domain reference — the full intent name is
+    unconstrained since these corpora carry no per-intent label."""
+
+    def _row(self, prediction, reference="weather", granularity="domain"):
+        comp = load_competitor("intent_template", "padacioso-medium")
+        return make_row(
+            comp, "meteocat", "ca-ES", 3,
+            {"utterance": "quin temps fara demà", "expected_intent": reference,
+             "split": "test"},
+            prediction, {}, None, 1.5,
+            "ovos-padacioso-pipeline-plugin-medium", "rev123",
+            granularity=granularity,
+        )
+
+    def test_domain_prediction_scores_correct(self):
+        # a domain/hierarchical fighter's fired intent still carries the
+        # sub-intent after the domain — e.g. "weather:current" — but
+        # meteocat only asserts the domain part.
+        row = self._row("weather:current")
+        assert row["exact_match"] is True
+
+    def test_wrong_domain_scores_incorrect(self):
+        row = self._row("music:play_song")
+        assert row["exact_match"] is False
+
+    def test_bare_domain_prediction_still_matches(self):
+        row = self._row("weather")
+        assert row["exact_match"] is True
+
+    def test_ood_rejection_unaffected_by_granularity(self):
+        row = self._row(None, reference=None)
+        assert row["exact_match"] is True
+
+    def test_intent_granularity_is_the_default_and_unchanged(self):
+        # regression guard: omitting granularity keeps exact full-string
+        # comparison, so a same-domain-different-intent prediction that
+        # would score 'correct' under domain granularity still scores
+        # 'incorrect' under the (default) intent granularity.
+        comp = load_competitor("intent_template", "padacioso-medium")
+        row = make_row(
+            comp, "intents-for-eval", "en-US", 7,
+            {"utterance": "play a song", "expected_intent": "media:play_song",
+             "split": "template"},
+            "media:stop", {}, None, 1.5,
+            "ovos-padacioso-pipeline-plugin-medium", "rev123",
+        )
+        assert row["exact_match"] is False
+
+
 class _FakeClassLabel:
     """Mimics ``datasets.ClassLabel`` well enough for int2str()."""
 
@@ -190,6 +242,38 @@ class TestFetchHFClassificationRows:
         with patch("datasets.load_dataset"):
             try:
                 fetch_hf_classification_rows(ds_def, "en-US", "rev123")
+            except ValueError as exc:
+                assert "reference_fields" in str(exc)
+            else:
+                raise AssertionError("expected ValueError")
+
+    def test_domain_label_supplies_constant_reference_when_no_intent_column(self):
+        """meteocat has no per-intent label column at all — every row's
+        reference comes from domain_label instead of reference_fields['intent']."""
+        ds_def = load_dataset_def("intent", "meteocat")
+        assert ds_def.reference_fields.get("intent") is None
+        rows = [
+            {"instruction": "Quin temps farà demà a Girona?"},
+            {"instruction": "Plourà aquesta tarda a Vic?"},
+        ]
+        fake_ds = _FakeHFDataset(rows, {})
+        with patch("datasets.load_dataset", return_value=fake_ds):
+            out = fetch_hf_classification_rows(ds_def, "ca-ES", "rev123")
+        assert out == [
+            {"utterance": "Quin temps farà demà a Girona?",
+             "expected_intent": "weather", "split": "test"},
+            {"utterance": "Plourà aquesta tarda a Vic?",
+             "expected_intent": "weather", "split": "test"},
+        ]
+
+    def test_missing_intent_and_domain_label_still_raises(self):
+        """Without an intent column AND without domain_label set, the
+        source genuinely has no usable reference — still an error."""
+        ds_def = load_dataset_def("intent", "meteocat").model_copy(deep=True)
+        ds_def.domain_label = None
+        with patch("datasets.load_dataset"):
+            try:
+                fetch_hf_classification_rows(ds_def, "ca-ES", "rev123")
             except ValueError as exc:
                 assert "reference_fields" in str(exc)
             else:

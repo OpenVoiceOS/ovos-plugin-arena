@@ -5,6 +5,7 @@ import pytest
 
 from arena.metrics import (
     build_benchmark_board,
+    domain_of,
     intelligibility_scores,
     row_intelligibility_wer,
     row_is_correct,
@@ -40,6 +41,23 @@ class TestRowIsCorrect:
     def test_ood_correct_rejection(self):
         assert row_is_correct(_row(reference_intent=None, prediction=None))
         assert not row_is_correct(_row(reference_intent=None, prediction="a"))
+
+
+class TestDomainOf:
+    """domain_of — the 'text before the first :' rule domain-granularity
+    scoring is built on (meteocat and future domain-only corpora)."""
+
+    def test_strips_intent_suffix(self):
+        assert domain_of("weather:current_conditions") == "weather"
+
+    def test_bare_domain_passes_through(self):
+        assert domain_of("weather") == "weather"
+
+    def test_only_first_colon_splits(self):
+        assert domain_of("weather:forecast:tomorrow") == "weather"
+
+    def test_none_stays_none(self):
+        assert domain_of(None) is None
 
 
 class TestScoreIntent:
