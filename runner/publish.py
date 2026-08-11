@@ -17,6 +17,43 @@ logger = logging.getLogger(__name__)
 _SHARD_SIZE = 100_000
 
 
+def publish_competitor_output(
+    output_file: Path,
+    hf_repo: str,
+    lang: str,
+    competitor_id: str,
+    token: str | None = None,
+) -> list[str]:
+    """Upload *output_file* to the spec §3.2 predictions layout:
+    ``predictions/<lang>/<competitor_id>.jsonl``.
+
+    Unlike :func:`publish_output`'s append-only root shards, this uploads the
+    FULL local file to a fixed path and overwrites on re-publish — the local
+    file is the accumulated source of truth (resume appends to it), so the
+    remote copy is always a superset of the previous publish. This is the
+    layout both the assembler (``arena.predictions.fetch_hf_predictions``)
+    and the sweep diff (``runner.queue_tools``) read; root-level shards are
+    invisible to them.
+    """
+    from huggingface_hub import HfApi
+
+    if not output_file.exists() or output_file.stat().st_size == 0:
+        logger.warning("publish skipped: %s is empty or missing", output_file)
+        return []
+
+    remote_name = f"predictions/{lang}/{competitor_id}.jsonl"
+    api = HfApi(token=token)
+    api.upload_file(
+        path_or_fileobj=str(output_file),
+        path_in_repo=remote_name,
+        repo_id=hf_repo,
+        repo_type="dataset",
+        commit_message=f"runner: update {remote_name}",
+    )
+    logger.info("uploaded %s (%d bytes)", remote_name, output_file.stat().st_size)
+    return [remote_name]
+
+
 def _next_shard_index(api, repo_id: str, stem: str) -> int:
     """Return the next available shard index for this stem."""
     try:

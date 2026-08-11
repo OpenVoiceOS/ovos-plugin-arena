@@ -10,8 +10,9 @@ This module never writes ``runner/queue.yaml`` and never runs a benchmark —
 it only reports/generates job entries for a human to review and paste in.
 
 HF layout assumed (matches ``arena.predictions``): one file per competitor
-under ``predictions/<competitor_id>.jsonl`` inside the dataset's
-``predictions_hf`` repo.
+per lang under ``predictions/<lang>/<competitor_id>.jsonl`` inside the
+dataset's ``predictions_hf`` repo (the flat legacy
+``predictions/<competitor_id>.jsonl`` form is still accepted).
 
 Listing is done with ``HfApi.list_repo_tree`` (metadata only — file names +
 sizes), never a full ``snapshot_download``. Row counts are only fetched
@@ -212,17 +213,29 @@ def find_missing_pairs(
             continue
 
         files = lister.list_files(dataset.predictions_hf)
-        rel_path = f"predictions/{competitor.competitor_id}.jsonl"
-        size = files.get(rel_path)
+        # The published layout nests per lang (predictions/<lang>/<id>.jsonl,
+        # what media_bench and the daemon write — spec §3.2); the flat
+        # predictions/<id>.jsonl form predates it. Accept both, aggregating
+        # across langs: checking only the flat path reports "no_file" forever
+        # for every published pair and re-queues finished work.
+        suffix = f"/{competitor.competitor_id}.jsonl"
+        matches = {
+            path: size for path, size in files.items()
+            if path == f"predictions/{competitor.competitor_id}.jsonl"
+            or (path.startswith("predictions/") and path.endswith(suffix))
+        }
 
-        if size is None:
+        if not matches:
             missing.append(MissingPair(modality, competitor, dataset, "no_file"))
             continue
-        if size == 0:
+        if sum(matches.values()) == 0:
             missing.append(MissingPair(modality, competitor, dataset, "empty_file"))
             continue
         if check_rows:
-            rows = lister.count_rows(dataset.predictions_hf, rel_path)
+            rows = sum(
+                lister.count_rows(dataset.predictions_hf, path)
+                for path, size in matches.items() if size
+            )
             if rows < min_rows:
                 missing.append(
                     MissingPair(modality, competitor, dataset, "low_rows", rows=rows)

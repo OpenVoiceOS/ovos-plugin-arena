@@ -493,3 +493,63 @@ class TestCLIAbortsOnHFFailure:
         assert "simulated network failure" in captured.err
         # No partial/garbage queue output on stdout
         assert captured.out == ""
+
+
+class TestFindMissingPairsLangNestedLayout:
+    """Regression: the published layout nests per lang
+    (predictions/<lang>/<id>.jsonl — what media_bench and the daemon write).
+    A diff that checks only the flat predictions/<id>.jsonl path reports
+    "no_file" forever for every published pair and re-queues finished work."""
+
+    def test_lang_nested_file_counts_as_published(self, mini_registry):
+        lister = FakeLister(
+            files={
+                "OpenVoiceOS/ovos-stt-bench-minds14-en-US": {
+                    "predictions/en-US/vosk-en.jsonl": 500,
+                },
+            },
+            rows={
+                ("OpenVoiceOS/ovos-stt-bench-minds14-en-US",
+                 "predictions/en-US/vosk-en.jsonl"): 200,
+            },
+        )
+        missing = find_missing_pairs("stt", registry_root=mini_registry, lister=lister)
+        by_key = {(mp.competitor.competitor_id, mp.dataset.dataset_id): mp.reason
+                  for mp in missing}
+        assert ("vosk-en", "minds14-en-US") not in by_key
+
+    def test_rows_aggregate_across_lang_dirs(self, mini_registry):
+        """A multi-lang repo with per-lang files must sum rows, and only
+        non-empty files are counted."""
+        repo = "OpenVoiceOS/ovos-stt-bench-minds14-en-US"
+        lister = FakeLister(
+            files={repo: {
+                "predictions/en-US/fasterwhisper-multi.jsonl": 300,
+                "predictions/en-GB/fasterwhisper-multi.jsonl": 300,
+                "predictions/en-AU/fasterwhisper-multi.jsonl": 0,
+            }},
+            rows={
+                (repo, "predictions/en-US/fasterwhisper-multi.jsonl"): 3,
+                (repo, "predictions/en-GB/fasterwhisper-multi.jsonl"): 4,
+            },
+        )
+        missing = find_missing_pairs(
+            "stt", registry_root=mini_registry, lister=lister, min_rows=5)
+        by_key = {(mp.competitor.competitor_id, mp.dataset.dataset_id): mp
+                  for mp in missing}
+        assert ("fasterwhisper-multi", "minds14-en-US") not in by_key
+        # 0-byte files are never row-counted
+        assert (repo, "predictions/en-AU/fasterwhisper-multi.jsonl") \
+            not in lister.count_calls
+
+    def test_similar_id_in_lang_dir_does_not_leak(self, mini_registry):
+        """predictions/<lang>/xx-vosk-en.jsonl must NOT satisfy vosk-en."""
+        repo = "OpenVoiceOS/ovos-stt-bench-minds14-en-US"
+        lister = FakeLister(files={repo: {
+            "predictions/en-US/other-vosk-en-variant.jsonl": 500,
+        }})
+        missing = find_missing_pairs(
+            "stt", registry_root=mini_registry, lister=lister, check_rows=False)
+        by_key = {(mp.competitor.competitor_id, mp.dataset.dataset_id): mp.reason
+                  for mp in missing}
+        assert by_key[("vosk-en", "minds14-en-US")] == "no_file"
