@@ -353,6 +353,35 @@ before it can get a registry entry — this review only confirms they exist
 on the org and are unclaimed by the current registry, it does not
 validate their internal schema.
 
+## `stt-sampler-v1`: breadth before depth
+
+`registry/datasets/stt/stt-sampler-v1.json` adds a single multi-lang STT
+eval corpus (`lang: multi`) covering every locale the arena's STT fighters
+are registered against today: the 14 MInDS-14 locales, the 12 Speech-MASSIVE
+locales, and FLEURS `ca_es`/`gl_es` (20 locales total, some overlapping
+between sources). It targets 100 clips per language — banking calls from
+MInDS-14, voice-assistant utterances from Speech-MASSIVE, read speech
+from FLEURS. Where a locale is covered by two sources (de-DE, es-ES,
+fr-FR, ko-KR, nl-NL, pl-PL, pt-PT, ru-RU) each source contributes 50, so
+neither dominates a shared locale; single-source locales draw all 100
+from that source. Clips are selected deterministically by sorting each
+source split by its sample id and striding through it (`index = i *
+floor(n/k)`, k=50 or 100), not by taking the first k rows, which would
+cluster on a single speaker. The 20 language subsets live as one HF
+dataset repo (`OpenVoiceOS/stt-sampler-v1`, parquet, embedded audio,
+16kHz mono float32, one file per `lang` config) so a single registry
+entry and a single predictions repo
+(`OpenVoiceOS/ovos-stt-bench-stt-sampler-v1`) cover all of them.
+
+The point is breadth before depth: a new STT fighter or a new locale gets
+an immediate, balanced leaderboard across every registered language from
+day one, at 1/N the compute of a full run over MInDS-14 + Speech-MASSIVE +
+FLEURS. The full per-locale corpora (`minds14-*`, `speech-massive-*`,
+`fleurs-*`) remain the deep benchmarks — this sampler is the fast board
+that runs first and most often; it does not replace them, and its
+100-clip-per-language sample is not a substitute for the per-locale WER
+numbers the full corpora produce over time as compute allows.
+
 ## Schema note: no sample-count field
 
 No `DatasetDef` in `registry/datasets/` carries a row/sample count, so

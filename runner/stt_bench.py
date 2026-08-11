@@ -31,6 +31,16 @@ class STTBench(MediaBenchAdapter):
         audio_key = fields.get("audio", "audio")
         gt_col = fields.get("ground_truth", "transcription")
         src = dataset_def.source
+        # Multi-lang corpora (lang="multi") template {lang} into subset /
+        # file_pattern so one registry entry covers every language, e.g.
+        # source.subset="{lang}" for a per-language parquet config.
+        if "{lang}" in (src.subset or "") or "{lang}" in (src.file_pattern or ""):
+            update = {}
+            if src.subset:
+                update["subset"] = src.subset.format(lang=lang)
+            if src.file_pattern:
+                update["file_pattern"] = src.file_pattern.format(lang=lang)
+            src = src.model_copy(update=update)
         # Manifest-backed corpora (metadata.csv / manifest.jsonl beside the
         # audio, e.g. speech_MASSIVE_pt-PT) vs parquet-embedded audio (MInDS-14).
         streamer = (stream_manifest_audio
