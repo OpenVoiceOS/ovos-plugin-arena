@@ -66,22 +66,90 @@ def resolve_revision(hf_id: str, revision: str) -> str:
 
 
 def fetch_rows(dataset_def, lang: str, revision: str) -> list:
-    """Fetch one language's rows of a file-pattern dataset."""
-    from huggingface_hub import hf_hub_download
+    """Fetch one language's rows for this dataset.
 
+    Two source shapes exist. ``source.file_pattern`` datasets are plain
+    JSONL files under the HF repo (one per language) whose rows already
+    carry the canonical row shape (``utterance``/``expected_intent`` for
+    eval, ``intent_id``/``template`` for train) — used by datasets the
+    arena curated itself (e.g. massive-templates). Datasets absorbed
+    straight from a public HF *classification* dataset (SNIPS, BANKING77,
+    CLINC150) have no such file and are read through :mod:`datasets`
+    instead, with ``reference_fields`` mapping the source columns onto
+    the same canonical row shape.
+    """
     pattern = dataset_def.source.file_pattern
-    if not pattern:
-        raise ValueError(
-            f"{dataset_def.dataset_id}: source.file_pattern is required"
+    if pattern:
+        from huggingface_hub import hf_hub_download
+
+        path = hf_hub_download(
+            dataset_def.source.hf_id,
+            pattern.format(lang=lang),
+            repo_type="dataset",
+            revision=revision,
         )
-    path = hf_hub_download(
-        dataset_def.source.hf_id,
-        pattern.format(lang=lang),
-        repo_type="dataset",
-        revision=revision,
-    )
-    return [json.loads(line) for line in Path(path).read_text().splitlines()
-            if line.strip()]
+        return [json.loads(line) for line in Path(path).read_text().splitlines()
+                if line.strip()]
+    return fetch_hf_classification_rows(dataset_def, lang, revision)
+
+
+def fetch_hf_classification_rows(dataset_def, lang: str, revision: str) -> list:
+    """Read a plain HF text-classification dataset into canonical rows.
+
+    ``reference_fields`` must provide ``utterance`` (the text column) and
+    ``intent`` (the label column — an int ``ClassLabel`` or a plain string
+    column, either works). Integer labels are decoded through the source
+    dataset's own feature metadata, never guessed. When ``source.id_field``
+    is set, rows are deduplicated on that column, keeping the first
+    occurrence — some HF mirrors ship the same row more than once;
+    deduping is a no-op on clean sources. ``lang`` is accepted for
+    interface parity with ``fetch_rows`` (a future per-language-column
+    source would filter on it here) — every currently-registered
+    classification source is single-language or split per language via
+    ``source.split``/``source.subset`` instead.
+    """
+    from datasets import load_dataset
+
+    src = dataset_def.source
+    fields = dataset_def.reference_fields
+    text_col = fields.get("utterance")
+    intent_col = fields.get("intent")
+    if not text_col or not intent_col:
+        raise ValueError(
+            f"{dataset_def.dataset_id}: reference_fields must map "
+            "'utterance' and 'intent' for a plain HF classification source"
+        )
+    ds = load_dataset(src.hf_id, name=src.subset, split=src.split, revision=revision)
+
+    intent_feature = ds.features.get(intent_col)
+    def _decode(value):
+        if intent_feature is not None and hasattr(intent_feature, "int2str"):
+            return intent_feature.int2str(value)
+        return value
+
+    id_col = src.id_field
+    oos = dataset_def.oos_label
+    is_train = dataset_def.role == "train"
+    rows = []
+    seen_ids: set = set()
+    for r in ds:
+        if id_col is not None:
+            row_id = r.get(id_col)
+            if row_id in seen_ids:
+                continue
+            seen_ids.add(row_id)
+        label = _decode(r[intent_col])
+        text = r[text_col]
+        if oos and label == oos:
+            if is_train:
+                continue  # engines don't train on the negative class
+            rows.append({"utterance": text, "expected_intent": None, "split": "far_ood"})
+            continue
+        if is_train:
+            rows.append({"intent_id": label, "template": text})
+        else:
+            rows.append({"utterance": text, "expected_intent": label, "split": "test"})
+    return rows
 
 
 # ---------------------------------------------------------------------------

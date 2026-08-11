@@ -151,7 +151,7 @@ existed as the locale-tagged equivalent.
 
 ## intent
 
-6 datasets across two paradigms (template, keyword) plus one raw-corpus
+12 datasets across two paradigms (template, keyword) plus one raw-corpus
 train set:
 
 | dataset id | role | board published |
@@ -162,6 +162,43 @@ train set:
 | massive-templates | eval | yes (`ovos-intent-template-bench-massive-templates`) |
 | massive-templates-train | train (template) | n/a — train corpus |
 | hass-intent-templates | train (template) | n/a — train corpus |
+| snips | eval | no |
+| snips-train | train (template) | n/a — train corpus |
+| banking77 | eval | no |
+| banking77-train | train (template) | n/a — train corpus |
+| clinc150 | eval | no |
+| clinc150-train | train (template) | n/a — train corpus |
+
+### Absorbed from `ovos-intent-benchmark`
+
+SNIPS, BANKING77, and CLINC150 close most of the gap with the sibling
+`ovos-intent-benchmark` repo's dataset list. None had a prior
+`registry/datasets/intent/*.json` entry. Full raw MASSIVE (that repo's
+fourth loader) was deliberately **not** absorbed — the arena already
+carries MASSIVE via `massive-templates`, and the owner decided that
+paradigm-neutral template recast is coverage enough; a second, raw-corpus
+MASSIVE registration was judged not worth the duplication.
+
+These three are plain HF text-classification corpora, not the JSONL
+file-per-language shape the registry previously assumed for intent
+datasets. `runner/intent_bench.fetch_rows` gained a second path
+(`fetch_hf_classification_rows`) for sources without a `file_pattern`: it
+loads the HF dataset directly, decodes `ClassLabel` columns through the
+source's own feature metadata, and maps `reference_fields` onto the
+runner's canonical row shape. CLINC150's explicit out-of-scope class uses
+the new `oos_label` field — eval rows get `expected_intent=None` +
+`bucket=far_ood` (correct behaviour is not firing), train rows are
+dropped. The loader also supports a general `source.id_field` dedup
+(first-occurrence-wins on that column) — general hygiene against HF
+mirrors that ship duplicate rows; none of the three registered sources
+need it, but it's exercised by a synthetic-source regression test.
+
+All three are text-only (no slot spans in these mirrors), so — like
+`massive-templates` — they register `template`-paradigm training only;
+keyword-paradigm and keyword-bearing fusion fighters are automatically
+ineligible for them, same as the existing precedent. None have a
+published board yet (no `benchmarks/*.py` script drives them); adding
+one is a follow-up, not in this change's scope.
 
 `intents-for-eval` and `massive-templates` are properly wired: each
 declares `train_datasets` pointing at its own template/keyword training
@@ -184,7 +221,7 @@ meant to back a board, but no eval dataset drives predictions into it.
 | wake_word | 27 | 3 (1 empty) | 24 |
 | tts | 2 | 2 | 0 (coverage gap instead) |
 | vad | 19 | 19 | 0 (duplicate-board issue instead) |
-| intent | 6 (4 eval-eligible) | 4 | 0 (1 orphaned train corpus) |
+| intent | 12 (6 eval-eligible) | 4 | 3 (1 orphaned train corpus + 3 newly-absorbed eval corpora with no board yet) |
 
 stt and wake_word are the two modalities where most registered datasets
 are pure dead weight: registered, schema-valid, never run, no board. The
