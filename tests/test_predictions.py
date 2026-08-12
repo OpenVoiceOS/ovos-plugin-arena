@@ -110,6 +110,59 @@ class TestReadJsonl:
         (tmp_path / "a.jsonl").write_text(json.dumps(_intent_row()) + "\n")
         assert len(load_predictions(str(tmp_path))) == 1
 
+    def test_concrete_lang_excludes_other_lang_dirs(self, tmp_path):
+        # Regression for the merged-lang-pools blocker: a prediction repo
+        # for a concrete-lang dataset (e.g. minds14 de-DE) commonly has an
+        # orphaned shard from an earlier wrong-lang run (e.g. an
+        # English-forced decode published under predictions/en/) alongside
+        # its own predictions/de-DE/ dir. Loading with lang="de-DE" must
+        # only pick up the de-DE shard, never the en orphan.
+        de_dir = tmp_path / "de-DE"
+        de_dir.mkdir()
+        (de_dir / "canary.jsonl").write_text(
+            json.dumps(_intent_row(lang="de-DE", sample_id="de-DE/00001")) + "\n"
+        )
+        en_dir = tmp_path / "en"
+        en_dir.mkdir()
+        (en_dir / "canary.jsonl").write_text(
+            json.dumps(_intent_row(lang="en", sample_id="en/00001")) + "\n"
+        )
+
+        all_rows = load_predictions_dir(tmp_path)
+        assert len(all_rows) == 2  # unfiltered: both shards merge (the bug)
+
+        de_only = load_predictions_dir(tmp_path, lang="de-DE")
+        assert len(de_only) == 1
+        assert de_only[0].lang == "de-DE"
+
+        de_only_via_load_predictions = load_predictions(str(tmp_path), lang="de-DE")
+        assert len(de_only_via_load_predictions) == 1
+
+    def test_concrete_lang_still_loads_flat_legacy_root_files(self, tmp_path):
+        # The flat legacy predictions/<competitor>.jsonl form predates the
+        # per-lang layout and is always accepted regardless of lang filter.
+        (tmp_path / "legacy.jsonl").write_text(json.dumps(_intent_row()) + "\n")
+        en_dir = tmp_path / "en"
+        en_dir.mkdir()
+        (en_dir / "canary.jsonl").write_text(
+            json.dumps(_intent_row(lang="en", sample_id="en/00001")) + "\n"
+        )
+        rows = load_predictions_dir(tmp_path, lang="de-DE")
+        assert len(rows) == 1
+        assert rows[0].lang == "en-US"  # from the flat legacy.jsonl row, not en/
+
+    def test_multi_lang_dataset_keeps_loading_every_lang_dir(self, tmp_path):
+        # A multi/unknown-lang dataset (lang=None) must NOT be filtered —
+        # every lang dir stays in scope.
+        for tag in ("de-DE", "en", "fr"):
+            d = tmp_path / tag
+            d.mkdir()
+            (d / "canary.jsonl").write_text(
+                json.dumps(_intent_row(lang=tag, sample_id=f"{tag}/00001")) + "\n"
+            )
+        rows = load_predictions_dir(tmp_path, lang=None)
+        assert len(rows) == 3
+
 
 class TestGroupRows:
     def test_groups_by_modality_dataset_lang(self):
