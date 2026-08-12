@@ -484,3 +484,67 @@ class TestJudgeResolution:
         assert id_en == id_de == "nemo-parakeet-tdt-0.6b-v3"
         assert judge_en is judge_de
         assert loads["n"] == 1
+
+
+# ---------------------------------------------------------------------------
+# elapsed_ms scope (performance-metrics campaign M1) — must exclude judging
+# ---------------------------------------------------------------------------
+
+
+class _SlowJudge(FakeJudge):
+    """A UTMOS judge stand-in that sleeps to simulate real scoring latency."""
+
+    def __init__(self, seconds, score=4.2):
+        super().__init__(score=score)
+        self.seconds = seconds
+
+    def __call__(self, wav_path, sr):
+        import time as _time
+
+        _time.sleep(self.seconds)
+        return super().__call__(wav_path, sr)
+
+
+class TestElapsedMsExcludesJudging:
+    """elapsed_ms/peak_rss_mb must be scoped to ONLY the synthesis call
+    (``engine.get_tts``), not the whole ``predict()`` — media_bench wraps
+    the whole thing in its own measure_call for the `latency_ms` field, but
+    TTSBench.predict() also runs UTMOS scoring and STT round-trip judging
+    inside the same call, and folding that judging time into elapsed_ms
+    would distort RTF (elapsed_ms / audio_secs), the exact metric this
+    capture exists to compute.
+
+    A fake judge that sleeps stands in for slow real scoring; the fake
+    synthesis engine is effectively instantaneous. If elapsed_ms is
+    contaminated by judging time, it will be at least ``sleep_seconds``
+    long — this test fails loudly in that case.
+    """
+
+    SLEEP_SECONDS = 0.2
+
+    def test_elapsed_ms_excludes_utmos_and_intelligibility_judging(
+        self, tmp_path, monkeypatch
+    ):
+        slow_judge = _SlowJudge(seconds=self.SLEEP_SECONDS)
+        monkeypatch.setattr(tts_bench, "_get_utmos_judge", lambda: slow_judge)
+        # Intelligibility scoring is a second judging stage — keep it fast
+        # so the test isolates the UTMOS-sleep contribution cleanly, but it
+        # would contaminate elapsed_ms exactly the same way if included.
+        monkeypatch.setattr(
+            tts_bench, "_score_intelligibility",
+            lambda wav_path, text, lang: (0.0, 0.0, "fake-model", "fake-rev"),
+        )
+
+        engine = FakeEngine()  # near-instant synthesis
+        fields = tts_bench.TTSBench().predict(
+            engine, {"input_text": "hello"}, _ctx(tmp_path)
+        )
+
+        assert fields["elapsed_ms"] is not None
+        # Synthesis-only span: comfortably under the judge's artificial
+        # sleep. A regression that measures the whole predict() call would
+        # report elapsed_ms >= SLEEP_SECONDS * 1000 here.
+        assert fields["elapsed_ms"] < (self.SLEEP_SECONDS * 1000) / 2
+        # latency_ms was already synthesis-scoped before this fix and must
+        # stay that way too.
+        assert fields["latency_ms"] < (self.SLEEP_SECONDS * 1000) / 2

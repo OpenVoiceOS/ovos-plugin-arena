@@ -19,6 +19,7 @@ from collections.abc import Iterator
 
 from runner.asr_judges import resolve_judge_model
 from runner.media_bench import MediaBenchAdapter, PredictContext, load_plugin_class
+from runner.perf import rss_mb
 
 log = logging.getLogger("tts-bench")
 
@@ -158,11 +159,24 @@ class TTSBench(MediaBenchAdapter):
         # whose blanket try/except just skips the sample and silently drops
         # it from the board — that would hide the exact failures this metric
         # exists to catch.
+        #
+        # elapsed_ms/peak_rss_mb are measured around ONLY this synthesis call
+        # (before/after RSS via runner.perf) and self-reported on the row
+        # below — media_bench.run_competitor_lang's own measure_call wraps
+        # the WHOLE predict() (synthesis + UTMOS + intelligibility judging),
+        # and its fields.setdefault("elapsed_ms", ...) only fires when the
+        # key is absent, so setting it explicitly here keeps RTF (the metric
+        # this capture exists for) scoped to synthesis, never judging time.
+        before_rss = rss_mb()
         start = time.perf_counter()
         try:
             engine.get_tts(text, str(wav_path), lang=ctx.lang)
         except Exception as exc:
             latency_ms = (time.perf_counter() - start) * 1000
+            after_rss = rss_mb()
+            peak_rss_mb = (max(before_rss, after_rss)
+                           if before_rss is not None and after_rss is not None
+                           else None)
             log.warning("synthesis failed for %r (%s): %s",
                         text, ctx.competitor.competitor_id, exc)
             judge_model_id, judge_revision = resolve_judge_model(ctx.lang)
@@ -171,6 +185,8 @@ class TTSBench(MediaBenchAdapter):
                 "prediction": None,
                 "audio_url": None,
                 "latency_ms": round(latency_ms, 3),
+                "elapsed_ms": round(latency_ms, 3),
+                "peak_rss_mb": round(peak_rss_mb, 3) if peak_rss_mb is not None else None,
                 "audio_secs": None,  # synthesis failed — no clip was produced
                 "extras": {
                     "synthesis_error": str(exc),
@@ -181,6 +197,10 @@ class TTSBench(MediaBenchAdapter):
                 },
             }
         latency_ms = (time.perf_counter() - start) * 1000
+        after_rss = rss_mb()
+        peak_rss_mb = (max(before_rss, after_rss)
+                       if before_rss is not None and after_rss is not None
+                       else None)
 
         judge = _get_utmos_judge()
         # ``sr`` here is the *input's* sample rate, not the model's — for a
@@ -220,6 +240,12 @@ class TTSBench(MediaBenchAdapter):
             "prediction": ctx.hf_audio_url(rel),
             "audio_url": ctx.hf_audio_url(rel),
             "latency_ms": round(latency_ms, 3),
+            # elapsed_ms/peak_rss_mb are self-reported here (synthesis-only
+            # span) rather than left to media_bench's outer wrapper, which
+            # would otherwise fold in UTMOS + intelligibility judging time —
+            # see the long comment above the get_tts call.
+            "elapsed_ms": round(latency_ms, 3),
+            "peak_rss_mb": round(peak_rss_mb, 3) if peak_rss_mb is not None else None,
             # produced clip duration (RTF = elapsed_ms / 1000 / audio_secs, §M1)
             "audio_secs": _clip_duration_secs(wav_path),
             # PredictionRow has no modeled utmos/intelligibility fields —

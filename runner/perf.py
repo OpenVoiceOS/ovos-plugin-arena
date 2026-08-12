@@ -31,11 +31,15 @@ T = TypeVar("T")
 # ---------------------------------------------------------------------------
 
 
-def _rss_mb() -> float | None:
+def rss_mb() -> float | None:
     """Current process RSS in MB via ``psutil``, or ``None`` if unavailable.
 
     ``psutil`` is an optional dependency of the runner's audio extras — a
     process without it simply gets no RSS reading rather than a crash.
+    Public: callers that need to bracket a narrower span than a whole
+    ``measure_call`` (e.g. ``runner.tts_bench.TTSBench.predict``, which must
+    exclude UTMOS/intelligibility judging from its own elapsed/RSS numbers)
+    sample it directly instead.
     """
     try:
         import psutil
@@ -45,6 +49,11 @@ def _rss_mb() -> float | None:
         return psutil.Process().memory_info().rss / (1024 * 1024)
     except Exception:
         return None
+
+
+# Backward-compat private alias (kept in case anything already imported the
+# old private name during this same development cycle).
+_rss_mb = rss_mb
 
 
 def measure_call(fn: Callable[[], T]) -> tuple[T, float, float | None]:
