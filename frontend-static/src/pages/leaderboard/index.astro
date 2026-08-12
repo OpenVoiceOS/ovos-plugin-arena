@@ -29,6 +29,10 @@ import Base from '../../layouts/Base.astro';
         <span>Dataset</span>
         <select id="sel-dataset"></select>
       </label>
+      <label for="chk-group-variants" class="lb-lang" style="cursor:pointer">
+        <input type="checkbox" id="chk-group-variants" checked />
+        <span>Group variants</span>
+      </label>
       <div id="dataset-info" class="lb-meta"></div>
     </div>
 
@@ -114,6 +118,21 @@ import Base from '../../layouts/Base.astro';
     .lrow .right { text-align:right; }
     .lrow .right .elo { font-family:var(--display); font-weight:700; font-size:1.15rem; }
 
+    /* ---- grouped-variant ladder rows ---- */
+    .lrow.group-row { cursor: pointer; list-style: none; }
+    .lrow.group-row::-webkit-details-marker { display: none; }
+    .lrow.group-row:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .lrow.group-row .who .pl { color: var(--accent); }
+    .group-badge { font-family: var(--mono); font-size: 0.7rem; color: var(--muted);
+      border: 1px solid var(--border); border-radius: 999px; padding: 0.05rem 0.5rem; margin-left: 0.4rem; }
+    .lrow-group { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--surface); }
+    .lrow-group > .lrow { border: none; border-radius: 0; }
+    .lrow-group .group-members { display: none; flex-direction: column; gap: 0.4rem;
+      padding: 0.4rem 0.9rem 0.7rem; border-top: 1px solid var(--border); }
+    .lrow-group[open] .group-members { display: flex; }
+    .lrow-group .group-members .lrow { background: var(--bg); }
+    .pod .group-badge { display: block; margin: 0.3rem auto 0; width: fit-content; }
+
     /* ---- benchmark board ---- */
     .bench { border:1px solid var(--border); border-radius:14px; padding:1.1rem 1.25rem; margin-bottom:1.1rem;
       background:linear-gradient(180deg, var(--surface-2), var(--surface)); }
@@ -196,6 +215,62 @@ import Base from '../../layouts/Base.astro';
       { id: 'wake_word', label: 'Wake Word', battle_group: 'wake_word', order: 5 },
       { id: 'vad', label: 'VAD', battle_group: 'vad', order: 6 },
     ];
+    // ---- subspecies grouping (mirrors ../fighters/index.astro) --------
+    const GROUP_STORAGE_KEY = 'arena.leaderboard.groupVariants';
+    let groupVariants = true;
+    try {
+      const stored = localStorage.getItem(GROUP_STORAGE_KEY);
+      if (stored !== null) groupVariants = stored === '1';
+    } catch { /* localStorage unavailable (private mode, SSR) — keep default ON */ }
+
+    const groupKeyOf = id => fighters[id]?.species || fighters[id]?.plugin || id;
+
+    function humanizeSpecies(species) {
+      const words = species
+        .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+        .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
+        .split(/\s+/).filter(Boolean);
+      if (words.length > 1 && ['Plugin', 'Pipeline'].includes(words[words.length - 1])) words.pop();
+      return words.join(' ');
+    }
+    function humanizePlugin(plugin) {
+      const words = plugin.replace(/^ovos-/, '').replace(/-plugin$/, '')
+        .split('-').filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1));
+      return words.join(' ') || plugin;
+    }
+    function groupDisplayName(key, ids) {
+      const f = fighters[ids[0]];
+      if (f?.species === key) return humanizeSpecies(key);
+      if (f?.plugin === key) return humanizePlugin(key);
+      return nameOf(ids[0]);
+    }
+
+    // Collapse CONTIGUOUS runs of entries sharing a group key into one
+    // node — matches the fighters bestiary's grouping key, but only
+    // merges fighters that are actually ranked next to each other, so a
+    // family scattered across the ladder (rare, but possible) stays as
+    // separate rows rather than being yanked together out of rank order.
+    // The group node's rank is its best (first, since entries arrive
+    // best-first) member's rank.
+    function collapseGroups(entries) {
+      if (!groupVariants) return entries.map(e => ({ group: false, entry: e }));
+      const nodes = [];
+      let i = 0;
+      while (i < entries.length) {
+        const key = groupKeyOf(entries[i].competitor_id);
+        let j = i + 1;
+        while (j < entries.length && groupKeyOf(entries[j].competitor_id) === key) j++;
+        const run = entries.slice(i, j);
+        if (run.length > 1) {
+          nodes.push({ group: true, key, members: run });
+        } else {
+          nodes.push({ group: false, entry: run[0] });
+        }
+        i = j;
+      }
+      return nodes;
+    }
+
     let leagues = [], leagueById = {};
     // metadata only — {file, modality, dataset_id, lang, count}, cheap to
     // hold in full since the frontend needs it to know what's fetchable.
@@ -221,6 +296,14 @@ import Base from '../../layouts/Base.astro';
         <span class="l">${e.losses}<b>L</b></span><span class="t">${e.ties}<b>T</b></span></span>`;
     }
 
+    // Fighter detail page href, base-path aware — same route the fighters
+    // bestiary links to (fighter/[id].astro). Every row that names a real
+    // fighter (not a group header, which expands instead of navigating)
+    // uses this so the name itself is the link — discernible link text,
+    // no click-catching wrapper div.
+    const fighterHref = id => `${BASE}fighter/${encodeURIComponent(id)}/`;
+    const fighterLink = id => `<a href="${fighterHref(id)}">${esc(nameOf(id))}</a>`;
+
     // Fighter list with no rank/crown/podium chrome at all — used when a
     // board is provisional with zero votes cast: any ordering the backend
     // ships (a single fighter, or an arbitrary seed order) is not a real
@@ -232,43 +315,104 @@ import Base from '../../layouts/Base.astro';
           <span class="rk" aria-hidden="true">–</span>
           <span class="sprite-cell">${sprite(e.competitor_id, 40)}</span>
           <span class="who">
-            <span class="nm">${esc(nameOf(e.competitor_id))}</span>
+            <span class="nm">${fighterLink(e.competitor_id)}</span>
             <span class="pl"> · ${esc(e.plugin_id || '')}</span>
           </span>
           <span class="right"><span class="pl">unrated</span></span>
         </div>`).join('')}</div>`;
     }
 
-    function renderRanking(entries) {
-      // entries already ordered best-first; rank by position
-      const ratings = entries.map(e => e.bt_rating);
-      const lo = Math.min(...ratings), hi = Math.max(...ratings);
-      const strength = v => hi === lo ? 60 : Math.round(6 + 94 * (v - lo) / (hi - lo));
-      const E = entries.map((e, i) => ({ ...e, r: i + 1 }));
-      const crowns = { 1: '① CHAMPION', 2: '② RUNNER-UP', 3: '③ THIRD' };
-      const top = E.slice(0, 3);
-      const podOrder = top.length === 3 ? [top[1], top[0], top[2]] : top;
-      const podium = top.length >= 2 ? `<div class="podium">${podOrder.map(e => `
-        <div class="pod r${e.r}">
-          <div class="crown">${crowns[e.r] || ''}</div>
-          <span class="sprite">${sprite(e.competitor_id, e.r === 1 ? 76 : 60)}</span>
-          <p class="nm">${esc(nameOf(e.competitor_id))}</p>
-          <p class="pl">${esc(e.plugin_id || '')}</p>
-          <p class="elo">${Math.round(e.bt_rating)}<small>RATING</small></p>
-          ${e.battles ? wlt(e) : ''}
-        </div>`).join('')}</div>` : '';
-      const rest = E.slice(top.length >= 2 ? 3 : 0);
-      const ladder = rest.length ? `<div class="ladder">${rest.map(e => `
-        <div class="lrow">
-          <span class="rk">${e.r}</span>
+    function ratingBounds(nodes) {
+      const vals = nodes.map(n => n.group
+        ? n.members.map(m => m.bt_rating)
+        : [n.entry.bt_rating]).flat();
+      return { lo: Math.min(...vals), hi: Math.max(...vals) };
+    }
+
+    // Single ranked ladder row — used both for standalone fighters and,
+    // reused as-is, for the individual rows revealed inside an expanded
+    // group. `r` is the fighter's own display rank.
+    function ladderRowHtml(e, r, strength) {
+      return `<div class="lrow">
+          <span class="rk">${r}</span>
           <span class="sprite-cell">${sprite(e.competitor_id, 40)}</span>
           <span class="who">
-            <span class="nm">${esc(nameOf(e.competitor_id))}</span>
+            <span class="nm">${fighterLink(e.competitor_id)}</span>
             <span class="pl"> · ${esc(e.plugin_id || '')}</span>
             <div class="bar" style="width:${strength(e.bt_rating)}%"></div>
           </span>
           <span class="right"><span class="elo">${Math.round(e.bt_rating)}</span><br>${e.battles ? wlt(e) : '<span class="pl">unrated</span>'}</span>
-        </div>`).join('')}</div>` : '';
+        </div>`;
+    }
+
+    function groupRowHtml(node, strength) {
+      const ratings = node.members.map(m => m.bt_rating);
+      const min = Math.min(...ratings), max = Math.max(...ratings);
+      const avg = ratings.reduce((a, b) => a + b, 0) / ratings.length;
+      const totals = node.members.reduce((acc, m) => ({
+        wins: acc.wins + (m.wins || 0), losses: acc.losses + (m.losses || 0), ties: acc.ties + (m.ties || 0),
+      }), { wins: 0, losses: 0, ties: 0 });
+      const hasBattles = node.members.some(m => m.battles);
+      const name = esc(groupDisplayName(node.key, node.members.map(m => m.competitor_id)));
+      const members = node.members
+        .map(m => ladderRowHtml(m, m.r, strength)).join('');
+      return `<details class="lrow-group">
+        <summary class="lrow group-row">
+          <span class="rk">${node.r}</span>
+          <span class="sprite-cell">${sprite(node.key, 40)}</span>
+          <span class="who">
+            <span class="nm">${name}<span class="group-badge">${node.members.length} variants</span></span>
+            <span class="pl">min ${Math.round(min)} · avg ${Math.round(avg)} · max ${Math.round(max)}</span>
+            <div class="bar" style="width:${strength(avg)}%"></div>
+          </span>
+          <span class="right"><span class="elo">${Math.round(avg)}</span><br>${hasBattles ? wlt(totals) : '<span class="pl">unrated</span>'}</span>
+        </summary>
+        <div class="group-members">${members}</div>
+      </details>`;
+    }
+
+    function podHtml(node, crowns) {
+      if (node.group) {
+        const ratings = node.members.map(m => m.bt_rating);
+        const min = Math.min(...ratings), max = Math.max(...ratings);
+        const avg = ratings.reduce((a, b) => a + b, 0) / ratings.length;
+        const name = esc(groupDisplayName(node.key, node.members.map(m => m.competitor_id)));
+        return `<div class="pod r${node.r}">
+          <div class="crown">${crowns[node.r] || ''}</div>
+          <span class="sprite">${sprite(node.key, node.r === 1 ? 76 : 60)}</span>
+          <p class="nm">${name}</p>
+          <p class="pl">${node.members.length} variants</p>
+          <p class="elo">${Math.round(avg)}<small>AVG RATING</small></p>
+          <span class="group-badge">min ${Math.round(min)} · max ${Math.round(max)}</span>
+        </div>`;
+      }
+      const e = node.entry;
+      return `<div class="pod r${node.r}">
+          <div class="crown">${crowns[node.r] || ''}</div>
+          <span class="sprite">${sprite(e.competitor_id, node.r === 1 ? 76 : 60)}</span>
+          <p class="nm">${fighterLink(e.competitor_id)}</p>
+          <p class="pl">${esc(e.plugin_id || '')}</p>
+          <p class="elo">${Math.round(e.bt_rating)}<small>RATING</small></p>
+          ${e.battles ? wlt(e) : ''}
+        </div>`;
+    }
+
+    function renderRanking(entries) {
+      // entries already ordered best-first; rank by position
+      const E = entries.map((e, i) => ({ ...e, r: i + 1 }));
+      const nodes = collapseGroups(E).map(n => n.group
+        ? { group: true, key: n.key, members: n.members, r: n.members[0].r }
+        : { group: false, entry: n.entry, r: n.entry.r });
+      const { lo, hi } = ratingBounds(nodes);
+      const strength = v => hi === lo ? 60 : Math.round(6 + 94 * (v - lo) / (hi - lo));
+      const crowns = { 1: '① CHAMPION', 2: '② RUNNER-UP', 3: '③ THIRD' };
+      const top = nodes.slice(0, 3);
+      const podOrder = top.length === 3 ? [top[1], top[0], top[2]] : top;
+      const podium = top.length >= 2
+        ? `<div class="podium">${podOrder.map(n => podHtml(n, crowns)).join('')}</div>` : '';
+      const rest = nodes.slice(top.length >= 2 ? 3 : 0);
+      const ladder = rest.length ? `<div class="ladder">${rest.map(n =>
+        n.group ? groupRowHtml(n, strength) : ladderRowHtml(n.entry, n.r, strength)).join('')}</div>` : '';
       return podium + ladder;
     }
 
@@ -338,7 +482,7 @@ import Base from '../../layouts/Base.astro';
       const rows = board.entries.map(e => `<tr>
         <td class="rank-cell ${medal(e.rank)}">${e.rank}</td>
         <td class="sprite-cell">${sprite(e.competitor_id, 34)}</td>
-        <td><div class="nm">${esc(nameOf(e.competitor_id))}</div><div class="pl">${esc(e.plugin_id || '')}</div></td>
+        <td><div class="nm">${fighterLink(e.competitor_id)}</div><div class="pl">${esc(e.plugin_id || '')}</div></td>
         <td><div class="prim"><span class="v">${fmtMetric(primary, e.metrics?.[primary])}</span>
           <span class="track"><span class="fill" style="width:${(score(e.metrics?.[primary]) * 100).toFixed(0)}%"></span></span></div></td>
         ${secondary.map(([k]) => `<td class="metric-chip">${fmtMetric(k, e.metrics?.[k])}</td>`).join('')}
@@ -498,6 +642,13 @@ import Base from '../../layouts/Base.astro';
       });
       document.getElementById('sel-dataset').addEventListener('change', e => {
         dataset = e.target.value; syncUrl(); render();
+      });
+      const chkGroup = document.getElementById('chk-group-variants');
+      chkGroup.checked = groupVariants;
+      chkGroup.addEventListener('change', e => {
+        groupVariants = e.target.checked;
+        try { localStorage.setItem(GROUP_STORAGE_KEY, groupVariants ? '1' : '0'); } catch { /* ignore */ }
+        render();
       });
 
       document.getElementById('lb-app').style.display = '';
