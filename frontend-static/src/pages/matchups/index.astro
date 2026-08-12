@@ -50,7 +50,7 @@ import Base from '../../layouts/Base.astro';
 
     .mu-wrap { overflow-x:auto; border:1px solid var(--border); border-radius:14px;
       background:linear-gradient(180deg, var(--surface-2), var(--surface)); padding:1rem; }
-    .mu-grid { border-collapse:separate; border-spacing:2px; font-size:0.78rem; }
+    .mu-grid { border-collapse:separate; border-spacing:2px; font-size:0.78rem; width:auto; margin:0 auto; }
     .mu-grid th, .mu-grid td { text-align:center; }
     .mu-grid th { border:none; padding:0.3rem; }
     .mu-col-head { writing-mode:vertical-rl; transform:rotate(180deg); white-space:nowrap;
@@ -110,8 +110,10 @@ import Base from '../../layouts/Base.astro';
 
     // Metrics where a HIGHER value is better; everything else in the benchmark
     // boards is lower-is-better (WER, error/false-accept/false-reject rate,
-    // OOD false-positive rate, latency).
-    const HIGHER_BETTER = new Set(['accuracy', 'macro_f1', 'slot_exact_match']);
+    // OOD false-positive rate, latency). utmos (TTS naturalness/MOS proxy) was
+    // missing here, which inverted the win/loss delta colors on the TTS
+    // heatmap (flagged out-of-scope by #81's board-truth work; fixed here).
+    const HIGHER_BETTER = new Set(['accuracy', 'macro_f1', 'slot_exact_match', 'utmos']);
 
     // Diverging ramp: loss-red → neutral surface → win-green, 5 steps either
     // side of the 50%/even midpoint (site's own --win/--loss semantics reused
