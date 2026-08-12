@@ -165,7 +165,12 @@ import Base from '../../layouts/Base.astro';
     // guarantees every fighter lands in exactly one group, and a fighter
     // alone in its group renders with the plain (ungrouped) card, same
     // as before this feature existed.
-    const groupKeyOf = c => c.species || c.plugin || c.competitor_id;
+    // `family` (registry-derived, see FAMILY_ALIASES in registry/schemas.py)
+    // folds config-variant wrapper species (domain-scoped, hierarchical-
+    // scoped, …) of the same underlying engine onto one card — falls back
+    // to `species` unchanged when no folding applies, so this is a strict
+    // superset of the old species-only key.
+    const groupKeyOf = c => c.family || c.species || c.plugin || c.competitor_id;
 
     // "JurebesPipeline" -> "Jurebes Pipeline"; "OnnxASR" -> "Onnx ASR";
     // trailing "Pipeline"/"Plugin" tokens are dropped when there's more
@@ -196,7 +201,7 @@ import Base from '../../layouts/Base.astro';
 
     function groupDisplayName(key, members) {
       const sample = members[0];
-      if (sample.species === key) return humanizeSpecies(key);
+      if (sample.family === key || sample.species === key) return humanizeSpecies(key);
       if (sample.plugin === key) return humanizePlugin(key);
       return sample.display_name || key;
     }

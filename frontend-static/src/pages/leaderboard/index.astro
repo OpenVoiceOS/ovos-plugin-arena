@@ -153,6 +153,16 @@ import Base from '../../layouts/Base.astro';
     .sprite-cell svg { display:block; }
     .bucket-col { display:none; }
 
+    /* ---- grouped-variant benchmark rows ---- */
+    .bench-tbl tr.bench-group-summary { cursor:pointer; }
+    .bench-tbl tr.bench-group-summary:hover { background:rgba(255,255,255,0.03); }
+    .bench-tbl tr.bench-group-summary .nm .pl { color:var(--accent); }
+    .bench-tbl tr.bench-group-summary .expand-hint { font-family:var(--mono); font-size:0.72rem;
+      color:var(--muted); margin-left:0.3rem; }
+    .bench-tbl tr.bench-group-member td:first-child { position:relative; }
+    .bench-tbl tr.bench-group-member { background:rgba(255,255,255,0.015); }
+    .bench-tbl tr.bench-group-member .nm { font-weight:500; font-size:0.85rem; }
+
     @media (max-width:720px) {
       .podium { grid-template-columns:1fr; }
       .pod.r1 { transform:none; order:-1; }
@@ -228,7 +238,23 @@ import Base from '../../layouts/Base.astro';
       if (stored !== null) groupVariants = stored === '1';
     } catch { /* localStorage unavailable (private mode, SSR) — keep default ON */ }
 
-    const groupKeyOf = id => fighters[id]?.species || fighters[id]?.plugin || id;
+    // Family key an entry collapses under. Preference order: the
+    // registry's own collapsed `family` (folds config-variant wrappers of
+    // the same engine, e.g. Adapt/Domain-Adapt/Hierarchical-Adapt — see
+    // FAMILY_ALIASES in registry/schemas.py), then the finer-grained
+    // `species`, then the raw OPM `plugin` id — all three only resolvable
+    // when the entry has a current registry (bestiary) record. A "ghost"
+    // entry (a competitor_id with historical board/battle results but no
+    // current registry file) falls back to `pluginFamilies[plugin_id]`,
+    // the same family the *live* fighters sharing that plugin resolved to,
+    // using the plugin_id every board/ladder row carries regardless of
+    // registry presence — and only as a last resort to its own bare id
+    // (a real singleton, or a ghost whose plugin is itself unregistered).
+    const groupKeyOf = e => {
+      const f = fighters[e.competitor_id];
+      return f?.family || f?.species || f?.plugin
+        || pluginFamilies[e.plugin_id] || e.plugin_id || e.competitor_id;
+    };
 
     function humanizeSpecies(species) {
       const words = species
@@ -243,36 +269,49 @@ import Base from '../../layouts/Base.astro';
         .split('-').filter(Boolean).map(w => w.charAt(0).toUpperCase() + w.slice(1));
       return words.join(' ') || plugin;
     }
+    // Humanize a group's family key for display. Driven by the KEY's own
+    // shape rather than assuming ids[0] has a registry record — a group's
+    // first member can be a "ghost" (historical result row with no current
+    // bestiary entry, see groupKeyOf), so the key itself — a PascalCase
+    // family/species string ("JurebesPipeline") or a kebab-case OPM plugin
+    // id ("ovos-jurebes-pipeline-plugin") — is the only thing guaranteed
+    // present. Only falls back to a member's own display name when the key
+    // matches neither shape (the id-fallback case in groupKeyOf).
     function groupDisplayName(key, ids) {
-      const f = fighters[ids[0]];
-      if (f?.species === key) return humanizeSpecies(key);
-      if (f?.plugin === key) return humanizePlugin(key);
-      return nameOf(ids[0]);
+      if (/^[A-Z]/.test(key)) return humanizeSpecies(key);
+      if (key.startsWith('ovos-')) return humanizePlugin(key);
+      const withRecord = ids.find(id => fighters[id]);
+      return nameOf(withRecord ?? ids[0]);
     }
 
-    // Collapse CONTIGUOUS runs of entries sharing a group key into one
-    // node — matches the fighters bestiary's grouping key, but only
-    // merges fighters that are actually ranked next to each other, so a
-    // family scattered across the ladder (rare, but possible) stays as
-    // separate rows rather than being yanked together out of rank order.
-    // The group node's rank is its best (first, since entries arrive
-    // best-first) member's rank.
+    // Collapse EVERY entry sharing a group key into a single node,
+    // regardless of where each variant lands in the rank order — matches
+    // the fighters bestiary's grouping (which is a plain Map keyed the
+    // same way, see fighters/index.astro). A family like jurebes can have
+    // dozens of variants scattered across the ladder as other species
+    // interleave between them; the earlier contiguous-run version left
+    // those scattered variants as several small groups (or singletons)
+    // instead of one, which is exactly the "several jurebes rows" bug —
+    // the fix is to group globally, then re-sort the resulting nodes by
+    // each node's best rating (a lone fighter's own rating, or a group's
+    // top member's rating) so a family is placed at its highest score,
+    // per owner request. Members inside a group stay in incoming
+    // (best-first) order.
     function collapseGroups(entries) {
       if (!groupVariants) return entries.map(e => ({ group: false, entry: e }));
-      const nodes = [];
-      let i = 0;
-      while (i < entries.length) {
-        const key = groupKeyOf(entries[i].competitor_id);
-        let j = i + 1;
-        while (j < entries.length && groupKeyOf(entries[j].competitor_id) === key) j++;
-        const run = entries.slice(i, j);
-        if (run.length > 1) {
-          nodes.push({ group: true, key, members: run });
-        } else {
-          nodes.push({ group: false, entry: run[0] });
-        }
-        i = j;
+      const groups = new Map();
+      for (const e of entries) {
+        const key = groupKeyOf(e);
+        const run = groups.get(key);
+        if (run) run.push(e);
+        else groups.set(key, [e]);
       }
+      const nodes = [];
+      for (const [key, run] of groups) {
+        nodes.push(run.length > 1 ? { group: true, key, members: run } : { group: false, entry: run[0] });
+      }
+      const bestOf = n => n.group ? n.members[0].bt_rating : n.entry.bt_rating;
+      nodes.sort((a, b) => bestOf(b) - bestOf(a));
       return nodes;
     }
 
@@ -281,6 +320,13 @@ import Base from '../../layouts/Base.astro';
     // hold in full since the frontend needs it to know what's fetchable.
     let benchmarksMeta = [], leaderboardsMeta = [];
     let fighters = {};
+    // plugin_id -> family, from the bestiary export's registry-derived
+    // reverse lookup — the only way to place a "ghost" board/battle row
+    // (a competitor_id with historical results but no current registry
+    // file, e.g. retired by a later "one fighter per X" registry split)
+    // into its engine's collapsed family card instead of a stray
+    // singleton keyed on its own dead id. See groupKeyOf.
+    let pluginFamilies = {};
     let league = '', lang = '', dataset = '', cacheV = '';
     // lazily fetched board bodies, keyed by file name — a selection change
     // only ever fetches the files that match it, never the full corpus.
@@ -460,6 +506,63 @@ import Base from '../../layouts/Base.astro';
       return `<section class="lb-section">${head}${body}</section>`;
     }
 
+    // Best member's own display name minus the family's shared prefix —
+    // display_name convention across the registry is "Family (variant)"
+    // (e.g. "Jurebes (mlp_shallow)", "Phoonnx (Dii, ar)"), so stripping the
+    // family label leaves just the "(variant)" part. Falls back to the full
+    // display name for the rare family whose members don't follow that
+    // convention, so the label is never empty.
+    function bestVariantLabel(familyName, bestId) {
+      const full = nameOf(bestId);
+      if (familyName && full.startsWith(familyName)) {
+        const rest = full.slice(familyName.length).trim().replace(/^\(|\)$/g, '');
+        if (rest) return rest;
+      }
+      return full;
+    }
+
+    // A single <tr> for one board entry — used both for standalone
+    // (ungrouped) fighters and for every row revealed inside an expanded
+    // benchmark group; sample counts and per-variant metrics are identical
+    // either way, only the surrounding <tr> classes/attrs differ.
+    function benchRowHtml(e, { primary, secondary, buckets, score, medal, extraClass, groupKey, hidden }) {
+      const cls = extraClass ? ` class="${extraClass}"` : '';
+      const attrs = `${groupKey ? ` data-group="${esc(groupKey)}"` : ''}${hidden ? ' hidden' : ''}`;
+      return `<tr${cls}${attrs}>
+        <td class="rank-cell ${medal(e.rank)}">${e.rank}</td>
+        <td class="sprite-cell">${sprite(e.competitor_id, 34)}</td>
+        <td><div class="nm">${fighterLink(e.competitor_id)}</div><div class="pl">${esc(e.plugin_id || '')}</div></td>
+        <td><div class="prim"><span class="v">${fmtMetric(primary, e.metrics?.[primary])}</span>
+          <span class="track"><span class="fill" style="width:${(score(e.metrics?.[primary]) * 100).toFixed(0)}%"></span></span></div></td>
+        ${secondary.map(([k]) => `<td class="metric-chip">${fmtMetric(k, e.metrics?.[k])}</td>`).join('')}
+        ${buckets.map(b => `<td class="bucket-col metric-chip">${pct(e.metrics?.[b])}</td>`).join('')}
+        <td class="metric-chip">${e.samples}</td></tr>`;
+    }
+
+    // Collapse a benchmark board's rows the same way the ladder collapses
+    // ranking rows: every entry sharing a family key (species/plugin, see
+    // groupKeyOf) becomes one summary row showing that family's BEST
+    // variant's own metrics (board.entries already arrives sorted by the
+    // primary metric, so the first entry encountered per key is the best),
+    // plus a "N variants" badge — expandable to reveal every variant's own
+    // row, still sorted by the primary metric. A family with a single
+    // fighter renders exactly as before this feature existed.
+    function groupBenchEntries(entries) {
+      if (!groupVariants) return entries.map(e => ({ group: false, entry: e }));
+      const groups = new Map();
+      for (const e of entries) {
+        const key = groupKeyOf(e);
+        const run = groups.get(key);
+        if (run) run.push(e);
+        else groups.set(key, [e]);
+      }
+      const nodes = [];
+      for (const [key, run] of groups) {
+        nodes.push(run.length > 1 ? { group: true, key, members: run } : { group: false, entry: run[0] });
+      }
+      return nodes;
+    }
+
     function benchBoard(board, league) {
       if (!board?.entries?.length) {
         const msg = league === 'tts'
@@ -480,19 +583,30 @@ import Base from '../../layouts/Base.astro';
       const buckets = [...new Set(board.entries.flatMap(e =>
         Object.keys(e.metrics || {}).filter(k => k.startsWith('acc_'))))].sort();
       const medal = r => r <= 3 ? `m${r}` : '';
+      const rowOpts = { primary, secondary, buckets, score, medal };
       const head = `<tr><th></th><th></th><th>Fighter</th><th>${esc(primary)}</th>
         ${secondary.map(([, l]) => `<th>${l}</th>`).join('')}
         ${buckets.map(b => `<th class="bucket-col">${esc(b.slice(4))}</th>`).join('')}
         <th>Samples</th></tr>`;
-      const rows = board.entries.map(e => `<tr>
-        <td class="rank-cell ${medal(e.rank)}">${e.rank}</td>
-        <td class="sprite-cell">${sprite(e.competitor_id, 34)}</td>
-        <td><div class="nm">${fighterLink(e.competitor_id)}</div><div class="pl">${esc(e.plugin_id || '')}</div></td>
-        <td><div class="prim"><span class="v">${fmtMetric(primary, e.metrics?.[primary])}</span>
-          <span class="track"><span class="fill" style="width:${(score(e.metrics?.[primary]) * 100).toFixed(0)}%"></span></span></div></td>
-        ${secondary.map(([k]) => `<td class="metric-chip">${fmtMetric(k, e.metrics?.[k])}</td>`).join('')}
-        ${buckets.map(b => `<td class="bucket-col metric-chip">${pct(e.metrics?.[b])}</td>`).join('')}
-        <td class="metric-chip">${e.samples}</td></tr>`).join('');
+      const rows = groupBenchEntries(board.entries).map(node => {
+        if (!node.group) return benchRowHtml(node.entry, rowOpts);
+        const best = node.members[0];
+        const familyName = groupDisplayName(node.key, node.members.map(m => m.competitor_id));
+        const variantLabel = bestVariantLabel(familyName, best.competitor_id);
+        const summary = `<tr class="bench-group-summary" data-group-toggle="${esc(node.key)}">
+          <td class="rank-cell ${medal(best.rank)}">${best.rank}</td>
+          <td class="sprite-cell">${sprite(node.key, 34)}</td>
+          <td><div class="nm">${esc(familyName)} — best: ${esc(variantLabel)}<span class="group-badge">${node.members.length} variants</span>
+            <span class="expand-hint">▸ expand</span></div></td>
+          <td><div class="prim"><span class="v">${fmtMetric(primary, best.metrics?.[primary])}</span>
+            <span class="track"><span class="fill" style="width:${(score(best.metrics?.[primary]) * 100).toFixed(0)}%"></span></span></div></td>
+          ${secondary.map(([k]) => `<td class="metric-chip">${fmtMetric(k, best.metrics?.[k])}</td>`).join('')}
+          ${buckets.map(b => `<td class="bucket-col metric-chip">${pct(best.metrics?.[b])}</td>`).join('')}
+          <td class="metric-chip">${best.samples}</td></tr>`;
+        const members = node.members.map(m =>
+          benchRowHtml(m, { ...rowOpts, extraClass: 'bench-group-member', groupKey: node.key, hidden: true })).join('');
+        return summary + members;
+      }).join('');
       return `<div class="bench">
         <div class="lb-section-head" style="margin-bottom:0.8rem">
           <h2 style="font-size:1rem">📊 ${esc(board.dataset_id || '')}</h2>
@@ -571,6 +685,20 @@ import Base from '../../layouts/Base.astro';
           btn.textContent = hidden ? 'hide buckets' : 'show buckets';
         });
       });
+      // Expand/collapse a benchmark board's grouped family rows — mirrors
+      // the ladder's <details> groups, but a <table> can't nest <details>
+      // around <tr>s, so member rows toggle the `hidden` attribute instead.
+      panels.querySelectorAll('.bench-group-summary').forEach(row => {
+        row.addEventListener('click', () => {
+          const key = row.dataset.groupToggle;
+          const table = row.closest('table');
+          const members = table.querySelectorAll(`tr.bench-group-member[data-group="${CSS.escape(key)}"]`);
+          const willShow = members.length && members[0].hidden;
+          members.forEach(m => { m.hidden = !willShow; });
+          const hint = row.querySelector('.expand-hint');
+          if (hint) hint.textContent = willShow ? '▾ collapse' : '▸ expand';
+        });
+      });
     }
 
     // reflect league/lang/dataset in the URL so a view is linkable/shareable —
@@ -626,6 +754,7 @@ import Base from '../../layouts/Base.astro';
       leagueById = Object.fromEntries(leagues.map(l => [l.id, l]));
       const bestiary = await fetchJson(`${BASE}data/competitors.json${cacheV}`);
       for (const f of bestiary?.competitors || []) fighters[f.competitor_id] = f;
+      pluginFamilies = bestiary?.plugin_families || {};
 
       document.getElementById('lb-loading').style.display = 'none';
       if (!benchmarksMeta.length && !leaderboardsMeta.length) {
