@@ -1,13 +1,13 @@
 # OVOS Plugin Arena
 
-*Which plugin should I use?* — answered with data.
+*Which plugin should I use?* This arena answers with data.
 
-**Live site:** https://openvoiceos.github.io/ovos-plugin-arena
+**Live site:** [openvoiceos.github.io/ovos-plugin-arena](https://openvoiceos.github.io/ovos-plugin-arena)
 
-A fully GitHub-native benchmarking and voting arena for
+This is a GitHub-native benchmarking and voting arena for
 [OpenVoiceOS](https://github.com/OpenVoiceOS) plugins. Reproducible benchmark
-scripts rank plugins on labelled datasets; blind A/B battles let humans refine
-those rankings. **No servers, no databases, no accounts** — the repository is
+scripts rank plugins on labelled datasets. Blind A/B battles let humans refine
+those rankings. **No servers, no databases, no accounts.** The repository is
 the arena:
 
 - every **fighter** (competitor) is a JSON file in `registry/competitors/`
@@ -19,7 +19,7 @@ the arena:
 
 ## Status
 
-**Alpha — all modalities wired.** Every league has a reproducible benchmark
+**Alpha: all modalities wired.** Every league has a reproducible benchmark
 script and registry fighters:
 
 | League | Benchmark | Ranking signal |
@@ -29,8 +29,8 @@ script and registry fighters:
 | `wake_word` | `benchmarks/ww_hey_mycroft.py` over [ww-bench](https://github.com/TigreGotico/ww-benchmarks) | detection error / false-accept / false-reject → ELO seed |
 | `tts` | `benchmarks/tts_intents_prompts.py` | human votes only (no objective metric, no ELO seed) |
 
-The intent leagues are fully populated with published predictions; STT, TTS
-and wake-word fighters + datasets are registered and runnable, awaiting a
+The intent leagues are fully populated with published predictions. STT, TTS
+and wake-word fighters and datasets are registered and runnable, and await a
 prediction sweep. Pages deployment activates when the repository goes public.
 
 ## Transparency
@@ -40,8 +40,8 @@ prediction sweep. Pages deployment activates when the repository goes public.
   prediction row comes from actually running the real OVOS plugins over the
   published datasets via the scripts in `benchmarks/`, and every run is
   reproducible from a pinned dataset revision recorded in each row.
-- **Votes:** the vote log is the public GitHub issue history — auditable and
-  deterministically replayable at any time.
+- **Votes:** the vote log is the public GitHub issue history. It is auditable
+  and deterministically replayable at any time.
 
 ## How it works
 
@@ -71,25 +71,25 @@ deterministic auto-battles derived from the benchmark metrics (one auto-battle
 per sample where exactly one fighter is correct, at ¼ K-factor). Human votes
 then move ratings at full weight on top of the seed.
 
-**Determinism (§P5):** battle ids are content hashes — re-running `assemble`
-never invalidates open votes — and both the seed and the vote replay are fully
+**Determinism (§P5):** battle ids are content hashes, so re-running `assemble`
+never invalidates open votes. Both the seed and the vote replay are fully
 deterministic, so the standings are reproducible from public data alone.
 
 ## The fighters
 
-Each fighter is a *shippable configuration*: its `config` is a valid
-`mycroft.conf` fragment — an `intents` section with a tier-suffixed
+Each fighter is a *shippable configuration*. Its `config` is a valid
+`mycroft.conf` fragment: an `intents` section with a tier-suffixed
 `pipeline` plus per-plugin config blocks. Single-stage pipelines benchmark
-one engine in its paradigm league; multi-stage pipelines are **fusion**
-fighters competing in the open intent league under portmanteau names —
+one engine in its paradigm league. Multi-stage pipelines are **fusion**
+fighters that compete in the open intent league under portmanteau names:
 **Padapt** (Padatious × Adapt, the stock OVOS cascade) and **Nebulapt**
 (Nebulento × Adapt). Fighters carry a **species** (the plugin class they
 instantiate), architecture **types** (GOFAI, fuzzy-match, neural-net,
-ensemble, …), a **size** class (micro → titan), and a procedurally
-generated sprite derived from their id hash. Browse the bestiary on the
-**Fighters** page or in `registry/competitors/`. All fighters are evaluated
-end-to-end through the real OPM pipeline plugins — the plugin owns its
-confidence thresholds; the arena owns none.
+ensemble, and others), a **size** class (micro to titan), and a
+procedurally generated sprite derived from their id hash. Browse the
+bestiary on the **Fighters** page or in `registry/competitors/`. All
+fighters run end-to-end through the real OPM pipeline plugins. The plugin
+owns its confidence thresholds; the arena owns none.
 
 ## Running a benchmark
 
@@ -106,11 +106,11 @@ python benchmarks/tts_intents_prompts.py --langs en-US --max-samples 30
 python benchmarks/stt_minds14.py --upload                    # publish to HF
 ```
 
-Every benchmark — intent and audio — shares the same flags (`--competitors`,
-`--langs`, `--max-samples`, `--dataset`, `--upload`). Runs are resumable; rows
-carry the pinned dataset revision, plugin version and runner version. Audio
-benchmarks instantiate the real OVOS STT/TTS/wake-word plugins offline;
-uploading requires HF write access to the results repo. See
+Every benchmark, intent and audio, shares the same flags (`--competitors`,
+`--langs`, `--max-samples`, `--dataset`, `--upload`). Runs are resumable, and
+rows carry the pinned dataset revision, plugin version, and runner version.
+Audio benchmarks instantiate the real OVOS STT/TTS/wake-word plugins
+offline. Uploading requires HF write access to the results repo. See
 [`docs/benchmarks.md`](docs/benchmarks.md) for per-modality details.
 
 ## Assembling the arena locally
@@ -138,17 +138,17 @@ python -m pytest tests/ -q
 
 ## Fork your own arena
 
-1. Fork this repo; enable Actions, set Settings → Pages → Source to
+1. Fork this repo. Enable Actions, and set Settings → Pages → Source to
    "GitHub Actions" (public repo required for Pages).
 2. Set the `HF_PREDICTIONS` repo variable to your prediction dataset(s)
    (comma-separated), and `ASTRO_SITE` / `ASTRO_BASE` to your Pages URL.
 3. Drop your fighters and datasets as JSON files in `registry/`, add a
-   benchmark script in `benchmarks/`, publish predictions to HF.
-4. Run the `Assemble battles` workflow once; voters take it from there.
+   benchmark script in `benchmarks/`, and publish predictions to HF.
+4. Run the `Assemble battles` workflow once. Voters take it from there.
 
 ## Documentation
 
-Full docs live in [`docs/`](docs/index.md) — start there for the specification,
+Full docs live in [`docs/`](docs/index.md). Start there for the specification,
 the local-testing guide, and the fighter walkthrough.
 
 ## Key files

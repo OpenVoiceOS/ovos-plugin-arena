@@ -1,9 +1,9 @@
 # Add your plugin as a fighter
 
-Want your OVOS plugin ranked on the leaderboards — and an
+Want your OVOS plugin ranked on the leaderboards, with an
 [embeddable rank badge](leagues.md#rank-badges) for its README? Add a
 *competitor* to the registry. A competitor is **a configuration you could
-ship**: the same plugin under a different config is a different fighter.
+ship**. The same plugin under a different config is a different fighter.
 
 You do not need to run any benchmarks yourself. Once your competitor JSON is
 merged, the arena's sweep runs your config against the pinned datasets and it
@@ -83,26 +83,26 @@ again nested under the module's own key inside `listener.VAD`, e.g.:
 }
 ```
 
-This is not copy-paste residue — the flat key is read by the listener's VAD
-manager (the value a user pastes straight into `mycroft.conf`), while the
-nested key is read by the plugin itself. Both copies must stay in sync when
-you add or edit a VAD fighter; do not deduplicate them.
+This is not copy-paste residue. The listener's VAD manager reads the flat key
+(the value a user pastes straight into `mycroft.conf`), and the plugin itself
+reads the nested key. Both copies must stay in sync when you add or edit a
+VAD fighter. Do not deduplicate them.
 
 ## 2. Field reference
 
 | Field | Required | Notes |
 |-------|----------|-------|
-| `competitor_id` | ✅ | Stable unique id; becomes the filename and badge path. |
-| `modality` | ✅ | `stt` / `tts` / `ww` / `vad` / `intent`. |
-| `config` | ✅ | A valid `mycroft.conf` fragment. Intent fighters need `config.intents.pipeline`. |
+| `competitor_id` | yes | Stable unique id. Becomes the filename and badge path. |
+| `modality` | yes | `stt` / `tts` / `ww` / `vad` / `intent`. |
+| `config` | yes | A valid `mycroft.conf` fragment. Intent fighters need `config.intents.pipeline`. |
 | `plugin` | for non-intent | OPM entry-point name. Derived from the pipeline for single-engine intent fighters. |
 | `langs` | recommended | BCP-47 tags the fighter supports. |
 | `alias` | optional | Legacy `plugin_id` values from pre-registry prediction rows, re-keyed on ingest. |
 | `display_name`, `species`, `types`, `description`, `model`, `size`, `links`, `notes` | optional | Bestiary card shown in the fighter browser. |
 
-`size` is the installed footprint class: `micro` <5MB · `tiny` 5–50MB ·
-`small` 50–200MB · `base` 200–500MB · `medium` 500MB–2GB · `large` 2–8GB ·
-`x-large` 8–20GB · `giant` 20–80GB · `titan` >80GB.
+`size` is the installed footprint class: `micro` under 5MB, `tiny` 5 to
+50MB, `small` 50 to 200MB, `base` 200 to 500MB, `medium` 500MB to 2GB,
+`large` 2 to 8GB, `x-large` 8 to 20GB, `giant` 20 to 80GB, `titan` over 80GB.
 
 ## 3. Validate before you open the PR
 
@@ -110,5 +110,8 @@ you add or edit a VAD fighter; do not deduplicate them.
 uv run pytest tests/test_registry.py
 ```
 
-This validates every competitor file against the schema. If it passes, open a
-PR — the sweep and the boards do the rest.
+This validates every competitor file against the schema. If it passes, open
+a PR. The sweep and the boards do the rest.
+
+---
+[← Local testing](local-testing.md) · [Home](index.md) · [Adding a fighter →](adding-a-fighter.md)
