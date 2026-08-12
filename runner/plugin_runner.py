@@ -25,6 +25,24 @@ from runner.schema import JobManifest
 logger = logging.getLogger(__name__)
 
 
+# Sample-identity schema version. Bump this whenever the ``sample_id``
+# derivation in ``_stream_dataset`` changes shape — it is embedded in both
+# the output filename and the manifest key so a version bump starts a clean
+# manifest and a clean output file instead of mixing old- and new-scheme ids
+# in one file. See ``run_job`` for how it is applied.
+#
+# v2: sample_id is index-prefixed (``{dataset_index:05d}_{original_name}``)
+# to be collision-free. Some source datasets (e.g. minds14) reuse generic
+# audio filenames (``response_4.wav``) across distinct utterances; the old
+# scheme (bare filename) collided, causing (a) duplicate sample_ids in
+# published shards and (b) later same-named samples being silently skipped
+# by JobManifest.is_done() within a single run — real data loss at bench
+# time. Old local files (v1, un-suffixed) are left on disk, superseded and
+# unreferenced; re-runs are cheap because publish_competitor_output does a
+# full-file overwrite, so a full re-run of an affected job is idempotent.
+_SAMPLE_ID_SCHEMA_VERSION = "v2"
+
+
 # ---------------------------------------------------------------------------
 # Model-ID helper (mirrors STTPluginDefinition.model_id in ovos_plugin_bench)
 # ---------------------------------------------------------------------------
@@ -134,6 +152,16 @@ def _stream_dataset(spec: DatasetSpec) -> Iterator[tuple[str, str, object, int]]
 
     Uses direct parquet + huggingface_hub download to avoid dill/datasets
     incompatibility on Python 3.14.
+
+    ``entry_id`` is index-prefixed (``{dataset_index:05d}_{raw_name}``) to
+    be collision-free: some source datasets (minds14, notably) reuse
+    generic per-response filenames (``response_4.wav``) across distinct
+    utterances, so the raw filename alone is not a unique sample identity.
+    The prefix is the ordinal of this yielded sample within the run
+    (``count``, before increment), which is deterministic for a fixed
+    dataset revision — ``parquet_files`` is sorted() and each parquet's
+    ``to_batches()`` iterates rows in on-disk order, both stable across
+    repeated reads of the same snapshot.
     """
     import pyarrow.parquet as pq
     from huggingface_hub import hf_hub_download
@@ -182,9 +210,14 @@ def _stream_dataset(spec: DatasetSpec) -> Iterator[tuple[str, str, object, int]]
                     continue
 
                 if spec.entry_id_key and spec.entry_id_key in rows:
-                    entry_id = str(rows[spec.entry_id_key][i])
+                    raw_id = str(rows[spec.entry_id_key][i])
                 else:
-                    entry_id = path_hint or f"sample_{count}.wav"
+                    raw_id = path_hint or f"sample_{count}.wav"
+                # Index-prefix unconditionally (not only the filename-hint
+                # path): an entry_id_key column is not guaranteed unique
+                # either, and a single consistent scheme keeps sample_id
+                # collision-free regardless of dataset source shape.
+                entry_id = f"{count:05d}_{raw_id}"
 
                 import numpy as np
                 if not isinstance(array, np.ndarray):
@@ -251,7 +284,13 @@ def run_job(
     mid = _model_id(plugin)
     job_key = f"{plugin.plugin_name}|{plugin.model_name}|{dataset.dataset_id}"
 
-    manifest = JobManifest.load(base_dir, job_key)
+    # Manifest is keyed with the sample-id schema version appended: a v1
+    # manifest's done_ids are old (colliding) ids that will never match a
+    # v2 entry_id, so loading it under a versioned key gives a clean,
+    # empty-done manifest on the first v2 run instead of one whose
+    # is_done() silently never matches (equivalent to a full re-run, which
+    # is intentional — see _SAMPLE_ID_SCHEMA_VERSION).
+    manifest = JobManifest.load(base_dir, f"{job_key}|{_SAMPLE_ID_SCHEMA_VERSION}")
 
     # Determine output file. Competitor-referenced jobs are named by
     # competitor_id (the spec's predictions layout and a stable, readable
@@ -267,9 +306,22 @@ def run_job(
         # rows of dataset A into dataset B's repo, and any change to job_key
         # (e.g. the registry_id re-keying) dup-appends a fresh run into a
         # file a prior run already filled.
-        out_name = f"stt_{plugin.lang}_{plugin.competitor_id}_{safe_ds}.jsonl"
+        #
+        # The schema-version suffix keeps this run's file distinct from any
+        # v1 (pre-collision-fix) local file for the same job: v1 rows carry
+        # old, potentially-colliding sample_ids, so appending v2 rows into
+        # the same file would produce duplicate rows for the same
+        # utterance under two different ids. The v1 file is left in place,
+        # unreferenced.
+        out_name = (
+            f"stt_{plugin.lang}_{plugin.competitor_id}_{safe_ds}"
+            f"_{_SAMPLE_ID_SCHEMA_VERSION}.jsonl"
+        )
     else:
-        out_name = f"stt_{plugin.lang}_{safe_plugin}_{safe_model}.jsonl"
+        out_name = (
+            f"stt_{plugin.lang}_{safe_plugin}_{safe_model}"
+            f"_{_SAMPLE_ID_SCHEMA_VERSION}.jsonl"
+        )
     output_path = base_dir / "output" / out_name
     output_path.parent.mkdir(parents=True, exist_ok=True)
     manifest.output_file = str(output_path)
