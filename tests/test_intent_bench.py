@@ -35,7 +35,7 @@ class TestEligibility:
         assert needed_paradigms(comp) == {"keyword"}
 
     def test_fusion_needs_both(self):
-        comp = load_competitor("intent", "padapt")
+        comp = load_competitor("intent", "frankenparse")
         assert needed_paradigms(comp) == {"template", "keyword"}
 
     def test_template_pure_fusion(self):

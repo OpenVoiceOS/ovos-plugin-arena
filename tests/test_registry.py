@@ -170,12 +170,12 @@ class TestLoaders:
 
     def test_load_competitor_fusion(self):
         # fusions live in the open intent league with fusion names
-        comp = load_competitor("intent", "padapt")
+        comp = load_competitor("intent", "nebulapt")
         assert comp.modality == Modality.INTENT
         assert comp.plugin is None  # multi-engine pipeline
         assert comp.pipeline_plugins == [
-            "ovos-padatious-pipeline-plugin",
             "ovos-adapt-pipeline-plugin",
+            "ovos-nebulento-pipeline-plugin",
         ]
         assert "ensemble" in comp.types
 
