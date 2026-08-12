@@ -146,6 +146,11 @@ python -m pytest tests/ -q
    benchmark script in `benchmarks/`, publish predictions to HF.
 4. Run the `Assemble battles` workflow once; voters take it from there.
 
+## Documentation
+
+Full docs live in [`docs/`](docs/index.md) — start there for the specification,
+the local-testing guide, and the fighter walkthrough.
+
 ## Key files
 
 | Path | Purpose |
