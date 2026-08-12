@@ -1,0 +1,86 @@
+{
+  "modality": "tts",
+  "dataset_id": "intents-for-eval-prompts",
+  "lang": "an-ES",
+  "generated_at": "2026-08-12T03:15:52.523487+00:00",
+  "primary_metric": "utmos",
+  "dataset_info": {
+    "url": "https://huggingface.co/datasets/OpenVoiceOS/intents-for-eval",
+    "license": "apache-2.0",
+    "notes": "Voice-assistant utterances from OVOS intents-for-eval reused as a multilingual TTS read-aloud prompt set. TTS has no objective metric — fighters synthesise each prompt and the clips are assembled into blind A/B listening battles (human votes only, no benchmark board, no ELO seed). Cap with --max-samples for manageable battle pools. an-ES, ast-ES and fy-NL were added to cover phoonnx fighters that previously had zero TTS prompt coverage: their `utterance` rows are read-aloud sentences (not real intents) sampled deterministically (dedup, <=200 chars, first 200 after dedup) from the public transcripts of the Common Voice-derived corpora phoonnx trained its an/ast/fy-NL voices on (TigreGotico/tts_vc_mcv-scripted-v23.0_an_dii, TigreGotico/tts_vc_mcv-scripted-v23.0_ast_dii, TigreGotico/tts-vc-mcv-scripted-v24.0-fy-nl-dii on HuggingFace, all cc-by-nc-nd-4.0 — noncommercial, unlike the apache-2.0 license covering the rest of this dataset). oc-FR (Occitan) has a phoonnx fighter but NO transcript source dataset was found in the OpenVoiceOS or TigreGotico HF orgs, so it remains uncovered. oc-FR prompts derive from shunyalabs/occitan-speech-dataset transcripts (200 sentences, license unspecified upstream; eval-only use).",
+    "predictions": [
+      "https://huggingface.co/datasets/OpenVoiceOS/ovos-tts-bench-intents-for-eval-prompts"
+    ]
+  },
+  "predictions_revisions": {
+    "OpenVoiceOS/ovos-tts-bench-intents-for-eval-prompts": "31da6dbd9954ceaa53319c6e3b2b5a9f35e49ff6"
+  },
+  "wer_normalizer_version": null,
+  "entries": [
+    {
+      "rank": 1,
+      "competitor_id": "phoonnx-dii-unicode-an",
+      "plugin_id": "ovos-tts-plugin-phoonnx",
+      "samples": 200,
+      "metrics": {
+        "n_scored": 200.0,
+        "utmos": 3.354,
+        "intelligibility_wer": 0.9085,
+        "intelligibility_n_scored": 200.0,
+        "intelligibility_wer_ci_lower": 0.7752,
+        "intelligibility_wer_ci_upper": 1.1471,
+        "latency_ms_median": 286.63
+      },
+      "primary_metric_ci_lower": 3.317784975000001,
+      "primary_metric_ci_upper": 3.391504700000002,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-tts-plugin-phoonnx"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 2,
+      "competitor_id": "phoonnx-miro-unicode-an",
+      "plugin_id": "ovos-tts-plugin-phoonnx",
+      "samples": 200,
+      "metrics": {
+        "n_scored": 200.0,
+        "utmos": 3.354,
+        "intelligibility_wer": 0.9085,
+        "intelligibility_n_scored": 200.0,
+        "intelligibility_wer_ci_lower": 0.7752,
+        "intelligibility_wer_ci_upper": 1.1471,
+        "latency_ms_median": 313.56
+      },
+      "primary_metric_ci_lower": 3.317784975000001,
+      "primary_metric_ci_upper": 3.391504700000002,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-tts-plugin-phoonnx"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 3,
+      "competitor_id": "beepspeak-r2d2",
+      "plugin_id": "ovos-tts-plugin-beepspeak",
+      "samples": 200,
+      "metrics": {
+        "n_scored": 0.0,
+        "intelligibility_wer": 1.0,
+        "intelligibility_n_scored": 200.0,
+        "intelligibility_wer_ci_lower": 1.0,
+        "intelligibility_wer_ci_upper": 1.0,
+        "latency_ms_median": 0.72
+      },
+      "primary_metric_ci_lower": null,
+      "primary_metric_ci_upper": null,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-tts-plugin-beepspeak==0.1.0a2"
+      ],
+      "version_blended": false
+    }
+  ]
+}
