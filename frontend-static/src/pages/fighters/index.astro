@@ -63,6 +63,29 @@ import Base from '../../layouts/Base.astro';
     .fighter-stats dt { color: var(--muted); font-weight: 600; }
     .fighter-stats dd { margin: 0; font-family: var(--mono); word-break: break-word; }
     .fighter-foot { margin-top: auto; }
+
+    /* ---- subspecies groups ---- */
+    .fighter-group { display: contents; }
+    .group-card { padding: 0; margin-bottom: 0; overflow: hidden; }
+    .group-summary {
+      cursor: pointer; list-style: none; padding: 1rem 1.1rem;
+      display: flex; flex-direction: column; gap: 0.5rem; text-align: center;
+    }
+    .group-summary::-webkit-details-marker { display: none; }
+    .group-summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .group-head { display: flex; align-items: center; justify-content: center; gap: 0.5rem; flex-wrap: wrap; }
+    .group-head h2 { margin: 0; font-size: 1.2rem; letter-spacing: -0.01em; }
+    .group-count { font-family: var(--mono); font-size: 0.76rem; color: var(--muted);
+      border: 1px solid var(--border); border-radius: 999px; padding: 0.1rem 0.55rem; }
+    .group-meta { font-size: 0.8rem; color: var(--muted); }
+    .group-toggle-hint { font-size: 0.76rem; color: var(--muted); }
+    .group-details[open] .group-toggle-hint::before { content: '▾ hide variants'; }
+    .group-details:not([open]) .group-toggle-hint::before { content: '▸ show variants'; }
+    .group-members {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1rem; padding: 0 1.1rem 1.1rem;
+    }
+    .group-members .fighter { border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; }
   </style>
 
   <div id="dex-loading" class="card" aria-live="polite">Loading fighters…</div>
@@ -135,6 +158,96 @@ import Base from '../../layouts/Base.astro';
         </article>`;
     }
 
+    // ---- subspecies grouping ----------------------------------------
+    // Group key: species (the parent plugin class a fighter instantiates)
+    // falling back to plugin (the OPM entry-point), falling back to the
+    // fighter's own competitor_id when neither is set — that fallback
+    // guarantees every fighter lands in exactly one group, and a fighter
+    // alone in its group renders with the plain (ungrouped) card, same
+    // as before this feature existed.
+    const groupKeyOf = c => c.species || c.plugin || c.competitor_id;
+
+    // "JurebesPipeline" -> "Jurebes Pipeline"; "OnnxASR" -> "Onnx ASR";
+    // trailing "Pipeline"/"Plugin" tokens are dropped when there's more
+    // than one token, since they describe the OVOS wiring, not the
+    // fighter family a human is scanning for.
+    function humanizeSpecies(species) {
+      const words = species
+        .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+        .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2')
+        .split(/\s+/)
+        .filter(Boolean);
+      if (words.length > 1 && ['Plugin', 'Pipeline'].includes(words[words.length - 1])) {
+        words.pop();
+      }
+      return words.join(' ');
+    }
+
+    // "ovos-fasterwhisper-plugin" -> "Fasterwhisper"
+    function humanizePlugin(plugin) {
+      const words = plugin
+        .replace(/^ovos-/, '')
+        .replace(/-plugin$/, '')
+        .split('-')
+        .filter(Boolean)
+        .map(w => w.charAt(0).toUpperCase() + w.slice(1));
+      return words.join(' ') || plugin;
+    }
+
+    function groupDisplayName(key, members) {
+      const sample = members[0];
+      if (sample.species === key) return humanizeSpecies(key);
+      if (sample.plugin === key) return humanizePlugin(key);
+      return sample.display_name || key;
+    }
+
+    function groupCard(key, members) {
+      const name = escHtml(groupDisplayName(key, members));
+      const modalities = [...new Set(members.map(m => m.modality))];
+      const langs = [...new Set(members.flatMap(m => m.langs || []))].sort();
+      const langsLabel = members.some(m => !(m.langs || []).length) ? 'any language'
+        : langs.length > 6 ? `${langs.length} languages` : langs.join(', ');
+      const modalityBadges = modalities.map(m =>
+        `<span class="badge ${BADGE_CLASS[m] || ''}">${escHtml(MODALITY_LABELS[m] || m)}</span>`).join(' ');
+      const groupTypes = [...new Set(members.flatMap(m => m.types || []))];
+      const membersHtml = members.map(fighterCard).join('');
+      // data-* mirrors the individual .fighter attributes so a group is
+      // findable/expandable under the same filters as ungrouped fighters —
+      // "matches" is decided per-member below, this is just for the
+      // group-level scan in applyFilters().
+      return `
+        <div class="fighter-group" data-group-key="${escHtml(key)}">
+          <details class="group-details card group-card">
+            <summary class="group-summary">
+              <div class="group-head">
+                ${spriteSvg(key, groupTypes[0] || '', 56)}
+              </div>
+              <div class="group-head">
+                <h2>${name}</h2>
+                <span class="group-count">${members.length} variants</span>
+              </div>
+              <div class="group-head">${modalityBadges}</div>
+              <div class="group-meta">${escHtml(langsLabel)}</div>
+              <span class="group-toggle-hint"></span>
+            </summary>
+            <div class="group-members">${membersHtml}</div>
+          </details>
+        </div>`;
+    }
+
+    function renderFighters(fighters) {
+      const groups = new Map();
+      for (const c of fighters) {
+        const key = groupKeyOf(c);
+        (groups.get(key) ?? groups.set(key, []).get(key)).push(c);
+      }
+      const html = [];
+      for (const [key, members] of groups) {
+        html.push(members.length > 1 ? groupCard(key, members) : fighterCard(members[0]));
+      }
+      return html.join('');
+    }
+
     const primaryLang = tag => tag.split(/[-_]/)[0].toLowerCase();
 
     function langMatches(fighterLangs, wanted) {
@@ -172,6 +285,14 @@ import Base from '../../layouts/Base.astro';
                   && (!type || el.dataset.types.split('|').includes(type))
                   && langMatches(el.dataset.langs, wanted);
         el.style.display = show ? '' : 'none';
+      });
+      // a group matches (and stays visible) if any of its members do;
+      // expanding it still only reveals the members that individually
+      // matched, since their own display was already set above.
+      document.querySelectorAll('.fighter-group').forEach(group => {
+        const anyVisible = [...group.querySelectorAll('.fighter')]
+          .some(el => el.style.display !== 'none');
+        group.style.display = anyVisible ? '' : 'none';
       });
       syncUrl();
     }
@@ -220,7 +341,7 @@ import Base from '../../layouts/Base.astro';
         selLang.appendChild(o);
       });
 
-      grid.innerHTML = fighters.map(fighterCard).join('');
+      grid.innerHTML = renderFighters(fighters);
       grid.style.display = 'grid';
 
       ['sel-modality', 'sel-type', 'sel-flang'].forEach(id =>
