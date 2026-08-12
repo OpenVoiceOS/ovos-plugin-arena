@@ -65,7 +65,7 @@ const PAGES = [
   ['/leaderboard/', 'leaderboard'],
   ['/matchups/', 'matchup heatmap'],
   ['/battle/', 'battle (blind vote flow)'],
-  ['/fighter/azure-stt-en/', 'fighter detail'],
+  ['/fighter/chromium-stt-en/', 'fighter detail'],
   ['/fighters/', 'fighters bestiary'],
   ['/methodology/', 'methodology'],
   ['/patch-notes/', 'patch notes'],
