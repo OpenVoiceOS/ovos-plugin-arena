@@ -125,11 +125,36 @@ def read_jsonl(path: Path) -> list[PredictionRow]:
     return rows
 
 
-def load_predictions_dir(predictions_dir: Path) -> list[PredictionRow]:
-    """Load every ``*.jsonl`` under *predictions_dir* (nested per-lang dirs
-    and the flat legacy layout alike)."""
+def load_predictions_dir(
+    predictions_dir: Path, lang: str | None = None
+) -> list[PredictionRow]:
+    """Load ``*.jsonl`` files under *predictions_dir*.
+
+    *lang*, when given, restricts loading to the dataset's own language
+    shard: ``predictions/<lang>/*.jsonl`` plus the flat legacy
+    ``predictions/*.jsonl`` root files — mirroring the matching policy in
+    ``runner.queue_tools.find_missing_pairs`` (post-#54). Without it (the
+    default, and always for genuinely multi/unknown-lang datasets), every
+    ``*.jsonl`` under *predictions_dir* is loaded, nested per-lang dirs and
+    the flat layout alike.
+
+    Restricting by lang matters: a prediction repo commonly accumulates
+    orphaned shards from other lang runs (e.g. an English-forced decode of
+    German audio published under ``predictions/en/``) alongside a
+    concrete-lang dataset's own dir. Merging those into the same
+    competitor pool silently poisons that dataset's scores with
+    wrong-language predictions.
+    """
+    if lang:
+        paths = sorted(predictions_dir.glob("*.jsonl"))
+        lang_dir = predictions_dir / lang
+        if lang_dir.is_dir():
+            paths = sorted(set(paths) | set(lang_dir.glob("*.jsonl")))
+    else:
+        paths = sorted(predictions_dir.glob("**/*.jsonl"))
+
     rows: list[PredictionRow] = []
-    for path in sorted(predictions_dir.glob("**/*.jsonl")):
+    for path in paths:
         file_rows = read_jsonl(path)
         logger.info("Loaded %d rows from %s",
                     len(file_rows), path.relative_to(predictions_dir))
@@ -169,12 +194,20 @@ def fetch_hf_predictions(repo_id: str, revision: str = "main") -> Path:
     return Path(local) / "predictions"
 
 
-def load_predictions(source: str, revision: str = "main") -> list[PredictionRow]:
-    """Load predictions from a local directory or an HF dataset repo id."""
+def load_predictions(
+    source: str, revision: str = "main", lang: str | None = None
+) -> list[PredictionRow]:
+    """Load predictions from a local directory or an HF dataset repo id.
+
+    *lang* is forwarded to :func:`load_predictions_dir` — pass the
+    dataset's own concrete lang to exclude other-lang shards published to
+    the same prediction repo; omit it (or pass ``None``) for a genuinely
+    multi/unknown-lang dataset, which must keep loading every lang dir.
+    """
     path = Path(source)
     if path.is_dir():
-        return load_predictions_dir(path)
-    return load_predictions_dir(fetch_hf_predictions(source, revision))
+        return load_predictions_dir(path, lang=lang)
+    return load_predictions_dir(fetch_hf_predictions(source, revision), lang=lang)
 
 
 def group_rows(

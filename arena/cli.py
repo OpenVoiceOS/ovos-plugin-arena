@@ -290,6 +290,37 @@ def _write_json(path: Path, model) -> None:
 # ---------------------------------------------------------------------------
 
 
+def _prediction_source_langs(prediction_sources: list[str]) -> dict[str, str | None]:
+    """Map each prediction source (HF repo id or local dir) to the single
+    concrete lang it must be loaded under, or ``None`` for a genuinely
+    multi/unknown-lang dataset (every lang dir stays in scope for those).
+
+    Mirrors the repo-naming convention in
+    ``registry.loaders.list_prediction_repos``: a dataset's own
+    ``predictions_hf`` repo, plus (for intent modalities) one
+    ``ovos-intent-<paradigm>-bench-<dataset_id>`` repo per paradigm the
+    corpus feeds. All of them carry that dataset's lang.
+    """
+    langs: dict[str, str | None] = {}
+    try:
+        from registry.loaders import list_datasets
+        from registry.schemas import INTENT_MODALITIES
+        from runner.queue_tools import resolved_dataset_lang
+    except ImportError:
+        return {s: None for s in prediction_sources}
+
+    for dataset in list_datasets():
+        if not dataset.predictions_hf:
+            continue
+        lang = resolved_dataset_lang(dataset) if dataset.lang != "multi" else None
+        langs[dataset.predictions_hf] = lang
+        if dataset.modality in INTENT_MODALITIES:
+            owner = dataset.predictions_hf.split("/")[0]
+            for paradigm in dataset.train_datasets or {}:
+                langs[f"{owner}/ovos-intent-{paradigm}-bench-{dataset.dataset_id}"] = lang
+    return {s: langs.get(s) for s in prediction_sources}
+
+
 def _dataset_info_lookup(prediction_sources: list[str]) -> dict[str, dict[str, Any]]:
     """Registry metadata per dataset_id, for the benchmark board UI."""
     info: dict[str, dict[str, Any]] = {}
@@ -385,6 +416,7 @@ def cmd_assemble(args: argparse.Namespace) -> int:
         log.info("No --predictions given — using %d registry prediction "
                  "repos", len(sources))
     dataset_info = _dataset_info_lookup(sources)
+    source_langs = _prediction_source_langs(sources)
 
     # §C reproducibility — pin every HF predictions source to an immutable
     # commit SHA (registry ``predictions_revision`` when set, else
@@ -397,7 +429,8 @@ def cmd_assemble(args: argparse.Namespace) -> int:
             resolved_revisions[source] = meta["resolved_sha"]
         log.info("Loading predictions from %s@%s …", source, fetch_revision)
         try:
-            rows.extend(load_predictions(source, revision=fetch_revision))
+            rows.extend(load_predictions(
+                source, revision=fetch_revision, lang=source_langs.get(source)))
         except Exception as exc:
             log.error("Skipping %s: %s", source, exc)
 
