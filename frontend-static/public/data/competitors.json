@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-11T13:05:13.089226+00:00",
+  "generated_at": "2026-08-11T23:57:27.631053+00:00",
   "competitors": [
     {
       "competitor_id": "frankenparse",
@@ -241,6 +241,80 @@
       "notes": "HYPOTHESIS: within the keyword paradigm, does a strict rule engine (Adapt: ordered IntentBuilder require/optional grammar) combined with a bag-of-keywords engine (Palavreado: order-independent, no grammar) at matching tiers cover more utterances than either alone? The two engines implement genuinely different keyword-matching strategies (structured rules vs unordered bag), so this is the keyword league's pooled-upper-bound probe, not a same-engine multi-tier stack."
     },
     {
+      "competitor_id": "adapt-domain-medium",
+      "schema_version": 1,
+      "modality": "intent_keyword",
+      "plugin": "ovos-adapt-domain-pipeline-plugin",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-adapt-domain-pipeline-plugin-medium"
+          ],
+          "ovos-adapt-domain-pipeline-plugin": {
+            "conf_high": 0.65,
+            "conf_med": 0.45,
+            "conf_low": 0.25
+          }
+        }
+      },
+      "langs": [],
+      "alias": [
+        "ovos-adapt-domain-pipeline-plugin"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "Adapt (Domain)",
+      "species": "DomainAdaptPipeline",
+      "types": [
+        "GOFAI",
+        "keyword-match"
+      ],
+      "description": "Domain-partitioned variant of Adapt: registered vocabulary and intents are grouped by skill_id into a per-skill IntentDeterminationEngine per language; inference runs every per-skill engine and returns the global argmax. Same distribution and confidence gate as adapt-medium, registered under a separate opm.pipeline entry point (DomainAdaptPipeline in ovos_adapt/opm.py).",
+      "size": "micro",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-adapt-pipeline-plugin"
+      },
+      "notes": "Single-stage pipeline at the plugin's own medium-confidence gate; per-plugin config keeps the same documented thresholds as adapt-medium. This variant is parallel (every domain engine scores, then argmax), not gated two-stage routing. Hypothesis: should improve precision over the flat pipeline on large multi-domain intent sets by keeping decision boundaries local to each skill's vocabulary, and be roughly neutral on small single-domain sets."
+    },
+    {
+      "competitor_id": "adapt-hierarchical-medium",
+      "schema_version": 1,
+      "modality": "intent_keyword",
+      "plugin": "ovos-adapt-hierarchical-pipeline-plugin",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-adapt-hierarchical-pipeline-plugin-medium"
+          ],
+          "ovos-adapt-hierarchical-pipeline-plugin": {
+            "conf_high": 0.65,
+            "conf_med": 0.45,
+            "conf_low": 0.25
+          }
+        }
+      },
+      "langs": [],
+      "alias": [
+        "ovos-adapt-hierarchical-pipeline-plugin"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "Adapt (Hierarchical)",
+      "species": "HierarchicalAdaptPipeline",
+      "types": [
+        "GOFAI",
+        "keyword-match"
+      ],
+      "description": "Two-stage variant of Adapt: vocabulary and intents are filed under a domain == skill_id, a top-level classifier picks the domain first, then only that domain's sub-engine matches the intent. Same distribution and confidence gate as adapt-medium, registered under a separate opm.pipeline entry point (HierarchicalAdaptPipeline in ovos_adapt/opm.py).",
+      "size": "micro",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-adapt-pipeline-plugin"
+      },
+      "notes": "Same medium-confidence gate and thresholds as adapt-medium; isolates the two-stage routing shape from the flat pipeline. Hypothesis: domain-first routing should help precision on large multi-domain intent sets by rejecting cross-domain keyword near-misses before they compete, and be roughly neutral-to-worse on small single-domain sets where there is no domain structure to exploit."
+    },
+    {
       "competitor_id": "adapt-medium",
       "schema_version": 1,
       "modality": "intent_keyword",
@@ -276,6 +350,44 @@
         "source": "https://github.com/OpenVoiceOS/ovos-adapt-pipeline-plugin"
       },
       "notes": "Single-stage pipeline at the plugin's own medium-confidence gate; per-plugin config keeps the shipped defaults."
+    },
+    {
+      "competitor_id": "palavreado-hierarchical-medium",
+      "schema_version": 1,
+      "modality": "intent_keyword",
+      "plugin": "ovos-palavreado-hierarchical-pipeline",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-palavreado-hierarchical-pipeline-medium"
+          ],
+          "ovos-palavreado-hierarchical-pipeline": {
+            "conf_high": 0.65,
+            "conf_med": 0.45,
+            "conf_low": 0.25,
+            "max_words": 50
+          }
+        }
+      },
+      "langs": [],
+      "alias": [
+        "ovos-palavreado-hierarchical-pipeline"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "Palavreado (Hierarchical)",
+      "species": "HierarchicalPalavreadoPipeline",
+      "types": [
+        "GOFAI",
+        "keyword-match"
+      ],
+      "description": "Two-stage variant of Palavreado: intents are filed under a domain == skill_id, a top-level classifier picks the domain first, then only that domain's sub-container keyword-matches the intent. Same distribution and confidence gate as palavreado-medium, registered under a separate opm.pipeline entry point (HierarchicalPalavreadoPipeline in palavreado/opm.py).",
+      "size": "micro",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/palavreado"
+      },
+      "notes": "Same medium-confidence gate and thresholds as palavreado-medium; isolates the two-stage routing shape from the flat pipeline. Hypothesis: domain-first routing should help precision on large multi-domain intent sets by rejecting cross-domain keyword near-misses before they compete, and be roughly neutral-to-worse on small single-domain sets where there is no domain structure to exploit."
     },
     {
       "competitor_id": "palavreado-medium",
@@ -2752,6 +2864,81 @@
       "notes": "Same engine as every other jurebes fighter, different featurizer x classifier recipe (registry baseline 'word_pos_logreg', group(s): linguistic); single-stage pipeline at the plugin's own medium-confidence gate. The arena measures which sklearn recipe wins on assistant-style templates, not which fighter 'is' jurebes."
     },
     {
+      "competitor_id": "linha-fina-domain-medium",
+      "schema_version": 1,
+      "modality": "intent_template",
+      "plugin": "ovos-linha-fina-domain-pipeline-plugin",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-linha-fina-domain-pipeline-plugin-medium"
+          ],
+          "ovos-linha-fina-domain-pipeline-plugin": {
+            "conf_high": 0.8,
+            "conf_med": 0.6,
+            "conf_low": 0.4
+          }
+        }
+      },
+      "langs": [],
+      "alias": [
+        "ovos-linha-fina-domain-pipeline-plugin"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "Linha Fina (Domain)",
+      "species": "DomainLinhaFinaPipeline",
+      "types": [
+        "classical-ML",
+        "keyword-match"
+      ],
+      "description": "Domain-partitioned variant of Linha Fina: intents are grouped by skill_id into per-skill SVM engines held in one DomainIntentEngine per language; inference runs every per-skill engine in parallel and returns the global argmax. Same distribution and confidence gate as linha-fina-medium, registered under a separate opm.pipeline entry point (DomainLinhaFinaPipeline in linha_fina/opm.py).",
+      "size": "micro",
+      "links": {
+        "source": "https://github.com/TigreGotico/linha-fina"
+      },
+      "notes": "Single-stage pipeline at the plugin's own medium-confidence gate; the per-plugin config pins the same documented thresholds as linha-fina-medium. This variant is parallel (every domain engine scores, then argmax), not gated two-stage routing like the hierarchical variant — hypothesis: should improve precision over the flat pipeline on large multi-domain intent sets by keeping decision boundaries local to each skill's vocabulary, and be roughly neutral on small single-domain sets. KNOWN BROKEN as of linha-fina 0.3.0a1: LinhaFinaPipeline.handle_initial_train (linha_fina/opm.py:138) calls self.containers[lang].train(), but DomainLinhaFinaPipeline's containers are DomainIntentEngine instances which have no .train() method (AttributeError on 'mycroft.ready') -- confirmed by a live train/match sanity run in this PR. Needs an upstream fix in linha-fina before this fighter can produce real predictions; kept in the registry so a fix is picked up automatically."
+    },
+    {
+      "competitor_id": "linha-fina-hierarchical-medium",
+      "schema_version": 1,
+      "modality": "intent_template",
+      "plugin": "ovos-linha-fina-hierarchical-pipeline-plugin",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-linha-fina-hierarchical-pipeline-plugin-medium"
+          ],
+          "ovos-linha-fina-hierarchical-pipeline-plugin": {
+            "conf_high": 0.8,
+            "conf_med": 0.6,
+            "conf_low": 0.4,
+            "domain_threshold": 0.0
+          }
+        }
+      },
+      "langs": [],
+      "alias": [
+        "ovos-linha-fina-hierarchical-pipeline-plugin"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "Linha Fina (Hierarchical)",
+      "species": "HierarchicalLinhaFinaPipeline",
+      "types": [
+        "classical-ML",
+        "keyword-match"
+      ],
+      "description": "Two-stage variant of Linha Fina: intents are partitioned by skill_id, a top-level classifier maps the query to a single skill_id first, and only that skill's per-intent SVM engine resolves the intent. Same distribution and confidence gate as linha-fina-medium, registered under a separate opm.pipeline entry point (HierarchicalLinhaFinaPipeline in linha_fina/hierarchical_opm.py). Needs at least 2 domains and 3 intents globally before either stage can train (the plugin's own constraint).",
+      "size": "micro",
+      "links": {
+        "source": "https://github.com/TigreGotico/linha-fina"
+      },
+      "notes": "Same medium-confidence gate and thresholds as linha-fina-medium; 'domain_threshold': 0.0 keeps the top-level domain gate disabled (shipped default) so the comparison isolates the two-stage routing shape from linha-fina-domain-medium's parallel-argmax shape. Hypothesis: domain-first gating should help precision on large multi-domain sets by rejecting cross-domain queries before any sub-engine scores, and be weaker or equal on small single-domain sets where the domain classifier has too little signal to train reliably. KNOWN BROKEN as of linha-fina 0.3.0a1: LinhaFinaPipeline.handle_initial_train (linha_fina/opm.py:138) calls self.containers[lang].train(), but HierarchicalLinhaFinaPipeline's containers are HierarchicalIntentEngine instances which have no .train() method (AttributeError on 'mycroft.ready') -- confirmed by a live train/match sanity run in this PR. Needs an upstream fix in linha-fina before this fighter can produce real predictions; kept in the registry so a fix is picked up automatically."
+    },
+    {
       "competitor_id": "linha-fina-medium",
       "schema_version": 1,
       "modality": "intent_template",
@@ -2831,6 +3018,52 @@
       "notes": "Single-stage pipeline at the plugin's own medium-confidence gate; per-plugin config keeps the shipped defaults. Published predictions are migrated from the legacy ovos-intent-benchmark, where this engine was trained on the benchmark's own corpora; the pinned pretrained model targets real OVOS skill intents and cannot emit this benchmark's label space, so native re-sweeps require a dataset-trained variant."
     },
     {
+      "competitor_id": "markov-domain-medium",
+      "schema_version": 1,
+      "modality": "intent_template",
+      "plugin": "ovos-markov-domain-pipeline-plugin",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-markov-domain-pipeline-plugin-medium"
+          ],
+          "ovos-markov-domain-pipeline-plugin": {
+            "order": 2,
+            "kneser_ney": true,
+            "backoff": true,
+            "smoothing": 1e-05,
+            "stem": false,
+            "char_fallback": false,
+            "conf_high": 0.75,
+            "conf_med": 0.55,
+            "conf_low": 0.3,
+            "char_fallback_threshold": 0.05,
+            "online_learning": false,
+            "max_words": 50,
+            "instant_train": false
+          }
+        }
+      },
+      "langs": [],
+      "alias": [
+        "ovos-markov-domain-pipeline-plugin"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "Markov (Domain)",
+      "species": "DomainMarkovPipeline",
+      "types": [
+        "statistical"
+      ],
+      "description": "Domain-grouped variant of Markov: each intent is grouped under a domain == skill_id (from the 'skill_id:intent' label), and inference first routes the utterance to a domain via DomainMarkovIntentEngine, then resolves the intent inside it by lowest perplexity. Same distribution and confidence gate as markov-medium, registered under a separate opm.pipeline entry point (DomainMarkovPipeline in ovos_markov_pipeline/__init__.py).",
+      "model": "order-2 word-level Markov chains, Kneser-Ney smoothing with backoff, domain-grouped",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-markov-pipeline-plugin"
+      },
+      "notes": "Same medium-confidence gate and model parameters as markov-medium; the per-plugin config pins the same n-gram order, smoothing, backoff, stemming, char fallback and confidence thresholds so the comparison isolates domain-first routing. Hypothesis: routing to a domain before scoring perplexity within it should help precision on large multi-domain intent sets (chains from other skills stop competing), and be roughly neutral-to-worse on small single-domain sets where the domain stage adds overhead without payoff."
+    },
+    {
       "competitor_id": "markov-medium",
       "schema_version": 1,
       "modality": "intent_template",
@@ -2875,6 +3108,45 @@
         "source": "https://github.com/TigreGotico/ovos-markov-pipeline-plugin"
       },
       "notes": "Single-stage pipeline at the plugin's own medium-confidence gate; the per-plugin config pins the documented model parameters (n-gram order, smoothing, backoff, stemming, char fallback) and confidence thresholds."
+    },
+    {
+      "competitor_id": "nebulento-hierarchical-medium",
+      "schema_version": 1,
+      "modality": "intent_template",
+      "plugin": "ovos-nebulento-hierarchical-pipeline-plugin",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-nebulento-hierarchical-pipeline-plugin-medium"
+          ],
+          "ovos-nebulento-hierarchical-pipeline-plugin": {
+            "conf_high": 0.95,
+            "conf_med": 0.8,
+            "conf_low": 0.5,
+            "workers": 4,
+            "domain_threshold": 0.0
+          }
+        }
+      },
+      "langs": [],
+      "alias": [
+        "ovos-nebulento-hierarchical-pipeline-plugin"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "Nebulento (Hierarchical)",
+      "species": "HierarchicalNebulentoPipeline",
+      "types": [
+        "fuzzy-match",
+        "template-match"
+      ],
+      "description": "Two-stage variant of Nebulento: intents are filed under a domain == skill_id, a top-level classifier picks the domain first, then only that domain's sub-container fuzzy-matches the intent. Same nebulento distribution and confidence gate as nebulento-medium, registered under a separate opm.pipeline entry point (HierarchicalNebulentoPipeline in nebulento/opm.py).",
+      "size": "micro",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/nebulento"
+      },
+      "notes": "Same medium-confidence gate and thresholds as nebulento-medium; 'domain_threshold': 0.0 keeps the top-level domain gate disabled (matches the shipped default) so the comparison isolates the two-stage routing shape. Hypothesis: domain-first routing should help precision on large multi-domain intent sets by rejecting cross-domain fuzzy near-misses before they compete, and be roughly neutral-to-worse on small single-domain sets where there is no domain structure to exploit."
     },
     {
       "competitor_id": "nebulento-medium",
@@ -2952,6 +3224,48 @@
         "source": "https://github.com/OpenVoiceOS/padacioso"
       },
       "notes": "Single-stage pipeline at the plugin's own medium-confidence gate; per-plugin config keeps the shipped defaults."
+    },
+    {
+      "competitor_id": "padatious-domain-medium",
+      "schema_version": 1,
+      "modality": "intent_template",
+      "plugin": "ovos-padatious-pipeline-plugin",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-padatious-pipeline-plugin-medium"
+          ],
+          "ovos-padatious-pipeline-plugin": {
+            "conf_high": 0.95,
+            "conf_med": 0.8,
+            "conf_low": 0.5,
+            "domain_engine": true,
+            "cast_to_ascii": false,
+            "stem": false,
+            "disable_padaos": false,
+            "instant_train": false
+          }
+        }
+      },
+      "langs": [],
+      "alias": [
+        "ovos-padatious-pipeline-plugin"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "Padatious (Domain)",
+      "species": "PadatiousPipeline",
+      "types": [
+        "neural-net",
+        "template-match"
+      ],
+      "description": "Same Padatious engine as padatious-medium, with the plugin's own two-stage DomainIntentContainer switched on via 'domain_engine': true: utterances first route to a skill_id-scoped domain container, then match against that domain's intents only.",
+      "size": "micro",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-padatious-pipeline-plugin"
+      },
+      "notes": "Same plugin id and medium-confidence gate as padatious-medium; the only config change is flipping 'domain_engine' from false to true, which swaps the internal IntentContainer for DomainIntentContainer (ovos_padatious/domain_container.py). Hypothesis: domain-first two-stage routing should help precision on large multi-domain intent sets (fewer cross-domain false positives) at the cost of an extra routing step, and be roughly neutral-to-worse on small single-domain sets where there is no domain structure to exploit."
     },
     {
       "competitor_id": "padatious-medium",
@@ -3768,6 +4082,74 @@
       "notes": "Model id from the README's NVidia default model list; it is also the plugin's English default. GPU strongly recommended by the plugin."
     },
     {
+      "competitor_id": "onnx-asr-ark-asr-0.6b",
+      "schema_version": 1,
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-onnx-asr",
+      "config": {
+        "stt": {
+          "module": "ovos-stt-plugin-onnx-asr",
+          "ovos-stt-plugin-onnx-asr": {
+            "model": "OpenVoiceOS/ARK-ASR-0.6B-onnx"
+          }
+        }
+      },
+      "langs": [
+        "en"
+      ],
+      "alias": [
+        "ovos-stt-plugin-onnx-asr"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "ONNX-ASR (ARK-ASR 0.6B)",
+      "species": "OnnxASR",
+      "types": [
+        "neural-net"
+      ],
+      "description": "Runs ASR models exported to ONNX through the onnx-asr library. This fighter runs ARK-ASR 0.6B.",
+      "model": "OpenVoiceOS/ARK-ASR-0.6B-onnx",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
+      },
+      "notes": "Model verified present on HuggingFace via HfApi."
+    },
+    {
+      "competitor_id": "onnx-asr-ark-asr-3b",
+      "schema_version": 1,
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-onnx-asr",
+      "config": {
+        "stt": {
+          "module": "ovos-stt-plugin-onnx-asr",
+          "ovos-stt-plugin-onnx-asr": {
+            "model": "OpenVoiceOS/ARK-ASR-3B-onnx"
+          }
+        }
+      },
+      "langs": [
+        "en"
+      ],
+      "alias": [
+        "ovos-stt-plugin-onnx-asr"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "ONNX-ASR (ARK-ASR 3B)",
+      "species": "OnnxASR",
+      "types": [
+        "neural-net"
+      ],
+      "description": "Runs ASR models exported to ONNX through the onnx-asr library. This fighter runs ARK-ASR 3B.",
+      "model": "OpenVoiceOS/ARK-ASR-3B-onnx",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
+      },
+      "notes": "Model verified present on HuggingFace via HfApi."
+    },
+    {
       "competitor_id": "onnx-asr-canary",
       "schema_version": 1,
       "modality": "stt",
@@ -3804,6 +4186,321 @@
         "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
       },
       "notes": "Plugin default model; int8 quantization available via the 'quantization' key."
+    },
+    {
+      "competitor_id": "onnx-asr-canary-qwen-2.5b",
+      "schema_version": 1,
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-onnx-asr",
+      "config": {
+        "stt": {
+          "module": "ovos-stt-plugin-onnx-asr",
+          "ovos-stt-plugin-onnx-asr": {
+            "model": "OpenVoiceOS/canary-qwen-2.5b-onnx"
+          }
+        }
+      },
+      "langs": [
+        "en"
+      ],
+      "alias": [
+        "ovos-stt-plugin-onnx-asr"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "ONNX-ASR (Canary-Qwen 2.5B)",
+      "species": "OnnxASR",
+      "types": [
+        "neural-net",
+        "transformer"
+      ],
+      "description": "Runs ASR models exported to ONNX through the onnx-asr library. This fighter runs NVIDIA Canary-Qwen 2.5B, a hybrid ASR+LLM SALM architecture.",
+      "model": "OpenVoiceOS/canary-qwen-2.5b-onnx",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
+      },
+      "notes": "Model verified present on HuggingFace via HfApi."
+    },
+    {
+      "competitor_id": "onnx-asr-citrinet-512-de",
+      "schema_version": 1,
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-onnx-asr",
+      "config": {
+        "lang": "de",
+        "stt": {
+          "module": "ovos-stt-plugin-onnx-asr",
+          "ovos-stt-plugin-onnx-asr": {
+            "model": "OpenVoiceOS/neongeckocom-stt_de_citrinet_512_gamma_0_25_onnx"
+          }
+        }
+      },
+      "langs": [
+        "de"
+      ],
+      "alias": [
+        "ovos-stt-plugin-onnx-asr"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "ONNX-ASR (Citrinet-512, de)",
+      "species": "OnnxASR",
+      "types": [
+        "neural-net"
+      ],
+      "description": "Runs ASR models exported to ONNX through the onnx-asr library. This fighter runs the NVIDIA NeMo Citrinet-512 acoustic model for lang 'de', mirrored to onnx-asr format by OpenVoiceOS from the neongeckocom Citrinet exports (compare against the ovos-stt-plugin-citrinet fighter for the same underlying weights on a different runtime).",
+      "model": "OpenVoiceOS/neongeckocom-stt_de_citrinet_512_gamma_0_25_onnx",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
+      },
+      "notes": "Repo verified present on HuggingFace via HfApi (OpenVoiceOS mirror of the neongeckocom Citrinet-512 export, onnx-asr-compatible)."
+    },
+    {
+      "competitor_id": "onnx-asr-citrinet-512-en",
+      "schema_version": 1,
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-onnx-asr",
+      "config": {
+        "lang": "en",
+        "stt": {
+          "module": "ovos-stt-plugin-onnx-asr",
+          "ovos-stt-plugin-onnx-asr": {
+            "model": "OpenVoiceOS/neongeckocom-stt_en_citrinet_512_gamma_0_25_onnx"
+          }
+        }
+      },
+      "langs": [
+        "en"
+      ],
+      "alias": [
+        "ovos-stt-plugin-onnx-asr"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "ONNX-ASR (Citrinet-512, en)",
+      "species": "OnnxASR",
+      "types": [
+        "neural-net"
+      ],
+      "description": "Runs ASR models exported to ONNX through the onnx-asr library. This fighter runs the NVIDIA NeMo Citrinet-512 acoustic model for lang 'en', mirrored to onnx-asr format by OpenVoiceOS from the neongeckocom Citrinet exports (compare against the ovos-stt-plugin-citrinet fighter for the same underlying weights on a different runtime).",
+      "model": "OpenVoiceOS/neongeckocom-stt_en_citrinet_512_gamma_0_25_onnx",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
+      },
+      "notes": "Repo verified present on HuggingFace via HfApi (OpenVoiceOS mirror of the neongeckocom Citrinet-512 export, onnx-asr-compatible)."
+    },
+    {
+      "competitor_id": "onnx-asr-citrinet-512-es",
+      "schema_version": 1,
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-onnx-asr",
+      "config": {
+        "lang": "es",
+        "stt": {
+          "module": "ovos-stt-plugin-onnx-asr",
+          "ovos-stt-plugin-onnx-asr": {
+            "model": "OpenVoiceOS/neongeckocom-stt_es_citrinet_512_gamma_0_25_onnx"
+          }
+        }
+      },
+      "langs": [
+        "es"
+      ],
+      "alias": [
+        "ovos-stt-plugin-onnx-asr"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "ONNX-ASR (Citrinet-512, es)",
+      "species": "OnnxASR",
+      "types": [
+        "neural-net"
+      ],
+      "description": "Runs ASR models exported to ONNX through the onnx-asr library. This fighter runs the NVIDIA NeMo Citrinet-512 acoustic model for lang 'es', mirrored to onnx-asr format by OpenVoiceOS from the neongeckocom Citrinet exports (compare against the ovos-stt-plugin-citrinet fighter for the same underlying weights on a different runtime).",
+      "model": "OpenVoiceOS/neongeckocom-stt_es_citrinet_512_gamma_0_25_onnx",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
+      },
+      "notes": "Repo verified present on HuggingFace via HfApi (OpenVoiceOS mirror of the neongeckocom Citrinet-512 export, onnx-asr-compatible)."
+    },
+    {
+      "competitor_id": "onnx-asr-citrinet-512-fr",
+      "schema_version": 1,
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-onnx-asr",
+      "config": {
+        "lang": "fr",
+        "stt": {
+          "module": "ovos-stt-plugin-onnx-asr",
+          "ovos-stt-plugin-onnx-asr": {
+            "model": "OpenVoiceOS/neongeckocom-stt_fr_citrinet_512_gamma_0_25_onnx"
+          }
+        }
+      },
+      "langs": [
+        "fr"
+      ],
+      "alias": [
+        "ovos-stt-plugin-onnx-asr"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "ONNX-ASR (Citrinet-512, fr)",
+      "species": "OnnxASR",
+      "types": [
+        "neural-net"
+      ],
+      "description": "Runs ASR models exported to ONNX through the onnx-asr library. This fighter runs the NVIDIA NeMo Citrinet-512 acoustic model for lang 'fr', mirrored to onnx-asr format by OpenVoiceOS from the neongeckocom Citrinet exports (compare against the ovos-stt-plugin-citrinet fighter for the same underlying weights on a different runtime).",
+      "model": "OpenVoiceOS/neongeckocom-stt_fr_citrinet_512_gamma_0_25_onnx",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
+      },
+      "notes": "Repo verified present on HuggingFace via HfApi (OpenVoiceOS mirror of the neongeckocom Citrinet-512 export, onnx-asr-compatible)."
+    },
+    {
+      "competitor_id": "onnx-asr-citrinet-512-it",
+      "schema_version": 1,
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-onnx-asr",
+      "config": {
+        "lang": "it",
+        "stt": {
+          "module": "ovos-stt-plugin-onnx-asr",
+          "ovos-stt-plugin-onnx-asr": {
+            "model": "OpenVoiceOS/neongeckocom-stt_it_citrinet_512_gamma_0_25_onnx"
+          }
+        }
+      },
+      "langs": [
+        "it"
+      ],
+      "alias": [
+        "ovos-stt-plugin-onnx-asr"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "ONNX-ASR (Citrinet-512, it)",
+      "species": "OnnxASR",
+      "types": [
+        "neural-net"
+      ],
+      "description": "Runs ASR models exported to ONNX through the onnx-asr library. This fighter runs the NVIDIA NeMo Citrinet-512 acoustic model for lang 'it', mirrored to onnx-asr format by OpenVoiceOS from the neongeckocom Citrinet exports (compare against the ovos-stt-plugin-citrinet fighter for the same underlying weights on a different runtime).",
+      "model": "OpenVoiceOS/neongeckocom-stt_it_citrinet_512_gamma_0_25_onnx",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
+      },
+      "notes": "Repo verified present on HuggingFace via HfApi (OpenVoiceOS mirror of the neongeckocom Citrinet-512 export, onnx-asr-compatible)."
+    },
+    {
+      "competitor_id": "onnx-asr-citrinet-512-nl",
+      "schema_version": 1,
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-onnx-asr",
+      "config": {
+        "lang": "nl",
+        "stt": {
+          "module": "ovos-stt-plugin-onnx-asr",
+          "ovos-stt-plugin-onnx-asr": {
+            "model": "OpenVoiceOS/neongeckocom-stt_nl_citrinet_512_gamma_0_25_onnx"
+          }
+        }
+      },
+      "langs": [
+        "nl"
+      ],
+      "alias": [
+        "ovos-stt-plugin-onnx-asr"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "ONNX-ASR (Citrinet-512, nl)",
+      "species": "OnnxASR",
+      "types": [
+        "neural-net"
+      ],
+      "description": "Runs ASR models exported to ONNX through the onnx-asr library. This fighter runs the NVIDIA NeMo Citrinet-512 acoustic model for lang 'nl', mirrored to onnx-asr format by OpenVoiceOS from the neongeckocom Citrinet exports (compare against the ovos-stt-plugin-citrinet fighter for the same underlying weights on a different runtime).",
+      "model": "OpenVoiceOS/neongeckocom-stt_nl_citrinet_512_gamma_0_25_onnx",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
+      },
+      "notes": "Repo verified present on HuggingFace via HfApi (OpenVoiceOS mirror of the neongeckocom Citrinet-512 export, onnx-asr-compatible)."
+    },
+    {
+      "competitor_id": "onnx-asr-citrinet-512-pt",
+      "schema_version": 1,
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-onnx-asr",
+      "config": {
+        "lang": "pt",
+        "stt": {
+          "module": "ovos-stt-plugin-onnx-asr",
+          "ovos-stt-plugin-onnx-asr": {
+            "model": "OpenVoiceOS/neongeckocom-stt_pt_citrinet_512_gamma_0_25_onnx"
+          }
+        }
+      },
+      "langs": [
+        "pt"
+      ],
+      "alias": [
+        "ovos-stt-plugin-onnx-asr"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "ONNX-ASR (Citrinet-512, pt)",
+      "species": "OnnxASR",
+      "types": [
+        "neural-net"
+      ],
+      "description": "Runs ASR models exported to ONNX through the onnx-asr library. This fighter runs the NVIDIA NeMo Citrinet-512 acoustic model for lang 'pt', mirrored to onnx-asr format by OpenVoiceOS from the neongeckocom Citrinet exports (compare against the ovos-stt-plugin-citrinet fighter for the same underlying weights on a different runtime).",
+      "model": "OpenVoiceOS/neongeckocom-stt_pt_citrinet_512_gamma_0_25_onnx",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
+      },
+      "notes": "Repo verified present on HuggingFace via HfApi (OpenVoiceOS mirror of the neongeckocom Citrinet-512 export, onnx-asr-compatible)."
+    },
+    {
+      "competitor_id": "onnx-asr-citrinet-512-uk",
+      "schema_version": 1,
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-onnx-asr",
+      "config": {
+        "lang": "uk",
+        "stt": {
+          "module": "ovos-stt-plugin-onnx-asr",
+          "ovos-stt-plugin-onnx-asr": {
+            "model": "OpenVoiceOS/neongeckocom-stt_uk_citrinet_512_gamma_0_25_onnx"
+          }
+        }
+      },
+      "langs": [
+        "uk"
+      ],
+      "alias": [
+        "ovos-stt-plugin-onnx-asr"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "ONNX-ASR (Citrinet-512, uk)",
+      "species": "OnnxASR",
+      "types": [
+        "neural-net"
+      ],
+      "description": "Runs ASR models exported to ONNX through the onnx-asr library. This fighter runs the NVIDIA NeMo Citrinet-512 acoustic model for lang 'uk', mirrored to onnx-asr format by OpenVoiceOS from the neongeckocom Citrinet exports (compare against the ovos-stt-plugin-citrinet fighter for the same underlying weights on a different runtime).",
+      "model": "OpenVoiceOS/neongeckocom-stt_uk_citrinet_512_gamma_0_25_onnx",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
+      },
+      "notes": "Repo verified present on HuggingFace via HfApi (OpenVoiceOS mirror of the neongeckocom Citrinet-512 export, onnx-asr-compatible)."
     },
     {
       "competitor_id": "onnx-asr-conformer-ctc-en",
@@ -4431,6 +5128,76 @@
         "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
       },
       "notes": "Model from the OpenVoiceOS 'stt-asr-onnx' HuggingFace collection."
+    },
+    {
+      "competitor_id": "onnx-asr-crisperwhisper",
+      "schema_version": 1,
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-onnx-asr",
+      "config": {
+        "stt": {
+          "module": "ovos-stt-plugin-onnx-asr",
+          "ovos-stt-plugin-onnx-asr": {
+            "model": "OpenVoiceOS/CrisperWhisper-onnx"
+          }
+        }
+      },
+      "langs": [
+        "en"
+      ],
+      "alias": [
+        "ovos-stt-plugin-onnx-asr"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "ONNX-ASR (CrisperWhisper)",
+      "species": "OnnxASR",
+      "types": [
+        "neural-net"
+      ],
+      "description": "Runs ASR models exported to ONNX through the onnx-asr library. This fighter runs CrisperWhisper, a Whisper fine-tune tuned for verbatim transcription (fillers, disfluencies retained).",
+      "model": "OpenVoiceOS/CrisperWhisper-onnx",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
+      },
+      "notes": "Model verified present on HuggingFace via HfApi."
+    },
+    {
+      "competitor_id": "onnx-asr-fa",
+      "schema_version": 1,
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-onnx-asr",
+      "config": {
+        "lang": "fa",
+        "stt": {
+          "module": "ovos-stt-plugin-onnx-asr",
+          "ovos-stt-plugin-onnx-asr": {
+            "model": "OpenVoiceOS/nvidia-fa-fastconformer-hybrid-large-onnx"
+          }
+        }
+      },
+      "langs": [
+        "fa"
+      ],
+      "alias": [
+        "ovos-stt-plugin-onnx-asr"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "ONNX-ASR (FastConformer Hybrid Large, fa)",
+      "species": "OnnxASR",
+      "types": [
+        "neural-net",
+        "conformer"
+      ],
+      "description": "Runs ASR models exported to ONNX through the onnx-asr library. This fighter runs a FastConformer Hybrid Large model for Persian, the plugin's built-in default for 'fa'.",
+      "model": "OpenVoiceOS/nvidia-fa-fastconformer-hybrid-large-onnx",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
+      },
+      "notes": "Plugin-default model for lang 'fa' per defaults.py LANG_DEFAULTS; verified present on HuggingFace via HfApi."
     },
     {
       "competitor_id": "onnx-asr-indicconformer-as",
@@ -5225,6 +5992,505 @@
       "notes": "Model from the OpenVoiceOS 'stt-asr-onnx' HuggingFace collection."
     },
     {
+      "competitor_id": "onnx-asr-ja",
+      "schema_version": 1,
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-onnx-asr",
+      "config": {
+        "lang": "ja",
+        "stt": {
+          "module": "ovos-stt-plugin-onnx-asr",
+          "ovos-stt-plugin-onnx-asr": {
+            "model": "OpenVoiceOS/nvidia-parakeet-tdt_ctc-0.6b-ja-onnx"
+          }
+        }
+      },
+      "langs": [
+        "ja"
+      ],
+      "alias": [
+        "ovos-stt-plugin-onnx-asr"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "ONNX-ASR (Parakeet TDT-CTC 0.6B, ja)",
+      "species": "OnnxASR",
+      "types": [
+        "neural-net",
+        "transducer",
+        "ctc"
+      ],
+      "description": "Runs ASR models exported to ONNX through the onnx-asr library. This fighter runs a Parakeet TDT-CTC 0.6B model for Japanese, the plugin's built-in default for 'ja'.",
+      "model": "OpenVoiceOS/nvidia-parakeet-tdt_ctc-0.6b-ja-onnx",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
+      },
+      "notes": "Plugin-default model for lang 'ja' per defaults.py LANG_DEFAULTS; verified present on HuggingFace via HfApi."
+    },
+    {
+      "competitor_id": "onnx-asr-misterkissi-fon",
+      "schema_version": 1,
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-onnx-asr",
+      "config": {
+        "lang": "fon",
+        "stt": {
+          "module": "ovos-stt-plugin-onnx-asr",
+          "ovos-stt-plugin-onnx-asr": {
+            "model": "OpenVoiceOS/misterkissi-whisper-small-fongbe-onnx"
+          }
+        }
+      },
+      "langs": [
+        "fon"
+      ],
+      "alias": [
+        "ovos-stt-plugin-onnx-asr"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "ONNX-ASR (misterkissi Whisper-small, fon)",
+      "species": "OnnxASR",
+      "types": [
+        "neural-net",
+        "transformer"
+      ],
+      "description": "Runs ASR models exported to ONNX through the onnx-asr library. This fighter runs a Whisper-small fine-tune for Fon, from the misterkissi community exports and the plugin's built-in default for 'fon'.",
+      "model": "OpenVoiceOS/misterkissi-whisper-small-fongbe-onnx",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
+      },
+      "notes": "Plugin-default model for lang 'fon' per defaults.py LANG_DEFAULTS; verified present on HuggingFace via HfApi."
+    },
+    {
+      "competitor_id": "onnx-asr-misterkissi-ht",
+      "schema_version": 1,
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-onnx-asr",
+      "config": {
+        "lang": "ht",
+        "stt": {
+          "module": "ovos-stt-plugin-onnx-asr",
+          "ovos-stt-plugin-onnx-asr": {
+            "model": "OpenVoiceOS/misterkissi-whisper-small-haitian-creole-onnx"
+          }
+        }
+      },
+      "langs": [
+        "ht"
+      ],
+      "alias": [
+        "ovos-stt-plugin-onnx-asr"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "ONNX-ASR (misterkissi Whisper-small, ht)",
+      "species": "OnnxASR",
+      "types": [
+        "neural-net",
+        "transformer"
+      ],
+      "description": "Runs ASR models exported to ONNX through the onnx-asr library. This fighter runs a Whisper-small fine-tune for Haitian Creole, from the misterkissi community exports and the plugin's built-in default for 'ht'.",
+      "model": "OpenVoiceOS/misterkissi-whisper-small-haitian-creole-onnx",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
+      },
+      "notes": "Plugin-default model for lang 'ht' per defaults.py LANG_DEFAULTS; verified present on HuggingFace via HfApi."
+    },
+    {
+      "competitor_id": "onnx-asr-misterkissi-mg",
+      "schema_version": 1,
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-onnx-asr",
+      "config": {
+        "lang": "mg",
+        "stt": {
+          "module": "ovos-stt-plugin-onnx-asr",
+          "ovos-stt-plugin-onnx-asr": {
+            "model": "OpenVoiceOS/misterkissi-whisper-small-malagasy-onnx"
+          }
+        }
+      },
+      "langs": [
+        "mg"
+      ],
+      "alias": [
+        "ovos-stt-plugin-onnx-asr"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "ONNX-ASR (misterkissi Whisper-small, mg)",
+      "species": "OnnxASR",
+      "types": [
+        "neural-net",
+        "transformer"
+      ],
+      "description": "Runs ASR models exported to ONNX through the onnx-asr library. This fighter runs a Whisper-small fine-tune for Malagasy, from the misterkissi community exports and the plugin's built-in default for 'mg'.",
+      "model": "OpenVoiceOS/misterkissi-whisper-small-malagasy-onnx",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
+      },
+      "notes": "Plugin-default model for lang 'mg' per defaults.py LANG_DEFAULTS; verified present on HuggingFace via HfApi."
+    },
+    {
+      "competitor_id": "onnx-asr-misterkissi-sn",
+      "schema_version": 1,
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-onnx-asr",
+      "config": {
+        "lang": "sn",
+        "stt": {
+          "module": "ovos-stt-plugin-onnx-asr",
+          "ovos-stt-plugin-onnx-asr": {
+            "model": "OpenVoiceOS/misterkissi-whisper-small-shona-onnx"
+          }
+        }
+      },
+      "langs": [
+        "sn"
+      ],
+      "alias": [
+        "ovos-stt-plugin-onnx-asr"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "ONNX-ASR (misterkissi Whisper-small, sn)",
+      "species": "OnnxASR",
+      "types": [
+        "neural-net",
+        "transformer"
+      ],
+      "description": "Runs ASR models exported to ONNX through the onnx-asr library. This fighter runs a Whisper-small fine-tune for Shona, from the misterkissi community exports and the plugin's built-in default for 'sn'.",
+      "model": "OpenVoiceOS/misterkissi-whisper-small-shona-onnx",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
+      },
+      "notes": "Plugin-default model for lang 'sn' per defaults.py LANG_DEFAULTS; verified present on HuggingFace via HfApi."
+    },
+    {
+      "competitor_id": "onnx-asr-misterkissi-st",
+      "schema_version": 1,
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-onnx-asr",
+      "config": {
+        "lang": "st",
+        "stt": {
+          "module": "ovos-stt-plugin-onnx-asr",
+          "ovos-stt-plugin-onnx-asr": {
+            "model": "OpenVoiceOS/misterkissi-whisper-small-sesotho-onnx"
+          }
+        }
+      },
+      "langs": [
+        "st"
+      ],
+      "alias": [
+        "ovos-stt-plugin-onnx-asr"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "ONNX-ASR (misterkissi Whisper-small, st)",
+      "species": "OnnxASR",
+      "types": [
+        "neural-net",
+        "transformer"
+      ],
+      "description": "Runs ASR models exported to ONNX through the onnx-asr library. This fighter runs a Whisper-small fine-tune for Sesotho, from the misterkissi community exports and the plugin's built-in default for 'st'.",
+      "model": "OpenVoiceOS/misterkissi-whisper-small-sesotho-onnx",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
+      },
+      "notes": "Plugin-default model for lang 'st' per defaults.py LANG_DEFAULTS; verified present on HuggingFace via HfApi."
+    },
+    {
+      "competitor_id": "onnx-asr-misterkissi-tig",
+      "schema_version": 1,
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-onnx-asr",
+      "config": {
+        "lang": "tig",
+        "stt": {
+          "module": "ovos-stt-plugin-onnx-asr",
+          "ovos-stt-plugin-onnx-asr": {
+            "model": "OpenVoiceOS/misterkissi-whisper-small-tigre-onnx"
+          }
+        }
+      },
+      "langs": [
+        "tig"
+      ],
+      "alias": [
+        "ovos-stt-plugin-onnx-asr"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "ONNX-ASR (misterkissi Whisper-small, tig)",
+      "species": "OnnxASR",
+      "types": [
+        "neural-net",
+        "transformer"
+      ],
+      "description": "Runs ASR models exported to ONNX through the onnx-asr library. This fighter runs a Whisper-small fine-tune for Tigre, from the misterkissi community exports and the plugin's built-in default for 'tig'.",
+      "model": "OpenVoiceOS/misterkissi-whisper-small-tigre-onnx",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
+      },
+      "notes": "Plugin-default model for lang 'tig' per defaults.py LANG_DEFAULTS; verified present on HuggingFace via HfApi."
+    },
+    {
+      "competitor_id": "onnx-asr-misterkissi-tn",
+      "schema_version": 1,
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-onnx-asr",
+      "config": {
+        "lang": "tn",
+        "stt": {
+          "module": "ovos-stt-plugin-onnx-asr",
+          "ovos-stt-plugin-onnx-asr": {
+            "model": "OpenVoiceOS/misterkissi-whisper-small-setswana-onnx"
+          }
+        }
+      },
+      "langs": [
+        "tn"
+      ],
+      "alias": [
+        "ovos-stt-plugin-onnx-asr"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "ONNX-ASR (misterkissi Whisper-small, tn)",
+      "species": "OnnxASR",
+      "types": [
+        "neural-net",
+        "transformer"
+      ],
+      "description": "Runs ASR models exported to ONNX through the onnx-asr library. This fighter runs a Whisper-small fine-tune for Setswana, from the misterkissi community exports and the plugin's built-in default for 'tn'.",
+      "model": "OpenVoiceOS/misterkissi-whisper-small-setswana-onnx",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
+      },
+      "notes": "Plugin-default model for lang 'tn' per defaults.py LANG_DEFAULTS; verified present on HuggingFace via HfApi."
+    },
+    {
+      "competitor_id": "onnx-asr-misterkissi-umb",
+      "schema_version": 1,
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-onnx-asr",
+      "config": {
+        "lang": "umb",
+        "stt": {
+          "module": "ovos-stt-plugin-onnx-asr",
+          "ovos-stt-plugin-onnx-asr": {
+            "model": "OpenVoiceOS/misterkissi-whisper-small-umbundu-onnx"
+          }
+        }
+      },
+      "langs": [
+        "umb"
+      ],
+      "alias": [
+        "ovos-stt-plugin-onnx-asr"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "ONNX-ASR (misterkissi Whisper-small, umb)",
+      "species": "OnnxASR",
+      "types": [
+        "neural-net",
+        "transformer"
+      ],
+      "description": "Runs ASR models exported to ONNX through the onnx-asr library. This fighter runs a Whisper-small fine-tune for Umbundu, from the misterkissi community exports and the plugin's built-in default for 'umb'.",
+      "model": "OpenVoiceOS/misterkissi-whisper-small-umbundu-onnx",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
+      },
+      "notes": "Plugin-default model for lang 'umb' per defaults.py LANG_DEFAULTS; verified present on HuggingFace via HfApi."
+    },
+    {
+      "competitor_id": "onnx-asr-misterkissi-vai",
+      "schema_version": 1,
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-onnx-asr",
+      "config": {
+        "lang": "vai",
+        "stt": {
+          "module": "ovos-stt-plugin-onnx-asr",
+          "ovos-stt-plugin-onnx-asr": {
+            "model": "OpenVoiceOS/misterkissi-whisper-small-vai-onnx"
+          }
+        }
+      },
+      "langs": [
+        "vai"
+      ],
+      "alias": [
+        "ovos-stt-plugin-onnx-asr"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "ONNX-ASR (misterkissi Whisper-small, vai)",
+      "species": "OnnxASR",
+      "types": [
+        "neural-net",
+        "transformer"
+      ],
+      "description": "Runs ASR models exported to ONNX through the onnx-asr library. This fighter runs a Whisper-small fine-tune for Vai, from the misterkissi community exports and the plugin's built-in default for 'vai'.",
+      "model": "OpenVoiceOS/misterkissi-whisper-small-vai-onnx",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
+      },
+      "notes": "Plugin-default model for lang 'vai' per defaults.py LANG_DEFAULTS; verified present on HuggingFace via HfApi."
+    },
+    {
+      "competitor_id": "onnx-asr-nemotron-3.5-0.6b",
+      "schema_version": 1,
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-onnx-asr",
+      "config": {
+        "stt": {
+          "module": "ovos-stt-plugin-onnx-asr",
+          "ovos-stt-plugin-onnx-asr": {
+            "model": "OpenVoiceOS/nemotron-3.5-asr-0.6b-onnx"
+          }
+        }
+      },
+      "langs": [
+        "en"
+      ],
+      "alias": [
+        "ovos-stt-plugin-onnx-asr"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "ONNX-ASR (Nemotron 3.5 ASR 0.6B)",
+      "species": "OnnxASR",
+      "types": [
+        "neural-net"
+      ],
+      "description": "Runs ASR models exported to ONNX through the onnx-asr library. This fighter runs NVIDIA Nemotron 3.5 ASR 0.6B.",
+      "model": "OpenVoiceOS/nemotron-3.5-asr-0.6b-onnx",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
+      },
+      "notes": "Model verified present on HuggingFace via HfApi."
+    },
+    {
+      "competitor_id": "onnx-asr-nemotron-3.5-arabic-dialectal-v2",
+      "schema_version": 1,
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-onnx-asr",
+      "config": {
+        "stt": {
+          "module": "ovos-stt-plugin-onnx-asr",
+          "ovos-stt-plugin-onnx-asr": {
+            "model": "OpenVoiceOS/nemotron-3.5-asr-arabic-dialectal-v2-onnx"
+          }
+        }
+      },
+      "langs": [
+        "ar"
+      ],
+      "alias": [
+        "ovos-stt-plugin-onnx-asr"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "ONNX-ASR (Nemotron 3.5 ASR Arabic Dialectal v2)",
+      "species": "OnnxASR",
+      "types": [
+        "neural-net"
+      ],
+      "description": "Runs ASR models exported to ONNX through the onnx-asr library. This fighter runs NVIDIA Nemotron 3.5 ASR Arabic Dialectal v2, tuned for spoken Arabic dialects rather than MSA.",
+      "model": "OpenVoiceOS/nemotron-3.5-asr-arabic-dialectal-v2-onnx",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
+      },
+      "notes": "Model verified present on HuggingFace via HfApi."
+    },
+    {
+      "competitor_id": "onnx-asr-omnilingual-ctc-1b",
+      "schema_version": 1,
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-onnx-asr",
+      "config": {
+        "stt": {
+          "module": "ovos-stt-plugin-onnx-asr",
+          "ovos-stt-plugin-onnx-asr": {
+            "model": "OpenVoiceOS/omnilingual-asr-ctc-1b-onnx"
+          }
+        }
+      },
+      "langs": [
+        "en"
+      ],
+      "alias": [
+        "ovos-stt-plugin-onnx-asr"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "ONNX-ASR (Omnilingual ASR CTC 1B)",
+      "species": "OnnxASR",
+      "types": [
+        "neural-net",
+        "ctc"
+      ],
+      "description": "Runs ASR models exported to ONNX through the onnx-asr library. This fighter runs Meta's Omnilingual ASR CTC 1B, a larger massively-multilingual CTC model.",
+      "model": "OpenVoiceOS/omnilingual-asr-ctc-1b-onnx",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
+      },
+      "notes": "Model verified present on HuggingFace via HfApi; langs restricted to arena eval default pending per-language breakdown."
+    },
+    {
+      "competitor_id": "onnx-asr-omnilingual-ctc-300m",
+      "schema_version": 1,
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-onnx-asr",
+      "config": {
+        "stt": {
+          "module": "ovos-stt-plugin-onnx-asr",
+          "ovos-stt-plugin-onnx-asr": {
+            "model": "OpenVoiceOS/omnilingual-asr-ctc-300m-onnx"
+          }
+        }
+      },
+      "langs": [
+        "en"
+      ],
+      "alias": [
+        "ovos-stt-plugin-onnx-asr"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "ONNX-ASR (Omnilingual ASR CTC 300M)",
+      "species": "OnnxASR",
+      "types": [
+        "neural-net",
+        "ctc"
+      ],
+      "description": "Runs ASR models exported to ONNX through the onnx-asr library. This fighter runs Meta's Omnilingual ASR CTC 300M, a compact massively-multilingual CTC model.",
+      "model": "OpenVoiceOS/omnilingual-asr-ctc-300m-onnx",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
+      },
+      "notes": "Model verified present on HuggingFace via HfApi; langs restricted to arena eval default pending per-language breakdown."
+    },
+    {
       "competitor_id": "onnx-asr-parakeet-ctc-1.1b",
       "schema_version": 1,
       "modality": "stt",
@@ -5524,6 +6790,150 @@
       "notes": "Model from the OpenVoiceOS 'stt-asr-onnx' HuggingFace collection."
     },
     {
+      "competitor_id": "onnx-asr-qwen3-0.6b",
+      "schema_version": 1,
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-onnx-asr",
+      "config": {
+        "stt": {
+          "module": "ovos-stt-plugin-onnx-asr",
+          "ovos-stt-plugin-onnx-asr": {
+            "model": "OpenVoiceOS/qwen3-asr-0.6b-onnx"
+          }
+        }
+      },
+      "langs": [
+        "en",
+        "zh"
+      ],
+      "alias": [
+        "ovos-stt-plugin-onnx-asr"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "ONNX-ASR (Qwen3-ASR 0.6B)",
+      "species": "OnnxASR",
+      "types": [
+        "neural-net",
+        "transformer"
+      ],
+      "description": "Runs ASR models exported to ONNX through the onnx-asr library. This fighter runs Qwen3-ASR 0.6B, a compact multilingual transformer ASR model.",
+      "model": "OpenVoiceOS/qwen3-asr-0.6b-onnx",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
+      },
+      "notes": "Only the base fp32 repo was found on HuggingFace; the -f16/-q8/-q5/-q4 sibling repos named in the request do not exist (404), so no separate quant-tier fighters were added."
+    },
+    {
+      "competitor_id": "onnx-asr-qwen3-1.7b",
+      "schema_version": 1,
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-onnx-asr",
+      "config": {
+        "stt": {
+          "module": "ovos-stt-plugin-onnx-asr",
+          "ovos-stt-plugin-onnx-asr": {
+            "model": "OpenVoiceOS/qwen3-asr-1.7b-onnx"
+          }
+        }
+      },
+      "langs": [
+        "en",
+        "zh"
+      ],
+      "alias": [
+        "ovos-stt-plugin-onnx-asr"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "ONNX-ASR (Qwen3-ASR 1.7B)",
+      "species": "OnnxASR",
+      "types": [
+        "neural-net",
+        "transformer"
+      ],
+      "description": "Runs ASR models exported to ONNX through the onnx-asr library. This fighter runs Qwen3-ASR 1.7B, a larger multilingual transformer ASR model.",
+      "model": "OpenVoiceOS/qwen3-asr-1.7b-onnx",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
+      },
+      "notes": "Only the base fp32 repo was found on HuggingFace; the -f16/-q8/-q5/-q4 sibling repos named in the request do not exist (404), so no separate quant-tier fighters were added."
+    },
+    {
+      "competitor_id": "onnx-asr-tl",
+      "schema_version": 1,
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-onnx-asr",
+      "config": {
+        "lang": "tl",
+        "stt": {
+          "module": "ovos-stt-plugin-onnx-asr",
+          "ovos-stt-plugin-onnx-asr": {
+            "model": "OpenVoiceOS/stt-tl-fastconformer-hybrid-large-onnx"
+          }
+        }
+      },
+      "langs": [
+        "tl"
+      ],
+      "alias": [
+        "ovos-stt-plugin-onnx-asr"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "ONNX-ASR (FastConformer Hybrid Large, tl)",
+      "species": "OnnxASR",
+      "types": [
+        "neural-net",
+        "conformer"
+      ],
+      "description": "Runs ASR models exported to ONNX through the onnx-asr library. This fighter runs a FastConformer Hybrid Large model for Tagalog, the plugin's built-in default for 'tl'.",
+      "model": "OpenVoiceOS/stt-tl-fastconformer-hybrid-large-onnx",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
+      },
+      "notes": "Plugin-default model for lang 'tl' per defaults.py LANG_DEFAULTS; verified present on HuggingFace via HfApi."
+    },
+    {
+      "competitor_id": "onnx-asr-uz",
+      "schema_version": 1,
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-onnx-asr",
+      "config": {
+        "lang": "uz",
+        "stt": {
+          "module": "ovos-stt-plugin-onnx-asr",
+          "ovos-stt-plugin-onnx-asr": {
+            "model": "OpenVoiceOS/asr-uz-fastconformer-large-onnx"
+          }
+        }
+      },
+      "langs": [
+        "uz"
+      ],
+      "alias": [
+        "ovos-stt-plugin-onnx-asr"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "ONNX-ASR (FastConformer Large, uz)",
+      "species": "OnnxASR",
+      "types": [
+        "neural-net",
+        "conformer"
+      ],
+      "description": "Runs ASR models exported to ONNX through the onnx-asr library. This fighter runs a FastConformer Large model for Uzbek, the plugin's built-in default for 'uz'.",
+      "model": "OpenVoiceOS/asr-uz-fastconformer-large-onnx",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
+      },
+      "notes": "Plugin-default model for lang 'uz' per defaults.py LANG_DEFAULTS; verified present on HuggingFace via HfApi."
+    },
+    {
       "competitor_id": "onnx-asr-vaani-hi",
       "schema_version": 1,
       "modality": "stt",
@@ -5742,6 +7152,42 @@
         "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
       },
       "notes": "Model from the OpenVoiceOS 'stt-asr-onnx' HuggingFace collection."
+    },
+    {
+      "competitor_id": "onnx-asr-vi",
+      "schema_version": 1,
+      "modality": "stt",
+      "plugin": "ovos-stt-plugin-onnx-asr",
+      "config": {
+        "lang": "vi",
+        "stt": {
+          "module": "ovos-stt-plugin-onnx-asr",
+          "ovos-stt-plugin-onnx-asr": {
+            "model": "OpenVoiceOS/nvidia-parakeet-ctc-0.6b-vietnamese-onnx"
+          }
+        }
+      },
+      "langs": [
+        "vi"
+      ],
+      "alias": [
+        "ovos-stt-plugin-onnx-asr"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "ONNX-ASR (Parakeet CTC 0.6B, vi)",
+      "species": "OnnxASR",
+      "types": [
+        "neural-net",
+        "ctc"
+      ],
+      "description": "Runs ASR models exported to ONNX through the onnx-asr library. This fighter runs a Parakeet CTC 0.6B model for Vietnamese, the plugin's built-in default for 'vi'.",
+      "model": "OpenVoiceOS/nvidia-parakeet-ctc-0.6b-vietnamese-onnx",
+      "links": {
+        "source": "https://github.com/TigreGotico/ovos-stt-plugin-onnx-asr"
+      },
+      "notes": "Plugin-default model for lang 'vi' per defaults.py LANG_DEFAULTS; verified present on HuggingFace via HfApi."
     },
     {
       "competitor_id": "onnx-asr-whisper-small-pt",
@@ -6914,6 +8360,114 @@
       "notes": "Requires the mimic binary; README reference configuration with the ap voice."
     },
     {
+      "competitor_id": "omnivoice-auto",
+      "schema_version": 1,
+      "modality": "tts",
+      "plugin": "ovos-tts-plugin-omnivoice",
+      "config": {
+        "tts": {
+          "module": "ovos-tts-plugin-omnivoice",
+          "ovos-tts-plugin-omnivoice": {
+            "model": "k2-fsa/OmniVoice",
+            "voice": "auto"
+          }
+        }
+      },
+      "langs": [
+        "en"
+      ],
+      "alias": [
+        "ovos-tts-plugin-omnivoice"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "OmniVoice (auto)",
+      "species": "OmniVoiceTTS",
+      "types": [
+        "neural-net",
+        "zero-shot"
+      ],
+      "description": "Zero-shot multilingual (600+ language) TTS from the k2-fsa/sherpa/icefall team, run locally via the omnivoice/torch runtime. Supports voice cloning (ref_audio), free-text voice design (instruct), or letting the model pick a speaker automatically ('auto', used here). Arabic is first-class, with 22 regional varieties as distinct lang tags.",
+      "model": "k2-fsa/OmniVoice",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-tts-plugin-omnivoice"
+      },
+      "notes": "Runs a local multi-GB model (CPU or CUDA, auto-detected); no API key or remote server required, unlike the Azure/Google cloud TTS fighters. GPU strongly recommended for real-time synthesis; 'lazy' loading is the plugin default so config-only validation does not require the weights."
+    },
+    {
+      "competitor_id": "phoonnx-dii-ar",
+      "schema_version": 1,
+      "modality": "tts",
+      "plugin": "ovos-tts-plugin-phoonnx",
+      "config": {
+        "lang": "ar",
+        "tts": {
+          "module": "ovos-tts-plugin-phoonnx",
+          "ovos-tts-plugin-phoonnx": {
+            "voice": "OpenVoiceOS/phoonnx_ar_dii_espeak",
+            "enable_phonetic_spelling": true
+          }
+        }
+      },
+      "langs": [
+        "ar"
+      ],
+      "alias": [
+        "ovos-tts-plugin-phoonnx"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "Phoonnx (Dii, ar)",
+      "species": "PhoonnxTTSPlugin",
+      "types": [
+        "neural-net"
+      ],
+      "description": "ONNX-runtime TTS with pluggable phonemizers (eSpeak, Gruut, Epitran) and a shared adapter framework for VITS and OptiSpeech voices. This fighter runs the Dii Arabic voice with the eSpeak phonemizer.",
+      "model": "OpenVoiceOS/phoonnx_ar_dii_espeak",
+      "links": {
+        "source": "https://github.com/TigreGotico/phoonnx"
+      },
+      "notes": "Voice from the OpenVoiceOS phoonnx voice collection on HuggingFace (OpenVoiceOS/phoonnx_ar_dii_espeak)."
+    },
+    {
+      "competitor_id": "phoonnx-dii-es-co",
+      "schema_version": 1,
+      "modality": "tts",
+      "plugin": "ovos-tts-plugin-phoonnx",
+      "config": {
+        "lang": "es-CO",
+        "tts": {
+          "module": "ovos-tts-plugin-phoonnx",
+          "ovos-tts-plugin-phoonnx": {
+            "voice": "OpenVoiceOS/phoonnx_es-CO_dii_espeak",
+            "enable_phonetic_spelling": true
+          }
+        }
+      },
+      "langs": [
+        "es-CO"
+      ],
+      "alias": [
+        "ovos-tts-plugin-phoonnx"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "Phoonnx (Dii, es-CO)",
+      "species": "PhoonnxTTSPlugin",
+      "types": [
+        "neural-net"
+      ],
+      "description": "ONNX-runtime TTS with pluggable phonemizers (eSpeak, Gruut, Epitran) and a shared adapter framework for VITS and OptiSpeech voices. This fighter runs the Dii Colombian Spanish voice with the eSpeak phonemizer.",
+      "model": "OpenVoiceOS/phoonnx_es-CO_dii_espeak",
+      "links": {
+        "source": "https://github.com/TigreGotico/phoonnx"
+      },
+      "notes": "Voice from the OpenVoiceOS phoonnx voice collection on HuggingFace (OpenVoiceOS/phoonnx_es-CO_dii_espeak)."
+    },
+    {
       "competitor_id": "phoonnx-dii-es-es",
       "schema_version": 1,
       "modality": "tts",
@@ -7022,6 +8576,150 @@
       "notes": "Voice from the OpenVoiceOS phoonnx voice collection on HuggingFace (OpenVoiceOS/phoonnx_pt-PT_dii_tugaphone)."
     },
     {
+      "competitor_id": "phoonnx-dii-unicode-an",
+      "schema_version": 1,
+      "modality": "tts",
+      "plugin": "ovos-tts-plugin-phoonnx",
+      "config": {
+        "lang": "an",
+        "tts": {
+          "module": "ovos-tts-plugin-phoonnx",
+          "ovos-tts-plugin-phoonnx": {
+            "voice": "OpenVoiceOS/phoonnx_an_dii_unicode",
+            "enable_phonetic_spelling": true
+          }
+        }
+      },
+      "langs": [
+        "an"
+      ],
+      "alias": [
+        "ovos-tts-plugin-phoonnx"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "Phoonnx (Dii unicode, an)",
+      "species": "PhoonnxTTSPlugin",
+      "types": [
+        "neural-net"
+      ],
+      "description": "ONNX-runtime TTS with pluggable phonemizers (eSpeak, Gruut, Epitran) and a shared adapter framework for VITS and OptiSpeech voices. This fighter runs the Dii Aragonese voice with the unicode phonemizer.",
+      "model": "OpenVoiceOS/phoonnx_an_dii_unicode",
+      "links": {
+        "source": "https://github.com/TigreGotico/phoonnx"
+      },
+      "notes": "Voice from the OpenVoiceOS phoonnx voice collection on HuggingFace (OpenVoiceOS/phoonnx_an_dii_unicode)."
+    },
+    {
+      "competitor_id": "phoonnx-dii-unicode-ast",
+      "schema_version": 1,
+      "modality": "tts",
+      "plugin": "ovos-tts-plugin-phoonnx",
+      "config": {
+        "lang": "ast",
+        "tts": {
+          "module": "ovos-tts-plugin-phoonnx",
+          "ovos-tts-plugin-phoonnx": {
+            "voice": "OpenVoiceOS/phoonnx_ast_dii_unicode",
+            "enable_phonetic_spelling": true
+          }
+        }
+      },
+      "langs": [
+        "ast"
+      ],
+      "alias": [
+        "ovos-tts-plugin-phoonnx"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "Phoonnx (Dii unicode, ast)",
+      "species": "PhoonnxTTSPlugin",
+      "types": [
+        "neural-net"
+      ],
+      "description": "ONNX-runtime TTS with pluggable phonemizers (eSpeak, Gruut, Epitran) and a shared adapter framework for VITS and OptiSpeech voices. This fighter runs the Dii Asturian voice with the unicode phonemizer.",
+      "model": "OpenVoiceOS/phoonnx_ast_dii_unicode",
+      "links": {
+        "source": "https://github.com/TigreGotico/phoonnx"
+      },
+      "notes": "Voice from the OpenVoiceOS phoonnx voice collection on HuggingFace (OpenVoiceOS/phoonnx_ast_dii_unicode)."
+    },
+    {
+      "competitor_id": "phoonnx-dii-unicode-fy-nl",
+      "schema_version": 1,
+      "modality": "tts",
+      "plugin": "ovos-tts-plugin-phoonnx",
+      "config": {
+        "lang": "fy-NL",
+        "tts": {
+          "module": "ovos-tts-plugin-phoonnx",
+          "ovos-tts-plugin-phoonnx": {
+            "voice": "OpenVoiceOS/phoonnx_fy-NL_dii_unicode",
+            "enable_phonetic_spelling": true
+          }
+        }
+      },
+      "langs": [
+        "fy-NL"
+      ],
+      "alias": [
+        "ovos-tts-plugin-phoonnx"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "Phoonnx (Dii unicode, fy-NL)",
+      "species": "PhoonnxTTSPlugin",
+      "types": [
+        "neural-net"
+      ],
+      "description": "ONNX-runtime TTS with pluggable phonemizers (eSpeak, Gruut, Epitran) and a shared adapter framework for VITS and OptiSpeech voices. This fighter runs the Dii West Frisian voice with the unicode phonemizer.",
+      "model": "OpenVoiceOS/phoonnx_fy-NL_dii_unicode",
+      "links": {
+        "source": "https://github.com/TigreGotico/phoonnx"
+      },
+      "notes": "Voice from the OpenVoiceOS phoonnx voice collection on HuggingFace (OpenVoiceOS/phoonnx_fy-NL_dii_unicode)."
+    },
+    {
+      "competitor_id": "phoonnx-dii-unicode-oc",
+      "schema_version": 1,
+      "modality": "tts",
+      "plugin": "ovos-tts-plugin-phoonnx",
+      "config": {
+        "lang": "oc",
+        "tts": {
+          "module": "ovos-tts-plugin-phoonnx",
+          "ovos-tts-plugin-phoonnx": {
+            "voice": "OpenVoiceOS/phoonnx_oc_dii_unicode",
+            "enable_phonetic_spelling": true
+          }
+        }
+      },
+      "langs": [
+        "oc"
+      ],
+      "alias": [
+        "ovos-tts-plugin-phoonnx"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "Phoonnx (Dii unicode, oc)",
+      "species": "PhoonnxTTSPlugin",
+      "types": [
+        "neural-net"
+      ],
+      "description": "ONNX-runtime TTS with pluggable phonemizers (eSpeak, Gruut, Epitran) and a shared adapter framework for VITS and OptiSpeech voices. This fighter runs the Dii Occitan voice with the unicode phonemizer.",
+      "model": "OpenVoiceOS/phoonnx_oc_dii_unicode",
+      "links": {
+        "source": "https://github.com/TigreGotico/phoonnx"
+      },
+      "notes": "Voice from the OpenVoiceOS phoonnx voice collection on HuggingFace (OpenVoiceOS/phoonnx_oc_dii_unicode)."
+    },
+    {
       "competitor_id": "phoonnx-miro-ar-sa",
       "schema_version": 1,
       "modality": "tts",
@@ -7128,6 +8826,42 @@
         "source": "https://github.com/TigreGotico/phoonnx"
       },
       "notes": "Voice from the OpenVoiceOS phoonnx voice collection on HuggingFace (OpenVoiceOS/phoonnx_da-DK_miro_espeak)."
+    },
+    {
+      "competitor_id": "phoonnx-miro-es-co",
+      "schema_version": 1,
+      "modality": "tts",
+      "plugin": "ovos-tts-plugin-phoonnx",
+      "config": {
+        "lang": "es-CO",
+        "tts": {
+          "module": "ovos-tts-plugin-phoonnx",
+          "ovos-tts-plugin-phoonnx": {
+            "voice": "OpenVoiceOS/phoonnx_es-CO_miro_espeak",
+            "enable_phonetic_spelling": true
+          }
+        }
+      },
+      "langs": [
+        "es-CO"
+      ],
+      "alias": [
+        "ovos-tts-plugin-phoonnx"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "Phoonnx (Miro, es-CO)",
+      "species": "PhoonnxTTSPlugin",
+      "types": [
+        "neural-net"
+      ],
+      "description": "ONNX-runtime TTS with pluggable phonemizers (eSpeak, Gruut, Epitran) and a shared adapter framework for VITS and OptiSpeech voices. This fighter runs the Miro Colombian Spanish voice with the eSpeak phonemizer.",
+      "model": "OpenVoiceOS/phoonnx_es-CO_miro_espeak",
+      "links": {
+        "source": "https://github.com/TigreGotico/phoonnx"
+      },
+      "notes": "Voice from the OpenVoiceOS phoonnx voice collection on HuggingFace (OpenVoiceOS/phoonnx_es-CO_miro_espeak)."
     },
     {
       "competitor_id": "phoonnx-miro-eu-es",
@@ -7272,6 +9006,150 @@
         "source": "https://github.com/TigreGotico/phoonnx"
       },
       "notes": "README reference configuration with the Miro (pt-PT, tugaphone) voice."
+    },
+    {
+      "competitor_id": "phoonnx-miro-unicode-an",
+      "schema_version": 1,
+      "modality": "tts",
+      "plugin": "ovos-tts-plugin-phoonnx",
+      "config": {
+        "lang": "an",
+        "tts": {
+          "module": "ovos-tts-plugin-phoonnx",
+          "ovos-tts-plugin-phoonnx": {
+            "voice": "OpenVoiceOS/phoonnx_an_miro_unicode",
+            "enable_phonetic_spelling": true
+          }
+        }
+      },
+      "langs": [
+        "an"
+      ],
+      "alias": [
+        "ovos-tts-plugin-phoonnx"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "Phoonnx (Miro unicode, an)",
+      "species": "PhoonnxTTSPlugin",
+      "types": [
+        "neural-net"
+      ],
+      "description": "ONNX-runtime TTS with pluggable phonemizers (eSpeak, Gruut, Epitran) and a shared adapter framework for VITS and OptiSpeech voices. This fighter runs the Miro Aragonese voice with the unicode phonemizer.",
+      "model": "OpenVoiceOS/phoonnx_an_miro_unicode",
+      "links": {
+        "source": "https://github.com/TigreGotico/phoonnx"
+      },
+      "notes": "Voice from the OpenVoiceOS phoonnx voice collection on HuggingFace (OpenVoiceOS/phoonnx_an_miro_unicode)."
+    },
+    {
+      "competitor_id": "phoonnx-miro-unicode-ast",
+      "schema_version": 1,
+      "modality": "tts",
+      "plugin": "ovos-tts-plugin-phoonnx",
+      "config": {
+        "lang": "ast",
+        "tts": {
+          "module": "ovos-tts-plugin-phoonnx",
+          "ovos-tts-plugin-phoonnx": {
+            "voice": "OpenVoiceOS/phoonnx_ast_miro_unicode",
+            "enable_phonetic_spelling": true
+          }
+        }
+      },
+      "langs": [
+        "ast"
+      ],
+      "alias": [
+        "ovos-tts-plugin-phoonnx"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "Phoonnx (Miro unicode, ast)",
+      "species": "PhoonnxTTSPlugin",
+      "types": [
+        "neural-net"
+      ],
+      "description": "ONNX-runtime TTS with pluggable phonemizers (eSpeak, Gruut, Epitran) and a shared adapter framework for VITS and OptiSpeech voices. This fighter runs the Miro Asturian voice with the unicode phonemizer.",
+      "model": "OpenVoiceOS/phoonnx_ast_miro_unicode",
+      "links": {
+        "source": "https://github.com/TigreGotico/phoonnx"
+      },
+      "notes": "Voice from the OpenVoiceOS phoonnx voice collection on HuggingFace (OpenVoiceOS/phoonnx_ast_miro_unicode)."
+    },
+    {
+      "competitor_id": "phoonnx-miro-unicode-fy-nl",
+      "schema_version": 1,
+      "modality": "tts",
+      "plugin": "ovos-tts-plugin-phoonnx",
+      "config": {
+        "lang": "fy-NL",
+        "tts": {
+          "module": "ovos-tts-plugin-phoonnx",
+          "ovos-tts-plugin-phoonnx": {
+            "voice": "OpenVoiceOS/phoonnx_fy-NL_miro_unicode",
+            "enable_phonetic_spelling": true
+          }
+        }
+      },
+      "langs": [
+        "fy-NL"
+      ],
+      "alias": [
+        "ovos-tts-plugin-phoonnx"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "Phoonnx (Miro unicode, fy-NL)",
+      "species": "PhoonnxTTSPlugin",
+      "types": [
+        "neural-net"
+      ],
+      "description": "ONNX-runtime TTS with pluggable phonemizers (eSpeak, Gruut, Epitran) and a shared adapter framework for VITS and OptiSpeech voices. This fighter runs the Miro West Frisian voice with the unicode phonemizer.",
+      "model": "OpenVoiceOS/phoonnx_fy-NL_miro_unicode",
+      "links": {
+        "source": "https://github.com/TigreGotico/phoonnx"
+      },
+      "notes": "Voice from the OpenVoiceOS phoonnx voice collection on HuggingFace (OpenVoiceOS/phoonnx_fy-NL_miro_unicode)."
+    },
+    {
+      "competitor_id": "phoonnx-miro-unicode-oc",
+      "schema_version": 1,
+      "modality": "tts",
+      "plugin": "ovos-tts-plugin-phoonnx",
+      "config": {
+        "lang": "oc",
+        "tts": {
+          "module": "ovos-tts-plugin-phoonnx",
+          "ovos-tts-plugin-phoonnx": {
+            "voice": "OpenVoiceOS/phoonnx_oc_miro_unicode",
+            "enable_phonetic_spelling": true
+          }
+        }
+      },
+      "langs": [
+        "oc"
+      ],
+      "alias": [
+        "ovos-tts-plugin-phoonnx"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "Phoonnx (Miro unicode, oc)",
+      "species": "PhoonnxTTSPlugin",
+      "types": [
+        "neural-net"
+      ],
+      "description": "ONNX-runtime TTS with pluggable phonemizers (eSpeak, Gruut, Epitran) and a shared adapter framework for VITS and OptiSpeech voices. This fighter runs the Miro Occitan voice with the unicode phonemizer.",
+      "model": "OpenVoiceOS/phoonnx_oc_miro_unicode",
+      "links": {
+        "source": "https://github.com/TigreGotico/phoonnx"
+      },
+      "notes": "Voice from the OpenVoiceOS phoonnx voice collection on HuggingFace (OpenVoiceOS/phoonnx_oc_miro_unicode)."
     },
     {
       "competitor_id": "phoonnx-miro-unicode-pt-pt",
@@ -10530,6 +12408,45 @@
         "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakewordlab"
       },
       "notes": "Threshold variant of wakewordlab-hey-jarvis. The VAD gate (config.hotwords.hey_jarvis.vad / vad_threshold) is built into the plugin's own config block, not a separate listener.VAD pipeline stage — do not expect a listener.VAD block when diffing this against the openWakeWord -silero combo fighters."
+    },
+    {
+      "competitor_id": "ww-server-hey-mycroft",
+      "schema_version": 1,
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-server",
+      "config": {
+        "listener": {
+          "wake_word": "hey_mycroft"
+        },
+        "hotwords": {
+          "hey_mycroft": {
+            "module": "ovos-ww-plugin-server",
+            "listen": true,
+            "host": "ws://localhost:8338",
+            "sample_rate": 16000,
+            "sample_width": 2
+          }
+        }
+      },
+      "langs": [
+        "en"
+      ],
+      "alias": [
+        "ovos-ww-plugin-server"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "WW-Server (hey mycroft)",
+      "species": "ServerHotWordPlugin",
+      "types": [
+        "remote"
+      ],
+      "description": "Delegates wake-word detection to a shared remote host over a persistent WebSocket connection (satellite architecture): streams raw PCM frames to the server and receives detection events back, instead of running any model locally.",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-server"
+      },
+      "notes": "Remote-dependent, like the Azure/Google cloud fighters: requires a reachable ovos-ww-plugin-server host (default ws://localhost:8338); optional 'api_key' config sends 'Authorization: Bearer <key>'. No local model weights. Streams raw PCM frames but is not tagged 'stream' capability here since that tag is reserved by tests/test_ww_stream.py for the openwakeword-/microwakeword-/precise-onnx- families."
     }
   ]
 }

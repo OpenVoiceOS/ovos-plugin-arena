@@ -2,7 +2,7 @@
   "modality": "intent_template",
   "dataset_id": "intents-for-eval",
   "lang": "nl-NL",
-  "generated_at": "2026-07-24T05:49:50.851300+00:00",
+  "generated_at": "2026-08-11T22:04:02.925236+00:00",
   "primary_metric": "accuracy",
   "dataset_info": {
     "url": "https://huggingface.co/datasets/OpenVoiceOS/intents-for-eval",
@@ -26,13 +26,195 @@
   },
   "predictions_revisions": {
     "OpenVoiceOS/ovos-intent-bench-intents-for-eval": "f2a7ed1774b811f44bb6191df8dd74bb54256174",
-    "OpenVoiceOS/ovos-intent-keyword-bench-intents-for-eval": "8ce9c56e81d7e2e36b01a2ccdb921a98e5f0d7ba",
-    "OpenVoiceOS/ovos-intent-template-bench-intents-for-eval": "f995f0f26ff363055ccc9623aa84cadf2cfc1195"
+    "OpenVoiceOS/ovos-intent-keyword-bench-intents-for-eval": "bbaec024ecd957e0cae6043fdd54e7d71ebd43e1",
+    "OpenVoiceOS/ovos-intent-template-bench-intents-for-eval": "76e93e666fb38fee9fbc2e0cf7fefa1fbfffc06d"
   },
   "wer_normalizer_version": null,
   "entries": [
     {
       "rank": 1,
+      "competitor_id": "jurebes-sgd-modified-huber",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.808,
+        "macro_f1": 0.8454,
+        "ood_fpr": 0.42,
+        "slot_exact_match": 0.134,
+        "latency_ms_median": 1.51,
+        "acc_asr_noise": 0.56,
+        "acc_far_ood": 0.58,
+        "acc_near_ood": 0.9725,
+        "acc_paraphrase": 0.6414,
+        "acc_template": 1.0,
+        "acc_typos": 0.38
+      },
+      "primary_metric_ci_lower": 0.7891285714285714,
+      "primary_metric_ci_upper": 0.8257285714285714,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 2,
+      "competitor_id": "jurebes-mlp-shallow",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.804,
+        "macro_f1": 0.8589,
+        "ood_fpr": 0.34,
+        "slot_exact_match": 0.1309,
+        "latency_ms_median": 1.41,
+        "acc_asr_noise": 0.56,
+        "acc_far_ood": 0.66,
+        "acc_near_ood": 0.97,
+        "acc_paraphrase": 0.63,
+        "acc_template": 1.0,
+        "acc_typos": 0.34
+      },
+      "primary_metric_ci_lower": 0.7857142857142857,
+      "primary_metric_ci_upper": 0.8228571428571428,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 3,
+      "competitor_id": "jurebes-linear-svc-char",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.8029,
+        "macro_f1": 0.8667,
+        "ood_fpr": 0.08,
+        "slot_exact_match": 0.1257,
+        "latency_ms_median": 6.04,
+        "acc_asr_noise": 0.54,
+        "acc_far_ood": 0.92,
+        "acc_near_ood": 0.9725,
+        "acc_paraphrase": 0.6014,
+        "acc_template": 1.0,
+        "acc_typos": 0.44
+      },
+      "primary_metric_ci_lower": 0.7834285714285715,
+      "primary_metric_ci_upper": 0.8205714285714286,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 4,
+      "competitor_id": "jurebes-label-guided-linear-svc",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.7823,
+        "macro_f1": 0.8495,
+        "ood_fpr": 0.24,
+        "slot_exact_match": 0.1306,
+        "latency_ms_median": 6.12,
+        "acc_asr_noise": 0.48,
+        "acc_far_ood": 0.76,
+        "acc_near_ood": 0.9625,
+        "acc_paraphrase": 0.5857,
+        "acc_template": 0.996,
+        "acc_typos": 0.28
+      },
+      "primary_metric_ci_lower": 0.7628571428571429,
+      "primary_metric_ci_upper": 0.8017285714285713,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 5,
+      "competitor_id": "jurebes-bm25-logreg",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.7811,
+        "macro_f1": 0.8546,
+        "ood_fpr": 0.18,
+        "slot_exact_match": 0.124,
+        "latency_ms_median": 1.38,
+        "acc_asr_noise": 0.5,
+        "acc_far_ood": 0.82,
+        "acc_near_ood": 0.9725,
+        "acc_paraphrase": 0.57,
+        "acc_template": 1.0,
+        "acc_typos": 0.26
+      },
+      "primary_metric_ci_lower": 0.7611428571428571,
+      "primary_metric_ci_upper": 0.8005714285714286,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 6,
+      "competitor_id": "jurebes-union-bm25-pos-logreg",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.7783,
+        "macro_f1": 0.8525,
+        "ood_fpr": 0.18,
+        "slot_exact_match": 0.1246,
+        "latency_ms_median": 2.6,
+        "acc_asr_noise": 0.48,
+        "acc_far_ood": 0.82,
+        "acc_near_ood": 0.9725,
+        "acc_paraphrase": 0.5657,
+        "acc_template": 1.0,
+        "acc_typos": 0.24
+      },
+      "primary_metric_ci_lower": 0.7582857142857143,
+      "primary_metric_ci_upper": 0.7971428571428572,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 7,
+      "competitor_id": "jurebes-linear-svc",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.7674,
+        "macro_f1": 0.8436,
+        "ood_fpr": 0.08,
+        "slot_exact_match": 0.1236,
+        "latency_ms_median": 5.99,
+        "acc_asr_noise": 0.4,
+        "acc_far_ood": 0.92,
+        "acc_near_ood": 0.97,
+        "acc_paraphrase": 0.5343,
+        "acc_template": 1.0,
+        "acc_typos": 0.3
+      },
+      "primary_metric_ci_lower": 0.7462857142857143,
+      "primary_metric_ci_upper": 0.7874285714285715,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 8,
       "competitor_id": "jurebes-medium",
       "plugin_id": "ovos-jurebes-pipeline-plugin",
       "samples": 1750,
@@ -51,14 +233,404 @@
       },
       "primary_metric_ci_lower": 0.7462857142857143,
       "primary_metric_ci_upper": 0.7874285714285715,
-      "tied_with_leader": true,
+      "tied_with_leader": false,
       "plugin_versions": [
         "ovos-jurebes-pipeline-plugin==0.3.0a1"
       ],
       "version_blended": false
     },
     {
-      "rank": 2,
+      "rank": 9,
+      "competitor_id": "jurebes-ovr-linear-svc",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.7674,
+        "macro_f1": 0.8436,
+        "ood_fpr": 0.08,
+        "slot_exact_match": 0.1236,
+        "latency_ms_median": 15.34,
+        "acc_asr_noise": 0.4,
+        "acc_far_ood": 0.92,
+        "acc_near_ood": 0.97,
+        "acc_paraphrase": 0.5343,
+        "acc_template": 1.0,
+        "acc_typos": 0.3
+      },
+      "primary_metric_ci_lower": 0.7462857142857143,
+      "primary_metric_ci_upper": 0.7874285714285715,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 10,
+      "competitor_id": "jurebes-lda-classifier",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.7611,
+        "macro_f1": 0.8122,
+        "ood_fpr": 0.46,
+        "slot_exact_match": 0.1304,
+        "latency_ms_median": 1.44,
+        "acc_asr_noise": 0.34,
+        "acc_far_ood": 0.54,
+        "acc_near_ood": 0.9625,
+        "acc_paraphrase": 0.5529,
+        "acc_template": 1.0,
+        "acc_typos": 0.32
+      },
+      "primary_metric_ci_lower": 0.7411285714285715,
+      "primary_metric_ci_upper": 0.7817285714285714,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 11,
+      "competitor_id": "jurebes-ridge",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.7611,
+        "macro_f1": 0.8379,
+        "ood_fpr": 0.08,
+        "slot_exact_match": 0.1242,
+        "latency_ms_median": 6.3,
+        "acc_asr_noise": 0.42,
+        "acc_far_ood": 0.92,
+        "acc_near_ood": 0.97,
+        "acc_paraphrase": 0.5243,
+        "acc_template": 0.994,
+        "acc_typos": 0.26
+      },
+      "primary_metric_ci_lower": 0.7394000000000001,
+      "primary_metric_ci_upper": 0.7817285714285714,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 12,
+      "competitor_id": "jurebes-sgd-hinge",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.7583,
+        "macro_f1": 0.8402,
+        "ood_fpr": 0.1,
+        "slot_exact_match": 0.1215,
+        "latency_ms_median": 6.17,
+        "acc_asr_noise": 0.42,
+        "acc_far_ood": 0.9,
+        "acc_near_ood": 0.97,
+        "acc_paraphrase": 0.5129,
+        "acc_template": 1.0,
+        "acc_typos": 0.28
+      },
+      "primary_metric_ci_lower": 0.7371428571428571,
+      "primary_metric_ci_upper": 0.7782857142857142,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 13,
+      "competitor_id": "jurebes-linear-svc-hinge",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.7571,
+        "macro_f1": 0.8356,
+        "ood_fpr": 0.1,
+        "slot_exact_match": 0.1238,
+        "latency_ms_median": 5.99,
+        "acc_asr_noise": 0.4,
+        "acc_far_ood": 0.9,
+        "acc_near_ood": 0.96,
+        "acc_paraphrase": 0.5214,
+        "acc_template": 0.998,
+        "acc_typos": 0.24
+      },
+      "primary_metric_ci_lower": 0.7348571428571429,
+      "primary_metric_ci_upper": 0.7771571428571428,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 14,
+      "competitor_id": "jurebes-gradient-boosting",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.7537,
+        "macro_f1": 0.814,
+        "ood_fpr": 0.34,
+        "slot_exact_match": 0.1087,
+        "latency_ms_median": 1.91,
+        "acc_asr_noise": 0.44,
+        "acc_far_ood": 0.66,
+        "acc_near_ood": 0.9625,
+        "acc_paraphrase": 0.5229,
+        "acc_template": 1.0,
+        "acc_typos": 0.26
+      },
+      "primary_metric_ci_lower": 0.7337142857142858,
+      "primary_metric_ci_upper": 0.7748571428571429,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 15,
+      "competitor_id": "jurebes-passive-aggressive",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.7514,
+        "macro_f1": 0.8361,
+        "ood_fpr": 0.1,
+        "slot_exact_match": 0.1242,
+        "latency_ms_median": 6.02,
+        "acc_asr_noise": 0.3,
+        "acc_far_ood": 0.9,
+        "acc_near_ood": 0.97,
+        "acc_paraphrase": 0.51,
+        "acc_template": 1.0,
+        "acc_typos": 0.2
+      },
+      "primary_metric_ci_lower": 0.7302714285714286,
+      "primary_metric_ci_upper": 0.7720142857142858,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 16,
+      "competitor_id": "jurebes-bm25-linear-svc",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.7486,
+        "macro_f1": 0.8324,
+        "ood_fpr": 0.08,
+        "slot_exact_match": 0.1225,
+        "latency_ms_median": 5.88,
+        "acc_asr_noise": 0.4,
+        "acc_far_ood": 0.92,
+        "acc_near_ood": 0.96,
+        "acc_paraphrase": 0.5,
+        "acc_template": 0.996,
+        "acc_typos": 0.24
+      },
+      "primary_metric_ci_lower": 0.7268571428571429,
+      "primary_metric_ci_upper": 0.7691428571428571,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 17,
+      "competitor_id": "jurebes-hashing-sgd-hinge",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.7457,
+        "macro_f1": 0.8345,
+        "ood_fpr": 0.08,
+        "slot_exact_match": 0.1179,
+        "latency_ms_median": 104.39,
+        "acc_asr_noise": 0.34,
+        "acc_far_ood": 0.92,
+        "acc_near_ood": 0.97,
+        "acc_paraphrase": 0.49,
+        "acc_template": 0.998,
+        "acc_typos": 0.24
+      },
+      "primary_metric_ci_lower": 0.7257,
+      "primary_metric_ci_upper": 0.7657285714285714,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 18,
+      "competitor_id": "jurebes-stacking",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.7434,
+        "macro_f1": 0.8284,
+        "ood_fpr": 0.08,
+        "slot_exact_match": 0.1306,
+        "latency_ms_median": 6.56,
+        "acc_asr_noise": 0.28,
+        "acc_far_ood": 0.92,
+        "acc_near_ood": 0.97,
+        "acc_paraphrase": 0.4871,
+        "acc_template": 1.0,
+        "acc_typos": 0.24
+      },
+      "primary_metric_ci_lower": 0.7222857142857143,
+      "primary_metric_ci_upper": 0.7634428571428571,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 19,
+      "competitor_id": "jurebes-hist-gbm",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.7343,
+        "macro_f1": 0.7748,
+        "ood_fpr": 0.44,
+        "slot_exact_match": 0.1034,
+        "latency_ms_median": 28.61,
+        "acc_asr_noise": 0.42,
+        "acc_far_ood": 0.56,
+        "acc_near_ood": 0.9525,
+        "acc_paraphrase": 0.4843,
+        "acc_template": 0.998,
+        "acc_typos": 0.34
+      },
+      "primary_metric_ci_lower": 0.7137142857142857,
+      "primary_metric_ci_upper": 0.7548571428571429,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 20,
+      "competitor_id": "jurebes-knn",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.7223,
+        "macro_f1": 0.7893,
+        "ood_fpr": 0.42,
+        "slot_exact_match": 0.1161,
+        "latency_ms_median": 1.85,
+        "acc_asr_noise": 0.3,
+        "acc_far_ood": 0.58,
+        "acc_near_ood": 0.9725,
+        "acc_paraphrase": 0.46,
+        "acc_template": 1.0,
+        "acc_typos": 0.18
+      },
+      "primary_metric_ci_lower": 0.7005571428571429,
+      "primary_metric_ci_upper": 0.7440142857142857,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 21,
+      "competitor_id": "linha-fina-hierarchical-medium",
+      "plugin_id": "ovos-linha-fina-hierarchical-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.7126,
+        "macro_f1": 0.7887,
+        "ood_fpr": 0.12,
+        "slot_exact_match": 0.0,
+        "latency_ms_median": 61.7,
+        "acc_asr_noise": 0.46,
+        "acc_far_ood": 0.88,
+        "acc_near_ood": 0.9125,
+        "acc_paraphrase": 0.4543,
+        "acc_template": 0.968,
+        "acc_typos": 0.26
+      },
+      "primary_metric_ci_lower": 0.6902857142857143,
+      "primary_metric_ci_upper": 0.7337142857142858,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-linha-fina-hierarchical-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 22,
+      "competitor_id": "jurebes-logreg-l1",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.7091,
+        "macro_f1": 0.8054,
+        "ood_fpr": 0.1,
+        "slot_exact_match": 0.1202,
+        "latency_ms_median": 1.39,
+        "acc_asr_noise": 0.3,
+        "acc_far_ood": 0.9,
+        "acc_near_ood": 0.9525,
+        "acc_paraphrase": 0.4257,
+        "acc_template": 0.986,
+        "acc_typos": 0.18
+      },
+      "primary_metric_ci_lower": 0.6862857142857143,
+      "primary_metric_ci_upper": 0.7291571428571428,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 23,
+      "competitor_id": "jurebes-label-guided-logreg",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.7051,
+        "macro_f1": 0.8104,
+        "ood_fpr": 0.06,
+        "slot_exact_match": 0.1156,
+        "latency_ms_median": 1.56,
+        "acc_asr_noise": 0.32,
+        "acc_far_ood": 0.94,
+        "acc_near_ood": 0.96,
+        "acc_paraphrase": 0.4029,
+        "acc_template": 0.988,
+        "acc_typos": 0.22
+      },
+      "primary_metric_ci_lower": 0.6834142857142858,
+      "primary_metric_ci_upper": 0.728,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 24,
       "competitor_id": "linha-fina-medium",
       "plugin_id": "ovos-linha-fina-pipeline-plugin",
       "samples": 1750,
@@ -84,7 +656,397 @@
       "version_blended": false
     },
     {
-      "rank": 3,
+      "rank": 25,
+      "competitor_id": "jurebes-nb-bernoulli",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.68,
+        "macro_f1": 0.7628,
+        "ood_fpr": 0.2,
+        "slot_exact_match": 0.1178,
+        "latency_ms_median": 1.47,
+        "acc_asr_noise": 0.22,
+        "acc_far_ood": 0.8,
+        "acc_near_ood": 0.9475,
+        "acc_paraphrase": 0.3643,
+        "acc_template": 0.996,
+        "acc_typos": 0.14
+      },
+      "primary_metric_ci_lower": 0.6571428571428571,
+      "primary_metric_ci_upper": 0.7017142857142857,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 26,
+      "competitor_id": "jurebes-perceptron",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.6726,
+        "macro_f1": 0.7882,
+        "ood_fpr": 0.06,
+        "slot_exact_match": 0.0989,
+        "latency_ms_median": 6.1,
+        "acc_asr_noise": 0.16,
+        "acc_far_ood": 0.94,
+        "acc_near_ood": 0.9475,
+        "acc_paraphrase": 0.3443,
+        "acc_template": 0.99,
+        "acc_typos": 0.14
+      },
+      "primary_metric_ci_lower": 0.6508571428571429,
+      "primary_metric_ci_upper": 0.6942857142857143,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 27,
+      "competitor_id": "jurebes-decision-tree",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.6674,
+        "macro_f1": 0.7005,
+        "ood_fpr": 1.0,
+        "slot_exact_match": 0.0951,
+        "latency_ms_median": 1.45,
+        "acc_asr_noise": 0.2,
+        "acc_far_ood": 0.0,
+        "acc_near_ood": 0.955,
+        "acc_paraphrase": 0.3814,
+        "acc_template": 0.998,
+        "acc_typos": 0.2
+      },
+      "primary_metric_ci_lower": 0.6468571428571429,
+      "primary_metric_ci_upper": 0.6897142857142857,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 28,
+      "competitor_id": "jurebes-extra-trees",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.6669,
+        "macro_f1": 0.7823,
+        "ood_fpr": 0.06,
+        "slot_exact_match": 0.1014,
+        "latency_ms_median": 5.24,
+        "acc_asr_noise": 0.16,
+        "acc_far_ood": 0.94,
+        "acc_near_ood": 0.9425,
+        "acc_paraphrase": 0.3286,
+        "acc_template": 0.998,
+        "acc_typos": 0.12
+      },
+      "primary_metric_ci_lower": 0.6439857142857143,
+      "primary_metric_ci_upper": 0.6891428571428572,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 29,
+      "competitor_id": "linha-fina-domain-medium",
+      "plugin_id": "ovos-linha-fina-domain-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.6663,
+        "macro_f1": 0.7129,
+        "ood_fpr": 0.24,
+        "slot_exact_match": 0.0,
+        "latency_ms_median": 87.88,
+        "acc_asr_noise": 0.42,
+        "acc_far_ood": 0.76,
+        "acc_near_ood": 0.8325,
+        "acc_paraphrase": 0.44,
+        "acc_template": 0.904,
+        "acc_typos": 0.28
+      },
+      "primary_metric_ci_lower": 0.6434285714285715,
+      "primary_metric_ci_upper": 0.6891428571428572,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-linha-fina-domain-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 30,
+      "competitor_id": "jurebes-union-logreg",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.6411,
+        "macro_f1": 0.7652,
+        "ood_fpr": 0.0,
+        "slot_exact_match": 0.0938,
+        "latency_ms_median": 2.74,
+        "acc_asr_noise": 0.16,
+        "acc_far_ood": 1.0,
+        "acc_near_ood": 0.9375,
+        "acc_paraphrase": 0.2686,
+        "acc_template": 0.988,
+        "acc_typos": 0.14
+      },
+      "primary_metric_ci_lower": 0.6182857142857143,
+      "primary_metric_ci_upper": 0.6634428571428572,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 31,
+      "competitor_id": "jurebes-random-forest",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.6389,
+        "macro_f1": 0.7635,
+        "ood_fpr": 0.06,
+        "slot_exact_match": 0.0864,
+        "latency_ms_median": 5.33,
+        "acc_asr_noise": 0.1,
+        "acc_far_ood": 0.94,
+        "acc_near_ood": 0.9425,
+        "acc_paraphrase": 0.2671,
+        "acc_template": 0.996,
+        "acc_typos": 0.08
+      },
+      "primary_metric_ci_lower": 0.6159857142857144,
+      "primary_metric_ci_upper": 0.6605714285714286,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 32,
+      "competitor_id": "jurebes-autoencoder-logreg-deep",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.6337,
+        "macro_f1": 0.7546,
+        "ood_fpr": 0.06,
+        "slot_exact_match": 0.0978,
+        "latency_ms_median": 1.59,
+        "acc_asr_noise": 0.18,
+        "acc_far_ood": 0.94,
+        "acc_near_ood": 0.9425,
+        "acc_paraphrase": 0.2543,
+        "acc_template": 0.986,
+        "acc_typos": 0.1
+      },
+      "primary_metric_ci_lower": 0.6102857142857143,
+      "primary_metric_ci_upper": 0.6565857142857142,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 33,
+      "competitor_id": "jurebes-autoencoder-logreg-wide",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.6223,
+        "macro_f1": 0.7485,
+        "ood_fpr": 0.0,
+        "slot_exact_match": 0.0955,
+        "latency_ms_median": 1.56,
+        "acc_asr_noise": 0.2,
+        "acc_far_ood": 1.0,
+        "acc_near_ood": 0.93,
+        "acc_paraphrase": 0.23,
+        "acc_template": 0.978,
+        "acc_typos": 0.14
+      },
+      "primary_metric_ci_lower": 0.6,
+      "primary_metric_ci_upper": 0.6445857142857142,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 34,
+      "competitor_id": "jurebes-logreg-elasticnet",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.6194,
+        "macro_f1": 0.7491,
+        "ood_fpr": 0.02,
+        "slot_exact_match": 0.0895,
+        "latency_ms_median": 1.4,
+        "acc_asr_noise": 0.14,
+        "acc_far_ood": 0.98,
+        "acc_near_ood": 0.9275,
+        "acc_paraphrase": 0.2271,
+        "acc_template": 0.986,
+        "acc_typos": 0.1
+      },
+      "primary_metric_ci_lower": 0.596,
+      "primary_metric_ci_upper": 0.6423,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 35,
+      "competitor_id": "jurebes-rbf-svc",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.616,
+        "macro_f1": 0.748,
+        "ood_fpr": 0.04,
+        "slot_exact_match": 0.0816,
+        "latency_ms_median": 1.87,
+        "acc_asr_noise": 0.12,
+        "acc_far_ood": 0.96,
+        "acc_near_ood": 0.9375,
+        "acc_paraphrase": 0.2186,
+        "acc_template": 0.986,
+        "acc_typos": 0.06
+      },
+      "primary_metric_ci_lower": 0.5937142857142857,
+      "primary_metric_ci_upper": 0.64,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 36,
+      "competitor_id": "jurebes-lsa-linear-svc",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.6143,
+        "macro_f1": 0.7387,
+        "ood_fpr": 0.04,
+        "slot_exact_match": 0.0966,
+        "latency_ms_median": 6.13,
+        "acc_asr_noise": 0.1,
+        "acc_far_ood": 0.96,
+        "acc_near_ood": 0.9125,
+        "acc_paraphrase": 0.2286,
+        "acc_template": 0.988,
+        "acc_typos": 0.06
+      },
+      "primary_metric_ci_lower": 0.5902857142857143,
+      "primary_metric_ci_upper": 0.636,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 37,
+      "competitor_id": "jurebes-sgd-log",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.6126,
+        "macro_f1": 0.7441,
+        "ood_fpr": 0.0,
+        "slot_exact_match": 0.0941,
+        "latency_ms_median": 1.45,
+        "acc_asr_noise": 0.1,
+        "acc_far_ood": 1.0,
+        "acc_near_ood": 0.9175,
+        "acc_paraphrase": 0.2214,
+        "acc_template": 0.984,
+        "acc_typos": 0.06
+      },
+      "primary_metric_ci_lower": 0.5897142857142857,
+      "primary_metric_ci_upper": 0.6342999999999999,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 38,
+      "competitor_id": "jurebes-union-pos-char-logreg",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.608,
+        "macro_f1": 0.7418,
+        "ood_fpr": 0.0,
+        "slot_exact_match": 0.0711,
+        "latency_ms_median": 2.35,
+        "acc_asr_noise": 0.12,
+        "acc_far_ood": 1.0,
+        "acc_near_ood": 0.93,
+        "acc_paraphrase": 0.1971,
+        "acc_template": 0.99,
+        "acc_typos": 0.06
+      },
+      "primary_metric_ci_lower": 0.5851428571428572,
+      "primary_metric_ci_upper": 0.632,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 39,
+      "competitor_id": "jurebes-lsa-rbf-svc",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.6069,
+        "macro_f1": 0.7316,
+        "ood_fpr": 0.02,
+        "slot_exact_match": 0.0906,
+        "latency_ms_median": 1.84,
+        "acc_asr_noise": 0.08,
+        "acc_far_ood": 0.98,
+        "acc_near_ood": 0.9325,
+        "acc_paraphrase": 0.1971,
+        "acc_template": 0.988,
+        "acc_typos": 0.08
+      },
+      "primary_metric_ci_lower": 0.5828571428571429,
+      "primary_metric_ci_upper": 0.6291571428571429,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 40,
       "competitor_id": "nebulento-medium",
       "plugin_id": "ovos-nebulento-pipeline-plugin",
       "samples": 1750,
@@ -110,7 +1072,267 @@
       "version_blended": false
     },
     {
-      "rank": 4,
+      "rank": 41,
+      "competitor_id": "jurebes-voting-soft",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.6017,
+        "macro_f1": 0.7366,
+        "ood_fpr": 0.0,
+        "slot_exact_match": 0.0849,
+        "latency_ms_median": 8.37,
+        "acc_asr_noise": 0.1,
+        "acc_far_ood": 1.0,
+        "acc_near_ood": 0.9275,
+        "acc_paraphrase": 0.1871,
+        "acc_template": 0.984,
+        "acc_typos": 0.08
+      },
+      "primary_metric_ci_lower": 0.5799714285714286,
+      "primary_metric_ci_upper": 0.6245714285714286,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 42,
+      "competitor_id": "jurebes-autoencoder-rbf-svc",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.6006,
+        "macro_f1": 0.7278,
+        "ood_fpr": 0.04,
+        "slot_exact_match": 0.0916,
+        "latency_ms_median": 1.79,
+        "acc_asr_noise": 0.08,
+        "acc_far_ood": 0.96,
+        "acc_near_ood": 0.9175,
+        "acc_paraphrase": 0.1971,
+        "acc_template": 0.978,
+        "acc_typos": 0.1
+      },
+      "primary_metric_ci_lower": 0.5765571428571429,
+      "primary_metric_ci_upper": 0.624,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 43,
+      "competitor_id": "jurebes-union-pos-tfidf-logreg",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.5994,
+        "macro_f1": 0.7338,
+        "ood_fpr": 0.0,
+        "slot_exact_match": 0.0825,
+        "latency_ms_median": 2.5,
+        "acc_asr_noise": 0.08,
+        "acc_far_ood": 1.0,
+        "acc_near_ood": 0.915,
+        "acc_paraphrase": 0.19,
+        "acc_template": 0.988,
+        "acc_typos": 0.04
+      },
+      "primary_metric_ci_lower": 0.5759857142857142,
+      "primary_metric_ci_upper": 0.6228714285714286,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 44,
+      "competitor_id": "jurebes-union-skipgram-tfidf-logreg",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.5971,
+        "macro_f1": 0.7319,
+        "ood_fpr": 0.0,
+        "slot_exact_match": 0.09,
+        "latency_ms_median": 2.5,
+        "acc_asr_noise": 0.04,
+        "acc_far_ood": 1.0,
+        "acc_near_ood": 0.9175,
+        "acc_paraphrase": 0.1886,
+        "acc_template": 0.984,
+        "acc_typos": 0.04
+      },
+      "primary_metric_ci_lower": 0.5742714285714285,
+      "primary_metric_ci_upper": 0.6205714285714286,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 45,
+      "competitor_id": "jurebes-union-text-stats-logreg",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.596,
+        "macro_f1": 0.7303,
+        "ood_fpr": 0.0,
+        "slot_exact_match": 0.0816,
+        "latency_ms_median": 2.14,
+        "acc_asr_noise": 0.06,
+        "acc_far_ood": 1.0,
+        "acc_near_ood": 0.925,
+        "acc_paraphrase": 0.1786,
+        "acc_template": 0.984,
+        "acc_typos": 0.06
+      },
+      "primary_metric_ci_lower": 0.5725714285714286,
+      "primary_metric_ci_upper": 0.6188571428571429,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 46,
+      "competitor_id": "jurebes-logreg-char",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.5954,
+        "macro_f1": 0.7318,
+        "ood_fpr": 0.0,
+        "slot_exact_match": 0.0672,
+        "latency_ms_median": 1.48,
+        "acc_asr_noise": 0.14,
+        "acc_far_ood": 1.0,
+        "acc_near_ood": 0.93,
+        "acc_paraphrase": 0.1686,
+        "acc_template": 0.984,
+        "acc_typos": 0.06
+      },
+      "primary_metric_ci_lower": 0.5725714285714286,
+      "primary_metric_ci_upper": 0.6188571428571429,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 47,
+      "competitor_id": "jurebes-stemmed-logreg",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.5869,
+        "macro_f1": 0.7238,
+        "ood_fpr": 0.0,
+        "slot_exact_match": 0.0757,
+        "latency_ms_median": 1.51,
+        "acc_asr_noise": 0.04,
+        "acc_far_ood": 1.0,
+        "acc_near_ood": 0.9175,
+        "acc_paraphrase": 0.1686,
+        "acc_template": 0.978,
+        "acc_typos": 0.02
+      },
+      "primary_metric_ci_lower": 0.5634285714285714,
+      "primary_metric_ci_upper": 0.6097285714285715,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 48,
+      "competitor_id": "jurebes-word-pos-logreg",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.5869,
+        "macro_f1": 0.724,
+        "ood_fpr": 0.0,
+        "slot_exact_match": 0.0772,
+        "latency_ms_median": 2.32,
+        "acc_asr_noise": 0.04,
+        "acc_far_ood": 1.0,
+        "acc_near_ood": 0.9175,
+        "acc_paraphrase": 0.1643,
+        "acc_template": 0.98,
+        "acc_typos": 0.06
+      },
+      "primary_metric_ci_lower": 0.5634285714285714,
+      "primary_metric_ci_upper": 0.6097285714285715,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 49,
+      "competitor_id": "jurebes-logreg",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.5863,
+        "macro_f1": 0.7234,
+        "ood_fpr": 0.0,
+        "slot_exact_match": 0.0758,
+        "latency_ms_median": 1.41,
+        "acc_asr_noise": 0.04,
+        "acc_far_ood": 1.0,
+        "acc_near_ood": 0.9175,
+        "acc_paraphrase": 0.1671,
+        "acc_template": 0.978,
+        "acc_typos": 0.02
+      },
+      "primary_metric_ci_lower": 0.5634142857142856,
+      "primary_metric_ci_upper": 0.6091428571428571,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 50,
+      "competitor_id": "jurebes-hashing-sgd-log",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.5789,
+        "macro_f1": 0.7183,
+        "ood_fpr": 0.0,
+        "slot_exact_match": 0.0706,
+        "latency_ms_median": 34.75,
+        "acc_asr_noise": 0.02,
+        "acc_far_ood": 1.0,
+        "acc_near_ood": 0.915,
+        "acc_paraphrase": 0.1457,
+        "acc_template": 0.982,
+        "acc_typos": 0.06
+      },
+      "primary_metric_ci_lower": 0.5559714285714286,
+      "primary_metric_ci_upper": 0.6017142857142858,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 51,
       "competitor_id": "padacioso-medium",
       "plugin_id": "ovos-padacioso-pipeline-plugin",
       "samples": 1750,
@@ -136,7 +1358,85 @@
       "version_blended": false
     },
     {
-      "rank": 5,
+      "rank": 52,
+      "competitor_id": "jurebes-ovo-linear-svc",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.5743,
+        "macro_f1": 0.7045,
+        "ood_fpr": 0.44,
+        "slot_exact_match": 0.0635,
+        "latency_ms_median": 590.45,
+        "acc_asr_noise": 0.12,
+        "acc_far_ood": 0.56,
+        "acc_near_ood": 0.8375,
+        "acc_paraphrase": 0.2143,
+        "acc_template": 0.962,
+        "acc_typos": 0.1
+      },
+      "primary_metric_ci_lower": 0.5497,
+      "primary_metric_ci_upper": 0.5965857142857143,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 53,
+      "competitor_id": "nebulento-hierarchical-medium",
+      "plugin_id": "ovos-nebulento-hierarchical-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.5737,
+        "macro_f1": 0.7131,
+        "ood_fpr": 0.0,
+        "slot_exact_match": 0.0,
+        "latency_ms_median": 11.7,
+        "acc_asr_noise": 0.04,
+        "acc_far_ood": 1.0,
+        "acc_near_ood": 0.8925,
+        "acc_paraphrase": 0.1329,
+        "acc_template": 1.0,
+        "acc_typos": 0.04
+      },
+      "primary_metric_ci_lower": 0.5514285714285714,
+      "primary_metric_ci_upper": 0.5954428571428572,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-nebulento-hierarchical-pipeline-plugin==0.1.1a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 54,
+      "competitor_id": "jurebes-bagging-logreg",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.5731,
+        "macro_f1": 0.712,
+        "ood_fpr": 0.0,
+        "slot_exact_match": 0.0753,
+        "latency_ms_median": 2.86,
+        "acc_asr_noise": 0.04,
+        "acc_far_ood": 1.0,
+        "acc_near_ood": 0.8975,
+        "acc_paraphrase": 0.1471,
+        "acc_template": 0.976,
+        "acc_typos": 0.02
+      },
+      "primary_metric_ci_lower": 0.5502857142857143,
+      "primary_metric_ci_upper": 0.596,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 55,
       "competitor_id": "padatious-medium",
       "plugin_id": "ovos-padatious-pipeline-plugin",
       "samples": 1750,
@@ -162,7 +1462,449 @@
       "version_blended": false
     },
     {
-      "rank": 6,
+      "rank": 56,
+      "competitor_id": "padatious-domain-medium",
+      "plugin_id": "ovos-padatious-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.5703,
+        "macro_f1": 0.7107,
+        "ood_fpr": 0.0,
+        "slot_exact_match": 0.0584,
+        "latency_ms_median": 18.04,
+        "acc_asr_noise": 0.04,
+        "acc_far_ood": 1.0,
+        "acc_near_ood": 0.8975,
+        "acc_paraphrase": 0.1271,
+        "acc_template": 0.99,
+        "acc_typos": 0.06
+      },
+      "primary_metric_ci_lower": 0.5474285714285714,
+      "primary_metric_ci_upper": 0.5937142857142857,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-padatious-pipeline-plugin==2.0.1a2"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 57,
+      "competitor_id": "jurebes-autoencoder-linear-svc",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.5691,
+        "macro_f1": 0.7034,
+        "ood_fpr": 0.02,
+        "slot_exact_match": 0.0523,
+        "latency_ms_median": 6.4,
+        "acc_asr_noise": 0.08,
+        "acc_far_ood": 0.98,
+        "acc_near_ood": 0.8725,
+        "acc_paraphrase": 0.1471,
+        "acc_template": 0.974,
+        "acc_typos": 0.08
+      },
+      "primary_metric_ci_lower": 0.5451428571428572,
+      "primary_metric_ci_upper": 0.5937142857142857,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 58,
+      "competitor_id": "jurebes-random-projection-logreg",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.5669,
+        "macro_f1": 0.7063,
+        "ood_fpr": 0.0,
+        "slot_exact_match": 0.0435,
+        "latency_ms_median": 1.68,
+        "acc_asr_noise": 0.04,
+        "acc_far_ood": 1.0,
+        "acc_near_ood": 0.895,
+        "acc_paraphrase": 0.1343,
+        "acc_template": 0.972,
+        "acc_typos": 0.04
+      },
+      "primary_metric_ci_lower": 0.5434285714285715,
+      "primary_metric_ci_upper": 0.5902857142857143,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 59,
+      "competitor_id": "jurebes-complement-nb-count",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.5606,
+        "macro_f1": 0.7,
+        "ood_fpr": 0.0,
+        "slot_exact_match": 0.0409,
+        "latency_ms_median": 1.26,
+        "acc_asr_noise": 0.06,
+        "acc_far_ood": 1.0,
+        "acc_near_ood": 0.865,
+        "acc_paraphrase": 0.1371,
+        "acc_template": 0.97,
+        "acc_typos": 0.02
+      },
+      "primary_metric_ci_lower": 0.5371428571428571,
+      "primary_metric_ci_upper": 0.584,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 60,
+      "competitor_id": "jurebes-autoencoder-logreg",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.5503,
+        "macro_f1": 0.6909,
+        "ood_fpr": 0.02,
+        "slot_exact_match": 0.0422,
+        "latency_ms_median": 1.49,
+        "acc_asr_noise": 0.06,
+        "acc_far_ood": 0.98,
+        "acc_near_ood": 0.8575,
+        "acc_paraphrase": 0.1129,
+        "acc_template": 0.972,
+        "acc_typos": 0.06
+      },
+      "primary_metric_ci_lower": 0.5262857142857142,
+      "primary_metric_ci_upper": 0.5737142857142857,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 61,
+      "competitor_id": "jurebes-lsa-logreg",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.5469,
+        "macro_f1": 0.6892,
+        "ood_fpr": 0.04,
+        "slot_exact_match": 0.0443,
+        "latency_ms_median": 1.56,
+        "acc_asr_noise": 0.02,
+        "acc_far_ood": 0.96,
+        "acc_near_ood": 0.885,
+        "acc_paraphrase": 0.0971,
+        "acc_template": 0.968,
+        "acc_typos": 0.04
+      },
+      "primary_metric_ci_lower": 0.5228428571428572,
+      "primary_metric_ci_upper": 0.5697285714285714,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 62,
+      "competitor_id": "jurebes-nb-multinomial",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.5411,
+        "macro_f1": 0.6859,
+        "ood_fpr": 0.0,
+        "slot_exact_match": 0.0339,
+        "latency_ms_median": 1.47,
+        "acc_asr_noise": 0.0,
+        "acc_far_ood": 1.0,
+        "acc_near_ood": 0.8875,
+        "acc_paraphrase": 0.0814,
+        "acc_template": 0.968,
+        "acc_typos": 0.02
+      },
+      "primary_metric_ci_lower": 0.5177,
+      "primary_metric_ci_upper": 0.5640142857142857,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 63,
+      "competitor_id": "jurebes-skipgram-logreg",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.5269,
+        "macro_f1": 0.671,
+        "ood_fpr": 0.0,
+        "slot_exact_match": 0.0159,
+        "latency_ms_median": 1.44,
+        "acc_asr_noise": 0.0,
+        "acc_far_ood": 1.0,
+        "acc_near_ood": 0.835,
+        "acc_paraphrase": 0.0829,
+        "acc_template": 0.96,
+        "acc_typos": 0.0
+      },
+      "primary_metric_ci_lower": 0.5034285714285714,
+      "primary_metric_ci_upper": 0.5508571428571428,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 64,
+      "competitor_id": "markov-domain-medium",
+      "plugin_id": "ovos-markov-domain-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.5154,
+        "macro_f1": 0.593,
+        "ood_fpr": 0.12,
+        "slot_exact_match": 0.0,
+        "latency_ms_median": 1.25,
+        "acc_asr_noise": 0.12,
+        "acc_far_ood": 0.88,
+        "acc_near_ood": 0.64,
+        "acc_paraphrase": 0.37,
+        "acc_template": 0.66,
+        "acc_typos": 0.14
+      },
+      "primary_metric_ci_lower": 0.492,
+      "primary_metric_ci_upper": 0.5377142857142857,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-markov-domain-pipeline-plugin==0.5.0a2"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 65,
+      "competitor_id": "jurebes-pos-sequence-logreg",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.5074,
+        "macro_f1": 0.6509,
+        "ood_fpr": 0.0,
+        "slot_exact_match": 0.0064,
+        "latency_ms_median": 1.54,
+        "acc_asr_noise": 0.0,
+        "acc_far_ood": 1.0,
+        "acc_near_ood": 0.815,
+        "acc_paraphrase": 0.0486,
+        "acc_template": 0.956,
+        "acc_typos": 0.0
+      },
+      "primary_metric_ci_lower": 0.4828571428571429,
+      "primary_metric_ci_upper": 0.5303,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 66,
+      "competitor_id": "jurebes-lda-logreg",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.504,
+        "macro_f1": 0.6483,
+        "ood_fpr": 0.0,
+        "slot_exact_match": 0.0021,
+        "latency_ms_median": 1.68,
+        "acc_asr_noise": 0.0,
+        "acc_far_ood": 1.0,
+        "acc_near_ood": 0.805,
+        "acc_paraphrase": 0.0471,
+        "acc_template": 0.954,
+        "acc_typos": 0.0
+      },
+      "primary_metric_ci_lower": 0.48,
+      "primary_metric_ci_upper": 0.5268571428571428,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 67,
+      "competitor_id": "jurebes-denoising-autoencoder-logreg",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.5029,
+        "macro_f1": 0.6475,
+        "ood_fpr": 0.0,
+        "slot_exact_match": 0.0,
+        "latency_ms_median": 1.48,
+        "acc_asr_noise": 0.0,
+        "acc_far_ood": 1.0,
+        "acc_near_ood": 0.805,
+        "acc_paraphrase": 0.0443,
+        "acc_template": 0.954,
+        "acc_typos": 0.0
+      },
+      "primary_metric_ci_lower": 0.4788428571428571,
+      "primary_metric_ci_upper": 0.5262857142857142,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 68,
+      "competitor_id": "jurebes-nb-complement",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.5029,
+        "macro_f1": 0.6475,
+        "ood_fpr": 0.0,
+        "slot_exact_match": 0.0,
+        "latency_ms_median": 1.5,
+        "acc_asr_noise": 0.0,
+        "acc_far_ood": 1.0,
+        "acc_near_ood": 0.805,
+        "acc_paraphrase": 0.0443,
+        "acc_template": 0.954,
+        "acc_typos": 0.0
+      },
+      "primary_metric_ci_lower": 0.4788428571428571,
+      "primary_metric_ci_upper": 0.5262857142857142,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 69,
+      "competitor_id": "jurebes-nmf-logreg",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.5029,
+        "macro_f1": 0.6475,
+        "ood_fpr": 0.0,
+        "slot_exact_match": 0.0,
+        "latency_ms_median": 2.03,
+        "acc_asr_noise": 0.0,
+        "acc_far_ood": 1.0,
+        "acc_near_ood": 0.805,
+        "acc_paraphrase": 0.0443,
+        "acc_template": 0.954,
+        "acc_typos": 0.0
+      },
+      "primary_metric_ci_lower": 0.4788428571428571,
+      "primary_metric_ci_upper": 0.5262857142857142,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 70,
+      "competitor_id": "jurebes-nusvc",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.5029,
+        "macro_f1": 0.6475,
+        "ood_fpr": 0.0,
+        "slot_exact_match": 0.0,
+        "latency_ms_median": 14.11,
+        "acc_asr_noise": 0.0,
+        "acc_far_ood": 1.0,
+        "acc_near_ood": 0.805,
+        "acc_paraphrase": 0.0443,
+        "acc_template": 0.954,
+        "acc_typos": 0.0
+      },
+      "primary_metric_ci_lower": 0.4788428571428571,
+      "primary_metric_ci_upper": 0.5262857142857142,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 71,
+      "competitor_id": "jurebes-qda-classifier",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.5029,
+        "macro_f1": 0.6475,
+        "ood_fpr": 0.0,
+        "slot_exact_match": 0.0,
+        "latency_ms_median": 101.29,
+        "acc_asr_noise": 0.0,
+        "acc_far_ood": 1.0,
+        "acc_near_ood": 0.805,
+        "acc_paraphrase": 0.0443,
+        "acc_template": 0.954,
+        "acc_typos": 0.0
+      },
+      "primary_metric_ci_lower": 0.4788428571428571,
+      "primary_metric_ci_upper": 0.5262857142857142,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 72,
+      "competitor_id": "jurebes-text-stats-logreg",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.5029,
+        "macro_f1": 0.6475,
+        "ood_fpr": 0.0,
+        "slot_exact_match": 0.0,
+        "latency_ms_median": 1.43,
+        "acc_asr_noise": 0.0,
+        "acc_far_ood": 1.0,
+        "acc_near_ood": 0.805,
+        "acc_paraphrase": 0.0443,
+        "acc_template": 0.954,
+        "acc_typos": 0.0
+      },
+      "primary_metric_ci_lower": 0.4788428571428571,
+      "primary_metric_ci_upper": 0.5262857142857142,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.3.0a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 73,
       "competitor_id": "markov-medium",
       "plugin_id": "ovos-markov-pipeline-plugin",
       "samples": 1750,

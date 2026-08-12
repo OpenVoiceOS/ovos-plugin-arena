@@ -1,0 +1,4088 @@
+{
+  "modality": "intent_template",
+  "dataset_id": "meteocat",
+  "lang": "ca-ES",
+  "generated_at": "2026-08-11T23:30:06.369645+00:00",
+  "dataset_info": {
+    "url": "https://huggingface.co/datasets/crodri/meteocat",
+    "license": "cc-by-nc-nd-4.0",
+    "notes": "Catalan weather queries synthesised by BSC's Text Mining Unit (Projecte AINA) from CCMA weather-service data — 'instruction' column only (question about weather at a place/time); 'context'/'response' are for the source dataset's own text-generation task and unused here. No per-intent annotation exists, only the fact that every row is a weather query, so this is a domain-level probe: every row's reference is the constant domain label 'weather' (reference_granularity='domain'), scored via the domain part of a 'skill_id:intent_name'-shaped prediction — exercises the domain stage of adapt-domain-medium / linha-fina-domain-medium / palavreado-hierarchical-medium against real (if synthetic) Catalan phrasing outside the intents-for-eval taxonomy's own weather intents. Uses the test split reported by the datasets-server parquet conversion (num_rows_total=4598); the source README's own split counts (test.json: 1279) describe the raw jsonl files before HF's auto parquet conversion and don't match — a known upstream quirk, not an arena bug. License is CC-BY-NC-ND-4.0 (non-commercial, no-derivatives): fine for eval-only benchmarking, not for redistributing a modified corpus. Measures recall only, not precision — every row is a genuine weather query, so a fighter that always answers weather scores perfectly; pair with a mixed-domain dataset for false-positive rate.",
+    "predictions": [
+      "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-bench-meteocat",
+      "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-keyword-bench-meteocat",
+      "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-template-bench-meteocat"
+    ],
+    "train_datasets": {
+      "template": {
+        "dataset_id": "intents-for-eval-templates",
+        "url": "https://huggingface.co/datasets/OpenVoiceOS/intents-for-eval"
+      },
+      "keyword": {
+        "dataset_id": "intents-for-eval-keywords",
+        "url": "https://huggingface.co/datasets/OpenVoiceOS/intents-for-eval"
+      }
+    }
+  },
+  "battles": [
+    {
+      "battle_id": "007340409045b953",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/01649",
+      "input_text": "Com serà la meteorologia dimecres a la nit a Sant Antoni de Portmany?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "linha-fina-hierarchical-medium",
+      "competitor_b": "linha-fina-domain-medium",
+      "plugin_a": "ovos-linha-fina-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "00acc595b149507f",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/02205",
+      "input_text": "A Estocolm, com serà la meteorologia la nit de dimecres?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "linha-fina-domain-medium",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "004edbb40e5a257e",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/00229",
+      "input_text": "Com serà la meteorologia la tarda de dissabte a Bueu?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "news:read_topic"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-domain-medium",
+      "competitor_b": "nebulento-hierarchical-medium",
+      "plugin_a": "ovos-linha-fina-domain-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "005d54944003f866",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/03383",
+      "input_text": "Com serà la meteorologia dimarts a Anglès?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "news:read_topic"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-domain-medium",
+      "competitor_b": "padatious-domain-medium",
+      "plugin_a": "ovos-linha-fina-domain-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "04d6f00e30899224",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/03681",
+      "input_text": "Dimarts a la nit, com serà la meteorologia a La Vilavella?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "timers_alarms:list_alarms"
+      },
+      "competitor_a": "linha-fina-hierarchical-medium",
+      "competitor_b": "markov-domain-medium",
+      "plugin_a": "ovos-linha-fina-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-markov-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "137e112a47b3506b",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/03812",
+      "input_text": "Quines condicions meteorològiques tindrem la nit de diumenge a Les Borges del Camp?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "timers_alarms:list_alarms"
+      },
+      "competitor_a": "nebulento-hierarchical-medium",
+      "competitor_b": "linha-fina-hierarchical-medium",
+      "plugin_a": "ovos-nebulento-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "287a654bca8d9acb",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/02563",
+      "input_text": "La nit de diumenge, quines condicions meteorològiques tindrem a El Fondó de les Neus?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "timers_alarms:list_alarms"
+      },
+      "competitor_a": "padatious-domain-medium",
+      "competitor_b": "linha-fina-hierarchical-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "01a47aff16b3e901",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/04323",
+      "input_text": "Quin temps farà la tarda de diumenge a La Serratella?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:list_events"
+      },
+      "competitor_a": "nebulento-hierarchical-medium",
+      "competitor_b": "markov-domain-medium",
+      "plugin_a": "ovos-nebulento-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-markov-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "03781c5cb50f20eb",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/01949",
+      "input_text": "Quines condicions meteorològiques tindrem a Breda divendres a la nit?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:list_events"
+      },
+      "competitor_a": "padatious-domain-medium",
+      "competitor_b": "markov-domain-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-markov-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "0aa0484c88f24c1d",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/01344",
+      "input_text": "Quin temps farà dilluns a Benafer?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "weather:weather_forecast",
+        "slots": {
+          "date": "dilluns a benafer"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padatious-domain-medium",
+      "competitor_b": "nebulento-hierarchical-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "0097d15c4f52a786",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/00675",
+      "input_text": "Com serà la meteorologia a Vilagarcía de Arousa la tarda de diumenge?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "news:read_topic"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-domain-medium",
+      "competitor_b": "linha-fina-hierarchical-medium",
+      "plugin_a": "ovos-linha-fina-domain-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "00d1fdfea84bc233",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/00643",
+      "input_text": "Quines condicions meteorològiques tindrem dissabte a la nit a Sao Paulo?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "calendar:list_events"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "linha-fina-domain-medium",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "004f630b3a0da5b0",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/00610",
+      "input_text": "Com serà la meteorologia diumenge a la tarda a Estella-Lizarra?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "news:read_topic"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-domain-medium",
+      "competitor_b": "nebulento-hierarchical-medium",
+      "plugin_a": "ovos-linha-fina-domain-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "0197109a6a75d81d",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/00727",
+      "input_text": "A Praia, com serà la meteorologia el matí de dimecres?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "padatious-domain-medium",
+      "competitor_b": "linha-fina-domain-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "09a2b43f919b4dfa",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/02216",
+      "input_text": "Quines condicions meteorològiques tindrem dissabte a la tarda a Les Preses?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "timers_alarms:list_alarms"
+      },
+      "prediction_b": {
+        "intent": "calendar:reschedule_event"
+      },
+      "competitor_a": "linha-fina-hierarchical-medium",
+      "competitor_b": "markov-domain-medium",
+      "plugin_a": "ovos-linha-fina-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-markov-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "233852935fcc0af0",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/00880",
+      "input_text": "A Cervià de les Garrigues, quines condicions meteorològiques tindrem dimecres a la nit?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "timers_alarms:list_alarms"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-hierarchical-medium",
+      "competitor_b": "nebulento-hierarchical-medium",
+      "plugin_a": "ovos-linha-fina-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "41a06c2db16f8b5c",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/00880",
+      "input_text": "A Cervià de les Garrigues, quines condicions meteorològiques tindrem dimecres a la nit?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "timers_alarms:list_alarms"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-hierarchical-medium",
+      "competitor_b": "padatious-domain-medium",
+      "plugin_a": "ovos-linha-fina-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "054a53109f38fcd5",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/00067",
+      "input_text": "Com serà la meteorologia dissabte a Castrillón?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:reschedule_event"
+      },
+      "competitor_a": "nebulento-hierarchical-medium",
+      "competitor_b": "markov-domain-medium",
+      "plugin_a": "ovos-nebulento-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-markov-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "05fbc840f8c17857",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/02121",
+      "input_text": "A Rincón de la Victoria, com serà la meteorologia divendres a la tarda?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:reschedule_event"
+      },
+      "competitor_a": "padatious-domain-medium",
+      "competitor_b": "markov-domain-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-markov-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "0b559c04268fb6aa",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/00009",
+      "input_text": "Quin temps farà divendres a Seva?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:weather_forecast",
+        "slots": {
+          "date": "divendres a seva"
+        }
+      },
+      "competitor_a": "nebulento-hierarchical-medium",
+      "competitor_b": "padatious-domain-medium",
+      "plugin_a": "ovos-nebulento-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "00f6cb0c2ab62c55",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/00826",
+      "input_text": "Quines condicions meteorològiques tindrem a Vilobí del Penedès la tarda de dimarts?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "navigation:traffic_status"
+      },
+      "competitor_a": "linha-fina-hierarchical-medium",
+      "competitor_b": "linha-fina-domain-medium",
+      "plugin_a": "ovos-linha-fina-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "018695cd935bb598",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/02622",
+      "input_text": "Dissabte a la tarda, com serà la meteorologia a Sant Joan de l'Énova?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "news:read_topic"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-domain-medium",
+      "competitor_b": "markov-domain-medium",
+      "plugin_a": "ovos-linha-fina-domain-pipeline-plugin",
+      "plugin_b": "ovos-markov-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "005cdb18221b4e61",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/00738",
+      "input_text": "Com serà la meteorologia dimarts a El Camp de Mirra?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "nebulento-hierarchical-medium",
+      "competitor_b": "linha-fina-domain-medium",
+      "plugin_a": "ovos-nebulento-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "01a610ee1099784a",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/02989",
+      "input_text": "A Bocairent, com serà la meteorologia dimecres?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "news:read_topic"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-domain-medium",
+      "competitor_b": "padatious-domain-medium",
+      "plugin_a": "ovos-linha-fina-domain-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "15c6ca3dbb6b9c62",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/00095",
+      "input_text": "Quines condicions meteorològiques tindrem a La Romana de Tarafa la tarda de diumenge?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:list_events"
+      },
+      "competitor_a": "linha-fina-hierarchical-medium",
+      "competitor_b": "markov-domain-medium",
+      "plugin_a": "ovos-linha-fina-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-markov-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "2c253dee10d80dc8",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/02476",
+      "input_text": "Quines condicions meteorològiques tindrem dimecres al matí a Les Borges del Camp?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "timers_alarms:list_alarms"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-hierarchical-medium",
+      "competitor_b": "nebulento-hierarchical-medium",
+      "plugin_a": "ovos-linha-fina-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "479105289402314d",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/01033",
+      "input_text": "Quines condicions meteorològiques tindrem la tarda de dimecres a Parla?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "system_control:change_language"
+      },
+      "competitor_a": "padatious-domain-medium",
+      "competitor_b": "linha-fina-hierarchical-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "0a0ba422b629e992",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/01308",
+      "input_text": "Quines condicions meteorològiques tindrem divendres a la nit a Vallfogona de Riucorb?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "calendar:list_events"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "nebulento-hierarchical-medium",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "0635d2db688caaf3",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/01349",
+      "input_text": "Dilluns a la nit quin temps podem esperar a La Rinconada?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:next_story"
+      },
+      "competitor_a": "padatious-domain-medium",
+      "competitor_b": "markov-domain-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-markov-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "1825baee397de8f1",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/02389",
+      "input_text": "Quin temps farà la nit de dilluns a Vallada?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "weather:weather_forecast",
+        "slots": {
+          "date": "dilluns a vallada"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padatious-domain-medium",
+      "competitor_b": "nebulento-hierarchical-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "016cf9704eb81289",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/02274",
+      "input_text": "Com serà la meteorologia a Tamarit de Llitera dimecres a la nit?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "linha-fina-hierarchical-medium",
+      "competitor_b": "linha-fina-domain-medium",
+      "plugin_a": "ovos-linha-fina-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "02200f8750712c8b",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/04338",
+      "input_text": "A Millars, com serà la meteorologia la nit de dimecres?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "linha-fina-domain-medium",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "015129b753275f64",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/01482",
+      "input_text": "A Albaida, com serà la meteorologia dimecres?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "news:read_topic"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-domain-medium",
+      "competitor_b": "nebulento-hierarchical-medium",
+      "plugin_a": "ovos-linha-fina-domain-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "01cc647b49ad2fbb",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/01807",
+      "input_text": "Dimecres a la tarda, com serà la meteorologia a Aiguaviva de Bergantes?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "padatious-domain-medium",
+      "competitor_b": "linha-fina-domain-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "15f21d5565f11c99",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/04514",
+      "input_text": "Com serà la meteorologia dissabte a Pallejà?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "calendar:reschedule_event"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "linha-fina-hierarchical-medium",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "42d4dfb4c296d469",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/01480",
+      "input_text": "A Les Oluges, quines condicions meteorològiques tindrem dissabte a la nit?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "timers_alarms:list_alarms"
+      },
+      "competitor_a": "nebulento-hierarchical-medium",
+      "competitor_b": "linha-fina-hierarchical-medium",
+      "plugin_a": "ovos-nebulento-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "56c68fb4817fb5da",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/02216",
+      "input_text": "Quines condicions meteorològiques tindrem dissabte a la tarda a Les Preses?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "timers_alarms:list_alarms"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-hierarchical-medium",
+      "competitor_b": "padatious-domain-medium",
+      "plugin_a": "ovos-linha-fina-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "0da3dc6d5f7892a1",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/02258",
+      "input_text": "Com serà la meteorologia dissabte a la nit a Lasarte-Oria?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:list_events"
+      },
+      "competitor_a": "nebulento-hierarchical-medium",
+      "competitor_b": "markov-domain-medium",
+      "plugin_a": "ovos-nebulento-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-markov-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "087f8a6d6453ad66",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/02009",
+      "input_text": "Quines condicions meteorològiques tindrem dissabte a Kigali?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "calendar:reschedule_event"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "padatious-domain-medium",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "1e6e957aeeaf0444",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/02123",
+      "input_text": "Quin temps farà dilluns al matí a Pinto?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:weather_forecast",
+        "slots": {
+          "date": "dilluns al matí a pinto"
+        }
+      },
+      "competitor_a": "nebulento-hierarchical-medium",
+      "competitor_b": "padatious-domain-medium",
+      "plugin_a": "ovos-nebulento-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "01b0211b667ba5d6",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/01284",
+      "input_text": "A Azpeitia, com serà la meteorologia la tarda de dijous?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "news:read_topic"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-domain-medium",
+      "competitor_b": "linha-fina-hierarchical-medium",
+      "plugin_a": "ovos-linha-fina-domain-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "0224d1d095f244cb",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/01900",
+      "input_text": "Com serà la meteorologia a Arenys de Mar dissabte a la nit?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "linha-fina-domain-medium",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "01fb8c5da9dfab01",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/04504",
+      "input_text": "dimecres, com serà la meteorologia a Camarasa?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "nebulento-hierarchical-medium",
+      "competitor_b": "linha-fina-domain-medium",
+      "plugin_a": "ovos-nebulento-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "01ec38038b97c5ef",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/03474",
+      "input_text": "La nit de dimarts, com serà la meteorologia a Vilafranca?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "padatious-domain-medium",
+      "competitor_b": "linha-fina-domain-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "1cfe6b1b75304e59",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/02704",
+      "input_text": "Quines condicions meteorològiques tindrem la tarda de dijous a La Llosa del Bisbe?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "calendar:list_events"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "linha-fina-hierarchical-medium",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "7dfad332b6fe4ad9",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/02563",
+      "input_text": "La nit de diumenge, quines condicions meteorològiques tindrem a El Fondó de les Neus?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "timers_alarms:list_alarms"
+      },
+      "competitor_a": "nebulento-hierarchical-medium",
+      "competitor_b": "linha-fina-hierarchical-medium",
+      "plugin_a": "ovos-nebulento-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "8a0ccae07a7aa916",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/02476",
+      "input_text": "Quines condicions meteorològiques tindrem dimecres al matí a Les Borges del Camp?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "timers_alarms:list_alarms"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-hierarchical-medium",
+      "competitor_b": "padatious-domain-medium",
+      "plugin_a": "ovos-linha-fina-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "0e87126dc7339bf5",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/01692",
+      "input_text": "Com serà la meteorologia dissabte a la nit a Benifaió?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:list_events"
+      },
+      "competitor_a": "nebulento-hierarchical-medium",
+      "competitor_b": "markov-domain-medium",
+      "plugin_a": "ovos-nebulento-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-markov-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "095e7f56d2646b8c",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/00899",
+      "input_text": "Quin temps podem esperar divendres a la nit Barcelos?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "calendar:list_events"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "padatious-domain-medium",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "1f90e3588beeb211",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/01774",
+      "input_text": "Com serà el temps a Setcases dilluns?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "weather:weather_forecast",
+        "slots": {
+          "date": "a setcases dilluns"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padatious-domain-medium",
+      "competitor_b": "nebulento-hierarchical-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "0259fb13409140d4",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/01727",
+      "input_text": "A Anglesola, com serà la meteorologia dimecres a la nit?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "news:read_topic"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-domain-medium",
+      "competitor_b": "linha-fina-hierarchical-medium",
+      "plugin_a": "ovos-linha-fina-domain-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "0229688f3b86de43",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/04559",
+      "input_text": "Com serà la meteorologia diumenge a Benifairó de les Valls?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "linha-fina-domain-medium",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "020347281789016c",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/00286",
+      "input_text": "A Bergara, com serà la meteorologia dimarts a la nit?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "news:read_topic"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-domain-medium",
+      "competitor_b": "nebulento-hierarchical-medium",
+      "plugin_a": "ovos-linha-fina-domain-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "01feaf5ed79155a7",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/02937",
+      "input_text": "dimarts, com serà la meteorologia a Montfort?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "padatious-domain-medium",
+      "competitor_b": "linha-fina-domain-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "21b6b844de3d99b0",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/04295",
+      "input_text": "Com serà la meteorologia dissabte a la nit a Sant Julià de Ramis?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:list_events"
+      },
+      "competitor_a": "linha-fina-hierarchical-medium",
+      "competitor_b": "markov-domain-medium",
+      "plugin_a": "ovos-linha-fina-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-markov-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "aeb540bdd6dcf419",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/01033",
+      "input_text": "Quines condicions meteorològiques tindrem la tarda de dimecres a Parla?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "system_control:change_language"
+      },
+      "competitor_a": "nebulento-hierarchical-medium",
+      "competitor_b": "linha-fina-hierarchical-medium",
+      "plugin_a": "ovos-nebulento-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "a9a06575190e0835",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/01480",
+      "input_text": "A Les Oluges, quines condicions meteorològiques tindrem dissabte a la nit?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "timers_alarms:list_alarms"
+      },
+      "competitor_a": "padatious-domain-medium",
+      "competitor_b": "linha-fina-hierarchical-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "1052a4cba683db96",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/01358",
+      "input_text": "Quines condicions meteorològiques tindrem la tarda de divendres a Grado?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "calendar:reschedule_event"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "nebulento-hierarchical-medium",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "0c0a41c9b841896a",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/04506",
+      "input_text": "Com serà la meteorologia a Brenes divendres a la nit?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "calendar:list_events"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "padatious-domain-medium",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "244de68b2e2e85c3",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/03397",
+      "input_text": "Com serà el temps a Argençola divendres?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "weather:weather_forecast",
+        "slots": {
+          "date": "a argençola divendres"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padatious-domain-medium",
+      "competitor_b": "nebulento-hierarchical-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "0279af04aa31c4b8",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/02275",
+      "input_text": "Dimarts a la nit, com serà la meteorologia a Budapest?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "news:read_topic"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-domain-medium",
+      "competitor_b": "linha-fina-hierarchical-medium",
+      "plugin_a": "ovos-linha-fina-domain-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "02b99d74865cc341",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/04290",
+      "input_text": "A Benimarfull, com serà la meteorologia la tarda de diumenge?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "linha-fina-domain-medium",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "02307aa20a8011a9",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/03276",
+      "input_text": "Com serà la meteorologia la nit de dijous a Riola?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "nebulento-hierarchical-medium",
+      "competitor_b": "linha-fina-domain-medium",
+      "plugin_a": "ovos-nebulento-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "02590da27b32c73f",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/01840",
+      "input_text": "A L'Alcúdia de Veo, com serà la meteorologia el matí de diumenge?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "padatious-domain-medium",
+      "competitor_b": "linha-fina-domain-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "231b8b9ed7fe7d83",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/00258",
+      "input_text": "Quines condicions meteorològiques tindrem a Trieste dissabte a la nit?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "calendar:list_events"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "linha-fina-hierarchical-medium",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "dd71028f18222bbe",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/02216",
+      "input_text": "Quines condicions meteorològiques tindrem dissabte a la tarda a Les Preses?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "timers_alarms:list_alarms"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-hierarchical-medium",
+      "competitor_b": "nebulento-hierarchical-medium",
+      "plugin_a": "ovos-linha-fina-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "c8785c439c29d4f4",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/03812",
+      "input_text": "Quines condicions meteorològiques tindrem la nit de diumenge a Les Borges del Camp?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "timers_alarms:list_alarms"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-hierarchical-medium",
+      "competitor_b": "padatious-domain-medium",
+      "plugin_a": "ovos-linha-fina-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "13d32484c501ee48",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/01823",
+      "input_text": "Quines condicions meteorològiques tindrem divendres a Guadalajara?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "calendar:reschedule_event"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "nebulento-hierarchical-medium",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "104f31bf43cfb5c4",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/00890",
+      "input_text": "Quines condicions meteorològiques tindrem dissabte a Glasgow?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "calendar:reschedule_event"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "padatious-domain-medium",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "248ff04c38cbc8a1",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/00314",
+      "input_text": "Quin temps farà dilluns a Trinidad?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "weather:weather_forecast",
+        "slots": {
+          "date": "dilluns a trinidad"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padatious-domain-medium",
+      "competitor_b": "nebulento-hierarchical-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "02a7bd39cbdaf391",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/03464",
+      "input_text": "Com serà la meteorologia dimecres al matí a Rute?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "linha-fina-hierarchical-medium",
+      "competitor_b": "linha-fina-domain-medium",
+      "plugin_a": "ovos-linha-fina-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "033a67754281cdf4",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/01407",
+      "input_text": "Com serà la meteorologia a Sant Adrià de Besòs el matí de diumenge?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "news:read_topic"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-domain-medium",
+      "competitor_b": "markov-domain-medium",
+      "plugin_a": "ovos-linha-fina-domain-pipeline-plugin",
+      "plugin_b": "ovos-markov-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "023d83395525985b",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/04430",
+      "input_text": "A Peralada, com serà la meteorologia diumenge?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "nebulento-hierarchical-medium",
+      "competitor_b": "linha-fina-domain-medium",
+      "plugin_a": "ovos-nebulento-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "02853792f2ee1eb9",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/04218",
+      "input_text": "La nit de dimecres, com serà la meteorologia a Chieti?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "padatious-domain-medium",
+      "competitor_b": "linha-fina-domain-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "2b38a22bf2badb97",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/02476",
+      "input_text": "Quines condicions meteorològiques tindrem dimecres al matí a Les Borges del Camp?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "timers_alarms:list_alarms"
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "linha-fina-hierarchical-medium",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "f84c7a8dd7ba0242",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/03482",
+      "input_text": "Quines condicions meteorològiques tindrem la nit de diumenge a Benifairó de les Valls?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "timers_alarms:list_alarms"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-hierarchical-medium",
+      "competitor_b": "nebulento-hierarchical-medium",
+      "plugin_a": "ovos-linha-fina-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "e940df2c3b86aeac",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/03482",
+      "input_text": "Quines condicions meteorològiques tindrem la nit de diumenge a Benifairó de les Valls?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "timers_alarms:list_alarms"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-hierarchical-medium",
+      "competitor_b": "padatious-domain-medium",
+      "plugin_a": "ovos-linha-fina-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "182074cff2c21087",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/04004",
+      "input_text": "Quines condicions meteorològiques tindrem la tarda de dimecres a La Llacuna?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:list_events"
+      },
+      "competitor_a": "nebulento-hierarchical-medium",
+      "competitor_b": "markov-domain-medium",
+      "plugin_a": "ovos-nebulento-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-markov-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "109fd666f944bf33",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/04150",
+      "input_text": "Quin temps farà dissabte a la tarda a La Seu d'Urgell?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:next_story"
+      },
+      "competitor_a": "padatious-domain-medium",
+      "competitor_b": "markov-domain-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-markov-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "24c4273b8225ebe4",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/02361",
+      "input_text": "Com serà el temps a Bordils dissabte?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:weather_forecast",
+        "slots": {
+          "date": "a bordils dissabte"
+        }
+      },
+      "competitor_a": "nebulento-hierarchical-medium",
+      "competitor_b": "padatious-domain-medium",
+      "plugin_a": "ovos-nebulento-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "035164a6f68411d3",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/01710",
+      "input_text": "A Cantallops, com serà la meteorologia dimarts?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "linha-fina-hierarchical-medium",
+      "competitor_b": "linha-fina-domain-medium",
+      "plugin_a": "ovos-linha-fina-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "03f0713c9fbe1a84",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/01296",
+      "input_text": "A Victoria, com serà la meteorologia dimecres al matí?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "news:read_topic"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-domain-medium",
+      "competitor_b": "markov-domain-medium",
+      "plugin_a": "ovos-linha-fina-domain-pipeline-plugin",
+      "plugin_b": "ovos-markov-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "02d5109e3541500c",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/03825",
+      "input_text": "diumenge, com serà la meteorologia a Tunis?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "news:read_topic"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-domain-medium",
+      "competitor_b": "nebulento-hierarchical-medium",
+      "plugin_a": "ovos-linha-fina-domain-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "0314c2ab3fed4cb5",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/03276",
+      "input_text": "Com serà la meteorologia la nit de dijous a Riola?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "padatious-domain-medium",
+      "competitor_b": "linha-fina-domain-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "3af1605703d3a0d9",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/02009",
+      "input_text": "Quines condicions meteorològiques tindrem dissabte a Kigali?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "calendar:reschedule_event"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "linha-fina-hierarchical-medium",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "00239cab87eabecd",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/04083",
+      "input_text": "Quina és la previsió del temps a Campllong per a dissabte a la nit?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:weather_today"
+      },
+      "competitor_a": "nebulento-hierarchical-medium",
+      "competitor_b": "linha-fina-hierarchical-medium",
+      "plugin_a": "ovos-nebulento-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "0017266b7f8d7a13",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/03490",
+      "input_text": "Com serà la meteorologia a Garriguella divendres al matí?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:weather_forecast"
+      },
+      "competitor_a": "padatious-domain-medium",
+      "competitor_b": "linha-fina-hierarchical-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "18d241355ce4e555",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/03911",
+      "input_text": "Quin temps podem esperar dissabte a la nit Benasau?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:list_events"
+      },
+      "competitor_a": "nebulento-hierarchical-medium",
+      "competitor_b": "markov-domain-medium",
+      "plugin_a": "ovos-nebulento-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-markov-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "10c16ff1fbcb6f06",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/02183",
+      "input_text": "Com serà la meteorologia divendres a la nit a Narón?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "calendar:list_events"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "padatious-domain-medium",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "276b85c032a553c3",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/04209",
+      "input_text": "Com serà el temps a Camarasa dilluns al matí?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "weather:weather_forecast",
+        "slots": {
+          "date": "a camarasa dilluns al matí"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padatious-domain-medium",
+      "competitor_b": "nebulento-hierarchical-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "03c8c286b62ec2ea",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/03374",
+      "input_text": "Com serà la meteorologia a La Meca la nit de dimecres?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "news:read_topic"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-domain-medium",
+      "competitor_b": "linha-fina-hierarchical-medium",
+      "plugin_a": "ovos-linha-fina-domain-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "040976e5e4905b3c",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/03871",
+      "input_text": "Com serà la meteorologia a Vilajuïga la nit de dimarts?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "news:read_topic"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-domain-medium",
+      "competitor_b": "markov-domain-medium",
+      "plugin_a": "ovos-linha-fina-domain-pipeline-plugin",
+      "plugin_b": "ovos-markov-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "0350369a7693abaa",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/04410",
+      "input_text": "Com serà la meteorologia a La Granja de la Costera dissabte al matí?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "news:read_topic"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-domain-medium",
+      "competitor_b": "nebulento-hierarchical-medium",
+      "plugin_a": "ovos-linha-fina-domain-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "046c2a69a1fe1983",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/01076",
+      "input_text": "Com serà la meteorologia diumenge al matí a Anchorage?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "padatious-domain-medium",
+      "competitor_b": "linha-fina-domain-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "3e67bc851e95d80c",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/04072",
+      "input_text": "Dimecres a la nit quines condicions meteorològiques tindrem a La Galera?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:next_story"
+      },
+      "competitor_a": "linha-fina-hierarchical-medium",
+      "competitor_b": "markov-domain-medium",
+      "plugin_a": "ovos-linha-fina-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-markov-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "0035f67a4dc9f385",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/03190",
+      "input_text": "El matí de dimecres, quin temps farà a Girona?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:weather_today"
+      },
+      "competitor_a": "nebulento-hierarchical-medium",
+      "competitor_b": "linha-fina-hierarchical-medium",
+      "plugin_a": "ovos-nebulento-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "00264136fb3eed26",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/04135",
+      "input_text": "Com serà la meteorologia a Palau de Santa Eulàlia divendres a la nit?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "weather:weather_forecast"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-hierarchical-medium",
+      "competitor_b": "padatious-domain-medium",
+      "plugin_a": "ovos-linha-fina-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "1c2d14f7e531d215",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/04039",
+      "input_text": "Quin temps farà divendres a Altafulla?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:reschedule_event"
+      },
+      "competitor_a": "nebulento-hierarchical-medium",
+      "competitor_b": "markov-domain-medium",
+      "plugin_a": "ovos-nebulento-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-markov-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "16c946682ac5a90d",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/04571",
+      "input_text": "Com serà la meteorologia a Sóller dissabte a la nit?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:list_events"
+      },
+      "competitor_a": "padatious-domain-medium",
+      "competitor_b": "markov-domain-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-markov-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "2d5bde74ab209ca5",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/01510",
+      "input_text": "Com serà el temps divendres a Lagos?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "weather:weather_forecast",
+        "slots": {
+          "date": "divendres a lagos"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padatious-domain-medium",
+      "competitor_b": "nebulento-hierarchical-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "0494e71a19cacab0",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/04514",
+      "input_text": "Com serà la meteorologia dissabte a Pallejà?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "news:read_topic"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-domain-medium",
+      "competitor_b": "linha-fina-hierarchical-medium",
+      "plugin_a": "ovos-linha-fina-domain-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "056c48c5033ad16d",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/00430",
+      "input_text": "La nit de diumenge, com serà la meteorologia a Reinosa?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "linha-fina-domain-medium",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "03d999931f094265",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/03830",
+      "input_text": "Com serà la meteorologia a Alfarb dimecres?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "nebulento-hierarchical-medium",
+      "competitor_b": "linha-fina-domain-medium",
+      "plugin_a": "ovos-nebulento-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "04d98fca4be5470f",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/04489",
+      "input_text": "Com serà la meteorologia a Gaià dissabte a la tarda?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "padatious-domain-medium",
+      "competitor_b": "linha-fina-domain-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "44df932d50f20d2d",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/02258",
+      "input_text": "Com serà la meteorologia dissabte a la nit a Lasarte-Oria?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "calendar:list_events"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "linha-fina-hierarchical-medium",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "003f698c792499ee",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/02288",
+      "input_text": "Quin temps podem esperar a Cadaqués divendres?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "weather:weather_today"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-hierarchical-medium",
+      "competitor_b": "nebulento-hierarchical-medium",
+      "plugin_a": "ovos-linha-fina-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "00482085fe18ee03",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/01522",
+      "input_text": "Dimecres a la tarda quin temps podem esperar a Cartaya?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:weather_today"
+      },
+      "competitor_a": "padatious-domain-medium",
+      "competitor_b": "linha-fina-hierarchical-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "1d0268915fc12aa6",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/02216",
+      "input_text": "Quines condicions meteorològiques tindrem dissabte a la tarda a Les Preses?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "calendar:reschedule_event"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "nebulento-hierarchical-medium",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "174b123cf40d7e16",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/00284",
+      "input_text": "Com serà la meteorologia dissabte a la nit a Lusaka?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "calendar:list_events"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "padatious-domain-medium",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "2f34baf49c343a28",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/04343",
+      "input_text": "Quin temps farà divendres a Agramunt?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:weather_forecast",
+        "slots": {
+          "date": "divendres a agramunt"
+        }
+      },
+      "competitor_a": "nebulento-hierarchical-medium",
+      "competitor_b": "padatious-domain-medium",
+      "plugin_a": "ovos-nebulento-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "050dd648d688cffb",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/03270",
+      "input_text": "Diumenge a la nit, com serà la meteorologia a Benalmádena?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "linha-fina-hierarchical-medium",
+      "competitor_b": "linha-fina-domain-medium",
+      "plugin_a": "ovos-linha-fina-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "058b304b5d823cbf",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/01596",
+      "input_text": "A Nuremberg, com serà la meteorologia el matí de dimarts?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "linha-fina-domain-medium",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "04175b6e15c975e7",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/01356",
+      "input_text": "A Montgai, com serà la meteorologia dimarts a la nit?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "nebulento-hierarchical-medium",
+      "competitor_b": "linha-fina-domain-medium",
+      "plugin_a": "ovos-nebulento-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "056e770e71c39b60",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/02738",
+      "input_text": "La nit de dimecres, com serà la meteorologia a Mar del Plata?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "news:read_topic"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-domain-medium",
+      "competitor_b": "padatious-domain-medium",
+      "plugin_a": "ovos-linha-fina-domain-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "45d58171b07043da",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/03531",
+      "input_text": "Quines condicions meteorològiques tindrem la tarda de dimecres a La Riba?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:list_events"
+      },
+      "competitor_a": "linha-fina-hierarchical-medium",
+      "competitor_b": "markov-domain-medium",
+      "plugin_a": "ovos-linha-fina-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-markov-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "005b3b009fc5c543",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/04115",
+      "input_text": "A Pucallpa, quina és la previsió del temps per al matí de dijous?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:weather_today"
+      },
+      "competitor_a": "nebulento-hierarchical-medium",
+      "competitor_b": "linha-fina-hierarchical-medium",
+      "plugin_a": "ovos-nebulento-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "005ec179ecc70345",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/02933",
+      "input_text": "Quin temps podem esperar a Teià dimarts?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:weather_today"
+      },
+      "competitor_a": "padatious-domain-medium",
+      "competitor_b": "linha-fina-hierarchical-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "1d60f0a4122d6248",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/01151",
+      "input_text": "Quin temps farà a La Corunya la tarda de divendres?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "calendar:list_events"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "nebulento-hierarchical-medium",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "189cf9671787c740",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/01402",
+      "input_text": "Com serà la meteorologia dissabte a Yamoussoukro?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "calendar:reschedule_event"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "padatious-domain-medium",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "2f3d0490fce1b097",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/01311",
+      "input_text": "Com serà el temps dilluns a Barberà del Vallès?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "weather:weather_forecast",
+        "slots": {
+          "date": "dilluns a barberà del vallès"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padatious-domain-medium",
+      "competitor_b": "nebulento-hierarchical-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "05345848aead3cb0",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/03811",
+      "input_text": "A Viedma, com serà la meteorologia diumenge?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "news:read_topic"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-domain-medium",
+      "competitor_b": "linha-fina-hierarchical-medium",
+      "plugin_a": "ovos-linha-fina-domain-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "05960fc7817cde65",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/03976",
+      "input_text": "A Daia Nova, com serà la meteorologia dimarts a la nit?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "linha-fina-domain-medium",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "052cb7b6c8153278",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/03918",
+      "input_text": "A Torrent de Cinca, com serà la meteorologia dimecres al matí?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "news:read_topic"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-domain-medium",
+      "competitor_b": "nebulento-hierarchical-medium",
+      "plugin_a": "ovos-linha-fina-domain-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "05755e1c644dcf2c",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/04295",
+      "input_text": "Com serà la meteorologia dissabte a la nit a Sant Julià de Ramis?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "news:read_topic"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-domain-medium",
+      "competitor_b": "padatious-domain-medium",
+      "plugin_a": "ovos-linha-fina-domain-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "4d5897214e337e2c",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/01402",
+      "input_text": "Com serà la meteorologia dissabte a Yamoussoukro?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:reschedule_event"
+      },
+      "competitor_a": "linha-fina-hierarchical-medium",
+      "competitor_b": "markov-domain-medium",
+      "plugin_a": "ovos-linha-fina-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-markov-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "005e9bb78d907882",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/04458",
+      "input_text": "Quin temps farà la tarda de dissabte a Canet de Mar?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "weather:weather_today"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-hierarchical-medium",
+      "competitor_b": "nebulento-hierarchical-medium",
+      "plugin_a": "ovos-linha-fina-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "00651d362d3b5158",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/00256",
+      "input_text": "A Andilla, quin temps podem esperar la nit de dijous?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "weather:weather_today"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-hierarchical-medium",
+      "competitor_b": "padatious-domain-medium",
+      "plugin_a": "ovos-linha-fina-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "1fadd3267761e804",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/03765",
+      "input_text": "Com serà la meteorologia divendres a Brunyola?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "calendar:reschedule_event"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "nebulento-hierarchical-medium",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "1b8c7641343de5c5",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/00229",
+      "input_text": "Com serà la meteorologia la tarda de dissabte a Bueu?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:reschedule_event"
+      },
+      "competitor_a": "padatious-domain-medium",
+      "competitor_b": "markov-domain-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-markov-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "31ce9d54afc58a05",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/04262",
+      "input_text": "Com serà el temps dilluns a Santiago de Xile?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "weather:weather_forecast",
+        "slots": {
+          "date": "dilluns a santiago de xile"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padatious-domain-medium",
+      "competitor_b": "nebulento-hierarchical-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "053da74154d8b50f",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/01925",
+      "input_text": "Com serà la meteorologia a Salses dissabte a la tarda?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "linha-fina-hierarchical-medium",
+      "competitor_b": "linha-fina-domain-medium",
+      "plugin_a": "ovos-linha-fina-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "05b2f9f3e4135b73",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/01083",
+      "input_text": "Com serà la meteorologia a Orba dimarts a la nit?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "linha-fina-domain-medium",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "0537afea5a197ffa",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/01292",
+      "input_text": "diumenge, com serà la meteorologia a Castro Urdiales?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "news:read_topic"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-domain-medium",
+      "competitor_b": "nebulento-hierarchical-medium",
+      "plugin_a": "ovos-linha-fina-domain-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "05a22b8a02e45ada",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/00265",
+      "input_text": "Com serà la meteorologia a Castell de Castells dijous a la nit?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "news:read_topic"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-domain-medium",
+      "competitor_b": "padatious-domain-medium",
+      "plugin_a": "ovos-linha-fina-domain-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "4d641055914cb1c1",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/01480",
+      "input_text": "A Les Oluges, quines condicions meteorològiques tindrem dissabte a la nit?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "timers_alarms:list_alarms"
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "linha-fina-hierarchical-medium",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "008398ca42176475",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/02872",
+      "input_text": "A Coïmbra, quina és la previsió del temps per a diumenge a la tarda?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:weather_today"
+      },
+      "competitor_a": "nebulento-hierarchical-medium",
+      "competitor_b": "linha-fina-hierarchical-medium",
+      "plugin_a": "ovos-nebulento-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "0074d137798c940a",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/02706",
+      "input_text": "Quin temps farà el matí de dimecres a Rafelbunyol?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "weather:weather_today"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-hierarchical-medium",
+      "competitor_b": "padatious-domain-medium",
+      "plugin_a": "ovos-linha-fina-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "22ac953d9bc0abf6",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/04234",
+      "input_text": "Quin temps farà a Santa Maria del Camí diumenge?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "calendar:cancel_event"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "nebulento-hierarchical-medium",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "1cb6f6b3b63b69d5",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/02975",
+      "input_text": "Quin temps podem esperar dissabte a El Torricó?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:reschedule_event"
+      },
+      "competitor_a": "padatious-domain-medium",
+      "competitor_b": "markov-domain-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-markov-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "3233a4fc5ca74f8b",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/01892",
+      "input_text": "Quin temps farà dissabte a Taipei?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "weather:weather_forecast",
+        "slots": {
+          "date": "dissabte a taipei"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padatious-domain-medium",
+      "competitor_b": "nebulento-hierarchical-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "05a46f4b9e5f2360",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/04263",
+      "input_text": "A Cullera, com serà la meteorologia la tarda de dimarts?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "news:read_topic"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-domain-medium",
+      "competitor_b": "linha-fina-hierarchical-medium",
+      "plugin_a": "ovos-linha-fina-domain-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "062730f99dd40d2e",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/03975",
+      "input_text": "Com serà la meteorologia diumenge a Artesa de Lleida?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "news:read_topic"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-domain-medium",
+      "competitor_b": "markov-domain-medium",
+      "plugin_a": "ovos-linha-fina-domain-pipeline-plugin",
+      "plugin_b": "ovos-markov-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "0562cea99077528d",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/01590",
+      "input_text": "Com serà la meteorologia a Olot dissabte?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "nebulento-hierarchical-medium",
+      "competitor_b": "linha-fina-domain-medium",
+      "plugin_a": "ovos-nebulento-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "061ca0a3212e0caf",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/03931",
+      "input_text": "El matí de diumenge, com serà la meteorologia a Cardona?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "padatious-domain-medium",
+      "competitor_b": "linha-fina-domain-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "4e26afe193dd9cf8",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/03091",
+      "input_text": "Com serà la meteorologia la tarda de diumenge a La Sentiu de Sió?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:list_events"
+      },
+      "competitor_a": "linha-fina-hierarchical-medium",
+      "competitor_b": "markov-domain-medium",
+      "plugin_a": "ovos-linha-fina-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-markov-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "0093a082c9fe9234",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/01392",
+      "input_text": "La tarda divendres, quin temps podem esperar a Benferri?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "weather:weather_today"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-hierarchical-medium",
+      "competitor_b": "nebulento-hierarchical-medium",
+      "plugin_a": "ovos-linha-fina-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "008e3463bf9e1efd",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/03602",
+      "input_text": "Quin temps podem esperar a Talamanca diumenge a la tarda?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:weather_today"
+      },
+      "competitor_a": "padatious-domain-medium",
+      "competitor_b": "linha-fina-hierarchical-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "2331e20059f6bc01",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/04246",
+      "input_text": "Quin temps farà divendres a Borrassà?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:reschedule_event"
+      },
+      "competitor_a": "nebulento-hierarchical-medium",
+      "competitor_b": "markov-domain-medium",
+      "plugin_a": "ovos-nebulento-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-markov-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "1ef3a696772ff6b8",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/02842",
+      "input_text": "Quin temps farà la tarda de dissabte a Lucena?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "calendar:reschedule_event"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "padatious-domain-medium",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "32c103942b9d40cb",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/00086",
+      "input_text": "Quin temps farà dilluns a Kuala Lumpur?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "weather:weather_forecast",
+        "slots": {
+          "date": "dilluns a kuala lumpur"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padatious-domain-medium",
+      "competitor_b": "nebulento-hierarchical-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "0601fde0d0e496c7",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/01645",
+      "input_text": "Com serà la meteorologia a Pisa dimarts?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "linha-fina-hierarchical-medium",
+      "competitor_b": "linha-fina-domain-medium",
+      "plugin_a": "ovos-linha-fina-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "0692df9ed1d52ec7",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/02545",
+      "input_text": "Com serà la meteorologia a Llombai el matí de dimarts?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "linha-fina-domain-medium",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "0567f9bf6786c7fd",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/02907",
+      "input_text": "Dimecres al matí, com serà la meteorologia a Djibouti?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "nebulento-hierarchical-medium",
+      "competitor_b": "linha-fina-domain-medium",
+      "plugin_a": "ovos-nebulento-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "062acb60540d7718",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/04476",
+      "input_text": "Com serà la meteorologia dimecres a Esponellà?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "news:read_topic"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-domain-medium",
+      "competitor_b": "padatious-domain-medium",
+      "plugin_a": "ovos-linha-fina-domain-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "558d124dafd4b097",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/01692",
+      "input_text": "Com serà la meteorologia dissabte a la nit a Benifaió?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "calendar:list_events"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "linha-fina-hierarchical-medium",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "009516ec3396fb57",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/02062",
+      "input_text": "Quin temps podem esperar a Villaviciosa de Odón dilluns a la nit?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:weather_today"
+      },
+      "competitor_a": "nebulento-hierarchical-medium",
+      "competitor_b": "linha-fina-hierarchical-medium",
+      "plugin_a": "ovos-nebulento-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "0091365e195389ce",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/03786",
+      "input_text": "A Estubeny, quina és la previsió del temps per a divendres?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "weather:weather_today"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-hierarchical-medium",
+      "competitor_b": "padatious-domain-medium",
+      "plugin_a": "ovos-linha-fina-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "25234acfd4455d10",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/00643",
+      "input_text": "Quines condicions meteorològiques tindrem dissabte a la nit a Sao Paulo?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "calendar:list_events"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "nebulento-hierarchical-medium",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "24e274419e94bb89",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/04120",
+      "input_text": "Quines condicions meteorològiques tindrem a Tamarit de Llitera dissabte a la nit?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:list_events"
+      },
+      "competitor_a": "padatious-domain-medium",
+      "competitor_b": "markov-domain-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-markov-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "3921d32ff509b9e6",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/02370",
+      "input_text": "Quin temps farà a Sant Petersburg divendres?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:weather_forecast",
+        "slots": {
+          "date": "a sant petersburg divendres"
+        }
+      },
+      "competitor_a": "nebulento-hierarchical-medium",
+      "competitor_b": "padatious-domain-medium",
+      "plugin_a": "ovos-nebulento-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "066f72ed26a8f902",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/01211",
+      "input_text": "A San Andrés, com serà la meteorologia diumenge?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "news:read_topic"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-domain-medium",
+      "competitor_b": "linha-fina-hierarchical-medium",
+      "plugin_a": "ovos-linha-fina-domain-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "075142fdfea0d9cf",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/01530",
+      "input_text": "Diumenge al matí, com serà la meteorologia a Chieti?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "linha-fina-domain-medium",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "0586b0e1163c6408",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/04354",
+      "input_text": "A El Montmell, com serà la meteorologia el matí de dijous?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "news:read_topic"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-domain-medium",
+      "competitor_b": "nebulento-hierarchical-medium",
+      "plugin_a": "ovos-linha-fina-domain-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "06471489d9f89e7d",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/01450",
+      "input_text": "Com serà la meteorologia dijous a la tarda a Mérida?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "padatious-domain-medium",
+      "competitor_b": "linha-fina-domain-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "5ca2a4090b8d6685",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/01016",
+      "input_text": "Com serà la meteorologia dissabte a la nit a Sant Joan de Moró?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "calendar:list_events"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "linha-fina-hierarchical-medium",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "00a3e37ced5a6c88",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/01078",
+      "input_text": "Quin temps podem esperar la tarda de dimecres a Castell de Castells?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "weather:weather_today"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-hierarchical-medium",
+      "competitor_b": "nebulento-hierarchical-medium",
+      "plugin_a": "ovos-linha-fina-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "00aad6978148699e",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/00976",
+      "input_text": "Quina és la previsió del temps a Bissau per a la tarda de dimarts?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "weather:weather_today"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-hierarchical-medium",
+      "competitor_b": "padatious-domain-medium",
+      "plugin_a": "ovos-linha-fina-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "25b5976f0f7b9bf4",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/03760",
+      "input_text": "Com serà la meteorologia la tarda de dissabte a Cártama?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "calendar:reschedule_event"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "nebulento-hierarchical-medium",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "28b2f3b352e8fe06",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/03760",
+      "input_text": "Com serà la meteorologia la tarda de dissabte a Cártama?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "calendar:reschedule_event"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "padatious-domain-medium",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "39e0538a05c142ae",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/01945",
+      "input_text": "Com serà el temps a Sanui i Alins dilluns?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:weather_forecast",
+        "slots": {
+          "date": "a sanui i alins dilluns"
+        }
+      },
+      "competitor_a": "nebulento-hierarchical-medium",
+      "competitor_b": "padatious-domain-medium",
+      "plugin_a": "ovos-nebulento-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "06d4e4d7c5da8705",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/02032",
+      "input_text": "diumenge, com serà la meteorologia a Bigues i Riells?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "linha-fina-hierarchical-medium",
+      "competitor_b": "linha-fina-domain-medium",
+      "plugin_a": "ovos-linha-fina-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "076198093b193231",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/03604",
+      "input_text": "Com serà la meteorologia a Bagdad la tarda de dijous?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "linha-fina-domain-medium",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "05b503e3b84b155d",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/03871",
+      "input_text": "Com serà la meteorologia a Vilajuïga la nit de dimarts?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "nebulento-hierarchical-medium",
+      "competitor_b": "linha-fina-domain-medium",
+      "plugin_a": "ovos-nebulento-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "067442ecd590930e",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/03599",
+      "input_text": "Com serà la meteorologia dijous a Colomers?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "news:read_topic"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-domain-medium",
+      "competitor_b": "padatious-domain-medium",
+      "plugin_a": "ovos-linha-fina-domain-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "5fdb47a6ff9621ff",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/02404",
+      "input_text": "Com serà la meteorologia dissabte a la nit a Garrigoles?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "calendar:list_events"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "linha-fina-hierarchical-medium",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "00cbdd1cba375632",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/03050",
+      "input_text": "Quina és la previsió del temps a Capdepera per a dilluns?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "weather:weather_today"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-hierarchical-medium",
+      "competitor_b": "nebulento-hierarchical-medium",
+      "plugin_a": "ovos-linha-fina-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "00d3e72b0bb55951",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/03851",
+      "input_text": "Quin temps podem esperar divendres al matí Cerdà?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:weather_today"
+      },
+      "competitor_a": "padatious-domain-medium",
+      "competitor_b": "linha-fina-hierarchical-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "2829a85137a12370",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/04150",
+      "input_text": "Quin temps farà dissabte a la tarda a La Seu d'Urgell?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "news:next_story"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "nebulento-hierarchical-medium",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "2fa721cb80ccb310",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/01804",
+      "input_text": "Quines condicions meteorològiques tindrem la tarda de dimarts a La Ginebrosa?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "calendar:list_events"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "padatious-domain-medium",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "3b695401f5921c59",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/01976",
+      "input_text": "Com serà la meteorologia dilluns a Capolat?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "weather:weather_forecast",
+        "slots": {
+          "date": "la meteorologia dilluns a capolat"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padatious-domain-medium",
+      "competitor_b": "nebulento-hierarchical-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "06d5402f35cef5ec",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/03149",
+      "input_text": "Com serà la meteorologia a As Pontes de García Rodríguez dimecres?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "news:read_topic"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-domain-medium",
+      "competitor_b": "linha-fina-hierarchical-medium",
+      "plugin_a": "ovos-linha-fina-domain-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "0799d463a4336365",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/00738",
+      "input_text": "Com serà la meteorologia dimarts a El Camp de Mirra?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "linha-fina-domain-medium",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "05e3af0d404eeb1f",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/04229",
+      "input_text": "Com serà la meteorologia a Corçà diumenge a la nit?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "nebulento-hierarchical-medium",
+      "competitor_b": "linha-fina-domain-medium",
+      "plugin_a": "ovos-nebulento-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "06f919f513a8c73e",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/02336",
+      "input_text": "Com serà la meteorologia el matí de dimecres a Solivella?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "news:read_topic"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-domain-medium",
+      "competitor_b": "padatious-domain-medium",
+      "plugin_a": "ovos-linha-fina-domain-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "69f3f00e750e3ea1",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/00112",
+      "input_text": "Dijous a la nit, com serà la meteorologia a La Molina?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "timers_alarms:list_alarms"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "linha-fina-hierarchical-medium",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "00d18fccc8c750ee",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/01071",
+      "input_text": "Com serà el temps a Burjassot la nit de dimarts?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "weather:weather_today"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-hierarchical-medium",
+      "competitor_b": "nebulento-hierarchical-medium",
+      "plugin_a": "ovos-linha-fina-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "00ed1331da54718f",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/02798",
+      "input_text": "Diumenge al matí, quin temps farà a Tías?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:weather_today"
+      },
+      "competitor_a": "padatious-domain-medium",
+      "competitor_b": "linha-fina-hierarchical-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "284499fe9f894556",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/03632",
+      "input_text": "Quin temps podem esperar dissabte a la nit Portvendres?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "calendar:list_events"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "nebulento-hierarchical-medium",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "30c6f68333a5ad1f",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/03492",
+      "input_text": "Quin temps podem esperar dissabte a Linares?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:reschedule_event"
+      },
+      "competitor_a": "padatious-domain-medium",
+      "competitor_b": "markov-domain-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-markov-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "3ee93ddf876f8189",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/04246",
+      "input_text": "Quin temps farà divendres a Borrassà?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "weather:weather_forecast",
+        "slots": {
+          "date": "divendres a borrassà"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padatious-domain-medium",
+      "competitor_b": "nebulento-hierarchical-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "06d6a62c7c2b2bcb",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/00046",
+      "input_text": "Com serà la meteorologia dimecres a Xixona?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "linha-fina-hierarchical-medium",
+      "competitor_b": "linha-fina-domain-medium",
+      "plugin_a": "ovos-linha-fina-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "08bf4a75a564d1cd",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/02216",
+      "input_text": "Quines condicions meteorològiques tindrem dissabte a la tarda a Les Preses?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "calendar:reschedule_event"
+      },
+      "prediction_b": {
+        "intent": "timers_alarms:list_alarms"
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "linha-fina-domain-medium",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "06000248c59afde7",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/00233",
+      "input_text": "Com serà la meteorologia el matí de diumenge a Fogars de la Selva?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "nebulento-hierarchical-medium",
+      "competitor_b": "linha-fina-domain-medium",
+      "plugin_a": "ovos-nebulento-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "073470f5831d474b",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/00268",
+      "input_text": "Com serà la meteorologia diumenge a la nit a La Llosa de la Plana?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "padatious-domain-medium",
+      "competitor_b": "linha-fina-domain-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "6f0fd06dee251a05",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/00643",
+      "input_text": "Quines condicions meteorològiques tindrem dissabte a la nit a Sao Paulo?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "calendar:list_events"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "linha-fina-hierarchical-medium",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "00eb0794ef5f765b",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/02761",
+      "input_text": "Quin temps farà a L'Alcúdia de Crespins la tarda de divendres?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:weather_today"
+      },
+      "competitor_a": "nebulento-hierarchical-medium",
+      "competitor_b": "linha-fina-hierarchical-medium",
+      "plugin_a": "ovos-nebulento-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "00f5c007b50d0fc7",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/03358",
+      "input_text": "A La Llacuna, com serà la meteorologia dilluns?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:weather_forecast"
+      },
+      "competitor_a": "padatious-domain-medium",
+      "competitor_b": "linha-fina-hierarchical-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "296093391595c1e4",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/02945",
+      "input_text": "Quin temps farà dissabte a la nit a Besalú?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "calendar:list_events"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "nebulento-hierarchical-medium",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "3105d82c720be564",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/00596",
+      "input_text": "Quin temps farà a Vilabella dissabte a la nit?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "calendar:list_events"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "padatious-domain-medium",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "40426a963c1d26cb",
+      "modality": "intent_template",
+      "dataset_id": "meteocat",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/01827",
+      "input_text": "Quin temps farà a Windhoek dissabte?",
+      "audio_url": null,
+      "reference": "weather",
+      "prediction_a": {
+        "intent": "weather:weather_forecast",
+        "slots": {
+          "date": "a windhoek dissabte"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "padatious-domain-medium",
+      "competitor_b": "nebulento-hierarchical-medium",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-hierarchical-pipeline-plugin"
+    }
+  ]
+}

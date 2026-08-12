@@ -1,0 +1,92 @@
+{
+  "modality": "intent_keyword",
+  "dataset_id": "meteocat",
+  "lang": "ca-ES",
+  "generated_at": "2026-08-11T23:30:06.369645+00:00",
+  "primary_metric": "accuracy",
+  "dataset_info": {
+    "url": "https://huggingface.co/datasets/crodri/meteocat",
+    "license": "cc-by-nc-nd-4.0",
+    "notes": "Catalan weather queries synthesised by BSC's Text Mining Unit (Projecte AINA) from CCMA weather-service data — 'instruction' column only (question about weather at a place/time); 'context'/'response' are for the source dataset's own text-generation task and unused here. No per-intent annotation exists, only the fact that every row is a weather query, so this is a domain-level probe: every row's reference is the constant domain label 'weather' (reference_granularity='domain'), scored via the domain part of a 'skill_id:intent_name'-shaped prediction — exercises the domain stage of adapt-domain-medium / linha-fina-domain-medium / palavreado-hierarchical-medium against real (if synthetic) Catalan phrasing outside the intents-for-eval taxonomy's own weather intents. Uses the test split reported by the datasets-server parquet conversion (num_rows_total=4598); the source README's own split counts (test.json: 1279) describe the raw jsonl files before HF's auto parquet conversion and don't match — a known upstream quirk, not an arena bug. License is CC-BY-NC-ND-4.0 (non-commercial, no-derivatives): fine for eval-only benchmarking, not for redistributing a modified corpus. Measures recall only, not precision — every row is a genuine weather query, so a fighter that always answers weather scores perfectly; pair with a mixed-domain dataset for false-positive rate.",
+    "predictions": [
+      "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-bench-meteocat",
+      "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-keyword-bench-meteocat",
+      "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-template-bench-meteocat"
+    ],
+    "train_datasets": {
+      "template": {
+        "dataset_id": "intents-for-eval-templates",
+        "url": "https://huggingface.co/datasets/OpenVoiceOS/intents-for-eval"
+      },
+      "keyword": {
+        "dataset_id": "intents-for-eval-keywords",
+        "url": "https://huggingface.co/datasets/OpenVoiceOS/intents-for-eval"
+      }
+    }
+  },
+  "predictions_revisions": {
+    "OpenVoiceOS/ovos-intent-bench-meteocat": "cd1eeb404acbf30a59d22c577031c3c518343389",
+    "OpenVoiceOS/ovos-intent-keyword-bench-meteocat": "4df657069f8814902d8b8ddefc96e142bc4d762b",
+    "OpenVoiceOS/ovos-intent-template-bench-meteocat": "3bf37e645fa40e3065372845cfb868d7f3ec361d"
+  },
+  "wer_normalizer_version": null,
+  "entries": [
+    {
+      "rank": 1,
+      "competitor_id": "palavreado-hierarchical-medium",
+      "plugin_id": "ovos-palavreado-hierarchical-pipeline",
+      "samples": 4598,
+      "metrics": {
+        "accuracy": 0.7421,
+        "macro_f1": 0.8519,
+        "latency_ms_median": 3.17,
+        "acc_test": 0.7421
+      },
+      "primary_metric_ci_lower": 0.7294421487603306,
+      "primary_metric_ci_upper": 0.7533710308829926,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-palavreado-hierarchical-pipeline==1.5.0a2"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 2,
+      "competitor_id": "adapt-domain-medium",
+      "plugin_id": "ovos-adapt-domain-pipeline-plugin",
+      "samples": 4598,
+      "metrics": {
+        "accuracy": 0.0,
+        "macro_f1": 0.0,
+        "latency_ms_median": 4.61,
+        "acc_test": 0.0
+      },
+      "primary_metric_ci_lower": 0.0,
+      "primary_metric_ci_upper": 0.0,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-adapt-domain-pipeline-plugin==1.6.1a1"
+      ],
+      "version_blended": false
+    },
+    {
+      "rank": 3,
+      "competitor_id": "adapt-hierarchical-medium",
+      "plugin_id": "ovos-adapt-hierarchical-pipeline-plugin",
+      "samples": 4598,
+      "metrics": {
+        "accuracy": 0.0,
+        "macro_f1": 0.0,
+        "latency_ms_median": 4.43,
+        "acc_test": 0.0
+      },
+      "primary_metric_ci_lower": 0.0,
+      "primary_metric_ci_upper": 0.0,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-adapt-hierarchical-pipeline-plugin==1.6.1a1"
+      ],
+      "version_blended": false
+    }
+  ]
+}
