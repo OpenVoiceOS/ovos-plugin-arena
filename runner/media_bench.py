@@ -33,6 +33,7 @@ from pathlib import Path
 
 from arena.version import __version__ as ARENA_VERSION
 from registry.loaders import list_competitors, load_dataset
+from runner.perf import hw_fingerprint, measure_call
 from runner.intent_bench import (
     HF_OWNER,
     _now_iso,
@@ -262,11 +263,19 @@ def run_competitor_lang(
                 log.info("  loading %s for %s", competitor.competitor_id, lang)
                 engine = adapter.load_engine(competitor, lang)
             try:
-                fields = adapter.predict(engine, sample, ctx)
+                fields, elapsed_ms, peak_rss_mb = measure_call(
+                    lambda: adapter.predict(engine, sample, ctx)
+                )
             except Exception as exc:
                 log.warning("    %s/%s sample %s failed: %s",
                             competitor.competitor_id, lang, sample_id, exc)
                 continue
+            # performance-metrics campaign M1 (runner.perf) — additive;
+            # never overrides a value the adapter already set explicitly.
+            fields.setdefault("elapsed_ms", round(elapsed_ms, 3))
+            fields.setdefault("peak_rss_mb",
+                               round(peak_rss_mb, 3) if peak_rss_mb is not None else None)
+            fields.setdefault("hw", hw_fingerprint())
             row = make_row(
                 competitor, dataset_id, lang, sample_id, revision, fields,
                 modality=adapter.modality,

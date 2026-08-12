@@ -171,6 +171,7 @@ class TTSBench(MediaBenchAdapter):
                 "prediction": None,
                 "audio_url": None,
                 "latency_ms": round(latency_ms, 3),
+                "audio_secs": None,  # synthesis failed — no clip was produced
                 "extras": {
                     "synthesis_error": str(exc),
                     "intelligibility_wer": 1.0,
@@ -219,6 +220,8 @@ class TTSBench(MediaBenchAdapter):
             "prediction": ctx.hf_audio_url(rel),
             "audio_url": ctx.hf_audio_url(rel),
             "latency_ms": round(latency_ms, 3),
+            # produced clip duration (RTF = elapsed_ms / 1000 / audio_secs, §M1)
+            "audio_secs": _clip_duration_secs(wav_path),
             # PredictionRow has no modeled utmos/intelligibility fields —
             # these MUST be nested under "extras" (§3.2) or pydantic
             # silently drops them and the objective board goes empty; see
@@ -226,6 +229,18 @@ class TTSBench(MediaBenchAdapter):
             # arena/predictions.py:parse_row.
             "extras": extras,
         }
+
+
+def _clip_duration_secs(wav_path) -> float | None:
+    """Duration in seconds of a just-synthesised clip, best-effort."""
+    try:
+        import soundfile as sf
+
+        info = sf.info(str(wav_path))
+        return round(info.frames / info.samplerate, 3)
+    except Exception as exc:
+        log.warning("could not read duration of %s: %s", wav_path, exc)
+        return None
 
 
 def _safe(text: str) -> str:

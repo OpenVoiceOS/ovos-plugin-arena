@@ -454,11 +454,39 @@ deciding which TTS plugin to ship). UTMOS's ONNX export (via
 `speechonnxmetrics`) carries an MIT license with no such restriction, which
 is why it was chosen as the judge here.
 
-## Open items
+## Performance data on prediction rows (§3.2, M1)
 
-The RTF hardware-disclosure convention (TTS latency/RTF) is a placeholder
-for work tracked elsewhere in the roadmap and will be filled in as that
-work lands.
+Every row a benchmark script writes now carries a small, optional set of
+performance columns, in addition to `latency_ms` (see §3.2 of
+`SPECIFICATION.md` for the exact field list): `elapsed_ms` (wall time of the
+single inference call), `peak_rss_mb` (a rough process RSS sample, not a
+true per-call peak), `audio_secs` (input clip duration for STT/wake word,
+produced clip duration for TTS — RTF is `elapsed_ms / 1000 / audio_secs`)
+and `hw` (a hardware fingerprint captured once per run and stamped on every
+row of it: CPU model, thread count, accelerator if any, host class,
+hostname).
+
+Two things this is deliberately *not*:
+
+- **Not a profiler.** `peak_rss_mb` is bracketed by one RSS sample before
+  and one after the call (`runner.perf.measure_call`) — a spike that rises
+  and falls entirely inside the call is invisible, and the number is
+  process-wide, so it is not attributable to the one call alone. It is a
+  coarse, per-row signal for spotting gross regressions across runs, not a
+  memory profile.
+- **Not a leaderboard axis (yet).** These columns exist so RTF and rough
+  memory pressure are *computable* per row; they do not yet feed any board
+  or ELO signal. A shard produced on one machine and merged with a shard
+  from another carries its own `hw` per row rather than assuming one
+  fingerprint for the whole file, since prediction files are commonly
+  built up across several runner boxes over time.
+
+**Backward compatibility is load-bearing here.** The overwhelming majority
+of already-published prediction rows predate this capture. `arena.models.
+PredictionRow` defaults every one of these fields to `None`/absent, and
+`arena.predictions.parse_row` never requires them — an old row loads
+exactly as it did before this columns existed, just without a value for
+RTF.
 
 ---
 [← Leagues](leagues.md) · [Home](index.md) · [Operations →](operations.md)

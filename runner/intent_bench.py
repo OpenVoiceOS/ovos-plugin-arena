@@ -28,6 +28,7 @@ from pathlib import Path
 from arena.metrics import domain_of
 from arena.version import __version__ as ARENA_VERSION
 from registry.loaders import load_all_competitors, load_dataset
+from runner.perf import hw_fingerprint, measure_call
 from runner.intent_pipeline import (
     ENGINE_REGISTRY,
     IntentPipeline,
@@ -219,6 +220,7 @@ def make_row(
     stage: str | None,
     dataset_revision: str,
     granularity: str = "intent",
+    peak_rss_mb: float | None = None,
 ) -> dict:
     """Build one §3.2 prediction row.
 
@@ -257,6 +259,11 @@ def make_row(
         "confidence": confidence,
         "bucket": test_row.get("split"),
         "latency_ms": round(latency_ms, 3),
+        # performance-metrics campaign M1 (runner.perf) — additive, optional;
+        # no audio_secs here, intent rows are text-in/text-out.
+        "elapsed_ms": round(latency_ms, 3),
+        "peak_rss_mb": round(peak_rss_mb, 3) if peak_rss_mb is not None else None,
+        "hw": hw_fingerprint(),
         "runner_version": f"ovos-plugin-arena=={ARENA_VERSION}",
         "created_at": _now_iso(),
     }
@@ -325,13 +332,14 @@ def run_competitor_lang(
     written = 0
     with out_path.open("a", encoding="utf-8") as fh:
         for i, test_row in todo:
-            prediction, slots, confidence, latency_ms, stage = (
-                pipeline.predict(test_row["utterance"])
+            (prediction, slots, confidence, latency_ms, stage), _, peak_rss_mb = (
+                measure_call(lambda: pipeline.predict(test_row["utterance"]))
             )
             row = make_row(
                 competitor, dataset_id, lang, i, test_row,
                 prediction, slots, confidence, latency_ms, stage, revision,
                 granularity=eval_def.reference_granularity,
+                peak_rss_mb=peak_rss_mb,
             )
             fh.write(json.dumps(row, ensure_ascii=False) + "\n")
             written += 1

@@ -19,6 +19,7 @@ import logging
 from collections.abc import Iterator
 from pathlib import Path
 
+from runner.perf import hw_fingerprint, measure_call
 from runner.queue_config import DatasetSpec, JobSpec, PluginSpec
 from runner.schema import JobManifest
 
@@ -350,7 +351,9 @@ def run_job(
                 if hasattr(signal, "SIGALRM"):
                     signal.alarm(per_sample_timeout)
 
-                text, conf = _transcribe(stt, array, sample_rate, plugin.lang)
+                (text, conf), elapsed_ms, peak_rss_mb = measure_call(
+                    lambda: _transcribe(stt, array, sample_rate, plugin.lang)
+                )
 
                 if hasattr(signal, "SIGALRM"):
                     signal.alarm(0)
@@ -374,6 +377,12 @@ def run_job(
                 "prediction": text,
                 "reference_text": ground_truth,
                 "confidence": conf,
+                # performance-metrics campaign M1 (runner.perf) — additive,
+                # optional; see arena.models.PredictionRow.
+                "elapsed_ms": round(elapsed_ms, 3),
+                "peak_rss_mb": round(peak_rss_mb, 3) if peak_rss_mb is not None else None,
+                "audio_secs": round(len(array) / sample_rate, 3),
+                "hw": hw_fingerprint(),
                 "extras": {"model_id": mid},
             }
             # Attribution must be explicit for competitor-referenced jobs:
