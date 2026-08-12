@@ -164,8 +164,32 @@ class TestReadJsonl:
         assert len(rows) == 3
 
 
+class _FakeCompetitor:
+    def __init__(self, competitor_id):
+        self.competitor_id = competitor_id
+
+
+def _stub_registry(monkeypatch, registered_by_modality):
+    """Make ``registry.loaders.list_competitors`` return only the given ids.
+
+    ``group_rows`` imports ``list_competitors`` locally (inside the
+    function) from ``registry.loaders``, so patching the attribute on that
+    module is sufficient — no need to touch ``arena.predictions``.
+    """
+    import registry.loaders as loaders_mod
+
+    def fake_list_competitors(modality=None):
+        return [
+            _FakeCompetitor(cid)
+            for cid in registered_by_modality.get(modality, [])
+        ]
+
+    monkeypatch.setattr(loaders_mod, "list_competitors", fake_list_competitors)
+
+
 class TestGroupRows:
-    def test_groups_by_modality_dataset_lang(self):
+    def test_groups_by_modality_dataset_lang(self, monkeypatch):
+        _stub_registry(monkeypatch, {"intent": ["padatious-medium", "other"]})
         rows = [
             parse_row(_intent_row(), "a"),
             parse_row(_intent_row(lang="pt-PT", sample_id="pt-PT/00001"), "a"),
@@ -177,7 +201,8 @@ class TestGroupRows:
         en = grouped[("intent", "intents-for-eval", "en-US")]
         assert set(en["en-US/00001"]) == {"padatious-medium", "other"}
 
-    def test_duplicate_rows_keep_last(self):
+    def test_duplicate_rows_keep_last(self, monkeypatch):
+        _stub_registry(monkeypatch, {"intent": ["padatious-medium"]})
         rows = [
             parse_row(_intent_row(prediction="first"), "a"),
             parse_row(_intent_row(prediction="second"), "a"),
@@ -186,11 +211,31 @@ class TestGroupRows:
         sample = grouped[("intent", "intents-for-eval", "en-US")]["en-US/00001"]
         assert sample["padatious-medium"].prediction == "second"
 
-    def test_unknown_modality_dropped(self):
+    def test_unknown_modality_dropped(self, monkeypatch):
+        _stub_registry(monkeypatch, {})
         rows = [parse_row({"competitor_id": "c", "sample_id": "s",
                            "dataset_id": "d", "lang": "x", "plugin_id": "p",
                            "prediction": "?"}, "c")]
         assert group_rows(rows) == {}
+
+    def test_unregistered_competitor_excluded_from_boards(self, monkeypatch):
+        # §board-truth — a fighter removed from the registry (e.g.
+        # jurebes-medium, replaced by the per-baseline fan-out) must not
+        # keep appearing on published boards just because its orphaned HF
+        # prediction shards are still fetched and loaded.
+        _stub_registry(monkeypatch, {"intent": ["padatious-medium"]})
+        rows = [
+            parse_row(_intent_row(competitor_id="padatious-medium"), "padatious-medium"),
+            parse_row(_intent_row(competitor_id="padatious-medium"), "padatious-medium"),
+            parse_row(_intent_row(competitor_id="jurebes-medium"), "jurebes-medium"),
+        ]
+        unregistered: dict[str, int] = {}
+        grouped = group_rows(rows, unregistered=unregistered)
+
+        en = grouped[("intent", "intents-for-eval", "en-US")]["en-US/00001"]
+        assert set(en) == {"padatious-medium"}
+        assert "jurebes-medium" not in en
+        assert unregistered == {"jurebes-medium": 1}
 
 
 def _legacy_stt_row(**over):

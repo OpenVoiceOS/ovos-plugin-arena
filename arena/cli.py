@@ -506,7 +506,18 @@ def cmd_assemble(args: argparse.Namespace) -> int:
         log.warning("No predictions loaded — nothing to assemble.")
         return 1
 
-    grouped = group_rows(rows)
+    unregistered_competitors: dict[str, int] = {}
+    grouped = group_rows(rows, unregistered=unregistered_competitors)
+    if unregistered_competitors:
+        _write_json_payload(
+            data_dir / "assemble-summary.json",
+            {
+                "generated_at": _now_iso(),
+                "unregistered_competitors_excluded": dict(
+                    sorted(unregistered_competitors.items())
+                ),
+            },
+        )
     # Legacy daemon rows keyed by the raw hf path (e.g.
     # FBK-MT/Speech-MASSIVE-test/de-DE/test) instead of the canonical
     # registry id: a board or battle filename built from such an id explodes
