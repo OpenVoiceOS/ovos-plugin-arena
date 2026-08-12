@@ -178,6 +178,7 @@ import Base from '../../layouts/Base.astro';
       ['error_rate', 'Error', true], ['false_accept_rate', 'False acc.', true],
       ['false_reject_rate', 'False rej.', true], ['latency_ms_median', 'Latency ms', false],
       ['utmos', 'UTMOS', false], ['intelligibility_wer', 'Intellig. WER', true],
+      ['ece', 'ECE', false],
     ];
     // primary_metric values whose raw scale is naturally "higher is
     // better" — accuracy/macro_f1/etc. are already ratios in [0,1] where
@@ -194,7 +195,11 @@ import Base from '../../layouts/Base.astro';
     const fmtMetric = (key, v) => {
       if (v == null) return '—';
       const percent = METRIC_COLUMN_BY_KEY[key]?.[2] ?? false;
-      return percent ? pct(v) : (Math.round(v * 100) / 100).toFixed(2);
+      if (percent) return pct(v);
+      // ece is a calibration-error magnitude in [0, 1], not a percentage —
+      // keep 3 decimals so small (well-calibrated) values stay distinguishable.
+      if (key === 'ece') return v.toFixed(3);
+      return (Math.round(v * 100) / 100).toFixed(2);
     };
 
     // leagues: [{id, label, battle_group, order}] from data/index.json — the
