@@ -178,6 +178,20 @@ import Base from '../../layouts/Base.astro';
       ['error_rate', 'Error', true], ['false_accept_rate', 'False acc.', true],
       ['false_reject_rate', 'False rej.', true], ['latency_ms_median', 'Latency ms', false],
       ['utmos', 'UTMOS', false], ['intelligibility_wer', 'Intellig. WER', true],
+      // SIGMOS/DNSMOS quality dimensions (§4 R14 extension) — headline picks
+      // only (not all 10 flattened dims, to avoid cramming the board);
+      // UTMOS remains primary. NISQA was considered and rejected (its
+      // weights are CC BY-NC-SA 4.0, incompatible with this arena's
+      // freely-reusable board artifacts — see docs/methodology.md); SIGMOS
+      // (P.804, MIT-licensed) covers the same style of dimensions instead.
+      // All four columns below are 1-5 MOS-style scales where HIGHER is
+      // better — verified against speechonnxmetrics' sigmos.md / dnsmos.md
+      // docs and SIGMOS.higher_is_better / DNSMOS.higher_is_better (both
+      // True in source); "noise"/"disc" (discontinuity) are perceived-
+      // quality-along-that-axis scores, not raw defect counts, so a clean
+      // clip scores HIGH on both. Plain 2-decimal scores, not percentages.
+      ['sigmos.noise', 'Noise', false], ['sigmos.col', 'Coloration', false],
+      ['sigmos.disc', 'Discontinuity', false], ['dnsmos.bak', 'Bg noise', false],
       ['ece', 'ECE', false],
     ];
     // primary_metric values whose raw scale is naturally "higher is
@@ -185,7 +199,9 @@ import Base from '../../layouts/Base.astro';
     // higher wins; utmos is a 1-5 MOS scale, also higher wins. Anything
     // else here (wer_mean, error_rate, …) is "lower is better" and the
     // score-bar fill inverts it.
-    const HIGHER_IS_BETTER = new Set(['accuracy', 'utmos']);
+    const HIGHER_IS_BETTER = new Set([
+      'accuracy', 'utmos', 'sigmos.noise', 'sigmos.col', 'sigmos.disc', 'dnsmos.bak',
+    ]);
     // metric key -> [key, label, percent] lookup built from METRIC_COLUMNS,
     // used so the primary-metric cell renders per its own percent flag
     // instead of always assuming a 0..1 ratio (e.g. UTMOS is a 1..5 MOS

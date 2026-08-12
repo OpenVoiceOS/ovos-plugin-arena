@@ -4,12 +4,14 @@ from __future__ import annotations
 import pytest
 
 from arena.metrics import (
+    TTS_QUALITY_DIMENSION_KEYS,
     build_benchmark_board,
     domain_of,
     expected_calibration_error,
     intelligibility_scores,
     row_intelligibility_wer,
     row_is_correct,
+    row_quality_dimension,
     row_utmos,
     row_wer,
     score_intent,
@@ -341,6 +343,55 @@ class TestScoreTts:
         rows = [_row(extras={"utmos": 4.0})]
         metrics = score_tts(rows)
         assert "intelligibility_wer" not in metrics
+
+    def test_sigmos_dnsmos_nisqa_dimensions_aggregated_as_mean(self):
+        rows = [
+            _row(extras={"utmos": 4.0, "sigmos.noise": 4.0, "sigmos.col": 3.0,
+                          "sigmos.disc": 4.5, "dnsmos.bak": 3.5, "dnsmos.ovrl": 3.0,
+                          "nisqa.mos": 4.2, "nisqa.noi": 4.0}),
+            _row(extras={"utmos": 3.0, "sigmos.noise": 2.0, "sigmos.col": 5.0,
+                          "sigmos.disc": 3.5, "dnsmos.bak": 4.5, "dnsmos.ovrl": 4.0,
+                          "nisqa.mos": 3.8, "nisqa.noi": 2.0}),
+        ]
+        metrics = score_tts(rows)
+        assert metrics["sigmos.noise"] == pytest.approx(3.0)
+        assert metrics["sigmos.col"] == pytest.approx(4.0)
+        assert metrics["sigmos.disc"] == pytest.approx(4.0)
+        assert metrics["dnsmos.bak"] == pytest.approx(4.0)
+        assert metrics["dnsmos.ovrl"] == pytest.approx(3.5)
+        assert metrics["nisqa.mos"] == pytest.approx(4.0)
+        assert metrics["nisqa.noi"] == pytest.approx(3.0)
+
+    def test_quality_dimensions_tolerate_old_rows_missing_the_key(self):
+        # rows benched before this metric existed have no sigmos.*/dnsmos.*/
+        # nisqa.* extras at all — aggregation must not crash or fabricate a
+        # score.
+        rows = [_row(extras={"utmos": 4.0}), _row(extras={"utmos": 3.5})]
+        metrics = score_tts(rows)
+        assert metrics["utmos"] == pytest.approx(3.75)
+        for key in TTS_QUALITY_DIMENSION_KEYS:
+            assert key not in metrics
+
+    def test_quality_dimension_partial_coverage_excludes_missing_rows(self):
+        rows = [_row(extras={"sigmos.noise": 4.0}), _row(extras={})]
+        metrics = score_tts(rows)
+        assert metrics["sigmos.noise"] == pytest.approx(4.0)
+
+
+class TestRowQualityDimension:
+    def test_present(self):
+        assert row_quality_dimension(_row(extras={"sigmos.noise": 4.2}), "sigmos.noise") == 4.2
+
+    def test_missing(self):
+        assert row_quality_dimension(_row(), "sigmos.noise") is None
+
+    def test_non_numeric_ignored(self):
+        assert row_quality_dimension(
+            _row(extras={"dnsmos.bak": "nope"}), "dnsmos.bak") is None
+
+    def test_nan_guard(self):
+        assert row_quality_dimension(
+            _row(extras={"sigmos.col": float("nan")}), "sigmos.col") is None
 
 
 class TestRowIntelligibilityWer:

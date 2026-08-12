@@ -29,7 +29,24 @@ log = logging.getLogger("tts-bench")
 UTMOS_JUDGE = "TigreGotico/utmos-onnx"
 UTMOS_JUDGE_REVISION = "ff41b8f440cb12ecda18261f9ff7326d058275ce"
 
+#: SIGMOS (P.804), DNSMOS (P.835) and NISQA-v2 are objective per-dimension
+#: quality judges — same provenance/pinning discipline as UTMOS above (§4
+#: R14 extension). SIGMOS provides the headline P.804 dimensions (MIT-
+#: licensed Microsoft weights); NISQA is recorded as a complementary
+#: predictor alongside it (see docs/methodology.md for the license
+#: rationale — this arena is a non-commercial OVOS project, so NISQA's CC
+#: BY-NC-SA 4.0 weights are usable here).
+SIGMOS_JUDGE = "TigreGotico/sigmos-onnx"
+SIGMOS_JUDGE_REVISION = "33ccd4fca5b8ffe03828530753f0b35769b8e880"
+DNSMOS_JUDGE = "TigreGotico/dnsmos-onnx"
+DNSMOS_JUDGE_REVISION = "27691a53aa069b27be6ac957013d43b3c442da9d"
+NISQA_JUDGE = "TigreGotico/nisqa-onnx"
+NISQA_JUDGE_REVISION = "3de0221b7bb4919dc2ba9a891da7fba76b06e573"
+
 _utmos_judge = None  # module-cached lazy singleton, one ONNX session per process
+_sigmos_judge = None
+_dnsmos_judge = None
+_nisqa_judge = None
 _intelligibility_judges: dict[str, tuple[object, str]] = {}  # model_id -> (onnx-asr model, revision), cached per model — several langs share one model
 
 
@@ -54,6 +71,59 @@ def _get_utmos_judge():
             ) from exc
         _utmos_judge = UTMOS()
     return _utmos_judge
+
+
+def _get_sigmos_judge():
+    """Lazily import and cache the SIGMOS (P.804) judge — same optional-dep
+    contract as :func:`_get_utmos_judge`."""
+    global _sigmos_judge
+    if _sigmos_judge is None:
+        try:
+            from speechonnxmetrics.mos.sigmos import SIGMOS
+        except ImportError as exc:
+            raise RuntimeError(
+                "TTS benchmarking requires the 'speechonnxmetrics' package "
+                "(objective SIGMOS scoring is not optional for TTS runs) — "
+                "install the 'audio' extra: pip install ovos-plugin-arena[audio]"
+            ) from exc
+        _sigmos_judge = SIGMOS()
+    return _sigmos_judge
+
+
+def _get_dnsmos_judge():
+    """Lazily import and cache the DNSMOS (P.835) judge — same optional-dep
+    contract as :func:`_get_utmos_judge`."""
+    global _dnsmos_judge
+    if _dnsmos_judge is None:
+        try:
+            from speechonnxmetrics.mos.dnsmos import DNSMOS
+        except ImportError as exc:
+            raise RuntimeError(
+                "TTS benchmarking requires the 'speechonnxmetrics' package "
+                "(objective DNSMOS scoring is not optional for TTS runs) — "
+                "install the 'audio' extra: pip install ovos-plugin-arena[audio]"
+            ) from exc
+        _dnsmos_judge = DNSMOS()
+    return _dnsmos_judge
+
+
+def _get_nisqa_judge():
+    """Lazily import and cache the NISQA-v2 judge — same optional-dep
+    contract as :func:`_get_utmos_judge`. NISQA's weights are CC BY-NC-SA
+    4.0; usable here because this arena is a non-commercial OVOS project
+    (see docs/methodology.md)."""
+    global _nisqa_judge
+    if _nisqa_judge is None:
+        try:
+            from speechonnxmetrics.mos.nisqa import NISQA
+        except ImportError as exc:
+            raise RuntimeError(
+                "TTS benchmarking requires the 'speechonnxmetrics' package "
+                "(objective NISQA scoring is not optional for TTS runs) — "
+                "install the 'audio' extra: pip install ovos-plugin-arena[audio]"
+            ) from exc
+        _nisqa_judge = NISQA()
+    return _nisqa_judge
 
 
 def _get_intelligibility_judge(lang: str) -> tuple[object, str, str]:
@@ -87,6 +157,51 @@ def _get_intelligibility_judge(lang: str) -> tuple[object, str, str]:
         model = onnx_asr.load_model(model_id)
         _intelligibility_judges[model_id] = (model, revision)
     return (*_intelligibility_judges[model_id], model_id)
+
+
+def _score_quality_dimensions(wav_path) -> dict:
+    """SIGMOS (col/disc/loud/noise/reverb/sig/ovrl) + DNSMOS (sig/bak/ovrl) +
+    NISQA (mos/noi/dis/col/loud) for one rendered clip, flattened onto
+    ``sigmos.<dim>``/``dnsmos.<dim>``/``nisqa.<dim>`` extras keys — same
+    shape ``speechonnxmetrics.score()`` would produce (§4 R14 extension).
+    SIGMOS provides the board's headline P.804 dimensions; NISQA rides
+    along as a complementary predictor, not surfaced as its own board
+    column (see docs/methodology.md for why both are used together here).
+
+    Warn-only: a judge that fails to score a pathological clip (e.g. one
+    the intelligibility judge above already tolerates) must not drop the
+    row — the extras below simply stay absent for the failed judge, and
+    aggregation (``score_tts``) already excludes rows missing a dimension.
+    """
+    extras: dict = {}
+    try:
+        sigmos_judge = _get_sigmos_judge()
+        sigmos_scores = sigmos_judge(str(wav_path), sigmos_judge.sample_rate)
+        for dim, value in sigmos_scores.items():
+            extras[f"sigmos.{dim}"] = round(float(value), 4)
+        extras["sigmos_judge"] = SIGMOS_JUDGE
+        extras["sigmos_judge_revision"] = SIGMOS_JUDGE_REVISION
+    except Exception as exc:
+        log.warning("SIGMOS scoring failed for %s: %s", wav_path, exc)
+    try:
+        dnsmos_judge = _get_dnsmos_judge()
+        dnsmos_scores = dnsmos_judge(str(wav_path), dnsmos_judge.sample_rate)
+        for dim, value in dnsmos_scores.items():
+            extras[f"dnsmos.{dim}"] = round(float(value), 4)
+        extras["dnsmos_judge"] = DNSMOS_JUDGE
+        extras["dnsmos_judge_revision"] = DNSMOS_JUDGE_REVISION
+    except Exception as exc:
+        log.warning("DNSMOS scoring failed for %s: %s", wav_path, exc)
+    try:
+        nisqa_judge = _get_nisqa_judge()
+        nisqa_scores = nisqa_judge(str(wav_path), nisqa_judge.sample_rate)
+        for dim, value in nisqa_scores.items():
+            extras[f"nisqa.{dim}"] = round(float(value), 4)
+        extras["nisqa_judge"] = NISQA_JUDGE
+        extras["nisqa_judge_revision"] = NISQA_JUDGE_REVISION
+    except Exception as exc:
+        log.warning("NISQA scoring failed for %s: %s", wav_path, exc)
+    return extras
 
 
 def _transcribe(judge, array, sample_rate: int = 16000) -> str:
@@ -213,6 +328,11 @@ class TTSBench(MediaBenchAdapter):
             "utmos_judge": UTMOS_JUDGE,
             "utmos_judge_revision": UTMOS_JUDGE_REVISION,
         }
+        # SIGMOS/DNSMOS/NISQA quality dimensions ride alongside UTMOS (§4 R14
+        # extension) — UTMOS stays the board's primary metric, these are
+        # additional secondary columns. Warn-only on failure, same as
+        # intelligibility scoring below: never drops the row.
+        extras.update(_score_quality_dimensions(wav_path))
         try:
             wer, cer, judge_model_id, judge_revision = _score_intelligibility(
                 wav_path, text, ctx.lang)
