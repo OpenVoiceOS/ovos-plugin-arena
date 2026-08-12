@@ -153,6 +153,42 @@ class TestAssembleBattles:
         battles = assemble_battles("intent", "d", "en-US", samples, max_battles=1)
         assert battles[0].sample_id == "en-US/00001"  # the both-wrong sample
 
+    def test_reference_mismatch_pair_skipped_and_counted(self):
+        # Legacy colliding sample_id: same sample_id, but the two rows were
+        # actually scored against different underlying stimuli (different
+        # reference_intent) — a pre-#70 shard collision. Pairing them would
+        # silently produce a nonsense battle.
+        samples = _samples([
+            _row("x", "media:play_song", reference="media:play_song"),
+            _row("y", "media:stop", reference="media:different_stimulus"),
+        ])
+        stats: dict[str, int] = {}
+        battles = assemble_battles("intent", "d", "en-US", samples, stats=stats)
+        assert battles == []
+        assert stats["skipped_reference_mismatches"] == 1
+
+    def test_reference_match_pair_still_battled(self):
+        samples = _samples([
+            _row("x", "media:play_song", reference="media:play_song"),
+            _row("y", "media:stop", reference="media:play_song"),
+        ])
+        stats: dict[str, int] = {}
+        battles = assemble_battles("intent", "d", "en-US", samples, stats=stats)
+        assert len(battles) == 1
+        assert stats["skipped_reference_mismatches"] == 0
+
+    def test_reference_mismatch_whitespace_normalized_not_flagged(self):
+        samples = _samples([
+            _row("x", "hello", reference_text="hello  world",
+                 reference=None, sample_id="en-US/00000"),
+            _row("y", "goodbye", reference_text="hello world",
+                 reference=None, sample_id="en-US/00000"),
+        ])
+        stats: dict[str, int] = {}
+        battles = assemble_battles("stt", "d", "en-US", samples, stats=stats)
+        assert len(battles) == 1
+        assert stats["skipped_reference_mismatches"] == 0
+
     def test_intent_payload_shape(self):
         samples = _samples([
             _row("x", "media:play_song",

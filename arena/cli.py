@@ -558,8 +558,10 @@ def cmd_assemble(args: argparse.Namespace) -> int:
     _clean_merged_artifacts(data_dir, {m for (m, _, _) in grouped})
 
     for (group, dataset_id, lang), samples in sorted(battle_samples.items()):
+        stats: dict[str, int] = {}
         battles = assemble_battles(
-            group, dataset_id, lang, samples, max_battles=args.max_battles
+            group, dataset_id, lang, samples,
+            max_battles=args.max_battles, stats=stats,
         )
         pool = BattlesPool(
             modality=group,
@@ -568,6 +570,9 @@ def cmd_assemble(args: argparse.Namespace) -> int:
             generated_at=now,
             dataset_info=dataset_info.get(dataset_id),
             battles=battles,
+            skipped_reference_mismatches=stats.get(
+                "skipped_reference_mismatches", 0
+            ),
         )
         _write_json(data_dir / f"battles-{group}-{dataset_id}-{lang}.json", pool)
 

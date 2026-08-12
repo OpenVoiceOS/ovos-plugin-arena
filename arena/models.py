@@ -246,6 +246,11 @@ class BattlesPool(BaseModel):
         ),
     )
     battles: list[Battle] = Field(default_factory=list)
+    # Count of candidate pairs dropped by assemble_battles because their
+    # reference text disagreed despite sharing a sample_id (colliding legacy
+    # ids across pre-#70 shards) — 0 when the assembler found none. Surfaces
+    # the guard's effect instead of letting mismatched pairs vanish silently.
+    skipped_reference_mismatches: int = 0
 
 
 # ---------------------------------------------------------------------------
@@ -276,6 +281,12 @@ class BenchmarkEntry(BaseModel):
     # exactly one entry here and ``version_blended=False``.
     plugin_versions: list[str] = Field(default_factory=list)
     version_blended: bool = False
+    # A run that produced zero scored samples (or never computed the primary
+    # metric at all) has no signal to rank on — leaving it at ``rank=0`` from
+    # a bare sort would let it land at #1 whenever it's the board's only or
+    # first-sorted entry (e.g. a solo fighter whose entire run failed).
+    unranked: bool = False
+    unranked_reason: str | None = None
 
 
 class BenchmarkBoard(BaseModel):
