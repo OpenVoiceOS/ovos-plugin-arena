@@ -41,6 +41,32 @@ import Base from '../../layouts/Base.astro';
       </table>
     </div>
 
+    <h2>Fighter coverage, per league</h2>
+    <p style="max-width:66ch">
+      Dataset-level coverage above can hide fighter-level gaps: a league can have
+      a published benchmark board and still have registered fighters with zero
+      rows on it. This table counts, per league, how many registered fighters
+      actually appear in at least one benchmark board or battles pool
+      ("on boards") versus how many do not yet ("ghosts"). A ghost is a
+      registered-but-not-yet-benchmarked fighter — most reflect sweeps still in
+      progress, not a hidden failure. This is computed offline from the
+      committed data dir only; it cannot see in-flight Hugging Face uploads.
+    </p>
+    <div class="table-scroll">
+      <table id="ev-fighters-table">
+        <caption class="sr-only">Fighter coverage per league: registered fighters, fighters on boards, and ghost fighters.</caption>
+        <thead>
+          <tr>
+            <th scope="col">League</th>
+            <th scope="col">Registered</th>
+            <th scope="col">On boards</th>
+            <th scope="col">Ghosts</th>
+          </tr>
+        </thead>
+        <tbody id="ev-fighters-tbody"></tbody>
+      </table>
+    </div>
+
     <h2>Published predictions, per dataset</h2>
     <p style="max-width:66ch">
       Every dataset a league claims to score against, linked to its Hugging Face
@@ -120,6 +146,7 @@ import Base from '../../layouts/Base.astro';
         document.getElementById('ev-app')!.style.display = 'block';
         renderTotals(data);
         renderTable(data.leagues);
+        renderFightersTable(data.leagues);
         renderLinks(data.leagues);
         renderVerify();
         renderGeneratedAt(data.generated_at);
@@ -127,16 +154,40 @@ import Base from '../../layouts/Base.astro';
 
     function renderTotals(data: any) {
       const totals = data.totals || {};
+      const fc = totals.fighter_coverage || {};
       const stats: [string, string][] = [
         [String(totals.fighters ?? '—'), 'Fighters registered'],
         [String(totals.datasets ?? '—'), 'Eval datasets registered'],
         [String(totals.spec_requirements ?? '—'), 'Spec requirements (R#)'],
         [String((data.leagues || []).length), 'Leagues'],
+        [String(fc.ghosts ?? '—'), 'Ghost fighters (registered, no rows yet)'],
       ];
       const box = document.getElementById('ev-totals')!;
       box.innerHTML = stats.map(([n, l]) => `
         <div class="ev-stat"><span class="n">${escapeHtml(n)}</span><span class="l">${escapeHtml(l)}</span></div>
       `).join('');
+    }
+
+    function ghostCell(ghosts: number, registered: number): string {
+      const text = String(ghosts);
+      return ghosts > 0
+        ? `<span class="ev-gap" title="${ghosts} of ${registered} registered fighters have no rows on any benchmark board or battles pool yet">${escapeHtml(text)}</span>`
+        : escapeHtml(text);
+    }
+
+    function renderFightersTable(leagues: any[]) {
+      const tbody = document.getElementById('ev-fighters-tbody')!;
+      tbody.innerHTML = leagues.map(l => {
+        const fc = l.fighter_coverage || {};
+        return `
+          <tr>
+            <th scope="row">${escapeHtml(l.label || l.id)}</th>
+            <td class="num">${escapeHtml(fc.registered ?? 0)}</td>
+            <td class="num">${escapeHtml(fc.on_boards ?? 0)}</td>
+            <td class="num">${ghostCell(fc.ghosts ?? 0, fc.registered ?? 0)}</td>
+          </tr>
+        `;
+      }).join('');
     }
 
     function gapCell(have: number, total: number): string {

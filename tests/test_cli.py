@@ -584,9 +584,17 @@ class TestExportEvidence:
         assert exc.value.code == 0
 
         payload = json.loads(out.read_text())
-        assert payload["totals"] == {
-            "fighters": 4, "datasets": 3, "spec_requirements": 3,
+        assert payload["totals"]["fighters"] == 4
+        assert payload["totals"]["datasets"] == 3
+        assert payload["totals"]["spec_requirements"] == 3
+        # § fighter-coverage rollup — only "whisper-tiny" has any rows
+        # anywhere (one benchmark-board entry); the other 3 fighters
+        # (onnx-asr-a, onnx-asr-b, piper-a) are registered-but-untested
+        # ghosts, matching this fixture's data files exactly.
+        assert payload["totals"]["fighter_coverage"] == {
+            "registered": 4, "on_boards": 1, "ghosts": 3,
         }
+        assert "notes" in payload and "fighter_coverage" in payload["notes"]
 
         by_id = {row["id"]: row for row in payload["leagues"]}
         stt = by_id["stt"]
@@ -598,6 +606,9 @@ class TestExportEvidence:
         links = {link["dataset_id"]: link["has_predictions"]
                  for link in stt["predictions_links"]}
         assert links == {"fleurs-en": True, "fleurs-de": False}
+        assert stt["fighter_coverage"] == {
+            "registered": 3, "on_boards": 1, "ghosts": 2,
+        }
 
         tts = by_id["tts"]
         assert tts["fighters"] == 1
@@ -605,10 +616,53 @@ class TestExportEvidence:
         assert tts["datasets_with_predictions"] == 0
         assert tts["benchmark_boards"] == 0
         assert tts["elo_leaderboards"] == 0
+        assert tts["fighter_coverage"] == {
+            "registered": 1, "on_boards": 0, "ghosts": 1,
+        }
 
         vad = by_id["vad"]
         assert vad["fighters"] == 0
         assert vad["datasets"] == 0
+        assert vad["fighter_coverage"] == {
+            "registered": 0, "on_boards": 0, "ghosts": 0,
+        }
+
+    def test_fighter_coverage_counts_battles_pool_too(self, tmp_path):
+        """A fighter with zero benchmark-board rows but a battles-pool
+        appearance (competitor_a/competitor_b) must still count as
+        on_boards, not a ghost — battles are a separate coverage source."""
+        registry_root = tmp_path / "registry"
+        self._write_registry(registry_root)
+
+        data_dir = tmp_path / "data"
+        data_dir.mkdir()
+        # onnx-asr-a has no benchmark-board row, only a battles-pool row.
+        (data_dir / "battles-stt-fleurs-en.json").write_text(json.dumps({
+            "battles": [{
+                "battle_id": "b1", "modality": "stt", "lang": "en",
+                "competitor_a": "onnx-asr-a", "competitor_b": "onnx-asr-b",
+            }],
+        }))
+
+        spec_path = tmp_path / "SPECIFICATION.md"
+        r = "R"
+        spec_path.write_text(f"- **{r}1 — One.** Text.\n")
+
+        out = tmp_path / "evidence.json"
+        with pytest.raises(SystemExit) as exc:
+            main(["export-evidence", "--registry", str(registry_root),
+                  "--data-dir", str(data_dir), "--spec", str(spec_path),
+                  "--output", str(out)])
+        assert exc.value.code == 0
+
+        payload = json.loads(out.read_text())
+        by_id = {row["id"]: row for row in payload["leagues"]}
+        stt = by_id["stt"]
+        # onnx-asr-a and onnx-asr-b both counted via the battles pool;
+        # whisper-tiny is the ghost this time (no benchmark board, no battle).
+        assert stt["fighter_coverage"] == {
+            "registered": 3, "on_boards": 2, "ghosts": 1,
+        }
 
     def test_stable_regeneration(self, tmp_path):
         registry_root = tmp_path / "registry"
