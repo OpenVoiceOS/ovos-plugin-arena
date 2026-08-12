@@ -1056,6 +1056,47 @@ def cmd_export_bestiary(args: argparse.Namespace) -> int:
 # test treats as the authoritative R-number set.
 _SPEC_REQUIREMENT_DEF_RE = re.compile(r"\*\*(R\d+[a-z]?)\b")
 
+# Honest note attached to every league's ``fighter_coverage`` block: what
+# "on_boards" actually measures (no network access here — this command only
+# reads the local data dir + registry), and what "ghost" means so a reviewer
+# doesn't mistake a pending sweep for a hidden failure.
+_FIGHTER_COVERAGE_NOTE = (
+    "on_boards = fighter's competitor_id appears in at least one "
+    "benchmark-<modality>-*.json or battles-<modality>-*.json file in the "
+    "local data dir (the only offline-derivable proxy for \"has results\"; "
+    "this command makes no network calls, so it cannot check HuggingFace "
+    "predictions directly). A ghost is a registered fighter with zero rows "
+    "yet — most are pending benchmark/battle sweeps still running, not "
+    "hidden failures."
+)
+
+
+def _fighters_on_boards(modality: str, data_dir: Path, board_paths: list[Path]) -> set[str]:
+    """competitor_ids that appear in this league's benchmark boards or
+    battles pools — the offline proxy for "has results" (see
+    ``_FIGHTER_COVERAGE_NOTE``)."""
+    ids: set[str] = set()
+    for path in board_paths:
+        try:
+            payload = json.loads(path.read_text())
+        except (OSError, json.JSONDecodeError):
+            continue
+        for entry in payload.get("entries", []):
+            cid = entry.get("competitor_id")
+            if cid:
+                ids.add(cid)
+    for path in sorted(data_dir.glob(f"battles-{modality}-*.json")):
+        try:
+            payload = json.loads(path.read_text())
+        except (OSError, json.JSONDecodeError):
+            continue
+        for battle in payload.get("battles", []):
+            for key in ("competitor_a", "competitor_b"):
+                cid = battle.get(key)
+                if cid:
+                    ids.add(cid)
+    return ids
+
 
 def cmd_export_evidence(args: argparse.Namespace) -> int:
     """Build ``evidence.json`` — per-league completeness counts, generated
@@ -1118,6 +1159,15 @@ def cmd_export_evidence(args: argparse.Namespace) -> int:
 
         leaderboard_paths = sorted(data_dir.glob(f"leaderboard-{modality}-*.json"))
 
+        on_board_ids = _fighters_on_boards(modality, data_dir, board_paths)
+        fighter_ids = {c.competitor_id for c in fighters}
+        on_boards = len(fighter_ids & on_board_ids)
+        fighter_coverage = {
+            "registered": len(fighters),
+            "on_boards": on_boards,
+            "ghosts": len(fighters) - on_boards,
+        }
+
         predictions_links = [
             {
                 "dataset_id": dataset_id,
@@ -1141,12 +1191,16 @@ def cmd_export_evidence(args: argparse.Namespace) -> int:
             "benchmark_boards": len(board_paths),
             "elo_leaderboards": len(leaderboard_paths),
             "predictions_links": predictions_links,
+            "fighter_coverage": fighter_coverage,
             "spec_anchor": "docs/SPECIFICATION.md#21-leagues-modalities",
         })
 
     spec_path = Path(args.spec)
     spec_text = spec_path.read_text(encoding="utf-8") if spec_path.exists() else ""
     requirement_ids = sorted(set(_SPEC_REQUIREMENT_DEF_RE.findall(spec_text)))
+
+    total_on_boards = sum(row["fighter_coverage"]["on_boards"] for row in league_rows)
+    total_ghosts = sum(row["fighter_coverage"]["ghosts"] for row in league_rows)
 
     evidence = {
         "generated_at": _now_iso(),
@@ -1155,6 +1209,16 @@ def cmd_export_evidence(args: argparse.Namespace) -> int:
             "fighters": len(all_competitors),
             "datasets": len(eval_datasets),
             "spec_requirements": len(requirement_ids),
+            "fighter_coverage": {
+                "registered": sum(
+                    row["fighter_coverage"]["registered"] for row in league_rows
+                ),
+                "on_boards": total_on_boards,
+                "ghosts": total_ghosts,
+            },
+        },
+        "notes": {
+            "fighter_coverage": _FIGHTER_COVERAGE_NOTE,
         },
     }
 
