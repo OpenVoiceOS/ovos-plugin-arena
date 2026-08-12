@@ -309,7 +309,17 @@ const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : As
       main:focus { outline: none; }
 
       @media (max-width: 640px) {
-        header nav ul { gap: 1rem; }
+        header nav ul {
+          gap: 1rem;
+          /* Flex items default to min-width:auto, which stops this <ul> from
+             shrinking below its content width even inside the narrower <nav>
+             — that intrinsic width was bleeding past the viewport and forcing
+             the whole page to scroll horizontally. Let it shrink and scroll
+             internally instead, same pattern as .mu-wrap on the matchups grid. */
+          min-width: 0;
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+        }
         main { padding: 0 1rem; }
         h1 { font-size: 1.4rem; }
       }
