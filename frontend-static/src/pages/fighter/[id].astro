@@ -68,6 +68,11 @@ const desc = fighter.description
     <pre style="margin-top:0.75rem;overflow-x:auto"><code id="config-json">{configSnippet}</code></pre>
   </div>
 
+  <div class="card" id="provenance-card" style="display:none">
+    <h2>Dataset provenance</h2>
+    <div id="provenance-body" class="eyebrow" style="font-family:var(--font);color:var(--text)"></div>
+  </div>
+
   {fighter.links && Object.keys(fighter.links).length > 0 && (
     <div class="card">
       <h2>Links</h2>
@@ -80,6 +85,10 @@ const desc = fighter.description
   )}
 
   <script define:vars={{ base, fighter }}>
+    const esc = s => String(s).replace(/[&<>"']/g, c =>
+      ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c]);
+    const fetchJson = p => fetch(p).then(r => r.ok ? r.json() : null).catch(() => null);
+
     // Copy-config button
     const btn = document.getElementById('copy-config');
     btn?.addEventListener('click', async () => {
@@ -94,8 +103,7 @@ const desc = fighter.description
     (async () => {
       const langs = (fighter.langs && fighter.langs.length) ? fighter.langs : ['en-US'];
       for (const lang of langs) {
-        const board = await fetch(`${base}data/leaderboard-${fighter.modality}-${lang}.json`)
-          .then((r) => (r.ok ? r.json() : null)).catch(() => null);
+        const board = await fetchJson(`${base}data/leaderboard-${fighter.modality}-${lang}.json`);
         const entry = board && (board.entries || []).find((e) => e.competitor_id === fighter.competitor_id);
         if (entry) {
           const rating = entry.bt_rating ?? entry.elo;
@@ -104,6 +112,43 @@ const desc = fighter.description
           return;
         }
       }
+    })();
+
+    // Dataset provenance: reuse the same index.json metadata + benchmark
+    // board dataset_info the leaderboard page builds, scoped to this
+    // fighter's own modality+langs, so "where did this score come from" is
+    // one click away from the fighter itself instead of leaderboard-only.
+    (async () => {
+      const index = await fetchJson(`${base}data/index.json`);
+      const cacheV = index?.generated_at ? `?v=${encodeURIComponent(index.generated_at)}` : '';
+      const benchmarksMeta = index?.benchmarks || [];
+      const langs = (fighter.langs && fighter.langs.length) ? fighter.langs : [];
+      const metas = benchmarksMeta.filter((b) => b.modality === fighter.modality &&
+        (!langs.length || langs.includes(b.lang)));
+      if (!metas.length) return;
+
+      const boards = (await Promise.all(metas.map((m) =>
+        fetchJson(`${base}data/${m.file}${cacheV}`)))).filter(Boolean);
+      if (!boards.length) return;
+
+      const rows = boards.map((board) => {
+        const info = board.dataset_info || {};
+        const parts = [];
+        parts.push(info.url
+          ? `<a href="${esc(info.url)}" target="_blank" rel="noopener noreferrer"><code>${esc(board.dataset_id || '')}</code></a>`
+          : `<code>${esc(board.dataset_id || '')}</code>`);
+        parts.push(`<span style="color:var(--muted)">${esc(board.lang || '')}</span>`);
+        if (info.license) parts.push(esc(info.license));
+        if ((info.predictions || []).length)
+          parts.push(`<a href="${esc(info.predictions[0])}" target="_blank" rel="noopener noreferrer">predictions ↗</a>`);
+        const notes = info.notes
+          ? `<details style="margin-top:0.3rem"><summary style="cursor:pointer">Dataset notes</summary><p style="margin:0.35rem 0 0">${esc(info.notes)}</p></details>`
+          : '';
+        return `<p style="margin:0.4rem 0">${parts.join(' · ')}</p>${notes}`;
+      }).join('');
+
+      document.getElementById('provenance-body').innerHTML = rows;
+      document.getElementById('provenance-card').style.display = '';
     })();
   </script>
 </Base>
