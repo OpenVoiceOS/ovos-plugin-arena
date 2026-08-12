@@ -1,0 +1,40 @@
+{
+  "competitor_id": "m2v-first",
+  "modality": "intent",
+  "config": {
+    "intents": {
+      "pipeline": [
+        "ovos-m2v-pipeline-high",
+        "ovos-padatious-pipeline-plugin-medium"
+      ],
+      "ovos-m2v-pipeline": {
+        "conf_high": 0.7,
+        "conf_medium": 0.5,
+        "conf_low": 0.15
+      },
+      "ovos-padatious-pipeline-plugin": {
+        "conf_high": 0.95,
+        "conf_med": 0.8,
+        "conf_low": 0.5,
+        "domain_engine": false,
+        "cast_to_ascii": false,
+        "stem": false,
+        "disable_padaos": false,
+        "instant_train": false
+      }
+    }
+  },
+  "langs": [],
+  "display_name": "M2V First",
+  "types": [
+    "ensemble",
+    "embeddings",
+    "neural-net"
+  ],
+  "description": "The first embedding-fronted fighter in the league: Model2Vec sentence-embedding similarity leads at high confidence, Padatious's trained template classifier backs it at medium.",
+  "links": {
+    "source": "https://github.com/OpenVoiceOS/ovos-m2v-pipeline"
+  },
+  "size": "micro",
+  "notes": "HYPOTHESIS: none of the existing fighters (frankenparse, padapt, nebulatious, nebulapt, palavadapt) use embeddings at all — every stage in every prior fighter is either keyword-rule matching or a trained-per-intent template classifier. m2v-first tests whether leading with a general-purpose sentence-embedding similarity engine (Model2Vec, config-verified in ovos_m2v_pipeline/__init__.py: model default 'Jarbas/ovos-model2vec-intents-distiluse-base-multilingual-cased-v2', conf_high/conf_medium/conf_low keys) — which generalizes across paraphrases via embedding distance rather than exact template/keyword matching — beats a template classifier leading, when Padatious backs it up at medium. This isolates 'does an embedding-similarity front door change which utterances get caught first' from every non-embedding fusion already in the league. Distinct paradigm from Jurebes/Padatious (learned per-intent classifiers over hand-engineered or TF-IDF features) and from Nebulento (fuzzy string edit-distance, not vector similarity)."
+}

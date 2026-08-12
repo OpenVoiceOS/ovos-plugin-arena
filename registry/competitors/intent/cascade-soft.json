@@ -1,0 +1,44 @@
+{
+  "competitor_id": "cascade-soft",
+  "modality": "intent",
+  "config": {
+    "intents": {
+      "pipeline": [
+        "ovos-linha-fina-pipeline-plugin-high",
+        "ovos-palavreado-pipeline-plugin-medium",
+        "ovos-nebulento-pipeline-plugin-low"
+      ],
+      "ovos-linha-fina-pipeline-plugin": {
+        "conf_high": 0.8,
+        "conf_med": 0.6,
+        "conf_low": 0.4
+      },
+      "ovos-palavreado-pipeline-plugin": {
+        "conf_high": 0.65,
+        "conf_med": 0.45,
+        "conf_low": 0.25,
+        "max_words": 50
+      },
+      "ovos-nebulento-pipeline-plugin": {
+        "conf_high": 0.95,
+        "conf_med": 0.8,
+        "conf_low": 0.5,
+        "workers": 4
+      }
+    }
+  },
+  "langs": [],
+  "display_name": "Cascade Soft",
+  "types": [
+    "ensemble",
+    "neural-net",
+    "keyword-match",
+    "fuzzy-match"
+  ],
+  "description": "A softness-descending confidence mixer: Linha-Fina (trained statistical classifier) leads at high, Palavreado (order-independent keyword bag, no learning) backs it at medium, Nebulento (fuzzy string matching, the loosest/most tolerant of the three) closes at low.",
+  "links": {
+    "source": "https://github.com/OpenVoiceOS/linha-fina"
+  },
+  "size": "micro",
+  "notes": "HYPOTHESIS: unlike trident (three-tier but engines picked for architectural distinctness), cascade-soft is picked for a deliberately monotonic 'strictness' gradient — trained classifier (least tolerant of paraphrase, most precise) -> rigid-but-vocab-flexible keyword bag -> fuzzy matcher (most tolerant of ASR noise/typos, least precise) — to test whether ordering engines by how loosely they match, not just by paradigm, is itself a useful axis distinct from trident's paradigm-diversity axis. Linha-Fina is a template-paradigm statistical classifier (see ENGINE_REGISTRY: 'linha_fina.opm:LinhaFinaPipeline', paradigm='template') distinct from both Jurebes (sklearn baseline family) and Padatious (neural+exact-gate), so this fighter and trident do not test the same top stage. exact_match not applicable to linha-fina/palavreado/nebulento (jurebes-only config key, verified absent from linha_fina/opm.py and palavreado/opm.py's self.config.get(...) call sites)."
+}

@@ -1,0 +1,35 @@
+{
+  "competitor_id": "knn-first",
+  "modality": "intent",
+  "config": {
+    "intents": {
+      "pipeline": [
+        "ovos-hierarchical-knn-pipeline-high",
+        "ovos-linha-fina-pipeline-plugin-medium"
+      ],
+      "ovos-hierarchical-knn-pipeline": {
+        "conf_high": 0.7,
+        "conf_medium": 0.5,
+        "conf_low": 0.15
+      },
+      "ovos-linha-fina-pipeline-plugin": {
+        "conf_high": 0.8,
+        "conf_med": 0.6,
+        "conf_low": 0.4
+      }
+    }
+  },
+  "langs": [],
+  "display_name": "KNN First",
+  "types": [
+    "ensemble",
+    "embeddings",
+    "neural-net"
+  ],
+  "description": "Second embedding-fronted fighter, a paradigm sibling of m2v-first with a different embedding-space strategy: Hierarchical-KNN (nearest-neighbour search over an embedding index, coarse-to-fine domain-then-intent routing) leads at high, Linha-Fina's trained statistical classifier backs it at medium.",
+  "links": {
+    "source": "https://github.com/OpenVoiceOS/ovos-hierarchical-knn-pipeline"
+  },
+  "size": "micro",
+  "notes": "HYPOTHESIS: m2v-first tests a flat single-vector-similarity embedding front door; knn-first tests a structurally different embedding mechanism — nearest-neighbour retrieval over a (documented hierarchical: domain-then-intent) index, config-verified in ovos_hierarchical_knn_pipeline/__init__.py (conf_high/conf_medium/conf_low, index_dir, hf repo id default) rather than a single learned classifier boundary. Pairing it with Linha-Fina (not Padatious, already used by m2v-first) keeps the two embedding-fronted fighters from sharing a backup engine, so a head-to-head between them isolates the embedding-front difference rather than being confounded by which classifier backs each up. Both m2v (dense sentence embeddings) and hierarchical-knn (KNN retrieval over an embedding index) are 'embeddings' paradigm per ENGINE_REGISTRY import paths (ovos_m2v_pipeline / ovos_hierarchical_knn_pipeline), distinct from every trained-classifier or keyword-rule engine used elsewhere in the league."
+}

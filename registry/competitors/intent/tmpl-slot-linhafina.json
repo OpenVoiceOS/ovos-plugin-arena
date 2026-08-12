@@ -1,0 +1,35 @@
+{
+  "competitor_id": "tmpl-slot-linhafina",
+  "modality": "intent",
+  "config": {
+    "intents": {
+      "pipeline": [
+        "ovos-adapt-pipeline-plugin-high",
+        "ovos-linha-fina-pipeline-plugin-medium"
+      ],
+      "ovos-adapt-pipeline-plugin": {
+        "conf_high": 0.65,
+        "conf_med": 0.45,
+        "conf_low": 0.25
+      },
+      "ovos-linha-fina-pipeline-plugin": {
+        "conf_high": 0.8,
+        "conf_med": 0.6,
+        "conf_low": 0.4
+      }
+    }
+  },
+  "langs": [],
+  "display_name": "Template Slot: Linha-Fina",
+  "types": [
+    "ensemble",
+    "keyword-match",
+    "neural-net"
+  ],
+  "description": "Replacement-family member: Adapt fixed at keyword-high, Linha-Fina (trained statistical template classifier) fills the template-medium slot.",
+  "links": {
+    "source": "https://github.com/OpenVoiceOS/linha-fina"
+  },
+  "size": "micro",
+  "notes": "FAMILY: tmpl-slot 4-way — mycroft-classic (adapt-high -> padatious-medium) is the shared baseline; siblings are tmpl-slot-nebulento, tmpl-slot-linhafina (this file), tmpl-slot-jurebes, each swapping only the template-medium engine with adapt-high held fixed. There is no separate tmpl-slot-padatious fighter: that config is identical to mycroft-classic, and per the 1-fighter-per-config rule mycroft-classic itself serves as the 'template engine = padatious' cell of this grid rather than duplicating the same pipeline under a second competitor_id. This sibling swaps in Linha-Fina, a distinct trained-classifier engine from Padatious and Jurebes (see ENGINE_REGISTRY import path 'linha_fina.opm:LinhaFinaPipeline'), with adapt-high held fixed as the front door. Never previously paired with plain Adapt in the registry (linha-fina does not appear in frankenparse/padapt/nebulatious/nebulapt/palavadapt), so this is the first head-to-head data point for Linha-Fina against the keyword-rule paradigm specifically."
+}

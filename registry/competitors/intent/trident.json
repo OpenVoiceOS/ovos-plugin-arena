@@ -1,0 +1,50 @@
+{
+  "competitor_id": "trident",
+  "modality": "intent",
+  "config": {
+    "intents": {
+      "pipeline": [
+        "ovos-padatious-pipeline-plugin-high",
+        "ovos-jurebes-pipeline-plugin-medium",
+        "ovos-nebulento-pipeline-plugin-low"
+      ],
+      "ovos-padatious-pipeline-plugin": {
+        "conf_high": 0.95,
+        "conf_med": 0.8,
+        "conf_low": 0.5,
+        "domain_engine": false,
+        "cast_to_ascii": false,
+        "stem": false,
+        "disable_padaos": false,
+        "instant_train": false
+      },
+      "ovos-jurebes-pipeline-plugin": {
+        "conf_high": 0.8,
+        "conf_med": 0.6,
+        "conf_low": 0.4,
+        "baseline": "mlp_shallow",
+        "enable_slots": true,
+        "exact_match": false
+      },
+      "ovos-nebulento-pipeline-plugin": {
+        "conf_high": 0.95,
+        "conf_med": 0.8,
+        "conf_low": 0.5,
+        "workers": 4
+      }
+    }
+  },
+  "langs": [],
+  "display_name": "Trident",
+  "types": [
+    "ensemble",
+    "neural-net",
+    "fuzzy-match"
+  ],
+  "description": "A three-tier confidence mixer across three genuinely distinct template paradigms: Padatious (learned template similarity + internal exact-match gate) at high, Jurebes (sklearn MLP classifier over TF-IDF features, the top-accuracy baseline on the intents-for-eval en-US template board) at medium, Nebulento (fuzzy string matching) as the loosest low-confidence catch-all.",
+  "links": {
+    "source": "https://github.com/OpenVoiceOS/jurebes"
+  },
+  "size": "micro",
+  "notes": "HYPOTHESIS: does mixing three architecturally distinct classifiers by descending confidence tier — neural-template-with-exact-gate (Padatious) high, statistical-ML classifier (Jurebes) medium, fuzzy-string (Nebulento) low — beat any two-engine fusion in the league? Unlike frankenparse (which mixes paradigms but stays single-tier-per-engine at similar confidence bands), trident deliberately spans the full high/medium/low ladder with one engine per rung, so it also probes whether a strict confidence-descending cascade (not just paradigm diversity) is itself a useful shape. BASELINE SELECTION: 'mlp_shallow' is the top-accuracy entry on frontend-static/public/data/benchmark-intent_template-intents-for-eval-en-US.json among all jurebes-* competitor_ids (accuracy 0.8154, beating jurebes-sgd-modified-huber at 0.8143 and every other of the ~55 published jurebes sklearn baselines on that board). Config key verified in jurebes/opm.py (self.baseline = self.config.get('baseline', 'linear_svc')) and jurebes/baselines.py ('mlp_shallow': lambda: _p(tfidf_word(), MLPClassifier(hidden_layer_sizes=(64,), max_iter=500))). exact_match set to false per spec (jurebes/opm.py: self.exact_match = bool(self.config.get('exact_match', True)) — forced off here so this fighter tests the trained MLP classifier itself, not jurebes's own internal exact-template short-circuit, which would otherwise duplicate what Padatious's high-tier stage already does one step earlier in the cascade)."
+}
