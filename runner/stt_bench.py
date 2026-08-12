@@ -18,6 +18,22 @@ from runner.media_bench import MediaBenchAdapter, PredictContext, load_plugin_cl
 
 log = logging.getLogger("stt-bench")
 
+# STM-format (NIST/Kaldi-style) sentinel reference values that mark a segment
+# as excluded from scoring rather than an actual transcript — e.g. EdAcc
+# (edinburghcstr/edacc) carries ~2% of its rows as
+# "IGNORE_TIME_SEGMENT_IN_SCORING", the standard STM out-of-bounds marker also
+# seen in TED-LIUM-family corpora. Left unfiltered, every fighter's WER on
+# such a dataset is uniformly inflated by these unscoreable rows (there is no
+# real reference text to compare a hypothesis against). Checked EdAcc's other
+# short/all-caps values (YEAH, MM HMM, <OVERLAP>, <LAUGH>, ...) — those are
+# genuine transcribed utterances/annotations, not sentinels, so they are left
+# in place.
+_SENTINEL_REFERENCES = {"IGNORE_TIME_SEGMENT_IN_SCORING"}
+
+
+def _is_sentinel_reference(text) -> bool:
+    return isinstance(text, str) and text.strip() in _SENTINEL_REFERENCES
+
 
 class STTBench(MediaBenchAdapter):
     modality = "stt"
@@ -46,13 +62,23 @@ class STTBench(MediaBenchAdapter):
         streamer = (stream_manifest_audio
                     if (src.file_pattern or "").endswith((".csv", ".tsv", ".jsonl"))
                     else stream_audio_dataset)
-        yield from streamer(
+        # max_samples counts against the streamer's own cap, so pull one extra
+        # sentinel-skip pass worth of slack isn't needed here: the streamer
+        # yields raw rows and this generator filters after, same as any other
+        # consumer — a caller asking for N samples may get fewer than N if
+        # sentinel rows fall inside the requested window, same tradeoff the
+        # resumable JSONL skip logic already accepts for failed samples.
+        for sample_id, sample in streamer(
             src,
             audio_key=audio_key,
             extra_keys={"ground_truth": gt_col},
             revision=revision,
             max_samples=max_samples,
-        )
+        ):
+            if _is_sentinel_reference(sample.get("ground_truth")):
+                log.debug("skipping sentinel-reference sample %s", sample_id)
+                continue
+            yield sample_id, sample
 
     def load_engine(self, competitor, lang: str):
         from ovos_plugin_manager.stt import load_stt_plugin
