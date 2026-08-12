@@ -186,6 +186,25 @@ Per modality:
   (**R16**): `intelligibility_wer`, `intelligibility_cer`,
   `intelligibility_judge`, `intelligibility_judge_revision`.
 
+Performance columns (performance-metrics campaign M1), all optional, all
+default to null/absent: `elapsed_ms` (wall time of the single inference
+call, `time.perf_counter`-based — distinct from `latency_ms`, which some
+adapters also set from the same measurement), `peak_rss_mb` (process RSS
+sampled before/after the call, higher of the two — **not** a true peak and
+**not** attributable to this call alone: it is process-wide, so concurrent
+work in the same process folds in; see `runner.perf.measure_call`),
+`audio_secs` (duration of the input clip for STT/wake word, of the produced
+clip for TTS — absent for intent rows, which are text-only; lets RTF =
+`elapsed_ms / 1000 / audio_secs` be computed downstream), `hw` (a per-run
+hardware fingerprint captured once per process and stamped on every row of
+that run: `host_class` one of `cpu-x86`/`arm64`/`gpu`, `cpu_model`,
+`threads`, `accelerator`, `hostname` — see `runner.perf.hw_fingerprint`).
+Rows are merged across machines into one competitor's `.jsonl` file, so `hw`
+travels on the row itself rather than being assumed constant per file. The
+vast majority of already-published rows predate these columns; loaders
+(`arena.models.PredictionRow`) default them to `None` and MUST NOT require
+them.
+
 ### 3.3 Benchmark scripts
 
 A benchmark script (`benchmarks/<bench>.py`) MUST:

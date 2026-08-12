@@ -321,3 +321,48 @@ class TestLegacySttSchemaConvergence:
         parse_row(_legacy_stt_row(), "fallback")
         parse_row(_legacy_stt_row(), "fallback")
         assert len(calls) == 1  # second call hits the cache
+
+
+class TestPerfFieldsBackwardCompat:
+    """Performance-metrics campaign M1: rows WITHOUT elapsed_ms/peak_rss_mb/
+    audio_secs/hw are the vast majority of already-published data and MUST
+    stay valid — no KeyError, no validation error. This is a genuine
+    regression guard: making these fields required on ``PredictionRow``
+    (dropping their ``= None`` default) makes ``test_old_row_without_perf_fields``
+    fail with a pydantic ``ValidationError`` — verified by hand while writing
+    this test, the two-line diff being ``elapsed_ms: float | None = None`` ->
+    ``elapsed_ms: float``, etc.
+    """
+
+    def test_old_row_without_perf_fields_parses_fine(self):
+        raw = _intent_row()  # no elapsed_ms / peak_rss_mb / audio_secs / hw
+        row = parse_row(raw, "fallback")
+        assert row.elapsed_ms is None
+        assert row.peak_rss_mb is None
+        assert row.audio_secs is None
+        assert row.hw is None
+
+    def test_new_row_with_perf_fields_round_trips(self):
+        raw = _intent_row(
+            elapsed_ms=123.4,
+            peak_rss_mb=512.0,
+            audio_secs=None,  # intent rows have no audio
+            hw={"host_class": "cpu-x86", "cpu_model": "x", "threads": 4,
+                "accelerator": None, "hostname": "box1"},
+        )
+        row = parse_row(raw, "fallback")
+        assert row.elapsed_ms == 123.4
+        assert row.peak_rss_mb == 512.0
+        assert row.hw["host_class"] == "cpu-x86"
+
+    def test_group_rows_mixes_old_and_new_rows_without_error(self, monkeypatch):
+        _stub_registry(monkeypatch, {"intent": ["padatious-medium"]})
+        old = _intent_row(sample_id="en-US/00001")
+        new = _intent_row(sample_id="en-US/00002", elapsed_ms=10.0,
+                          hw={"host_class": "cpu-x86"})
+        rows = [parse_row(old, "padatious-medium"),
+                parse_row(new, "padatious-medium")]
+        grouped = group_rows(rows)
+        key = ("intent", "intents-for-eval", "en-US")
+        assert len(grouped[key]["en-US/00001"]) == 1
+        assert len(grouped[key]["en-US/00002"]) == 1

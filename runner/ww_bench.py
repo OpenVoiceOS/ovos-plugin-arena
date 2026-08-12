@@ -126,6 +126,8 @@ class WakeWordBench(MediaBenchAdapter):
             "prediction": "detected" if detected else "not_detected",
             "audio_url": sample.get("audio_url"),  # playable source clip in battles
             "latency_ms": round(latency_ms, 3),
+            # input clip duration (RTF = elapsed_ms / 1000 / audio_secs, §M1)
+            "audio_secs": round(len(sample["array"]) / SAMPLE_RATE, 3),
         }
 
 

@@ -82,6 +82,8 @@ class STTBench(MediaBenchAdapter):
             # battles fall back to text; a manifest-backed corpus would carry one
             "audio_url": sample.get("audio_url"),
             "latency_ms": round(latency_ms, 3),
+            # input clip duration (RTF = elapsed_ms / 1000 / audio_secs, §M1)
+            "audio_secs": round(len(sample["array"]) / sample["sr"], 3),
         }
 
 

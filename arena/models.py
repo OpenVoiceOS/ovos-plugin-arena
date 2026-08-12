@@ -188,6 +188,20 @@ class PredictionRow(BaseModel):
     audio_url: str | None = None
     # shared diagnostics
     latency_ms: float | None = None
+    # performance-metrics campaign M1 — additive, optional (runner.perf):
+    # elapsed_ms is the wall time of the single inference call
+    # (time.perf_counter-based); peak_rss_mb is a rough, process-wide RSS
+    # sample bracketing that call (see runner.perf.measure_call for the
+    # caveats — not a true peak, not attributable to this call alone);
+    # audio_secs is the duration of the input audio (stt/wake_word) or
+    # produced audio (tts), letting RTF = elapsed_ms / 1000 / audio_secs be
+    # computed downstream; hw is the per-run hardware fingerprint (runner.
+    # perf.hw_fingerprint). All default to None/empty — the vast majority of
+    # already-published rows predate this capture and MUST stay valid.
+    elapsed_ms: float | None = None
+    peak_rss_mb: float | None = None
+    audio_secs: float | None = None
+    hw: dict[str, Any] | None = None
     extras: dict[str, Any] = Field(default_factory=dict)
 
 
