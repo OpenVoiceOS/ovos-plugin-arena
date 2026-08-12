@@ -794,39 +794,48 @@ def cmd_tally(args: argparse.Namespace) -> int:
     log.info("  → %d counted vote(s), %d discarded by fraud rules",
              len(counted_decisions), len(discarded_decisions))
 
-    if counted_decisions:
-        # Group votes per (modality, lang) board, carrying each vote's
-        # fraud-rule weight through to the rating.
-        votes_by_board: dict[tuple[str, str], list[dict]] = {}
-        for d in counted_decisions:
-            battle = battles_pool[d.vote["battle_id"]]
-            key = (battle["modality"], battle["lang"])
-            votes_by_board.setdefault(key, []).append({**d.vote, "weight": d.weight})
+    # Group votes per (modality, lang) board, carrying each vote's
+    # fraud-rule weight through to the rating.
+    votes_by_board: dict[tuple[str, str], list[dict]] = {}
+    for d in counted_decisions:
+        battle = battles_pool[d.vote["battle_id"]]
+        key = (battle["modality"], battle["lang"])
+        votes_by_board.setdefault(key, []).append({**d.vote, "weight": d.weight})
 
-        boards = set(seeds) | set(votes_by_board)
-        patch_note_entries: list[dict] = []
-        for modality, lang in sorted(boards):
-            board = build_elo_board(
-                modality, lang,
-                seeds.get((modality, lang)),
-                votes_by_board.get((modality, lang), []),
-                battles_pool,
-            )
-            board_path = out_dir / f"leaderboard-{modality}-{lang}.json"
-            # Diff against the board currently on disk (git-tracked) before we
-            # overwrite it, so patch notes reflect this run's movement (§A5.4).
-            patch_note_entries.extend(diff_board(load_board(board_path), board))
-            _write_json(board_path, board)
-            # Emit embeddable rank badges (growth loop, §A5.3).
-            emit_badges(board, out_dir)
-        _write_json_payload(
-            out_dir / "patch-notes.json",
-            build_patch_notes(patch_note_entries, _now_iso()),
+    # Rebuild every board unconditionally — `build_elo_board` is a pure
+    # function of (seed, votes, battles_pool), and the seed itself can
+    # change between tally runs (a same-day `assemble` re-run loads fresh
+    # predictions and regenerates `elo-seed-*.json` with a different
+    # auto-battle tally) even when zero human votes were cast this run.
+    # Gating the rebuild on `counted_decisions` left a stale published
+    # board next to a fresh seed/battles pool whenever votes were zero,
+    # which breaks R19 (verify-replay reproducibility) the moment the
+    # underlying predictions grow — the workflow's git-diff guard already
+    # skips the commit when nothing actually changed, so this costs
+    # nothing when the seed is unchanged.
+    boards = set(seeds) | set(votes_by_board)
+    patch_note_entries: list[dict] = []
+    for modality, lang in sorted(boards):
+        board = build_elo_board(
+            modality, lang,
+            seeds.get((modality, lang)),
+            votes_by_board.get((modality, lang), []),
+            battles_pool,
         )
-    else:
-        # No counted votes → the boards cannot change; leave them alone so
-        # the workflow's empty-diff guard skips the commit.
-        log.info("No counted votes — leaderboards left untouched.")
+        board_path = out_dir / f"leaderboard-{modality}-{lang}.json"
+        # Diff against the board currently on disk (git-tracked) before we
+        # overwrite it, so patch notes reflect this run's movement (§A5.4).
+        patch_note_entries.extend(diff_board(load_board(board_path), board))
+        _write_json(board_path, board)
+        # Emit embeddable rank badges (growth loop, §A5.3).
+        emit_badges(board, out_dir)
+    _write_json_payload(
+        out_dir / "patch-notes.json",
+        build_patch_notes(patch_note_entries, _now_iso()),
+    )
+    if not counted_decisions:
+        log.info("No counted votes this run — boards still rebuilt from "
+                  "the current seed/battles pool (may be unchanged).")
 
     # Discards are recorded, never silently dropped (§4 A1.4) — this file
     # reflects the complete current vote log's audit trail every run.

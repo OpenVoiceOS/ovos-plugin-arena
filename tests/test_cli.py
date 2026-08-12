@@ -474,18 +474,32 @@ class TestTimestampStability:
                   "--output", str(out)])
         assert out.read_bytes() == first
 
-    def test_tally_zero_votes_skips_board_rewrite(self, tmp_path):
-        """No new valid votes → leaderboards are not rewritten at all."""
+    def test_tally_zero_votes_still_rebuilds_board_from_current_seed(self, tmp_path):
+        """No new valid votes → `tally` still rebuilds every leaderboard
+        from the current elo-seed/battles pool (a pure function, per R19).
+
+        `build_elo_board` is deterministic, so a rebuild with an unchanged
+        seed and zero votes reproduces byte-for-byte the same *standings*
+        (mismatches would only show up via `_diff_board`, not a raw string
+        compare) — but the file is NOT left untouched: hand-edits/corruption
+        on disk must not survive a tally run, and a same-day `assemble`
+        re-run that changes the seed (more predictions loaded) must
+        propagate into the board even when zero votes were cast this run
+        (see tests/test_verify_replay.py for that scenario). This replaces
+        the old byte-identity assertion, which encoded the bug where a
+        changed seed left a stale, verify-replay-breaking board on disk."""
         preds = _write_predictions(tmp_path)
         out = tmp_path / "data"
         assert main_args_assemble(preds, out) == 0
         board_path = out / "leaderboard-intent-en-US.json"
-        # Sentinel suffix: any rewrite would drop it
+        # Corrupt the on-disk board with a sentinel: a rebuild must drop it.
         board_path.write_text(board_path.read_text() + "// sentinel\n")
         with pytest.raises(SystemExit) as exc:
             main(["tally", "--data-dir", str(out), "--output", str(out)])
         assert exc.value.code == 0
-        assert board_path.read_text().endswith("// sentinel\n")
+        assert not board_path.read_text().endswith("// sentinel\n")
+        # The rebuilt board is still valid JSON with the same standings.
+        json.loads(board_path.read_text())
 
 
 def _write_stt_predictions(tmp_path: Path, competitors: dict[str, float]) -> Path:
