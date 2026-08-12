@@ -339,3 +339,33 @@ class TestBenchmarkBoard:
         board = build_benchmark_board("tts", "d", "en-US", by_competitor, "t")
         assert board.primary_metric == "utmos"
         assert [e.competitor_id for e in board.entries] == ["good", "bad"]
+
+    def test_solo_zero_scored_entry_is_unranked_not_rank_one(self):
+        # A fighter whose entire TTS run failed (no row got a usable utmos)
+        # has n_scored == 0 and no "utmos" key at all. As the board's only
+        # entry it must not land at rank 1 — it has no signal to rank on.
+        by_competitor = {
+            "phoonnx-dii-es-es": [
+                _row(competitor_id="phoonnx-dii-es-es", extras={}),
+            ],
+        }
+        board = build_benchmark_board("tts", "d", "es-ES", by_competitor, "t")
+        entry = board.entries[0]
+        assert entry.metrics.get("n_scored") == 0.0
+        assert "utmos" not in entry.metrics
+        assert entry.unranked is True
+        assert entry.rank == 0
+        assert entry.unranked_reason
+
+    def test_zero_scored_entry_ranked_below_scored_peers(self):
+        by_competitor = {
+            "failed": [_row(competitor_id="failed", extras={})],
+            "good": [_row(competitor_id="good", extras={"utmos": 4.0})],
+        }
+        board = build_benchmark_board("tts", "d", "en-US", by_competitor, "t")
+        good = next(e for e in board.entries if e.competitor_id == "good")
+        failed = next(e for e in board.entries if e.competitor_id == "failed")
+        assert good.rank == 1
+        assert good.unranked is False
+        assert failed.unranked is True
+        assert failed.rank == 0

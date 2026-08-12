@@ -834,15 +834,33 @@ def build_benchmark_board(
                 )
             )
 
-    reverse = primary in _HIGHER_BETTER
-    worst = 0.0 if reverse else float("inf")
-    entries.sort(key=lambda e: e.metrics.get(primary, worst), reverse=reverse)
-    for i, entry in enumerate(entries, 1):
-        entry.rank = i
+    # A run with zero scored samples (or that never computed the primary
+    # metric at all — e.g. a synthesis crash on every row) has no signal to
+    # rank on. Sorting it in with a placeholder "worst" value would still let
+    # it land at #1 whenever it's the board's only entry or every entry
+    # happens to share that placeholder, so these are pulled out and marked
+    # unranked instead of taking a rank.
+    def _has_signal(entry: BenchmarkEntry) -> bool:
+        if primary not in entry.metrics:
+            return False
+        return entry.metrics.get("n_scored", 1.0) != 0.0
 
-    if entries:
-        leader_ci = cis.get(entries[0].competitor_id)
-        for entry in entries:
+    ranked = [e for e in entries if _has_signal(e)]
+    failed = [e for e in entries if not _has_signal(e)]
+
+    reverse = primary in _HIGHER_BETTER
+    ranked.sort(key=lambda e: e.metrics.get(primary), reverse=reverse)
+    for i, entry in enumerate(ranked, 1):
+        entry.rank = i
+    for entry in failed:
+        entry.rank = 0
+        entry.unranked = True
+        entry.unranked_reason = "run failed — no scored samples"
+    entries = ranked + failed
+
+    if ranked:
+        leader_ci = cis.get(ranked[0].competitor_id)
+        for entry in ranked:
             entry.tied_with_leader = _ci_overlaps(
                 leader_ci, cis.get(entry.competitor_id)
             )

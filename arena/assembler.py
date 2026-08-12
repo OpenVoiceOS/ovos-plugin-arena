@@ -143,21 +143,51 @@ def _stimulus(row: PredictionRow, modality: str):
 # ---------------------------------------------------------------------------
 
 
+def _reference_for_identity(row: PredictionRow, modality: str) -> str | None:
+    """The ground-truth text that identifies *which stimulus* a row answers.
+
+    Two rows sharing a ``sample_id`` are only a valid battle pair when they
+    were scored against the *same* underlying content. Legacy pre-#70 shards
+    can collide on ``sample_id`` while carrying different ``reference_text``
+    (or ``reference_intent``) — pairing those produces a battle where the
+    voter is silently asked to judge two unrelated stimuli.
+    """
+    if is_intent_modality(modality):
+        return row.reference_intent
+    if modality == "stt":
+        return row.reference_text
+    if modality in ("wake_word", "vad"):
+        return row.label
+    return None
+
+
+def _normalize_ref(text: str | None) -> str | None:
+    if text is None:
+        return None
+    return " ".join(text.split())
+
+
 def assemble_battles(
     modality: str,
     dataset_id: str,
     lang: str,
     samples: dict[str, dict[str, PredictionRow]],
     max_battles: int = DEFAULT_MAX_BATTLES,
+    stats: dict[str, int] | None = None,
 ) -> list[Battle]:
     """Assemble a deterministic battle pool from grouped prediction rows.
 
     *samples* maps ``sample_id`` → ``competitor_id`` → row.  Pairs whose
-    predictions are identical are skipped (no signal for a voter).  The
-    pool interleaves competitor pairs so no single pair dominates, and
+    predictions are identical are skipped (no signal for a voter).  Pairs
+    whose reference text disagrees (colliding ``sample_id`` across legacy
+    shards) are skipped too — see ``_reference_for_identity`` — and counted
+    into ``stats["skipped_reference_mismatches"]`` when *stats* is given, so
+    the mismatch is surfaced instead of silently producing garbage battles.
+    The pool interleaves competitor pairs so no single pair dominates, and
     prefers discriminative samples within each pair.
     """
     candidates: dict[tuple[str, str], list[tuple[int, str, Battle]]] = {}
+    skipped_reference_mismatches = 0
 
     for sample_id in sorted(samples):
         rows = samples[sample_id]
@@ -166,6 +196,19 @@ def assemble_battles(
             if row_a.prediction == row_b.prediction and (
                 (row_a.predicted_slots or {}) == (row_b.predicted_slots or {})
             ):
+                continue
+
+            ref_a = _normalize_ref(_reference_for_identity(row_a, modality))
+            ref_b = _normalize_ref(_reference_for_identity(row_b, modality))
+            if ref_a is not None and ref_b is not None and ref_a != ref_b:
+                skipped_reference_mismatches += 1
+                logger.warning(
+                    "Skipping battle %s/%s/%s sample %r: %s vs %s reference "
+                    "text mismatch (%r != %r) — likely colliding sample_id "
+                    "across shards",
+                    modality, dataset_id, lang, sample_id, comp_a, comp_b,
+                    ref_a, ref_b,
+                )
                 continue
 
             bid = battle_id_for(modality, dataset_id, lang, sample_id, comp_a, comp_b)
@@ -213,9 +256,16 @@ def assemble_battles(
         queues = next_queues
 
     logger.info(
-        "Assembled %d battles for %s/%s/%s (%d pairs)",
+        "Assembled %d battles for %s/%s/%s (%d pairs, %d reference "
+        "mismatches skipped)",
         len(battles), modality, dataset_id, lang, len(candidates),
+        skipped_reference_mismatches,
     )
+    if stats is not None:
+        stats["skipped_reference_mismatches"] = (
+            stats.get("skipped_reference_mismatches", 0)
+            + skipped_reference_mismatches
+        )
     return battles
 
 

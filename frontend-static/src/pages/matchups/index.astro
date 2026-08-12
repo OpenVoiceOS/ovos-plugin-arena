@@ -377,7 +377,13 @@ import Base from '../../layouts/Base.astro';
       const [eloBoards] = await Promise.all([fetchBoards(eloMeta)]);
       if (seq !== renderSeq) return;
       const elo = eloBoards[0];
-      const eloOrder = (elo?.entries || []).slice().sort((a, b) => b.elo - a.elo).map(e => e.competitor_id);
+      // R6 — bt_rating is the canonical ranking key (docs/methodology.md);
+      // elo is a fallback for entries with no Bradley-Terry fit yet, and
+      // competitor_id keeps the sort stable when both are missing/equal.
+      const eloOrder = (elo?.entries || []).slice()
+        .sort((a, b) => (b.bt_rating ?? b.elo ?? -Infinity) - (a.bt_rating ?? a.elo ?? -Infinity)
+          || a.competitor_id.localeCompare(b.competitor_id))
+        .map(e => e.competitor_id);
 
       const poolMeta = [...battlesPoolsMeta, ...freeformPoolsMeta].filter(m => m.modality === group && m.lang === lang);
       const benchMeta = benchmarksMeta.filter(b => b.modality === league && b.lang === lang &&
