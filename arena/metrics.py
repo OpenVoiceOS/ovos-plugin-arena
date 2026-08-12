@@ -90,6 +90,41 @@ def row_is_correct(row: PredictionRow) -> bool:
     return row.prediction == row.reference_intent
 
 
+ECE_N_BINS = 10
+
+
+def expected_calibration_error(rows: list[PredictionRow]) -> float | None:
+    """Expected Calibration Error (ECE) over rows carrying a confidence.
+
+    Standard equal-width-binning ECE (10 bins over ``[0, 1]``):
+    ``sum_bin (n_bin / N) * |accuracy_bin - mean_confidence_bin|``. Rows
+    with ``confidence is None`` (a fighter that never emits one) are
+    excluded rather than treated as 0 — if *no* row in the competitor's
+    prediction set carries a confidence, ECE is undefined for that fighter
+    and this returns ``None`` (never 0, which would misleadingly read as
+    "perfectly calibrated").
+    """
+    scored = [r for r in rows if r.confidence is not None]
+    if not scored:
+        return None
+    bins: dict[int, list[tuple[float, bool]]] = defaultdict(list)
+    for row in scored:
+        conf = max(0.0, min(1.0, float(row.confidence)))
+        # confidence == 1.0 falls in the last bin (10 equal-width bins over
+        # [0, 1] means the top edge belongs to bin index 9, not a stray 10th).
+        idx = min(int(conf * ECE_N_BINS), ECE_N_BINS - 1)
+        bins[idx].append((conf, row_is_correct(row)))
+
+    n = len(scored)
+    ece = 0.0
+    for bucket in bins.values():
+        n_bin = len(bucket)
+        mean_conf = sum(c for c, _ in bucket) / n_bin
+        acc_bin = sum(1.0 for _, ok in bucket if ok) / n_bin
+        ece += (n_bin / n) * abs(acc_bin - mean_conf)
+    return round(ece, 4)
+
+
 def score_intent(rows: list[PredictionRow]) -> dict[str, float]:
     """Aggregate intent rows into accuracy / macro-F1 / OOD-FPR / slot metrics."""
     per_intent: dict[str, dict[str, int]] = defaultdict(
@@ -152,6 +187,9 @@ def score_intent(rows: list[PredictionRow]) -> dict[str, float]:
         metrics["slot_exact_match"] = round(slot_correct / slot_total, 4)
     if latencies:
         metrics["latency_ms_median"] = round(median(latencies), 2)
+    ece = expected_calibration_error(rows)
+    if ece is not None:
+        metrics["ece"] = ece
     for bucket, v in sorted(per_bucket.items()):
         if v["total"]:
             metrics[f"acc_{bucket}"] = round(v["correct"] / v["total"], 4)

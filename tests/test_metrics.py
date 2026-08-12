@@ -6,6 +6,7 @@ import pytest
 from arena.metrics import (
     build_benchmark_board,
     domain_of,
+    expected_calibration_error,
     intelligibility_scores,
     row_intelligibility_wer,
     row_is_correct,
@@ -117,6 +118,85 @@ class TestScoreIntent:
 
     def test_empty(self):
         assert score_intent([])["accuracy"] == 0.0
+
+    def test_ece_column_present_when_confidence_available(self):
+        rows = [
+            _row(reference_intent="a", prediction="a", confidence=0.9),
+            _row(reference_intent="a", prediction="b", confidence=0.9),
+        ]
+        assert "ece" in score_intent(rows)
+
+    def test_ece_absent_without_confidence(self):
+        rows = [_row(reference_intent="a", prediction="a")]
+        assert "ece" not in score_intent(rows)
+
+
+class TestExpectedCalibrationError:
+    """§M4 — ECE from existing prediction rows, no re-benching."""
+
+    def test_missing_confidence_is_none_not_zero(self):
+        rows = [_row(reference_intent="a", prediction="a")]
+        assert expected_calibration_error(rows) is None
+
+    def test_empty_rows_is_none(self):
+        assert expected_calibration_error([]) is None
+
+    def test_perfectly_calibrated_is_zero(self):
+        # Every row's confidence matches the bin's actual accuracy exactly:
+        # 10 rows at confidence 0.75, 7.5 correct — use a bin count where the
+        # split is exact (8 correct out of 10 -> acc 0.8, conf must be 0.8).
+        rows = (
+            [_row(reference_intent="a", prediction="a", confidence=0.8)] * 8
+            + [_row(reference_intent="a", prediction="b", confidence=0.8)] * 2
+        )
+        assert expected_calibration_error(rows) == 0.0
+
+    def test_always_confident_always_wrong_is_high(self):
+        rows = [
+            _row(reference_intent="a", prediction="b", confidence=1.0)
+            for _ in range(10)
+        ]
+        # 100% confident, 0% accurate in that bin -> ECE == 1.0 (max).
+        assert expected_calibration_error(rows) == 1.0
+
+    def test_confidence_exactly_one_is_included_not_dropped(self):
+        # confidence == 1.0 is the top edge of [0, 1] and must land in the
+        # last of the 10 equal-width bins ([0.9, 1.0]), not be excluded or
+        # overflow into a phantom 11th bin.
+        rows = [_row(reference_intent="a", prediction="a", confidence=1.0)]
+        assert expected_calibration_error(rows) == 0.0
+
+    def test_single_bin_all_rows_same_confidence(self):
+        rows = [
+            _row(reference_intent="a", prediction="a", confidence=0.5),
+            _row(reference_intent="a", prediction="b", confidence=0.5),
+        ]
+        # acc 0.5, mean conf 0.5 -> perfectly calibrated even though every
+        # row falls in a single bin.
+        assert expected_calibration_error(rows) == 0.0
+
+    def test_ood_rows_use_row_is_correct_for_bin_accuracy(self):
+        # An OOD row (reference_intent=None) is "correct" iff prediction is
+        # also None — confidence-bearing OOD rejections must count toward
+        # bin accuracy via the same row_is_correct() rule as everywhere else.
+        rows = [
+            _row(reference_intent=None, prediction=None, confidence=0.9),
+            _row(reference_intent=None, prediction="a", confidence=0.9),
+        ]
+        # acc 0.5, mean conf 0.9 -> |0.5 - 0.9| = 0.4
+        assert expected_calibration_error(rows) == 0.4
+
+    def test_mixed_confidence_and_no_confidence_scores_only_the_former(self):
+        with_conf = [
+            _row(reference_intent="a", prediction="a", confidence=0.8)
+            for _ in range(8)
+        ] + [
+            _row(reference_intent="a", prediction="b", confidence=0.8)
+            for _ in range(2)
+        ]
+        without_conf = [_row(reference_intent="a", prediction="a")]
+        assert expected_calibration_error(with_conf) == 0.0
+        assert expected_calibration_error(with_conf + without_conf) == 0.0
 
 
 class TestScoreStt:
