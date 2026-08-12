@@ -19,6 +19,38 @@ from arena.elo import INITIAL_ELO
 from arena.models import EloSeed, Modality
 
 
+class _StubCompetitor:
+    def __init__(self, competitor_id):
+        self.competitor_id = competitor_id
+
+
+# Fictional competitor ids used by this file's fixtures (e.g. "good"/"bad"
+# in `_write_predictions`) predate the board-truth registry filter added to
+# ``arena.predictions.group_rows`` (rows whose competitor_id is not in the
+# current registry are now excluded from boards — see
+# tests/test_predictions.py::TestGroupRows for the filter's own coverage).
+# Stub the registry here so this file's end-to-end fixtures keep exercising
+# the assemble pipeline without being coupled to the real registry contents.
+_LEGACY_TEST_COMPETITOR_IDS = {
+    "intent": {"good", "bad"},
+    "intent_template": {"padatious-medium"},
+    "intent_keyword": {"adapt-medium"},
+    "stt": {"base-pt", "small-pt", "comp-a", "comp-b", "whisper-tiny"},
+    "tts": {"piper-a"},
+}
+
+
+@pytest.fixture(autouse=True)
+def _permissive_registry(monkeypatch):
+    import registry.loaders as loaders_mod
+
+    def fake_list_competitors(modality=None):
+        ids = _LEGACY_TEST_COMPETITOR_IDS.get(modality, set())
+        return [_StubCompetitor(cid) for cid in ids]
+
+    monkeypatch.setattr(loaders_mod, "list_competitors", fake_list_competitors)
+
+
 class TestParseVoteTitle:
     def test_valid_choices(self):
         for choice in ("a", "b", "tie", "both_wrong"):

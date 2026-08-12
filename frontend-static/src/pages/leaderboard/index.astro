@@ -158,7 +158,25 @@ import Base from '../../layouts/Base.astro';
       ['wer_mean', 'WER mean', true], ['wer_median', 'WER med.', true],
       ['error_rate', 'Error', true], ['false_accept_rate', 'False acc.', true],
       ['false_reject_rate', 'False rej.', true], ['latency_ms_median', 'Latency ms', false],
+      ['utmos', 'UTMOS', false], ['intelligibility_wer', 'Intellig. WER', true],
     ];
+    // primary_metric values whose raw scale is naturally "higher is
+    // better" — accuracy/macro_f1/etc. are already ratios in [0,1] where
+    // higher wins; utmos is a 1-5 MOS scale, also higher wins. Anything
+    // else here (wer_mean, error_rate, …) is "lower is better" and the
+    // score-bar fill inverts it.
+    const HIGHER_IS_BETTER = new Set(['accuracy', 'utmos']);
+    // metric key -> [key, label, percent] lookup built from METRIC_COLUMNS,
+    // used so the primary-metric cell renders per its own percent flag
+    // instead of always assuming a 0..1 ratio (e.g. UTMOS is a 1..5 MOS
+    // score, not a percentage).
+    const METRIC_COLUMN_BY_KEY = Object.fromEntries(
+      METRIC_COLUMNS.map(([k, l, p]) => [k, [k, l, p]]));
+    const fmtMetric = (key, v) => {
+      if (v == null) return '—';
+      const percent = METRIC_COLUMN_BY_KEY[key]?.[2] ?? false;
+      return percent ? pct(v) : (Math.round(v * 100) / 100).toFixed(2);
+    };
 
     // leagues: [{id, label, battle_group, order}] from data/index.json — the
     // frontend has no hardcoded notion of what leagues exist or how they map
@@ -301,8 +319,13 @@ import Base from '../../layouts/Base.astro';
         return `<div class="bench">${msg}</div>`;
       }
       const primary = board.primary_metric;
-      const higher = primary === 'accuracy';
-      const score = v => v == null ? 0 : Math.max(0, Math.min(1, higher ? v : 1 - v));
+      const higher = HIGHER_IS_BETTER.has(primary);
+      // Score-bar normalization: most primary metrics are already ratios
+      // in [0,1] (accuracy, wer_mean, …) where 1-v inverts a lower-is-
+      // better metric into a fill fraction. UTMOS is a MOS scale (1..5,
+      // higher is better) — normalize by /5 before clamping instead.
+      const scale = primary === 'utmos' ? 5 : 1;
+      const score = v => v == null ? 0 : Math.max(0, Math.min(1, higher ? v / scale : 1 - v / scale));
       const secondary = METRIC_COLUMNS.filter(([k]) => k !== primary &&
         board.entries.some(e => e.metrics?.[k] != null));
       const buckets = [...new Set(board.entries.flatMap(e =>
@@ -316,9 +339,9 @@ import Base from '../../layouts/Base.astro';
         <td class="rank-cell ${medal(e.rank)}">${e.rank}</td>
         <td class="sprite-cell">${sprite(e.competitor_id, 34)}</td>
         <td><div class="nm">${esc(nameOf(e.competitor_id))}</div><div class="pl">${esc(e.plugin_id || '')}</div></td>
-        <td><div class="prim"><span class="v">${e.metrics?.[primary] == null ? '—' : pct(e.metrics[primary])}</span>
+        <td><div class="prim"><span class="v">${fmtMetric(primary, e.metrics?.[primary])}</span>
           <span class="track"><span class="fill" style="width:${(score(e.metrics?.[primary]) * 100).toFixed(0)}%"></span></span></div></td>
-        ${secondary.map(([k,,p]) => `<td class="metric-chip">${e.metrics?.[k] == null ? '—' : (p ? pct(e.metrics[k]) : e.metrics[k])}</td>`).join('')}
+        ${secondary.map(([k]) => `<td class="metric-chip">${fmtMetric(k, e.metrics?.[k])}</td>`).join('')}
         ${buckets.map(b => `<td class="bucket-col metric-chip">${pct(e.metrics?.[b])}</td>`).join('')}
         <td class="metric-chip">${e.samples}</td></tr>`).join('');
       return `<div class="bench">

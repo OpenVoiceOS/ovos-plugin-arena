@@ -6,8 +6,29 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 from arena.cli import _predictions_revision_for, cmd_assemble
 from arena.predictions import resolve_predictions_revision
+
+
+class _StubCompetitor:
+    def __init__(self, competitor_id):
+        self.competitor_id = competitor_id
+
+
+@pytest.fixture(autouse=True)
+def _permissive_registry(monkeypatch):
+    # "comp-a" predates the board-truth registry filter added to
+    # arena.predictions.group_rows — see tests/test_predictions.py for
+    # the filter's own coverage.
+    import registry.loaders as loaders_mod
+
+    def fake_list_competitors(modality=None):
+        ids = {"stt": {"comp-a"}}.get(modality, set())
+        return [_StubCompetitor(cid) for cid in ids]
+
+    monkeypatch.setattr(loaders_mod, "list_competitors", fake_list_competitors)
 
 
 class TestResolvePredictionsRevision:

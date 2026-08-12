@@ -212,23 +212,63 @@ def load_predictions(
 
 def group_rows(
     rows: list[PredictionRow],
+    unregistered: dict[str, int] | None = None,
 ) -> dict[tuple[str, str, str], dict[str, dict[str, PredictionRow]]]:
     """Group rows as (modality, dataset_id, lang) → sample_id → competitor → row.
 
     Rows whose modality cannot be inferred are dropped (with a warning).
     Duplicate (sample, competitor) rows keep the last occurrence.
+
+    This is the single choke point every board (benchmark, battles, ELO)
+    flows through, so it is also where board truth is enforced: rows whose
+    ``competitor_id`` is not present in the current registry for that
+    modality are dropped — a fighter removed from the registry (e.g. its
+    definition deleted) must not keep appearing on published boards just
+    because its orphaned HF prediction shards are still fetched. Dropped
+    (competitor_id → row count) is aggregated into *unregistered* when
+    given, so callers can surface it in the assemble output.
     """
+    from registry.loaders import list_competitors
+
+    registered_by_modality: dict[str, set[str]] = {}
+
+    def _is_registered(modality: str, competitor_id: str) -> bool:
+        if modality not in registered_by_modality:
+            try:
+                registered_by_modality[modality] = {
+                    c.competitor_id for c in list_competitors(modality)
+                }
+            except Exception as exc:
+                logger.warning(
+                    "Could not load registry for modality %s: %s", modality, exc
+                )
+                registered_by_modality[modality] = set()
+        return competitor_id in registered_by_modality[modality]
+
     grouped: dict[tuple[str, str, str], dict[str, dict[str, PredictionRow]]] = (
         defaultdict(lambda: defaultdict(dict))
     )
     dropped = 0
+    unregistered_counts: dict[str, int] = defaultdict(int)
     for row in rows:
         modality = infer_modality(row.model_dump(exclude_none=True))
         if modality == "unknown":
             dropped += 1
             continue
+        if not _is_registered(modality, row.competitor_id):
+            unregistered_counts[row.competitor_id] += 1
+            continue
         key = (modality, row.dataset_id, row.lang)
         grouped[key][row.sample_id][row.competitor_id] = row
     if dropped:
         logger.warning("Dropped %d rows with undetectable modality", dropped)
+    for competitor_id, count in sorted(unregistered_counts.items()):
+        logger.warning(
+            "Excluded %d prediction row(s) for unregistered competitor_id "
+            "%r (not in the current registry — orphaned shard?)",
+            count, competitor_id,
+        )
+    if unregistered is not None:
+        for competitor_id, count in unregistered_counts.items():
+            unregistered[competitor_id] = unregistered.get(competitor_id, 0) + count
     return {k: dict(v) for k, v in grouped.items()}
