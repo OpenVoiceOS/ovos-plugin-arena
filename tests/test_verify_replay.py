@@ -188,6 +188,82 @@ def test_no_network_touched(tmp_path, monkeypatch):
     assert exc.value.code == 0
 
 
+def _write_elo_seed(data_dir: Path, auto_battles: int, modality="intent", lang="en-US"):
+    """A minimal but internally-consistent EloSeed fixture: alpha beats beta
+    every auto-battle, so growing ``auto_battles`` moves the rating."""
+    seed = {
+        "modality": modality,
+        "lang": lang,
+        "generated_at": "2026-01-01T00:00:00+00:00",
+        "auto_vote_count": auto_battles,
+        "ratings": {"alpha": 1200.0, "beta": 1200.0},
+        "battles": {"alpha": auto_battles, "beta": auto_battles},
+        "wins": {"alpha": auto_battles, "beta": 0},
+        "losses": {"alpha": 0, "beta": auto_battles},
+        "ties": {"alpha": 0, "beta": 0},
+        "competitor_plugin": {"alpha": "alpha-plugin", "beta": "beta-plugin"},
+        "pairwise_wins": {"alpha": {"beta": float(auto_battles)}, "beta": {}},
+        "pairwise_games": {"alpha": {"beta": float(auto_battles)}, "beta": {}},
+    }
+    (data_dir / f"elo-seed-{modality}-{lang}.json").write_text(json.dumps(seed))
+
+
+def test_tally_rebuilds_board_when_seed_changes_with_zero_votes(tmp_path, monkeypatch):
+    """Regression for the replay-mismatch blocker: `assemble` can regenerate
+    `elo-seed-*.json` with a larger auto-battle tally (more predictions
+    loaded) on a day with zero human votes. `tally` MUST still rebuild the
+    published leaderboard from the fresh seed — leaving it untouched (as it
+    did before this fix, gated on `if counted_decisions:`) means the
+    committed board reflects a stale seed while `verify-replay` (a pure
+    function of the *current* seed/battles/votes, per R19) always derives
+    the fresh one, so the two permanently diverge until the next human vote
+    happens to land. Before the fix this test's `verify-replay` call fails;
+    after it, it passes."""
+    import arena.cli as arena_cli
+
+    data_dir = tmp_path / "data"
+    data_dir.mkdir(parents=True)
+    _write_elo_seed(data_dir, auto_battles=10)
+
+    monkeypatch.setattr(arena_cli, "fetch_vote_issues", lambda repo: [])
+    monkeypatch.setattr(arena_cli, "close_issue", lambda *a, **kw: None)
+    monkeypatch.setattr(arena_cli, "_now_iso", lambda: "2026-01-02T00:00:00+00:00")
+    with pytest.raises(SystemExit) as exc:
+        main(["tally", "--data-dir", str(data_dir), "--output", str(data_dir),
+              "--repo", "OpenVoiceOS/ovos-plugin-arena", "--keep-issues-open"])
+    assert exc.value.code == 0
+
+    board_v1 = json.loads((data_dir / "leaderboard-intent-en-US.json").read_text())
+    alpha_v1 = next(e for e in board_v1["entries"] if e["competitor_id"] == "alpha")
+    assert alpha_v1["battles"] == 10
+
+    # Simulate a same-day `assemble` re-run that loaded more predictions:
+    # the seed grows, but zero human votes were cast — the exact scenario
+    # that used to leave the published board stale.
+    _write_elo_seed(data_dir, auto_battles=40)
+
+    with pytest.raises(SystemExit) as exc:
+        main(["tally", "--data-dir", str(data_dir), "--output", str(data_dir),
+              "--repo", "OpenVoiceOS/ovos-plugin-arena", "--keep-issues-open"])
+    assert exc.value.code == 0
+
+    board_v2 = json.loads((data_dir / "leaderboard-intent-en-US.json").read_text())
+    alpha_v2 = next(e for e in board_v2["entries"] if e["competitor_id"] == "alpha")
+    assert alpha_v2["battles"] == 40, (
+        "leaderboard was left stale after a zero-vote tally run despite a "
+        "changed elo-seed — published board no longer matches the current "
+        "seed, breaking verify-replay/R19"
+    )
+
+    # And verify-replay — the actual CI gate — must pass against this
+    # freshly-rebuilt board with no votes at all.
+    empty_votes_file = _votes_file(tmp_path, [], name="votes-empty.json")
+    with pytest.raises(SystemExit) as exc:
+        main(["verify-replay", "--data-dir", str(data_dir),
+              "--votes-file", str(empty_votes_file)])
+    assert exc.value.code == 0
+
+
 def test_missing_votes_source_errors_cleanly(tmp_path):
     data_dir = tmp_path / "data"
     _write_battles_pool(data_dir, [_battle("b0")])

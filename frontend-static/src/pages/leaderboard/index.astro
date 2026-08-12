@@ -5,7 +5,7 @@ import Base from '../../layouts/Base.astro';
   <p class="eyebrow" style="margin-bottom:0.4rem">OVOS Plugin Arena · Rankings</p>
   <h1 style="font-size:clamp(1.8rem,5vw,2.6rem);margin-bottom:0.35rem">The Standings</h1>
   <p style="max-width:62ch">
-    Pick a league and a language. The <strong>ladder</strong> is the ELO ranking —
+    Pick a league and a language. The <strong>ladder</strong> is the rating ranking —
     seeded from benchmarks, refined by <a href="../battle/">blind battle</a> votes.
     The <strong>benchmark boards</strong> below it score every fighter straight off
     labelled data. Want to see who beats whom? The <a href="../matchups/">matchup heatmap</a>
@@ -223,7 +223,7 @@ import Base from '../../layouts/Base.astro';
 
     function renderRanking(entries) {
       // entries already ordered best-first; rank by position
-      const ratings = entries.map(e => e.elo);
+      const ratings = entries.map(e => e.bt_rating);
       const lo = Math.min(...ratings), hi = Math.max(...ratings);
       const strength = v => hi === lo ? 60 : Math.round(6 + 94 * (v - lo) / (hi - lo));
       const E = entries.map((e, i) => ({ ...e, r: i + 1 }));
@@ -236,7 +236,7 @@ import Base from '../../layouts/Base.astro';
           <span class="sprite">${sprite(e.competitor_id, e.r === 1 ? 76 : 60)}</span>
           <p class="nm">${esc(nameOf(e.competitor_id))}</p>
           <p class="pl">${esc(e.plugin_id || '')}</p>
-          <p class="elo">${Math.round(e.elo)}<small>ELO</small></p>
+          <p class="elo">${Math.round(e.bt_rating)}<small>RATING</small></p>
           ${e.battles ? wlt(e) : ''}
         </div>`).join('')}</div>` : '';
       const rest = E.slice(top.length >= 2 ? 3 : 0);
@@ -247,9 +247,9 @@ import Base from '../../layouts/Base.astro';
           <span class="who">
             <span class="nm">${esc(nameOf(e.competitor_id))}</span>
             <span class="pl"> · ${esc(e.plugin_id || '')}</span>
-            <div class="bar" style="width:${strength(e.elo)}%"></div>
+            <div class="bar" style="width:${strength(e.bt_rating)}%"></div>
           </span>
-          <span class="right"><span class="elo">${Math.round(e.elo)}</span><br>${e.battles ? wlt(e) : '<span class="pl">unrated</span>'}</span>
+          <span class="right"><span class="elo">${Math.round(e.bt_rating)}</span><br>${e.battles ? wlt(e) : '<span class="pl">unrated</span>'}</span>
         </div>`).join('')}</div>` : '';
       return podium + ladder;
     }
@@ -269,7 +269,7 @@ import Base from '../../layouts/Base.astro';
             ? 'One ladder for every intent engine — template, keyword and fusions compete together.' : '');
       const head = `<div class="lb-section-head">
         <p class="eyebrow" style="color:var(--accent)">The Ladder</p>
-        <h2>${unranked ? '🎲 Unranked' : '⚔️ ELO ranking'}</h2>
+        <h2>${unranked ? '🎲 Unranked' : '⚔️ Rating ranking'}</h2>
         ${board ? `<span class="tag">${board.vote_count - board.human_vote_count} auto-battles · ${board.human_vote_count} human votes</span>` : ''}
       </div>${note ? `<p class="lb-note">${note}</p>` : ''}
       ${unranked ? '<p class="lb-note">Unranked — no votes yet, order not meaningful.</p>' : ''}`;
