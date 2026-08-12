@@ -63,6 +63,9 @@ import Base from '../../layouts/Base.astro';
     .lb-chip { display:inline-flex; align-items:center; gap:0.3rem; padding:0.15rem 0.55rem;
       border:1px solid var(--border); border-radius:999px; background:var(--surface); }
     .lb-chip code { background:none; border:none; padding:0; font-size:0.82em; color:var(--text); }
+    .lb-notes { flex-basis:100%; font-size:0.8rem; color:var(--muted); }
+    .lb-notes summary { cursor:pointer; color:var(--text); }
+    .lb-notes p { margin:0.35rem 0 0; }
 
     /* ---- section frame ---- */
     .lb-section { margin-bottom:2.25rem; }
@@ -145,6 +148,7 @@ import Base from '../../layouts/Base.astro';
 
   <script>
     import { spriteSvg } from '../../lib/sprite.js';
+    import { groupedLangOptionsHtml } from '../../lib/lang.js';
 
     const BASE = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
 
@@ -199,6 +203,24 @@ import Base from '../../layouts/Base.astro';
         <span class="l">${e.losses}<b>L</b></span><span class="t">${e.ties}<b>T</b></span></span>`;
     }
 
+    // Fighter list with no rank/crown/podium chrome at all — used when a
+    // board is provisional with zero votes cast: any ordering the backend
+    // ships (a single fighter, or an arbitrary seed order) is not a real
+    // ranking and must not be dressed up as one (no "① CHAMPION" for a
+    // fighter that has never fought).
+    function renderUnranked(entries) {
+      return `<div class="ladder unranked">${entries.map(e => `
+        <div class="lrow">
+          <span class="rk" aria-hidden="true">–</span>
+          <span class="sprite-cell">${sprite(e.competitor_id, 40)}</span>
+          <span class="who">
+            <span class="nm">${esc(nameOf(e.competitor_id))}</span>
+            <span class="pl"> · ${esc(e.plugin_id || '')}</span>
+          </span>
+          <span class="right"><span class="pl">unrated</span></span>
+        </div>`).join('')}</div>`;
+    }
+
     function renderRanking(entries) {
       // entries already ordered best-first; rank by position
       const ratings = entries.map(e => e.elo);
@@ -233,6 +255,10 @@ import Base from '../../layouts/Base.astro';
     }
 
     function eloSection(board, league) {
+      // A provisional board with zero votes cast has nothing to rank from —
+      // whatever order the backend ships is not a real ranking, so no
+      // podium/crown chrome, just the fighter list.
+      const unranked = !!(board && board.provisional && board.vote_count === 0);
       const note = league === 'tts'
         ? 'Ranked by human listening votes only — no benchmark seed. Vote in the Battle page.'
         : league === 'wake_word'
@@ -243,9 +269,10 @@ import Base from '../../layouts/Base.astro';
             ? 'One ladder for every intent engine — template, keyword and fusions compete together.' : '');
       const head = `<div class="lb-section-head">
         <p class="eyebrow" style="color:var(--accent)">The Ladder</p>
-        <h2>⚔️ ELO ranking</h2>
+        <h2>${unranked ? '🎲 Unranked' : '⚔️ ELO ranking'}</h2>
         ${board ? `<span class="tag">${board.vote_count - board.human_vote_count} auto-battles · ${board.human_vote_count} human votes</span>` : ''}
-      </div>${note ? `<p class="lb-note">${note}</p>` : ''}`;
+      </div>${note ? `<p class="lb-note">${note}</p>` : ''}
+      ${unranked ? '<p class="lb-note">Unranked — no votes yet, order not meaningful.</p>' : ''}`;
       if (!board?.entries?.length)
         return `<section class="lb-section">${head}<div class="card" style="margin:0">No ladder standings yet.</div></section>`;
 
@@ -258,10 +285,10 @@ import Base from '../../layouts/Base.astro';
         body = Object.keys(byPhrase).sort().map(ph => `
           <div class="ww-phrase">
             <p class="ww-phrase-title">📣 “${esc(ph.replace(/_/g, ' '))}”</p>
-            ${renderRanking(byPhrase[ph])}
+            ${unranked ? renderUnranked(byPhrase[ph]) : renderRanking(byPhrase[ph])}
           </div>`).join('');
       } else {
-        body = renderRanking(board.entries);
+        body = unranked ? renderUnranked(board.entries) : renderRanking(board.entries);
       }
       return `<section class="lb-section">${head}${body}</section>`;
     }
@@ -316,7 +343,15 @@ import Base from '../../layouts/Base.astro';
       if ((info.predictions || []).length)
         parts.push(chip(`<a href="${esc(info.predictions[0])}" target="_blank" rel="noopener noreferrer">predictions ↗</a>`));
       if (board.generated_at) parts.push(`<span style="opacity:0.7">updated ${new Date(board.generated_at).toLocaleDateString()}</span>`);
-      return parts.join('');
+      let html = parts.join('');
+      // caveats (e.g. "recall-only benchmark") must reach users, not just
+      // maintainers reading the registry JSON — collapsed by default so it
+      // doesn't crowd the chip row, but never dropped.
+      if (info.notes) html += `<details class="lb-notes">
+        <summary>Dataset notes</summary>
+        <p>${esc(info.notes)}</p>
+      </details>`;
+      return html;
     }
 
     // fetch (with in-memory caching) just the board files a metadata list
@@ -401,7 +436,7 @@ import Base from '../../layouts/Base.astro';
         ...leaderboardsMeta.filter(b => b.modality === group),
       ].map(b => b.lang))].sort();
       const sel = document.getElementById('sel-lang');
-      sel.innerHTML = langs.map(l => `<option value="${esc(l)}">${esc(l)}</option>`).join('');
+      sel.innerHTML = groupedLangOptionsHtml(langs);
       lang = langs.includes(lang) ? lang : (langs.includes('en-US') ? 'en-US' : langs[0] || '');
       sel.value = lang;
       populateDatasets();

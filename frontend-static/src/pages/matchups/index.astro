@@ -92,6 +92,8 @@ import Base from '../../layouts/Base.astro';
   </style>
 
   <script>
+    import { groupedLangOptionsHtml } from '../../lib/lang.js';
+
     const BASE = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
 
     // Same stale-index fallback contract as leaderboard/index.astro — mirrors
@@ -354,9 +356,11 @@ import Base from '../../layouts/Base.astro';
           : `${primary} ${cell.a} vs ${cell.b} (Δ ${cell.delta.toFixed(3)})`;
         return `<tr><td>${esc(nameOf(rowId))}</td><td>${esc(nameOf(colId))}</td><td>${txt}</td></tr>`;
       };
+      const info = board.dataset_info || {};
       const note = `<p>Benchmark: <strong>${esc(board.dataset_id || '')}</strong> · primary metric
         <code>${esc(primary)}</code>${higher === false ? ' (lower is better)' : ''}.
-        This is not a played match — it is each fighter's own score on the same dataset, compared pairwise.</p>`;
+        This is not a played match — it is each fighter's own score on the same dataset, compared pairwise.</p>
+        ${info.notes ? `<details class="lb-notes"><summary>Dataset notes</summary><p>${esc(info.notes)}</p></details>` : ''}`;
       return note + renderGrid(ids, cellFn, benchLegend(primary, higher),
         `Benchmark metric comparison per fighter pair on ${board.dataset_id || ''}`, srCellFn);
     }
@@ -471,7 +475,7 @@ import Base from '../../layouts/Base.astro';
         ...freeformPoolsMeta.filter(b => b.modality === group),
       ].map(b => b.lang))].sort();
       const sel = document.getElementById('sel-lang');
-      sel.innerHTML = langs.map(l => `<option value="${esc(l)}">${esc(l)}</option>`).join('');
+      sel.innerHTML = groupedLangOptionsHtml(langs);
       lang = langs.includes(lang) ? lang : (langs.includes('en-US') ? 'en-US' : langs[0] || '');
       sel.value = lang;
       populateDatasets();
