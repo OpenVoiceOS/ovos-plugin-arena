@@ -6,8 +6,8 @@ Astro frontend. Each section says what the command proves and what its output
 looks like, so you know it worked without needing CI.
 
 This page complements the top-level `README.md` ("Running a benchmark",
-"Assembling the arena locally") with the *why* and the full picture — install,
-tests, replay, frontend — in one place. See [`benchmarks.md`](benchmarks.md)
+"Assembling the arena locally") with the *why* and the full picture, install,
+tests, replay, frontend, in one place. See [`benchmarks.md`](benchmarks.md)
 for per-modality benchmark detail, [`runner.md`](runner.md) for the
 always-on STT prediction runner, and [`operations.md`](operations.md) for the
 maintainer's day-to-day vote-loop runbook.
@@ -33,7 +33,7 @@ uv pip install --prerelease=allow -e ".[test,audio,hf]"
 | `hf` | anything that talks to HuggingFace: `assemble`, `verify-replay` against a live repo, `--upload` |
 
 If you only need the intent leagues and the assembler, `.[test,hf]` is
-enough — you can skip `audio` and its heavier downloads.
+enough, you can skip `audio` and its heavier downloads.
 
 ## 2. Run the unit tests
 
@@ -52,8 +52,7 @@ calls.
 ```
 
 If you installed only `.[test,hf]` (no `audio`), four `TestIntelligibility`
-cases in `tests/test_tts_bench.py` fail with `No module named 'soundfile'` —
-that's expected; they're audio-decode tests gated on the `audio` extra, not a
+cases in `tests/test_tts_bench.py` fail with `No module named 'soundfile'`, that's expected. They're audio-decode tests gated on the `audio` extra, not a
 real failure.
 
 ## 3. Validate the registry
@@ -63,7 +62,7 @@ python -m arena.cli validate-registry --registry registry
 ```
 
 **Proves:** every fighter and dataset JSON file in `registry/` matches the
-schema — the same check CI's `validate_registry` job runs on every push and
+schema, the same check CI's `validate_registry` job runs on every push and
 PR. See [`add-a-fighter.md`](add-a-fighter.md) for what a fighter file looks
 like.
 
@@ -85,7 +84,7 @@ python benchmarks/intent_snips.py --competitors padacioso-medium --max-samples 5
 
 **Proves:** the benchmark engine can load a registry fighter, download and
 cache the eval dataset from HuggingFace, train/run the plugin offline, and
-write resumable §3.2 prediction rows to disk — the same path a full sweep
+write resumable §3.2 prediction rows to disk, the same path a full sweep
 uses, just capped to 5 samples for one fighter.
 
 **Expected output shape:**
@@ -96,17 +95,17 @@ INFO    training padacioso-medium for en-US (stages: ovos-padacioso-pipeline-plu
 INFO    padacioso-medium/en-US: wrote 5 rows
 ```
 
-No `--upload` flag was passed, so nothing is published to HuggingFace — the
+No `--upload` flag was passed, so nothing is published to HuggingFace, the
 rows land locally at `predictions/<dataset>/<modality>/<lang>/<competitor>.jsonl`
 (here: `predictions/snips/intent_template/en-US/padacioso-medium.jsonl`).
-`predictions/` is gitignored; re-running the same command skips any
+`predictions/` is gitignored. Re-running the same command skips any
 `sample_id` already present in that file (resumable runs, per
 [`benchmarks.md`](benchmarks.md)).
 
 ## 5. Assemble battles and boards locally
 
 `assemble` also accepts a local predictions directory instead of an HF repo
-id — point it at what step 4 just wrote:
+id, point it at what step 4 just wrote:
 
 ```bash
 python -m arena.cli assemble \
@@ -117,7 +116,7 @@ python -m arena.cli assemble \
 
 **Proves:** the assembler can turn raw prediction rows into a benchmark
 board, a battle pool and an ELO seed without touching HuggingFace or the
-committed `frontend-static/public/data/` — useful for checking a new
+committed `frontend-static/public/data/`, useful for checking a new
 benchmark script's output shape before publishing anything.
 
 **Expected output shape:**
@@ -141,7 +140,7 @@ dataset to see nonzero battle counts.
 ## 6. Verify replay
 
 `verify-replay` re-derives every published leaderboard from the vote log and
-diffs it against what's on disk — see
+diffs it against what's on disk, see
 [`operations.md`](operations.md#replay-proof) for the full explanation. Two
 ways to run it locally:
 
@@ -159,7 +158,7 @@ python -m arena.cli verify-replay \
 ```
 
 **Proves:** the committed leaderboards are exactly reproducible from the
-public vote log — the same check `.github/workflows/replay-proof.yml` runs on
+public vote log, the same check `.github/workflows/replay-proof.yml` runs on
 every push to `dev`.
 
 **Expected output:**
@@ -174,14 +173,14 @@ INFO  verify-replay OK — 1 published board(s) reproduced exactly by replaying 
 ```
 
 Any other exit code means a published board doesn't match what the vote log
-supports — see [`operations.md`](operations.md#troubleshooting) for how to
+supports, see [`operations.md`](operations.md#troubleshooting) for how to
 dig into a mismatch.
 
 ## 7. Preview the frontend
 
 The Astro site reads its data straight from
-`frontend-static/public/data/*.json` — the same files `assemble` and `tally`
-commit. There's no build step needed to point it at different data; just
+`frontend-static/public/data/*.json`, the same files `assemble` and `tally`
+commit. There's no build step needed to point it at different data. Just
 overwrite those JSON files before building.
 
 ```bash
@@ -231,6 +230,9 @@ or Ctrl-C in the foreground terminal.
   re-assembling never invalidates an already-open vote
   ([`operations.md`](operations.md)).
 - **`tally`** always replays the *entire* vote issue history (open and
-  closed) from scratch on every run — it has no incremental state of its
-  own; `vote-audit.json` is fully regenerated, not appended to
+  closed) from scratch on every run, it has no incremental state of its
+  own. `vote-audit.json` is fully regenerated, not appended to
   ([`operations.md`](operations.md#auditing-discards)).
+
+---
+[← Specification](SPECIFICATION.md) · [Home](index.md) · [Add a fighter →](add-a-fighter.md)

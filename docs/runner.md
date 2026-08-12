@@ -12,9 +12,9 @@ queue and sleeping between cycles.
 ## Row schema
 
 Each row written to the JSONL output and uploaded to HF is the canonical
-arena §3.2 contract (`docs/SPECIFICATION.md`) directly — the runner has no
+arena §3.2 contract (`docs/SPECIFICATION.md`) directly, the runner has no
 registry dependency by design (it can run standalone on a plugin-execution
-box), so it never resolves `competitor_id`; `arena.predictions` re-keys
+box), so it never resolves `competitor_id`. `arena.predictions` re-keys
 `plugin_id` to a `competitor_id` at load time via
 `registry.loaders.get_competitor_by_alias` (§4 A2 schema convergence).
 
@@ -32,7 +32,7 @@ box), so it never resolves `competitor_id`; `arena.predictions` re-keys
 
 Already-published data in the old column layout (`dataset_entry_id` /
 `plugin_name` / `prediction_transcript` / `transcript` /
-`prediction_confidence` / `prediction_type`) is still readable —
+`prediction_confidence` / `prediction_type`) is still readable.
 `runner/schema.py:STTRow` is kept as a read-compat shim, and
 `arena.predictions.parse_row` detects and converts that shape
 automatically, tagging the resulting row `schema_version: 1` for
@@ -42,7 +42,7 @@ provenance. New runs never construct an `STTRow`.
 
 ## Adding jobs
 
-Edit `runner/queue.yaml`.  Each job entry looks like:
+Edit `runner/queue.yaml`. Each job entry looks like:
 
 ```yaml
 jobs:
@@ -65,8 +65,7 @@ jobs:
     hf_output_dataset: OpenVoiceOS/ovos-stt-bench-pt-PT
 ```
 
-The daemon reloads the queue file on the next cycle whenever its mtime changes
-— no restart needed.
+The daemon reloads the queue file on the next cycle whenever its mtime changes, no restart needed.
 
 ---
 
@@ -76,14 +75,15 @@ The daemon reloads the queue file on the next cycle whenever its mtime changes
 every compatible `role: eval` dataset, per modality) against what is
 actually published on HuggingFace, and prints `queue.yaml`-shaped job
 entries for pairs that are missing or incomplete. It never writes
-`runner/queue.yaml` itself and never runs a benchmark — review its output
-and paste the entries you want in.
+`runner/queue.yaml` itself and never runs a benchmark. Review its output
+and paste in the entries you want.
 
-"Missing or incomplete" means: no `predictions/<competitor_id>.jsonl` file
-in the dataset's `predictions_hf` repo, a 0-byte file (this happens — e.g.
+"Missing or incomplete" means one of three things: no
+`predictions/<competitor_id>.jsonl` file in the dataset's `predictions_hf`
+repo, a 0-byte file (this happens, for example
 `onnx-asr-parakeet-tdt-11b.jsonl` today), or fewer rows than `--min-rows`
-(default 1; dataset size isn't tracked in the registry, so this is a
-heuristic, not an exact "smaller than the corpus" check). A fighter with an
+(default 1). Dataset size is not tracked in the registry, so this is a
+heuristic, not an exact "smaller than the corpus" check. A fighter with an
 empty `langs` list is treated as compatible with every dataset language.
 
 ```bash
@@ -98,7 +98,7 @@ python -m runner.queue_tools --no-row-check --out /tmp/sweep-queue.yaml
 python -m runner.queue_tools --modality wake_word > /tmp/ww-queue.yaml
 ```
 
-Entries are ordered cheapest-engine-first (a static weight heuristic — e.g.
+Entries are ordered cheapest-engine-first (a static weight heuristic, e.g.
 `vosk`/`webrtc` before `whisper`/cloud STT) then by competitor id, so a
 sweep run burns through fast/cheap fighters before slow/expensive ones.
 
@@ -116,19 +116,26 @@ jobs:
 
 ## Deploy on ser9
 
+Stage the runner code from your laptop:
+
 ```bash
-# Stage from laptop
 scp -r /home/miro/AgentWorkspaces/ovos/web/ovos-plugin-arena/runner \
     miro@192.168.1.116:/home/miro/arena-runner/runner
+```
 
-# On ser9 — one-time setup (already done):
+Run one-time setup on ser9 (already done):
+
+```bash
 python3.14 -m venv ~/venvs/arena-runner
 ~/venvs/arena-runner/bin/pip install \
     ovos-stt-plugin-fasterwhisper \
     ovos-stt-plugin-vosk \
     datasets huggingface_hub pyyaml
+```
 
-# Start the daemon detached in tmux:
+Start the daemon detached in tmux:
+
+```bash
 ssh miro@192.168.1.116
 tmux new -s arena-runner
 cd ~/arena-runner
@@ -170,7 +177,7 @@ for p in pathlib.Path('/mnt/ser9/arena-runner').glob('manifest_*.json'):
 
 After each job cycle completes the runner automatically uploads the output
 JSONL as new shards to `hf_output_dataset` using the `HF_TOKEN` environment
-variable.  The shard naming convention mirrors the existing dataset files:
+variable. The shard naming convention mirrors the existing dataset files:
 `stt_<lang>_<plugin>_<n>.jsonl`.
 
 To disable auto-publish (write JSONL only):
@@ -200,5 +207,8 @@ EOF
 |---|---|---|
 | `ovos-stt-plugin-fasterwhisper` | `small`, `base` | installed, working |
 | `ovos-stt-plugin-vosk` | `vosk-model-small-pt-0.3` | installed, working |
-| `ovos-stt-plugin-citrinet` | — | **skipped** — nemo deps do not build on py3.14 |
-| `ovos-stt-plugin-whisper` | — | skipped — already covered by existing dataset |
+| `ovos-stt-plugin-citrinet` | — | **skipped**, nemo deps do not build on py3.14 |
+| `ovos-stt-plugin-whisper` | — | skipped, already covered by existing dataset |
+
+---
+[← Benchmarks](benchmarks.md) · [Home](index.md) · [Leagues →](leagues.md)
