@@ -253,6 +253,74 @@ def build_elo_board(
     )
 
 
+def _sync_leaderboard_with_seed(
+    board_path: Path, modality: str, lang: str, seed: EloSeed
+) -> None:
+    """Make sure every seeded fighter appears on an already-existing board.
+
+    ``cmd_assemble`` only ever *creates* ``leaderboard-<mod>-<lang>.json``
+    once — after that, ``tally`` is normally the one rewriting it from a
+    full vote replay. But ``tally`` only rewrites boards on a run where at
+    least one vote was counted *anywhere*, so a fighter onboarded after the
+    board already existed can be permanently missing if that (modality,
+    lang) board never collects a human vote.
+
+    When the on-disk board has no human votes yet, it is safe to fully
+    regenerate it from the current seed (identical to what the bootstrap
+    path above would produce) — there is no replayed vote state to lose.
+    When it already carries real human votes, ``assemble`` cannot safely
+    reconstruct the full Bradley-Terry replay (it has no battles pool or
+    vote log here), so missing fighters are appended at their seed rating
+    instead, leaving every existing entry untouched.
+    """
+    try:
+        payload = json.loads(board_path.read_text())
+    except (OSError, json.JSONDecodeError) as exc:
+        log.warning("Could not read %s: %s", board_path, exc)
+        return
+
+    existing_ids = {e["competitor_id"] for e in payload.get("entries", [])}
+    missing = sorted(set(seed.ratings) - existing_ids)
+    if not missing:
+        return
+
+    if not payload.get("entries") or payload.get("human_vote_count", 0) == 0:
+        _write_json(board_path, build_elo_board(modality, lang, seed, [], {}))
+        log.info("Resynced %s from seed — %d previously-missing fighter(s): %s",
+                  board_path.name, len(missing), ", ".join(missing))
+        return
+
+    entries = payload.setdefault("entries", [])
+    for competitor in missing:
+        rating = seed.ratings.get(competitor, 1200.0)
+        battles = seed.battles.get(competitor, 0)
+        wins = seed.wins.get(competitor, 0)
+        losses = seed.losses.get(competitor, 0)
+        ties = seed.ties.get(competitor, 0)
+        entries.append({
+            "rank": 0,
+            "competitor_id": competitor,
+            "plugin_id": seed.competitor_plugin.get(competitor, ""),
+            "elo": round(rating, 2),
+            "battles": battles,
+            "wins": wins,
+            "losses": losses,
+            "ties": ties,
+            "win_rate": round(wins / battles, 4) if battles else 0.0,
+            "human_votes": 0,
+            "auto_votes": battles,
+            "bt_rating": round(rating, 2),
+            "ci_lower": None,
+            "ci_upper": None,
+        })
+    entries.sort(key=lambda e: (-(e.get("bt_rating") or 0.0), e["competitor_id"]))
+    for i, entry in enumerate(entries, 1):
+        entry["rank"] = i
+    _write_json_payload(board_path, payload)
+    log.info("Appended %d previously-missing fighter(s) to %s: %s",
+              len(missing), board_path.name, ", ".join(missing))
+
+
 def _unchanged(path: Path, payload: dict[str, Any]) -> bool:
     """True when *payload* matches the file on disk apart from ``generated_at``.
 
@@ -491,10 +559,19 @@ def cmd_assemble(args: argparse.Namespace) -> int:
         _write_json(data_dir / f"battles-{group}-freeform-{lang}.json", pool)
 
         # Bootstrap the ELO board when none exists yet; `tally` owns it after
+        # — but `tally` only rewrites a board when at least one vote is
+        # counted *anywhere* in that run (`cmd_tally`'s `if
+        # counted_decisions:` guard), so a fighter that only ever gets
+        # prediction rows (never a human vote) could sit off a leaderboard
+        # that already existed before it was onboarded, forever. Every
+        # assemble run resyncs the board with the current seed to close
+        # that gap.
         board_path = data_dir / f"leaderboard-{group}-{lang}.json"
         if not board_path.exists():
             elo_board = build_elo_board(group, lang, seed, [], {})
             _write_json(board_path, elo_board)
+        else:
+            _sync_leaderboard_with_seed(board_path, group, lang, seed)
 
     return 0
 
