@@ -63,7 +63,6 @@ upper bound for "what if you just run everything."
 vs. 2 for every other fighter); the adapt-low last resort raises false-positive risk over
 the pairwise fighters, since keyword rules at a low bar are the loosest gate in the roster.
 
-### padapt — KEEP
 
 **Composition:** `padatious-high → adapt-high → adapt-medium`.
 
@@ -94,7 +93,6 @@ padatioso, see below).
 tier" pattern flagged as suspect elsewhere, but it is not the *only* content of the
 pipeline — Nebulento sits between the two Padatious tiers and is expected to catch most of
 what Padatious's retry would otherwise be asked to. Kept because the fighter's hypothesis is
-about the Padatious-Nebulento pairing, and the retry stage mirrors padapt's adapt-high/
 adapt-medium convention rather than adding a second independent claim.
 
 **Expected strengths:** best-in-league on noisy/typo'd input among the template-only
@@ -121,7 +119,6 @@ complements nebulatious as the keyword-side analogue.
 Adapt's vocab/grammar and aren't a near-miss of a trained phrase (Nebulento's sweet spot)
 fall through.
 
-### palavadapt — KEEP
 
 **Composition:** `adapt-high → palavreado-high → adapt-medium → palavreado-medium`.
 
@@ -160,8 +157,6 @@ names. **Removed** (`git rm registry/competitors/intent/padatioso.json`).
 | Fighter | Composition | Verdict | Hypothesis (one line) |
 |---|---|---|---|
 | frankenparse | padatious-high, adapt-high, palavreado-medium, nebulento-medium, adapt-low | KEEP (slimmed) | does one-stage-per-paradigm max diversity beat curated pairs |
-| padapt | padatious-high, adapt-high, adapt-medium | KEEP | does template-first + keyword-fallback (the shipped default) beat either alone |
 | nebulatious | padatious-high, nebulento-medium, padatious-medium | KEEP | does neural template + fuzzy template beat either alone on paraphrase/noise |
 | nebulapt | adapt-high, nebulento-medium, adapt-medium | KEEP | does strict keyword rules + fuzzy keyword matching beat either alone on noise |
-| palavadapt | adapt-high, palavreado-high, adapt-medium, palavreado-medium | KEEP | does rule-grammar + bag-of-keywords beat either alone within the keyword paradigm |
 | padatioso | padacioso-high, padatious-medium | **DROP** | none — Padatious already runs padaos internally with conf=1.0 on perfect match; padacioso tests nothing padatious doesn't already do |
