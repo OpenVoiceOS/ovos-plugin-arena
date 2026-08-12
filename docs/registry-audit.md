@@ -87,6 +87,20 @@ Leave the genuine fusion pipelines (`frankenparse`, `nebulapt`, `nebulatious`, `
 `palavadapt`) as the `intent` league. `padatioso` was DROPped in the 2026-08-11
 ensemble-justification pass — see `docs/ensemble-rationale.md`.
 
+### FIX: jurebes fighters now disable the plugin's `exact_match` shortcut
+
+jurebes 0.4.0 added an `exact_match` config key (plugin default: `true`) that short-circuits
+classification with a byte-identical utterance lookup before the sklearn classifier ever
+runs. The wave-2 pairing pass found 5+ jurebes fighters producing identical predictions
+because of this shortcut — the fighters exist to compare sklearn baseline recipes
+(featurizer x classifier), and the exact-match path bypasses the classifier entirely on any
+repeated/templated utterance.
+
+**FIX:** every `registry/competitors/intent_template/jurebes-*.json` fighter now sets
+`"exact_match": false` in its `ovos-jurebes-pipeline-plugin` config block, next to
+`baseline`. This forces the sklearn classifier to run on every prediction so the benchmark
+actually measures the recipe under test instead of a lookup table.
+
 ### `frankenparse` — SUPERSEDED, see `docs/ensemble-rationale.md`
 
 The paragraph below reflects the pre-2026-08-11 config and is kept for history; the
