@@ -64,20 +64,6 @@ vs. 2 for every other fighter). The adapt-low last resort raises false-positive 
 over the pairwise fighters, since keyword rules at a low bar are the loosest gate in the
 roster.
 
-**Composition:** `padatious-high → adapt-high → adapt-medium`.
-
-**Hypothesis:** does the shipped OVOS default order, neural template first with keyword
-rules as a two-tier fallback, beat either engine run alone? Template similarity
-(learned) and keyword-rule matching (explicit grammar) are genuinely different
-paradigms, so this tests real complementary coverage, not duplication. It also doubles
-as the arena's baseline for "how much does fusion buy you over the stock config."
-
-**Expected strengths:** mirrors real-world OVOS behavior. Should do well on utterances
-that are grammatically clean (Adapt) or template-typical (Padatious) even if not both.
-
-**Expected downsides:** neither engine handles fuzzy/noisy ASR output well, so this pair
-is expected to underperform nebulapt/nebulatious specifically on noisy input.
-
 ### nebulatious, KEEP
 
 **Composition:** `padatious-high → nebulento-medium → padatious-medium`.
@@ -118,21 +104,6 @@ fighters. Complements nebulatious as the keyword-side analogue.
 **Expected downsides:** no template-paradigm coverage. Utterances that do not map
 cleanly to Adapt's vocab/grammar and are not a near-miss of a trained phrase (Nebulento's
 sweet spot) fall through.
-
-**Composition:** `adapt-high → palavreado-high → adapt-medium → palavreado-medium`.
-
-**Hypothesis:** within the keyword paradigm, does a strict rule engine (Adapt: ordered
-require/optional grammar) combined with a bag-of-keywords engine (Palavreado:
-order-independent, no grammar) cover more utterances than either alone? These are
-genuinely different keyword-matching strategies, not the same engine at two tiers. This
-is the keyword league's pooled-upper-bound probe.
-
-**Expected strengths:** best keyword-only coverage in the league. Catches both
-grammar-conforming and loosely-phrased keyword utterances.
-
-**Expected downsides:** no template or fuzzy coverage. Paraphrases and noisy ASR output
-that do not hit a keyword/vocab match fall through both engines identically, since
-neither does any similarity scoring.
 
 ### ovos-stock, KEEP (new family: shipped-default reproduction)
 
@@ -296,4 +267,4 @@ names. **Removed** (`git rm registry/competitors/intent/padatioso.json`).
 | tmpl-slot-jurebes | adapt-high, jurebes(mlp_shallow)-medium | KEEP | template-engine 4-way: which backup engine recovers most, front+shape fixed |
 
 ---
-[← Dataset gapfill](dataset-gapfill.md) · [Home](index.md)
+[← Visual site tour](site-tour.md) · [Home](index.md)

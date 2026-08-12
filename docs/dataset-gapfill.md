@@ -126,4 +126,4 @@ win batch.
   too small (48 samples) and not in the registry's expected shape.
 
 ---
-[← Dataset review](dataset-review.md) · [Home](index.md) · [Ensemble rationale →](ensemble-rationale.md)
+[← Dataset review](dataset-review.md) · [Home](index.md) · [Visual site tour →](site-tour.md)

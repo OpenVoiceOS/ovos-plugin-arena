@@ -18,4 +18,5 @@ README doesn't have room for.
 | [`registry-audit.md`](registry-audit.md) | Audit notes on registry data quality and modality-specific conventions. |
 | [`dataset-review.md`](dataset-review.md) | Review notes on the eval datasets themselves. |
 | [`dataset-gapfill.md`](dataset-gapfill.md) | Notes on filling coverage gaps in the eval datasets. |
+| [`site-tour.md`](site-tour.md) | Guided walkthrough of the live site with a screenshot of every page and state: leaderboards, battle voting, matchups, the fighter bestiary, and the evidence rollup. |
 | [`ensemble-rationale.md`](ensemble-rationale.md) | Why the fusion/ensemble fighters (Padapt, Nebulapt, ...) are built the way they are. |

@@ -4,6 +4,10 @@
 
 **Live site:** [openvoiceos.github.io/ovos-plugin-arena](https://openvoiceos.github.io/ovos-plugin-arena)
 
+![The arena's Standings page: an ELO ladder ranking OVOS plugins](docs/img/leaderboard-overview.png)
+
+*See every page in the [visual site tour](docs/site-tour.md).*
+
 This is a GitHub-native benchmarking and voting arena for
 [OpenVoiceOS](https://github.com/OpenVoiceOS) plugins. Reproducible benchmark
 scripts rank plugins on labelled datasets. Blind A/B battles let humans refine
