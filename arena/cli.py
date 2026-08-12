@@ -1170,16 +1170,34 @@ def cmd_export_bestiary(args: argparse.Namespace) -> int:
         sys.path.insert(0, str(registry_root.parent))
     from registry.loaders import load_all_competitors
 
+    loaded = load_all_competitors(registry_root=registry_root)
     competitors = [
-        comp.model_dump(mode="json", exclude_none=True)
-        for comp in load_all_competitors(registry_root=registry_root)
+        comp.model_dump(mode="json", exclude_none=True) for comp in loaded
     ]
     competitors.sort(key=lambda c: (c["modality"], c["competitor_id"]))
+
+    # plugin_id -> family reverse lookup, so the frontend can resolve a
+    # grouping key for "ghost" board/battle entries — a competitor_id that
+    # appears in historical result data but has no current registry file
+    # (e.g. retired by a later "one fighter per X" registry split). Every
+    # board/leaderboard row still carries its own `plugin_id`, so a ghost
+    # can be folded into its engine's collapsed family card without ever
+    # needing a stub registry entry re-created for it.
+    plugin_families = {
+        comp.plugin: comp.family
+        for comp in loaded
+        if comp.plugin and comp.family
+    }
 
     out_file = Path(args.output)
     out_file.parent.mkdir(parents=True, exist_ok=True)
     _write_json_payload(
-        out_file, {"generated_at": _now_iso(), "competitors": competitors}
+        out_file,
+        {
+            "generated_at": _now_iso(),
+            "competitors": competitors,
+            "plugin_families": plugin_families,
+        },
     )
     log.info("Exported %d competitors", len(competitors))
     return 0

@@ -26,6 +26,33 @@ from typing import Any, Literal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 # ---------------------------------------------------------------------------
+# Family aliases — collapsing config-variant siblings of the same engine
+# ---------------------------------------------------------------------------
+
+# A handful of intent-template engines ship a "domain-scoped" and/or
+# "hierarchical" wrapper alongside the plain pipeline plugin — same
+# underlying engine, different `species` string (e.g. AdaptPipeline /
+# DomainAdaptPipeline / HierarchicalAdaptPipeline) because each wrapper is
+# its own OPM plugin entry point. That's a real config distinction worth
+# keeping as separate *competitors*, but it is NOT a distinct *family* for
+# ladder/bestiary grouping purposes — the owner wants one collapsed card per
+# engine, not one per wrapper. This table folds each wrapper's species onto
+# its base engine's species; anything not listed here (including engines
+# that are genuinely distinct products, e.g. PadatiousPipeline vs
+# PadaciosoPipeline, or HierarchicalKNNIntentPipeline — "hierarchical" is
+# part of that engine's own name, not a variant qualifier on some other
+# engine) is left alone: `family` just falls back to `species`.
+FAMILY_ALIASES: dict[str, str] = {
+    "DomainAdaptPipeline": "AdaptPipeline",
+    "HierarchicalAdaptPipeline": "AdaptPipeline",
+    "DomainLinhaFinaPipeline": "LinhaFinaPipeline",
+    "HierarchicalLinhaFinaPipeline": "LinhaFinaPipeline",
+    "DomainMarkovPipeline": "MarkovPipeline",
+    "HierarchicalNebulentoPipeline": "NebulentoPipeline",
+    "HierarchicalPalavreadoPipeline": "PalavreadoPipeline",
+}
+
+# ---------------------------------------------------------------------------
 # Modality
 # ---------------------------------------------------------------------------
 
@@ -402,6 +429,18 @@ class CompetitorDef(BaseModel):
             "e.g. 'PadatiousPipeline'"
         ),
     )
+    family: str | None = Field(
+        None,
+        description=(
+            "Collapsed ladder/bestiary grouping key — coarser than `species`: "
+            "folds config-variant wrappers of the same underlying engine "
+            "(domain-scoped, hierarchical-scoped, …) into one family so the "
+            "frontend shows one card per engine, not one per wrapper. "
+            "Derived from `species` via FAMILY_ALIASES; equals `species` "
+            "unchanged when no folding applies. Always set once the model "
+            "is validated — never author this by hand."
+        ),
+    )
     types: list[str] = Field(
         default_factory=list,
         description=(
@@ -460,6 +499,12 @@ class CompetitorDef(BaseModel):
         if self.plugin and self.plugin not in aliases:
             aliases.append(self.plugin)
         self.alias = aliases
+
+        # `family` always ends up set once `species` is known (falls back to
+        # `species` verbatim when the engine has no domain/hierarchical
+        # wrapper siblings folded onto it) — see FAMILY_ALIASES above.
+        if self.family is None and self.species is not None:
+            self.family = FAMILY_ALIASES.get(self.species, self.species)
         return self
 
     @property
