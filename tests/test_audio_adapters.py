@@ -5,7 +5,7 @@ fields, without loading any plugin or decoding any audio.
 """
 from __future__ import annotations
 
-from runner.stt_bench import STTBench, _first_hypothesis
+from runner.stt_bench import STTBench, _first_hypothesis, _is_sentinel_reference
 from runner.tts_bench import TTSBench, _safe
 from runner.ww_bench import WakeWordBench, WWStack, _norm_label, _to_pcm16
 
@@ -312,3 +312,61 @@ class TestAdapterMetadata:
         assert adapter.competitor_langs(any_lang, ["pt-PT", "en-US"]) == \
             ["pt-PT", "en-US"]
         assert adapter.competitor_langs(specific, ["pt-PT", "en-US"]) == ["pt-PT"]
+
+
+class TestSentinelReferenceFilter:
+    """EdAcc (and other STM-derived corpora) carry rows whose reference text
+    is a scoring-exclusion sentinel, not real transcript text — e.g.
+    "IGNORE_TIME_SEGMENT_IN_SCORING". Left unfiltered these inflate WER with
+    unscoreable rows. STTBench.iter_samples must drop them before they reach
+    a fighter's predict() / WER calculation.
+    """
+
+    def test_is_sentinel_reference_matches_known_sentinel(self):
+        assert _is_sentinel_reference("IGNORE_TIME_SEGMENT_IN_SCORING")
+        # tolerate incidental whitespace from upstream formatting
+        assert _is_sentinel_reference("  IGNORE_TIME_SEGMENT_IN_SCORING  ")
+
+    def test_is_sentinel_reference_rejects_real_text(self):
+        # genuine short/all-caps EdAcc utterances and annotations must NOT
+        # be treated as sentinels
+        for text in ("YEAH", "MM HMM", "<OVERLAP>", "<LAUGH>", "hello there",
+                     None, ""):
+            assert not _is_sentinel_reference(text)
+
+    def test_iter_samples_skips_sentinel_rows(self, monkeypatch):
+        """End-to-end: a sentinel-reference row from the streamer never
+        reaches the caller of iter_samples.
+
+        This test fails without the filter in STTBench.iter_samples: without
+        it, the fake sentinel sample below would be yielded straight through.
+        """
+        from types import SimpleNamespace
+
+        fake_rows = [
+            ("clip_0", {"array": [0.0], "sr": 16000,
+                        "ground_truth": "IGNORE_TIME_SEGMENT_IN_SCORING"}),
+            ("clip_1", {"array": [0.0], "sr": 16000,
+                        "ground_truth": "hello there"}),
+            ("clip_2", {"array": [0.0], "sr": 16000,
+                        "ground_truth": "  IGNORE_TIME_SEGMENT_IN_SCORING  "}),
+        ]
+
+        def fake_stream_audio_dataset(source, audio_key, extra_keys,
+                                       revision, max_samples=0, id_key=None):
+            yield from fake_rows
+
+        monkeypatch.setattr(
+            "runner.stt_bench.stream_audio_dataset", fake_stream_audio_dataset
+        )
+
+        dataset_def = SimpleNamespace(
+            reference_fields={"audio": "audio", "ground_truth": "text"},
+            source=SimpleNamespace(subset=None, file_pattern=None),
+        )
+
+        results = list(STTBench().iter_samples(dataset_def, "en-GB", "main", 0))
+
+        ids = [sid for sid, _ in results]
+        assert ids == ["clip_1"]
+        assert results[0][1]["ground_truth"] == "hello there"
