@@ -1,0 +1,38 @@
+{
+  "competitor_id": "tmpl-slot-jurebes",
+  "modality": "intent",
+  "config": {
+    "intents": {
+      "pipeline": [
+        "ovos-adapt-pipeline-plugin-high",
+        "ovos-jurebes-pipeline-plugin-medium"
+      ],
+      "ovos-adapt-pipeline-plugin": {
+        "conf_high": 0.65,
+        "conf_med": 0.45,
+        "conf_low": 0.25
+      },
+      "ovos-jurebes-pipeline-plugin": {
+        "conf_high": 0.8,
+        "conf_med": 0.6,
+        "conf_low": 0.4,
+        "baseline": "mlp_shallow",
+        "enable_slots": true,
+        "exact_match": false
+      }
+    }
+  },
+  "langs": [],
+  "display_name": "Template Slot: Jurebes",
+  "types": [
+    "ensemble",
+    "keyword-match",
+    "neural-net"
+  ],
+  "description": "Replacement-family member: Adapt fixed at keyword-high, Jurebes (sklearn MLP classifier, the top-accuracy baseline on the intents-for-eval en-US template board) fills the template-medium slot.",
+  "links": {
+    "source": "https://github.com/OpenVoiceOS/jurebes"
+  },
+  "size": "micro",
+  "notes": "FAMILY: tmpl-slot 4-way — mycroft-classic (adapt-high -> padatious-medium) is the shared baseline; siblings are tmpl-slot-nebulento, tmpl-slot-linhafina, tmpl-slot-jurebes (this file), each swapping only the template-medium engine with adapt-high held fixed. There is no separate tmpl-slot-padatious fighter: that config is identical to mycroft-classic, and per the 1-fighter-per-config rule mycroft-classic itself serves as the 'template engine = padatious' cell of this grid rather than duplicating the same pipeline under a second competitor_id. This sibling swaps in Jurebes using the same top-accuracy 'mlp_shallow' baseline selected for trident.json (accuracy 0.8154 on frontend-static/public/data/benchmark-intent_template-intents-for-eval-en-US.json among all jurebes-* entries), with exact_match forced to false so the fighter tests the trained classifier itself rather than jurebes's own internal exact-template short-circuit — consistent with the exact_match:false convention used everywhere jurebes appears in this pass. adapt-high held fixed as the front door, matching the other tmpl-slot siblings."
+}

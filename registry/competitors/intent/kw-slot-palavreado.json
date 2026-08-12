@@ -1,0 +1,41 @@
+{
+  "competitor_id": "kw-slot-palavreado",
+  "modality": "intent",
+  "config": {
+    "intents": {
+      "pipeline": [
+        "ovos-palavreado-pipeline-plugin-high",
+        "ovos-padatious-pipeline-plugin-medium"
+      ],
+      "ovos-palavreado-pipeline-plugin": {
+        "conf_high": 0.65,
+        "conf_med": 0.45,
+        "conf_low": 0.25,
+        "max_words": 50
+      },
+      "ovos-padatious-pipeline-plugin": {
+        "conf_high": 0.95,
+        "conf_med": 0.8,
+        "conf_low": 0.5,
+        "domain_engine": false,
+        "cast_to_ascii": false,
+        "stem": false,
+        "disable_padaos": false,
+        "instant_train": false
+      }
+    }
+  },
+  "langs": [],
+  "display_name": "KW Slot: Palavreado",
+  "types": [
+    "ensemble",
+    "keyword-match",
+    "neural-net"
+  ],
+  "description": "Replacement-family sibling: Palavreado (order-independent bag-of-keywords) fills the keyword-high slot, Padatious backs it up at medium — identical shape and backup to mycroft-classic, which stands in for the Adapt side of this A/B.",
+  "links": {
+    "source": "https://github.com/OpenVoiceOS/palavreado"
+  },
+  "size": "micro",
+  "notes": "FAMILY: kw-slot A/B — mycroft-classic (adapt-high -> padatious-medium) vs kw-slot-palavreado (palavreado-high -> padatious-medium). There is no separate kw-slot-adapt fighter: that config is identical to mycroft-classic (adapt-high -> padatious-medium), and per the 1-fighter-per-config rule mycroft-classic itself now serves as the 'keyword engine = adapt' side of this A/B rather than duplicating the same pipeline under a second competitor_id. This sibling swaps only the keyword-high engine (Palavreado in for Adapt); backup engine and tier (padatious-medium) held fixed against mycroft-classic. Isolates whether Adapt's stricter ordered require/optional grammar or Palavreado's looser order-independent bag-of-keywords matching makes a better front-door gate ahead of an identical Padatious backstop."
+}

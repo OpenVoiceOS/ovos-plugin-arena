@@ -1,0 +1,40 @@
+{
+  "competitor_id": "mycroft-classic",
+  "modality": "intent",
+  "config": {
+    "intents": {
+      "pipeline": [
+        "ovos-adapt-pipeline-plugin-high",
+        "ovos-padatious-pipeline-plugin-medium"
+      ],
+      "ovos-adapt-pipeline-plugin": {
+        "conf_high": 0.65,
+        "conf_med": 0.45,
+        "conf_low": 0.25
+      },
+      "ovos-padatious-pipeline-plugin": {
+        "conf_high": 0.95,
+        "conf_med": 0.8,
+        "conf_low": 0.5,
+        "domain_engine": false,
+        "cast_to_ascii": false,
+        "stem": false,
+        "disable_padaos": false,
+        "instant_train": false
+      }
+    }
+  },
+  "langs": [],
+  "display_name": "Mycroft Classic",
+  "types": [
+    "ensemble",
+    "keyword-match",
+    "neural-net"
+  ],
+  "description": "The historical Mycroft-AI intent order, before OVOS restructured the pipeline into confidence-interleaved stages: Adapt is the primary keyword-rule parser, Padatious runs only as a fallback after Adapt fails to match anything.",
+  "links": {
+    "source": "https://github.com/MycroftAI/mycroft-core/pull/939"
+  },
+  "size": "micro",
+  "notes": "SOURCE: mycroft-core PR #939 ('Implement Padatious support (examples based intent parser)', MatthewScholefield) added Padatious to mycroft-core by making PadatiousService inherit from FallbackSkill (per forslund's review comment 'Make PadatiousService inherit from FallbackSkill to fix new fallback changes' on that PR) — i.e. Padatious was wired in as a fallback handler invoked only when Adapt's IntentBuilder grammar produced no match, not as a co-equal parallel matcher. Author confirmed back-compat ('Adapt will still work :)'). This is the inverse of the modern OVOS/mycroft-dev order (see ovos-stock.json and current MycroftAI/mycroft-core dev intent_service.py, which interleaves padatious-high ahead of adapt) — the point of this fighter is to test whether that later re-ordering (template-first) actually helped, by running the original adapt-first/padatious-fallback shape through the arena. Modeled as adapt-high -> padatious-medium: Adapt gets first shot at its own high gate; Padatious's medium tier (not high) reflects that classic Padatious ran as a general-purpose fallback rather than a first-look high-confidence matcher. Arena skips: fallback-skill priority tiers (90-99 catch-all range documented in Mycroft's Fallback Skill docs) don't exist as an arena stage — Padatious substitutes directly for 'the fallback', consistent with the historical mechanism. SHARED BASELINE ROLE: this exact pipeline (adapt-high -> padatious-medium) is also the natural 'keyword engine = adapt' / 'template engine = padatious' cell of both replacement-study grids below — rather than keep separate duplicate-config fighters (kw-slot-adapt, tmpl-slot-padatious) alongside this one (1 fighter per config, no exceptions), mycroft-classic itself now serves as that shared baseline for both families: kw-slot family compares mycroft-classic against kw-slot-palavreado (keyword-engine A/B, Padatious backup+shape fixed); tmpl-slot family compares mycroft-classic against tmpl-slot-{nebulento,linhafina,jurebes} (template-engine 4-way, Adapt front+shape fixed). Its historical framing and its role as the shared adapt/padatious baseline are not in tension — the config is the same regardless of which question is being asked of it."
+}

@@ -135,6 +135,131 @@ grammar-conforming and loosely-phrased keyword utterances.
 that don't hit a keyword/vocab match will fall through both engines identically, since
 neither does any similarity scoring.
 
+### ovos-stock — KEEP (new family: shipped-default reproduction)
+
+**Composition:** `padatious-high → adapt-high → m2v-high → adapt-medium`.
+
+**Why this family is interesting:** every fighter above this line is a curated fusion —
+someone chose which engines to pair and in what order because the pairing seemed
+promising. None of them is *the actual thing ovos-core ships today*. Without a faithful
+reproduction of the real default, the league has no answer to "does any of this fusion
+work actually beat what a stock install already does" — every KEEP verdict above is
+implicitly compared to nothing.
+
+**What it measures:** the arena's best-effort faithful reproduction of the shipped
+`ovos-config` default `intents.pipeline`, restricted to stages the arena can instantiate
+outside a full ovos-core skill-service session (no converse/OCP/fallback/stop —
+documented per-stage in the fighter's `notes`). This is the true zero-effort baseline:
+if a curated fusion cannot beat ovos-stock, its curation added nothing over what ships by
+default.
+
+**Source:** `/home/miro/.venvs/ovos/lib/python3.12/site-packages/ovos_config/mycroft.conf`,
+`intents.pipeline` key (verbatim order cited in the fighter's `notes`).
+
+### mycroft-classic — KEEP (new family: historical-ordering reproduction)
+
+**Composition:** `adapt-high → padatious-medium`.
+
+**Why this family is interesting:** ovos-stock answers "does fusion beat today's
+default"; mycroft-classic answers a different historical question — the owner's
+observation that "the classic mycroft pipeline isn't there" either. Early mycroft-core
+ran Adapt as the sole primary intent parser and wired Padatious in as a `FallbackSkill`
+(mycroft-core PR #939), the *opposite* stage order from both ovos-stock and padapt
+(both padatious-before-adapt). Nothing in the league tested whether that later
+re-ordering — putting the neural template engine first — was actually an improvement,
+or just a design preference that was never benchmarked against the order it replaced.
+
+**What it measures:** whether keyword-first/template-fallback (the order Mycroft shipped
+for years) under- or over-performs the modern template-first/keyword-fallback order,
+holding the same two engines constant (only the order and tiers differ from padapt).
+
+**Source:** mycroft-core PR #939 ("Implement Padatious support"); reviewer comment
+"Make PadatiousService inherit from FallbackSkill to fix new fallback changes" confirms
+Padatious ran as a fallback behind Adapt, not as a co-equal parallel matcher.
+
+### trident & cascade-soft — KEEP (new family: confidence mixers)
+
+**Compositions:** `trident` = `padatious-high → jurebes(mlp_shallow)-medium →
+nebulento-low`; `cascade-soft` = `linha-fina-high → palavreado-medium → nebulento-low`.
+
+**Why this family is interesting:** every prior fusion (frankenparse included) picks
+engines primarily for *paradigm* diversity — one keyword engine, one template engine,
+one fuzzy engine — but stacks them at similar or arbitrary confidence tiers. No fighter
+in the league deliberately spans the full high/medium/low confidence ladder with a
+different *architecture class* at each rung, testing confidence-descending fusion as a
+shape in its own right rather than a paradigm-diversity side effect.
+
+**What it measures:** `trident` mixes three architecturally distinct classifiers by
+descending strictness — neural-template-with-exact-gate (Padatious), statistical ML
+classifier (Jurebes, using `mlp_shallow`, the top-accuracy baseline on the published
+`intents-for-eval` en-US template board — see `frontend-static/public/data/
+benchmark-intent_template-intents-for-eval-en-US.json`, accuracy 0.8154 vs. 0.8143 for
+the runner-up), and fuzzy string matching (Nebulento). `cascade-soft` mixes by a
+different axis — matching *looseness* rather than architecture class — trained
+classifier (Linha-Fina) → order-independent keyword bag (Palavreado) → fuzzy matcher
+(Nebulento). Comparing the two head-to-head separates "does architecture diversity
+across tiers help" from "does a strictness gradient across tiers help."
+
+**exact_match convention:** every Jurebes stage added in this pass sets
+`exact_match: false` — Jurebes's own internal exact-template short-circuit would
+otherwise duplicate whatever exact/near-exact matching the stage ahead of it (Padatious,
+Adapt) already provides, the same subset-duplication trap padatioso fell into below.
+
+### m2v-first & knn-first — KEEP (new family: embedding-fronted)
+
+**Compositions:** `m2v-first` = `m2v-high → padatious-medium`; `knn-first` =
+`hierarchical-knn-high → linha-fina-medium`.
+
+**Why this family is interesting:** the owner's directive was explicit — "none uses
+embeddings" was true of every fighter in the registry before this pass. Every existing
+fighter is either keyword-rule matching (Adapt, Palavreado) or a per-intent trained
+template classifier (Padatious, Nebulento, Jurebes, Linha-Fina); none leads with
+general-purpose sentence-embedding similarity, which generalizes across paraphrases via
+vector distance rather than exact template/keyword structure.
+
+**What it measures:** `m2v-first` leads with Model2Vec dense sentence embeddings (single
+learned similarity boundary); `knn-first` leads with Hierarchical-KNN (nearest-neighbour
+retrieval over a domain-then-intent embedding index) — two structurally different
+embedding mechanisms, deliberately paired with *different* backup engines (Padatious vs.
+Linha-Fina respectively) so a head-to-head between the pair isolates the embedding-front
+difference rather than being confounded by a shared backup.
+
+### kw-slot-palavreado & tmpl-slot-{nebulento,linhafina,jurebes} — KEEP (new family: replacement studies)
+
+**Compositions:** `kw-slot-palavreado` = `palavreado-high → padatious-medium`;
+`tmpl-slot-{nebulento,linhafina,jurebes}` = `adapt-high → {X}-medium` for each of three
+template/statistical engines. **`mycroft-classic`** (`adapt-high → padatious-medium`,
+see above) is the shared baseline both grids compare against — see "1 fighter per
+config" below.
+
+**Why this family is interesting:** the owner's directive named specific unmeasured
+replacements — "none measures replacing adapt/palavreado padatious/nebulento/linha-fina/
+jurebes." Every prior fusion bundles a *specific pairing choice* with a *specific shape
+choice* at once, so a win or loss can't be attributed to either variable alone. This
+family holds shape and one engine fixed per grid, varying only the other engine — a
+controlled A/B (`kw-slot`) and 4-way (`tmpl-slot`) isolation study.
+
+**What it measures:** the `kw-slot` A/B fixes the shape (`<X>-high → padatious-medium`)
+and the backup engine (Padatious), varying only which keyword-paradigm engine (Adapt's
+ordered grammar vs. Palavreado's order-independent bag) leads — isolating the
+keyword-engine choice specifically: `mycroft-classic` (Adapt) vs. `kw-slot-palavreado`
+(Palavreado). The `tmpl-slot` 4-way fixes the shape (`adapt-high → <X>-medium`) and the
+front engine (Adapt), varying only which template/statistical engine backs it up —
+isolating the template-engine choice specifically, across all four template-paradigm
+engines in `ENGINE_REGISTRY`: `mycroft-classic` (Padatious) vs.
+`tmpl-slot-{nebulento,linhafina,jurebes}` (Nebulento, Linha-Fina, Jurebes with
+`mlp_shallow`, `exact_match: false`).
+
+**1 fighter per config — no kw-slot-adapt or tmpl-slot-padatious:** the "keyword engine =
+adapt" / "template engine = padatious" cell that both crossed grids need
+(`adapt-high → padatious-medium`) is identical, by construction, to `mycroft-classic`.
+Rather than register that same config a second and third time under `kw-slot-adapt` and
+`tmpl-slot-padatious` — three competitor_ids scoring the identical pipeline, exactly the
+redundancy this league rejects on sight — `mycroft-classic` itself fills that cell in
+both grids. Its historical framing (see above) and its role as the shared adapt/padatious
+baseline are the same config asked two different questions; there is nothing to
+duplicate. Each fighter's `notes` cross-reference this explicitly.
+
 ### padatioso — DROP
 
 **Composition (removed):** `padacioso-high → padatious-medium`.
@@ -160,3 +285,13 @@ names. **Removed** (`git rm registry/competitors/intent/padatioso.json`).
 | nebulatious | padatious-high, nebulento-medium, padatious-medium | KEEP | does neural template + fuzzy template beat either alone on paraphrase/noise |
 | nebulapt | adapt-high, nebulento-medium, adapt-medium | KEEP | does strict keyword rules + fuzzy keyword matching beat either alone on noise |
 | padatioso | padacioso-high, padatious-medium | **DROP** | none — Padatious already runs padaos internally with conf=1.0 on perfect match; padacioso tests nothing padatious doesn't already do |
+| ovos-stock | padatious-high, adapt-high, m2v-high, adapt-medium | KEEP | faithful reproduction of the shipped ovos-core default, arena-runnable subset |
+| mycroft-classic | adapt-high, padatious-medium | KEEP | historical adapt-first/padatious-fallback order; also the shared baseline for both kw-slot and tmpl-slot replacement grids |
+| trident | padatious-high, jurebes(mlp_shallow)-medium, nebulento-low | KEEP | does an architecture-diverse 3-tier confidence cascade beat 2-engine fusions |
+| cascade-soft | linha-fina-high, palavreado-medium, nebulento-low | KEEP | does a strictness-descending (not architecture-diverse) 3-tier cascade help |
+| m2v-first | m2v-high, padatious-medium | KEEP | does a dense-embedding front door beat a template-first front door |
+| knn-first | hierarchical-knn-high, linha-fina-medium | KEEP | does a KNN-retrieval embedding front door differ from a dense-embedding one |
+| kw-slot-palavreado | palavreado-high, padatious-medium | KEEP | keyword-engine A/B: mycroft-classic (Adapt) vs Palavreado, backup+shape fixed |
+| tmpl-slot-nebulento | adapt-high, nebulento-medium | KEEP | template-engine 4-way: which backup engine recovers most, front+shape fixed |
+| tmpl-slot-linhafina | adapt-high, linha-fina-medium | KEEP | template-engine 4-way: which backup engine recovers most, front+shape fixed |
+| tmpl-slot-jurebes | adapt-high, jurebes(mlp_shallow)-medium | KEEP | template-engine 4-way: which backup engine recovers most, front+shape fixed |
