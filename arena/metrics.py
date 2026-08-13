@@ -58,7 +58,7 @@ PRIMARY_METRIC = {
 # WER, latency).  ``accuracy`` is the only intent/wake-word board ranked
 # descending; ``utmos`` (TTS naturalness MOS, 1-5) is likewise ascending-bad —
 # every other primary metric ranks ascending.
-_HIGHER_BETTER = {"accuracy", "utmos"}
+_HIGHER_BETTER = {"accuracy", "utmos", "slot_exact_match"}
 
 #: Polarity of the flattened SIGMOS/DNSMOS/NISQA quality-dimension columns
 #: (§4 R14 extension) — NOT primary-metric ranking keys (UTMOS stays
@@ -532,6 +532,30 @@ def row_intelligibility_wer(row: PredictionRow) -> float | None:
     if value != value:  # NaN guard
         return None
     return value
+
+
+def row_slot_match(row: PredictionRow) -> float | None:
+    """Per-row exact slot match (1.0/0.0), or None when not applicable.
+
+    Only defined when the row's intent prediction was correct AND the
+    sample carries gold slots — same eligibility ``score_intent`` uses for
+    the aggregate ``slot_exact_match`` board metric (§ intent scoring
+    conventions above). Rows outside that eligibility (wrong intent, no
+    gold slots) have no slot signal, so this returns ``None`` rather than
+    0.0 — a 0.0 there would misleadingly count as "wrong slots" instead of
+    "not applicable".
+    """
+    if not row_is_correct(row):
+        return None
+    gold_slots = row.reference_slots or {}
+    if not gold_slots:
+        return None
+    pred_slots = row.predicted_slots or {}
+    match = all(
+        str(pred_slots.get(k, "")).strip().lower() == str(v).strip().lower()
+        for k, v in gold_slots.items()
+    )
+    return 1.0 if match else 0.0
 
 
 def row_quality_dimension(row: PredictionRow, key: str) -> float | None:
@@ -1076,3 +1100,71 @@ def build_benchmark_board(
         wer_normalizer_version=WER_NORMALIZER_VERSION if modality == "stt" else None,
         entries=entries,
     )
+
+
+# ---------------------------------------------------------------------------
+# Per-metric ladders — browsable BT ratings for every row-level metric
+# ---------------------------------------------------------------------------
+#
+# The primary-metric ladder (elo-seed / leaderboard) is the only one that
+# ever carries human votes. Every OTHER metric a league scores per-ROW (not
+# just aggregate-only, dataset-level) is "ladderable": a pairwise auto-only
+# BT rating can be fit from same-sample comparisons on that metric, exactly
+# like the primary-metric auto-battle seed, just never touched by tally.
+#
+# Deliberately excluded: dataset-aggregate-only metrics with no single
+# per-row value to compare (ECE, macro_f1, latency percentiles) — there is
+# no sample-level "A beat B on this metric" signal to derive a battle from.
+
+#: modality -> {metric_key: row-level accessor(row) -> float | None}.
+#: Only metrics with a genuine per-row value belong here.
+ROW_METRIC_ACCESSORS: dict[str, dict[str, Any]] = {
+    "stt": {
+        "wer_mean": row_wer,
+    },
+    "tts": {
+        "utmos": row_utmos,
+        **{
+            key: (lambda row, _key=key: row_quality_dimension(row, _key))
+            for key in TTS_QUALITY_DIMENSION_KEYS
+        },
+    },
+}
+for _intent_modality in ("intent", "intent_template", "intent_keyword"):
+    ROW_METRIC_ACCESSORS[_intent_modality] = {
+        "accuracy": lambda row: 1.0 if row_is_correct(row) else 0.0,
+        "slot_exact_match": row_slot_match,
+    }
+
+
+def ladder_metrics_for(modality: str) -> list[str]:
+    """Every ladderable metric key for *modality*, primary metric first."""
+    accessors = ROW_METRIC_ACCESSORS.get(modality)
+    if not accessors:
+        return []
+    primary = PRIMARY_METRIC.get(modality)
+    keys = list(accessors)
+    if primary in keys:
+        keys.remove(primary)
+        keys.insert(0, primary)
+    return keys
+
+
+def secondary_ladder_metrics_for(modality: str) -> list[str]:
+    """Ladderable metrics for *modality* excluding the primary metric —
+    these are the auto-only secondary ladders (§ per-metric ladders)."""
+    primary = PRIMARY_METRIC.get(modality)
+    return [m for m in ladder_metrics_for(modality) if m != primary]
+
+
+def row_metric_value(row: PredictionRow, modality: str, metric: str) -> float | None:
+    """Per-row value of *metric* for *row*, or None when not scoreable."""
+    accessor = ROW_METRIC_ACCESSORS.get(modality, {}).get(metric)
+    if accessor is None:
+        return None
+    return accessor(row)
+
+
+def metric_higher_is_better(metric: str) -> bool:
+    """Whether a higher value of *metric* ranks better (§ polarity table)."""
+    return metric in _HIGHER_BETTER

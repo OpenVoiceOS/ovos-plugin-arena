@@ -44,17 +44,21 @@ from arena.assembler import (
     assemble_battles,
     freeform_battles,
     seed_elo,
+    seed_secondary_metrics,
 )
 from arena.badges import emit_badges
 from arena.elo import EloLedger
 from arena.fraud import resolve_vote_weights
-from arena.metrics import build_benchmark_board
+from arena.metrics import PRIMARY_METRIC, build_benchmark_board, metric_higher_is_better
 from arena.models import (
     VOTELESS_MODALITIES,
     BattlesPool,
     EloBoard,
     EloEntry,
     EloSeed,
+    MetricLadder,
+    MetricLadderEntry,
+    SecondaryMetricSeed,
     VoteOutcome,
     battle_group,
     leagues,
@@ -243,6 +247,28 @@ def build_elo_board(
     for i, entry in enumerate(entries, 1):
         entry.rank = i
 
+    metric_ladders: dict[str, MetricLadder] = {}
+    primary_metric = PRIMARY_METRIC.get(modality)
+    if primary_metric:
+        metric_ladders[primary_metric] = MetricLadder(
+            metric=primary_metric,
+            higher_is_better=metric_higher_is_better(primary_metric),
+            auto_only=False,
+            entries=[
+                MetricLadderEntry(
+                    rank=e.rank, competitor_id=e.competitor_id,
+                    plugin_id=e.plugin_id, bt_rating=e.bt_rating or 0.0,
+                    battles=e.battles, wins=e.wins, losses=e.losses, ties=e.ties,
+                )
+                for e in entries
+            ],
+        )
+    if seed is not None:
+        for metric, sec in seed.secondary_metrics.items():
+            metric_ladders[metric] = _build_secondary_ladder(
+                metric, sec, competitor_plugin
+            )
+
     return EloBoard(
         modality=modality,
         lang=lang,
@@ -251,6 +277,41 @@ def build_elo_board(
         human_vote_count=counted,
         provisional=counted < PROVISIONAL_MIN_HUMAN_VOTES,
         entries=entries,
+        metric_ladders=metric_ladders,
+    )
+
+
+def _build_secondary_ladder(
+    metric: str, sec: SecondaryMetricSeed, competitor_plugin: dict[str, str]
+) -> MetricLadder:
+    """Fit a fresh, auto-only BT ladder from one metric's stored pairwise
+    seed totals (§ per-metric ladders) — cheap, deterministic, no bootstrap
+    (there is no human vote log to resample for this metric)."""
+    competitors = sorted(
+        set(sec.battles) | set(sec.pairwise_wins) | set(sec.pairwise_games)
+    )
+    strengths = fit_bradley_terry(sec.pairwise_wins, sec.pairwise_games, competitors)
+    ratings = to_rating_scale(strengths)
+    ladder_entries = [
+        MetricLadderEntry(
+            competitor_id=c,
+            plugin_id=competitor_plugin.get(c, ""),
+            bt_rating=round(ratings.get(c, 1200.0), 2),
+            battles=sec.battles.get(c, 0),
+            wins=sec.wins.get(c, 0),
+            losses=sec.losses.get(c, 0),
+            ties=sec.ties.get(c, 0),
+        )
+        for c in competitors
+    ]
+    ladder_entries.sort(key=lambda e: (-e.bt_rating, e.competitor_id))
+    for i, entry in enumerate(ladder_entries, 1):
+        entry.rank = i
+    return MetricLadder(
+        metric=metric,
+        higher_is_better=sec.higher_is_better,
+        auto_only=True,
+        entries=ladder_entries,
     )
 
 
@@ -601,6 +662,7 @@ def cmd_assemble(args: argparse.Namespace) -> int:
     ww_phrases = _wakeword_phrases()
     for (group, lang), samples_by_dataset in sorted(elo_samples.items()):
         seed = seed_elo(group, lang, samples_by_dataset, now)
+        seed.secondary_metrics = seed_secondary_metrics(group, samples_by_dataset)
         _write_json(data_dir / f"elo-seed-{group}-{lang}.json", seed)
 
         # Free-form matchup pool: every competitor pair, for direct subjective

@@ -25,10 +25,13 @@ import logging
 
 from arena.elo import EloLedger
 from arena.metrics import (
+    metric_higher_is_better,
     primary_metric_ci,
     row_is_correct,
+    row_metric_value,
     row_utmos,
     row_wer,
+    secondary_ladder_metrics_for,
     significant_from_cis,
     ww_row_correct,
 )
@@ -36,6 +39,7 @@ from arena.models import (
     Battle,
     EloSeed,
     PredictionRow,
+    SecondaryMetricSeed,
     VoteOutcome,
     battle_id_for,
     is_intent_modality,
@@ -425,3 +429,65 @@ def seed_elo(
         pairwise_wins=ledger.pairwise_wins,
         pairwise_games=ledger.pairwise_games,
     )
+
+
+def seed_secondary_metrics(
+    modality: str,
+    samples_by_dataset: dict[str, dict[str, dict[str, PredictionRow]]],
+) -> dict[str, SecondaryMetricSeed]:
+    """Auto-only BT seeds for every row-level secondary metric of *modality*.
+
+    Perf note (§ per-metric ladders campaign): this is a SINGLE extra pass
+    over ``samples_by_dataset`` shared across every secondary metric —
+    each (sample, competitor-pair) is visited once and compared on every
+    ladderable metric in the same inner loop, rather than re-looping the
+    whole dataset once per metric. Unlike ``seed_elo`` (the primary-metric
+    seed), this skips the per-pair significance-CI gate: secondary ladders
+    are explicitly documented as "auto-battles only, lower rigor" (§ human
+    votes only attach to the primary ladder), so the extra bootstrap-CI
+    pass per metric — the dominant cost of ``seed_elo`` on a large roster —
+    is not worth paying N times over.
+    """
+    metric_keys = secondary_ladder_metrics_for(modality)
+    if not metric_keys:
+        return {}
+
+    ledgers = {key: EloLedger() for key in metric_keys}
+    auto_votes = dict.fromkeys(metric_keys, 0)
+
+    for dataset_id in sorted(samples_by_dataset):
+        samples = samples_by_dataset[dataset_id]
+        for sample_id in sorted(samples):
+            rows = samples[sample_id]
+            for competitor in rows:
+                for ledger in ledgers.values():
+                    ledger.ensure(competitor)
+            for comp_a, comp_b in itertools.combinations(sorted(rows), 2):
+                row_a, row_b = rows[comp_a], rows[comp_b]
+                for metric in metric_keys:
+                    val_a = row_metric_value(row_a, modality, metric)
+                    val_b = row_metric_value(row_b, modality, metric)
+                    if val_a is None or val_b is None or val_a == val_b:
+                        continue
+                    higher_better = metric_higher_is_better(metric)
+                    a_wins = (val_a > val_b) if higher_better else (val_a < val_b)
+                    outcome = (
+                        VoteOutcome.CANDIDATE_A if a_wins else VoteOutcome.CANDIDATE_B
+                    )
+                    ledgers[metric].apply_pairwise_only(comp_a, comp_b, outcome, auto=True)
+                    auto_votes[metric] += 1
+
+    out: dict[str, SecondaryMetricSeed] = {}
+    for metric, ledger in ledgers.items():
+        _cap_auto_pairwise_weight(ledger)
+        out[metric] = SecondaryMetricSeed(
+            higher_is_better=metric_higher_is_better(metric),
+            auto_vote_count=auto_votes[metric],
+            battles=ledger.battles,
+            wins=ledger.wins,
+            losses=ledger.losses,
+            ties=ledger.ties,
+            pairwise_wins=ledger.pairwise_wins,
+            pairwise_games=ledger.pairwise_games,
+        )
+    return out
