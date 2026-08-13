@@ -1,0 +1,24 @@
+{
+  "competitor_id": "scriptconv-g2p-graphemes",
+  "modality": "g2p",
+  "plugin": "ovos-scriptconv-g2p-plugin",
+  "config": {
+    "g2p": {
+      "module": "ovos-scriptconv-g2p-plugin",
+      "ovos-scriptconv-g2p-plugin": {
+        "phonemizer": "graphemes",
+        "lang": "en-us"
+      }
+    }
+  },
+  "langs": ["en-US", "pt-PT"],
+  "display_name": "scriptconv Grapheme Passthrough",
+  "species": "ScriptconvGraphemes",
+  "types": ["identity", "baseline"],
+  "description": "scriptconv's grapheme-level passthrough backend (Phonemizer.GRAPHEMES): returns the input characters unchanged, no phonemization occurs. Registered as a second identity baseline distinct from Phonemizer.UNICODE (different registry entry, same observed behaviour on ASCII input) so the arena's identity-baseline row is not silently deduplicated.",
+  "links": {
+    "pypi": "https://pypi.org/project/ovos-scriptconv-g2p-plugin/",
+    "github": "https://github.com/TigreGotico/ovos-scriptconv-g2p-plugin"
+  },
+  "notes": "Verified working (trivially) for en-US and pt-PT in the shared venv, no package extra required. Not eligible as a gold/reference source - performs no phonemization."
+}
