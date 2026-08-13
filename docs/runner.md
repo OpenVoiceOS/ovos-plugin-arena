@@ -211,4 +211,128 @@ EOF
 | `ovos-stt-plugin-whisper` | — | skipped, already covered by existing dataset |
 
 ---
+
+## Autonomous mode (fleet-wide, registry-driven)
+
+`runner.autorun` runs forever across the STT / wake-word / TTS / VAD boards
+(the ones backed by `runner.media_bench`, not the standalone STT queue
+daemon above). It does not need a curated queue file: each sweep it
+re-reads the registry, works out every eligible `(fighter, dataset, lang)`
+pair, and round-robins across them — 10 new samples per pair, then the next
+pair, forever. Add a fighter or dataset json to the registry and it joins
+the rotation on the next sweep, no restart needed.
+
+**Not covered**: the intent leagues. Those run through the separate
+`runner.intent_bench` train+eval flow (a different row shape from the
+audio benches) and are not wired into this scheduler. Autonomous, fleet-wide
+coverage for intent is a follow-up, not part of this tool yet.
+
+Start one instance per host. Pick the flags for that host's class:
+
+```bash
+# GPU host — heavyweight fighters only
+python -m runner.autorun --modalities stt,tts --batch 10 --host-class auto
+
+# CPU host — everything else (the default complement of --heavy)
+python -m runner.autorun --modalities stt,tts,wake_word,vad --batch 10 --host-class auto
+
+# Explicit split instead of auto-detection
+python -m runner.autorun --modalities stt --batch 10 --heavy   # GPU box
+python -m runner.autorun --modalities stt --batch 10 --light   # CPU box
+
+# Narrow a host to a subset of fighters or languages
+python -m runner.autorun --modalities stt --include 'vosk-*,fasterwhisper-*' \
+    --exclude '*-large-*' --langs en-US,pt-PT --batch 10
+```
+
+`--host-class auto` (the default) reads `runner.perf.hw_fingerprint()`: a
+box with a CUDA/onnxruntime GPU accelerator gets the heavyweight split,
+everything else gets the light split. Pass `--heavy`/`--light` explicitly
+to override.
+
+**Heavy/light classification is a heuristic, not a verified parameter
+count.** A fighter is "heavy" when any of: its registry `size` field is
+`large` or above; its `competitor_id`/`plugin` string contains an `<N>b`
+token (e.g. `2b`, `1.1b`, `2.5b`) for a param count `>= 1B`, which is how
+`cohere-transcribe-2b` and similar fighters get caught even though nothing
+enumerates them by name; or the string matches a small hardcoded list of
+known heavy engine families (`speech-llm`, `whisper-large`, `canary`) for
+names that don't carry an explicit param count (`whisper-large-v3-turbo`).
+This is pattern-matching over a string, not a lookup against real model
+metadata — it can misclassify a fighter whose name doesn't follow either
+convention. To make that visible instead of silent, autorun logs every
+distinct fighter's classification once at startup
+(`classified <id> as heavy|light (registry size=...)`) — check that log on
+a new host before trusting the `--heavy`/`--light` split, and fix a wrong
+classification by setting the registry `size` field or filtering the
+fighter explicitly with `--include`/`--exclude`.
+
+### Round-robin, not drain-to-completion
+
+Every pair gets one `--batch`-sized turn per sweep, then autorun moves to
+the next pair — a slow fighter against a huge dataset never blocks the rest
+from making progress.
+
+A pair is marked complete (and skipped from then on) only when a batch
+returns fewer new rows than requested **and reports zero errors**. A short
+batch alone is not proof of completion: `adapter.predict` can raise on
+every remaining sample (a model crash, an OOM, a transient network blip)
+and produce the exact same "wrote fewer rows than asked" shape as a
+genuinely exhausted dataset. Conflating the two would silently and
+permanently drop every sample after the failure point. A pair that keeps
+returning all-error batches is NOT marked complete and NOT retried forever
+either: after `--max-consecutive-error-batches` (default 5) all-error turns
+in a row with no progress, autorun quarantines the fighter instead (see
+below) so the pair stops burning cycles without ever being falsely counted
+as done.
+
+### Resume
+
+Resume is layered, same as every other bench script:
+
+- **Row-level**: each pair's local shard
+  (`<output-dir>/<dataset_id>/<modality>/predictions/<lang>/<competitor_id>.jsonl`)
+  is the same file `run_competitor_lang` uses everywhere else — the
+  `sample_id` scheme is the existing v2 index-prefixed one, so a killed
+  process resumes mid-dataset by re-reading `done_samples()` from that file,
+  no recomputation.
+- **Cross-host**: the first time a pair is touched, if there's no local
+  shard yet, autorun downloads the already-published HF shard first
+  (`predictions/<lang>/<competitor_id>.jsonl` in the dataset's
+  `predictions_hf` repo) so one host never redoes samples another host in
+  the fleet already published. Disable with `--no-seed`.
+- **Pair/fighter state**: `<output-dir>/autorun_state.json` records which
+  pairs are already complete and which fighters are quarantined (with their
+  retry timers — see below), so a restart doesn't have to re-stream an
+  already-finished dataset just to rediscover there's nothing left to do.
+
+### Quarantine
+
+A fighter whose plugin fails to load outright (missing deps, bad config,
+…), or whose samples fail with `--max-consecutive-error-batches` all-error
+batches in a row, is quarantined — but not forever. Each quarantine carries
+an exponential backoff retry timer: 30 minutes after the first failure,
+doubling on each subsequent failure (60min, 2h, 4h, …), capped at 24h. When
+the timer expires the fighter is put back in rotation for one retry attempt
+automatically; if it fails again the backoff doubles and the cycle repeats.
+This is what lets a weeks-long daemon recover from a transient blip
+(network hiccup fetching a model, a momentarily locked file) on its own
+instead of a fighter being quarantined for the rest of the process's
+lifetime after one bad attempt. Each quarantine event (initial failure or a
+failed retry) is logged once, at the moment it happens — never replayed
+every sweep while a fighter is still within its backoff window.
+
+### Uploads
+
+Batched, not per-10-row: a pair's shard is pushed to HF immediately when
+that pair completes, and everything else still pending (dirty shards from
+in-progress pairs) flushes on a timer, `--flush-every` minutes (default 15).
+`--no-upload` writes local shards only.
+
+### ctrl-C / SIGTERM
+
+Both are caught: the current pair finishes, every dirty shard is flushed,
+and `autorun_state.json` is saved before exit.
+
+---
 [← Benchmarks](benchmarks.md) · [Home](index.md) · [Leagues →](leagues.md)
