@@ -752,9 +752,9 @@ import Base from '../../layouts/Base.astro';
       }
       // Same owner ruling as the ladder, but the actual no-signal marker
       // here is the backend's own `unranked` flag (arena/metrics.py), not
-      // `samples` — every entry that reaches this board already has at
-      // least one scored sample (see BenchmarkEntry construction), so a
-      // `samples` filter is dead code. `unranked` is set precisely for a
+      // `samples` — `samples` counts *attempted* rows, so it is >=1 for
+      // every entry on the board (a `samples` filter is dead code) and
+      // proves nothing about scoring. `unranked` is set precisely for a
       // run that crashed/produced zero *scored* samples for the primary
       // metric (unranked_reason: "run failed — no scored samples") and is
       // the row this filter needs to exclude. Filtered at render time,

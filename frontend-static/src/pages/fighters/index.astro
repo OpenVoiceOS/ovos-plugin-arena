@@ -166,10 +166,11 @@ import Base from '../../layouts/Base.astro';
     // for every other league (tts/stt/wake_word/vad) it always equals the
     // fighter's own competitor_id, so each model is a singleton family and
     // gets its own card — that's the intended per-model bestiary for those
-    // leagues, not a fallback. The `species`/`plugin`/`competitor_id` reads
-    // below are just defensive for the rare payload where `family` itself
-    // is missing (e.g. hand-built fixtures); they never change grouping
-    // behavior for real registry data.
+    // leagues, not a fallback. `family` can still be unset for a valid
+    // intent record with no `species` (schemas.py only derives it from
+    // species there), so the `species`/`plugin`/`competitor_id` reads below
+    // are a real fallback for those records (and hand-built fixtures), not
+    // just defensive.
     const groupKeyOf = c => c.family || c.species || c.plugin || c.competitor_id;
 
     // "JurebesPipeline" -> "Jurebes Pipeline"; "OnnxASR" -> "Onnx ASR";
