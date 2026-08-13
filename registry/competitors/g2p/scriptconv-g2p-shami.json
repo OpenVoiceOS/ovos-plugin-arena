@@ -11,14 +11,14 @@
       }
     }
   },
-  "langs": ["en-US", "pt-PT"],
+  "langs": ["en-US"],
   "display_name": "scriptconv Shami",
   "species": "ScriptconvShami",
   "types": ["rule-based", "tool"],
-  "description": "scriptconv's Shami backend (Phonemizer.SHAMI), primarily a Levantine-Arabic-dialect phonemizer that also produced distinct, non-passthrough IPA-ish output for both en-US ('hello'->'həlˈo͡ʊ') and pt-PT ('mundo'->'mˈʌndo͡ʊ') in this venv - not English/Portuguese-aware, quality unverified for these languages, registered per this PR's literal working-matrix rule.",
+  "description": "scriptconv's Shami backend (Phonemizer.SHAMI), a Levantine-Arabic/English code-switching phonemizer (see scriptconv/phonemizers/shami.py docstring). ``ShamiPhonemizer.get_lang`` only maps to ``[\"ar\", \"en\"]`` - en-US is a genuine declared use case (bilingual AR/EN front-end) and produced distinct, non-passthrough IPA-ish output: get_ipa('hello','en-US')=='həlˈo͡ʊ' verified on 3 en-US samples; quality vs. the model's intended Levantine-Arabic-flavored English is unverified (no Arabic dataset exists in this arena's g2p league yet).",
   "links": {
     "pypi": "https://pypi.org/project/ovos-scriptconv-g2p-plugin/",
     "github": "https://github.com/TigreGotico/ovos-scriptconv-g2p-plugin"
   },
-  "notes": "Verified working for en-US and pt-PT in the shared venv, no extra package required, on 3 samples/lang. Intended-use language coverage (Levantine Arabic) is untested - no Arabic g2p dataset exists in this arena yet."
+  "notes": "Verified working for en-US in the shared venv, no extra package required, on 3 samples. pt-PT REMOVED during adversarial review (2026-08-13): ShamiPhonemizer.get_lang() only supports [\"ar\",\"en\"] - there is no Portuguese variety anywhere in this engine. The original PR's pt-PT probe (get_ipa('mundo','pt-PT')=='mˈʌndo͡ʊ') was not a language match, it was the frontend's script-based (Arabic-vs-Latin) routing silently reading Portuguese-orthography Latin text as English-flavored input regardless of the declared lang tag - a bogus lang claim, not a working pt-PT fighter."
 }
