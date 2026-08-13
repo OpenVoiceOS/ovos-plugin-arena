@@ -1095,6 +1095,7 @@ def build_benchmark_board(
                     primary_metric_ci_upper=ci[1] if ci else None,
                     plugin_versions=versions,
                     version_blended=version_blended,
+                    perf=perf_metrics_by_tier(rows) or None,
                 )
             )
 
@@ -1206,3 +1207,160 @@ def row_metric_value(row: PredictionRow, modality: str, metric: str) -> float | 
 def metric_higher_is_better(metric: str) -> bool:
     """Whether a higher value of *metric* ranks better (§ polarity table)."""
     return metric in _HIGHER_BETTER
+
+
+# ---------------------------------------------------------------------------
+# Performance metrics — RTF, peak memory, model size (M2, per hardware tier)
+# ---------------------------------------------------------------------------
+#
+# Rows carry elapsed_ms/peak_rss_mb/audio_secs/hw since #90 (M1). This section
+# turns them into board-ready per-hardware-tier aggregates:
+#
+# - rtf (real-time factor, lower is better) = elapsed_ms / 1000 / audio_secs,
+#   only defined for a row that has both elapsed_ms and a positive
+#   audio_secs (stt/tts/wake_word — the modalities with an audio duration).
+#   Aggregated as the MEDIAN across a tier's rows, not the mean: a cold
+#   model-load or a stalled CI runner produces occasional huge outliers on
+#   the very first call, and a median is robust to those in a way a mean
+#   isn't — a single 30s cold start shouldn't drag a fighter's whole board
+#   number away from its steady-state speed.
+# - peak_rss_mb (lower is better) is aggregated as MAX across a tier's rows —
+#   the number a deployer cares about is the worst-case memory the process
+#   ever needed, not an average that hides the peak.
+# - Model download size (model_mb) is NOT a per-row aggregate at all: it is
+#   looked up ONCE per fighter from HF repo metadata (arena.model_size) and
+#   attached in export-bestiary/assemble, not computed here.
+#
+# Hardware tiers are NEVER blended: rows are grouped by ``hw["host_class"]``
+# (e.g. "cpu-x86", "gpu") and every aggregate is computed independently per
+# tier. Old rows without ``hw`` or ``audio_secs`` are simply excluded from
+# these aggregates (a blank/missing tier entry), never coerced to 0 — a
+# missing measurement is not the same claim as "instant and free".
+
+
+def row_rtf(row: PredictionRow) -> float | None:
+    """Real-time factor for one row: ``elapsed_ms / 1000 / audio_secs``.
+
+    None unless both ``elapsed_ms`` and a strictly positive ``audio_secs``
+    are present — old rows (pre-#90) and non-audio modalities never have
+    this data, and a zero/negative duration would make RTF meaningless.
+    """
+    if row.elapsed_ms is None or row.audio_secs is None or row.audio_secs <= 0:
+        return None
+    return row.elapsed_ms / 1000.0 / row.audio_secs
+
+
+# rtf is ladderable (per-row, same-sample comparable) wherever a row carries
+# a real audio duration — stt, tts, and wake_word all bench against a
+# labelled audio clip with a duration; VAD/g2p/intent do not.
+for _rtf_modality in ("stt", "tts", "wake_word"):
+    ROW_METRIC_ACCESSORS.setdefault(_rtf_modality, {})["rtf"] = row_rtf
+
+
+def hw_tier_of(row: PredictionRow) -> str | None:
+    """The hardware tier (``hw["host_class"]``) a row's perf numbers belong
+    to, or None when the row predates hw fingerprinting (#90)."""
+    if not row.hw:
+        return None
+    tier = row.hw.get("host_class")
+    return str(tier) if tier else None
+
+
+def perf_metrics_by_tier(rows: list[PredictionRow]) -> dict[str, dict[str, float]]:
+    """Per-hardware-tier perf aggregates for one competitor's rows.
+
+    Returns ``{host_class: {"rtf": median, "rtf_n": count,
+    "peak_rss_mb": max, "peak_rss_mb_n": count}}``. Tiers are never mixed —
+    a fighter benched on both "cpu-x86" and "gpu" gets two independent
+    entries here, never one blended number. Rows missing ``hw`` (old, pre-
+    #90 data) are excluded entirely; within a tier, rtf and peak_rss_mb are
+    aggregated independently since a row can carry one without the other.
+    """
+    rtf_by_tier: dict[str, list[float]] = defaultdict(list)
+    rss_by_tier: dict[str, list[float]] = defaultdict(list)
+    for row in rows:
+        tier = hw_tier_of(row)
+        if tier is None:
+            continue
+        rtf = row_rtf(row)
+        if rtf is not None:
+            rtf_by_tier[tier].append(rtf)
+        if row.peak_rss_mb is not None:
+            rss_by_tier[tier].append(row.peak_rss_mb)
+
+    tiers = set(rtf_by_tier) | set(rss_by_tier)
+    out: dict[str, dict[str, float]] = {}
+    for tier in tiers:
+        entry: dict[str, float] = {}
+        rtfs = rtf_by_tier.get(tier)
+        if rtfs:
+            entry["rtf"] = round(median(rtfs), 4)
+            entry["rtf_n"] = float(len(rtfs))
+        rss = rss_by_tier.get(tier)
+        if rss:
+            entry["peak_rss_mb"] = round(max(rss), 2)
+            entry["peak_rss_mb_n"] = float(len(rss))
+        if entry:
+            out[tier] = entry
+    return out
+
+
+def primary_perf_tier(perf: dict[str, dict[str, float]]) -> str | None:
+    """The tier with the most rtf samples (falling back to most peak_rss_mb
+    samples) — the tier a board CELL should show, with the tier name as a
+    badge, per M2 board-column convention (§ board columns)."""
+    if not perf:
+        return None
+
+    def _n(tier: str) -> float:
+        entry = perf[tier]
+        return entry.get("rtf_n", 0.0) or entry.get("peak_rss_mb_n", 0.0)
+
+    return max(perf, key=_n)
+
+
+# ---------------------------------------------------------------------------
+# Pareto / efficiency view — quality vs. compute (RTF)
+# ---------------------------------------------------------------------------
+#
+# A fighter A dominates fighter B when A is at least as good on BOTH quality
+# and RTF, and strictly better on at least one — i.e. there is no reason to
+# ever pick B over A. The Pareto frontier is every fighter nobody dominates:
+# "best quality per unit of compute" along the whole curve, not just the
+# single best-quality or single-fastest fighter.
+
+
+def pareto_frontier(
+    points: list[tuple[str, float, float]], quality_higher_is_better: bool = True
+) -> tuple[list[str], int]:
+    """Pareto-optimal competitor ids over (quality, rtf) points.
+
+    *points* is ``[(competitor_id, quality, rtf), ...]``; rtf is always
+    lower-is-better (real time factor). Returns ``(frontier_ids, dominated)``
+    — frontier ids in the input's relative order, and how many input points
+    were dominated (excluded). Ties (identical quality AND identical rtf)
+    do not dominate each other — both stay on the frontier.
+    """
+    def _quality_at_least_as_good(a: float, b: float) -> bool:
+        return a >= b if quality_higher_is_better else a <= b
+
+    def _quality_strictly_better(a: float, b: float) -> bool:
+        return a > b if quality_higher_is_better else a < b
+
+    frontier: list[str] = []
+    dominated = 0
+    for cid, q, r in points:
+        is_dominated = False
+        for cid2, q2, r2 in points:
+            if cid2 == cid:
+                continue
+            at_least_as_good = _quality_at_least_as_good(q2, q) and r2 <= r
+            strictly_better = _quality_strictly_better(q2, q) or r2 < r
+            if at_least_as_good and strictly_better:
+                is_dominated = True
+                break
+        if is_dominated:
+            dominated += 1
+        else:
+            frontier.append(cid)
+    return frontier, dominated

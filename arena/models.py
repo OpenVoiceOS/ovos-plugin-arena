@@ -321,6 +321,17 @@ class BenchmarkEntry(BaseModel):
     # first-sorted entry (e.g. a solo fighter whose entire run failed).
     unranked: bool = False
     unranked_reason: str | None = None
+    # M2 performance boards — RTF/peak-memory aggregates keyed by
+    # ``hw["host_class"]`` (e.g. "cpu-x86", "gpu"); see
+    # arena.metrics.perf_metrics_by_tier. Tiers are never blended into one
+    # number. None (not {}) when the competitor has no rows carrying ``hw``
+    # (data predates #90).
+    perf: dict[str, dict[str, float]] | None = None
+    # Model download size in MB, looked up ONCE per fighter from HF repo
+    # metadata (arena.model_size.model_repo_size_mb) — not a per-row
+    # aggregate. None for fighters with no ``model_hf_repo`` registered, or
+    # when the lookup failed.
+    model_mb: float | None = None
 
 
 class BenchmarkBoard(BaseModel):

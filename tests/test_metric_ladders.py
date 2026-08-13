@@ -91,9 +91,10 @@ class TestLadderRegistry:
     def test_stt_primary_first_in_ladder_metrics(self):
         assert ladder_metrics_for("stt")[0] == "wer_mean"
 
-    def test_wake_word_has_no_ladderable_metrics(self):
-        # No secondary row-level metric exists for wake_word today.
-        assert secondary_ladder_metrics_for("wake_word") == []
+    def test_wake_word_ladderable_metrics_is_rtf_only(self):
+        # wake_word's only secondary row-level metric is rtf (M2 — real time
+        # factor is ladderable wherever a row carries elapsed_ms/audio_secs).
+        assert secondary_ladder_metrics_for("wake_word") == ["rtf"]
 
 
 class TestRowMetricValue:

@@ -562,12 +562,10 @@ Two things this is deliberately *not*:
   process-wide, so it is not attributable to the one call alone. It is a
   coarse, per-row signal for spotting gross regressions across runs, not a
   memory profile.
-- **Not a leaderboard axis (yet).** These columns exist so RTF and rough
-  memory pressure are *computable* per row; they do not yet feed any board
-  or ELO signal. A shard produced on one machine and merged with a shard
-  from another carries its own `hw` per row rather than assuming one
-  fingerprint for the whole file, since prediction files are commonly
-  built up across several runner boxes over time.
+- **Not a per-battle vote signal.** RTF/peak-memory/model-size never feed
+  auto-battle outcomes or the ELO ladder (§ per-metric ladders above
+  covers *quality* ladders only) — they are benchmark-board columns and the
+  Pareto view below, not a rating axis.
 
 **Backward compatibility is load-bearing here.** The overwhelming majority
 of already-published prediction rows predate this capture. `arena.models.
@@ -575,6 +573,55 @@ PredictionRow` defaults every one of these fields to `None`/absent, and
 `arena.predictions.parse_row` never requires them — an old row loads
 exactly as it did before this columns existed, just without a value for
 RTF.
+
+## Performance boards: RTF, peak memory, model size, per hardware tier (M2)
+
+`arena.metrics.perf_metrics_by_tier` turns the raw per-row columns above
+into board-ready aggregates, one independent set per hardware tier:
+
+- **RTF is aggregated as the MEDIAN**, not the mean. The very first call
+  against a fighter is routinely a cold model load — an order of magnitude
+  slower than every call after it — and a mean lets that single outlier
+  drag the whole board number away from steady-state speed. A median is
+  robust to that in a way an arithmetic mean isn't; `peak_rss_mb`, by
+  contrast, is aggregated as the **MAX** across a tier's rows, because the
+  number a deployer actually cares about is the worst-case memory the
+  process ever needed, not an average that hides the peak.
+- **Hardware tiers are never blended.** Every aggregate is computed
+  per-`hw["host_class"]` (e.g. `cpu-x86`, `gpu`) and a fighter benched on
+  more than one tier gets one independent entry per tier — a board cell
+  shows whichever tier has the most samples, badged with that tier's name,
+  never a number silently averaged across a CPU box and a GPU box. Old
+  rows without `hw` (pre-#90) are simply excluded from these aggregates —
+  a missing tier entry, not a zero, since "no measurement" and "instant and
+  free" are different claims.
+- **Model download size is not a per-row aggregate at all.** It is looked
+  up ONCE per fighter from the model's HuggingFace repo metadata
+  (`arena.model_size.model_repo_size_mb`, summing every sibling file's
+  size) during `assemble`/`export-bestiary`, using the fighter's
+  `model_hf_repo` registry field, and cached for the life of that build
+  process. Fighters with no `model_hf_repo` (rule-based engines, sklearn
+  pipelines shipped as plugin code, …) get `model_mb = None` on their board
+  entry — never a fabricated `0`, which would misleadingly read as "no
+  download at all".
+- RTF is additionally **ladderable**: for stt/tts/wake_word (the
+  modalities that bench against a labelled audio clip with a known
+  duration), `row_rtf` is a genuine per-row value, so it gets its own
+  auto-only secondary BT ladder exactly like `wer_mean` or `utmos` (see
+  "Per-metric ladders" above) — never blended across hardware tiers there
+  either, since the ladder is fit from same-sample, same-run comparisons.
+
+### Pareto/efficiency view
+
+Each league+language's benchmark board carries a "Pareto frontier: best
+quality per compute" table beside the ranked list: fighter A is dominated
+by fighter B when B is at least as good on *both* the primary quality
+metric and RTF, and strictly better on at least one — there is then no
+reason to ever pick A over B. The frontier is every fighter nobody
+dominates, sorted fastest-first; the dominated count is shown so a reader
+knows how much of the board was excluded. This is deliberately a plain
+ranked table, not a scatter-plot library — the quality/compute trade-off
+only needs two numbers per row to read.
 
 ---
 [← Leagues](leagues.md) · [Home](index.md) · [Operations →](operations.md)

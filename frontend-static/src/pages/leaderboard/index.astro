@@ -158,6 +158,8 @@ import Base from '../../layouts/Base.astro';
     .prim .track { flex:1; height:6px; border-radius:3px; background:rgba(255,255,255,0.08); overflow:hidden; min-width:60px; }
     .prim .fill { height:100%; background:var(--gradient); border-radius:3px; }
     .metric-chip { font-family:var(--mono); font-size:0.8rem; color:var(--text); }
+    .tier-badge { font-size:0.6rem; opacity:0.65; margin-left:0.15rem; font-weight:600; }
+    .pareto-section .bench-tbl th, .pareto-section .bench-tbl td { padding:0.35rem 0.6rem; }
     .rank-cell { font-family:var(--display); font-weight:700; color:var(--muted); width:2rem; text-align:center; }
     .rank-cell.m1 { color:var(--gold); } .rank-cell.m2 { color:var(--silver); } .rank-cell.m3 { color:var(--bronze); }
     .sprite-cell svg { display:block; }
@@ -598,6 +600,31 @@ import Base from '../../layouts/Base.astro';
       return full;
     }
 
+    // M2 performance columns — RTF / Peak MB / Model MB. entry.perf is
+    // keyed by hardware tier (arena.metrics.perf_metrics_by_tier, never
+    // blended); the cell shows the tier with the most samples, badged with
+    // that tier's name so a reader never mistakes a cpu-x86 number for a
+    // gpu one. entry.model_mb is a single build-time-looked-up value (§2
+    // model size), not per-tier.
+    function primaryPerfTier(perf) {
+      if (!perf) return null;
+      let best = null, bestN = -1;
+      for (const [tier, v] of Object.entries(perf)) {
+        const n = v.rtf_n ?? v.peak_rss_mb_n ?? 0;
+        if (n > bestN) { best = tier; bestN = n; }
+      }
+      return best;
+    }
+    function perfCellsHtml(e) {
+      const tier = primaryPerfTier(e.perf);
+      const t = tier ? e.perf[tier] : null;
+      const badge = tier ? `<sup class="tier-badge" title="hardware tier">${esc(tier)}</sup>` : '';
+      const rtf = t?.rtf != null ? `${t.rtf.toFixed(3)}${badge}` : '—';
+      const mem = t?.peak_rss_mb != null ? `${Math.round(t.peak_rss_mb)}${badge}` : '—';
+      const modelMb = e.model_mb != null ? `${Math.round(e.model_mb)}` : '—';
+      return `<td class="metric-chip">${rtf}</td><td class="metric-chip">${mem}</td><td class="metric-chip">${modelMb}</td>`;
+    }
+
     // A single <tr> for one board entry — used both for standalone
     // (ungrouped) fighters and for every row revealed inside an expanded
     // benchmark group; sample counts and per-variant metrics are identical
@@ -613,7 +640,47 @@ import Base from '../../layouts/Base.astro';
           <span class="track"><span class="fill" style="width:${(score(e.metrics?.[primary]) * 100).toFixed(0)}%"></span></span></div></td>
         ${secondary.map(([k]) => `<td class="metric-chip">${fmtMetric(k, e.metrics?.[k])}</td>`).join('')}
         ${buckets.map(b => `<td class="bucket-col metric-chip">${pct(e.metrics?.[b])}</td>`).join('')}
+        ${perfCellsHtml(e)}
         <td class="metric-chip">${e.samples}</td></tr>`;
+    }
+
+    // "Pareto frontier: best quality per compute" — a ranked table of
+    // fighters not dominated on [primary quality metric, rtf] (mirrors
+    // arena.metrics.pareto_frontier). A fighter with no perf/rtf data on
+    // any tier simply isn't plotted — no chart library, just a table.
+    function paretoSectionHtml(board, primary, higher) {
+      const points = board.entries
+        .map(e => {
+          const tier = primaryPerfTier(e.perf);
+          const rtf = tier ? e.perf[tier].rtf : null;
+          const q = e.metrics?.[primary];
+          return (rtf == null || q == null) ? null : { e, q, rtf, tier };
+        })
+        .filter(Boolean);
+      if (points.length < 2) return '';
+      const dominates = (a, b) => {
+        const qAtLeast = higher ? a.q >= b.q : a.q <= b.q;
+        const strictly = (higher ? a.q > b.q : a.q < b.q) || a.rtf < b.rtf;
+        return qAtLeast && a.rtf <= b.rtf && strictly;
+      };
+      const frontier = points.filter(p => !points.some(o => o !== p && dominates(o, p)));
+      const dominated = points.length - frontier.length;
+      frontier.sort((a, b) => a.rtf - b.rtf);
+      const rows = frontier.map(p => `<tr>
+          <td class="sprite-cell">${sprite(p.e.competitor_id, 28)}</td>
+          <td><div class="nm">${fighterLink(p.e.competitor_id)}</div></td>
+          <td class="metric-chip">${fmtMetric(primary, p.q)}</td>
+          <td class="metric-chip">${p.rtf.toFixed(3)}<sup class="tier-badge">${esc(p.tier)}</sup></td>
+        </tr>`).join('');
+      return `<div class="bench pareto-section" style="margin-top:1rem">
+        <div class="lb-section-head" style="margin-bottom:0.6rem">
+          <h2 style="font-size:1rem">⚖️ Pareto frontier: best quality per compute</h2>
+          <span class="tag">${dominated} dominated fighter${dominated === 1 ? '' : 's'} hidden</span>
+        </div>
+        <div style="overflow-x:auto"><table class="bench-tbl"><thead><tr>
+          <th></th><th>Fighter</th><th>${esc(metricLabel(primary))}</th><th>RTF</th>
+        </tr></thead><tbody>${rows}</tbody></table></div>
+      </div>`;
     }
 
     // Collapse a benchmark board's rows the same way the ladder collapses
@@ -695,6 +762,7 @@ import Base from '../../layouts/Base.astro';
       const head = `<tr><th></th><th></th><th>Fighter</th><th>${esc(metricLabel(primary))}</th>
         ${secondary.map(([, l]) => `<th>${l}</th>`).join('')}
         ${buckets.map(b => `<th class="bucket-col">${esc(b.slice(4))}</th>`).join('')}
+        <th>RTF</th><th>Peak MB</th><th>Model MB</th>
         <th>Samples</th></tr>`;
       const rows = groupBenchEntries(sortedEntries).map(node => {
         if (!node.group) return benchRowHtml(node.entry, rowOpts);
@@ -710,11 +778,13 @@ import Base from '../../layouts/Base.astro';
             <span class="track"><span class="fill" style="width:${(score(best.metrics?.[primary]) * 100).toFixed(0)}%"></span></span></div></td>
           ${secondary.map(([k]) => `<td class="metric-chip">${fmtMetric(k, best.metrics?.[k])}</td>`).join('')}
           ${buckets.map(b => `<td class="bucket-col metric-chip">${pct(best.metrics?.[b])}</td>`).join('')}
+          ${perfCellsHtml(best)}
           <td class="metric-chip">${best.samples}</td></tr>`;
         const members = node.members.map(m =>
           benchRowHtml(m, { ...rowOpts, extraClass: 'bench-group-member', groupKey: node.key, hidden: true })).join('');
         return summary + members;
       }).join('');
+      const pareto = paretoSectionHtml(board, primary, higher);
       return `<div class="bench">
         <div class="lb-section-head" style="margin-bottom:0.8rem">
           <h2 style="font-size:1rem">📊 ${esc(board.dataset_id || '')}</h2>
@@ -722,6 +792,7 @@ import Base from '../../layouts/Base.astro';
           ${buckets.length ? '<button class="btn toggle-buckets" style="padding:0.1rem 0.6rem;font-size:0.72rem;margin-left:auto">show buckets</button>' : ''}
         </div>
         <div style="overflow-x:auto"><table class="bench-tbl"><thead>${head}</thead><tbody>${rows}</tbody></table></div>
+        ${pareto}
       </div>`;
     }
 
