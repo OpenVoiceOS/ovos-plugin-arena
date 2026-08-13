@@ -58,6 +58,13 @@ leagues**. Keyword-paradigm engines (hand-written vocabulary rules) and
 template-paradigm engines (phrase-template corpora) consume different
 supervision, so they MUST NOT be ranked against each other:
 
+**`g2p` is a vote-less league (§A6).** It carries a benchmark board only —
+no battles, no ELO, no votes. A grapheme-to-phoneme fighter answers one word
+with (approximately) one correct IPA transcription; a blind A/B vote adds no
+signal beyond what phoneme error rate already gives, so `g2p` MUST NOT
+produce `battles-*`/`elo-seed-*`/`leaderboard-*` artifacts
+(`arena.models.VOTELESS_MODALITIES`, R20). See `docs/leagues.md`.
+
 | League | Who competes |
 |---|---|
 | `intent_template` | template/embedding engines (Padatious, Padacioso, Nebulento, …) |
@@ -446,6 +453,18 @@ Voting options MUST include: candidate A, candidate B, tie, both-wrong.
   artifacts no longer reproducible from the current replay path, they are
   deleted and regenerated (`assemble` + `tally`), never grandfathered in
   to keep the proof passing.
+- **R20, Vote-less leagues carry no battle/ELO artifacts.** A league in
+  `arena.models.VOTELESS_MODALITIES` (currently `g2p`, §A6) is scored
+  entirely by its benchmark board. `cmd_assemble` MUST skip such a
+  modality's battle-sample and ELO-sample accumulation outright — it MUST
+  NOT write `battles-<g2p>-*.json`, `elo-seed-<g2p>-*.json`, or
+  `leaderboard-<g2p>-*.json`, not even empty placeholders. `leagues()`
+  marks the league `voteless: true` so the frontend renders the benchmark
+  board section with no ladder section at all, rather than an always-empty
+  "no standings yet" placeholder. This is a standing property of the
+  league (its scoring model has no votes to replay), not a temporary gap
+  that `verify-replay` (R19) needs to reconcile — R19's reproducibility
+  proof only ever covers modalities that publish a vote-backed leaderboard.
 - Human votes: tie and both-wrong score 0.5/0.5.
 - Auto votes (seeding): K/4 (sequential ELO) / weight 1/4 (Bradley-Terry),
   outcomes from benchmark metrics only.
@@ -501,6 +520,11 @@ audio modalities share `runner/media_bench.py` (the intent leagues share
    synthesises a prompt corpus per fighter and stores the clips. Human-vote
    only, no objective metric, no benchmark board, no ELO seed. The ELO board
    accrues purely from blind A/B listening votes.
+5. **G2P** (§A6), `benchmarks/g2p_cmudict.py` / `benchmarks/g2p_portuguese.py`
+   (`runner/g2p_bench.py`): reads a grapheme, calls the fighter's
+   `get_ipa`/`utterance2ipa`, records the hypothesis IPA next to gold IPA
+   from a provenance-tiered lexicon. Ranked by phoneme error rate (§4 R20,
+   vote-less — benchmark board only, no ELO seed, no battles).
 
 ---
 [Home](index.md) · [Local testing →](local-testing.md)

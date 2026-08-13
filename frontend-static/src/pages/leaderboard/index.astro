@@ -245,6 +245,7 @@ import Base from '../../layouts/Base.astro';
       { id: 'tts', label: 'TTS', battle_group: 'tts', order: 4 },
       { id: 'wake_word', label: 'Wake Word', battle_group: 'wake_word', order: 5 },
       { id: 'vad', label: 'VAD', battle_group: 'vad', order: 6 },
+      { id: 'g2p', label: 'G2P', battle_group: 'g2p', order: 7, voteless: true },
     ];
     // ---- subspecies grouping (mirrors ../fighters/index.astro) --------
     const GROUP_STORAGE_KEY = 'arena.leaderboard.groupVariants';
@@ -680,7 +681,12 @@ import Base from '../../layouts/Base.astro';
       const group = leagueById[league]?.battle_group;
       const benchMeta = benchmarksMeta.filter(b => b.modality === league && b.lang === lang &&
         (!dataset || b.dataset_id === dataset));
-      const eloMeta = leaderboardsMeta.filter(b => b.modality === group && b.lang === lang);
+      // §A6 — vote-less leagues (g2p) never have a leaderboard file to fetch
+      // and MUST NOT render a ladder section at all (not even the "no
+      // standings yet" placeholder) — this is a permanent property of the
+      // league, not a temporary empty state.
+      const isVoteless = !!leagueById[league]?.voteless;
+      const eloMeta = isVoteless ? [] : leaderboardsMeta.filter(b => b.modality === group && b.lang === lang);
       const [benches, eloBoards] = await Promise.all([fetchBoards(benchMeta), fetchBoards(eloMeta)]);
       if (seq !== renderSeq) return; // a newer render superseded this one
       benches.sort((a, b) => (a.dataset_id || '').localeCompare(b.dataset_id || ''));
@@ -688,9 +694,10 @@ import Base from '../../layouts/Base.astro';
 
       document.getElementById('dataset-info').innerHTML = datasetInfoHtml(benches[0]);
       const panels = document.getElementById('lb-panels');
-      panels.innerHTML = eloSection(elo, league) + `<section class="lb-section">
+      panels.innerHTML = (isVoteless ? '' : eloSection(elo, league)) + `<section class="lb-section">
         <div class="lb-section-head"><p class="eyebrow" style="color:var(--accent)">The Data</p>
           <h2>📊 Benchmark boards</h2></div>
+        ${isVoteless ? '<p class="lb-note">Vote-less league — ranked by phoneme error rate against provenance-tiered gold, no battles/ELO.</p>' : ''}
         ${benches.length ? benches.map(b => benchBoard(b, league)).join('') : benchBoard(null, league)}
       </section>`;
       panels.querySelectorAll('.toggle-buckets').forEach(btn => {

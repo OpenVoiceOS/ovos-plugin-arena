@@ -167,6 +167,67 @@ and running the sweep across `capabilities`-eligible fighters is separate,
 later operational work, this scaffolding (registry entry, scorer, runner
 adapter, dedicated benchmark script) is what that work will run against.
 
+## Grapheme-to-phoneme league (`g2p`), §A6
+
+`g2p` is a **vote-less league**: benchmark boards only, no battles, no ELO,
+no votes. A fighter reads a word (or short utterance) and outputs IPA. There
+is one correct-ish answer per word, unlike a TTS clip or an intent parse, so
+a blind A/B vote adds no signal a benchmark board does not already give —
+this league skips the battle/ELO machinery entirely (`arena.models.
+VOTELESS_MODALITIES`, `arena/cli.py:cmd_assemble`).
+
+**Provenance tier is mandatory.** Reliable G2P "gold" barely exists — most
+public G2P datasets are dictionary-extracted, community-scraped, or another
+phonemizer's own output reused as a reference. Every `role: eval` g2p
+dataset registry entry MUST carry a `provenance_tier`
+(`registry/schemas.py:G2P_PROVENANCE_TIERS`, most to least trustworthy:
+`expert-human`, `lexicon-derived`, `crowd-scraped`, `machine-generated`,
+`espeak-derived`, `epitran-derived`, `llm-generated`) — ported from
+`orthography2ipa`'s own `RELIABILITY_TIERS` convention and the org wiki's
+BENCHMARK-GRADE / USE-WITH-CARE / CIRCULAR classification
+(`knowledge/wiki/concepts/g2p-benchmark-datasets.md`). `espeak-derived` and
+`epitran-derived` gold is CIRCULAR — the gold IS a competitor's own output —
+and registration FAILS validation outright, not just a warning
+(`DatasetDef._validate_g2p_provenance`). `machine-generated`/`llm-generated`
+gold is allowed only with `tool_derived: true` set explicitly, which
+`arena/cli.py:_dataset_info_lookup` surfaces into every benchmark board's
+`dataset_info`, so the caveat travels with the numbers, never silently.
+
+**Metrics** (`score_g2p`), primary metric `per` (phoneme error rate, lower
+better), aggregated as `sum(errors) / sum(reference_phonemes)` across rows —
+the same ratio convention as STT's `wer_mean`, for the same reason: per-word
+PER is not comparable across words of very different length. Reference and
+hypothesis IPA are both passed through `arena.metrics.normalize_ipa` before
+scoring — ported **verbatim** (with a source citation in the module) from
+`orthography2ipa`'s benchmark harness `normalize()`: stress marks, tie bars
+and punctuation are stripped from both sides identically before the
+edit-distance comparison. This is a fairness rule, not a style choice — a
+hypothesis differing from gold only in stress marking scores 0 PER, not a
+penalty for a distinction the gold set itself may not mark consistently.
+
+| Metric | Meaning | Direction |
+|---|---|---|
+| **`per`** *(primary)* | phoneme edit distance / reference phoneme count, pooled | lower better |
+| `per_median` | median per-row PER | — |
+| `n_scored` | rows with both a gold and hypothesis IPA string | — |
+| `latency_ms_median` | median inference latency | lower better |
+
+**Datasets**: `cmudict-en-US` (`registry/datasets/g2p/cmudict-en-US.json`,
+CMU Pronouncing Dictionary, `lexicon-derived`, BSD-2-Clause) and
+`portuguese-phonetic-lexicon-pt-PT`
+(`registry/datasets/g2p/portuguese-phonetic-lexicon-pt-PT.json`,
+TigreGotico's Portal-da-Língua-Portuguesa scrape, `lexicon-derived`, license
+unconfirmed — see the entry's `notes`). Both are BENCHMARK-GRADE per the org
+wiki classification, never espeak/epitran output.
+
+**Fighters, current status**: two installed OPM `g2p` plugins resolve today
+and are registered — `ovos-g2p-plugin-mimic` and
+`ovos-g2p-plugin-heuristic-arpa`, both English-only
+(`available_languages == ["en"]`), so only `cmudict-en-US` currently has
+fighters; `portuguese-phonetic-lexicon-pt-PT` has zero registered fighters
+until an `o2i`-family plugin (tugaphone, orthography2ipa) ships its own OPM
+`g2p` wrapper — separate follow-up PRs in those repos, not this one.
+
 ## VAD league (`vad`)
 
 **Task**: per-clip speech / non-speech detection, the same binary-detection

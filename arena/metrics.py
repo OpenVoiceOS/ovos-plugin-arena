@@ -49,6 +49,9 @@ PRIMARY_METRIC = {
     # point is a trade-off curve, and ranking on FRR alone would reward a
     # fighter that only "wins" by firing so eagerly its FA/hour is unusable.
     "ww_stream": "error_at_2fa_per_hour",
+    # §A6 — phoneme error rate, lower is better; same "ratio" bootstrap CI
+    # strategy as STT's wer_mean (see _CI_RATIO_EXTRACTORS below).
+    "g2p": "per",
 }
 
 # Higher is better for these primary metrics; lower for the rest (error rates,
@@ -720,6 +723,114 @@ def score_ww_stream(rows: list[PredictionRow]) -> dict[str, float]:
     return metrics
 
 
+# ---------------------------------------------------------------------------
+# G2P — phoneme error rate (§A6, vote-less benchmark-board-only league)
+# ---------------------------------------------------------------------------
+#
+# IPA normalization ported VERBATIM from orthography2ipa's benchmark harness
+# (~/AgentWorkspaces/ml/orthography2ipa/scripts/benchmark.py, ``normalize()``
+# and its ``_STRESS_MARKS`` / ``_PUNCT_MARKS`` / ``_TIE_BARS`` constants,
+# repo commit as of this port) — SOURCE, do not "improve" it here. A fighter's
+# PER is only comparable across runs if both the reference and hypothesis IPA
+# go through the identical normalization before edit-distance scoring; that
+# guarantee is worthless if this repo quietly drifts from the upstream
+# convention it borrows. Only the consonant-length (`ː` → doubled letter) and
+# `--broad` narrow-diacritic folding steps are NOT ported: those depend on
+# ``orthography2ipa.vowels.is_ipa_vowel``'s internal IPA vowel-symbol table,
+# a dependency this repo does not otherwise need. Stress-mark stripping and
+# punctuation/tie-bar stripping — the load-bearing fairness rules for PER —
+# are ported unchanged.
+G2P_STRESS_MARKS = "ˈˌ'"
+G2P_TIE_BARS = "͜͡‿"
+G2P_PUNCT_MARKS = "|‖,.;:!?¡¿\"«»—–-"
+
+
+def normalize_ipa(ipa: str, strip_stress: bool = True) -> str:
+    """Canonical IPA normalization for PER scoring (§A6).
+
+    Ported from o2i ``normalize()`` (see module note above): NFC-normalize,
+    fold the ASCII/IPA "g"/"ɡ" confusable, optionally strip stress marks,
+    strip punctuation and tie bars, collapse whitespace. Applied identically
+    to reference and hypothesis — never call this on only one side.
+    """
+    s = unicodedata.normalize("NFC", ipa)
+    s = s.replace("g", "ɡ")  # ASCII/IPA confusable fold (o2i convention)
+    if strip_stress:
+        for ch in G2P_STRESS_MARKS:
+            s = s.replace(ch, "")
+    for ch in G2P_PUNCT_MARKS:
+        s = s.replace(ch, "")
+    for ch in G2P_TIE_BARS:
+        s = s.replace(ch, "")
+    return "".join(s.split())
+
+
+def _levenshtein(a: str, b: str) -> int:
+    """Character-level edit distance — the same DP shape as ``_cer_components``."""
+    if a == b:
+        return 0
+    prev = list(range(len(b) + 1))
+    for i, ca in enumerate(a, 1):
+        curr = [i]
+        for j, cb in enumerate(b, 1):
+            curr.append(min(prev[j] + 1, curr[-1] + 1, prev[j - 1] + (ca != cb)))
+        prev = curr
+    return prev[-1]
+
+
+def row_per_components(row: PredictionRow) -> tuple[float, float] | None:
+    """(phoneme edit distance, reference phoneme count) for one g2p row.
+
+    Both sides go through ``normalize_ipa`` (identical treatment, §A6)
+    before the edit distance is computed. Reference/hypothesis are carried
+    in the shared §3.2 fields (``reference_text`` = gold IPA string,
+    ``prediction`` = hypothesis IPA string). None when either side is
+    missing (a synthesis/lookup failure with no comparable text).
+    """
+    if row.reference_text is None or row.prediction is None:
+        return None
+    ref = normalize_ipa(row.reference_text)
+    hyp = normalize_ipa(row.prediction)
+    if not ref:
+        return None
+    return float(_levenshtein(ref, hyp)), float(len(ref))
+
+
+def row_per(row: PredictionRow) -> float | None:
+    """PER for one row, or None when unscoreable."""
+    comp = row_per_components(row)
+    if comp is None:
+        return None
+    errors, ref_len = comp
+    return round(errors / ref_len, 4) if ref_len else 0.0
+
+
+def score_g2p(rows: list[PredictionRow]) -> dict[str, float]:
+    """Aggregate g2p rows into a mean PER board metric (§A6).
+
+    ``per`` (primary, lower is better) is aggregated as
+    ``sum(errors) / sum(ref_phonemes)`` across rows — the same ratio
+    convention as ``score_stt``'s WER, for the same reason: per-word PER is
+    not comparable across words of very different length.
+    """
+    pairs = [p for p in (row_per_components(r) for r in rows) if p is not None]
+    latencies = [r.latency_ms for r in rows if r.latency_ms is not None]
+    metrics: dict[str, float] = {"n_scored": float(len(pairs))}
+    if pairs:
+        errors = sum(e for e, _ in pairs)
+        ref_len = sum(n for _, n in pairs)
+        metrics["per"] = round(errors / ref_len, 4) if ref_len else 0.0
+        per_row = [round(e / n, 4) if n else 0.0 for e, n in pairs]
+        metrics["per_median"] = round(median(per_row), 4)
+    if latencies:
+        metrics["latency_ms_median"] = round(median(latencies), 2)
+    return metrics
+
+
+def _g2p_per_pairs(rows: list[PredictionRow]) -> list[tuple[float, float]]:
+    return [p for p in (row_per_components(r) for r in rows) if p is not None]
+
+
 _SCORERS = {
     "intent": score_intent,
     "intent_template": score_intent,
@@ -729,6 +840,7 @@ _SCORERS = {
     "vad": score_vad,
     "tts": score_tts,
     "ww_stream": score_ww_stream,
+    "g2p": score_g2p,
 }
 
 
@@ -787,6 +899,7 @@ _CI_MEAN_EXTRACTORS = {
 # modality -> "ratio" extractor (returns (numerator, denominator) pairs)
 _CI_RATIO_EXTRACTORS = {
     "stt": _stt_wer_pairs,
+    "g2p": _g2p_per_pairs,
 }
 
 

@@ -289,10 +289,10 @@ class TestAssemblePipeline:
         league_ids = [entry["id"] for entry in index["leagues"]]
         assert league_ids == [
             "intent_template", "intent_keyword", "intent",
-            "stt", "tts", "wake_word", "vad",
+            "stt", "tts", "wake_word", "vad", "g2p",
         ]
         for entry in index["leagues"]:
-            assert set(entry) == {"id", "label", "battle_group", "order"}
+            assert set(entry) == {"id", "label", "battle_group", "order", "voteless"}
         intent_entries = {e["id"]: e for e in index["leagues"]}
         # each intent league is its own battle group — no shared pool
         assert intent_entries["intent_template"]["battle_group"] == "intent_template"
