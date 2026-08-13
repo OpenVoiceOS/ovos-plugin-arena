@@ -38,6 +38,7 @@ import argparse
 import fnmatch
 import json
 import logging
+import random
 import re
 import signal
 import sys
@@ -218,6 +219,7 @@ def apply_filters(
     entries: list[tuple[str, object, object, str]],
     include: list[str] | None = None,
     exclude: list[str] | None = None,
+    datasets: list[str] | None = None,
     langs: list[str] | None = None,
     min_size: int | None = None,
     max_size: int | None = None,
@@ -230,6 +232,10 @@ def apply_filters(
         if include and not any(fnmatch.fnmatch(cid, pat) for pat in include):
             continue
         if exclude and any(fnmatch.fnmatch(cid, pat) for pat in exclude):
+            continue
+        if datasets and not any(
+            fnmatch.fnmatch(dataset.dataset_id, pat) for pat in datasets
+        ):
             continue
         if langs and lang not in langs:
             continue
@@ -576,7 +582,8 @@ class AutoRunner:
 
     # -- real bench execution -------------------------------------------
 
-    def _run_pair_batch(self, modality, competitor, dataset, lang, batch) -> mb.BatchResult:
+    def _run_pair_batch(self, modality, competitor, dataset, lang, batch,
+                         deadline: float | None = None) -> mb.BatchResult:
         adapter = adapter_factories()[modality]()
         bench_dir = self.config.output_dir / dataset.dataset_id
         out_path = (bench_dir / modality / "predictions" / lang
@@ -594,16 +601,77 @@ class AutoRunner:
         revision = _revision_for(dataset)
         return mb.run_competitor_lang(
             adapter, competitor, dataset.dataset_id, lang, dataset, revision,
-            out_path, audio_dir, repo, max_new_samples=batch,
+            out_path, audio_dir, repo, max_new_samples=batch, deadline=deadline,
         )
+
+    def pair_is_complete(self, modality, competitor, dataset, lang,
+                          deadline: float | None = None) -> bool:
+        """Best-effort completeness check that never runs inference.
+
+        Seeds the local shard from the published HF shard (the same
+        mechanics :meth:`_run_pair_batch` uses), then compares the sample
+        ids already written against every sample id the eval set would
+        yield — ``adapter.iter_samples`` reads dataset metadata only, it
+        never calls ``adapter.predict``/``load_engine``. Used by
+        :meth:`run_one_shot` to skip an already-finished pair once it is
+        drawn — NOT to prescan every candidate (that made discovery cost
+        O(all eligible pairs) instead of O(pairs actually drawn); see the
+        module-level note on :meth:`run_one_shot`).
+
+        *deadline* bounds the ``iter_samples`` scan itself for a huge
+        dataset: if the deadline elapses mid-scan, this returns ``False``
+        (never claim "complete" off a partial scan — the caller then
+        attempts the pair for real, where the same deadline immediately
+        short-circuits ``run_competitor_lang`` almost as soon as it starts).
+        """
+        adapter = adapter_factories()[modality]()
+        bench_dir = self.config.output_dir / dataset.dataset_id
+        out_path = (bench_dir / modality / "predictions" / lang
+                    / f"{competitor.competitor_id}.jsonl")
+        repo = results_repo_for(modality, dataset.dataset_id, self.config.hf_owner)
+        if self.config.seed_from_hf and self.lister is not None:
+            try:
+                seed_from_hf(out_path, repo, lang, competitor.competitor_id, self.lister)
+            except Exception as exc:
+                log.warning("seed-from-HF failed for %s/%s/%s: %s — treating as incomplete",
+                            competitor.competitor_id, dataset.dataset_id, lang, exc)
+        done = mb.done_samples(out_path)
+        if not done:
+            return False
+        revision = _revision_for(dataset)
+        total = 0
+        for sample_id, _sample in adapter.iter_samples(dataset, lang, revision, 0):
+            if deadline is not None and time.monotonic() >= deadline:
+                return False
+            total += 1
+            if sample_id not in done:
+                return False
+        return total > 0
+
+    def _call_process_fn(self, modality, competitor, dataset, lang, batch,
+                          deadline: float | None):
+        # process_fn is injectable for tests; older/simpler fakes only take
+        # the original 5-arg shape (no deadline) — fall back rather than
+        # forcing every test double to grow a parameter it doesn't need.
+        try:
+            return self.process_fn(modality, competitor, dataset, lang, batch,
+                                    deadline=deadline)
+        except TypeError:
+            return self.process_fn(modality, competitor, dataset, lang, batch)
 
     # -- orchestration -----------------------------------------------------
 
-    def process_pair(self, modality, competitor, dataset, lang) -> None:
+    def process_pair(self, modality, competitor, dataset, lang,
+                      batch: int | None = None,
+                      deadline: float | None = None) -> mb.BatchResult | None:
+        """Run one batch for *pair*. Returns the :class:`BatchResult`, or
+        ``None`` if the fighter hard-failed to load (already quarantined)."""
         pair = PairKey(modality, competitor.competitor_id, dataset.dataset_id, lang)
+        batch = self.config.batch if batch is None else batch
         self._dataset_cache[(modality, dataset.dataset_id)] = dataset
         try:
-            result = self.process_fn(modality, competitor, dataset, lang, self.config.batch)
+            result = self._call_process_fn(modality, competitor, dataset, lang,
+                                            batch, deadline)
         except Exception as exc:
             # A hard failure BEFORE/OUTSIDE the per-sample try/except inside
             # run_competitor_lang — e.g. the plugin failing to import/load
@@ -611,11 +679,12 @@ class AutoRunner:
             # partial-progress signal to distinguish from here.
             log.exception("pair %s failed", pair)
             self.scheduler.quarantine(competitor.competitor_id, str(exc))
-            return
+            return None
 
         written = getattr(result, "written", result)
         errored = getattr(result, "errored", 0)
         last_error = getattr(result, "last_error", None)
+        deadline_hit = getattr(result, "deadline_hit", False)
 
         if written:
             self._dirty.add((modality, dataset.dataset_id))
@@ -626,9 +695,11 @@ class AutoRunner:
         # CRITICAL: a short batch is NOT proof the pair is exhausted — every
         # remaining sample raising in adapter.predict() (model crash, OOM,
         # a transient network blip fetching a sample) produces the exact
-        # same "written < batch" shape as a genuinely finished dataset.
-        # Only mark complete when the shortfall carried zero errors.
-        if written < self.config.batch and errored == 0:
+        # same "written < batch" shape as a genuinely finished dataset, and
+        # so does a time-budget deadline cutting the batch short. Only mark
+        # complete when the shortfall carried zero errors AND wasn't a
+        # deadline cutoff.
+        if written < batch and errored == 0 and not deadline_hit:
             log.info("pair complete: %s", pair)
             self.scheduler.mark_complete(pair)
             if self.config.upload:
@@ -637,6 +708,8 @@ class AutoRunner:
             reason = (f"{streak} consecutive all-error batches"
                       + (f"; last error: {last_error}" if last_error else ""))
             self.scheduler.quarantine(competitor.competitor_id, reason)
+
+        return result
 
     def _flush_pair(self, modality: str, dataset_id: str) -> None:
         key = (modality, dataset_id)
@@ -716,6 +789,194 @@ class AutoRunner:
             self.process_pair(m, c, d, l)
             self.flush_all()
 
+    # -- one-shot (CI-friendly) mode -------------------------------------
+
+    #: Once less than this much budget remains after finishing a pair,
+    #: stop instead of drawing another one — there isn't enough runway
+    #: left for a fresh pair (model load + a meaningful slice of samples).
+    ONE_SHOT_MIN_CONTINUE_SECONDS = 5 * 60
+
+    def run_one_shot(
+        self,
+        modalities: Iterable[str],
+        filters: dict | None = None,
+        registry_root: Path | None = None,
+        max_samples: int = 100,
+        time_budget_secs: float | None = None,
+        seed: object | None = None,
+        max_attempts: int = 3,
+    ) -> dict:
+        """Run one (or, budget permitting, several) randomly chosen pairs.
+
+        Picks ONE eligible, not-yet-complete ``(fighter, dataset, lang)``
+        pair uniformly at random (seeded by *seed* for a reproducible
+        pick; entropy if *seed* is ``None``), processes up to
+        *max_samples* new samples for it, uploads the shard, and returns
+        a summary dict.
+
+        **Discovery is lazy, not exhaustive.** The candidate pool for each
+        round is *shuffled* (seeded) and then walked one at a time:
+        :meth:`pair_is_complete` — a network round-trip plus a full
+        ``iter_samples`` scan of the dataset — is only ever called for the
+        candidate actually being considered, and stops being called the
+        moment a usable (not-complete, not-quarantined) pair is found.
+        Discovery cost is O(pairs looked at before landing on one), never
+        O(every eligible pair) — a registry with hundreds of pairs must
+        not have to complete-check all of them before drawing one.
+
+        *time_budget_secs* (``None`` = unbounded) is wall-clock counted
+        from the start of THIS call — it covers the ENTIRE call, including
+        discovery (the shuffle-and-walk above) and model load (which
+        happens inside the first ``process_pair`` call), not just
+        inference. The same deadline is checked between candidates during
+        discovery, threaded into :meth:`pair_is_complete` to bound its
+        per-candidate scan, and threaded down into ``run_competitor_lang``
+        to be checked between samples. If the deadline elapses before any
+        pair is ever actually drawn, the call returns with
+        ``summary["discovery_bound"] = True`` — a run that found nothing
+        to do because it ran out of time to LOOK, which is a distinct
+        outcome from ``summary["nothing_to_do"]`` (every candidate was
+        checked and genuinely is complete).
+
+        If the chosen pair finishes (completes OR the deadline was still
+        far off) with more than :data:`ONE_SHOT_MIN_CONTINUE_SECONDS` of
+        budget left, another random pair is drawn and processed too —
+        this is what lets a CI job use its whole time slot instead of
+        idling after one small pair. With no *time_budget_secs*, runs
+        exactly one pair.
+
+        A pair whose fighter hard-fails to load is quarantined (as in the
+        forever-mode scheduler) and a different pair is drawn instead —
+        the shuffled walk simply continues onto the next candidate — up to
+        *max_attempts* real draws (candidates that passed the completeness
+        check and were actually handed to ``process_pair``), so one broken
+        fighter never fails the whole run — the caller (the CI job) still
+        exits 0.
+        """
+        self.load_state()
+        filters = dict(filters or {})
+        rng = random.Random(seed) if seed is not None else random.Random()
+        deadline = (time.monotonic() + time_budget_secs
+                    if time_budget_secs else None)
+
+        summary: dict = {"pairs": [], "written": 0, "errored": 0,
+                          "nothing_to_do": False, "discovery_bound": False,
+                          "candidates_probed": 0}
+
+        def deadline_passed() -> bool:
+            return deadline is not None and time.monotonic() >= deadline
+
+        while True:
+            if (deadline is not None and summary["pairs"]
+                    and (deadline - time.monotonic())
+                    < self.ONE_SHOT_MIN_CONTINUE_SECONDS):
+                break
+            if deadline_passed():
+                # No budget left even to start a fresh discovery round.
+                if not summary["pairs"]:
+                    summary["discovery_bound"] = True
+                    log.info("one-shot: discovery-bound, 0 pairs drawn, "
+                              "%d candidate(s) probed", summary["candidates_probed"])
+                break
+
+            entries = enumerate_all_pairs(modalities, registry_root)
+            entries = apply_filters(entries, **filters)
+            lookup = {
+                PairKey(m, c.competitor_id, d.dataset_id, l): (m, c, d, l)
+                for m, c, d, l in entries
+            }
+            for _m, _c, d, _l in entries:
+                self._dataset_cache[(_m, d.dataset_id)] = d
+            self.scheduler.set_pairs(lookup.keys())
+
+            now = time.time()
+            candidates = [
+                p for p in lookup
+                if p not in self.scheduler.completed
+                and not self.scheduler.is_quarantined(p.competitor_id, now)
+            ]
+            if not candidates:
+                if not summary["pairs"]:
+                    summary["nothing_to_do"] = True
+                    log.info("one-shot: nothing to do — every eligible pair is complete")
+                break
+            rng.shuffle(candidates)
+
+            result = None
+            chosen = None
+            m = c = d = l = None
+            attempts_made = 0
+            for cand in candidates:
+                if deadline_passed():
+                    break
+                if self.scheduler.is_quarantined(cand.competitor_id, time.time()):
+                    continue  # quarantined by an earlier draw THIS round
+                summary["candidates_probed"] += 1
+                if self.pair_is_complete(*lookup[cand], deadline=deadline):
+                    self.scheduler.mark_complete(cand)
+                    continue
+                attempts_made += 1
+                chosen = cand
+                m, c, d, l = lookup[cand]
+                log.info("one-shot: attempt %d/%d — chosen pair %s",
+                          attempts_made, max_attempts, chosen)
+                pair_start = time.monotonic()
+                result = self.process_pair(m, c, d, l, batch=max_samples,
+                                            deadline=deadline)
+                elapsed = time.monotonic() - pair_start
+                if result is not None:
+                    break
+                # process_pair already quarantined this fighter on a hard
+                # load failure — the shuffled walk continues onto the next
+                # candidate (any remaining pairs for this same fighter are
+                # skipped above via the quarantine check).
+                chosen = None
+                if attempts_made >= max_attempts:
+                    break
+
+            if chosen is None:
+                # Decide the reason from the deadline NOW, after the walk —
+                # not from whether the deadline check inside the loop was
+                # what broke it: the deadline can also elapse DURING the
+                # last probe itself (pair_is_complete's own scan is what
+                # ate the remaining budget) and the walk simply runs out of
+                # candidates right after, with no separate "deadline broke
+                # me" branch taken. Either way, time genuinely ran out
+                # before a usable pair was found — that must still read as
+                # discovery-bound, not "nothing to do".
+                if not summary["pairs"] and attempts_made == 0 and deadline_passed():
+                    summary["discovery_bound"] = True
+                    log.info("one-shot: discovery-bound, 0 pairs drawn, "
+                              "%d candidate(s) probed", summary["candidates_probed"])
+                elif not summary["pairs"] and attempts_made == 0:
+                    # Every candidate in this round was complete/quarantined
+                    # and none was ever a real draw attempt.
+                    summary["nothing_to_do"] = True
+                    log.info("one-shot: nothing to do — every eligible pair is complete")
+                elif attempts_made:
+                    log.warning("one-shot: exhausted %d attempt(s) without a "
+                                "successful pair this round", max_attempts)
+                break
+
+            written = getattr(result, "written", result)
+            errored = getattr(result, "errored", 0)
+            repo = results_repo_for(m, d.dataset_id, self.config.hf_owner)
+            summary["pairs"].append({
+                "pair": str(chosen),
+                "written": written,
+                "errored": errored,
+                "elapsed_secs": round(elapsed, 1),
+                "upload_url": f"https://huggingface.co/datasets/{repo}",
+            })
+            summary["written"] += written
+            summary["errored"] += errored
+
+            if deadline is None:
+                break  # no time budget to spend on a second pair
+
+        self.save_state()
+        return summary
+
 
 # ---------------------------------------------------------------------------
 # CLI
@@ -759,6 +1020,9 @@ def build_arg_parser() -> argparse.ArgumentParser:
                         help="Comma-separated globs — only these competitor_ids")
     parser.add_argument("--exclude", default="",
                         help="Comma-separated globs — never these competitor_ids")
+    parser.add_argument("--datasets", default="",
+                        help="Comma-separated globs — only these dataset_ids "
+                        "(default: any eligible dataset)")
     parser.add_argument("--langs", default="",
                         help="Comma-separated BCP-47 tags — only these languages")
     parser.add_argument("--min-size", default=None,
@@ -779,6 +1043,26 @@ def build_arg_parser() -> argparse.ArgumentParser:
     parser.add_argument("--registry-root", default=None)
     parser.add_argument("--dry-run", action="store_true",
                         help="Print the eligible pairs and exit — no network, no runs")
+    parser.add_argument("--one-shot", action="store_true",
+                        help="Run ONE randomly-chosen eligible/incomplete pair "
+                        "(more, budget permitting) and exit 0 — for a "
+                        "scheduled CI job instead of a long-lived daemon")
+    parser.add_argument("--max-samples", type=int, default=100,
+                        help="[--one-shot] New samples cap for the chosen "
+                        "pair, per pair drawn (default: 100)")
+    parser.add_argument("--time-budget-secs", type=float, default=None,
+                        help="[--one-shot] Wall-clock budget in seconds, "
+                        "counted from process start including model load; "
+                        "unset = unbounded (single pair, --max-samples cap "
+                        "only). When set, another random pair is drawn with "
+                        "any remaining budget after one finishes.")
+    parser.add_argument("--seed", default=None,
+                        help="[--one-shot] Seed for the random pair pick "
+                        "(reproducible/debuggable); default: entropy")
+    parser.add_argument("--max-attempts", type=int, default=3,
+                        help="[--one-shot] Random pair draws to try before "
+                        "giving up for this round if a fighter hard-fails "
+                        "to load (default: 3)")
     return parser
 
 
@@ -809,6 +1093,7 @@ def main(argv: list[str] | None = None) -> int:
     filters = dict(
         include=[s.strip() for s in args.include.split(",") if s.strip()] or None,
         exclude=[s.strip() for s in args.exclude.split(",") if s.strip()] or None,
+        datasets=[s.strip() for s in args.datasets.split(",") if s.strip()] or None,
         langs=[s.strip() for s in args.langs.split(",") if s.strip()] or None,
         min_size=size_rank(args.min_size),
         max_size=size_rank(args.max_size),
@@ -844,6 +1129,31 @@ def main(argv: list[str] | None = None) -> int:
     )
     lister = None if args.no_seed else HubLister()
     runner = AutoRunner(config, lister=lister)
+
+    if args.one_shot:
+        summary = runner.run_one_shot(
+            modalities, filters, registry_root,
+            max_samples=args.max_samples,
+            time_budget_secs=args.time_budget_secs,
+            seed=args.seed,
+            max_attempts=args.max_attempts,
+        )
+        if summary["nothing_to_do"]:
+            print("one-shot: nothing to do — every eligible pair is already complete")
+            return 0
+        if summary["discovery_bound"]:
+            print(f"one-shot: discovery-bound, 0 pairs drawn, "
+                  f"{summary['candidates_probed']} candidate(s) probed "
+                  f"— ran out of time-budget before finding a usable pair")
+            return 0
+        for entry in summary["pairs"]:
+            print(f"one-shot: pair={entry['pair']} written={entry['written']} "
+                  f"errored={entry['errored']} elapsed={entry['elapsed_secs']}s "
+                  f"upload={entry['upload_url']}")
+        print(f"one-shot: {len(summary['pairs'])} pair(s), "
+              f"{summary['written']} written, {summary['errored']} errored")
+        return 0
+
     runner.run_forever(modalities, filters, registry_root)
     return 0
 

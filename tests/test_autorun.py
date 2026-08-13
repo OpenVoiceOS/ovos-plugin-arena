@@ -12,6 +12,7 @@ from types import SimpleNamespace
 
 import pytest
 
+import runner.autorun as autorun_module
 from runner.autorun import (
     QUARANTINE_BASE_BACKOFF_SECONDS,
     AutoRunConfig,
@@ -490,3 +491,288 @@ class TestFilters:
         assert len(messages) == 2  # vosk-en logged once despite 2 entries
         assert any("vosk-en" in m and "light" in m for m in messages)
         assert any("cohere-transcribe-2b" in m and "heavy" in m for m in messages)
+
+
+# ---------------------------------------------------------------------------
+# One-shot mode (AutoRunner.run_one_shot / --one-shot CLI) — CI-friendly
+# single-round runs: random pair pick, time-budget, retry-on-load-failure.
+#
+# enumerate_all_pairs and pair_is_complete both pull in real registry/adapter
+# machinery, so every test here monkeypatches them: enumerate_all_pairs at
+# module scope, pair_is_complete on the AutoRunner instance directly.
+# ---------------------------------------------------------------------------
+
+
+class _NoShuffleRandom:
+    """Stand-in for random.Random that leaves rng.shuffle a no-op, so a
+    candidate list's iteration order is exactly `enumerate_all_pairs`'s
+    (dict-insertion) order — deterministic tests for the discovery walk
+    without depending on real RNG output for a given seed."""
+
+    def __init__(self, *a, **k):
+        pass
+
+    def shuffle(self, seq):
+        return None
+
+
+class TestOneShot:
+    def test_seeded_pick_excludes_complete_pairs(self, tmp_path, monkeypatch):
+        a_comp, b_comp = _comp("A"), _comp("B")
+        ds = _ds("d")
+        entries = [("stt", a_comp, ds, "en"), ("stt", b_comp, ds, "en")]
+        monkeypatch.setattr(autorun_module, "enumerate_all_pairs", lambda *a, **k: entries)
+
+        # A is already complete; B never is. Regardless of which seed picks
+        # which candidate first, only B may ever actually run. Fresh runner
+        # + fake per seed so one seed's local state (dirty shard, "used up"
+        # sample count) can't bleed into the next seed's pick.
+        for seed in range(10):
+            sizes = {PairKey("stt", "B", "d", "en").to_str(): 5}
+            fake = FakeProcessor(sizes)
+            config = AutoRunConfig(output_dir=tmp_path / f"seed{seed}", batch=10, upload=False)
+            runner = AutoRunner(config, process_fn=fake)
+            runner.pair_is_complete = lambda m, c, d_, l, deadline=None: c.competitor_id == "A"
+
+            summary = runner.run_one_shot(["stt"], max_samples=5, seed=seed)
+            assert summary["pairs"], f"seed={seed} should have found B"
+            assert summary["pairs"][0]["pair"] == PairKey("stt", "B", "d", "en").to_str()
+
+    def test_same_seed_is_reproducible(self, tmp_path, monkeypatch):
+        comps = [_comp(c) for c in "ABCDE"]
+        ds = _ds("d")
+        entries = [("stt", c, ds, "en") for c in comps]
+        monkeypatch.setattr(autorun_module, "enumerate_all_pairs", lambda *a, **k: entries)
+        sizes = {PairKey("stt", c.competitor_id, "d", "en").to_str(): 5 for c in comps}
+
+        def pick(run_id):
+            fake = FakeProcessor(dict(sizes))
+            config = AutoRunConfig(output_dir=tmp_path / str(run_id), batch=10, upload=False)
+            runner = AutoRunner(config, process_fn=fake)
+            runner.pair_is_complete = lambda *a, **k: False
+            return runner.run_one_shot(["stt"], max_samples=5, seed=42)["pairs"][0]["pair"]
+
+        assert pick(1) == pick(2)
+
+    def test_nothing_to_do_when_all_pairs_complete(self, tmp_path, monkeypatch):
+        a_comp = _comp("A")
+        ds = _ds("d")
+        entries = [("stt", a_comp, ds, "en")]
+        monkeypatch.setattr(autorun_module, "enumerate_all_pairs", lambda *a, **k: entries)
+        fake = FakeProcessor({})
+        config = AutoRunConfig(output_dir=tmp_path, batch=10, upload=False)
+        runner = AutoRunner(config, process_fn=fake)
+        runner.pair_is_complete = lambda *a, **k: True
+
+        summary = runner.run_one_shot(["stt"], max_samples=5, seed=1)
+
+        assert summary["nothing_to_do"] is True
+        assert summary["discovery_bound"] is False
+        assert summary["pairs"] == []
+        assert fake.calls == []
+
+    def test_load_failure_falls_back_to_another_pair(self, tmp_path, monkeypatch):
+        bad_comp, good_comp = _comp("BAD"), _comp("GOOD")
+        ds = _ds("d")
+        entries = [("stt", bad_comp, ds, "en"), ("stt", good_comp, ds, "en")]
+        monkeypatch.setattr(autorun_module, "enumerate_all_pairs", lambda *a, **k: entries)
+        # A no-op shuffle keeps the walk order == entries order (BAD first,
+        # then GOOD) — makes the "attempt 1 fails, attempt 2 succeeds" retry
+        # path exercised on purpose rather than left to chance.
+        monkeypatch.setattr(autorun_module.random, "Random", _NoShuffleRandom)
+        sizes = {PairKey("stt", "GOOD", "d", "en").to_str(): 5}
+        fake = FakeProcessor(sizes, fail_competitors={"BAD"})
+        config = AutoRunConfig(output_dir=tmp_path, batch=10, upload=False)
+        runner = AutoRunner(config, process_fn=fake)
+        runner.pair_is_complete = lambda *a, **k: False
+
+        summary = runner.run_one_shot(["stt"], max_samples=5, seed=0, max_attempts=3)
+
+        assert "BAD" in runner.scheduler.quarantined
+        assert summary["pairs"], "GOOD must still have run despite BAD's failure"
+        assert summary["pairs"][0]["pair"] == PairKey("stt", "GOOD", "d", "en").to_str()
+
+    def test_exhausting_all_attempts_on_all_bad_pairs_exits_cleanly(self, tmp_path, monkeypatch):
+        bad_comp = _comp("BAD")
+        ds = _ds("d")
+        entries = [("stt", bad_comp, ds, "en")]
+        monkeypatch.setattr(autorun_module, "enumerate_all_pairs", lambda *a, **k: entries)
+        fake = FakeProcessor({}, fail_competitors={"BAD"})
+        config = AutoRunConfig(output_dir=tmp_path, batch=10, upload=False)
+        runner = AutoRunner(config, process_fn=fake)
+        runner.pair_is_complete = lambda *a, **k: False
+
+        # Must not raise — the caller (the CLI) still exits 0 on this shape.
+        summary = runner.run_one_shot(["stt"], max_samples=5, seed=0, max_attempts=3)
+
+        assert summary["pairs"] == []
+        assert summary["nothing_to_do"] is False  # a real draw WAS attempted
+        assert "BAD" in runner.scheduler.quarantined
+
+    def test_deadline_stops_drawing_once_budget_runs_low(self, tmp_path, monkeypatch):
+        """Time-budgeted mode with a fake clock: each pair "costs" 1000s of
+        wall-clock. With a 1500s budget, a second pair still fits (500s > the
+        5-minute/300s continue threshold) but a third does not."""
+        comps = [_comp(c) for c in ("A", "B", "C")]
+        ds = _ds("d")
+        entries = [("stt", c, ds, "en") for c in comps]
+        monkeypatch.setattr(autorun_module, "enumerate_all_pairs", lambda *a, **k: entries)
+
+        clock = {"t": 0.0}
+        monkeypatch.setattr(autorun_module.time, "monotonic", lambda: clock["t"])
+
+        class SlowProcessor:
+            def __init__(self):
+                self.calls = []
+
+            def __call__(self, modality, competitor, dataset, lang, batch, deadline=None):
+                self.calls.append(deadline)
+                clock["t"] += 1000
+                return BatchResult(written=batch, errored=0)
+
+        fake = SlowProcessor()
+        config = AutoRunConfig(output_dir=tmp_path, batch=10, upload=False)
+        runner = AutoRunner(config, process_fn=fake)
+        runner.pair_is_complete = lambda *a, **k: False
+
+        summary = runner.run_one_shot(
+            ["stt"], max_samples=5, seed=0, time_budget_secs=1500,
+        )
+
+        assert len(summary["pairs"]) == 2
+        assert summary["written"] == 10
+        # The deadline is fixed at call start (start-of-run + budget), not
+        # recomputed per pair — the SAME deadline threads through every call.
+        assert fake.calls == [1500.0, 1500.0]
+
+    def test_no_time_budget_runs_exactly_one_pair(self, tmp_path, monkeypatch):
+        comps = [_comp(c) for c in ("A", "B")]
+        ds = _ds("d")
+        entries = [("stt", c, ds, "en") for c in comps]
+        monkeypatch.setattr(autorun_module, "enumerate_all_pairs", lambda *a, **k: entries)
+        sizes = {PairKey("stt", c.competitor_id, "d", "en").to_str(): 100 for c in comps}
+        fake = FakeProcessor(sizes)
+        config = AutoRunConfig(output_dir=tmp_path, batch=10, upload=False)
+        runner = AutoRunner(config, process_fn=fake)
+        runner.pair_is_complete = lambda *a, **k: False
+
+        summary = runner.run_one_shot(["stt"], max_samples=5, seed=0)
+
+        assert len(summary["pairs"]) == 1
+        assert summary["written"] == 5
+
+    # -- REGRESSION: lazy discovery — the bug the adversarial review caught --
+
+    def test_discovery_only_probes_drawn_candidates(self, tmp_path, monkeypatch):
+        """pair_is_complete must be called AT MOST once per candidate
+        actually walked before landing on a usable pair, never once per
+        EVERY eligible candidate up front. With a no-op shuffle (walk order
+        == entries order) and the first candidate immediately usable, only
+        ONE pair_is_complete call should happen even though 500 candidates
+        exist."""
+        ds = _ds("d")
+        comps = [_comp(f"c{i}") for i in range(500)]
+        entries = [("stt", c, ds, "en") for c in comps]
+        monkeypatch.setattr(autorun_module, "enumerate_all_pairs", lambda *a, **k: entries)
+        monkeypatch.setattr(autorun_module.random, "Random", _NoShuffleRandom)
+
+        probe_calls = {"n": 0}
+
+        def counting_pair_is_complete(m, c, d, l, deadline=None):
+            probe_calls["n"] += 1
+            return False  # the very first candidate is immediately usable
+
+        sizes = {PairKey("stt", "c0", "d", "en").to_str(): 5}
+        fake = FakeProcessor(sizes)
+        config = AutoRunConfig(output_dir=tmp_path, batch=10, upload=False)
+        runner = AutoRunner(config, process_fn=fake)
+        runner.pair_is_complete = counting_pair_is_complete
+
+        summary = runner.run_one_shot(["stt"], max_samples=5, seed=0)
+
+        assert summary["pairs"][0]["pair"] == PairKey("stt", "c0", "d", "en").to_str()
+        assert probe_calls["n"] == 1, (
+            "discovery must be O(candidates walked before landing on one), "
+            f"not O(all eligible pairs) — got {probe_calls['n']} probes for 500 candidates"
+        )
+        assert summary["candidates_probed"] == 1
+
+    def test_discovery_deadline_exits_zero_pairs_with_distinct_summary(self, tmp_path, monkeypatch):
+        """If the wall-clock deadline elapses WHILE STILL WALKING candidates
+        (every one probed so far turned out complete, and probing itself
+        costs fake-clock time), the call must exit with 0 pairs drawn and a
+        `discovery_bound` flag distinct from `nothing_to_do` — a caller must
+        be able to tell "ran out of time to look" from "genuinely nothing
+        left"."""
+        ds = _ds("d")
+        comps = [_comp(f"c{i}") for i in range(50)]
+        entries = [("stt", c, ds, "en") for c in comps]
+        monkeypatch.setattr(autorun_module, "enumerate_all_pairs", lambda *a, **k: entries)
+        monkeypatch.setattr(autorun_module.random, "Random", _NoShuffleRandom)
+
+        clock = {"t": 0.0}
+        monkeypatch.setattr(autorun_module.time, "monotonic", lambda: clock["t"])
+
+        def slow_complete_check(m, c, d, l, deadline=None):
+            clock["t"] += 10  # each completeness probe "costs" 10s
+            return True  # every candidate looks complete — never a real draw
+
+        fake = FakeProcessor({})
+        config = AutoRunConfig(output_dir=tmp_path, batch=10, upload=False)
+        runner = AutoRunner(config, process_fn=fake)
+        runner.pair_is_complete = slow_complete_check
+
+        # 50 candidates * 10s = 500s > the 45s budget, so the deadline
+        # elapses partway through the walk.
+        summary = runner.run_one_shot(
+            ["stt"], max_samples=5, seed=0, time_budget_secs=45,
+        )
+
+        assert summary["pairs"] == []
+        assert summary["discovery_bound"] is True
+        assert summary["nothing_to_do"] is False
+        assert fake.calls == []  # never actually drew/ran a pair
+        assert 0 < summary["candidates_probed"] < 50
+
+    def test_summary_shapes_are_mutually_exclusive_across_three_outcomes(self, tmp_path, monkeypatch):
+        """The three possible "found nothing" exits — real work done, every
+        pair genuinely complete, ran out of time before finding one — must
+        never overlap in their flags."""
+        ds = _ds("d")
+
+        # 1) Work done: neither flag set.
+        entries = [("stt", _comp("A"), ds, "en")]
+        monkeypatch.setattr(autorun_module, "enumerate_all_pairs", lambda *a, **k: entries)
+        fake = FakeProcessor({PairKey("stt", "A", "d", "en").to_str(): 5})
+        runner = AutoRunner(AutoRunConfig(output_dir=tmp_path / "work", batch=10, upload=False),
+                             process_fn=fake)
+        runner.pair_is_complete = lambda *a, **k: False
+        summary = runner.run_one_shot(["stt"], max_samples=5, seed=0)
+        assert summary["pairs"] and not summary["nothing_to_do"] and not summary["discovery_bound"]
+
+        # 2) Nothing to do: only nothing_to_do.
+        runner2 = AutoRunner(AutoRunConfig(output_dir=tmp_path / "done", batch=10, upload=False),
+                              process_fn=FakeProcessor({}))
+        runner2.pair_is_complete = lambda *a, **k: True
+        summary2 = runner2.run_one_shot(["stt"], max_samples=5, seed=0)
+        assert not summary2["pairs"] and summary2["nothing_to_do"] and not summary2["discovery_bound"]
+
+        # 3) Discovery-bound: only discovery_bound. Needs MORE than one
+        # candidate so the deadline is actually detected mid-walk (checked
+        # between candidates) rather than the walk simply exhausting its
+        # one-and-only candidate before anyone notices time ran out.
+        many_entries = [("stt", _comp(f"c{i}"), ds, "en") for i in range(20)]
+        monkeypatch.setattr(autorun_module, "enumerate_all_pairs", lambda *a, **k: many_entries)
+        monkeypatch.setattr(autorun_module.random, "Random", _NoShuffleRandom)
+        clock = {"t": 0.0}
+        monkeypatch.setattr(autorun_module.time, "monotonic", lambda: clock["t"])
+
+        def slow_complete_check(m, c, d, l, deadline=None):
+            clock["t"] += 100
+            return True
+
+        runner3 = AutoRunner(AutoRunConfig(output_dir=tmp_path / "bound", batch=10, upload=False),
+                              process_fn=FakeProcessor({}))
+        runner3.pair_is_complete = slow_complete_check
+        summary3 = runner3.run_one_shot(["stt"], max_samples=5, seed=0, time_budget_secs=10)
+        assert not summary3["pairs"] and not summary3["nothing_to_do"] and summary3["discovery_bound"]

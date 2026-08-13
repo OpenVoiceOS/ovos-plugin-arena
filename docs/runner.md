@@ -334,5 +334,115 @@ in-progress pairs) flushes on a timer, `--flush-every` minutes (default 15).
 Both are caught: the current pair finishes, every dirty shard is flushed,
 and `autorun_state.json` is saved before exit.
 
+## Hourly CI predictions (`--one-shot`)
+
+The forever-mode daemon above runs on the fleet, not in CI. For a scheduled
+GitHub Actions job — no long-lived process, one bounded run per invocation —
+`runner.autorun` also has a `--one-shot` mode, wired up as
+`.github/workflows/hourly-predictions.yml`:
+
+```bash
+python -m runner.autorun --one-shot --light \
+    --max-samples 1000 --time-budget-secs 1500 --max-attempts 3
+```
+
+Each run:
+
+1. enumerates every eligible `(fighter, dataset, lang)` pair (same
+   eligibility rules as forever-mode) and **shuffles** the candidate list
+   with a seeded RNG — `--seed` makes the shuffle (and so the pick)
+   reproducible/debuggable; unset (the default, and what the workflow
+   uses) draws from entropy;
+2. walks the shuffled list ONE candidate at a time and only THEN checks
+   whether that one candidate is already complete (seeds its local shard
+   from the published HF shard, compares sample ids already written
+   against the eval set's sample ids — no inference). This is a **lazy**
+   draw: discovery cost is proportional to how many candidates were looked
+   at before landing on a usable one, never to the full size of the
+   registry. An earlier version of this mode ran the completeness check
+   against *every* eligible pair before picking one, which made discovery
+   alone take longer than the entire time budget on a registry with
+   hundreds of pairs — fixed by this walk-and-stop design;
+3. scores new samples for the pair it landed on, until either
+   `--max-samples` is written or `--time-budget-secs` of wall-clock
+   elapses. **The budget covers the WHOLE call**, not just inference: it's
+   counted from the very start, so it also pays for the discovery walk in
+   step 2 (each completeness check is itself deadline-bounded) and the
+   fighter's model load, which happens inside this step — a slow-loading
+   model, or a registry that takes a while to walk before landing on a
+   pair, doesn't get that time "for free";
+4. uploads the shard, then — if more than 5 minutes of the time budget
+   remain — draws another random pair and repeats, so a CI job's time slot
+   isn't left idle after one small/fast pair finishes. With no
+   `--time-budget-secs`, exactly one pair runs;
+5. prints a `one-shot: pair=... written=... errored=... elapsed=...s
+   upload=...` summary line per pair run, plus a totals line, and always
+   exits 0. Two other outcomes get their own DISTINCT summary line, never
+   conflated with each other or with a normal run:
+   - `one-shot: nothing to do — ...` — every eligible candidate was
+     checked and is genuinely complete;
+   - `one-shot: discovery-bound, 0 pairs drawn, N candidate(s) probed —
+     ran out of time-budget before finding a usable pair` — the deadline
+     elapsed while still walking candidates (a slow completeness check on
+     a huge dataset, or a very large registry with a short budget); this
+     is NOT the same as "nothing to do" — there might well be work left,
+     the run simply never got to look at all of it.
+
+**Resilience**: if the chosen fighter's plugin fails to load outright (a
+missing system dependency on the runner, e.g. `espeak-ng`), the pair's
+fighter is quarantined exactly as in forever-mode and the shuffled walk
+continues onto the next candidate instead, up to `--max-attempts` (default
+3) real draws before that round gives up — the job still exits 0 rather
+than failing outright on one broken fighter.
+
+**Filters**: `--include`/`--exclude` (competitor id globs) and the new
+`--datasets` (dataset id globs) narrow the random pick to a subset instead
+of the full pool — e.g. `--include 'vosk-*' --datasets common-voice-*`. The
+workflow's `workflow_dispatch` exposes these as the `competitor` and
+`dataset` inputs.
+
+### Triggering a run
+
+- **Scheduled**: cron `17 * * * *` (offset from the hour to avoid
+  colliding with `tally.yml`/`assemble.yml`, which also run on cron).
+- **Manual** (Actions tab → "Hourly random-pair predictions" → *Run
+  workflow*): set `competitor`/`dataset` globs to target a specific
+  fighter or dataset instead of the full random pool — useful for
+  populating a newly-added fighter/dataset's coverage or validating that a
+  fighter loads cleanly on the runner without waiting for the cron to pick
+  it. `time_budget_secs`/`max_samples` are also dispatch inputs (defaults
+  1500s / 1000 samples).
+
+### Runner environment
+
+- **System deps**: the workflow installs `espeak-ng`, `libsndfile1`,
+  `ffmpeg` via `apt-get` — needed by several TTS/audio-decode fighters.
+- **Python deps**: `pip install ".[hf,audio]"` plus a small, best-effort
+  list of CPU-only OVOS plugin packages (see the workflow file for the
+  current list). **Not every registry fighter's plugin is pre-installed**
+  — a fighter whose plugin is missing just fails to load, gets quarantined
+  for that run, and a different pair is drawn (point 3 above); it is not a
+  job failure. Extend the installed-plugin list over time as more
+  CPU-friendly plugins are confirmed to install cleanly on a GitHub-hosted
+  runner.
+- **HF upload token**: the `HF_TOKEN` repo secret (same environment
+  variable name `runner.__main__`/the fleet daemon already read via
+  `os.environ.get("HF_TOKEN")` — see "HuggingFace publish" above). No
+  *existing* workflow in this repo needed a write token before this one:
+  `tally.yml`/`assemble.yml` only read already-published public HF data.
+  `HF_TOKEN` must be added as a repository secret before this workflow can
+  publish; without it, `--one-shot` still runs and writes the local shard,
+  it just can't push to HF.
+- **Caching**: `~/.cache/huggingface` is cached across runs on a coarse
+  key (registry file hashes, with an OS-level restore-key fallback) so a
+  model already downloaded by a previous run doesn't get re-fetched cold
+  every hour; `actions/setup-python`'s `cache: pip` covers the Python
+  dependency install.
+- **Concurrency**: `concurrency: group: hourly-predictions,
+  cancel-in-progress: false` — an overlapping run (a slow scheduled run
+  plus a manual dispatch) queues instead of overlapping or being
+  cancelled mid-write. `timeout-minutes: 55` keeps a stuck run from
+  bumping into the next hour's scheduled trigger.
+
 ---
 [← Benchmarks](benchmarks.md) · [Home](index.md) · [Leagues →](leagues.md)

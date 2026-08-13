@@ -28,6 +28,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import time
 from collections.abc import Iterator
 from dataclasses import dataclass
 from pathlib import Path
@@ -247,6 +248,14 @@ class BatchResult:
     which must never call :meth:`RoundRobinScheduler.mark_complete` off an
     error-shortfall).
 
+    ``deadline_hit`` distinguishes a THIRD reason for a short batch: the
+    caller passed a ``deadline`` to :func:`run_competitor_lang` and it
+    elapsed mid-batch. Like an error-shortfall, this must never be read as
+    "the pair is exhausted" — the remaining samples were never attempted,
+    they just ran out of wall-clock time (``runner.autorun``'s one-shot
+    mode uses this to keep a time-budgeted pair in rotation instead of
+    marking it complete).
+
     Compares equal to a plain ``int`` on ``written`` for source
     compatibility with existing callers that only ever cared about the row
     count (``run_benchmark``, and every pre-autorun test).
@@ -255,6 +264,7 @@ class BatchResult:
     written: int
     errored: int = 0
     last_error: str | None = None
+    deadline_hit: bool = False
 
     def __eq__(self, other):
         if isinstance(other, BatchResult):
@@ -286,6 +296,7 @@ def run_competitor_lang(
     results_repo: str,
     max_samples: int = 0,
     max_new_samples: int = 0,
+    deadline: float | None = None,
 ) -> BatchResult:
     """Run one fighter over one language of the eval set, resumably.
 
@@ -294,13 +305,20 @@ def run_competitor_lang(
     ``runner.autorun`` to take a bounded batch per (fighter, dataset, lang)
     pair instead of draining the whole language to completion in one call.
 
+    *deadline* (``time.monotonic()``-based, ``None`` = unbounded) is
+    checked before loading the model and before each sample — a slow
+    model load eats into the same budget as inference, since the first
+    check happens right after it. Used by ``runner.autorun``'s one-shot
+    mode to bound wall-clock instead of (or in addition to) sample count.
+
     Returns a :class:`BatchResult`. A caller CANNOT tell whether the pair
     still has work left just from ``written < max_new_samples`` — a batch
     can also return short (down to 0) because every remaining sample raised
-    in ``adapter.predict`` (a transient plugin/model error), not because
-    ``adapter.iter_samples`` ran out. Check ``result.errored`` too: only
-    ``written < max_new_samples and errored == 0`` means the language is
-    genuinely exhausted for this fighter.
+    in ``adapter.predict`` (a transient plugin/model error) or because the
+    deadline elapsed, not because ``adapter.iter_samples`` ran out. Check
+    ``result.errored`` and ``result.deadline_hit`` too: only
+    ``written < max_new_samples and errored == 0 and not deadline_hit``
+    means the language is genuinely exhausted for this fighter.
     """
     done = done_samples(out_path)
     engine = None
@@ -312,15 +330,23 @@ def run_competitor_lang(
     written = 0
     errored = 0
     last_error: str | None = None
+    deadline_hit = False
     with out_path.open("a", encoding="utf-8") as fh:
         for sample_id, sample in adapter.iter_samples(
             eval_def, lang, revision, max_samples
         ):
             if sample_id in done:
                 continue
+            if deadline is not None and time.monotonic() >= deadline:
+                deadline_hit = True
+                break
             if engine is None:  # lazy: only pay model load if work remains
                 log.info("  loading %s for %s", competitor.competitor_id, lang)
                 engine = adapter.load_engine(competitor, lang)
+            if deadline is not None and time.monotonic() >= deadline:
+                # Model load itself may have consumed the whole budget.
+                deadline_hit = True
+                break
             try:
                 fields, elapsed_ms, peak_rss_mb = measure_call(
                     lambda: adapter.predict(engine, sample, ctx)
@@ -349,9 +375,10 @@ def run_competitor_lang(
                          written)
             if max_new_samples and written >= max_new_samples:
                 break
-    log.info("  %s/%s: wrote %d rows (%d errored)", competitor.competitor_id,
-              lang, written, errored)
-    return BatchResult(written=written, errored=errored, last_error=last_error)
+    log.info("  %s/%s: wrote %d rows (%d errored%s)", competitor.competitor_id,
+              lang, written, errored, ", deadline hit" if deadline_hit else "")
+    return BatchResult(written=written, errored=errored, last_error=last_error,
+                       deadline_hit=deadline_hit)
 
 
 # ---------------------------------------------------------------------------

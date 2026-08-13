@@ -1,0 +1,117 @@
+name: Hourly random-pair predictions
+
+# CI-friendly companion to runner/autorun.py's forever-mode daemon (which
+# runs on the fleet, not here): picks ONE random eligible/incomplete
+# (fighter, dataset, lang) pair per run, scores a time-budgeted slice of new
+# samples, and uploads the shard to HF — see docs/runner.md "hourly CI
+# predictions" for the full design and how to read a run's step summary.
+
+on:
+  schedule:
+    # Hourly, offset from the top of the hour to avoid congestion with
+    # other scheduled workflows (tally.yml/assemble.yml also run on cron).
+    - cron: '17 * * * *'
+  workflow_dispatch:
+    inputs:
+      competitor:
+        description: 'Competitor id glob (optional — restricts the random pick, e.g. "vosk-*")'
+        required: false
+        default: ''
+      dataset:
+        description: 'Dataset id glob (optional — restricts the random pick)'
+        required: false
+        default: ''
+      time_budget_secs:
+        description: 'Wall-clock budget in seconds (includes model load)'
+        required: false
+        default: '1500'
+      max_samples:
+        description: 'New-sample cap per pair drawn'
+        required: false
+        default: '1000'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hourly-predictions
+  cancel-in-progress: false
+
+jobs:
+  predict:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: dev
+
+      - name: Install system deps (espeak-ng, libsndfile, ffmpeg — needed by some fighters)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends espeak-ng libsndfile1 ffmpeg
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Cache HuggingFace hub
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          # Coarse key: models/datasets accumulate across runs and are
+          # rarely invalidated — restore-keys fall back to the latest
+          # cache on a miss instead of a fully cold download.
+          key: hf-cache-${{ runner.os }}-${{ hashFiles('registry/**/*.json') }}
+          restore-keys: |
+            hf-cache-${{ runner.os }}-
+
+      - name: Install arena + audio/HF extras
+        run: pip install --quiet ".[hf,audio]"
+
+      - name: Install a light, CI-friendly set of fighter plugins (best effort)
+        # NOT every registry fighter's plugin is installed here — a fighter
+        # whose plugin is missing simply fails to load, gets quarantined
+        # for this run, and the one-shot picks a different pair instead
+        # (see runner/autorun.py AutoRunner.run_one_shot's max_attempts
+        # retry) rather than failing the job. Extend this list over time
+        # as more CPU-only plugins are confirmed to install cleanly here.
+        run: |
+          pip install --quiet \
+            ovos-stt-plugin-vosk \
+            ovos-stt-plugin-chromium \
+            ovos-tts-plugin-mimic3 \
+            ovos-vad-plugin-silero \
+            || true
+
+      - name: Run one-shot prediction round
+        id: run
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          COMPETITOR_GLOB: ${{ github.event.inputs.competitor }}
+          DATASET_GLOB: ${{ github.event.inputs.dataset }}
+        run: |
+          set -o pipefail
+          args=(
+            --one-shot
+            --light
+            --max-samples "${{ github.event.inputs.max_samples || '1000' }}"
+            --time-budget-secs "${{ github.event.inputs.time_budget_secs || '1500' }}"
+            --max-attempts 3
+            --output-dir predictions
+          )
+          [ -n "$COMPETITOR_GLOB" ] && args+=(--include "$COMPETITOR_GLOB")
+          [ -n "$DATASET_GLOB" ] && args+=(--datasets "$DATASET_GLOB")
+          python -m runner.autorun "${args[@]}" | tee /tmp/one-shot.log
+
+      - name: Write step summary
+        if: always()
+        run: |
+          {
+            echo "## Hourly prediction run"
+            echo
+            echo '```'
+            grep '^one-shot:' /tmp/one-shot.log || echo "(no one-shot: lines captured)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
