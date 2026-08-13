@@ -1,6 +1,373 @@
 {
-  "generated_at": "2026-08-12T23:51:42.467730+00:00",
+  "generated_at": "2026-08-13T05:35:28.160329+00:00",
   "competitors": [
+    {
+      "competitor_id": "ovos-g2p-plugin-mimic-en",
+      "schema_version": 1,
+      "modality": "g2p",
+      "plugin": "ovos-g2p-plugin-mimic",
+      "config": {
+        "g2p": {
+          "module": "ovos-g2p-plugin-mimic"
+        }
+      },
+      "langs": [
+        "en"
+      ],
+      "alias": [
+        "ovos-g2p-plugin-mimic"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "Mimic Phonemes (en)",
+      "species": "MimicPhonemesPlugin",
+      "family": "MimicPhonemesPlugin",
+      "types": [
+        "lexicon",
+        "rule-based"
+      ],
+      "description": "ARPABET phoneme lookup ported from the Mimic1 TTS engine's built-in lexicon/letter-to-sound rules; IPA output is derived via the standard ARPABET->IPA table (Grapheme2PhonemePlugin.get_ipa fallback).",
+      "links": {
+        "pypi": "https://pypi.org/project/ovos-g2p-plugin-mimic/"
+      },
+      "notes": "Verified installable and resolvable via find_g2p_plugins() (available_languages == ['en']) as of this PR. No pt-PT fighter exists yet."
+    },
+    {
+      "competitor_id": "scriptconv-g2p-epitran",
+      "schema_version": 1,
+      "modality": "g2p",
+      "plugin": "ovos-scriptconv-g2p-plugin",
+      "config": {
+        "g2p": {
+          "module": "ovos-scriptconv-g2p-plugin",
+          "ovos-scriptconv-g2p-plugin": {
+            "phonemizer": "epitran",
+            "lang": "pt-pt"
+          }
+        }
+      },
+      "langs": [
+        "pt-PT"
+      ],
+      "alias": [
+        "ovos-scriptconv-g2p-plugin"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "scriptconv Epitran (pt-PT)",
+      "species": "ScriptconvEpitran",
+      "family": "ScriptconvEpitran",
+      "types": [
+        "rule-based",
+        "tool"
+      ],
+      "description": "scriptconv's Epitran backend (Phonemizer.EPITRAN), the multilingual rule-based orthography->IPA mapper. get_ipa('casa','pt-PT')=='kɐzɐ', get_ipa('obrigado','pt-PT')=='obʁiɡɐdo' - genuine rule-based conversion, verified on 3 pt-PT samples ('mundo'->'mundo' is a coincidental identity match, 'casa'/'obrigado' are not).",
+      "links": {
+        "pypi": "https://pypi.org/project/ovos-scriptconv-g2p-plugin/",
+        "github": "https://github.com/TigreGotico/ovos-scriptconv-g2p-plugin"
+      },
+      "notes": "Verified working for pt-PT in the shared venv (epitran + lex_lookup warning is benign - flite's lex_lookup binary is only used as an optional fallback). en-US SKIPPED: raised OutOfVocabulary (empty phonemization) for 'hello' - epitran's default en config did not resolve. PROVENANCE: epitran-family output is a rule-based tool, not human-reviewed - competes fine as a fighter, but per this repo's provenance-tier convention must never be used as a gold/reference source for future g2p datasets."
+    },
+    {
+      "competitor_id": "scriptconv-g2p-espeak",
+      "schema_version": 1,
+      "modality": "g2p",
+      "plugin": "ovos-scriptconv-g2p-plugin",
+      "config": {
+        "g2p": {
+          "module": "ovos-scriptconv-g2p-plugin",
+          "ovos-scriptconv-g2p-plugin": {
+            "phonemizer": "espeak",
+            "lang": "en-us"
+          }
+        }
+      },
+      "langs": [
+        "en-US",
+        "pt-PT"
+      ],
+      "alias": [
+        "ovos-scriptconv-g2p-plugin"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "scriptconv espeak",
+      "species": "ScriptconvEspeak",
+      "family": "ScriptconvEspeak",
+      "types": [
+        "rule-based",
+        "tool"
+      ],
+      "description": "scriptconv's espeak-ng backend (Phonemizer.ESPEAK) via the espeak-ng subprocess/library, IPA-native. get_ipa('hello','en-US')=='həlˈoʊ', get_ipa('mundo','pt-PT')=='mˈũŋdʊ' - genuine rule-based phonemization, distinct output per word verified on 3 samples/lang.",
+      "links": {
+        "pypi": "https://pypi.org/project/ovos-scriptconv-g2p-plugin/",
+        "github": "https://github.com/TigreGotico/ovos-scriptconv-g2p-plugin"
+      },
+      "notes": "Verified working for en-US and pt-PT in the shared venv, no extra package required beyond the system espeak-ng binary (already present). PROVENANCE: espeak-family output is a rule-based TTS-adjacent tool, not human-reviewed - it competes as a fighter fine, but per this repo's provenance-tier convention (tool_derived must be false for a dataset to count as gold) espeak-derived transcriptions must never be used as a gold/reference source for future g2p datasets."
+    },
+    {
+      "competitor_id": "scriptconv-g2p-g2pen",
+      "schema_version": 1,
+      "modality": "g2p",
+      "plugin": "ovos-scriptconv-g2p-plugin",
+      "config": {
+        "g2p": {
+          "module": "ovos-scriptconv-g2p-plugin",
+          "ovos-scriptconv-g2p-plugin": {
+            "phonemizer": "g2pen",
+            "lang": "en-us"
+          }
+        }
+      },
+      "langs": [
+        "en-US"
+      ],
+      "alias": [
+        "ovos-scriptconv-g2p-plugin"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "scriptconv g2p_en",
+      "species": "ScriptconvG2pEn",
+      "family": "ScriptconvG2pEn",
+      "types": [
+        "neural",
+        "lexicon"
+      ],
+      "description": "scriptconv's g2p_en backend (Phonemizer.G2PEN), the CMUdict-lexicon-plus-LSTM English G2P library (Park & Kim). get_ipa('hello','en-US')=='həloʊ' verified on 3 en-US samples (pulled NLTK's averaged_perceptron_tagger_eng and cmudict corpora on first call, already cached in ~/nltk_data).",
+      "links": {
+        "pypi": "https://pypi.org/project/ovos-scriptconv-g2p-plugin/",
+        "github": "https://github.com/TigreGotico/ovos-scriptconv-g2p-plugin"
+      },
+      "notes": "Verified working for en-US in the shared venv (g2p_en + nltk data already installed/cached). pt-PT SKIPPED: raised OutOfVocabulary('unsupported language code: pt-PT') - English-only library."
+    },
+    {
+      "competitor_id": "scriptconv-g2p-gruut",
+      "schema_version": 1,
+      "modality": "g2p",
+      "plugin": "ovos-scriptconv-g2p-plugin",
+      "config": {
+        "g2p": {
+          "module": "ovos-scriptconv-g2p-plugin",
+          "ovos-scriptconv-g2p-plugin": {
+            "phonemizer": "gruut",
+            "lang": "en-us"
+          }
+        }
+      },
+      "langs": [
+        "en-US"
+      ],
+      "alias": [
+        "ovos-scriptconv-g2p-plugin"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "scriptconv Gruut (en)",
+      "species": "ScriptconvGruut",
+      "family": "ScriptconvGruut",
+      "types": [
+        "rule-based",
+        "tool"
+      ],
+      "description": "scriptconv's gruut backend (Phonemizer.GRUUT), rule-based lexicon+G2P library. get_ipa('hello','en-US')=='hɛlˈoʊ' verified on 3 en-US samples.",
+      "links": {
+        "pypi": "https://pypi.org/project/ovos-scriptconv-g2p-plugin/",
+        "github": "https://github.com/TigreGotico/ovos-scriptconv-g2p-plugin"
+      },
+      "notes": "Verified working for en-US in the shared venv (gruut's English data ships with the base gruut package, already installed). pt-PT SKIPPED: raised RuntimeError('did you install gruut[pt] ?') - needs the gruut[pt] extra, not installed in ~/.venvs/ovos as of this PR."
+    },
+    {
+      "competitor_id": "scriptconv-g2p-misaki",
+      "schema_version": 1,
+      "modality": "g2p",
+      "plugin": "ovos-scriptconv-g2p-plugin",
+      "config": {
+        "g2p": {
+          "module": "ovos-scriptconv-g2p-plugin",
+          "ovos-scriptconv-g2p-plugin": {
+            "phonemizer": "misaki",
+            "lang": "en-us"
+          }
+        }
+      },
+      "langs": [
+        "en-US"
+      ],
+      "alias": [
+        "ovos-scriptconv-g2p-plugin"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "scriptconv Misaki (auto)",
+      "species": "ScriptconvMisaki",
+      "family": "ScriptconvMisaki",
+      "types": [
+        "neural",
+        "hybrid"
+      ],
+      "description": "scriptconv's Misaki backend (Phonemizer.MISAKI, the Kokoro-TTS G2P library) with automatic language routing. get_ipa('hello','en-US')=='həlˈO' verified on 3 en-US samples; output is identical to the explicit misaki_en variant on English input in this venv.",
+      "links": {
+        "pypi": "https://pypi.org/project/ovos-scriptconv-g2p-plugin/",
+        "github": "https://github.com/TigreGotico/ovos-scriptconv-g2p-plugin"
+      },
+      "notes": "Verified working for en-US in the shared venv (misaki package installed). pt-PT SKIPPED: raised OutOfVocabulary('unsupported language code: pt-PT') - misaki has no Portuguese backend."
+    },
+    {
+      "competitor_id": "scriptconv-g2p-misaki-en",
+      "schema_version": 1,
+      "modality": "g2p",
+      "plugin": "ovos-scriptconv-g2p-plugin",
+      "config": {
+        "g2p": {
+          "module": "ovos-scriptconv-g2p-plugin",
+          "ovos-scriptconv-g2p-plugin": {
+            "phonemizer": "misaki_en",
+            "lang": "en-us"
+          }
+        }
+      },
+      "langs": [
+        "en-US"
+      ],
+      "alias": [
+        "ovos-scriptconv-g2p-plugin"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "scriptconv Misaki (en)",
+      "species": "ScriptconvMisakiEN",
+      "family": "ScriptconvMisakiEN",
+      "types": [
+        "neural",
+        "hybrid"
+      ],
+      "description": "scriptconv's Misaki-English backend (Phonemizer.MISAKI_EN), the explicit English-locked variant of the Kokoro-TTS G2P library (registered separately from Phonemizer.MISAKI per this PR's one-fighter-per-registry-name rule, even though the two produced identical output on the samples tested). get_ipa('hello','en-US')=='həlˈO' verified on 3 en-US samples.",
+      "links": {
+        "pypi": "https://pypi.org/project/ovos-scriptconv-g2p-plugin/",
+        "github": "https://github.com/TigreGotico/ovos-scriptconv-g2p-plugin"
+      },
+      "notes": "Verified working for en-US in the shared venv (misaki package installed). pt-PT not supported by this backend, not tested (no Portuguese variant exists in scriptconv's misaki family)."
+    },
+    {
+      "competitor_id": "scriptconv-g2p-orthography2ipa",
+      "schema_version": 1,
+      "modality": "g2p",
+      "plugin": "ovos-scriptconv-g2p-plugin",
+      "config": {
+        "g2p": {
+          "module": "ovos-scriptconv-g2p-plugin",
+          "ovos-scriptconv-g2p-plugin": {
+            "phonemizer": "orthography2ipa",
+            "lang": "en-us"
+          }
+        }
+      },
+      "langs": [
+        "en-US",
+        "pt-PT"
+      ],
+      "alias": [
+        "ovos-scriptconv-g2p-plugin"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "scriptconv orthography2ipa",
+      "species": "ScriptconvOrthography2ipa",
+      "family": "ScriptconvOrthography2ipa",
+      "types": [
+        "rule-based"
+      ],
+      "description": "scriptconv's own orthography2ipa backend (Phonemizer.ORTHOGRAPHY2IPA), a general-purpose rule-based grapheme->IPA mapper and scriptconv's own default fallback for languages with no other explicit LANG_DEFAULTS entry. get_ipa('hello','en-US')=='hɛlɒ', get_ipa('mundo','pt-PT')=='ˈmũdu' verified on 3 samples/lang.",
+      "links": {
+        "pypi": "https://pypi.org/project/ovos-scriptconv-g2p-plugin/",
+        "github": "https://github.com/TigreGotico/ovos-scriptconv-g2p-plugin",
+        "orthography2ipa": "https://github.com/TigreGotico/orthography2ipa"
+      },
+      "notes": "Verified working for en-US and pt-PT in the shared venv, no extra package required, on 3 samples/lang."
+    },
+    {
+      "competitor_id": "scriptconv-g2p-shami",
+      "schema_version": 1,
+      "modality": "g2p",
+      "plugin": "ovos-scriptconv-g2p-plugin",
+      "config": {
+        "g2p": {
+          "module": "ovos-scriptconv-g2p-plugin",
+          "ovos-scriptconv-g2p-plugin": {
+            "phonemizer": "shami",
+            "lang": "en-us"
+          }
+        }
+      },
+      "langs": [
+        "en-US"
+      ],
+      "alias": [
+        "ovos-scriptconv-g2p-plugin"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "scriptconv Shami",
+      "species": "ScriptconvShami",
+      "family": "ScriptconvShami",
+      "types": [
+        "rule-based",
+        "tool"
+      ],
+      "description": "scriptconv's Shami backend (Phonemizer.SHAMI), a Levantine-Arabic/English code-switching phonemizer (see scriptconv/phonemizers/shami.py docstring). ``ShamiPhonemizer.get_lang`` only maps to ``[\"ar\", \"en\"]`` - en-US is a genuine declared use case (bilingual AR/EN front-end) and produced distinct, non-passthrough IPA-ish output: get_ipa('hello','en-US')=='həlˈo͡ʊ' verified on 3 en-US samples; quality vs. the model's intended Levantine-Arabic-flavored English is unverified (no Arabic dataset exists in this arena's g2p league yet).",
+      "links": {
+        "pypi": "https://pypi.org/project/ovos-scriptconv-g2p-plugin/",
+        "github": "https://github.com/TigreGotico/ovos-scriptconv-g2p-plugin"
+      },
+      "notes": "Verified working for en-US in the shared venv, no extra package required, on 3 samples. pt-PT REMOVED during adversarial review (2026-08-13): ShamiPhonemizer.get_lang() only supports [\"ar\",\"en\"] - there is no Portuguese variety anywhere in this engine. The original PR's pt-PT probe (get_ipa('mundo','pt-PT')=='mˈʌndo͡ʊ') was not a language match, it was the frontend's script-based (Arabic-vs-Latin) routing silently reading Portuguese-orthography Latin text as English-flavored input regardless of the declared lang tag - a bogus lang claim, not a working pt-PT fighter."
+    },
+    {
+      "competitor_id": "scriptconv-g2p-tugaphone",
+      "schema_version": 1,
+      "modality": "g2p",
+      "plugin": "ovos-scriptconv-g2p-plugin",
+      "config": {
+        "g2p": {
+          "module": "ovos-scriptconv-g2p-plugin",
+          "ovos-scriptconv-g2p-plugin": {
+            "phonemizer": "tugaphone",
+            "lang": "pt-pt"
+          }
+        }
+      },
+      "langs": [
+        "pt-PT"
+      ],
+      "alias": [
+        "ovos-scriptconv-g2p-plugin"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "scriptconv Tugaphone (pt-PT)",
+      "species": "ScriptconvTugaphone",
+      "family": "ScriptconvTugaphone",
+      "types": [
+        "rule-based",
+        "lexicon"
+      ],
+      "description": "scriptconv's Tugaphone backend (Phonemizer.TUGAPHONE), TigreGotico's own European Portuguese rule-based/lexicon G2P engine. get_ipa('mundo','pt-PT')=='ˈmũdu', get_ipa('casa','pt-PT')=='ˈkazɐ', get_ipa('obrigado','pt-PT')=='ubɾiˈgadu' verified on 3 pt-PT samples; output is identical to scriptconv's orthography2ipa on the samples tested here (tugaphone is a declared LANG_DEFAULTS backend feeding that chain for pt).",
+      "links": {
+        "pypi": "https://pypi.org/project/ovos-scriptconv-g2p-plugin/",
+        "github": "https://github.com/TigreGotico/ovos-scriptconv-g2p-plugin"
+      },
+      "notes": "Verified working for pt-PT in the shared venv (scriptconv[pt-phonemizers] already installed). en-US SKIPPED: raised OutOfVocabulary('unsupported language code: en-US') - Portuguese-only engine."
+    },
     {
       "competitor_id": "cascade-soft",
       "schema_version": 1,
@@ -97711,6 +98078,8 @@
     }
   ],
   "plugin_families": {
+    "ovos-g2p-plugin-mimic": "MimicPhonemesPlugin",
+    "ovos-scriptconv-g2p-plugin": "ScriptconvTugaphone",
     "ovos-adapt-domain-pipeline-plugin": "AdaptPipeline",
     "ovos-adapt-hierarchical-pipeline-plugin": "AdaptPipeline",
     "ovos-adapt-pipeline-plugin": "AdaptPipeline",

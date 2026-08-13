@@ -2,7 +2,7 @@
   "modality": "intent_keyword",
   "dataset_id": "intents-for-eval",
   "lang": "fr-FR",
-  "generated_at": "2026-08-12T06:31:30.061311+00:00",
+  "generated_at": "2026-08-13T04:56:01.302612+00:00",
   "primary_metric": "accuracy",
   "dataset_info": {
     "url": "https://huggingface.co/datasets/OpenVoiceOS/intents-for-eval",
@@ -25,42 +25,14 @@
     }
   },
   "predictions_revisions": {
-    "OpenVoiceOS/ovos-intent-bench-intents-for-eval": "f2a7ed1774b811f44bb6191df8dd74bb54256174",
+    "OpenVoiceOS/ovos-intent-bench-intents-for-eval": "9f49f27a64de4001cb2081aa94e38dc6ad7c2aea",
     "OpenVoiceOS/ovos-intent-keyword-bench-intents-for-eval": "bbaec024ecd957e0cae6043fdd54e7d71ebd43e1",
-    "OpenVoiceOS/ovos-intent-template-bench-intents-for-eval": "76e93e666fb38fee9fbc2e0cf7fefa1fbfffc06d"
+    "OpenVoiceOS/ovos-intent-template-bench-intents-for-eval": "96195b2e89407580efa9343b4cdfd7e153663383"
   },
   "wer_normalizer_version": null,
   "entries": [
     {
       "rank": 1,
-      "competitor_id": "adapt-low",
-      "plugin_id": "ovos-adapt-pipeline-plugin",
-      "samples": 1750,
-      "metrics": {
-        "accuracy": 0.3914,
-        "macro_f1": 0.5007,
-        "ood_fpr": 0.04,
-        "slot_exact_match": 0.6156,
-        "latency_ms_median": 0.85,
-        "acc_asr_noise": 0.2,
-        "acc_far_ood": 0.96,
-        "acc_near_ood": 0.7,
-        "acc_paraphrase": 0.1443,
-        "acc_template": 0.488,
-        "acc_typos": 0.04
-      },
-      "primary_metric_ci_lower": 0.368,
-      "primary_metric_ci_upper": 0.4137142857142857,
-      "tied_with_leader": true,
-      "plugin_versions": [
-        "ovos-adapt-pipeline-plugin==1.0.9"
-      ],
-      "version_blended": false,
-      "unranked": false,
-      "unranked_reason": null
-    },
-    {
-      "rank": 2,
       "competitor_id": "adapt-medium",
       "plugin_id": "ovos-adapt-pipeline-plugin",
       "samples": 1750,
@@ -70,6 +42,7 @@
         "ood_fpr": 0.0,
         "slot_exact_match": 0.7431,
         "latency_ms_median": 2.63,
+        "ece": 0.2533,
         "acc_asr_noise": 0.12,
         "acc_far_ood": 1.0,
         "acc_near_ood": 0.5175,
@@ -79,16 +52,18 @@
       },
       "primary_metric_ci_lower": 0.2674285714285714,
       "primary_metric_ci_upper": 0.30744285714285713,
-      "tied_with_leader": false,
+      "tied_with_leader": true,
       "plugin_versions": [
         "ovos-adapt-pipeline-plugin==1.3.1a1"
       ],
       "version_blended": false,
       "unranked": false,
-      "unranked_reason": null
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null
     },
     {
-      "rank": 3,
+      "rank": 2,
       "competitor_id": "adapt-domain-medium",
       "plugin_id": "ovos-adapt-domain-pipeline-plugin",
       "samples": 1750,
@@ -98,6 +73,7 @@
         "ood_fpr": 0.0,
         "slot_exact_match": 0.6948,
         "latency_ms_median": 2.37,
+        "ece": 0.2408,
         "acc_asr_noise": 0.1,
         "acc_far_ood": 1.0,
         "acc_near_ood": 0.43,
@@ -113,10 +89,12 @@
       ],
       "version_blended": false,
       "unranked": false,
-      "unranked_reason": null
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null
     },
     {
-      "rank": 4,
+      "rank": 3,
       "competitor_id": "adapt-hierarchical-medium",
       "plugin_id": "ovos-adapt-hierarchical-pipeline-plugin",
       "samples": 1750,
@@ -126,6 +104,7 @@
         "ood_fpr": 0.0,
         "slot_exact_match": 0.6952,
         "latency_ms_median": 2.91,
+        "ece": 0.2546,
         "acc_asr_noise": 0.1,
         "acc_far_ood": 1.0,
         "acc_near_ood": 0.43,
@@ -141,38 +120,12 @@
       ],
       "version_blended": false,
       "unranked": false,
-      "unranked_reason": null
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null
     },
     {
-      "rank": 5,
-      "competitor_id": "adapt-high",
-      "plugin_id": "ovos-adapt-pipeline-plugin",
-      "samples": 1750,
-      "metrics": {
-        "accuracy": 0.1646,
-        "macro_f1": 0.2191,
-        "ood_fpr": 0.0,
-        "slot_exact_match": 0.9724,
-        "latency_ms_median": 0.87,
-        "acc_asr_noise": 0.02,
-        "acc_far_ood": 1.0,
-        "acc_near_ood": 0.31,
-        "acc_paraphrase": 0.0229,
-        "acc_template": 0.194,
-        "acc_typos": 0.0
-      },
-      "primary_metric_ci_lower": 0.14742857142857144,
-      "primary_metric_ci_upper": 0.18342857142857144,
-      "tied_with_leader": false,
-      "plugin_versions": [
-        "ovos-adapt-pipeline-plugin==1.0.9"
-      ],
-      "version_blended": false,
-      "unranked": false,
-      "unranked_reason": null
-    },
-    {
-      "rank": 6,
+      "rank": 4,
       "competitor_id": "palavreado-hierarchical-medium",
       "plugin_id": "ovos-palavreado-hierarchical-pipeline",
       "samples": 1750,
@@ -196,64 +149,12 @@
       ],
       "version_blended": false,
       "unranked": false,
-      "unranked_reason": null
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null
     },
     {
-      "rank": 7,
-      "competitor_id": "palavreado-high",
-      "plugin_id": "ovos-palavreado-pipeline-plugin",
-      "samples": 1750,
-      "metrics": {
-        "accuracy": 0.0286,
-        "macro_f1": 0.0,
-        "ood_fpr": 0.0,
-        "latency_ms_median": 0.62,
-        "acc_asr_noise": 0.0,
-        "acc_far_ood": 1.0,
-        "acc_near_ood": 0.0,
-        "acc_paraphrase": 0.0,
-        "acc_template": 0.0,
-        "acc_typos": 0.0
-      },
-      "primary_metric_ci_lower": 0.021142857142857144,
-      "primary_metric_ci_upper": 0.036571428571428574,
-      "tied_with_leader": false,
-      "plugin_versions": [
-        "ovos-palavreado-pipeline-plugin==1.5.0a1"
-      ],
-      "version_blended": false,
-      "unranked": false,
-      "unranked_reason": null
-    },
-    {
-      "rank": 8,
-      "competitor_id": "palavreado-low",
-      "plugin_id": "ovos-palavreado-pipeline-plugin",
-      "samples": 1750,
-      "metrics": {
-        "accuracy": 0.0286,
-        "macro_f1": 0.0,
-        "ood_fpr": 0.0,
-        "latency_ms_median": 0.63,
-        "acc_asr_noise": 0.0,
-        "acc_far_ood": 1.0,
-        "acc_near_ood": 0.0,
-        "acc_paraphrase": 0.0,
-        "acc_template": 0.0,
-        "acc_typos": 0.0
-      },
-      "primary_metric_ci_lower": 0.021142857142857144,
-      "primary_metric_ci_upper": 0.036571428571428574,
-      "tied_with_leader": false,
-      "plugin_versions": [
-        "ovos-palavreado-pipeline-plugin==1.5.0a1"
-      ],
-      "version_blended": false,
-      "unranked": false,
-      "unranked_reason": null
-    },
-    {
-      "rank": 9,
+      "rank": 5,
       "competitor_id": "palavreado-medium",
       "plugin_id": "ovos-palavreado-pipeline-plugin",
       "samples": 1750,
@@ -277,7 +178,9 @@
       ],
       "version_blended": false,
       "unranked": false,
-      "unranked_reason": null
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null
     }
   ]
 }
