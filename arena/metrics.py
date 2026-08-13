@@ -446,18 +446,46 @@ def ww_row_correct(row: PredictionRow) -> bool | None:
     return ref == pred
 
 
+# §M5 — false-accepts-per-hour (FA/h) on the isolated-clip wake_word board.
+#
+# false_accept_rate (share of negative *clips* that fire) is the wrong signal
+# for real-world annoyance: a fighter scored on a pool of many short clips can
+# hold a low FAR while still firing constantly against a live mic, because FAR
+# says nothing about how much negative *time* backs it. FA/h — false
+# activations per hour of negative audio — is the number that actually
+# predicts how often a deployed assistant wakes up on nothing.
+#
+# Denominator honesty: audio_secs was only added to prediction rows by the
+# perf-capture campaign (PR #90) — rows benched before that carry
+# ``audio_secs is None`` and are silently excluded from BOTH the FA/h
+# numerator and denominator, rather than treated as zero-duration. The
+# ``fa_per_hour_hours`` field reports exactly how much negative audio backed
+# the number, so a board never implies more coverage than it has.
+#
+# Coverage floor: below MIN_FA_HOURS of covered negative audio the ratio is
+# noise (a single 3-second clip firing once would already read as an
+# absurd number of FA/h) — the metric is omitted (None) rather than printed.
+MIN_FA_HOURS = 0.25  # 15 minutes of covered negative audio
+
+
 def score_wake_word(rows: list[PredictionRow]) -> dict[str, float]:
     """Detection metrics for a wake-word competitor.
 
     ``error_rate`` (primary, lower is better) is the share of all samples
     decided wrong; ``false_accept_rate`` is firing on negatives (noise that
     triggers the assistant), ``false_reject_rate`` is missing positives (the
-    user says the wake word and nothing happens).
+    user says the wake word and nothing happens). ``fa_per_hour`` (§M5) is
+    false activations per hour of *covered* negative audio — see the
+    module note above for the ``audio_secs``-only denominator and the
+    ``MIN_FA_HOURS`` coverage floor.
     """
     positives = negatives = 0
     false_accepts = false_rejects = 0
     scored = 0
     latencies: list[float] = []
+    fa_negative_secs = 0.0
+    fa_false_accepts = 0
+    fa_covered_negatives = 0
     for row in rows:
         if row.latency_ms is not None:
             latencies.append(row.latency_ms)
@@ -474,6 +502,11 @@ def score_wake_word(rows: list[PredictionRow]) -> dict[str, float]:
             negatives += 1
             if pred:
                 false_accepts += 1
+            if row.audio_secs is not None:
+                fa_covered_negatives += 1
+                fa_negative_secs += row.audio_secs
+                if pred:
+                    fa_false_accepts += 1
 
     metrics: dict[str, float] = {}
     if scored:
@@ -486,6 +519,11 @@ def score_wake_word(rows: list[PredictionRow]) -> dict[str, float]:
         metrics["false_reject_rate"] = round(false_rejects / positives, 4)
     if latencies:
         metrics["latency_ms_median"] = round(median(latencies), 2)
+    if fa_covered_negatives:
+        fa_hours = fa_negative_secs / 3600.0
+        metrics["fa_per_hour_hours"] = round(fa_hours, 4)
+        if fa_hours >= MIN_FA_HOURS:
+            metrics["fa_per_hour"] = round(fa_false_accepts / fa_hours, 4)
     return metrics
 
 
