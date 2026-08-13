@@ -649,11 +649,22 @@ class CompetitorDef(BaseModel):
             aliases.append(self.plugin)
         self.alias = aliases
 
-        # `family` always ends up set once `species` is known (falls back to
-        # `species` verbatim when the engine has no domain/hierarchical
-        # wrapper siblings folded onto it) — see FAMILY_ALIASES above.
-        if self.family is None and self.species is not None:
-            self.family = FAMILY_ALIASES.get(self.species, self.species)
+        # `family` grouping is an intent-league concept only: intent
+        # paradigms field genuine config-variant *wrappers* of the same
+        # underlying engine (domain-scoped, hierarchical-scoped, …), where
+        # collapsing wrapper siblings onto one card is the desired ladder/
+        # bestiary presentation — see FAMILY_ALIASES above. TTS/STT/wake-word/
+        # VAD leagues are different: each competitor there is its own model
+        # (e.g. each Phoonnx voice, each onnx-asr checkpoint) and earns its
+        # own entry, never collapsed under the shared plugin id. So outside
+        # the intent leagues `family` always equals the competitor's own id
+        # — every non-intent fighter is a singleton family by construction.
+        if self.family is None:
+            if self.modality in INTENT_MODALITIES:
+                if self.species is not None:
+                    self.family = FAMILY_ALIASES.get(self.species, self.species)
+            else:
+                self.family = self.competitor_id
         return self
 
     @property
