@@ -399,7 +399,12 @@ import Base from '../../layouts/Base.astro';
     // uses this so the name itself is the link — discernible link text,
     // no click-catching wrapper div.
     const fighterHref = id => `${BASE}fighter/${encodeURIComponent(id)}/`;
-    const fighterLink = id => `<a href="${fighterHref(id)}">${esc(nameOf(id))}</a>`;
+    // Ghost entries (fighters[id] missing — no static detail page was built
+    // for them) must not get an <a> to a 404; render plain escaped text
+    // instead so every board/ladder row that uses this stays link-safe.
+    const fighterLink = id => fighters[id]
+      ? `<a href="${fighterHref(id)}">${esc(nameOf(id))}</a>`
+      : `<span>${esc(nameOf(id))}</span>`;
 
     // Fighter list with no rank/crown/podium chrome at all — used when a
     // board is provisional with zero votes cast: any ordering the backend
@@ -579,7 +584,7 @@ import Base from '../../layouts/Base.astro';
       ${metricPickerHtml(ladders, activeMetric)}
       ${note ? `<p class="lb-note">${note}</p>` : ''}${autoOnlyNote}
       ${unranked ? '<p class="lb-note">Unranked — no votes yet, order not meaningful.</p>' : ''}
-      ${awaitingCount ? `<p class="lb-note">${awaitingCount} fighter${awaitingCount === 1 ? '' : 's'} awaiting first predictions</p>` : ''}`;
+      ${awaitingCount ? `<p class="lb-note">${awaitingCount} fighter${awaitingCount === 1 ? '' : 's'} awaiting first battles</p>` : ''}`;
       if (!entries?.length)
         return `<section class="lb-section">${head}<div class="card" style="margin:0">No ladder standings yet.</div></section>`;
 
@@ -745,16 +750,22 @@ import Base from '../../layouts/Base.astro';
           : 'No benchmark board for this league and language yet.';
         return `<div class="bench">${msg}</div>`;
       }
-      // Same owner ruling as the ladder: a benchmark row with 0 samples
-      // carries no real signal, only whatever default the assembler wrote.
-      // Filtered at render time, keeping the underlying board artifact
-      // (and any seed/replay data it's built from) untouched.
+      // Same owner ruling as the ladder, but the actual no-signal marker
+      // here is the backend's own `unranked` flag (arena/metrics.py), not
+      // `samples` — every entry that reaches this board already has at
+      // least one scored sample (see BenchmarkEntry construction), so a
+      // `samples` filter is dead code. `unranked` is set precisely for a
+      // run that crashed/produced zero *scored* samples for the primary
+      // metric (unranked_reason: "run failed — no scored samples") and is
+      // the row this filter needs to exclude. Filtered at render time,
+      // keeping the underlying board artifact (and any seed/replay data
+      // it's built from) untouched.
       const allBoardEntries = board.entries;
-      const benchEntries = allBoardEntries.filter(e => e.samples);
+      const benchEntries = allBoardEntries.filter(e => !e.unranked);
       const benchAwaitingCount = allBoardEntries.length - benchEntries.length;
       if (!benchEntries.length) {
         return `<div class="bench">No entries with prediction data yet.${
-          benchAwaitingCount ? ` <p class="lb-note">${benchAwaitingCount} fighter${benchAwaitingCount === 1 ? '' : 's'} awaiting first predictions</p>` : ''}</div>`;
+          benchAwaitingCount ? ` <p class="lb-note">${benchAwaitingCount} fighter${benchAwaitingCount === 1 ? '' : 's'} had no scored samples (runs failed)</p>` : ''}</div>`;
       }
       board = { ...board, entries: benchEntries };
       // The ladder metric picker also re-sorts this benchmark board: when
@@ -818,7 +829,7 @@ import Base from '../../layouts/Base.astro';
           <span class="tag">${wantsMetric ? 'sorted by' : 'primary metric'} · ${esc(metricLabel(primary))}</span>
           ${buckets.length ? '<button class="btn toggle-buckets" style="padding:0.1rem 0.6rem;font-size:0.72rem;margin-left:auto">show buckets</button>' : ''}
         </div>
-        ${benchAwaitingCount ? `<p class="lb-note">${benchAwaitingCount} fighter${benchAwaitingCount === 1 ? '' : 's'} awaiting first predictions</p>` : ''}
+        ${benchAwaitingCount ? `<p class="lb-note">${benchAwaitingCount} fighter${benchAwaitingCount === 1 ? '' : 's'} had no scored samples (runs failed)</p>` : ''}
         <div style="overflow-x:auto"><table class="bench-tbl"><thead>${head}</thead><tbody>${rows}</tbody></table></div>
         ${pareto}
       </div>`;

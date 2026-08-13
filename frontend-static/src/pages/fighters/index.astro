@@ -159,17 +159,17 @@ import Base from '../../layouts/Base.astro';
     }
 
     // ---- subspecies grouping ----------------------------------------
-    // Group key: species (the parent plugin class a fighter instantiates)
-    // falling back to plugin (the OPM entry-point), falling back to the
-    // fighter's own competitor_id when neither is set — that fallback
-    // guarantees every fighter lands in exactly one group, and a fighter
-    // alone in its group renders with the plain (ungrouped) card, same
-    // as before this feature existed.
-    // `family` (registry-derived, see FAMILY_ALIASES in registry/schemas.py)
-    // folds config-variant wrapper species (domain-scoped, hierarchical-
-    // scoped, …) of the same underlying engine onto one card — falls back
-    // to `species` unchanged when no folding applies, so this is a strict
-    // superset of the old species-only key.
+    // Group key: `family` (registry-derived, see registry/schemas.py) is
+    // always set by the backend now — for intent leagues it folds
+    // config-variant wrapper species (domain-scoped, hierarchical-scoped,
+    // …) of the same underlying engine onto one card via FAMILY_ALIASES;
+    // for every other league (tts/stt/wake_word/vad) it always equals the
+    // fighter's own competitor_id, so each model is a singleton family and
+    // gets its own card — that's the intended per-model bestiary for those
+    // leagues, not a fallback. The `species`/`plugin`/`competitor_id` reads
+    // below are just defensive for the rare payload where `family` itself
+    // is missing (e.g. hand-built fixtures); they never change grouping
+    // behavior for real registry data.
     const groupKeyOf = c => c.family || c.species || c.plugin || c.competitor_id;
 
     // "JurebesPipeline" -> "Jurebes Pipeline"; "OnnxASR" -> "Onnx ASR";
