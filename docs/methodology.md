@@ -446,13 +446,36 @@ always recorded (never suppressed or clamped) and always reported, but it
 never gates a board or blocks a benchmark run, it is a signal to go listen,
 exactly like a UTMOS regression.
 
-**NISQA is deliberately not used anywhere in this aggregate.** NISQA's
-released model weights are licensed CC BY-NC, non-commercial only, which
-is incompatible with an Apache-2.0 arena whose leaderboard artifacts are
-meant to be freely reusable (including by commercial OVOS deployments
-deciding which TTS plugin to ship). UTMOS's ONNX export (via
-`speechonnxmetrics`) carries an MIT license with no such restriction, which
-is why it was chosen as the judge here.
+**UTMOS is the primary TTS quality judge.** Its ONNX export (via
+`speechonnxmetrics`) carries an MIT license, and it is fast to run per clip,
+which is why it drives the objective TTS board and its benchmark-seeded ELO
+votes.
+
+**The arena also runs SIGMOS and NISQA for a finer per-dimension quality
+breakdown** (noise, coloration, discontinuity, loudness, reverberation, …).
+**SIGMOS** (ITU-T P.804, MIT-licensed Microsoft weights) provides the
+headline dimensions surfaced as board columns: `noise`, `col`
+(coloration), `disc` (discontinuity), plus `loud`, `reverb`, `sig` and
+`ovrl` in the full row data. **NISQA-v2** is recorded alongside it as a
+complementary predictor, adding a second, independently-trained opinion on
+the same style of dimensions (`mos`, `noi`, `dis`, `col`, `loud`).
+
+NISQA's released weights are CC BY-NC-SA 4.0 (non-commercial). This arena
+is a non-commercial project of the OpenVoiceOS non-profit (registered in
+the Netherlands), so that license is compatible with how this project uses
+it — unlike a for-profit fork or a commercial redistribution of the board
+data, which would need to drop NISQA or replace it with an MIT-licensed
+alternative first. **DNSMOS** (ITU-T P.835, MIT-licensed) runs alongside
+both, predicting signal/background-noise/overall quality.
+
+All three families (SIGMOS, DNSMOS, NISQA) land in full on every scored
+row's `extras`; only a curated subset (`sigmos.noise`, `sigmos.col`,
+`sigmos.disc`, `dnsmos.bak`) is surfaced as headline columns on the TTS
+benchmark board, to keep it from growing unreadably wide. Running four MOS
+judges per rendered clip (UTMOS, SIGMOS, DNSMOS, NISQA) roughly
+quadruples the per-sample inference cost of TTS scoring relative to UTMOS
+alone — acceptable for this arena's batch benchmark runs, which are not
+latency-sensitive.
 
 ## Performance data on prediction rows (§3.2, M1)
 

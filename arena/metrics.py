@@ -57,6 +57,32 @@ PRIMARY_METRIC = {
 # every other primary metric ranks ascending.
 _HIGHER_BETTER = {"accuracy", "utmos"}
 
+#: Polarity of the flattened SIGMOS/DNSMOS/NISQA quality-dimension columns
+#: (§4 R14 extension) — NOT primary-metric ranking keys (UTMOS stays
+#: primary), but secondary board metrics whose "higher/lower is better"
+#: direction still has to be known by callers (e.g. the frontend). SIGMOS
+#: (P.804, MIT-licensed Microsoft weights) provides the headline dimensions
+#: surfaced as board columns; NISQA-v2 is recorded as a complementary
+#: predictor alongside it — this arena is a non-commercial OVOS project, so
+#: NISQA's CC BY-NC-SA 4.0 weights are usable here (see
+#: docs/methodology.md); NISQA is not surfaced as its own board column, only
+#: aggregated into the row/board JSON. VERIFIED against speechonnxmetrics'
+#: own docs/metric-guides (sigmos.md, dnsmos.md, nisqa.md) and source
+#: (``SIGMOS.higher_is_better`` / ``DNSMOS.higher_is_better`` /
+#: ``NISQA.higher_is_better`` are all ``True``): every dimension of all
+#: three metrics is a 1-5 MOS-style scale where HIGHER is always better —
+#: "noise"/"noi" and "disc"/"dis" (discontinuity) are scored as perceived-
+#: quality-along-that-axis, not as raw noise/glitch amount, so a quiet,
+#: continuous clip scores HIGH on both. Do not assume the metric name
+#: implies "lower is better" without checking this.
+TTS_QUALITY_DIMENSION_KEYS = (
+    "sigmos.col", "sigmos.disc", "sigmos.loud", "sigmos.noise",
+    "sigmos.reverb", "sigmos.sig", "sigmos.ovrl",
+    "dnsmos.sig", "dnsmos.bak", "dnsmos.ovrl",
+    "nisqa.mos", "nisqa.noi", "nisqa.dis", "nisqa.col", "nisqa.loud",
+)
+_HIGHER_BETTER.update(TTS_QUALITY_DIMENSION_KEYS)
+
 
 def _f1(tp: int, fp: int, fn: int) -> float:
     p = tp / (tp + fp) if tp + fp else 0.0
@@ -505,6 +531,23 @@ def row_intelligibility_wer(row: PredictionRow) -> float | None:
     return value
 
 
+def row_quality_dimension(row: PredictionRow, key: str) -> float | None:
+    """Per-row SIGMOS/DNSMOS/NISQA dimension score (e.g. ``"sigmos.noise"``), or None
+    when the row wasn't scored for that dimension (or carries a non-finite
+    value) — old rows benched before this metric existed simply lack the
+    key, so this must tolerate absence rather than crash (§4 R14 ext.)."""
+    value = row.extras.get(key)
+    if value is None:
+        return None
+    try:
+        value = float(value)
+    except (TypeError, ValueError):
+        return None
+    if value != value:  # NaN guard
+        return None
+    return value
+
+
 def score_tts(rows: list[PredictionRow]) -> dict[str, float]:
     """Aggregate TTS rows into a mean UTMOS board metric.
 
@@ -531,6 +574,14 @@ def score_tts(rows: list[PredictionRow]) -> dict[str, float]:
         if ci:
             metrics["intelligibility_wer_ci_lower"] = round(ci[0], 4)
             metrics["intelligibility_wer_ci_upper"] = round(ci[1], 4)
+    # SIGMOS/DNSMOS/NISQA quality dimensions (§4 R14 extension) — mean-aggregated
+    # exactly like utmos above, one dimension at a time, missing values
+    # excluded rather than fatal (old rows benched before this metric
+    # existed simply have no key for it).
+    for key in TTS_QUALITY_DIMENSION_KEYS:
+        values = [v for v in (row_quality_dimension(r, key) for r in rows) if v is not None]
+        if values:
+            metrics[key] = round(sum(values) / len(values), 4)
     if latencies:
         metrics["latency_ms_median"] = round(median(latencies), 2)
     return metrics

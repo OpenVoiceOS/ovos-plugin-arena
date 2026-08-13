@@ -41,13 +41,36 @@ class FakeJudge:
         return self.score
 
 
+class FakeDimJudge:
+    """Stand-in for speechonnxmetrics SIGMOS/DNSMOS/NISQA — returns a dict score."""
+
+    sample_rate = 16000
+
+    def __init__(self, scores=None, exc=None):
+        self.scores = scores or {}
+        self.exc = exc
+        self.calls = []
+
+    def __call__(self, wav_path, sr):
+        self.calls.append((wav_path, sr))
+        if self.exc is not None:
+            raise self.exc
+        return self.scores
+
+
 @pytest.fixture(autouse=True)
 def _reset_judge_cache(monkeypatch):
     # the judge is a module-level cached singleton — make sure tests don't
     # leak a fake instance into each other.
     monkeypatch.setattr(tts_bench, "_utmos_judge", None)
+    monkeypatch.setattr(tts_bench, "_sigmos_judge", None)
+    monkeypatch.setattr(tts_bench, "_dnsmos_judge", None)
+    monkeypatch.setattr(tts_bench, "_nisqa_judge", None)
     yield
     monkeypatch.setattr(tts_bench, "_utmos_judge", None)
+    monkeypatch.setattr(tts_bench, "_sigmos_judge", None)
+    monkeypatch.setattr(tts_bench, "_dnsmos_judge", None)
+    monkeypatch.setattr(tts_bench, "_nisqa_judge", None)
 
 
 def _ctx(tmp_path, competitor_id="voice_a", lang="en-US"):
@@ -141,6 +164,109 @@ class TestPredict:
         with pytest.raises(RuntimeError, match="speechonnxmetrics"):
             tts_bench.TTSBench().predict(
                 FakeEngine(), {"input_text": "x"}, _ctx(tmp_path))
+
+    def test_extras_carry_sigmos_dnsmos_and_nisqa_dimensions(self, tmp_path, monkeypatch):
+        monkeypatch.setattr(tts_bench, "_get_utmos_judge", lambda: FakeJudge(4.1))
+        sigmos = FakeDimJudge({"col": 4.3, "disc": 4.8, "loud": 4.6, "noise": 4.6,
+                                "reverb": 4.5, "sig": 4.4, "ovrl": 4.2})
+        dnsmos = FakeDimJudge({"sig": 3.4, "bak": 3.6, "ovrl": 2.9})
+        nisqa = FakeDimJudge({"mos": 4.7, "noi": 4.6, "dis": 4.8, "col": 4.3, "loud": 4.6})
+        monkeypatch.setattr(tts_bench, "_get_sigmos_judge", lambda: sigmos)
+        monkeypatch.setattr(tts_bench, "_get_dnsmos_judge", lambda: dnsmos)
+        monkeypatch.setattr(tts_bench, "_get_nisqa_judge", lambda: nisqa)
+
+        fields = tts_bench.TTSBench().predict(
+            FakeEngine(), {"input_text": "hello"}, _ctx(tmp_path))
+
+        extras = fields["extras"]
+        assert extras["sigmos.col"] == pytest.approx(4.3)
+        assert extras["sigmos.disc"] == pytest.approx(4.8)
+        assert extras["sigmos.loud"] == pytest.approx(4.6)
+        assert extras["sigmos.noise"] == pytest.approx(4.6)
+        assert extras["sigmos.reverb"] == pytest.approx(4.5)
+        assert extras["sigmos.sig"] == pytest.approx(4.4)
+        assert extras["sigmos.ovrl"] == pytest.approx(4.2)
+        assert extras["sigmos_judge"] == "TigreGotico/sigmos-onnx"
+        assert extras["dnsmos.sig"] == pytest.approx(3.4)
+        assert extras["dnsmos.bak"] == pytest.approx(3.6)
+        assert extras["dnsmos.ovrl"] == pytest.approx(2.9)
+        assert extras["dnsmos_judge"] == "TigreGotico/dnsmos-onnx"
+        assert extras["nisqa.mos"] == pytest.approx(4.7)
+        assert extras["nisqa.noi"] == pytest.approx(4.6)
+        assert extras["nisqa.dis"] == pytest.approx(4.8)
+        assert extras["nisqa.col"] == pytest.approx(4.3)
+        assert extras["nisqa.loud"] == pytest.approx(4.6)
+        assert extras["nisqa_judge"] == "TigreGotico/nisqa-onnx"
+        # utmos stays untouched by the new judges
+        assert extras["utmos"] == pytest.approx(4.1)
+        assert len(sigmos.calls) == 1
+        assert len(dnsmos.calls) == 1
+        assert len(nisqa.calls) == 1
+
+    def test_sigmos_failure_is_warn_only_not_fatal(self, tmp_path, monkeypatch):
+        monkeypatch.setattr(tts_bench, "_get_utmos_judge", lambda: FakeJudge(4.0))
+        monkeypatch.setattr(
+            tts_bench, "_get_sigmos_judge",
+            lambda: FakeDimJudge(exc=RuntimeError("audio too short for SIGMOS")))
+        monkeypatch.setattr(
+            tts_bench, "_get_dnsmos_judge",
+            lambda: FakeDimJudge({"sig": 3.0, "bak": 3.0, "ovrl": 3.0}))
+        monkeypatch.setattr(
+            tts_bench, "_get_nisqa_judge",
+            lambda: FakeDimJudge({"mos": 3.0, "noi": 3.0, "dis": 3.0, "col": 3.0, "loud": 3.0}))
+
+        fields = tts_bench.TTSBench().predict(
+            FakeEngine(), {"input_text": "hi"}, _ctx(tmp_path))
+
+        extras = fields["extras"]
+        assert "sigmos.ovrl" not in extras
+        assert extras["dnsmos.ovrl"] == pytest.approx(3.0)
+        assert extras["nisqa.mos"] == pytest.approx(3.0)
+        assert extras["utmos"] == pytest.approx(4.0)
+
+    def test_dnsmos_failure_is_warn_only_not_fatal(self, tmp_path, monkeypatch):
+        monkeypatch.setattr(tts_bench, "_get_utmos_judge", lambda: FakeJudge(4.0))
+        monkeypatch.setattr(
+            tts_bench, "_get_sigmos_judge",
+            lambda: FakeDimJudge({"col": 4.0, "disc": 4.0, "loud": 4.0, "noise": 4.0,
+                                   "reverb": 4.0, "sig": 4.0, "ovrl": 4.0}))
+        monkeypatch.setattr(
+            tts_bench, "_get_dnsmos_judge",
+            lambda: FakeDimJudge(exc=RuntimeError("dnsmos exploded")))
+        monkeypatch.setattr(
+            tts_bench, "_get_nisqa_judge",
+            lambda: FakeDimJudge({"mos": 4.0, "noi": 4.0, "dis": 4.0, "col": 4.0, "loud": 4.0}))
+
+        fields = tts_bench.TTSBench().predict(
+            FakeEngine(), {"input_text": "hi"}, _ctx(tmp_path))
+
+        extras = fields["extras"]
+        assert extras["sigmos.ovrl"] == pytest.approx(4.0)
+        assert "dnsmos.ovrl" not in extras
+        assert extras["nisqa.mos"] == pytest.approx(4.0)
+        assert extras["utmos"] == pytest.approx(4.0)
+
+    def test_nisqa_failure_is_warn_only_not_fatal(self, tmp_path, monkeypatch):
+        monkeypatch.setattr(tts_bench, "_get_utmos_judge", lambda: FakeJudge(4.0))
+        monkeypatch.setattr(
+            tts_bench, "_get_sigmos_judge",
+            lambda: FakeDimJudge({"col": 4.0, "disc": 4.0, "loud": 4.0, "noise": 4.0,
+                                   "reverb": 4.0, "sig": 4.0, "ovrl": 4.0}))
+        monkeypatch.setattr(
+            tts_bench, "_get_dnsmos_judge",
+            lambda: FakeDimJudge({"sig": 3.0, "bak": 3.0, "ovrl": 3.0}))
+        monkeypatch.setattr(
+            tts_bench, "_get_nisqa_judge",
+            lambda: FakeDimJudge(exc=RuntimeError("audio too short for NISQA")))
+
+        fields = tts_bench.TTSBench().predict(
+            FakeEngine(), {"input_text": "hi"}, _ctx(tmp_path))
+
+        extras = fields["extras"]
+        assert extras["sigmos.ovrl"] == pytest.approx(4.0)
+        assert extras["dnsmos.ovrl"] == pytest.approx(3.0)
+        assert "nisqa.mos" not in extras
+        assert extras["utmos"] == pytest.approx(4.0)
 
 
 class TestPredictionRowRoundTrip:
