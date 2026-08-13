@@ -59,6 +59,16 @@ import Base from '../../layouts/Base.astro';
     /* ---- control / meta row ---- */
     .lb-control { display:flex; gap:1rem 1.5rem; flex-wrap:wrap; align-items:center;
       padding:0.7rem 0; border-block:1px solid var(--border); margin-bottom:1.5rem; }
+    /* ---- per-metric ladder picker ---- */
+    .metric-picker { display:flex; gap:0.4rem; flex-wrap:wrap; align-items:center; margin-bottom:0.8rem; }
+    .metric-picker .lbl { font-size:0.8rem; color:var(--muted); margin-right:0.2rem; }
+    .metric-chip-btn { font-family:var(--mono); font-size:0.76rem; padding:0.3rem 0.7rem;
+      cursor:pointer; color:var(--muted); background:var(--surface); border:1px solid var(--border);
+      border-radius:999px; transition:color .15s, border-color .15s, background .15s; }
+    .metric-chip-btn:hover { color:var(--text); border-color:var(--muted); }
+    .metric-chip-btn[aria-pressed="true"] { color:#fff; border-color:transparent; background:var(--gradient); }
+    .auto-only-badge { font-family:var(--mono); font-size:0.72rem; color:var(--muted);
+      border:1px solid var(--border); border-radius:999px; padding:0.1rem 0.55rem; margin-left:0.5rem; }
     .lb-lang { display:flex; align-items:center; gap:0.5rem; font-size:0.85rem; color:var(--muted); }
     .lb-lang select { font-family:var(--mono); background:var(--bg); color:var(--text);
       border:1px solid var(--border); border-radius:7px; padding:0.35rem 0.6rem; }
@@ -344,7 +354,12 @@ import Base from '../../layouts/Base.astro';
     // into its engine's collapsed family card instead of a stray
     // singleton keyed on its own dead id. See groupKeyOf.
     let pluginFamilies = {};
-    let league = '', lang = '', dataset = '', cacheV = '';
+    let league = '', lang = '', dataset = '', cacheV = '', metric = '';
+    // Display label for a metric key — reuses METRIC_COLUMNS when the key
+    // is a known benchmark column, else falls back to a lightly-prettied
+    // version of the raw key (e.g. "sigmos.noise" -> "sigmos.noise", the
+    // dotted quality-dimension keys already read fine as-is).
+    const metricLabel = key => METRIC_COLUMN_BY_KEY[key]?.[1] || key;
     // lazily fetched board bodies, keyed by file name — a selection change
     // only ever fetches the files that match it, never the full corpus.
     const fileCache = new Map();
@@ -484,12 +499,45 @@ import Base from '../../layouts/Base.astro';
       return podium + ladder;
     }
 
-    function eloSection(board, league) {
+    // Metric picker chips — one per ladderable metric on this board's
+    // metric_ladders map (primary metric always included, auto_only=false).
+    // Linked via the ?metric= URL param so a chosen ladder view is
+    // shareable, same convention as league/lang/dataset.
+    function metricPickerHtml(ladders, selected) {
+      const keys = Object.keys(ladders || {});
+      if (keys.length <= 1) return '';
+      return `<div class="metric-picker">
+        <span class="lbl">Ladder metric:</span>
+        ${keys.map(k => `<button type="button" class="metric-chip-btn" data-metric="${esc(k)}"
+          aria-pressed="${k === selected ? 'true' : 'false'}">${esc(metricLabel(k))}</button>`).join('')}
+      </div>`;
+    }
+
+    function eloSection(board, league, selectedMetric) {
+      const ladders = board?.metric_ladders || {};
+      const primaryMetric = Object.keys(ladders).find(k => !ladders[k].auto_only) || '';
+      const activeMetric = ladders[selectedMetric] ? selectedMetric : primaryMetric;
+      const ladder = ladders[activeMetric];
+      // Fall back to the board's own top-level entries (older artifacts /
+      // boards with no metric_ladders yet) so this never regresses a board
+      // that hasn't been rebuilt with the new field.
+      const entries = ladder ? ladder.entries : board?.entries;
+      const autoOnly = !!(ladder && ladder.auto_only);
+
       // A provisional board with zero votes cast has nothing to rank from —
       // whatever order the backend ships is not a real ranking, so no
-      // podium/crown chrome, just the fighter list.
-      const unranked = !!(board && board.provisional && board.vote_count === 0);
-      const note = league === 'tts'
+      // podium/crown chrome, just the fighter list. Auto-only secondary
+      // ladders are never "provisional" in that sense (they never carry
+      // human votes to begin with) — they rank straight off the auto-battle
+      // BT fit, so they're either unranked (<2 fighters with signal) or
+      // fully ranked, never mid-way "waiting for more human votes".
+      const unranked = !autoOnly && !!(board && board.provisional && board.vote_count === 0);
+      // The TTS "human votes only" note describes the PRIMARY ladder
+      // specifically (it has no benchmark seed at all) — showing it next
+      // to an auto-only secondary metric ladder would contradict the
+      // auto-only badge right above it, since that ladder is the opposite:
+      // benchmark-derived auto-battles with no human votes whatsoever.
+      const note = autoOnly ? '' : league === 'tts'
         ? 'Ranked by human listening votes only — no benchmark seed. Vote in the Battle page.'
         : league === 'wake_word'
           ? 'One ranking per wake word — detectors only compete on the same phrase.'
@@ -497,20 +545,24 @@ import Base from '../../layouts/Base.astro';
           ? 'Voice Activity Detection — fighters are language-agnostic; boards are grouped by the dataset’s language.'
         : (league && league.startsWith('intent')
             ? 'One ladder for every intent engine — template, keyword and fusions compete together.' : '');
+      const autoOnlyNote = autoOnly
+        ? '<p class="lb-note">Auto-battles only — this metric never carries human votes.</p>' : '';
       const head = `<div class="lb-section-head">
         <p class="eyebrow" style="color:var(--accent)">The Ladder</p>
-        <h2>${unranked ? '🎲 Unranked' : '⚔️ Rating ranking'}</h2>
-        ${board ? `<span class="tag">${board.vote_count - board.human_vote_count} auto-battles · ${board.human_vote_count} human votes</span>` : ''}
-      </div>${note ? `<p class="lb-note">${note}</p>` : ''}
+        <h2>${unranked ? '🎲 Unranked' : '⚔️ Rating ranking'}${autoOnly ? ` — ${esc(metricLabel(activeMetric))} <span class="auto-only-badge">auto-battles only</span>` : ''}</h2>
+        ${board && !autoOnly ? `<span class="tag">${board.vote_count - board.human_vote_count} auto-battles · ${board.human_vote_count} human votes</span>` : ''}
+      </div>
+      ${metricPickerHtml(ladders, activeMetric)}
+      ${note ? `<p class="lb-note">${note}</p>` : ''}${autoOnlyNote}
       ${unranked ? '<p class="lb-note">Unranked — no votes yet, order not meaningful.</p>' : ''}`;
-      if (!board?.entries?.length)
+      if (!entries?.length)
         return `<section class="lb-section">${head}<div class="card" style="margin:0">No ladder standings yet.</div></section>`;
 
       let body;
       if (league === 'wake_word') {
         // a separate ranking per wake-word phrase
         const byPhrase = {};
-        for (const e of board.entries)
+        for (const e of entries)
           (byPhrase[phraseOf(e.competitor_id) || 'other'] ??= []).push(e);
         body = Object.keys(byPhrase).sort().map(ph => `
           <div class="ww-phrase">
@@ -518,7 +570,7 @@ import Base from '../../layouts/Base.astro';
             ${unranked ? renderUnranked(byPhrase[ph]) : renderRanking(byPhrase[ph])}
           </div>`).join('');
       } else {
-        body = unranked ? renderUnranked(board.entries) : renderRanking(board.entries);
+        body = unranked ? renderUnranked(entries) : renderRanking(entries);
       }
       return `<section class="lb-section">${head}${body}</section>`;
     }
@@ -580,32 +632,63 @@ import Base from '../../layouts/Base.astro';
       return nodes;
     }
 
-    function benchBoard(board, league) {
+    // Authoritative polarity for a metric: prefer the backend's own
+    // board.metric_ladders[metric].higher_is_better (sent for every
+    // ladderable metric, §per-metric-ladders) over the client-side
+    // HIGHER_IS_BETTER set, which only ever listed 4 of the 15 TTS
+    // quality dimensions — picking any of the other 11 (sigmos.loud/
+    // reverb/sig/ovrl, dnsmos.sig/ovrl, every nisqa.*) against that stale
+    // set silently sorted worst-first with an inverted score bar. The
+    // legacy set is now only a fallback for boards with no ladder payload
+    // at all (older published artifacts predating this feature, or the
+    // primary metric of a league with no metric_ladders yet).
+    function resolveHigherIsBetter(metricKey, ladders) {
+      const ladder = ladders && ladders[metricKey];
+      if (ladder && typeof ladder.higher_is_better === 'boolean') return ladder.higher_is_better;
+      return HIGHER_IS_BETTER.has(metricKey) || metricKey === 'accuracy';
+    }
+
+    function benchBoard(board, league, selectedMetric, ladders) {
       if (!board?.entries?.length) {
         const msg = league === 'tts'
           ? 'TTS has no automatic benchmark — voices are judged by ear in <a href="../battle/">blind battles</a>.'
           : 'No benchmark board for this league and language yet.';
         return `<div class="bench">${msg}</div>`;
       }
-      const primary = board.primary_metric;
-      const higher = HIGHER_IS_BETTER.has(primary);
+      // The ladder metric picker also re-sorts this benchmark board: when
+      // the selected metric has a value on at least one entry here, sort
+      // and score by it instead of the board's own primary_metric — the
+      // "primary metric" column header/highlight below still reflects
+      // whichever metric is actually driving the sort.
+      const wantsMetric = selectedMetric && selectedMetric !== board.primary_metric &&
+        board.entries.some(e => e.metrics?.[selectedMetric] != null);
+      const primary = wantsMetric ? selectedMetric : board.primary_metric;
+      const higher = resolveHigherIsBetter(primary, ladders);
       // Score-bar normalization: most primary metrics are already ratios
       // in [0,1] (accuracy, wer_mean, …) where 1-v inverts a lower-is-
-      // better metric into a fill fraction. UTMOS is a MOS scale (1..5,
-      // higher is better) — normalize by /5 before clamping instead.
-      const scale = primary === 'utmos' ? 5 : 1;
+      // better metric into a fill fraction. UTMOS/SIGMOS/DNSMOS/NISQA are
+      // MOS scales (1..5, higher is better) — normalize by /5 instead.
+      const scale = (primary === 'utmos' || primary.includes('.')) ? 5 : 1;
       const score = v => v == null ? 0 : Math.max(0, Math.min(1, higher ? v / scale : 1 - v / scale));
+      const sortedEntries = wantsMetric
+        ? [...board.entries].sort((a, b) => {
+            const av = a.metrics?.[primary], bv = b.metrics?.[primary];
+            if (av == null) return 1;
+            if (bv == null) return -1;
+            return higher ? bv - av : av - bv;
+          }).map((e, i) => ({ ...e, rank: i + 1 }))
+        : board.entries;
       const secondary = METRIC_COLUMNS.filter(([k]) => k !== primary &&
-        board.entries.some(e => e.metrics?.[k] != null));
-      const buckets = [...new Set(board.entries.flatMap(e =>
+        sortedEntries.some(e => e.metrics?.[k] != null));
+      const buckets = [...new Set(sortedEntries.flatMap(e =>
         Object.keys(e.metrics || {}).filter(k => k.startsWith('acc_'))))].sort();
       const medal = r => r <= 3 ? `m${r}` : '';
       const rowOpts = { primary, secondary, buckets, score, medal };
-      const head = `<tr><th></th><th></th><th>Fighter</th><th>${esc(primary)}</th>
+      const head = `<tr><th></th><th></th><th>Fighter</th><th>${esc(metricLabel(primary))}</th>
         ${secondary.map(([, l]) => `<th>${l}</th>`).join('')}
         ${buckets.map(b => `<th class="bucket-col">${esc(b.slice(4))}</th>`).join('')}
         <th>Samples</th></tr>`;
-      const rows = groupBenchEntries(board.entries).map(node => {
+      const rows = groupBenchEntries(sortedEntries).map(node => {
         if (!node.group) return benchRowHtml(node.entry, rowOpts);
         const best = node.members[0];
         const familyName = groupDisplayName(node.key, node.members.map(m => m.competitor_id));
@@ -627,7 +710,7 @@ import Base from '../../layouts/Base.astro';
       return `<div class="bench">
         <div class="lb-section-head" style="margin-bottom:0.8rem">
           <h2 style="font-size:1rem">📊 ${esc(board.dataset_id || '')}</h2>
-          <span class="tag">primary metric · ${esc(primary)}</span>
+          <span class="tag">${wantsMetric ? 'sorted by' : 'primary metric'} · ${esc(metricLabel(primary))}</span>
           ${buckets.length ? '<button class="btn toggle-buckets" style="padding:0.1rem 0.6rem;font-size:0.72rem;margin-left:auto">show buckets</button>' : ''}
         </div>
         <div style="overflow-x:auto"><table class="bench-tbl"><thead>${head}</thead><tbody>${rows}</tbody></table></div>
@@ -692,14 +775,28 @@ import Base from '../../layouts/Base.astro';
       benches.sort((a, b) => (a.dataset_id || '').localeCompare(b.dataset_id || ''));
       const elo = eloBoards[0];
 
+      // Reconcile the ?metric= selection against this board's actual
+      // ladders — an invalid/stale metric (wrong league, older link) falls
+      // back to the primary metric rather than rendering nothing.
+      const ladders = elo?.metric_ladders || {};
+      const primaryMetric = Object.keys(ladders).find(k => !ladders[k].auto_only) || '';
+      if (!ladders[metric]) metric = primaryMetric;
+
       document.getElementById('dataset-info').innerHTML = datasetInfoHtml(benches[0]);
       const panels = document.getElementById('lb-panels');
-      panels.innerHTML = (isVoteless ? '' : eloSection(elo, league)) + `<section class="lb-section">
+      panels.innerHTML = (isVoteless ? '' : eloSection(elo, league, metric)) + `<section class="lb-section">
         <div class="lb-section-head"><p class="eyebrow" style="color:var(--accent)">The Data</p>
           <h2>📊 Benchmark boards</h2></div>
         ${isVoteless ? '<p class="lb-note">Vote-less league — ranked by phoneme error rate against provenance-tiered gold, no battles/ELO.</p>' : ''}
-        ${benches.length ? benches.map(b => benchBoard(b, league)).join('') : benchBoard(null, league)}
+        ${benches.length ? benches.map(b => benchBoard(b, league, metric, ladders)).join('') : benchBoard(null, league, metric, ladders)}
       </section>`;
+      panels.querySelectorAll('.metric-chip-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          metric = btn.dataset.metric;
+          syncUrl();
+          render();
+        });
+      });
       panels.querySelectorAll('.toggle-buckets').forEach(btn => {
         btn.addEventListener('click', () => {
           const cols = btn.closest('.bench').querySelectorAll('.bucket-col');
@@ -731,6 +828,7 @@ import Base from '../../layouts/Base.astro';
       league ? params.set('league', league) : params.delete('league');
       lang ? params.set('lang', lang) : params.delete('lang');
       dataset ? params.set('dataset', dataset) : params.delete('dataset');
+      metric ? params.set('metric', metric) : params.delete('metric');
       const qs = params.toString();
       const url = `${window.location.pathname}${qs ? '?' + qs : ''}${window.location.hash}`;
       window.history.replaceState(null, '', url);
@@ -793,7 +891,7 @@ import Base from '../../layouts/Base.astro';
       tabs.innerHTML = activeLeagues.map(l =>
         `<button class="lb-tab" role="tab" data-league="${l.id}" aria-selected="false">${esc(l.label)}</button>`).join('');
       tabs.querySelectorAll('.lb-tab').forEach(t =>
-        t.addEventListener('click', () => setLeague(t.dataset.league)));
+        t.addEventListener('click', () => { metric = ''; setLeague(t.dataset.league); }));
       document.getElementById('sel-lang').addEventListener('change', e => {
         lang = e.target.value; dataset = ''; populateDatasets(); syncUrl(); render();
       });
@@ -816,9 +914,11 @@ import Base from '../../layouts/Base.astro';
       const wantLeague = urlParams.get('league');
       const wantLang = urlParams.get('lang');
       const wantDataset = urlParams.get('dataset');
+      const wantMetric = urlParams.get('metric');
       const startLeague = activeLeagues.some(l => l.id === wantLeague) ? wantLeague : activeLeagues[0].id;
       if (wantLang) lang = wantLang;
       if (wantDataset) dataset = wantDataset;
+      if (wantMetric) metric = wantMetric; // reconciled against the board's real ladders in render()
       setLeague(startLeague);
     }
 

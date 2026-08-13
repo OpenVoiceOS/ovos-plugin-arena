@@ -146,6 +146,71 @@ settled result.
 - **`provisional`** boards should be captioned as such in the frontend
   rather than presented with the same confidence as an established board.
 
+## Per-metric ladders
+
+A league's primary metric is not the only number worth ranking on. A TTS
+board scores UTMOS (naturalness), but also SIGMOS noise/coloration/
+discontinuity and DNSMOS background-noise — a listener who cares
+specifically about background noise gets no answer from "who ranks best
+overall". Every `leaderboard-<modality>-<lang>.json` board carries a
+`metric_ladders` map, keyed by metric name, so every row-level metric a
+league scores is independently browsable as its own full Bradley-Terry
+ranking, not just a column in the benchmark table.
+
+**Primary ladder vs. secondary ladders — the one real distinction:**
+
+- **The primary ladder** (`metric_ladders[<primary_metric>]`,
+  `auto_only: false`) is the league's main ladder — identical to the
+  board's own `entries` above. It is seeded from benchmark auto-battles
+  and then refined by human votes, same as always.
+- **Every other ladder** (`auto_only: true`) is fit from auto-battles
+  only. A pairwise comparison for one of these metrics is derived the same
+  way the primary metric's auto-battle seed is (§4 R5: same-sample,
+  same-competitor-pair, "whoever scored better on this metric wins the
+  auto-battle"), but human votes never touch it — voters cast a vote on
+  the overall league, not on "which one had less background noise", so
+  there is no vote log to replay for a secondary metric and none of these
+  ladders is ever "provisional" the way the primary ladder can be. It is
+  either ranked from its auto-battles or, with too few comparisons for a
+  connected ranking, effectively tied at the anchor rating.
+
+**Which metrics get a ladder.** Only metrics with a genuine per-row value —
+one number computed per sample, per competitor, so two competitors' rows on
+the same sample can be compared head-to-head. Dataset-aggregate-only
+metrics (ECE, macro-F1, OOD false-positive rate, latency percentiles) have
+no such per-row value and are never ladderable: there is no sample-level
+"A beat B on this metric" signal to build a battle from. Concretely, today:
+
+| League | Ladders |
+| --- | --- |
+| `intent` / `intent_template` / `intent_keyword` | `accuracy` (primary), `slot_exact_match` (rows with gold slots and a correct intent) |
+| `stt` | `wer_mean` (primary) — no per-row CER is computed yet, so WER is the only ladder |
+| `tts` | `utmos` (primary), every SIGMOS/DNSMOS/NISQA quality dimension (`sigmos.noise`, `sigmos.col`, `sigmos.disc`, `sigmos.loud`, `sigmos.reverb`, `sigmos.sig`, `sigmos.ovrl`, `dnsmos.sig`, `dnsmos.bak`, `dnsmos.ovrl`, `nisqa.*`) |
+| `wake_word` / `vad` | `error_rate` (primary) only — no other per-row metric exists yet |
+
+**Where this lives on disk.** Deliberately not a new artifact family. The
+per-metric auto-battle seeds are nested inside the existing
+`elo-seed-<modality>-<lang>.json` (`EloSeed.secondary_metrics`), and the
+fitted ladders are nested inside the existing
+`leaderboard-<modality>-<lang>.json` (`EloBoard.metric_ladders`) —
+one file per board, same as before this feature, so a prune guard reasoning
+about artifact prefixes never has to learn a new one.
+
+**Performance.** Computing a Bradley-Terry seed per extra metric multiplies
+the per-sample comparison work by however many metrics a league has. This
+is deliberately done in a single additional pass over the same sample data
+the primary seed already visits — every (sample, competitor-pair) is
+compared on every ladderable metric in the same inner loop, rather than
+re-looping the dataset once per metric — and skips the legacy sequential-
+ELO rating update entirely (secondary ladders never read it), which turned
+out to be roughly half the per-comparison cost. On a synthetic stress case
+(60 fighters × 300 samples, TTS's full 15-dimension quality-metric set —
+larger than any league's current real roster), that pass took ~39s versus
+~11s for the existing primary-metric seed alone; real TTS rosters today are
+smaller. If a future roster's scale makes this a bottleneck, the sample set
+can be capped or subsampled per metric without changing the artifact
+shape.
+
 ## Per-league ELO pools and cross-league vote replay (§4 R18)
 
 Every modality, including all three intent leagues, `intent`,

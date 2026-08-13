@@ -395,6 +395,13 @@ class EloBoard(BaseModel):
     # should show a "provisional" badge rather than a firm ranking.
     provisional: bool = True
     entries: list[EloEntry] = Field(default_factory=list)
+    # Per-metric ladders (§ per-metric ladders campaign), keyed by metric
+    # name — every row-level metric the league scores, including the
+    # primary metric itself (``auto_only=False`` there, mirroring ``entries``
+    # above so the frontend can treat metric selection uniformly instead of
+    # special-casing the default). Empty for leagues with no ladderable
+    # secondary metric (e.g. wake_word/vad today).
+    metric_ladders: dict[str, "MetricLadder"] = Field(default_factory=dict)
 
 
 class EloSeed(BaseModel):
@@ -418,3 +425,59 @@ class EloSeed(BaseModel):
     # contribution every leaderboard rebuild starts from.
     pairwise_wins: dict[str, dict[str, float]] = Field(default_factory=dict)
     pairwise_games: dict[str, dict[str, float]] = Field(default_factory=dict)
+    # Per-metric ladders (§ per-metric ladders) — one auto-only BT seed per
+    # row-level secondary metric (e.g. TTS ``sigmos.noise``, intent
+    # ``slot_exact_match``), keyed by metric name. Never touched by
+    # ``tally`` (§ human votes attach only to the primary-metric ladder) —
+    # ``build_elo_board`` fits a fresh BT rating from these pairwise totals
+    # on every rebuild, same machinery as the primary ladder minus the
+    # bootstrap CI (no human resampling to bootstrap over).
+    secondary_metrics: dict[str, "SecondaryMetricSeed"] = Field(default_factory=dict)
+
+
+class SecondaryMetricSeed(BaseModel):
+    """One auto-only metric's BT seed, nested inside ``EloSeed.secondary_metrics``.
+
+    Deliberately not its own top-level artifact — see the "ONE file per
+    board" design note in ``arena/assembler.py::seed_elo_all`` — this keeps
+    the existing ``elo-seed-<modality>-<lang>.json`` / ``leaderboard-
+    <modality>-<lang>.json`` prefix pair as the only artifacts a prune guard
+    has to reason about.
+    """
+
+    higher_is_better: bool
+    auto_vote_count: int = 0
+    battles: dict[str, int] = Field(default_factory=dict)
+    wins: dict[str, int] = Field(default_factory=dict)
+    losses: dict[str, int] = Field(default_factory=dict)
+    ties: dict[str, int] = Field(default_factory=dict)
+    pairwise_wins: dict[str, dict[str, float]] = Field(default_factory=dict)
+    pairwise_games: dict[str, dict[str, float]] = Field(default_factory=dict)
+
+
+class MetricLadderEntry(BaseModel):
+    """One competitor row in a per-metric ladder (``EloBoard.metric_ladders``)."""
+
+    rank: int = 0
+    competitor_id: str
+    plugin_id: str = ""
+    bt_rating: float
+    battles: int = 0
+    wins: int = 0
+    losses: int = 0
+    ties: int = 0
+
+
+class MetricLadder(BaseModel):
+    """A full BT ranking of one board's competitors on one metric.
+
+    ``auto_only=True`` for every metric except the league's primary metric
+    (that ladder is the board's own ``entries``, carrying human votes) —
+    the frontend should surface an "auto-battles only" label whenever this
+    is True.
+    """
+
+    metric: str
+    higher_is_better: bool
+    auto_only: bool = True
+    entries: list[MetricLadderEntry] = Field(default_factory=list)

@@ -161,3 +161,50 @@ class EloLedger:
                 self.pairwise_wins, self.pairwise_games,
                 competitor_a, competitor_b, _outcome_score_a(outcome), weight,
             )
+
+    def apply_pairwise_only(
+        self,
+        competitor_a: str,
+        competitor_b: str,
+        outcome: VoteOutcome,
+        auto: bool = False,
+        bt_weight: float | None = None,
+    ) -> None:
+        """Like :meth:`apply`, but skips the sequential-ELO ``update_ratings``
+        math entirely — only battle/win/loss/tie counters and the BT
+        pairwise accumulation are updated.
+
+        Per-metric secondary ladders (§ per-metric ladders campaign) never
+        display or read ``self.ratings`` — that legacy sequential column is
+        display-only on the primary board. Fitting it for every extra
+        metric on a large roster (many fighters × many samples × many
+        metrics) is pure wasted work: the ``update_ratings`` call is the
+        dominant per-comparison cost, so skipping it cuts secondary-metric
+        seeding time roughly in half with byte-identical BT/counter output.
+        """
+        self.ensure(competitor_a)
+        self.ensure(competitor_b)
+
+        self.battles[competitor_a] += 1
+        self.battles[competitor_b] += 1
+
+        if outcome == VoteOutcome.CANDIDATE_A:
+            self.wins[competitor_a] += 1
+            self.losses[competitor_b] += 1
+        elif outcome == VoteOutcome.CANDIDATE_B:
+            self.wins[competitor_b] += 1
+            self.losses[competitor_a] += 1
+        else:
+            self.ties[competitor_a] += 1
+            self.ties[competitor_b] += 1
+
+        counter = self.auto_votes if auto else self.human_votes
+        counter[competitor_a] += 1
+        counter[competitor_b] += 1
+
+        weight = bt_weight if bt_weight is not None else (BT_AUTO_WEIGHT if auto else 1.0)
+        if weight > 0:
+            accumulate(
+                self.pairwise_wins, self.pairwise_games,
+                competitor_a, competitor_b, _outcome_score_a(outcome), weight,
+            )
