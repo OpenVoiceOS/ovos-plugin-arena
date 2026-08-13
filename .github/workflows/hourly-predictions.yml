@@ -78,12 +78,29 @@ jobs:
         # retry) rather than failing the job. Extend this list over time
         # as more CPU-only plugins are confirmed to install cleanly here.
         run: |
-          pip install --quiet \
+          # One pip call per package: a single broken dependency tree must
+          # not silently drop every other plugin on the list.
+          for pkg in \
+            ovos-stt-plugin-onnx-asr \
+            ovos-tts-plugin-phoonnx \
+            ovos-stt-plugin-fasterwhisper \
             ovos-stt-plugin-vosk \
             ovos-stt-plugin-chromium \
-            ovos-tts-plugin-mimic3 \
+            ovos-stt-plugin-wav2vec \
+            ovos-ww-plugin-vosk \
+            ovos-ww-plugin-precise-onnx \
+            ovos-ww-plugin-openwakeword \
+            ovos-ww-plugin-microwakeword \
+            ovos-ww-plugin-wakewordlab \
+            ovos-ww-plugin-wakeforge \
             ovos-vad-plugin-silero \
-            || true
+            ovos-vad-plugin-webrtcvad \
+            ovos-vad-plugin-noise \
+            ovos-tts-plugin-espeakng \
+            ovos-tts-plugin-piper \
+          ; do
+            pip install --quiet --pre "$pkg" || echo "::warning::could not install $pkg"
+          done
 
       - name: Run one-shot prediction round
         id: run
@@ -98,7 +115,7 @@ jobs:
             --light
             --max-samples "${{ github.event.inputs.max_samples || '1000' }}"
             --time-budget-secs "${{ github.event.inputs.time_budget_secs || '1500' }}"
-            --max-attempts 3
+            --max-attempts 10
             --output-dir predictions
           )
           [ -n "$COMPETITOR_GLOB" ] && args+=(--include "$COMPETITOR_GLOB")
