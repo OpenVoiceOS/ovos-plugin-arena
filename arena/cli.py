@@ -609,6 +609,7 @@ def cmd_assemble(args: argparse.Namespace) -> int:
             for competitor_id, row in sample_rows.items():
                 by_competitor.setdefault(competitor_id, []).append(row)
         board = build_benchmark_board(modality, dataset_id, lang, by_competitor, now)
+        _attach_model_sizes(board, modality)
         board.dataset_info = dataset_info.get(dataset_id)
         own_revisions = {
             src: sha for src, sha in resolved_revisions.items()
@@ -696,6 +697,52 @@ def cmd_assemble(args: argparse.Namespace) -> int:
             _sync_leaderboard_with_seed(board_path, group, lang, seed)
 
     return 0
+
+
+def _attach_model_sizes(board, modality: str) -> None:
+    """Fill in ``entry.model_mb`` for every entry on *board* (M2, §2 model
+    size), looked up ONCE per fighter via ``arena.model_size`` (its own
+    build-lifetime cache avoids re-fetching the same repo across every
+    board that fighter appears on).
+
+    Repo id source, in order: the dedicated ``model_hf_repo`` field when
+    set (explicit, always trusted); otherwise the pre-existing ``model``
+    field IF it has the ``owner/name`` shape of a HF repo id
+    (``arena.model_size.likely_hf_repo_id``) — hundreds of registered
+    fighters already carry their HF repo id there (e.g.
+    ``"OpenVoiceOS/whisper-tiny-onnx"``) and requiring every one of them to
+    be hand-edited with a second, redundant field before getting a model-
+    size column would leave the column blank arena-wide. ``model`` values
+    that aren't repo-id-shaped (voice ids, coqui model paths, free-text
+    descriptions with spaces/parens, …) are never sent to HF as a lookup —
+    ``likely_hf_repo_id`` filters those out before ``model_repo_size_mb``
+    is even called, and that function separately tolerates a 404/lookup
+    failure by returning None. Fighters with neither field set — or whose
+    registry entry can't be resolved at all — get ``model_mb = None``,
+    never a fabricated 0."""
+    try:
+        from registry.loaders import list_competitors
+    except ImportError:
+        return
+    from arena.model_size import likely_hf_repo_id, model_repo_size_mb
+
+    repos: dict[str, str | None] = {}
+    try:
+        for comp in list_competitors(modality):
+            repo_id = getattr(comp, "model_hf_repo", None)
+            if not repo_id:
+                model = getattr(comp, "model", None)
+                if likely_hf_repo_id(model):
+                    repo_id = model
+            repos[comp.competitor_id] = repo_id
+    except Exception:
+        log.warning("Could not consult registry for %s model_hf_repo", modality, exc_info=True)
+        return
+
+    for entry in board.entries:
+        repo_id = repos.get(entry.competitor_id)
+        if repo_id:
+            entry.model_mb = model_repo_size_mb(repo_id)
 
 
 def _wakeword_phrases() -> dict[str, str]:

@@ -591,6 +591,18 @@ class CompetitorDef(BaseModel):
     model: str | None = Field(
         None, description="Underlying model identifier, when one exists"
     )
+    model_hf_repo: str | None = Field(
+        None,
+        description=(
+            "HuggingFace model repo id this fighter's weights ship from "
+            "(e.g. 'openai/whisper-tiny'), used ONCE per build to look up "
+            "the model's total download size in MB (arena.model_size, M2 "
+            "performance boards). None for fighters with no distinct "
+            "downloadable model repo (rule-based engines, sklearn "
+            "pipelines shipped as plugin code, …) — they simply get no "
+            "model-size column value, never a fabricated 0."
+        ),
+    )
     size: Literal[
         "micro", "tiny", "small", "base", "medium", "large", "x-large", "giant", "titan",
     ] | None = Field(
