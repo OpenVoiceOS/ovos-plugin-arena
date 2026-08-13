@@ -266,6 +266,61 @@ class TestScoreWakeWord:
         assert score_wake_word(rows)["latency_ms_median"] == 10.0
 
 
+class TestFaPerHour:
+    """§M5 — fa_per_hour on the isolated-clip wake_word board."""
+
+    def _clip(self, label, prediction, audio_secs=None, **over):
+        return _row(label=label, prediction=prediction, audio_secs=audio_secs,
+                    **over)
+
+    def test_denominator_math_by_hand(self):
+        # 1800 s of covered negative audio (0.5h) = 3 * 600s clips; one FA.
+        rows = [
+            self._clip("negative", "not_detected", audio_secs=600.0),
+            self._clip("negative", "detected", audio_secs=600.0),
+            self._clip("negative", "not_detected", audio_secs=600.0),
+            self._clip("positive", "detected", audio_secs=1.0),
+        ]
+        m = score_wake_word(rows)
+        assert m["fa_per_hour_hours"] == 0.5
+        # 1 false accept / 0.5h = 2.0 FA/h
+        assert m["fa_per_hour"] == 2.0
+
+    def test_below_threshold_omits_metric(self):
+        # 300s = 0.0833h of covered negative audio, well under MIN_FA_HOURS
+        # (0.25h) — fa_per_hour must be omitted (None), not printed as noise,
+        # even though the coverage figure itself is still reported.
+        rows = [self._clip("negative", "detected", audio_secs=300.0)]
+        m = score_wake_word(rows)
+        assert "fa_per_hour" not in m
+        assert m["fa_per_hour_hours"] == pytest.approx(300.0 / 3600.0, abs=1e-4)
+
+    def test_at_threshold_included(self):
+        # exactly MIN_FA_HOURS (0.25h = 900s) — boundary is inclusive.
+        rows = [self._clip("negative", "detected", audio_secs=900.0)]
+        m = score_wake_word(rows)
+        assert m["fa_per_hour_hours"] == 0.25
+        assert m["fa_per_hour"] == 4.0
+
+    def test_rows_without_audio_secs_excluded_from_both(self):
+        # a row with no audio_secs (pre-#90) must not contribute to the
+        # numerator (its false accept) OR the denominator (its duration).
+        rows = [
+            self._clip("negative", "detected", audio_secs=None),  # excluded
+            self._clip("negative", "not_detected", audio_secs=1800.0),  # 0.5h
+        ]
+        m = score_wake_word(rows)
+        assert m["fa_per_hour_hours"] == 0.5
+        assert m["fa_per_hour"] == 0.0  # the covered clip had no FA
+
+    def test_no_negatives_with_audio_secs_omits_both(self):
+        rows = [self._clip("negative", "detected", audio_secs=None),
+                self._clip("positive", "detected", audio_secs=5.0)]
+        m = score_wake_word(rows)
+        assert "fa_per_hour" not in m
+        assert "fa_per_hour_hours" not in m
+
+
 class TestRowUtmos:
     def test_present(self):
         assert row_utmos(_row(extras={"utmos": 3.5})) == 3.5

@@ -196,7 +196,15 @@ import Base from '../../layouts/Base.astro';
       ['ood_fpr', 'OOD FPR', true], ['slot_exact_match', 'Slot EM', true],
       ['wer_mean', 'WER mean', true], ['wer_median', 'WER med.', true],
       ['error_rate', 'Error', true], ['false_accept_rate', 'False acc.', true],
-      ['false_reject_rate', 'False rej.', true], ['latency_ms_median', 'Latency ms', false],
+      ['false_reject_rate', 'False rej.', true],
+      // §M5 — false-accepts-per-hour: the annoyance metric FAR-per-clip can't
+      // give (needs negative-audio HOURS, not clip counts). Not a percentage
+      // (a rate per hour, can exceed 1) — 2-decimal plain number, lower is
+      // better (absent from HIGHER_IS_BETTER below). Fighters with under
+      // MIN_FA_HOURS (arena/metrics.py) of covered negative audio simply omit
+      // this metric rather than print noise.
+      ['fa_per_hour', 'FA/h', false],
+      ['latency_ms_median', 'Latency ms', false],
       ['utmos', 'UTMOS', false], ['intelligibility_wer', 'Intellig. WER', true],
       // SIGMOS/DNSMOS quality dimensions (§4 R14 extension) — headline picks
       // only (not all 10 flattened dims, to avoid cramming the board);
