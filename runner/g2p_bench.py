@@ -114,6 +114,20 @@ def iter_cmudict_samples(url: str, max_samples: int) -> Iterator[tuple[str, dict
             return
 
 
+# orthography2ipa language tag -> tugalex/portuguese_phonetic_lexicon
+# ``region_code`` value. Mirrors g2p_bench's own ``_TUGALEX_REGION_MAP``
+# (~/AgentWorkspaces/ml/g2p_bench/g2p_bench/datasets.py) so every one of the
+# HF dataset's 5 wired dialect variants filters to the same rows g2p_bench
+# scores.
+_TUGALEX_REGION_MAP = {
+    "pt-PT": "lbx",
+    "pt-BR": "rjx",
+    "pt-AO": "lda",
+    "pt-MZ": "mpx",
+    "pt-TL": "dli",
+}
+
+
 def iter_hf_lexicon_samples(
     dataset_def, lang: str, revision: str, max_samples: int
 ) -> Iterator[tuple[str, dict]]:
@@ -129,12 +143,12 @@ def iter_hf_lexicon_samples(
 
     # TigreGotico/portuguese_phonetic_lexicon-shaped repos ship a single
     # dataset.csv rather than a `datasets`-loadable config; download it
-    # directly and filter by region_code client-side (pt-PT -> 'lbx', per
-    # g2p_bench's own mapping, see the dataset's registry notes).
+    # directly and filter by region_code client-side, per g2p_bench's own
+    # per-dialect mapping (see the dataset's registry notes).
     path = hf_hub_download(
         src.hf_id, "dataset.csv", repo_type="dataset", revision=revision,
     )
-    region = {"pt-PT": "lbx"}.get(lang) if region_col else None
+    region = _TUGALEX_REGION_MAP.get(lang) if region_col else None
 
     n = 0
     with open(path, newline="", encoding="utf-8") as fh:
@@ -152,11 +166,78 @@ def iter_hf_lexicon_samples(
                 return
 
 
+def iter_wikipron_samples(url: str, max_samples: int) -> Iterator[tuple[str, dict]]:
+    """WikiPron TSV export (CUNY-CL/wikipron): ``word<TAB>ipa`` per line, no
+    header. Community-curated (Wiktionary editors), crowd-scraped tier --
+    see :mod:`orthography2ipa.scripts.benchmark`'s ``_WIKIPRON_FILES``."""
+    import urllib.request
+
+    with urllib.request.urlopen(url, timeout=60) as resp:
+        text = resp.read().decode("utf-8", errors="replace")
+
+    n = 0
+    seen: set[str] = set()
+    for line in text.splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        parts = line.split("\t")
+        if len(parts) < 2:
+            continue
+        word = parts[0].strip()
+        ipa = parts[1].strip()
+        if not word or not ipa:
+            continue
+        key = word.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        yield word, {"grapheme": word, "reference_ipa": ipa}
+        n += 1
+        if n >= max_samples:
+            return
+
+
+def iter_mirandese_samples(
+    url: str, dialect: str, max_samples: int
+) -> Iterator[tuple[str, dict]]:
+    """TigreGotico/mirandese_g2p (``mwl_dataset.tsv``): ``dialect<TAB>word<TAB>ipa``
+    with a header row, filtered to *dialect* ("central" | "raiano" |
+    "sendinese"). Native-speaker-collected gold (MdMV) -- see g2p_bench's
+    ``_MirandeseG2PDataset``."""
+    import urllib.request
+
+    with urllib.request.urlopen(url, timeout=60) as resp:
+        text = resp.read().decode("utf-8", errors="replace")
+
+    n = 0
+    for line in text.strip().splitlines()[1:]:  # skip header
+        parts = line.split("\t")
+        if len(parts) != 3:
+            continue
+        row_dialect, word, ipa = (p.strip() for p in parts)
+        if row_dialect != dialect or not word or not ipa:
+            continue
+        yield word, {"grapheme": word, "reference_ipa": ipa}
+        n += 1
+        if n >= max_samples:
+            return
+
+
 def iter_samples(
     dataset_def, lang: str, revision: str, max_samples: int
 ) -> Iterator[tuple[str, dict]]:
     src = dataset_def.source
-    if src.type == "url":
+    if src.type == "url" and src.format == "wikipron_tsv":
+        yield from iter_wikipron_samples(src.url, max_samples)
+    elif src.type == "url" and src.format == "mirandese_tsv":
+        dialect = (dataset_def.reference_fields or {}).get("dialect")
+        if not dialect:
+            raise ValueError(
+                "g2p bench: mirandese_tsv source requires reference_fields.dialect"
+            )
+        yield from iter_mirandese_samples(src.url, dialect, max_samples)
+    elif src.type == "url":
         yield from iter_cmudict_samples(src.url, max_samples)
     elif src.type == "huggingface":
         yield from iter_hf_lexicon_samples(dataset_def, lang, revision, max_samples)
