@@ -29,6 +29,7 @@ import argparse
 import json
 import logging
 from collections.abc import Iterator
+from dataclasses import dataclass
 from pathlib import Path
 
 from arena.version import __version__ as ARENA_VERSION
@@ -232,6 +233,47 @@ def competitors_for(modality: str, wanted: set | None = None) -> list:
 # ---------------------------------------------------------------------------
 
 
+@dataclass
+class BatchResult:
+    """Outcome of one :func:`run_competitor_lang` call.
+
+    ``written`` is a plain ``int`` subclass-free count for the common case;
+    ``errored`` and ``last_error`` distinguish *why* a call returned fewer
+    rows than a requested ``max_new_samples`` cap: the iterator genuinely
+    running out (``errored == 0``) is the ONLY condition that means "this
+    pair is done" — a shortfall caused by ``adapter.predict`` raising on
+    every remaining sample looks identical from the row count alone, but
+    the pair is NOT done, it just needs a retry (see ``runner.autorun``,
+    which must never call :meth:`RoundRobinScheduler.mark_complete` off an
+    error-shortfall).
+
+    Compares equal to a plain ``int`` on ``written`` for source
+    compatibility with existing callers that only ever cared about the row
+    count (``run_benchmark``, and every pre-autorun test).
+    """
+
+    written: int
+    errored: int = 0
+    last_error: str | None = None
+
+    def __eq__(self, other):
+        if isinstance(other, BatchResult):
+            return (self.written, self.errored) == (other.written, other.errored)
+        if isinstance(other, int):
+            return self.written == other
+        return NotImplemented
+
+    def __hash__(self):
+        return hash((self.written, self.errored))
+
+    def __int__(self):
+        return self.written
+
+    def __lt__(self, other):
+        other_written = other.written if isinstance(other, BatchResult) else other
+        return self.written < other_written
+
+
 def run_competitor_lang(
     adapter: MediaBenchAdapter,
     competitor,
@@ -243,8 +285,23 @@ def run_competitor_lang(
     audio_dir: Path,
     results_repo: str,
     max_samples: int = 0,
-) -> int:
-    """Run one fighter over one language of the eval set, resumably."""
+    max_new_samples: int = 0,
+) -> BatchResult:
+    """Run one fighter over one language of the eval set, resumably.
+
+    *max_new_samples* (0 = unlimited) caps how many **new** (not already
+    done) rows this call writes before returning — used by
+    ``runner.autorun`` to take a bounded batch per (fighter, dataset, lang)
+    pair instead of draining the whole language to completion in one call.
+
+    Returns a :class:`BatchResult`. A caller CANNOT tell whether the pair
+    still has work left just from ``written < max_new_samples`` — a batch
+    can also return short (down to 0) because every remaining sample raised
+    in ``adapter.predict`` (a transient plugin/model error), not because
+    ``adapter.iter_samples`` ran out. Check ``result.errored`` too: only
+    ``written < max_new_samples and errored == 0`` means the language is
+    genuinely exhausted for this fighter.
+    """
     done = done_samples(out_path)
     engine = None
     ctx = PredictContext(
@@ -253,6 +310,8 @@ def run_competitor_lang(
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     written = 0
+    errored = 0
+    last_error: str | None = None
     with out_path.open("a", encoding="utf-8") as fh:
         for sample_id, sample in adapter.iter_samples(
             eval_def, lang, revision, max_samples
@@ -269,6 +328,8 @@ def run_competitor_lang(
             except Exception as exc:
                 log.warning("    %s/%s sample %s failed: %s",
                             competitor.competitor_id, lang, sample_id, exc)
+                errored += 1
+                last_error = str(exc)
                 continue
             # performance-metrics campaign M1 (runner.perf) — additive;
             # never overrides a value the adapter already set explicitly.
@@ -286,8 +347,11 @@ def run_competitor_lang(
                 fh.flush()
                 log.info("    %s/%s: %d rows", competitor.competitor_id, lang,
                          written)
-    log.info("  %s/%s: wrote %d rows", competitor.competitor_id, lang, written)
-    return written
+            if max_new_samples and written >= max_new_samples:
+                break
+    log.info("  %s/%s: wrote %d rows (%d errored)", competitor.competitor_id,
+              lang, written, errored)
+    return BatchResult(written=written, errored=errored, last_error=last_error)
 
 
 # ---------------------------------------------------------------------------

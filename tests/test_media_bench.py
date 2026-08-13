@@ -126,6 +126,34 @@ class TestRunCompetitorLang:
         out, written = self._run(StubAdapter(n=10), tmp_path, max_samples=4)
         assert written == 4
 
+    def test_max_new_samples_caps_a_resumable_batch(self, tmp_path):
+        # First batch of 4 out of 10 total.
+        adapter = StubAdapter(n=10)
+        out, written = self._run(adapter, tmp_path, max_new_samples=4)
+        assert written == 4
+        assert len(out.read_text().splitlines()) == 4
+        assert adapter.loaded == 1
+
+        # Second batch resumes from row 4, writes the next 4 (not the same 4).
+        adapter2 = StubAdapter(n=10)
+        out2, written2 = self._run(adapter2, tmp_path, max_new_samples=4)
+        assert written2 == 4
+        assert len(out2.read_text().splitlines()) == 8
+
+        # Third batch: only 2 remain — runner.autorun relies on
+        # written < requested batch to detect the pair is now exhausted.
+        adapter3 = StubAdapter(n=10)
+        out3, written3 = self._run(adapter3, tmp_path, max_new_samples=4)
+        assert written3 == 2
+        assert written3 < 4
+        assert len(out3.read_text().splitlines()) == 10
+
+        # Fourth call: nothing left, engine never loaded.
+        adapter4 = StubAdapter(n=10)
+        _, written4 = self._run(adapter4, tmp_path, max_new_samples=4)
+        assert written4 == 0
+        assert adapter4.loaded == 0
+
 
 class TestLangMatch:
     def test_primary_subtag_matches_both_ways(self):
