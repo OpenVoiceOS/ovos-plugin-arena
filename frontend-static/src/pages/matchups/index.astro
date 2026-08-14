@@ -266,9 +266,15 @@ import Base from '../../layouts/Base.astro';
       if (ids.length < 2) {
         return `<div class="card" style="margin:0">Need at least two fighters with data to draw a matchup grid.</div>`;
       }
-      const head = `<tr><th></th>${ids.map(id => `<th class="mu-col-head" scope="col"><a href="${BASE}fighter/${encodeURIComponent(id)}/">${esc(nameOf(id))}</a></th>`).join('')}</tr>`;
+      // A ghost id (board/battle rows whose registry entry was deleted) has
+      // no static /fighter/ page — render plain text instead of a dead link,
+      // mirroring fighterLink() on the leaderboard page.
+      const headCell = id => fighters[id]
+        ? `<a href="${BASE}fighter/${encodeURIComponent(id)}/">${esc(nameOf(id))}</a>`
+        : esc(nameOf(id));
+      const head = `<tr><th></th>${ids.map(id => `<th class="mu-col-head" scope="col">${headCell(id)}</th>`).join('')}</tr>`;
       const rows = ids.map(rowId => `<tr>
-        <th class="mu-row-head" scope="row"><a href="${BASE}fighter/${encodeURIComponent(rowId)}/">${esc(nameOf(rowId))}</a></th>
+        <th class="mu-row-head" scope="row">${headCell(rowId)}</th>
         ${ids.map(colId => cellFn(rowId, colId)).join('')}
       </tr>`).join('');
       const srRows = ids.map(rowId => ids.map(colId => rowId === colId ? '' : srCellFn(rowId, colId)).join('')).join('');
