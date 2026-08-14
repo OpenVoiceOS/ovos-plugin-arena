@@ -283,14 +283,18 @@ import Base from '../../layouts/Base.astro';
     // when the entry has a current registry (bestiary) record. A "ghost"
     // entry (a competitor_id with historical board/battle results but no
     // current registry file) falls back to `pluginFamilies[plugin_id]`,
-    // the same family the *live* fighters sharing that plugin resolved to,
-    // using the plugin_id every board/ladder row carries regardless of
-    // registry presence — and only as a last resort to its own bare id
-    // (a real singleton, or a ghost whose plugin is itself unregistered).
+    // the same family the *live* fighters sharing that plugin resolved to.
+    // `pluginFamilies` is intent-league-only (see arena/cli.py
+    // cmd_export_bestiary) — TTS/STT/wake-word/VAD never collapse by
+    // plugin, so a ghost there (or any plugin with no intent family
+    // mapping) falls straight through to its own bare competitor_id,
+    // never to the shared raw plugin id — that would wrongly re-collapse
+    // distinct per-model ghosts (e.g. several retired Piper voices) onto
+    // one card just because they shared a plugin.
     const groupKeyOf = e => {
       const f = fighters[e.competitor_id];
       return f?.family || f?.species || f?.plugin
-        || pluginFamilies[e.plugin_id] || e.plugin_id || e.competitor_id;
+        || pluginFamilies[e.plugin_id] || e.competitor_id;
     };
 
     function humanizeSpecies(species) {
@@ -395,7 +399,12 @@ import Base from '../../layouts/Base.astro';
     // uses this so the name itself is the link — discernible link text,
     // no click-catching wrapper div.
     const fighterHref = id => `${BASE}fighter/${encodeURIComponent(id)}/`;
-    const fighterLink = id => `<a href="${fighterHref(id)}">${esc(nameOf(id))}</a>`;
+    // Ghost entries (fighters[id] missing — no static detail page was built
+    // for them) must not get an <a> to a 404; render plain escaped text
+    // instead so every board/ladder row that uses this stays link-safe.
+    const fighterLink = id => fighters[id]
+      ? `<a href="${fighterHref(id)}">${esc(nameOf(id))}</a>`
+      : `<span>${esc(nameOf(id))}</span>`;
 
     // Fighter list with no rank/crown/podium chrome at all — used when a
     // board is provisional with zero votes cast: any ordering the backend
@@ -531,8 +540,18 @@ import Base from '../../layouts/Base.astro';
       // Fall back to the board's own top-level entries (older artifacts /
       // boards with no metric_ladders yet) so this never regresses a board
       // that hasn't been rebuilt with the new field.
-      const entries = ladder ? ladder.entries : board?.entries;
+      const allEntries = ladder ? ladder.entries : board?.entries;
       const autoOnly = !!(ladder && ladder.auto_only);
+
+      // Owner ruling: a ladder full of "unrated" rows at the 1200 default
+      // with zero battles is misleading noise, not signal — only fighters
+      // with at least one real battle earn a row. Filtered here at render
+      // time (not at export) so the elo-seed/replay machinery upstream
+      // keeps carrying every registered fighter at its seed rating,
+      // undisturbed — replay determinism only cares about what's in the
+      // seed file, never about what the board happens to display.
+      const entries = (allEntries || []).filter(e => e.battles);
+      const awaitingCount = (allEntries?.length || 0) - entries.length;
 
       // A provisional board with zero votes cast has nothing to rank from —
       // whatever order the backend ships is not a real ranking, so no
@@ -564,7 +583,8 @@ import Base from '../../layouts/Base.astro';
       </div>
       ${metricPickerHtml(ladders, activeMetric)}
       ${note ? `<p class="lb-note">${note}</p>` : ''}${autoOnlyNote}
-      ${unranked ? '<p class="lb-note">Unranked — no votes yet, order not meaningful.</p>' : ''}`;
+      ${unranked ? '<p class="lb-note">Unranked — no votes yet, order not meaningful.</p>' : ''}
+      ${awaitingCount ? `<p class="lb-note">${awaitingCount} fighter${awaitingCount === 1 ? '' : 's'} awaiting first battles</p>` : ''}`;
       if (!entries?.length)
         return `<section class="lb-section">${head}<div class="card" style="margin:0">No ladder standings yet.</div></section>`;
 
@@ -730,6 +750,24 @@ import Base from '../../layouts/Base.astro';
           : 'No benchmark board for this league and language yet.';
         return `<div class="bench">${msg}</div>`;
       }
+      // Same owner ruling as the ladder, but the actual no-signal marker
+      // here is the backend's own `unranked` flag (arena/metrics.py), not
+      // `samples` — `samples` counts *attempted* rows, so it is >=1 for
+      // every entry on the board (a `samples` filter is dead code) and
+      // proves nothing about scoring. `unranked` is set precisely for a
+      // run that crashed/produced zero *scored* samples for the primary
+      // metric (unranked_reason: "run failed — no scored samples") and is
+      // the row this filter needs to exclude. Filtered at render time,
+      // keeping the underlying board artifact (and any seed/replay data
+      // it's built from) untouched.
+      const allBoardEntries = board.entries;
+      const benchEntries = allBoardEntries.filter(e => !e.unranked);
+      const benchAwaitingCount = allBoardEntries.length - benchEntries.length;
+      if (!benchEntries.length) {
+        return `<div class="bench">No entries with prediction data yet.${
+          benchAwaitingCount ? ` <p class="lb-note">${benchAwaitingCount} fighter${benchAwaitingCount === 1 ? '' : 's'} had no scored samples (runs failed)</p>` : ''}</div>`;
+      }
+      board = { ...board, entries: benchEntries };
       // The ladder metric picker also re-sorts this benchmark board: when
       // the selected metric has a value on at least one entry here, sort
       // and score by it instead of the board's own primary_metric — the
@@ -791,6 +829,7 @@ import Base from '../../layouts/Base.astro';
           <span class="tag">${wantsMetric ? 'sorted by' : 'primary metric'} · ${esc(metricLabel(primary))}</span>
           ${buckets.length ? '<button class="btn toggle-buckets" style="padding:0.1rem 0.6rem;font-size:0.72rem;margin-left:auto">show buckets</button>' : ''}
         </div>
+        ${benchAwaitingCount ? `<p class="lb-note">${benchAwaitingCount} fighter${benchAwaitingCount === 1 ? '' : 's'} had no scored samples (runs failed)</p>` : ''}
         <div style="overflow-x:auto"><table class="bench-tbl"><thead>${head}</thead><tbody>${rows}</tbody></table></div>
         ${pareto}
       </div>`;

@@ -75,6 +75,89 @@ class TestCompetitorDefSchema:
 
 
 # ---------------------------------------------------------------------------
+# `family` derivation — modality-aware (owner ruling, per-model TTS/STT
+# boards): intent leagues fold config-variant wrappers of the same engine
+# onto one collapsed family (FAMILY_ALIASES); every other league (tts, stt,
+# wake_word, vad, ww_stream, g2p) never collapses — each competitor is its
+# own family, equal to its own competitor_id, so phoonnx voices / onnx-asr
+# checkpoints each earn their own leaderboard entry instead of collapsing
+# under the shared plugin id.
+# ---------------------------------------------------------------------------
+
+
+class TestFamilyDerivation:
+    def _intent(self, **kw):
+        defaults = {
+            "competitor_id": "adapt-domain-medium",
+            "modality": "intent_keyword",
+            "plugin": "ovos-adapt-pipeline-plugin",
+            "config": {"intents": {"pipeline": ["ovos-adapt-pipeline-plugin-medium"]}},
+            "langs": ["en-US"],
+            "species": "DomainAdaptPipeline",
+        }
+        defaults.update(kw)
+        return CompetitorDef(**defaults)
+
+    def _non_intent(self, **kw):
+        defaults = {
+            "competitor_id": "phoonnx-ovos-mms-eng",
+            "modality": "tts",
+            "plugin": "ovos-tts-plugin-phoonnx",
+            "config": {},
+            "langs": ["en-US"],
+            "species": "PhoonnxMMS",
+        }
+        defaults.update(kw)
+        return CompetitorDef(**defaults)
+
+    def test_intent_fighter_with_alias_collapses_to_base_family(self):
+        c = self._intent()
+        assert c.species == "DomainAdaptPipeline"
+        assert c.family == "AdaptPipeline"  # via FAMILY_ALIASES
+
+    def test_intent_fighter_without_alias_falls_back_to_species(self):
+        c = self._intent(
+            competitor_id="jurebes-bm25-linear-svc",
+            species="JurebesPipeline",
+        )
+        assert c.family == "JurebesPipeline"
+
+    def test_tts_fighter_family_is_own_competitor_id_not_species(self):
+        """Each Phoonnx voice earns its own leaderboard entry — voices with
+        the same `species` (engine) must NOT collapse under it, unlike
+        intent-league wrappers."""
+        c = self._non_intent()
+        assert c.family == c.competitor_id == "phoonnx-ovos-mms-eng"
+        assert c.family != c.species
+
+    def test_stt_fighter_family_is_own_competitor_id(self):
+        c = self._non_intent(
+            competitor_id="onnx-asr-nemo-parakeet-tdt-0.6b",
+            modality="stt",
+            plugin="ovos-stt-plugin-onnx-asr",
+            species="OnnxAsrEngine",
+        )
+        assert c.family == c.competitor_id == "onnx-asr-nemo-parakeet-tdt-0.6b"
+
+    def test_two_tts_fighters_sharing_plugin_get_distinct_families(self):
+        """The bug this fixes: two voices under the same plugin/species must
+        not collapse onto a single shared family key."""
+        c1 = self._non_intent(competitor_id="phoonnx-voice-a")
+        c2 = self._non_intent(competitor_id="phoonnx-voice-b")
+        assert c1.family != c2.family
+        assert c1.family == "phoonnx-voice-a"
+        assert c2.family == "phoonnx-voice-b"
+
+    def test_non_intent_fighter_with_no_species_still_gets_family(self):
+        c = self._non_intent(species=None)
+        assert c.family == c.competitor_id
+
+    def test_explicit_family_never_overridden(self):
+        c = self._non_intent(family="explicit-family")
+        assert c.family == "explicit-family"
+
+
+# ---------------------------------------------------------------------------
 # DatasetDef schema
 # ---------------------------------------------------------------------------
 

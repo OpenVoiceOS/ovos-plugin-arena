@@ -292,7 +292,7 @@ class TestPredictionRowRoundTrip:
         fake_judge = FakeJudge(score=4.3755)
         monkeypatch.setattr(tts_bench, "_get_utmos_judge", lambda: fake_judge)
 
-        competitor = load_competitor("tts", "piper-amy-en-us")
+        competitor = load_competitor("tts", "coqui-ljspeech-vits")
         ctx = _ctx(tmp_path, competitor_id=competitor.competitor_id)
         ctx.competitor = competitor
         fields = tts_bench.TTSBench().predict(

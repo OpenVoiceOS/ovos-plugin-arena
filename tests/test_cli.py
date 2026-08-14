@@ -649,6 +649,46 @@ class TestExportBestiary:
         assert entry["species"] == "PadatiousPipeline"
         assert entry["types"]
 
+    def test_plugin_families_is_intent_only(self, tmp_path):
+        """plugin_families (arena/cli.py cmd_export_bestiary) is built with
+        `and comp.modality in INTENT_MODALITIES` — TTS/STT/wake-word/VAD
+        competitors never collapse (each model is its own family, per-model
+        bestiary cards), only intent-league config-variant wrappers do. If
+        that guard is ever dropped, a non-intent plugin id shared across
+        many distinct models (e.g. many Phoonnx TTS voices sharing one
+        `plugin`) would get folded onto whichever family happened to be
+        dumped last — this must fail red the moment the guard is removed.
+        """
+        registry_root = Path(__file__).parent.parent / "registry"
+        out = tmp_path / "competitors.json"
+        with pytest.raises(SystemExit) as exc:
+            main(["export-bestiary", "--registry", str(registry_root),
+                  "--output", str(out)])
+        assert exc.value.code == 0
+        payload = json.loads(out.read_text())
+
+        from registry.loaders import load_all_competitors
+        from registry.schemas import INTENT_MODALITIES
+        loaded = load_all_competitors(registry_root=registry_root)
+        non_intent_plugins = {
+            comp.plugin for comp in loaded
+            if comp.plugin and comp.family and comp.modality not in INTENT_MODALITIES
+        }
+        intent_plugins = {
+            comp.plugin for comp in loaded
+            if comp.plugin and comp.family and comp.modality in INTENT_MODALITIES
+        }
+        assert non_intent_plugins, "fixture must exercise a non-intent plugin"
+        assert intent_plugins, "fixture must exercise an intent plugin"
+
+        families = payload["plugin_families"]
+        leaked = non_intent_plugins & families.keys()
+        assert not leaked, (
+            f"plugin_families leaked non-intent plugin ids: {leaked} — "
+            "the INTENT_MODALITIES guard in cmd_export_bestiary is broken"
+        )
+        assert intent_plugins & families.keys()
+
 
 class TestExportEvidence:
     """§ evidence page — counts must be an exact function of the fixture

@@ -1289,6 +1289,7 @@ def cmd_export_bestiary(args: argparse.Namespace) -> int:
     if str(registry_root.parent) not in sys.path:
         sys.path.insert(0, str(registry_root.parent))
     from registry.loaders import load_all_competitors
+    from registry.schemas import INTENT_MODALITIES
 
     loaded = load_all_competitors(registry_root=registry_root)
     competitors = [
@@ -1303,10 +1304,18 @@ def cmd_export_bestiary(args: argparse.Namespace) -> int:
     # board/leaderboard row still carries its own `plugin_id`, so a ghost
     # can be folded into its engine's collapsed family card without ever
     # needing a stub registry entry re-created for it.
+    #
+    # Restricted to intent leagues: intent `family` genuinely collapses
+    # config-variant wrappers of one engine onto a shared plugin, so a
+    # plugin -> family fallback is sound there. TTS/STT/wake-word/VAD never
+    # collapse (each model is its own family == its own competitor_id), and
+    # several such competitors legitimately share one `plugin` id (e.g. many
+    # Phoonnx voices), so a plugin-keyed map would incorrectly fold distinct
+    # per-model ghosts onto whichever one happened to be dumped last.
     plugin_families = {
         comp.plugin: comp.family
         for comp in loaded
-        if comp.plugin and comp.family
+        if comp.plugin and comp.family and comp.modality in INTENT_MODALITIES
     }
 
     out_file = Path(args.output)
