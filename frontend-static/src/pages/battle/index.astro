@@ -14,7 +14,7 @@ import Base from '../../layouts/Base.astro';
 
   <div id="battle-loading" class="card" aria-live="polite">Loading battles pool…</div>
   <div id="battle-empty" class="card" style="display:none">
-    No battles available. Run the <code>assemble.yml</code> GitHub Action to assemble battles from prediction datasets.
+    Try another league or language. No battles available — run the <code>assemble.yml</code> GitHub Action to assemble battles from prediction datasets.
   </div>
 
   <section id="battle-ui" style="display:none" aria-label="Current battle">
@@ -177,6 +177,7 @@ import Base from '../../layouts/Base.astro';
     const poolCache = new Map(); // file -> battles[] already fetched, so re-selecting a modality/lang is free
     let cacheV = '';
     let allModalities = [];
+    let allLangsCount = 0;
     let allBattles = [];
     let battles = [];
     let fightersById = {};
@@ -202,6 +203,13 @@ import Base from '../../layouts/Base.astro';
     let spokenModalities = new Set();
 
     function defaultLangs(langs) {
+      // `lang` in the URL is an explicit ask, so it overrides both the saved
+      // choice and the navigator-languages heuristic below.
+      const urlLang = new URLSearchParams(window.location.search).get('lang');
+      if (urlLang) {
+        const valid = urlLang.split(',').filter(l => langs.includes(l));
+        if (valid.length) return new Set(valid);
+      }
       const saved = JSON.parse(localStorage.getItem('arena-battle-langs') || 'null');
       if (Array.isArray(saved) && saved.length) {
         const valid = saved.filter(l => langs.includes(l));
@@ -220,7 +228,10 @@ import Base from '../../layouts/Base.astro';
     }
 
     function defaultModalities(modalities) {
-      const urlModality = new URLSearchParams(window.location.search).get('modality');
+      // `league` is the site-wide param name (leaderboard/matchups); `modality`
+      // is accepted as a legacy read fallback for old links, but never written.
+      const params = new URLSearchParams(window.location.search);
+      const urlModality = params.get('league') || params.get('modality');
       if (urlModality) {
         const valid = urlModality.split(',').filter(m => modalities.includes(m));
         if (valid.length) return new Set(valid);
@@ -235,9 +246,13 @@ import Base from '../../layouts/Base.astro';
 
     function syncBattleUrl() {
       const params = new URLSearchParams(window.location.search);
+      params.delete('modality'); // legacy name — always rewritten as `league`
       if (spokenModalities.size && spokenModalities.size < allModalities.length)
-        params.set('modality', [...spokenModalities].join(','));
-      else params.delete('modality');
+        params.set('league', [...spokenModalities].join(','));
+      else params.delete('league');
+      if (spokenLangs.size && allLangsCount && spokenLangs.size < allLangsCount)
+        params.set('lang', [...spokenLangs].join(','));
+      else params.delete('lang');
       const qs = params.toString();
       window.history.replaceState(null, '', `${window.location.pathname}${qs ? '?' + qs : ''}${window.location.hash}`);
     }
@@ -477,6 +492,7 @@ import Base from '../../layouts/Base.astro';
       }
 
       const langs = [...new Set(poolsMeta.map(b => b.lang))].sort();
+      allLangsCount = langs.length;
       allModalities = [...new Set(poolsMeta.map(b => b.modality))].sort();
       renderLangChips(langs);
       renderModalityChips(allModalities);

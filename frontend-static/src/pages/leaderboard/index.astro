@@ -14,7 +14,7 @@ import Base from '../../layouts/Base.astro';
 
   <div id="lb-loading" class="card" aria-live="polite">Loading the arena…</div>
   <div id="lb-empty" class="card" style="display:none">
-    No standings yet. Run the <code>assemble.yml</code> action to build them from prediction data.
+    Try another league or language. No standings yet — run the <code>assemble.yml</code> action to build them from prediction data.
   </div>
 
   <div id="lb-app" style="display:none">
@@ -42,6 +42,16 @@ import Base from '../../layouts/Base.astro';
   <style is:global>
     /* ---- league tabs: character-select chips ---- */
     .lb-tabs { display:flex; gap:0.4rem; flex-wrap:wrap; margin:1.5rem 0 1rem; }
+    @media (max-width: 640px) {
+      .lb-tabs {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 1.75rem), transparent 100%);
+        mask-image: linear-gradient(to right, #000 calc(100% - 1.75rem), transparent 100%);
+      }
+      .lb-tab { flex: 0 0 auto; }
+    }
     .lb-tab {
       font-family: var(--display); font-weight:600; font-size:0.82rem;
       letter-spacing:0.02em; padding:0.5rem 0.95rem; cursor:pointer;
@@ -579,7 +589,7 @@ import Base from '../../layouts/Base.astro';
       const head = `<div class="lb-section-head">
         <p class="eyebrow" style="color:var(--accent)">The Ladder</p>
         <h2>${unranked ? '🎲 Unranked' : '⚔️ Rating ranking'}${autoOnly ? ` — ${esc(metricLabel(activeMetric))} <span class="auto-only-badge">auto-battles only</span>` : ''}</h2>
-        ${board && !autoOnly ? `<span class="tag">${board.vote_count - board.human_vote_count} auto-battles · ${board.human_vote_count} human votes</span>` : ''}
+        ${board && !autoOnly ? `<span class="tag">${board.vote_count - board.human_vote_count} <span title="Synthetic battles seeded from benchmark scores">auto-battles</span> · ${board.human_vote_count} <span title="Blind A/B votes cast by people">human votes</span></span>` : ''}
       </div>
       ${metricPickerHtml(ladders, activeMetric)}
       ${note ? `<p class="lb-note">${note}</p>` : ''}${autoOnlyNote}
