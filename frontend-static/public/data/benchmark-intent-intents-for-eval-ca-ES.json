@@ -2,16 +2,14 @@
   "modality": "intent",
   "dataset_id": "intents-for-eval",
   "lang": "ca-ES",
-  "generated_at": "2026-08-13T04:56:01.302612+00:00",
+  "generated_at": "2026-08-31T22:29:21.731428+00:00",
   "primary_metric": "accuracy",
   "dataset_info": {
     "url": "https://huggingface.co/datasets/OpenVoiceOS/intents-for-eval",
     "license": "apache-2.0",
     "notes": "OVOS canonical paradigm-neutral intent benchmark: 50 intents, 1750 test rows per language across template / paraphrase / near_ood / far_ood / asr_noise / typos buckets, with slot annotations. far_ood rows carry expected_intent=null — the correct behaviour is no match.",
     "predictions": [
-      "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-bench-intents-for-eval",
-      "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-keyword-bench-intents-for-eval",
-      "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-template-bench-intents-for-eval"
+      "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-bench-intents-for-eval"
     ],
     "train_datasets": {
       "template": {
@@ -25,14 +23,134 @@
     }
   },
   "predictions_revisions": {
-    "OpenVoiceOS/ovos-intent-bench-intents-for-eval": "9f49f27a64de4001cb2081aa94e38dc6ad7c2aea",
-    "OpenVoiceOS/ovos-intent-keyword-bench-intents-for-eval": "bbaec024ecd957e0cae6043fdd54e7d71ebd43e1",
-    "OpenVoiceOS/ovos-intent-template-bench-intents-for-eval": "96195b2e89407580efa9343b4cdfd7e153663383"
+    "OpenVoiceOS/ovos-intent-bench-intents-for-eval": "a7ec287d20e50f3477f11b2950c888cbb9eaa4d6"
   },
   "wer_normalizer_version": null,
   "entries": [
     {
       "rank": 1,
+      "competitor_id": "trident",
+      "plugin_id": "ensemble",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.8469,
+        "macro_f1": 0.8652,
+        "ood_fpr": 0.66,
+        "slot_exact_match": 0.1247,
+        "latency_ms_median": 9.06,
+        "acc_asr_noise": 0.68,
+        "acc_far_ood": 0.34,
+        "acc_near_ood": 0.9775,
+        "acc_paraphrase": 0.7371,
+        "acc_template": 0.996,
+        "acc_typos": 0.52
+      },
+      "primary_metric_ci_lower": 0.8314142857142858,
+      "primary_metric_ci_upper": 0.8645714285714285,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-padatious-pipeline-plugin==2.0.1a2;ovos-jurebes-pipeline-plugin==0.4.1a1;ovos-nebulento-pipeline-plugin==0.10.2a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null
+    },
+    {
+      "rank": 2,
+      "competitor_id": "tmpl-slot-jurebes",
+      "plugin_id": "ensemble",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.8217,
+        "macro_f1": 0.8681,
+        "ood_fpr": 0.5,
+        "slot_exact_match": 0.4533,
+        "latency_ms_median": 2.27,
+        "ece": 0.1299,
+        "acc_asr_noise": 0.6,
+        "acc_far_ood": 0.5,
+        "acc_near_ood": 0.98,
+        "acc_paraphrase": 0.6771,
+        "acc_template": 0.992,
+        "acc_typos": 0.42
+      },
+      "primary_metric_ci_lower": 0.8051142857142858,
+      "primary_metric_ci_upper": 0.8405714285714285,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-adapt-pipeline-plugin==1.6.1a1;ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null
+    },
+    {
+      "rank": 3,
+      "competitor_id": "tmpl-slot-linhafina",
+      "plugin_id": "ensemble",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.7457,
+        "macro_f1": 0.7883,
+        "ood_fpr": 0.22,
+        "slot_exact_match": 0.1869,
+        "latency_ms_median": 56.15,
+        "ece": 0.1299,
+        "acc_asr_noise": 0.52,
+        "acc_far_ood": 0.78,
+        "acc_near_ood": 0.9375,
+        "acc_paraphrase": 0.5343,
+        "acc_template": 0.96,
+        "acc_typos": 0.22
+      },
+      "primary_metric_ci_lower": 0.7251428571428571,
+      "primary_metric_ci_upper": 0.7657285714285714,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-adapt-pipeline-plugin==1.6.1a1;ovos-linha-fina-pipeline-plugin==0.4.1a3"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null
+    },
+    {
+      "rank": 4,
+      "competitor_id": "knn-first",
+      "plugin_id": "ensemble",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.7394,
+        "macro_f1": 0.7813,
+        "ood_fpr": 0.22,
+        "slot_exact_match": 0.0,
+        "latency_ms_median": 153.8,
+        "acc_asr_noise": 0.5,
+        "acc_far_ood": 0.78,
+        "acc_near_ood": 0.925,
+        "acc_paraphrase": 0.5314,
+        "acc_template": 0.954,
+        "acc_typos": 0.22
+      },
+      "primary_metric_ci_lower": 0.7194142857142857,
+      "primary_metric_ci_upper": 0.7605857142857142,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-hierarchical-knn-pipeline==0.0.2a1;ovos-linha-fina-pipeline-plugin==0.4.1a3"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null
+    },
+    {
+      "rank": 5,
       "competitor_id": "frankenparse",
       "plugin_id": "ensemble",
       "samples": 1750,
@@ -52,7 +170,7 @@
       },
       "primary_metric_ci_lower": 0.6519857142857143,
       "primary_metric_ci_upper": 0.6948571428571428,
-      "tied_with_leader": true,
+      "tied_with_leader": false,
       "plugin_versions": [
         "ovos-padacioso-pipeline-plugin==1.1.0a1;ovos-adapt-pipeline-plugin==1.3.1a1;ovos-padatious-pipeline-plugin==1.5.0a1;ovos-palavreado-pipeline-plugin==1.2.0a1;ovos-nebulento-pipeline-plugin==0.1.0"
       ],
@@ -63,7 +181,7 @@
       "model_mb": null
     },
     {
-      "rank": 2,
+      "rank": 6,
       "competitor_id": "nebulatious",
       "plugin_id": "ensemble",
       "samples": 1750,
@@ -82,7 +200,7 @@
       },
       "primary_metric_ci_lower": 0.6245571428571428,
       "primary_metric_ci_upper": 0.6668571428571428,
-      "tied_with_leader": true,
+      "tied_with_leader": false,
       "plugin_versions": [
         "ovos-padatious-pipeline-plugin==1.5.0a1;ovos-nebulento-pipeline-plugin==0.1.0"
       ],
@@ -93,7 +211,7 @@
       "model_mb": null
     },
     {
-      "rank": 3,
+      "rank": 7,
       "competitor_id": "nebulapt",
       "plugin_id": "ensemble",
       "samples": 1750,
@@ -113,7 +231,7 @@
       },
       "primary_metric_ci_lower": 0.6194285714285714,
       "primary_metric_ci_upper": 0.6628571428571428,
-      "tied_with_leader": true,
+      "tied_with_leader": false,
       "plugin_versions": [
         "ovos-adapt-pipeline-plugin==1.3.1a1;ovos-nebulento-pipeline-plugin==0.1.0"
       ],
@@ -122,6 +240,131 @@
       "unranked_reason": null,
       "perf": null,
       "model_mb": null
+    },
+    {
+      "rank": 8,
+      "competitor_id": "tmpl-slot-nebulento",
+      "plugin_id": "ensemble",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.6349,
+        "macro_f1": 0.7573,
+        "ood_fpr": 0.02,
+        "slot_exact_match": 0.8015,
+        "latency_ms_median": 9.93,
+        "ece": 0.1299,
+        "acc_asr_noise": 0.16,
+        "acc_far_ood": 0.98,
+        "acc_near_ood": 0.9575,
+        "acc_paraphrase": 0.2386,
+        "acc_template": 0.994,
+        "acc_typos": 0.14
+      },
+      "primary_metric_ci_lower": 0.6131285714285714,
+      "primary_metric_ci_upper": 0.656,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-adapt-pipeline-plugin==1.6.1a1;ovos-nebulento-pipeline-plugin==0.10.2a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null
+    },
+    {
+      "rank": 9,
+      "competitor_id": "mycroft-classic",
+      "plugin_id": "ensemble",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.5634,
+        "macro_f1": 0.7066,
+        "ood_fpr": 0.02,
+        "slot_exact_match": 0.2877,
+        "latency_ms_median": 8.58,
+        "ece": 0.1299,
+        "acc_asr_noise": 0.06,
+        "acc_far_ood": 0.98,
+        "acc_near_ood": 0.9025,
+        "acc_paraphrase": 0.1271,
+        "acc_template": 0.966,
+        "acc_typos": 0.02
+      },
+      "primary_metric_ci_lower": 0.5405571428571428,
+      "primary_metric_ci_upper": 0.5868571428571429,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-adapt-pipeline-plugin==1.6.1a1;ovos-padatious-pipeline-plugin==2.0.1a2"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null
+    },
+    {
+      "rank": 10,
+      "competitor_id": "m2v-first",
+      "plugin_id": "ensemble",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.5549,
+        "macro_f1": 0.7001,
+        "ood_fpr": 0.0,
+        "slot_exact_match": 0.045,
+        "latency_ms_median": 10.28,
+        "acc_asr_noise": 0.02,
+        "acc_far_ood": 1.0,
+        "acc_near_ood": 0.8925,
+        "acc_paraphrase": 0.1114,
+        "acc_template": 0.968,
+        "acc_typos": 0.02
+      },
+      "primary_metric_ci_lower": 0.532,
+      "primary_metric_ci_upper": 0.5777142857142857,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-m2v-pipeline==0.5.4a2;ovos-padatious-pipeline-plugin==2.0.1a2"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null
+    },
+    {
+      "rank": 11,
+      "competitor_id": "ovos-stock",
+      "plugin_id": "ensemble",
+      "samples": 1750,
+      "metrics": {
+        "accuracy": 0.5526,
+        "macro_f1": 0.6951,
+        "ood_fpr": 0.02,
+        "slot_exact_match": 0.0939,
+        "latency_ms_median": 9.63,
+        "ece": 0.2834,
+        "acc_asr_noise": 0.06,
+        "acc_far_ood": 0.98,
+        "acc_near_ood": 0.91,
+        "acc_paraphrase": 0.1014,
+        "acc_template": 0.96,
+        "acc_typos": 0.0
+      },
+      "primary_metric_ci_lower": 0.5297142857142858,
+      "primary_metric_ci_upper": 0.5765714285714286,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-padatious-pipeline-plugin==2.0.1a2;ovos-adapt-pipeline-plugin==1.6.1a1;ovos-m2v-pipeline==0.5.4a2"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null
     }
-  ]
+  ],
+  "entries_hash": "fce97b16d5bc8ea713c20d5d7e7529e80f4868592d683c901389e8eb99f21f16",
+  "input_hash": "f9738b01e5acc4d347f228b3e49bc8db65326615f9f8bccadb475cae3f9485cb"
 }

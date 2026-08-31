@@ -1,0 +1,54 @@
+{
+  "modality": "intent",
+  "dataset_id": "clinc150",
+  "lang": "en-US",
+  "generated_at": "2026-08-31T22:29:21.731428+00:00",
+  "primary_metric": "accuracy",
+  "dataset_info": {
+    "url": "https://huggingface.co/datasets/clinc/clinc_oos",
+    "license": "cc-by-3.0",
+    "notes": "CLINC150 (Larson et al. 2019) — 150 in-scope intents across 10 domains, English, plus an explicit out-of-scope class. Absorbed from ovos-intent-benchmark's dataset list. Uses the 'plus' config, whose 1000 out-of-scope test utterances are tagged bucket='far_ood' with expected_intent=None so the scorer treats a non-fire as correct — a genuine 'don't guess' regression test the other 3 absorbed corpora don't provide.",
+    "predictions": [
+      "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-bench-clinc150"
+    ],
+    "train_datasets": {
+      "template": {
+        "dataset_id": "clinc150-train",
+        "url": "https://huggingface.co/datasets/clinc/clinc_oos"
+      }
+    }
+  },
+  "predictions_revisions": {
+    "OpenVoiceOS/ovos-intent-bench-clinc150": "4baf0ad2aac2c082e7e618bea3ff54cb3608f73d"
+  },
+  "wer_normalizer_version": null,
+  "entries": [
+    {
+      "rank": 1,
+      "competitor_id": "nebulatious",
+      "plugin_id": "ensemble",
+      "samples": 5500,
+      "metrics": {
+        "accuracy": 0.3224,
+        "macro_f1": 0.2733,
+        "ood_fpr": 0.002,
+        "latency_ms_median": 74.04,
+        "acc_far_ood": 0.998,
+        "acc_test": 0.1722
+      },
+      "primary_metric_ci_lower": 0.31,
+      "primary_metric_ci_upper": 0.33490909090909093,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-padatious-pipeline-plugin==2.0.1a2;ovos-nebulento-pipeline-plugin==0.10.2a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null
+    }
+  ],
+  "entries_hash": "8c9a3f997071eabd44e60d86618e159253564cfb6341012fdc1ad386655160d2",
+  "input_hash": "92bb3449a9676de3cb093d7e5cfe60997866e2369d93ecfa514cb0a582de5502"
+}
