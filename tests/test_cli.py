@@ -718,14 +718,14 @@ class TestExportEvidence:
             "dataset_id": "fleurs-en", "modality": "stt",
             "source": {"type": "huggingface", "hf_id": "google/fleurs",
                        "revision": "main", "split": "test"},
-            "lang": "en", "role": "eval",
+            "lang": "en-US", "role": "eval",
             "predictions_hf": "OpenVoiceOS/ovos-stt-bench-fleurs-en",
         }))
         (root / "datasets" / "stt" / "fleurs-de.json").write_text(json.dumps({
             "dataset_id": "fleurs-de", "modality": "stt",
             "source": {"type": "huggingface", "hf_id": "google/fleurs",
                        "revision": "main", "split": "test"},
-            "lang": "de", "role": "eval",
+            "lang": "de-DE", "role": "eval",
             "predictions_hf": "OpenVoiceOS/ovos-stt-bench-fleurs-de",
         }))
         # One TTS eval dataset, no benchmark board published for it yet.
@@ -733,7 +733,7 @@ class TestExportEvidence:
             "dataset_id": "intents-prompts", "modality": "tts",
             "source": {"type": "huggingface", "hf_id": "OpenVoiceOS/x",
                        "revision": "main", "split": "test"},
-            "lang": "en", "role": "eval",
+            "lang": "en-US", "role": "eval",
             "predictions_hf": "OpenVoiceOS/ovos-tts-bench-intents-prompts",
         }))
 

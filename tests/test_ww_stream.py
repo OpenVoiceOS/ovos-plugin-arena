@@ -44,7 +44,7 @@ class TestCapabilitiesSchema:
     def _valid(self, **kw):
         defaults = dict(
             competitor_id="c", modality="wake_word",
-            plugin="ovos-ww-plugin-openwakeword", config={}, langs=["en"],
+            plugin="ovos-ww-plugin-openwakeword", config={}, langs=["en-US"],
         )
         defaults.update(kw)
         return CompetitorDef(**defaults)
@@ -228,7 +228,7 @@ class TestStreamEligibility:
     def _fighter(self, cid, capabilities):
         return CompetitorDef(
             competitor_id=cid, modality="wake_word",
-            plugin="ovos-ww-plugin-x", config={}, langs=["en"],
+            plugin="ovos-ww-plugin-x", config={}, langs=["en-US"],
             capabilities=capabilities,
         )
 
