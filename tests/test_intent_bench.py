@@ -343,6 +343,7 @@ def test_train_fetch_uses_train_repo_revision():
         source=SimpleNamespace(hf_id="org/eval-repo", revision="main",
                                file_pattern=None, subset=None, split="test"),
         train_datasets={"template": "train-ds"},
+        input="text",
     )
     train_def = SimpleNamespace(
         source=SimpleNamespace(hf_id="org/train-repo", revision="main",

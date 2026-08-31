@@ -20,6 +20,7 @@ module is the machinery they share.  A benchmark run:
 from __future__ import annotations
 
 import argparse
+import importlib.metadata
 import json
 import logging
 from datetime import datetime, timezone
@@ -28,12 +29,13 @@ from pathlib import Path
 from arena.metrics import domain_of
 from arena.version import __version__ as ARENA_VERSION
 from registry.loaders import load_all_competitors, load_dataset
-from runner.perf import hw_fingerprint, measure_call
+from runner.audio_io import stream_audio_dataset, stream_manifest_audio
 from runner.intent_pipeline import (
     ENGINE_REGISTRY,
     IntentPipeline,
     plugin_version,
 )
+from runner.perf import hw_fingerprint, measure_call
 
 log = logging.getLogger("intent-bench")
 
@@ -93,6 +95,122 @@ def fetch_rows(dataset_def, lang: str, revision: str) -> list:
         return [json.loads(line) for line in Path(path).read_text().splitlines()
                 if line.strip()]
     return fetch_hf_classification_rows(dataset_def, lang, revision)
+
+
+def stt_plugin_version(plugin_id: str) -> str:
+    """``<plugin_id>==<installed dist version>``, mirrors intent_pipeline's
+
+    plugin_version() but for OVOS STT plugin distributions (the pip name
+    equals the OPM module id for every currently-registered fighter, e.g.
+    ``ovos-stt-plugin-onnx-asr``).
+    """
+    try:
+        return f"{plugin_id}=={importlib.metadata.version(plugin_id)}"
+    except importlib.metadata.PackageNotFoundError:
+        return plugin_id
+
+
+def transcript_cache_path(cache_dir: Path, dataset_id: str, lang: str) -> Path:
+    return Path(cache_dir) / dataset_id / f"{lang}.jsonl"
+
+
+def load_stt_engine(dataset_def, lang: str):
+    """Instantiate the dataset's pinned STT plugin (§ audio-input intent)."""
+    from ovos_plugin_manager.stt import load_stt_plugin
+
+    module = dataset_def.stt_plugin
+    clazz = load_stt_plugin(module)
+    return clazz({"lang": lang, "module": module, **dict(dataset_def.stt_config)})
+
+
+def _iter_audio_samples(dataset_def, lang: str, revision: str, max_samples: int):
+    fields = dataset_def.reference_fields or {}
+    audio_key = fields.get("audio", "audio")
+    intent_key = fields.get("intent", "intent_str")
+    src = dataset_def.source
+    if "{lang}" in (src.subset or "") or "{lang}" in (src.file_pattern or ""):
+        update = {}
+        if src.subset:
+            update["subset"] = src.subset.format(lang=lang)
+        if src.file_pattern:
+            update["file_pattern"] = src.file_pattern.format(lang=lang)
+        src = src.model_copy(update=update)
+    streamer = (stream_manifest_audio
+                if (src.file_pattern or "").endswith((".csv", ".tsv", ".jsonl"))
+                else stream_audio_dataset)
+    yield from streamer(
+        src, audio_key=audio_key, extra_keys={"expected_intent": intent_key},
+        revision=revision, max_samples=max_samples,
+    )
+
+
+def transcribe_dataset(
+    dataset_def, lang: str, revision: str, cache_dir: Path, max_samples: int = 0,
+) -> tuple[list[dict], str]:
+    """Transcribe every clip ONCE per (dataset, lang) with the dataset's
+    pinned STT and cache the result — every intent fighter trains/predicts
+    off this SAME cached transcript, isolating intent ranking from STT
+    variance (see registry.schemas.DatasetDef.input and
+    docs/SPECIFICATION.md §3.2).
+
+    Returns ``(rows, stt_revision)`` where ``rows`` follow the same
+    canonical shape as a text-input eval set (``utterance``/
+    ``expected_intent``/``split``), so ``run_competitor_lang`` treats an
+    audio dataset identically to a text one downstream of this call.
+    """
+    out_path = transcript_cache_path(cache_dir, dataset_def.dataset_id, lang)
+    done: dict[str, dict] = {}
+    if out_path.exists():
+        for line in out_path.read_text().splitlines():
+            if not line.strip():
+                continue
+            row = json.loads(line)
+            done[row["sample_id"]] = row
+
+    stt_revision = stt_plugin_version(dataset_def.stt_plugin)
+    engine = None
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    rows: list[dict] = []
+    count = 0
+    with out_path.open("a", encoding="utf-8") as fh:
+        for sample_id, sample in _iter_audio_samples(
+                dataset_def, lang, revision, max_samples):
+            if sample_id in done:
+                rows.append(done[sample_id])
+                count += 1
+                continue
+            if engine is None:
+                engine = load_stt_engine(dataset_def, lang)
+            from ovos_plugin_manager.utils.audio import AudioData
+
+            audio = AudioData.from_array(
+                sample["array"], sample_rate=sample["sr"], sample_width=2
+            )
+            result = engine.transcribe(audio, lang=lang)
+            text = _first_transcript(result)
+            row = {
+                "sample_id": sample_id,
+                "utterance": text,
+                "expected_intent": sample.get("expected_intent"),
+                "split": "test",
+            }
+            fh.write(json.dumps(row, ensure_ascii=False) + "\n")
+            rows.append(row)
+            count += 1
+            if max_samples and count >= max_samples:
+                break
+    return rows, stt_revision
+
+
+def _first_transcript(result) -> str:
+    if isinstance(result, list) and result:
+        head = result[0]
+        if isinstance(head, (list, tuple)):
+            return str(head[0])
+        return str(head)
+    if isinstance(result, tuple):
+        return str(result[0])
+    return str(result or "")
 
 
 def fetch_hf_classification_rows(dataset_def, lang: str, revision: str) -> list:
@@ -221,6 +339,7 @@ def make_row(
     dataset_revision: str,
     granularity: str = "intent",
     peak_rss_mb: float | None = None,
+    stt_provenance: dict | None = None,
 ) -> dict:
     """Build one §3.2 prediction row.
 
@@ -228,6 +347,11 @@ def make_row(
     'intent' (default) requires an exact string match; 'domain' compares
     only the text before the first ':' on both sides, for corpora that
     only carry a domain-level reference (e.g. meteocat).
+
+    ``stt_provenance`` (audio-input datasets only) carries
+    ``{"stt_plugin", "stt_config", "stt_revision"}`` — which pinned STT
+    produced ``test_row["utterance"]`` (the cached transcript every
+    fighter is scored against). Absent for text-input datasets.
     """
     reference_intent = test_row.get("expected_intent")
     if reference_intent is None:
@@ -239,7 +363,7 @@ def make_row(
     versions = ";".join(
         plugin_version(p) for p in competitor.pipeline_plugins
     )
-    return {
+    row = {
         "competitor_id": competitor.competitor_id,
         "sample_id": f"{lang}/{sample_index:05d}",
         "dataset_id": dataset_id,
@@ -267,6 +391,9 @@ def make_row(
         "runner_version": f"ovos-plugin-arena=={ARENA_VERSION}",
         "created_at": _now_iso(),
     }
+    if stt_provenance:
+        row.update(stt_provenance)
+    return row
 
 
 def done_samples(out_path: Path) -> set:
@@ -295,11 +422,25 @@ def run_competitor_lang(
     revision: str,
     out_path: Path,
     max_samples: int = 0,
+    transcript_cache_dir: Path | None = None,
 ) -> int:
     """Train one fighter for one language and predict the eval split."""
-    test_rows = fetch_rows(eval_def, lang, revision)
-    if max_samples:
-        test_rows = test_rows[:max_samples]
+    stt_provenance = None
+    if eval_def.input == "audio":
+        test_rows, stt_revision = transcribe_dataset(
+            eval_def, lang, revision,
+            transcript_cache_dir or Path("transcript_cache"),
+            max_samples=max_samples,
+        )
+        stt_provenance = {
+            "stt_plugin": eval_def.stt_plugin,
+            "stt_config": eval_def.stt_config,
+            "stt_revision": stt_revision,
+        }
+    else:
+        test_rows = fetch_rows(eval_def, lang, revision)
+        if max_samples:
+            test_rows = test_rows[:max_samples]
 
     done = done_samples(out_path)
     todo = [
@@ -340,6 +481,7 @@ def run_competitor_lang(
                 prediction, slots, confidence, latency_ms, stage, revision,
                 granularity=eval_def.reference_granularity,
                 peak_rss_mb=peak_rss_mb,
+                stt_provenance=stt_provenance,
             )
             fh.write(json.dumps(row, ensure_ascii=False) + "\n")
             written += 1
@@ -462,6 +604,14 @@ def run_benchmark(dataset_id: str, description: str, argv=None) -> int:
     parser.add_argument("--upload", action="store_true",
                         help="Upload predictions to the per-modality HF repos")
     parser.add_argument("--hf-owner", default=HF_OWNER)
+    parser.add_argument(
+        "--transcript-cache-dir", default="transcript_cache",
+        help=(
+            "Audio-input datasets only: where cached per-(dataset,lang) "
+            "STT transcripts are read/written. One transcription pass per "
+            "language, shared by every fighter (see DatasetDef.input)."
+        ),
+    )
     args = parser.parse_args(argv)
 
     eval_def = load_dataset("intent", dataset_id)
@@ -501,6 +651,7 @@ def run_benchmark(dataset_id: str, description: str, argv=None) -> int:
                 run_competitor_lang(
                     competitor, dataset_id, lang, eval_def, train_defs,
                     revision, out_path, max_samples=args.max_samples,
+                    transcript_cache_dir=Path(args.transcript_cache_dir),
                 )
             except Exception:
                 log.exception("  %s/%s failed", competitor.competitor_id, lang)
