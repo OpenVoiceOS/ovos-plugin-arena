@@ -152,6 +152,26 @@ class HuggingFaceSource(BaseModel):
             "None disables dedup for sources with no reliable id column."
         ),
     )
+    lang_field: str | None = Field(
+        None,
+        description=(
+            "Column name holding a per-row language tag, for plain HF "
+            "classification datasets that ship every language mixed into "
+            "one split instead of one config/split per language (e.g. "
+            "tasksource/mtop's 'lang' column: 'de_XX', 'en_XX', ...). "
+            "Paired with 'lang_value' — rows whose lang_field value does "
+            "not equal lang_value are dropped. None means the split is "
+            "already single-language (the common case)."
+        ),
+    )
+    lang_value: str | None = Field(
+        None,
+        description=(
+            "Raw source-column value to keep when 'lang_field' is set "
+            "(e.g. 'de_XX' for a dataset entry registered as lang='de-DE'). "
+            "Ignored when lang_field is None."
+        ),
+    )
 
     @property
     def dataset_id_str(self) -> str:

@@ -213,6 +213,20 @@ def _first_transcript(result) -> str:
     return str(result or "")
 
 
+def normalize_hierarchical_label(domain: str, intent: str) -> str:
+    """Collapse a source's own domain + intent columns into the arena's
+    'domain:intent' label convention (see intents-for-eval's
+    expected_intent shape).
+
+    Source intent values are frequently prefixed with a generic parser
+    tag rather than the real domain (MTOP: 'IN:SEND_MESSAGE', domain
+    column 'messaging') and/or shout-cased. Only the text after the last
+    ':' is kept from the intent side; both sides are lowercased.
+    """
+    local = intent.rsplit(":", 1)[-1]
+    return f"{domain.strip().lower()}:{local.strip().lower()}"
+
+
 def fetch_hf_classification_rows(dataset_def, lang: str, revision: str) -> list:
     """Read a plain HF text-classification dataset into canonical rows.
 
@@ -234,6 +248,7 @@ def fetch_hf_classification_rows(dataset_def, lang: str, revision: str) -> list:
     fields = dataset_def.reference_fields
     text_col = fields.get("utterance")
     intent_col = fields.get("intent")
+    domain_col = fields.get("domain")
     domain_label = dataset_def.domain_label
     if not text_col or (not intent_col and domain_label is None):
         raise ValueError(
@@ -242,6 +257,9 @@ def fetch_hf_classification_rows(dataset_def, lang: str, revision: str) -> list:
             "(or set domain_label for a corpus with no label column)"
         )
     ds = load_dataset(src.hf_id, name=src.subset, split=src.split, revision=revision)
+
+    if src.lang_field:
+        ds = ds.filter(lambda r: r[src.lang_field] == src.lang_value)
 
     intent_feature = ds.features.get(intent_col)
     def _decode(value):
@@ -261,6 +279,8 @@ def fetch_hf_classification_rows(dataset_def, lang: str, revision: str) -> list:
                 continue
             seen_ids.add(row_id)
         label = domain_label if intent_col is None else _decode(r[intent_col])
+        if domain_col is not None and label is not None:
+            label = normalize_hierarchical_label(r[domain_col], label)
         text = r[text_col]
         if oos and label == oos:
             if is_train:

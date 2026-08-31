@@ -1,0 +1,25 @@
+{
+  "dataset_id": "mtop-th-TH",
+  "modality": "intent",
+  "source": {
+    "type": "huggingface",
+    "hf_id": "tasksource/mtop",
+    "revision": "refs/convert/parquet",
+    "split": "test",
+    "lang_field": "lang",
+    "lang_value": "th_XX"
+  },
+  "reference_fields": {
+    "utterance": "question",
+    "intent": "intent",
+    "domain": "domain"
+  },
+  "lang": "th-TH",
+  "license": "cc-by-sa-4.0",
+  "role": "eval",
+  "train_datasets": {
+    "template": "mtop-th-TH-train"
+  },
+  "predictions_hf": "OpenVoiceOS/ovos-intent-bench-mtop-th-TH",
+  "notes": "MTOP (Li et al. 2020) — multilingual task-oriented semantic parsing benchmark, th-TH slice. Registered against tasksource/mtop (the public HF mirror; facebook/flores-style gated mirrors were avoided — this one is ungated). The source ships one 'mtop' config with every language's rows concatenated and a 'lang' column ('th_XX' here) instead of a per-language config/split, so this entry filters on source.lang_field='lang'/lang_value='th_XX'. MTOP's own 'intent' column is prefixed with a generic parser tag rather than the real domain (e.g. 'IN:SEND_MESSAGE'); the arena's label convention is 'domain:intent' (see intents-for-eval), so reference_fields maps a 'domain' column too and the runner normalizes both into 'calling:create_call' via normalize_hierarchical_label() before scoring. mteb/mtop_intent was considered as a fallback but ships a deprecated loading script the datasets library can no longer execute, so it was not used. tasksource/mtop ships a legacy Python loading script under its default 'mtop' config name, which the current `datasets` library refuses to execute ('Dataset scripts are no longer supported') — registered against HF's auto-generated parquet conversion instead (revision='refs/convert/parquet', builder config 'default'), the same escape hatch used elsewhere in this registry for legacy-script sources."
+}
