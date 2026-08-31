@@ -78,7 +78,7 @@ class TestCompetitorDefSchema:
 # `family` derivation — modality-aware (owner ruling, per-model TTS/STT
 # boards): intent leagues fold config-variant wrappers of the same engine
 # onto one collapsed family (FAMILY_ALIASES); every other league (tts, stt,
-# wake_word, vad, ww_stream, g2p) never collapses — each competitor is its
+# wake_word, vad, ww_stream) never collapses — each competitor is its
 # own family, equal to its own competitor_id, so phoonnx voices / onnx-asr
 # checkpoints each earn their own leaderboard entry instead of collapsing
 # under the shared plugin id.
@@ -415,7 +415,7 @@ class TestPredictionRepos:
 
     def test_modality_scoping_is_subset_of_unscoped(self):
         full = set(list_prediction_repos())
-        for modality in ("stt", "tts", "wake_word", "vad", "g2p",
+        for modality in ("stt", "tts", "wake_word", "vad",
                           "intent", "intent_template", "intent_keyword"):
             assert set(list_prediction_repos(modality=modality)) <= full
 

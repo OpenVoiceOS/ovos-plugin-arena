@@ -111,10 +111,6 @@ class Modality(str, Enum):
     # a distinct board scored from continuous-audio detection events rather
     # than isolated clips. See registry/datasets/ww_stream/*.json.
     WW_STREAM = "ww_stream"
-    # Grapheme-to-phoneme league (§A6) — vote-less: benchmark boards only
-    # (phoneme error rate against provenance-tiered gold), no battles/ELO/
-    # votes. See registry/datasets/g2p/*.json and arena.metrics.score_g2p.
-    G2P = "g2p"
 
 
 INTENT_MODALITIES = (
@@ -175,81 +171,7 @@ class PathSource(BaseModel):
     format: str = "jsonl"  # jsonl | csv | parquet
 
 
-class UrlSource(BaseModel):
-    """A dataset fetched from a single, directly-downloadable file URL.
-
-    G2P gold lexicons (CMUdict, WikiPron file exports, …) are typically
-    published as one flat dictionary file rather than a HuggingFace dataset
-    or a local path — the same shape ``orthography2ipa``'s benchmark harness
-    fetches from (e.g. ``cmusphinx/cmudict`` on GitHub raw).
-    """
-
-    model_config = ConfigDict(extra="forbid")
-
-    type: Literal["url"] = "url"
-    url: str = Field(..., description="Direct URL to the dataset file")
-    format: str = "dict"  # dict (word<TAB/SPACE>phones per line) | tsv | jsonl
-
-
-DatasetSource = HuggingFaceSource | PathSource | UrlSource
-
-
-# ---------------------------------------------------------------------------
-# G2P provenance tiers (§A6) — mirrors orthography2ipa's RELIABILITY_TIERS
-# (scripts/benchmark.py) and the org wiki's BENCHMARK-GRADE / USE-WITH-CARE /
-# CIRCULAR classification (knowledge/wiki/concepts/g2p-benchmark-datasets.md).
-# ---------------------------------------------------------------------------
-#
-# Reliable G2P "gold" barely exists: almost every public G2P dataset is
-# semi-automated, dictionary-extracted, community-scraped, or another
-# phonemizer's own output reused as a reference. Scoring against tool-derived
-# gold measures agreement with that tool, not phonetic correctness — so this
-# registry MUST carry the tier alongside every g2p dataset, most to least
-# trustworthy:
-#
-#   expert-human      — curated by phoneticians/trained annotators.
-#   lexicon-derived    — human lexicographers via a published dictionary's
-#                        notation conventions (e.g. CMUdict, mechanically
-#                        mapped ARPABET->IPA).
-#   crowd-scraped      — Wiktionary community edits (e.g. WikiPron).
-#   machine-generated  — some OTHER tool's output reused as reference; allowed
-#                        only with ``tool_derived=True`` set explicitly (§A6),
-#                        which the assembled board surfaces so nobody mistakes
-#                        it for gold-grade.
-#   espeak-derived      — the gold IS a competitor's own output (espeak-ng or
-#   epitran-derived       epitran, both engines the arena would benchmark
-#                        AGAINST). Registering either tier as ``role: eval``
-#                        gold is CIRCULAR and MUST fail validation outright —
-#                        see ``CIRCULAR_PROVENANCE_TIERS`` below.
-#   llm-generated      — no lexicon, no G2P model, no rules: no error model.
-#                        Directional curiosity only; treated as tool-derived
-#                        (requires the explicit flag) rather than banned
-#                        outright, since — unlike espeak/epitran — it is not
-#                        a competitor's own output.
-G2P_PROVENANCE_TIERS = (
-    "expert-human",
-    "lexicon-derived",
-    "crowd-scraped",
-    "machine-generated",
-    "espeak-derived",
-    "epitran-derived",
-    "llm-generated",
-)
-
-# Self-referential gold: the tool's own output used to score that same tool
-# (or a comparable rule-based competitor). Never usable as ``role: eval``
-# gold — registration MUST fail validation, not just warn (unlike o2i's
-# NON_QUALIFYING_TIERS, which still allows the row but bars it from gating
-# a promotion decision; the arena registry has no lesser "directional-only"
-# state for a benchmark board, so circular gold is rejected entirely).
-CIRCULAR_PROVENANCE_TIERS = frozenset({"espeak-derived", "epitran-derived"})
-
-# Not circular (not a system the arena benchmarks against), but still a
-# tool's output rather than a human/institutional transcription — allowed
-# as gold only when the registry entry explicitly acknowledges it via
-# ``tool_derived=True``, which ``build_benchmark_board`` surfaces in board
-# metadata so the caveat travels with the numbers.
-TOOL_DERIVED_PROVENANCE_TIERS = frozenset({"machine-generated", "llm-generated"})
+DatasetSource = HuggingFaceSource | PathSource
 
 
 # ---------------------------------------------------------------------------
@@ -450,32 +372,6 @@ class DatasetDef(BaseModel):
             "for reference_fields['intent'] when the latter is absent."
         ),
     )
-    # G2P (§A6) — mandatory provenance tier for role=eval gold. See
-    # G2P_PROVENANCE_TIERS / CIRCULAR_PROVENANCE_TIERS / TOOL_DERIVED_
-    # PROVENANCE_TIERS above and ``_validate_g2p_provenance`` below.
-    provenance_tier: str | None = Field(
-        None,
-        description=(
-            "G2P eval gold only (required): reliability tier of this "
-            "dataset's IPA transcriptions, one of G2P_PROVENANCE_TIERS. "
-            "espeak-derived/epitran-derived (self-referential gold) MUST "
-            "NOT be registered as role=eval — validation fails outright. "
-            "machine-generated/llm-generated gold is allowed only paired "
-            "with tool_derived=True."
-        ),
-    )
-    tool_derived: bool = Field(
-        False,
-        description=(
-            "G2P only: explicit acknowledgement that this dataset's gold "
-            "was produced by a tool (machine-generated/llm-generated "
-            "provenance_tier), not a human/institutional transcription. "
-            "Required True for those tiers; surfaced in benchmark board "
-            "metadata (BenchmarkBoard.dataset_info) so the caveat travels "
-            "with the numbers."
-        ),
-    )
-
     @model_validator(mode="after")
     def _validate_paradigm_directory(self) -> DatasetDef:
         """A role=train intent corpus with a ``paradigm`` lives under
@@ -491,40 +387,6 @@ class DatasetDef(BaseModel):
                     f"corpus must set modality={expected.value!r} "
                     f"(got {self.modality.value!r})"
                 )
-        return self
-
-    @model_validator(mode="after")
-    def _validate_g2p_provenance(self) -> DatasetDef:
-        """§A6 — every g2p eval (gold) dataset MUST carry a provenance tier;
-        circular (competitor-self-referential) tiers are rejected outright;
-        tool-derived tiers require the explicit ``tool_derived`` flag."""
-        if self.modality != Modality.G2P or self.role != "eval":
-            return self
-        if self.provenance_tier is None:
-            raise ValueError(
-                f"{self.dataset_id}: g2p role=eval dataset MUST set "
-                "provenance_tier (see G2P_PROVENANCE_TIERS)"
-            )
-        if self.provenance_tier not in G2P_PROVENANCE_TIERS:
-            raise ValueError(
-                f"{self.dataset_id}: unknown provenance_tier "
-                f"{self.provenance_tier!r}, must be one of "
-                f"{G2P_PROVENANCE_TIERS}"
-            )
-        if self.provenance_tier in CIRCULAR_PROVENANCE_TIERS:
-            raise ValueError(
-                f"{self.dataset_id}: provenance_tier "
-                f"{self.provenance_tier!r} is CIRCULAR gold (a competitor's "
-                "own output) and MUST NOT be registered as role=eval — see "
-                "CIRCULAR_PROVENANCE_TIERS"
-            )
-        if self.provenance_tier in TOOL_DERIVED_PROVENANCE_TIERS and not self.tool_derived:
-            raise ValueError(
-                f"{self.dataset_id}: provenance_tier "
-                f"{self.provenance_tier!r} is tool-derived and requires "
-                "tool_derived=True (explicit acknowledgement, surfaced in "
-                "board metadata)"
-            )
         return self
 
 

@@ -95,7 +95,7 @@ class TestCompetitorDefValidation:
         with pytest.raises(ValidationError):
             CompetitorDef(
                 competitor_id="x",
-                modality="g2p",
+                modality="stt",
                 plugin="some-plugin",
                 langs=["en"],
             )
@@ -103,7 +103,7 @@ class TestCompetitorDefValidation:
     def test_full_tag_accepted(self):
         c = CompetitorDef(
             competitor_id="x",
-            modality="g2p",
+            modality="stt",
             plugin="some-plugin",
             langs=["en-US"],
         )
