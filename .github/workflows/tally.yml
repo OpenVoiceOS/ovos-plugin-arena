@@ -54,5 +54,11 @@ jobs:
             echo "No leaderboard changes."
           else
             git commit -m "chore(data): update leaderboards from vote tally [skip ci]"
-            git push origin dev
+            # Retry: another workflow (assemble commit job, a PR merge) can move dev
+            # between checkout and push; data commits touch disjoint files, so a
+            # rebase is safe. Mirrors assemble.yml's commit job.
+            for attempt in 1 2 3; do
+              git push origin dev && break
+              git pull --rebase origin dev
+            done
           fi
