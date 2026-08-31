@@ -61,6 +61,11 @@ def _parquet_files(hf_repo: str, subset: str | None, split: str,
     files = list(HfApi().list_repo_files(hf_repo, repo_type="dataset",
                                          revision=revision))
     for prefix in (f"{subset}/{split}-" if subset else f"{split}-",
+                   # directory-per-split layout, e.g. HF's own
+                   # refs/convert/parquet auto-conversion of a loading-script
+                   # dataset: "<subset>/<split>/0000.parquet" rather than the
+                   # flat "<subset>/<split>-0000.parquet" default naming.
+                   f"{subset}/{split}/" if subset else f"{split}/",
                    f"data/{subset}/" if subset else "data/",
                    f"data/{split}-", f"{split}-"):
         hits = [f for f in files if f.startswith(prefix) and f.endswith(".parquet")]
@@ -178,6 +183,107 @@ def _pool_negatives(sources, max_per_class):
     return out
 
 
+def _ava_speech_windows(onsets: list, offsets: list, duration_s: float,
+                        seg_s: float) -> tuple[list, list]:
+    """Split one AVA-Speech-style onset/offset manifest into fixed-length
+    speech / non_speech windows (pure, no I/O — unit-testable).
+
+    ``onsets``/``offsets`` are parallel arrays of human_SPEECH segment
+    boundaries (seconds) for one long clip; the gaps between them (including
+    before the first onset and after the last offset) are non_speech. Only
+    windows that fit entirely within a segment/gap of at least ``seg_s`` are
+    kept, so a short sliver never gets padded across a label boundary.
+    Returns ``(speech_windows, non_speech_windows)`` as lists of
+    ``(start_s, end_s)`` tuples.
+    """
+    speech = [(on, off) for on, off in zip(onsets, offsets, strict=True) if off - on >= seg_s]
+    gap_bounds = [0.0, *offsets]
+    gap_ends = [*onsets, duration_s]
+    non_speech = [(g0, g1) for g0, g1 in zip(gap_bounds, gap_ends, strict=True)
+                  if g1 - g0 >= seg_s]
+    return (
+        [(s0, s0 + seg_s) for s0, _ in speech],
+        [(s0, s0 + seg_s) for s0, _ in non_speech],
+    )
+
+
+def _stream_ava_speech(dataset_def, revision: str, max_per_class: int = 0,
+                       seg_s: float = 3.0) -> Iterator[tuple[str, dict]]:
+    """AVA-Speech-style corpus adapter (nccratliri/vad-human-ava-speech, a
+    mirror of AVA-Speech's frame-level movie-audio human-speech annotation):
+    each clip is a paired ``<name>.wav`` + ``<name>.json`` under
+    ``source.subset`` (a directory, e.g. ``"test"``); the json carries
+    parallel ``onset``/``offset`` arrays marking human-speech segment
+    boundaries over the whole (multi-minute) clip.
+
+    The vad league scores a single speech/non_speech decision per *short*
+    clip (see :func:`runner.vad_bench._has_speech`), not a continuous
+    timeline, so this slices fixed-``seg_s`` windows out of the speech
+    segments (positives) and the silent gaps between them (negatives) —
+    :func:`_ava_speech_windows` does the pure boundary math, this function
+    does the download/decode/slice I/O around it.
+
+    This mirror already reduces AVA-Speech's four-way condition taxonomy
+    (clean speech / speech+music / speech+noise / no-speech) down to a
+    binary human_SPEECH-present timeline — the three "speech" conditions are
+    exactly what a human_SPEECH onset covers, "no-speech" is everything
+    else — so no further label mapping is needed here.
+    """
+    import json
+
+    import numpy as np
+    from huggingface_hub import HfApi, hf_hub_download
+
+    src = dataset_def.source
+    subdir = (src.subset or "").rstrip("/")
+    files = HfApi().list_repo_files(src.hf_id, repo_type="dataset", revision=revision)
+    prefix = subdir + "/" if subdir else ""
+    wavs = sorted(f for f in files if f.startswith(prefix) and f.endswith(".wav"))
+
+    cap = max_per_class or 10**9
+    pos_n = neg_n = 0
+    for wav in wavs:
+        if pos_n >= cap and neg_n >= cap:
+            return
+        jpath = wav[:-len(".wav")] + ".json"
+        if jpath not in files:
+            continue
+        try:
+            jlocal = hf_hub_download(src.hf_id, jpath, repo_type="dataset", revision=revision)
+            with open(jlocal, encoding="utf-8") as fh:
+                manifest = json.load(fh)
+            wlocal = hf_hub_download(src.hf_id, wav, repo_type="dataset", revision=revision)
+            with open(wlocal, "rb") as fh:
+                array, sr = decode_audio_bytes(fh.read())
+        except Exception as exc:
+            logger.warning("ava-speech clip %s failed: %s", wav, exc)
+            continue
+
+        duration_s = len(array) / sr
+        speech_w, non_speech_w = _ava_speech_windows(
+            manifest.get("onset") or [], manifest.get("offset") or [],
+            duration_s, seg_s)
+        url = f"https://huggingface.co/datasets/{src.hf_id}/resolve/{revision}/{wav}"
+
+        for label, windows in (("speech", speech_w), ("non_speech", non_speech_w)):
+            for s0, s1 in windows:
+                if label == "speech" and pos_n >= cap:
+                    break
+                if label == "non_speech" and neg_n >= cap:
+                    break
+                i0, i1 = int(s0 * sr), int(s1 * sr)
+                if i1 > len(array):
+                    continue
+                clip = np.asarray(array[i0:i1], dtype=np.float32)
+                if label == "speech":
+                    pos_n += 1
+                else:
+                    neg_n += 1
+                yield f"{wav}#{label}_{s0:.2f}", {
+                    "array": clip, "sr": sr, "label": label, "audio_url": url,
+                }
+
+
 def stream_vad(dataset_def, revision: str, max_per_class: int = 0
                ) -> Iterator[tuple[str, dict]]:
     """Yield labelled clips for the VAD league: speech vs non-speech.
@@ -191,6 +297,11 @@ def stream_vad(dataset_def, revision: str, max_per_class: int = 0
     """
     src = dataset_def.source
     fields = dataset_def.reference_fields or {}
+
+    if fields.get("format") == "ava-onset-offset":
+        yield from _stream_ava_speech(dataset_def, revision, max_per_class)
+        return
+
     neg = _pool_negatives(dataset_def.negatives_sources or [], max_per_class)
 
     if getattr(src, "split", None):
