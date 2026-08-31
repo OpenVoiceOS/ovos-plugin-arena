@@ -342,10 +342,33 @@ class TestPredictionRepos:
     def test_datasets_carry_predictions_hf(self):
         for ds in list_datasets():
             assert ds.predictions_hf, f"{ds.dataset_id} lacks predictions_hf"
+            if ds.role == "train" and ds.paradigm is not None:
+                # A paradigm training corpus has no predictions of its
+                # own — it declares the repo holding the EVAL dataset's
+                # predictions under that paradigm's sub-league, checked
+                # in test_paradigm_train_predictions_hf_points_at_eval_repo.
+                continue
             # runner convention: <owner>/ovos-<modality>-bench-<dataset_id>
             modality = ds.modality.value.replace("_", "-")
             assert ds.predictions_hf.endswith(
                 f"/ovos-{modality}-bench-{ds.dataset_id}"
+            )
+
+    def test_paradigm_train_predictions_hf_points_at_eval_repo(self):
+        """A role=train intent_<paradigm> corpus's predictions_hf must name
+        the real repo — the matching eval dataset's <paradigm> sub-league
+        repo, not a repo keyed by the training corpus's own id."""
+        for ds in list_datasets():
+            if ds.role != "train" or ds.paradigm is None:
+                continue
+            owner = ds.predictions_hf.split("/")[0]
+            assert ds.predictions_hf.startswith(
+                f"{owner}/ovos-intent-{ds.paradigm}-bench-"
+            )
+            eval_dataset_id = ds.predictions_hf.rsplit("-bench-", 1)[-1]
+            assert eval_dataset_id != ds.dataset_id, (
+                f"{ds.dataset_id}: predictions_hf still keyed by the "
+                "training corpus's own id, not the eval dataset it trains"
             )
 
     def test_sorted_unique(self):
