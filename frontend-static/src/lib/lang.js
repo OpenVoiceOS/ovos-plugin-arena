@@ -8,6 +8,21 @@
 
 export const primaryLang = tag => String(tag).split(/[-_]/)[0].toLowerCase();
 
+// Human-readable label for a BCP-47 tag ("en-US" -> "English (US)"), for
+// <option> text where the value itself must stay the raw tag. Falls back to
+// the tag unchanged when Intl.DisplayNames can't resolve it (unknown/invalid
+// subtags, or an environment without the API).
+let _displayNames;
+export function langDisplayName(tag) {
+  try {
+    _displayNames ??= new Intl.DisplayNames(['en'], { type: 'language' });
+    const name = _displayNames.of(tag);
+    return name && name !== tag ? name : String(tag);
+  } catch {
+    return String(tag);
+  }
+}
+
 const esc = s => String(s).replace(/[&<>"']/g, c =>
   ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c]);
 

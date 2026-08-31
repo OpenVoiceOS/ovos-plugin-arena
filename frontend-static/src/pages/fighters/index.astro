@@ -13,6 +13,9 @@ import Base from '../../layouts/Base.astro';
   </p>
 
   <div class="card" style="display:flex;gap:1rem;flex-wrap:wrap;align-items:center;margin-bottom:1.5rem">
+    <label for="sel-search" style="color:var(--muted);font-size:0.9rem">Search</label>
+    <input id="sel-search" type="search" placeholder="Search fighters…"
+           style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:0.35rem 0.6rem;min-width:12rem" />
     <label for="sel-modality" style="color:var(--muted);font-size:0.9rem">Modality</label>
     <select id="sel-modality" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:0.35rem 0.6rem">
       <option value="">All</option>
@@ -32,6 +35,14 @@ import Base from '../../layouts/Base.astro';
     <select id="sel-flang" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:0.35rem 0.6rem">
       <option value="">All</option>
     </select>
+    <label for="chk-group-variants" style="color:var(--muted);font-size:0.9rem;cursor:pointer;display:flex;align-items:center;gap:0.35rem">
+      <input type="checkbox" id="chk-group-variants" checked />
+      <span>Group variants</span>
+    </label>
+    <button type="button" id="btn-reset-filters" class="btn" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:0.35rem 0.75rem;cursor:pointer">
+      Reset filters
+    </button>
+    <span id="dex-count" style="color:var(--muted);font-size:0.85rem;margin-left:auto" aria-live="polite"></span>
   </div>
 
   <style>
@@ -42,6 +53,12 @@ import Base from '../../layouts/Base.astro';
       flex-direction: column;
       gap: 0.7rem;
       text-align: center;
+      /* Thousands of cards can exist in the DOM at once (registry scale) —
+         skip layout/paint for the ones currently off-screen. The intrinsic
+         size is a rough estimate of a typical card's rendered height so
+         scrollbar geometry doesn't jump around as cards come in/out of view. */
+      content-visibility: auto;
+      contain-intrinsic-size: 420px;
     }
     .fighter-hero { display: flex; flex-direction: column; align-items: center; gap: 0.45rem; }
     .fighter-hero svg { filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.45)); }
@@ -66,7 +83,11 @@ import Base from '../../layouts/Base.astro';
 
     /* ---- subspecies groups ---- */
     .fighter-group { display: contents; }
-    .group-card { padding: 0; margin-bottom: 0; overflow: hidden; }
+    .group-card {
+      padding: 0; margin-bottom: 0; overflow: hidden;
+      content-visibility: auto;
+      contain-intrinsic-size: 260px;
+    }
     .group-summary {
       cursor: pointer; list-style: none; padding: 1rem 1.1rem;
       display: flex; flex-direction: column; gap: 0.5rem; text-align: center;
@@ -92,10 +113,14 @@ import Base from '../../layouts/Base.astro';
   <div id="dex-empty" class="card" style="display:none">
     No fighters found. Run the <code>export-bestiary</code> CLI / the <code>assemble.yml</code> Action to generate <code>competitors.json</code>.
   </div>
+  <div id="dex-filtered-empty" class="card" style="display:none">
+    No fighters match these filters — reset or try another language.
+  </div>
   <div id="dex-grid" style="display:none;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1rem"></div>
 
   <script>
     import { spriteSvg, TYPE_HUE } from '../../lib/sprite.js';
+    import { langDisplayName } from '../../lib/lang.js';
 
     const BASE = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
     const MODALITY_LABELS = { stt: 'STT', tts: 'TTS', wake_word: 'Wake Word', vad: 'VAD', intent: 'Intent · Open', intent_template: 'Intent · Template', intent_keyword: 'Intent · Keyword', g2p: 'G2P' };
@@ -126,7 +151,8 @@ import Base from '../../layouts/Base.astro';
       return `
         <article class="card fighter" data-modality="${escHtml(c.modality)}"
                  data-types="${escHtml((c.types || []).join('|').toLowerCase())}"
-                 data-langs="${escHtml(langs.join('|').toLowerCase())}">
+                 data-langs="${escHtml(langs.join('|').toLowerCase())}"
+                 data-search="${escHtml(`${name} ${c.competitor_id}`.toLowerCase())}">
           <div class="fighter-hero">
             ${spriteSvg(c.competitor_id, (c.types || [])[0] || '', 84)}
             <h2><a href="${BASE}fighter/${encodeURIComponent(c.competitor_id)}/" style="color:inherit">${escHtml(name)}</a></h2>
@@ -241,7 +267,8 @@ import Base from '../../layouts/Base.astro';
         </div>`;
     }
 
-    function renderFighters(fighters) {
+    function renderFighters(fighters, groupVariants = true) {
+      if (!groupVariants) return fighters.map(fighterCard).join('');
       const groups = new Map();
       for (const c of fighters) {
         const key = groupKeyOf(c);
@@ -252,6 +279,17 @@ import Base from '../../layouts/Base.astro';
         html.push(members.length > 1 ? groupCard(key, members) : fighterCard(members[0]));
       }
       return html.join('');
+    }
+
+    // simple debounce so typing doesn't re-filter the whole grid on every
+    // keystroke — fine at this scale, and matches the ~150ms feel of a live
+    // search without adding a dependency.
+    function debounce(fn, ms) {
+      let t;
+      return (...args) => {
+        clearTimeout(t);
+        t = setTimeout(() => fn(...args), ms);
+      };
     }
 
     const primaryLang = tag => tag.split(/[-_]/)[0].toLowerCase();
@@ -275,9 +313,11 @@ import Base from '../../layouts/Base.astro';
       const modality = document.getElementById('sel-modality').value;
       const type = document.getElementById('sel-type').value;
       const lang = document.getElementById('sel-flang').value;
+      const q = document.getElementById('sel-search').value.trim();
       modality ? params.set('modality', modality) : params.delete('modality');
       type ? params.set('type', type) : params.delete('type');
       lang ? params.set('lang', lang) : params.delete('lang');
+      q ? params.set('q', q) : params.delete('q');
       const qs = params.toString();
       window.history.replaceState(null, '', `${window.location.pathname}${qs ? '?' + qs : ''}${window.location.hash}`);
     }
@@ -286,11 +326,16 @@ import Base from '../../layouts/Base.astro';
       const modality = document.getElementById('sel-modality').value;
       const type = document.getElementById('sel-type').value.toLowerCase();
       const wanted = document.getElementById('sel-flang').value;
+      const q = document.getElementById('sel-search').value.trim().toLowerCase();
+      let total = 0, shown = 0;
       document.querySelectorAll('.fighter').forEach(el => {
+        total++;
         const show = (!modality || el.dataset.modality === modality)
                   && (!type || el.dataset.types.split('|').includes(type))
-                  && langMatches(el.dataset.langs, wanted);
+                  && langMatches(el.dataset.langs, wanted)
+                  && (!q || el.dataset.search.includes(q));
         el.style.display = show ? '' : 'none';
+        if (show) shown++;
       });
       // a group matches (and stays visible) if any of its members do;
       // expanding it still only reveals the members that individually
@@ -300,7 +345,26 @@ import Base from '../../layouts/Base.astro';
           .some(el => el.style.display !== 'none');
         group.style.display = anyVisible ? '' : 'none';
       });
+      const counter = document.getElementById('dex-count');
+      if (counter) counter.textContent = `Showing ${shown} of ${total} fighters`;
+      const filteredEmpty = document.getElementById('dex-filtered-empty');
+      const grid = document.getElementById('dex-grid');
+      if (filteredEmpty && grid) {
+        const noMatches = total > 0 && shown === 0;
+        filteredEmpty.style.display = noMatches ? '' : 'none';
+        grid.style.display = noMatches ? 'none' : 'grid';
+      }
       syncUrl();
+    }
+
+    const applyFiltersDebounced = debounce(applyFilters, 150);
+
+    function resetFilters() {
+      document.getElementById('sel-modality').value = '';
+      document.getElementById('sel-type').value = '';
+      document.getElementById('sel-flang').value = '';
+      document.getElementById('sel-search').value = '';
+      applyFilters();
     }
 
     function initFromUrl() {
@@ -308,12 +372,15 @@ import Base from '../../layouts/Base.astro';
       const modality = params.get('modality');
       const type = params.get('type');
       const lang = params.get('lang');
+      const q = params.get('q');
       const selModality = document.getElementById('sel-modality');
       const selType = document.getElementById('sel-type');
       const selLang = document.getElementById('sel-flang');
+      const selSearch = document.getElementById('sel-search');
       if (modality && [...selModality.options].some(o => o.value === modality)) selModality.value = modality;
       if (type && [...selType.options].some(o => o.value === type)) selType.value = type;
       if (lang && [...selLang.options].some(o => o.value === lang)) selLang.value = lang;
+      if (q) selSearch.value = q;
     }
 
     async function init() {
@@ -343,15 +410,23 @@ import Base from '../../layouts/Base.astro';
       const selLang = document.getElementById('sel-flang');
       allLangs.forEach(l => {
         const o = document.createElement('option');
-        o.value = l; o.textContent = l;
+        o.value = l; o.textContent = langDisplayName(l);
         selLang.appendChild(o);
       });
 
-      grid.innerHTML = renderFighters(fighters);
+      const chkGroup = document.getElementById('chk-group-variants');
+      const rerender = () => {
+        grid.innerHTML = renderFighters(fighters, chkGroup.checked);
+        applyFilters();
+      };
+      rerender();
       grid.style.display = 'grid';
 
       ['sel-modality', 'sel-type', 'sel-flang'].forEach(id =>
         document.getElementById(id).addEventListener('change', applyFilters));
+      document.getElementById('sel-search').addEventListener('input', applyFiltersDebounced);
+      chkGroup.addEventListener('change', rerender);
+      document.getElementById('btn-reset-filters').addEventListener('click', resetFilters);
 
       initFromUrl();
       applyFilters();

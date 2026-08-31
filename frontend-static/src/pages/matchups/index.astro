@@ -13,7 +13,7 @@ import Base from '../../layouts/Base.astro';
 
   <div id="mu-loading" class="card" aria-live="polite">Loading the arena…</div>
   <div id="mu-empty" class="card" style="display:none">
-    No matchup data yet. Run the <code>assemble.yml</code> action to build it from prediction data.
+    Try another league or language. No matchup data yet — run the <code>assemble.yml</code> action to build it from prediction data.
   </div>
 
   <div id="mu-app" style="display:none">
@@ -39,6 +39,16 @@ import Base from '../../layouts/Base.astro';
   </div>
 
   <style is:global>
+    @media (max-width: 640px) {
+      .lb-tabs {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 1.75rem), transparent 100%);
+        mask-image: linear-gradient(to right, #000 calc(100% - 1.75rem), transparent 100%);
+      }
+      .lb-tab { flex: 0 0 auto; }
+    }
     .mu-mode { display:flex; gap:0.4rem; margin-left:auto; }
     .mu-mode-btn {
       font-family: var(--display); font-weight:600; font-size:0.78rem;

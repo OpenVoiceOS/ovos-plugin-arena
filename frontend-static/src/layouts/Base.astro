@@ -3,7 +3,7 @@ export interface Props {
   title: string;
   description?: string;
 }
-const { title, description = 'OVOS Plugin Arena — blind A/B plugin evaluation with ELO leaderboards' } = Astro.props;
+const { title, description = 'OVOS Plugin Arena — blind A/B plugin evaluation with community-voted leaderboards' } = Astro.props;
 const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
 const fullTitle = `${title} — OVOS Plugin Arena`;
 const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : Astro.url.pathname;
@@ -319,6 +319,11 @@ const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : As
           min-width: 0;
           overflow-x: auto;
           -webkit-overflow-scrolling: touch;
+          /* Trailing-edge fade so it's visually obvious there are more items
+             off-screen to scroll to — always-on rather than conditioned on
+             scroll position, which needs JS to track. */
+          -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 1.75rem), transparent 100%);
+          mask-image: linear-gradient(to right, #000 calc(100% - 1.75rem), transparent 100%);
         }
         main { padding: 0 1rem; }
         h1 { font-size: 1.4rem; }
