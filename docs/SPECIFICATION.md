@@ -173,6 +173,20 @@ Per modality:
   `reference_slots`, `predicted_slots`, `exact_match`, `confidence`,
   `bucket`, `latency_ms`. For out-of-scope samples the correct behaviour is
   *no match*: `prediction: null` scores as correct.
+  Audio-input intent datasets (`registry.schemas.DatasetDef.input ==
+  "audio"`, e.g. Speech-MASSIVE) are eval sets for the same leagues, not a
+  new league — intent leagues stay keyed by training-data format
+  (template/keyword/fusion); audio-vs-text input is a property of the eval
+  dataset. The runner transcribes each clip **once per (dataset, lang)**
+  with the dataset's pinned STT (`stt_plugin`/`stt_config` on the dataset
+  def) and caches the transcript; every intent fighter is scored against
+  that SAME cached `utterance`, isolating intent ranking from STT variance.
+  Every row from such a dataset additionally carries `stt_plugin`,
+  `stt_config` and `stt_revision` (the installed STT plugin version that
+  produced the transcript) so the transcript's provenance travels with the
+  row. v1 does not fan out combinatorial STT×intent fighters — one pinned
+  default STT per language, not every STT fighter against every intent
+  fighter; a later revision could add that as an opt-in matrix.
 - **STT**: `reference_text`, `prediction` (transcript), `wer` (computed on
   ingest when absent), `latency_ms`.
 - **Wake word**: `label`, `prediction` (decision), `latency_ms`.

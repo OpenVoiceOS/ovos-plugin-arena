@@ -372,6 +372,70 @@ class DatasetDef(BaseModel):
             "for reference_fields['intent'] when the latter is absent."
         ),
     )
+    # Spoken-intent eval corpora (intent leagues, audio-input eval sets —
+    # e.g. FBK-MT/Speech-MASSIVE-test). Intent leagues stay keyed by
+    # TRAINING-DATA FORMAT (template/keyword/fusion); audio-vs-text input is
+    # a property of the EVAL dataset, never a new league. ``input="audio"``
+    # marks a dataset whose eval rows are audio clips, not typed text: the
+    # runner transcribes each clip ONCE per (dataset, lang) with the pinned
+    # STT below, caches the transcript, then feeds that SAME transcript to
+    # every intent fighter — isolating intent-ranking from STT variance.
+    # v1 does not fan out combinatorial STT×intent fighters; see
+    # docs/SPECIFICATION.md §3.2 and runner/intent_bench.py.
+    input: Literal["text", "audio"] = Field(
+        "text",
+        description=(
+            "'text' (default): reference_fields['utterance'] is already "
+            "the utterance text a fighter consumes. 'audio': eval rows are "
+            "audio clips (reference_fields['audio'] names the audio "
+            "column); the runner MUST transcribe with stt_plugin/"
+            "stt_config before any intent fighter sees the row."
+        ),
+    )
+    stt_plugin: str | None = Field(
+        None,
+        description=(
+            "input='audio' only (required): OVOS STT plugin id used to "
+            "produce the ONE pinned transcript per (dataset, lang) that "
+            "every intent fighter is scored against, e.g. "
+            "'ovos-stt-plugin-onnx-asr'."
+        ),
+    )
+    stt_config: dict[str, Any] | None = Field(
+        None,
+        description=(
+            "input='audio' only (required): the plugin's config block "
+            "(e.g. {'model': 'nemo-parakeet-tdt-0.6b-v3'}) pinning exactly "
+            "which model/settings produced the cached transcript — stamped "
+            "on every prediction row's stt_config for provenance."
+        ),
+    )
+
+    @model_validator(mode="after")
+    def _validate_audio_input(self) -> DatasetDef:
+        """input='audio' eval datasets MUST carry a full STT pin and an
+        'audio' reference field — the cached transcript's provenance MUST
+        be reconstructible from the dataset def alone."""
+        if self.input != "audio":
+            return self
+        if self.modality not in INTENT_MODALITIES:
+            raise ValueError(
+                f"{self.dataset_id}: input='audio' is only defined for "
+                "intent-league datasets"
+            )
+        if not self.stt_plugin or not self.stt_config:
+            raise ValueError(
+                f"{self.dataset_id}: input='audio' requires both "
+                "stt_plugin and stt_config (the pinned per-language "
+                "default STT that produces the cached transcript)"
+            )
+        if "audio" not in self.reference_fields:
+            raise ValueError(
+                f"{self.dataset_id}: input='audio' requires "
+                "reference_fields['audio'] naming the audio column"
+            )
+        return self
+
     @model_validator(mode="after")
     def _validate_paradigm_directory(self) -> DatasetDef:
         """A role=train intent corpus with a ``paradigm`` lives under

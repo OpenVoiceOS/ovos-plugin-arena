@@ -1,0 +1,29 @@
+{
+  "dataset_id": "speech-massive-ru-RU",
+  "modality": "intent",
+  "source": {
+    "type": "huggingface",
+    "hf_id": "FBK-MT/Speech-MASSIVE-test",
+    "revision": "main",
+    "split": "test",
+    "subset": "ru-RU"
+  },
+  "reference_fields": {
+    "utterance": "utt",
+    "intent": "intent_str",
+    "audio": "audio"
+  },
+  "lang": "ru-RU",
+  "license": "cc-by-nc-sa-4.0",
+  "role": "eval",
+  "train_datasets": {
+    "template": "massive-templates-train"
+  },
+  "predictions_hf": "OpenVoiceOS/ovos-intent-bench-speech-massive-ru-RU",
+  "input": "audio",
+  "stt_plugin": "ovos-stt-plugin-onnx-asr",
+  "stt_config": {
+    "model": "nemo-parakeet-tdt-0.6b-v3"
+  },
+  "notes": "FBK-MT/Speech-MASSIVE-test spoken realisation of Amazon MASSIVE (ru-RU), evaluated end-to-end audio -> transcript -> intent. Same intent taxonomy and template training corpus as massive-templates (text-input sibling); scoped to the open 'intent' (fusion) league in v1 — the keyword-paradigm training corpus (intents-for-eval-keywords) does not cover every Speech-MASSIVE language, so intent_keyword/intent_template sub-league repos are not emitted here. The runner transcribes each clip ONCE with the pinned STT above (same ovos-stt-plugin-onnx-asr family the STT league runs), caches the transcript, and feeds it to every intent fighter — this isolates intent-ranking from STT variance; see docs/SPECIFICATION.md §3.2 for the v1-vs-combinatorial-STT×intent-fighters rationale."
+}
