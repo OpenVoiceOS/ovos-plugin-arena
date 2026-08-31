@@ -1,0 +1,23 @@
+{
+  "dataset_id": "mtop-th-TH-train",
+  "modality": "intent_template",
+  "source": {
+    "type": "huggingface",
+    "hf_id": "tasksource/mtop",
+    "revision": "refs/convert/parquet",
+    "split": "train",
+    "lang_field": "lang",
+    "lang_value": "th_XX"
+  },
+  "reference_fields": {
+    "utterance": "question",
+    "intent": "intent",
+    "domain": "domain"
+  },
+  "lang": "th-TH",
+  "license": "cc-by-sa-4.0",
+  "role": "train",
+  "paradigm": "template",
+  "predictions_hf": "OpenVoiceOS/ovos-intent-template-bench-mtop-th-TH",
+  "notes": "MTOP train split, th-TH slice, one row per utterance (template == the utterance verbatim). Same tasksource/mtop source and lang_field filter as the eval entry; intent_id uses the same domain:intent normalization as the eval labels so template-paradigm fighters train against the identical label space they are scored on. tasksource/mtop ships a legacy Python loading script under its default 'mtop' config name, which the current `datasets` library refuses to execute ('Dataset scripts are no longer supported') — registered against HF's auto-generated parquet conversion instead (revision='refs/convert/parquet', builder config 'default'), the same escape hatch used elsewhere in this registry for legacy-script sources."
+}

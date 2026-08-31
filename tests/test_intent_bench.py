@@ -3,16 +3,38 @@ from __future__ import annotations
 
 from unittest.mock import patch
 
-from registry.loaders import load_dataset as load_dataset_def
 from registry.loaders import load_competitor
+from registry.loaders import load_dataset as load_dataset_def
 from runner.intent_bench import (
     fetch_hf_classification_rows,
     fetch_rows,
     make_row,
     needed_paradigms,
+    normalize_hierarchical_label,
     results_repo_for,
     split_name,
 )
+
+
+class TestNormalizeHierarchicalLabel:
+    """MTOP's own intent column is prefixed with a generic parser tag
+    ('IN:SEND_MESSAGE') rather than the real domain; the arena scores
+    against a 'domain:intent' string (see intents-for-eval)."""
+
+    def test_strips_generic_prefix_and_lowercases(self):
+        assert normalize_hierarchical_label(
+            "messaging", "IN:SEND_MESSAGE"
+        ) == "messaging:send_message"
+
+    def test_already_bare_intent_still_lowercased(self):
+        assert normalize_hierarchical_label("weather", "GET_WEATHER") == (
+            "weather:get_weather"
+        )
+
+    def test_domain_casing_and_whitespace_normalized(self):
+        assert normalize_hierarchical_label(
+            " Messaging ", "IN:GET_MESSAGE"
+        ) == "messaging:get_message"
 
 
 class TestNaming:
@@ -142,6 +164,11 @@ class _FakeHFDataset:
 
     def __iter__(self):
         return iter(self._rows)
+
+    def filter(self, predicate):
+        return _FakeHFDataset(
+            [r for r in self._rows if predicate(r)], self.features
+        )
 
 
 class TestFetchHFClassificationRows:
@@ -317,6 +344,28 @@ class TestFetchHFClassificationRows:
             out = fetch_hf_classification_rows(ds_def, "en-US", "rev123")
         assert len(out) == 2
 
+    def test_lang_field_filters_and_domain_field_normalizes(self):
+        """MTOP ships every language mixed into one split with a 'lang'
+        column instead of a per-language config; source.lang_field/
+        lang_value filters to the registered language, and
+        reference_fields['domain'] composes 'domain:intent' labels."""
+        ds_def = load_dataset_def("intent", "mtop-de-DE")
+        assert ds_def.source.lang_field == "lang"
+        assert ds_def.source.lang_value == "de_XX"
+        rows = [
+            {"question": "Antworte im Thread", "intent": "IN:SEND_MESSAGE",
+             "domain": "messaging", "lang": "de_XX"},
+            {"question": "play a song", "intent": "IN:PLAY_MUSIC",
+             "domain": "music", "lang": "en_XX"},
+        ]
+        fake_ds = _FakeHFDataset(rows, {})
+        with patch("datasets.load_dataset", return_value=fake_ds):
+            out = fetch_hf_classification_rows(ds_def, "de-DE", "rev123")
+        assert out == [
+            {"utterance": "Antworte im Thread",
+             "expected_intent": "messaging:send_message", "split": "test"},
+        ]
+
     def test_missing_id_field_treated_as_a_dedup_key(self):
         """Rows genuinely missing the id column collapse to a single
         None-keyed row rather than raising — a defensive edge case, not
@@ -335,8 +384,9 @@ class TestFetchHFClassificationRows:
 
 def test_train_fetch_uses_train_repo_revision():
     """Train corpora pin their own repo's revision, not the eval repo's."""
-    from types import SimpleNamespace
     from pathlib import Path
+    from types import SimpleNamespace
+
     from runner import intent_bench
 
     eval_def = SimpleNamespace(
