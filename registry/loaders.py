@@ -218,7 +218,7 @@ def paradigm_league_repo(dataset: DatasetDef, paradigm: str) -> str:
     return f"{owner}/ovos-intent-{paradigm}-bench-{dataset.dataset_id}"
 
 
-def list_prediction_repos() -> list[str]:
+def list_prediction_repos(modality: str | None = None) -> list[str]:
     """Sorted unique HF prediction repos across all eval datasets.
 
     Each eval dataset names its predictions repo via ``predictions_hf`` —
@@ -227,13 +227,32 @@ def list_prediction_repos() -> list[str]:
     corpora additionally feed the paradigm sub-leagues, whose fighters
     publish to their own ``ovos-intent-<paradigm>-bench-<dataset_id>``
     repos — one per paradigm the corpus provides training data for.
+
+    *modality* scopes the result to only the repos an ``assemble
+    --modality <modality>`` run actually reads (§assemble scalability: an
+    unscoped ``assemble`` was resolving+downloading every one of the ~120
+    registry prediction repos across every modality even when the caller
+    only wanted one board type — see arena.cli.cmd_assemble). ``None``
+    keeps the full unscoped set (the registry default). A base intent
+    league modality (``intent``) matches only a dataset's own
+    ``predictions_hf`` repo; a paradigm sub-league modality (e.g.
+    ``intent_template``) matches only the paradigm repo whose name encodes
+    that paradigm (``ovos-intent-template-bench-*``), from ANY intent-
+    family eval dataset — the sub-repo's paradigm, not the eval dataset's
+    own base modality, is what the caller cares about. Any other modality
+    matches a dataset's own ``predictions_hf`` when
+    ``dataset.modality == modality``.
     """
     repos: set = set()
     for dataset in list_datasets():
         if dataset.role != "eval" or not dataset.predictions_hf:
             continue
-        repos.add(dataset.predictions_hf)
         if dataset.modality in INTENT_MODALITIES:
+            if modality is None or modality == dataset.modality:
+                repos.add(dataset.predictions_hf)
             for paradigm in dataset.train_datasets or {}:
-                repos.add(paradigm_league_repo(dataset, paradigm))
+                if modality is None or modality == f"intent_{paradigm}":
+                    repos.add(paradigm_league_repo(dataset, paradigm))
+        elif modality is None or modality == dataset.modality:
+            repos.add(dataset.predictions_hf)
     return sorted(repos)

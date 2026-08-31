@@ -433,7 +433,7 @@ class TestRegistryDefaultPredictions:
 
         preds = _write_predictions(tmp_path)
         monkeypatch.setattr(
-            loaders, "list_prediction_repos", lambda: [str(preds)]
+            loaders, "list_prediction_repos", lambda modality=None: [str(preds)]
         )
         out = tmp_path / "data"
         with pytest.raises(SystemExit) as exc:
@@ -447,7 +447,7 @@ class TestRegistryDefaultPredictions:
         preds = _write_predictions(tmp_path)
         monkeypatch.setattr(
             loaders, "list_prediction_repos",
-            lambda: (_ for _ in ()).throw(AssertionError("must not be called")),
+            lambda modality=None: (_ for _ in ()).throw(AssertionError("must not be called")),
         )
         out = tmp_path / "data"
         assert main_args_assemble(preds, out) == 0

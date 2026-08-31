@@ -102,3 +102,44 @@ def test_paradigm_league_benchmark_survives_dataset_dir_move(tmp_path, monkeypat
     pruned = cli._prune_stale_artifacts(tmp_path, written_files=set(), modality_scope=None)
     assert pruned == []
     assert kept.exists()
+
+
+# ---------------------------------------------------------------------------
+# Standalone ``prune-data`` CLI entry point (§assemble scalability — the
+# sharded workflow's commit job runs this after merging every matrix leg's
+# artifacts, since download-artifact --merge-multiple only adds/overwrites
+# and never deletes what a leg's own in-run prune removed).
+# ---------------------------------------------------------------------------
+
+
+class _Args:
+    def __init__(self, data_dir, registry="registry"):
+        self.data_dir = str(data_dir)
+        self.registry = registry
+
+
+def test_prune_data_deletes_stale_artifact(tmp_path, registry_stub):
+    dead = _touch(tmp_path, "leaderboard-stt-en.json")
+    rc = cli.cmd_prune_data(_Args(tmp_path))
+    assert rc == 0
+    assert not dead.exists()
+
+
+def test_prune_data_keeps_live_paradigm_league_artifact(tmp_path, monkeypatch):
+    monkeypatch.setattr(
+        cli, "_registry_dataset_langs",
+        lambda: {"jurebes": {"en-US"}},
+    )
+    monkeypatch.setattr(
+        cli, "_registry_battle_groups",
+        lambda: {"intent_template"},
+    )
+    kept = _touch(tmp_path, "benchmark-intent_template-jurebes-en-US.json")
+    rc = cli.cmd_prune_data(_Args(tmp_path))
+    assert rc == 0
+    assert kept.exists()
+
+
+def test_prune_data_missing_data_dir_is_a_noop(tmp_path):
+    rc = cli.cmd_prune_data(_Args(tmp_path / "does-not-exist"))
+    assert rc == 0

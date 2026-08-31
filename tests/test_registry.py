@@ -400,6 +400,39 @@ class TestPredictionRepos:
         assert not any("intents-for-eval-templates" in r for r in repos)
         assert not any("intents-for-eval-keywords" in r for r in repos)
 
+    def test_modality_scoping_excludes_other_modalities(self):
+        """§assemble scalability — a modality-scoped assemble must only
+        touch that modality's repos, not every registry repo (the
+        unscoped default was resolving+downloading all ~120 repos even
+        for a single-modality run)."""
+        repos = set(list_prediction_repos(modality="stt"))
+        assert repos, "expected at least one stt repo"
+        assert "OpenVoiceOS/ovos-stt-bench-minds14-en-US" in repos
+        assert "OpenVoiceOS/ovos-tts-bench-massive-prompts" not in repos
+        assert "OpenVoiceOS/ovos-wake-word-bench-community-computer" not in repos
+        assert "OpenVoiceOS/ovos-intent-bench-intents-for-eval" not in repos
+        assert "OpenVoiceOS/ovos-intent-template-bench-intents-for-eval" not in repos
+
+    def test_modality_scoping_is_subset_of_unscoped(self):
+        full = set(list_prediction_repos())
+        for modality in ("stt", "tts", "wake_word", "vad", "g2p",
+                          "intent", "intent_template", "intent_keyword"):
+            assert set(list_prediction_repos(modality=modality)) <= full
+
+    def test_intent_paradigm_modality_scoping(self):
+        """A paradigm sub-league modality (intent_template) pulls only the
+        paradigm repos, not the base intent repo or the other paradigm."""
+        repos = set(list_prediction_repos(modality="intent_template"))
+        assert "OpenVoiceOS/ovos-intent-template-bench-intents-for-eval" in repos
+        assert "OpenVoiceOS/ovos-intent-keyword-bench-intents-for-eval" not in repos
+        assert "OpenVoiceOS/ovos-intent-bench-intents-for-eval" not in repos
+
+    def test_base_intent_modality_scoping(self):
+        repos = set(list_prediction_repos(modality="intent"))
+        assert "OpenVoiceOS/ovos-intent-bench-intents-for-eval" in repos
+        assert "OpenVoiceOS/ovos-intent-template-bench-intents-for-eval" not in repos
+        assert "OpenVoiceOS/ovos-intent-keyword-bench-intents-for-eval" not in repos
+
 
 # ---------------------------------------------------------------------------
 # Round-trip: JSON file → schema → JSON

@@ -6,10 +6,6 @@ on:
     - cron: '0 3 * * *'
   workflow_dispatch:
     inputs:
-      modality:
-        description: 'Modality to assemble (empty = all)'
-        required: false
-        default: ''
       max_battles:
         description: 'Max battles per (modality, dataset, lang) pool'
         required: false
@@ -23,8 +19,34 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # One matrix leg per modality (arena.registry.schemas.Modality). Each leg
+  # only resolves+downloads its own modality's HF prediction repos —
+  # arena.cli.cmd_assemble scopes registry.loaders.list_prediction_repos()
+  # to --modality when given, instead of the pre-fix behavior of touching
+  # every registry prediction repo (~120, across every modality) on EVERY
+  # assemble invocation regardless of scope. Sharding by modality on top of
+  # that fix turns the remaining, unavoidable per-repo HF round trips into
+  # independent, parallel legs instead of one multi-hour sequential run —
+  # the failure mode that left the daily boards frozen (hosted-runner
+  # eviction on the unsharded job: "The operation was canceled" / "runner
+  # lost communication"). fail-fast: false so one modality's HF hiccup
+  # never cancels the others.
   assemble:
     runs-on: ubuntu-latest
+    timeout-minutes: 50
+    strategy:
+      fail-fast: false
+      matrix:
+        modality:
+          - stt
+          - tts
+          - wake_word
+          - vad
+          - intent
+          - intent_template
+          - intent_keyword
+          - ww_stream
+          - g2p
     steps:
       - uses: actions/checkout@v7
         with:
@@ -38,19 +60,80 @@ jobs:
       - name: Install arena
         run: pip install --quiet ".[hf]"
 
-      - name: Assemble battles, benchmark boards and ELO seeds
+      - name: Assemble ${{ matrix.modality }} battles, benchmark boards and ELO seeds
         env:
-          # Empty = registry default: every eval dataset's predictions_hf repo.
-          # Set the HF_PREDICTIONS repo variable to override explicitly.
-          PREDICTIONS: ${{ vars.HF_PREDICTIONS || '' }}
-          MODALITY: ${{ inputs.modality || '' }}
           MAX_BATTLES: ${{ inputs.max_battles || '200' }}
         run: |
+          echo "::group::assemble --modality ${{ matrix.modality }}"
+          start=$(date +%s)
           python -m arena.cli assemble \
-            --predictions "${PREDICTIONS}" \
             --output frontend-static/public/data \
-            ${MODALITY:+--modality "$MODALITY"} \
+            --modality "${{ matrix.modality }}" \
             --max-battles "${MAX_BATTLES}"
+          echo "assemble(${{ matrix.modality }}) wall clock: $(( $(date +%s) - start ))s"
+          echo "::endgroup::"
+
+      # Scoped to this leg's own filenames — arena.cli.cmd_assemble names
+      # every board/battle-pool/ELO artifact "<kind>-<modality>-...json"
+      # (battle_group() is an identity mapping, so a leg's own modality is
+      # never any other leg's group — see arena/models.py battle_group),
+      # so legs never collide and a plain glob is enough to shrink the
+      # artifact to just what this leg touched. assemble-summary.json
+      # (unregistered-competitor report) has no modality in its name and
+      # is uploaded unscoped alongside it.
+      - name: Upload data delta
+        uses: actions/upload-artifact@v4
+        with:
+          name: arena-data-${{ matrix.modality }}
+          path: |
+            frontend-static/public/data/*-${{ matrix.modality }}-*.json
+            frontend-static/public/data/assemble-summary.json
+          if-no-files-found: ignore
+          retention-days: 1
+
+  # Serialized on purpose (needs: assemble, plus the arena-data concurrency
+  # group below) — every matrix leg's artifacts merge into the SAME working
+  # tree and this job makes the single data commit for the whole run, same
+  # as the pre-sharding single-job design.
+  commit:
+    needs: assemble
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    concurrency:
+      group: arena-data
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: dev
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install arena
+        run: pip install --quiet ".[hf]"
+
+      - name: Download every modality's data delta
+        uses: actions/download-artifact@v5
+        with:
+          pattern: arena-data-*
+          path: frontend-static/public/data
+          merge-multiple: true
+
+      # download-artifact --merge-multiple only adds/overwrites files onto
+      # this checkout — it can never delete a file a leg's own in-run prune
+      # removed from that leg's ephemeral runner workspace, so a deletion
+      # never reaches this checkout on its own. Run the standalone prune
+      # once here, over the fully merged data dir, before the exports below
+      # read it. Registry-derived, no network needed.
+      - name: Prune stale artifacts across every merged modality
+        run: |
+          python -m arena.cli prune-data \
+            --registry registry \
+            --data-dir frontend-static/public/data
 
       - name: Export bestiary and data index
         run: |
@@ -75,5 +158,18 @@ jobs:
             echo "No data changes to commit."
           else
             git commit -m "chore(data): refresh battles pool and benchmark boards [skip ci]"
-            git push origin dev
+            # dev can move under a long matrix run (other merges, another
+            # scheduled run). Data commits only ever touch
+            # frontend-static/public/data/, so a rebase onto a moved dev is
+            # safe — retry push-then-rebase up to 3 times before giving up.
+            attempt=1
+            until git push origin dev; do
+              if [ "$attempt" -ge 3 ]; then
+                echo "push failed after $attempt attempts" >&2
+                exit 1
+              fi
+              echo "push rejected (dev moved) — rebasing, attempt $attempt/3"
+              git pull --rebase origin dev
+              attempt=$(( attempt + 1 ))
+            done
           fi

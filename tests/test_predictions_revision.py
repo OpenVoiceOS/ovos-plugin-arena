@@ -9,7 +9,14 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from arena.cli import _predictions_revision_for, cmd_assemble
-from arena.predictions import resolve_predictions_revision
+from arena.predictions import reset_revision_cache, resolve_predictions_revision
+
+
+@pytest.fixture(autouse=True)
+def _reset_revision_cache():
+    reset_revision_cache()
+    yield
+    reset_revision_cache()
 
 
 class _StubCompetitor:
@@ -41,6 +48,29 @@ class TestResolvePredictionsRevision:
         MockApi.return_value.dataset_info.assert_called_once_with(
             "OpenVoiceOS/ovos-stt-bench-x", revision="main"
         )
+
+    def test_memoized_at_most_once_per_repo_per_run(self):
+        """§assemble scalability — a board that shares its predictions repo
+        across two (dataset, lang) boards must resolve that repo's revision
+        ONCE for the whole run, not once per board. Fails against the
+        unmemoized implementation (HfApi().dataset_info called twice)."""
+        fake_info = MagicMock(sha="abc123deadbeef")
+        with patch("huggingface_hub.HfApi") as MockApi:
+            MockApi.return_value.dataset_info.return_value = fake_info
+            sha1 = resolve_predictions_revision("OpenVoiceOS/ovos-stt-bench-x", revision="main")
+            sha2 = resolve_predictions_revision("OpenVoiceOS/ovos-stt-bench-x", revision="main")
+        assert sha1 == sha2 == "abc123deadbeef"
+        MockApi.return_value.dataset_info.assert_called_once_with(
+            "OpenVoiceOS/ovos-stt-bench-x", revision="main"
+        )
+
+    def test_different_revision_is_not_cached_together(self):
+        fake_info = MagicMock(sha="shaA")
+        with patch("huggingface_hub.HfApi") as MockApi:
+            MockApi.return_value.dataset_info.return_value = fake_info
+            resolve_predictions_revision("OpenVoiceOS/ovos-stt-bench-x", revision="main")
+            resolve_predictions_revision("OpenVoiceOS/ovos-stt-bench-x", revision="v2")
+        assert MockApi.return_value.dataset_info.call_count == 2
 
 
 class TestPredictionsRevisionFor:
