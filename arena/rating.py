@@ -21,13 +21,13 @@ from dataclasses import dataclass
 
 ANCHOR_RATING = 1200.0
 SCALE = 400.0 / math.log(10.0)
-PRIOR_WEIGHT = 1.0  # one virtual tie vs. the field average per competitor
+PRIOR_WEIGHT = 1.0  # R10 convergence prior: one virtual tie vs. the field average per competitor
 MM_MAX_ITER = 200
 MM_TOLERANCE = 1e-9
 DEFAULT_BOOTSTRAP_ROUNDS = 100
 CI_LOWER_PCT = 2.5
 CI_UPPER_PCT = 97.5
-PROVISIONAL_MIN_HUMAN_VOTES = 10
+PROVISIONAL_MIN_HUMAN_VOTES = 10  # R8 bootstrap confidence intervals
 
 # Not a valid competitor_id (registry ids are alphanumeric/hyphen) — safe as
 # an internal sentinel key in the pairwise dicts.
@@ -93,7 +93,7 @@ def merge_pairwise(
     return wins, games
 
 
-def fit_bradley_terry(
+def fit_bradley_terry(  # R6 primary rating, batch-fit
     wins: PairwiseWins,
     games: PairwiseGames,
     competitors: list[str],
@@ -172,7 +172,7 @@ def to_rating_scale(
     return {c: anchor + scale * (math.log(max(v, 1e-12)) - gmean_log) for c, v in strengths.items()}
 
 
-def bootstrap_confidence_intervals(
+def bootstrap_confidence_intervals(  # R8 bootstrap confidence intervals
     human_results: list[PairResult],
     fixed_wins: PairwiseWins,
     fixed_games: PairwiseGames,

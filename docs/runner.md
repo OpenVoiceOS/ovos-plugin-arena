@@ -4,7 +4,7 @@ The prediction runner is an offline batch job that generates STT transcriptions
 for (plugin × dataset) pairs and appends the results to the corresponding
 HuggingFace benchmark dataset (`OpenVoiceOS/ovos-stt-bench-<lang>`).
 
-It runs 24/7 on the ser9 compute box (192.168.1.116), cycling through the job
+It runs 24/7 on the ser9 compute box (192.168.1.111, tailnet 100.77.120.109), cycling through the job
 queue and sleeping between cycles.
 
 ---
@@ -120,7 +120,7 @@ Stage the runner code from your laptop:
 
 ```bash
 scp -r /home/miro/AgentWorkspaces/ovos/web/ovos-plugin-arena/runner \
-    miro@192.168.1.116:/home/miro/arena-runner/runner
+    miro@192.168.1.111:/home/miro/arena-runner/runner
 ```
 
 Run one-time setup on ser9 (already done):
@@ -136,7 +136,7 @@ python3.14 -m venv ~/venvs/arena-runner
 Start the daemon detached in tmux:
 
 ```bash
-ssh miro@192.168.1.116
+ssh miro@192.168.1.111
 tmux new -s arena-runner
 cd ~/arena-runner
 nice -n 15 ~/venvs/arena-runner/bin/python3.14 -m runner \

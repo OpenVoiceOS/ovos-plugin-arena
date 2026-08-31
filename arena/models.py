@@ -74,13 +74,13 @@ def is_intent_modality(modality: str) -> bool:
 # it is benchmark-only in practice (no registered eval dataset publishes
 # votes), but its identity battle_group mapping was never explicitly gated,
 # so leaving it out preserves existing behaviour exactly.
-VOTELESS_MODALITIES = frozenset({Modality.G2P.value})
+VOTELESS_MODALITIES = frozenset({Modality.G2P.value})  # R20 vote-less leagues
 
 
 def battle_group(modality: str) -> str:
     """The blind-battle / ELO group a modality competes in.
 
-    §R# — each league is its own battle group (identity mapping): the three
+    R18 — each league is its own battle group (identity mapping): the three
     intent leagues (``intent``, ``intent_template``, ``intent_keyword``) each
     get a fully separate battles pool, ELO seed and leaderboard — a template
     engine is never paired against a keyword engine, and the open ``intent``

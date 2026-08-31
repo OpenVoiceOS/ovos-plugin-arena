@@ -54,7 +54,7 @@ DEFAULT_MAX_BATTLES = 200
 # real human votes in the Bradley-Terry fit regardless of BT_AUTO_WEIGHT.
 # Capped at the weighted-game-total level (arena/rating.py PairwiseGames),
 # in human-vote-equivalent units, per (competitor_a, competitor_b) pair.
-MAX_AUTO_WEIGHT_PER_PAIR = 5.0
+MAX_AUTO_WEIGHT_PER_PAIR = 5.0  # R5b weight cap
 
 
 # ---------------------------------------------------------------------------
@@ -182,7 +182,7 @@ def assemble_battles(
     """Assemble a deterministic battle pool from grouped prediction rows.
 
     *samples* maps ``sample_id`` → ``competitor_id`` → row.  Pairs whose
-    predictions are identical are skipped (no signal for a voter).  Pairs
+    predictions are identical are skipped (R2 — no signal for a voter).  Pairs
     whose reference text disagrees (colliding ``sample_id`` across legacy
     shards) are skipped too — see ``_reference_for_identity`` — and counted
     into ``stats["skipped_reference_mismatches"]`` when *stats* is given, so

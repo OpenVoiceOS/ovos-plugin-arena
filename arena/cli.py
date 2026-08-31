@@ -994,7 +994,7 @@ def cmd_tally(args: argparse.Namespace) -> int:
 
     # Comment/close only issues not yet actioned (still open) — every prior
     # run's already-closed issues stay untouched even though they're
-    # re-fetched every time for full-history replay.
+    # re-fetched every time for full-history replay (R12).
     if args.repo and not args.keep_issues_open:
         for d in counted_decisions:
             number = d.vote["issue_number"]

@@ -18,7 +18,7 @@ from dataclasses import dataclass, field
 from arena.models import VoteOutcome
 from arena.rating import PairwiseGames, PairwiseWins, accumulate
 
-INITIAL_ELO: float = 1200.0
+INITIAL_ELO: float = 1200.0  # R7 sequential ELO is a secondary display column
 K_FACTOR: float = 32.0
 K_FACTOR_VETERAN: float = 16.0
 VETERAN_THRESHOLD: int = 30  # battles before using the lower K
@@ -27,7 +27,7 @@ AUTO_K_DIVISOR: float = 4.0  # §4 R5 — auto votes carry K/4 weight
 # Bradley-Terry (arena/rating.py) weight for a benchmark-derived auto vote,
 # relative to a human vote's weight of 1.0. Same §4 R5 intent as
 # AUTO_K_DIVISOR for sequential ELO, expressed as a BT pairwise weight.
-BT_AUTO_WEIGHT: float = 1.0 / AUTO_K_DIVISOR
+BT_AUTO_WEIGHT: float = 1.0 / AUTO_K_DIVISOR  # R9 auto/human weighting
 
 
 def _outcome_score_a(outcome: VoteOutcome) -> float:

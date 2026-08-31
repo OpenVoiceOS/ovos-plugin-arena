@@ -10,7 +10,8 @@ for the adapter and ``runner/media_bench.py`` for the shared engine.
 
 Usage::
 
-    python benchmarks/vad_speech.py                                  # all fighters
+    python benchmarks/vad_speech.py                                  # en-US, all fighters
+    python benchmarks/vad_speech.py --dataset speech-vs-nonspeech-de-DE
     python benchmarks/vad_speech.py --competitors silero-vad \
         --max-samples 50                                             # smoke run
     python benchmarks/vad_speech.py --upload                         # + publish to HF
@@ -27,5 +28,5 @@ from runner.vad_bench import VADBench  # noqa: E402
 
 if __name__ == "__main__":
     sys.exit(run_benchmark(
-        VADBench(), "speech-vs-nonspeech",
+        VADBench(), "speech-vs-nonspeech-en-US",
         __doc__.split("\n")[1]))

@@ -21,6 +21,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime
 
+# R13 vote fraud rules
 DAILY_VOTE_CAP = 50
 NEW_ACCOUNT_MIN_DAYS = 7
 ONE_SIDED_MIN_VOTES = 20
