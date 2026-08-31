@@ -193,6 +193,31 @@ def validate_registry(registry_root: Path | None = None) -> list[str]:
     return errors
 
 
+def paradigm_league_repo(dataset: DatasetDef, paradigm: str) -> str:
+    """The real HF repo backing *dataset*'s ``<paradigm>`` sub-league
+    predictions: ``<owner>/ovos-intent-<paradigm>-bench-<dataset_id>`` (the
+    ``runner.intent_bench.results_repo_for`` convention).
+
+    *dataset* is the eval corpus (e.g. ``banking77``, or ``meteocat`` which
+    borrows another corpus's training data); the repo is always keyed by
+    *this* eval dataset's own id, never the training corpus's — several eval
+    datasets can share one ``intent_<paradigm>/`` training corpus (meteocat
+    and intents-for-eval both train from ``intents-for-eval-templates``) and
+    each still publishes its own predictions repo. This only confirms the
+    training corpus is genuinely registered under ``intent_<paradigm>/`` —
+    the directory that makes the league real — before naming the repo.
+    """
+    train_id = (dataset.train_datasets or {}).get(paradigm)
+    if not train_id:
+        raise KeyError(
+            f"{dataset.dataset_id}: no train_datasets entry for paradigm "
+            f"{paradigm!r}"
+        )
+    load_dataset(f"intent_{paradigm}", train_id)  # raises if misfiled
+    owner = (dataset.predictions_hf or "OpenVoiceOS/x").split("/")[0]
+    return f"{owner}/ovos-intent-{paradigm}-bench-{dataset.dataset_id}"
+
+
 def list_prediction_repos() -> list[str]:
     """Sorted unique HF prediction repos across all eval datasets.
 
@@ -209,9 +234,6 @@ def list_prediction_repos() -> list[str]:
             continue
         repos.add(dataset.predictions_hf)
         if dataset.modality in INTENT_MODALITIES:
-            owner = dataset.predictions_hf.split("/")[0]
             for paradigm in dataset.train_datasets or {}:
-                repos.add(
-                    f"{owner}/ovos-intent-{paradigm}-bench-{dataset.dataset_id}"
-                )
+                repos.add(paradigm_league_repo(dataset, paradigm))
     return sorted(repos)

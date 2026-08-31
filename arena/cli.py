@@ -445,9 +445,9 @@ def _prediction_source_langs(prediction_sources: list[str]) -> dict[str, str | N
         lang = resolved_dataset_lang(dataset) if dataset.lang != "multi" else None
         langs[dataset.predictions_hf] = lang
         if dataset.modality in INTENT_MODALITIES:
-            owner = dataset.predictions_hf.split("/")[0]
+            from registry.loaders import paradigm_league_repo
             for paradigm in dataset.train_datasets or {}:
-                langs[f"{owner}/ovos-intent-{paradigm}-bench-{dataset.dataset_id}"] = lang
+                langs[paradigm_league_repo(dataset, paradigm)] = lang
     return {s: langs.get(s) for s in prediction_sources}
 
 
@@ -1400,25 +1400,25 @@ def cmd_export_evidence(args: argparse.Namespace) -> int:
         modality = entry["id"]
         fighters = [c for c in all_competitors if c.modality == modality]
 
-        # The two paradigm sub-leagues (§18) don't own registry datasets of
-        # their own — they re-use the open "intent" league's eval corpora
-        # via ``train_datasets``, publishing to their own
-        # ``ovos-intent-<paradigm>-bench-<dataset_id>`` HF repo (see
-        # ``registry.loaders.list_prediction_repos``).
+        # The two paradigm sub-leagues (§18) don't own eval corpora of their
+        # own — they re-use the open "intent" league's eval corpora via
+        # ``train_datasets``, publishing to the HF repo declared by the
+        # matching ``intent_<paradigm>/`` training corpus (see
+        # ``registry.loaders.paradigm_league_repo``).
         paradigm = (
             {"intent_template": "template", "intent_keyword": "keyword"}
             .get(modality)
         )
         league_datasets: list[tuple[str, str | None]]
         if paradigm:
+            from registry.loaders import paradigm_league_repo
             league_datasets = []
             for d in eval_datasets:
                 if d.modality != "intent" or paradigm not in (d.train_datasets or {}):
                     continue
-                owner = (d.predictions_hf or "OpenVoiceOS/x").split("/")[0]
                 league_datasets.append((
                     d.dataset_id,
-                    f"{owner}/ovos-intent-{paradigm}-bench-{d.dataset_id}",
+                    paradigm_league_repo(d, paradigm),
                 ))
             league_datasets.sort()
         else:

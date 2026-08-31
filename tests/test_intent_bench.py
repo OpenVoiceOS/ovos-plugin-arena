@@ -185,7 +185,7 @@ class TestFetchHFClassificationRows:
         ]
 
     def test_train_role_emits_intent_id_and_template(self):
-        ds_def = load_dataset_def("intent", "snips-train")
+        ds_def = load_dataset_def("intent_template", "snips-train")
         rows = [{"text": "play some jazz", "category": "PlayMusic"}]
         fake_ds = _FakeHFDataset(rows, {"category": None})
         with patch("datasets.load_dataset", return_value=fake_ds):
@@ -210,7 +210,7 @@ class TestFetchHFClassificationRows:
         ]
 
     def test_oos_label_dropped_on_train(self):
-        ds_def = load_dataset_def("intent", "clinc150-train")
+        ds_def = load_dataset_def("intent_template", "clinc150-train")
         rows = [
             {"text": "in scope question", "intent": 0},
             {"text": "totally unrelated nonsense", "intent": 1},

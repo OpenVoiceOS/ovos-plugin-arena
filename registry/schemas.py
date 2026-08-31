@@ -477,6 +477,23 @@ class DatasetDef(BaseModel):
     )
 
     @model_validator(mode="after")
+    def _validate_paradigm_directory(self) -> DatasetDef:
+        """A role=train intent corpus with a ``paradigm`` lives under
+        ``registry/datasets/intent_<paradigm>/`` — its ``modality`` field
+        must say so. This is what makes the directory the league: a file
+        physically filed under ``intent_template/`` cannot silently claim
+        to be a keyword corpus (or the open ``intent`` league)."""
+        if self.role == "train" and self.paradigm is not None:
+            expected = Modality(f"intent_{self.paradigm}")
+            if self.modality != expected:
+                raise ValueError(
+                    f"{self.dataset_id}: role=train paradigm={self.paradigm!r} "
+                    f"corpus must set modality={expected.value!r} "
+                    f"(got {self.modality.value!r})"
+                )
+        return self
+
+    @model_validator(mode="after")
     def _validate_g2p_provenance(self) -> DatasetDef:
         """§A6 — every g2p eval (gold) dataset MUST carry a provenance tier;
         circular (competitor-self-referential) tiers are rejected outright;

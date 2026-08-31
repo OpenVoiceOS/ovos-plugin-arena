@@ -466,7 +466,7 @@ def run_benchmark(dataset_id: str, description: str, argv=None) -> int:
 
     eval_def = load_dataset("intent", dataset_id)
     train_defs = {
-        paradigm: load_dataset("intent", train_id)
+        paradigm: load_dataset(f"intent_{paradigm}", train_id)
         for paradigm, train_id in (eval_def.train_datasets or {}).items()
     }
     revision = resolve_revision(eval_def.source.hf_id, eval_def.source.revision)
