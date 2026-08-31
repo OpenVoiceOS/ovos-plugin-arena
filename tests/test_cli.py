@@ -1036,3 +1036,78 @@ class TestTallyFraudIntegration:
         assert board["human_vote_count"] == 2
         # ...but only the still-open issue gets a close/comment action
         assert closed_calls == [4]
+
+
+class TestEmptyLeagueAssemble:
+    """An empty league (no fighters registered, no predictions to load) is
+    a clean no-op, not a build failure — before the fix, cmd_assemble's
+    ``if not rows: return 1`` failed the whole CI job for a modality like
+    ww_stream that simply has zero competitors yet."""
+
+    def test_no_registry_repos_for_modality_is_success_no_op(self, tmp_path, monkeypatch):
+        import registry.loaders as loaders
+
+        monkeypatch.setattr(loaders, "list_prediction_repos", lambda modality=None: [])
+        out = tmp_path / "data"
+        rc = 0
+        try:
+            main(["assemble", "--output", str(out), "--modality", "ww_stream"])
+        except SystemExit as exc:
+            rc = exc.code
+        assert rc == 0
+        # Nothing to write, and nothing pre-existing gets clobbered.
+        assert not out.exists() or list(out.glob("*ww_stream*")) == []
+
+    def test_predictions_source_yields_zero_rows_is_success_no_op(self, tmp_path):
+        # An explicit --predictions source that resolves to a directory
+        # with no matching rows (e.g. every row filtered as non-canonical
+        # or for a different lang) must exit 0, same as "no sources at all".
+        empty_src = tmp_path / "empty-preds"
+        empty_src.mkdir()
+        out = tmp_path / "data"
+        rc = main_args_assemble(empty_src, out)
+        assert rc == 0
+
+
+class TestBenchmarkBoardBootstrapSkip:
+    """A benchmark board whose input rows (+ scoring logic) are identical
+    to the last run must skip the O(rounds * samples) bootstrap CI, not
+    just skip the file write. Regression for the ~2s-per-board wall clock
+    (#defect2) that even a fully "Unchanged" reassemble paid before this
+    fix, because the bootstrap ran before ``_unchanged`` ever got a look."""
+
+    def test_reassemble_does_not_recompute_unchanged_board(self, tmp_path, monkeypatch):
+        preds = _write_predictions(tmp_path)
+        out = tmp_path / "data"
+        assert main_args_assemble(preds, out) == 0
+
+        calls: list[str] = []
+        real_build = arena_cli.build_benchmark_board
+
+        def counting_build(modality, dataset_id, lang, by_competitor, generated_at, **kw):
+            calls.append(f"{modality}/{dataset_id}/{lang}")
+            return real_build(modality, dataset_id, lang, by_competitor, generated_at, **kw)
+
+        monkeypatch.setattr(arena_cli, "build_benchmark_board", counting_build)
+        assert main_args_assemble(preds, out) == 0
+        assert calls == [], (
+            f"build_benchmark_board (and its bootstrap CI) was recomputed "
+            f"for unchanged boards: {calls}"
+        )
+
+    def test_changed_predictions_do_recompute(self, tmp_path, monkeypatch):
+        preds1 = _write_stt_predictions(tmp_path / "r1", {"base-pt": 0.5})
+        out = tmp_path / "data"
+        assert main_args_assemble(preds1, out) == 0
+
+        calls: list[str] = []
+        real_build = arena_cli.build_benchmark_board
+
+        def counting_build(modality, dataset_id, lang, by_competitor, generated_at, **kw):
+            calls.append(f"{modality}/{dataset_id}/{lang}")
+            return real_build(modality, dataset_id, lang, by_competitor, generated_at, **kw)
+
+        monkeypatch.setattr(arena_cli, "build_benchmark_board", counting_build)
+        preds2 = _write_stt_predictions(tmp_path / "r2", {"base-pt": 0.9})
+        assert main_args_assemble(preds2, out) == 0
+        assert calls, "changed predictions must still recompute the board"

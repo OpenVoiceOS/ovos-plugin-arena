@@ -29,6 +29,7 @@ export-evidence
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import logging
 import os
@@ -49,7 +50,12 @@ from arena.assembler import (
 from arena.badges import emit_badges
 from arena.elo import EloLedger
 from arena.fraud import resolve_vote_weights
-from arena.metrics import PRIMARY_METRIC, build_benchmark_board, metric_higher_is_better
+from arena.metrics import (
+    PRIMARY_METRIC,
+    benchmark_board_input_signature,
+    build_benchmark_board,
+    metric_higher_is_better,
+)
 from arena.models import (
     VOTELESS_MODALITIES,
     BattlesPool,
@@ -403,6 +409,39 @@ def _unchanged(path: Path, payload: dict[str, Any]) -> bool:
             == {k: v for k, v in payload.items() if k != drop})
 
 
+def _board_disk_input_hash(path: Path) -> str | None:
+    """The ``input_hash`` already on disk for a benchmark board — but ONLY
+    when the file is also internally self-consistent, so a rerun stays
+    self-healing (§TestTimestampStability.test_changed_content_still_
+    rewrites — a board hand-edited/corrupted on disk without going through
+    this tool must still get fixed by the next assemble, never trusted
+    just because its ``input_hash`` field happens to still read as valid).
+    None when the file is missing/unreadable/pre-dates the field/was
+    tampered with. A cheap ``json.load`` + rehash of the file's OWN
+    ``entries`` — no pydantic validation, no bootstrap CI.
+    """
+    if not path.exists():
+        return None
+    try:
+        existing = json.loads(path.read_text())
+    except (OSError, json.JSONDecodeError):
+        return None
+    if not isinstance(existing, dict):
+        return None
+    value = existing.get("input_hash")
+    if not isinstance(value, str):
+        return None
+    entries_hash = existing.get("entries_hash")
+    if not isinstance(entries_hash, str):
+        return None
+    actual = hashlib.sha256(
+        json.dumps(existing.get("entries"), sort_keys=True, default=str).encode("utf-8")
+    ).hexdigest()
+    if actual != entries_hash:
+        return None
+    return value
+
+
 def _write_json_payload(path: Path, payload: dict[str, Any]) -> None:
     if _unchanged(path, payload):
         log.info("Unchanged %s", path)
@@ -579,8 +618,15 @@ def cmd_assemble(args: argparse.Namespace) -> int:
             log.error("Skipping %s: %s", source, exc)
 
     if not rows:
-        log.warning("No predictions loaded — nothing to assemble.")
-        return 1
+        # A league with zero fighters/predictions registered (e.g. a
+        # modality nobody has submitted a competitor for yet, like
+        # ww_stream) is not a build failure — there is genuinely nothing
+        # to assemble, and the matrix leg should complete cleanly instead
+        # of failing the whole workflow run every single day.
+        scope = f" for modality {args.modality!r}" if args.modality else ""
+        log.info("nothing to assemble%s — no predictions loaded, "
+                 "leaving existing data untouched", scope)
+        return 0
 
     unregistered_competitors: dict[str, int] = {}
     grouped = group_rows(rows, unregistered=unregistered_competitors)
@@ -641,7 +687,24 @@ def cmd_assemble(args: argparse.Namespace) -> int:
         for sample_rows in samples.values():
             for competitor_id, row in sample_rows.items():
                 by_competitor.setdefault(competitor_id, []).append(row)
-        board = build_benchmark_board(modality, dataset_id, lang, by_competitor, now)
+        board_file = f"benchmark-{modality}-{dataset_id}-{lang}.json"
+        board_path = data_dir / board_file
+        input_hash = benchmark_board_input_signature(by_competitor)
+        # Skip the O(rounds * samples) bootstrap CI entirely when this
+        # board's prediction rows (+ scoring logic) are byte-identical to
+        # the last assemble run — same input, same logic, same output, so
+        # recomputing would just reproduce the file _write_json_payload's
+        # _unchanged() would no-op anyway. Only dataset_info/predictions_
+        # revisions/generated_at can legitimately differ without a row
+        # change, and none of those affect the ranked entries, so reusing
+        # the on-disk entries verbatim is safe.
+        if _board_disk_input_hash(board_path) == input_hash:
+            written_files.add(board_file)
+            log.info("Unchanged %s (input identical — skipped bootstrap)", board_path)
+            continue
+        board = build_benchmark_board(
+            modality, dataset_id, lang, by_competitor, now, input_hash=input_hash,
+        )
         _attach_model_sizes(board, modality)
         board.dataset_info = dataset_info.get(dataset_id)
         own_revisions = {
@@ -649,8 +712,13 @@ def cmd_assemble(args: argparse.Namespace) -> int:
             if src.endswith(f"-bench-{dataset_id}")
         }
         board.predictions_revisions = own_revisions or None
-        board_file = f"benchmark-{modality}-{dataset_id}-{lang}.json"
-        _write_json(data_dir / board_file, board)
+        board.entries_hash = hashlib.sha256(
+            json.dumps(
+                [e.model_dump(mode="json") for e in board.entries],
+                sort_keys=True, default=str,
+            ).encode("utf-8")
+        ).hexdigest()
+        _write_json(board_path, board)
         written_files.add(board_file)
 
     # Battles + ELO pool by battle group: every plugin that answered the same
