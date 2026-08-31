@@ -1,0 +1,19 @@
+{
+  "dataset_id": "ava-speech-conditions",
+  "modality": "vad",
+  "source": {
+    "type": "huggingface",
+    "hf_id": "nccratliri/vad-human-ava-speech",
+    "revision": "main",
+    "split": "test",
+    "subset": "test"
+  },
+  "reference_fields": {
+    "format": "ava-onset-offset"
+  },
+  "lang": "en-US",
+  "license": "apache-2.0",
+  "role": "eval",
+  "notes": "AVA-Speech (frame-labelled Hollywood-movie audio) via the nccratliri/vad-human-ava-speech mirror \u2014 paired <clip>.wav / <clip>.json files under 'test/' and 'train/', each json giving parallel onset/offset arrays for human-speech segments across a multi-minute clip. Registered against the 'test' split (2 clips) as the smaller of the two. The clips are English-language theatrical films with mixed background music/noise/crowd audio; the mirror carries no per-clip language metadata and lang is genuinely mixed/incidental to the task (this is a VAD false-accept stress test on real cinematic audio, not a speech corpus), so lang is set to the dominant production language en-US rather than 'multi' per the fallback in the integration brief. This mirror already reduces AVA-Speech's four-way condition taxonomy (clean speech / speech+music / speech+noise / no-speech) to a binary human_SPEECH timeline -- the three speech conditions are exactly what a human_SPEECH onset covers, no-speech is everything else -- so reference_fields.format='ava-onset-offset' just flags runner.audio_io._stream_ava_speech to slice fixed-length speech/non_speech windows out of the onset/offset timeline (see that function's docstring); no further label mapping needed. A clip with zero AVA_SPEECH onsets is unlisted here since the 'human_' filename prefix implies the corpus only ships clips with human-attributed speech, but the adapter still yields non_speech windows from the silent gaps around and between segments.",
+  "predictions_hf": "OpenVoiceOS/ovos-vad-bench-ava-speech-conditions"
+}
