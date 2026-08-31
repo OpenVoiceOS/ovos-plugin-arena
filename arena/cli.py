@@ -553,6 +553,7 @@ def cmd_assemble(args: argparse.Namespace) -> int:
                  "repos", len(sources))
     dataset_info = _dataset_info_lookup(sources)
     source_langs = _prediction_source_langs(sources)
+    written_files: set[str] = set()
 
     # §C reproducibility — pin every HF predictions source to an immutable
     # commit SHA (registry ``predictions_revision`` when set, else
@@ -597,6 +598,31 @@ def cmd_assemble(args: argparse.Namespace) -> int:
         log.warning("skipping non-canonical dataset_id %r (%s/%s): "
                     "contains a path separator", dataset_id, modality, lang)
         del grouped[(modality, dataset_id, lang)]
+
+    # Legacy predictions rows carrying a pre-normalization short lang code
+    # (e.g. ``lang: "fr"`` published to an HF predictions repo before the
+    # dataset's own registry entry settled on ``fr-FR``) would otherwise
+    # keep regenerating a short-code board every single run — no amount of
+    # post-hoc pruning survives that, since the very next assemble run
+    # recreates the exact key it just deleted. Drop rows whose lang the
+    # dataset's registry entry doesn't recognize *at the source*, before
+    # any board/battle/seed is built from them. Datasets absent from the
+    # registry entirely (predictions dir passed via --predictions with no
+    # matching registry entry, e.g. some test fixtures) are left alone —
+    # there is nothing canonical to check them against.
+    registry_dataset_langs = _registry_dataset_langs()
+    for modality, dataset_id, lang in list(grouped):
+        valid_langs = registry_dataset_langs.get(dataset_id)
+        if valid_langs is not None and lang not in valid_langs:
+            log.warning(
+                "dropping %d sample(s) for %s/%s/%s: %r is not a lang the "
+                "registry's %r entry produces (%s) — pre-normalization "
+                "legacy predictions row(s), re-published under the wrong "
+                "lang at the source",
+                len(grouped[(modality, dataset_id, lang)]), modality,
+                dataset_id, lang, lang, dataset_id, sorted(valid_langs),
+            )
+            del grouped[(modality, dataset_id, lang)]
     now = _now_iso()
 
     # Benchmark boards stay per (modality, dataset, lang) — paradigm-pure, so a
@@ -616,7 +642,9 @@ def cmd_assemble(args: argparse.Namespace) -> int:
             if src.endswith(f"-bench-{dataset_id}")
         }
         board.predictions_revisions = own_revisions or None
-        _write_json(data_dir / f"benchmark-{modality}-{dataset_id}-{lang}.json", board)
+        board_file = f"benchmark-{modality}-{dataset_id}-{lang}.json"
+        _write_json(data_dir / board_file, board)
+        written_files.add(board_file)
 
     # Battles + ELO pool by battle group: every plugin that answered the same
     # stimulus in a language competes, so the intent paradigm leagues merge into
@@ -658,13 +686,17 @@ def cmd_assemble(args: argparse.Namespace) -> int:
                 "skipped_reference_mismatches", 0
             ),
         )
-        _write_json(data_dir / f"battles-{group}-{dataset_id}-{lang}.json", pool)
+        battles_file = f"battles-{group}-{dataset_id}-{lang}.json"
+        _write_json(data_dir / battles_file, pool)
+        written_files.add(battles_file)
 
     ww_phrases = _wakeword_phrases()
     for (group, lang), samples_by_dataset in sorted(elo_samples.items()):
         seed = seed_elo(group, lang, samples_by_dataset, now)
         seed.secondary_metrics = seed_secondary_metrics(group, samples_by_dataset)
-        _write_json(data_dir / f"elo-seed-{group}-{lang}.json", seed)
+        elo_seed_file = f"elo-seed-{group}-{lang}.json"
+        _write_json(data_dir / elo_seed_file, seed)
+        written_files.add(elo_seed_file)
 
         # Free-form matchup pool: every competitor pair, for direct subjective
         # votes that replay into this same ELO ladder. For wake word, restrict
@@ -679,7 +711,9 @@ def cmd_assemble(args: argparse.Namespace) -> int:
             battles=freeform_battles(group, lang, seed.competitor_plugin,
                                      subgroups=subgroups),
         )
-        _write_json(data_dir / f"battles-{group}-freeform-{lang}.json", pool)
+        freeform_file = f"battles-{group}-freeform-{lang}.json"
+        _write_json(data_dir / freeform_file, pool)
+        written_files.add(freeform_file)
 
         # Bootstrap the ELO board when none exists yet; `tally` owns it after
         # — but `tally` only rewrites a board when at least one vote is
@@ -689,12 +723,19 @@ def cmd_assemble(args: argparse.Namespace) -> int:
         # that already existed before it was onboarded, forever. Every
         # assemble run resyncs the board with the current seed to close
         # that gap.
-        board_path = data_dir / f"leaderboard-{group}-{lang}.json"
+        leaderboard_file = f"leaderboard-{group}-{lang}.json"
+        board_path = data_dir / leaderboard_file
+        written_files.add(leaderboard_file)
         if not board_path.exists():
             elo_board = build_elo_board(group, lang, seed, [], {})
             _write_json(board_path, elo_board)
         else:
             _sync_leaderboard_with_seed(board_path, group, lang, seed)
+
+    modality_scope = {args.modality} if args.modality else None
+    pruned = _prune_stale_artifacts(data_dir, written_files, modality_scope)
+    if pruned:
+        log.info("Pruned %d stale artifact(s): %s", len(pruned), ", ".join(pruned))
 
     return 0
 
@@ -774,6 +815,164 @@ def _clean_merged_artifacts(data_dir: Path, modalities: set) -> None:
             for path in data_dir.glob(f"{prefix}-{modality}-*.json"):
                 path.unlink()
                 log.info("Removed superseded %s", path.name)
+
+
+_PRUNABLE_PREFIXES = ("battles-", "benchmark-", "leaderboard-", "elo-seed-")
+
+
+def _registry_dataset_langs() -> dict[str, set[str]]:
+    """``dataset_id -> {canonical langs it can produce}`` across the whole
+    registry (every modality), expanding ``lang == "multi"`` via ``langs``.
+
+    Used only to decide whether a dataset-scoped pool this run's
+    ``--modality`` filter (or a transient prediction-fetch failure) didn't
+    happen to touch is still a *legitimate* artifact — as opposed to one
+    keyed by a dataset/lang the registry can no longer produce at all.
+    """
+    from registry.loaders import list_datasets
+
+    out: dict[str, set[str]] = {}
+    for dataset in list_datasets():
+        langs = set(dataset.langs) if dataset.lang == "multi" and dataset.langs \
+            else {dataset.lang}
+        out.setdefault(dataset.dataset_id, set()).update(langs)
+    return out
+
+
+def _registry_battle_groups() -> set[str]:
+    """Every battle group the current registry's competitors can produce."""
+    from registry.loaders import load_all_competitors
+
+    return {battle_group(comp.modality) for comp in load_all_competitors()}
+
+
+def _prune_stale_artifacts(
+    data_dir: Path,
+    written_files: set[str],
+    modality_scope: set[str] | None,
+) -> list[str]:
+    """Delete ``battles-*``/``benchmark-*``/``leaderboard-*``/``elo-seed-*``
+    files this run's registry can no longer produce.
+
+    ``written_files`` is exactly the set of filenames the assemble loop
+    above just wrote (or re-synced) this run — reusing that set instead of
+    a second, independent key-generator means the two can never diverge.
+    A file the loop didn't touch this run is still kept if it is a
+    dataset-scoped pool (``battles-<group>-<dataset_id>-<lang>.json`` /
+    ``benchmark-<modality>-<dataset_id>-<lang>.json``) whose
+    ``(dataset_id, lang)`` pair still exists *somewhere* in the registry —
+    a freeform/community one-shot pool this run's ``--modality`` filter (or
+    a transient HF fetch failure) didn't happen to touch is not "stale",
+    only untouched. Only keys the registry genuinely cannot produce
+    (pre-normalization short lang codes, pre-#73 unguarded sub-league
+    pools, empty dead pools from a since-renamed dataset id) get pruned.
+    """
+    dataset_langs = _registry_dataset_langs()
+    pruned: list[str] = []
+    for path in sorted(data_dir.iterdir()):
+        if not path.is_file() or path.suffix != ".json":
+            continue
+        name = path.name
+        prefix = next((p for p in _PRUNABLE_PREFIXES if name.startswith(p)), None)
+        if prefix is None:
+            continue
+        if name in written_files:
+            continue
+        stem = name[len(prefix):-len(".json")]
+        parts = stem.split("-")
+        if not parts:
+            continue
+        modality = parts[0]
+        if modality_scope is not None and modality not in modality_scope:
+            continue  # out of this run's --modality scope — leave it alone
+        rest = parts[1:]
+        if prefix == "battles-" and rest and rest[0] == "freeform":
+            # Group-scoped freeform matchup pool: key is <group>-<lang>,
+            # not dataset-scoped — same liveness check as leaderboard/
+            # elo-seed below, just inlined here since the filename's
+            # "freeform" segment isn't part of the lang.
+            live_langs = {lang for langs in dataset_langs.values() for lang in langs}
+            live_groups = _registry_battle_groups()
+            lang = "-".join(rest[1:])
+            if modality in live_groups and lang in live_langs:
+                continue
+        elif prefix == "battles-" and rest:
+            # Dataset-scoped battle pool: try every dataset_id/lang split
+            # point: kept if the registry still produces that pair.
+            kept = any(
+                "-".join(rest[i:]) in dataset_langs.get("-".join(rest[:i]), ())
+                for i in range(1, len(rest))
+            )
+            if kept:
+                continue
+        if prefix == "benchmark-" and rest:
+            kept = any(
+                "-".join(rest[i:]) in dataset_langs.get("-".join(rest[:i]), ())
+                for i in range(1, len(rest))
+            )
+            if kept:
+                continue
+        if prefix in ("leaderboard-", "elo-seed-"):
+            # Board key is <group>-<lang>. Same transient-failure safeguard
+            # as the dataset-scoped pools above: keep the file when both the
+            # battle group and the lang are still live in the registry —
+            # only dead groups (renamed sub-leagues) and dead langs
+            # (pre-normalization short codes) are actually stale.
+            live_langs = {lang for langs in dataset_langs.values() for lang in langs}
+            live_groups = _registry_battle_groups()
+            full = [modality, *rest]
+            kept = any(
+                "-".join(full[:i]) in live_groups
+                and "-".join(full[i:]) in live_langs
+                for i in range(1, len(full))
+            )
+            if kept:
+                continue
+        path.unlink()
+        pruned.append(name)
+        log.info("Pruned stale artifact %s (registry no longer produces this key)",
+                  name)
+    return pruned
+
+
+def _prune_stale_badges(out_dir: Path) -> list[str]:
+    """Delete ``badges/<modality>/<competitor_id>.svg`` for competitors the
+    current registry no longer registers under that modality.
+
+    ``emit_badges`` only ever writes/overwrites the badge for a competitor
+    still on a freshly-built board — it never removes one left behind by a
+    fighter that was since archived/removed from the registry (e.g. the
+    ``piper-*`` voices dropped in the phoonnx migration). Derived straight
+    from ``registry.loaders.load_all_competitors`` — never a hardcoded list
+    — so a badge is pruned only when the registry genuinely no longer
+    produces that (modality, competitor_id) pair.
+    """
+    from registry.loaders import load_all_competitors
+
+    live: dict[str, set[str]] = {}
+    for comp in load_all_competitors():
+        live.setdefault(comp.modality.value, set()).add(comp.competitor_id)
+
+    badges_dir = out_dir / "badges"
+    if not badges_dir.is_dir():
+        return []
+    pruned: list[str] = []
+    for modality_dir in sorted(badges_dir.iterdir()):
+        if not modality_dir.is_dir():
+            continue
+        valid_ids = live.get(modality_dir.name)
+        if valid_ids is None:
+            continue  # modality dir itself no longer registered — leave alone
+        for svg in sorted(modality_dir.glob("*.svg")):
+            competitor_id = svg.stem
+            if competitor_id in valid_ids:
+                continue
+            svg.unlink()
+            rel = f"badges/{modality_dir.name}/{svg.name}"
+            pruned.append(rel)
+            log.info("Pruned stale badge %s (registry no longer produces "
+                      "this competitor under %s)", rel, modality_dir.name)
+    return pruned
 
 
 # ---------------------------------------------------------------------------
@@ -965,6 +1164,10 @@ def cmd_tally(args: argparse.Namespace) -> int:
         _write_json(board_path, board)
         # Emit embeddable rank badges (growth loop, §A5.3).
         emit_badges(board, out_dir)
+    pruned_badges = _prune_stale_badges(out_dir)
+    if pruned_badges:
+        log.info("Pruned %d stale badge(s): %s", len(pruned_badges),
+                  ", ".join(pruned_badges))
     _write_json_payload(
         out_dir / "patch-notes.json",
         build_patch_notes(patch_note_entries, _now_iso()),
