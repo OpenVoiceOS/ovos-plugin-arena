@@ -194,7 +194,7 @@ class TestG2PBenchAdapter:
 
         comp = CompetitorDef(
             competitor_id="c", modality="g2p", plugin="fake-g2p",
-            langs=["en"],
+            langs=["en-GB"],
         )
         assert competitor_langs(comp, "en-US") == ["en-US"]
         assert competitor_langs(comp, "pt-PT") == []

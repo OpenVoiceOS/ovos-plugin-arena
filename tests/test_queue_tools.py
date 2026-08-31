@@ -176,13 +176,15 @@ class TestCompatibility:
         assert dataset_langs(ds) == ["en-US", "fr-FR"]
 
     def test_bare_primary_subtag_matches_full_bcp47(self):
-        """Fighters commonly pin ``de`` while datasets carry ``de-DE`` —
-        exact-string overlap silently dropped ~90% of real pairs. Matching
-        must go through the primary-subtag rule the benches use."""
+        """Fighters and datasets both carry full BCP-47 tags, but under
+        different regions of the same primary subtag (``de-AT`` vs
+        ``de-DE``) — exact-string overlap silently dropped ~90% of real
+        pairs. Matching must go through the primary-subtag rule the
+        benches use."""
         from registry.schemas import CompetitorDef, DatasetDef
 
         comp = CompetitorDef(
-            competitor_id="c", modality="stt", plugin="p", langs=["de"]
+            competitor_id="c", modality="stt", plugin="p", langs=["de-AT"]
         )
         ds = DatasetDef(
             dataset_id="d",
@@ -191,7 +193,7 @@ class TestCompatibility:
             lang="de-DE",
         )
         assert is_compatible(comp, ds)
-        # and the reverse orientation (full tag on fighter, bare on dataset)
+        # and the reverse orientation
         comp2 = CompetitorDef(
             competitor_id="c2", modality="stt", plugin="p", langs=["ca-ES"]
         )
@@ -199,7 +201,7 @@ class TestCompatibility:
             dataset_id="d2",
             modality="stt",
             source={"type": "huggingface", "hf_id": "x"},
-            lang="ca",
+            lang="ca-AD",
         )
         assert is_compatible(comp2, ds2)
 
@@ -612,7 +614,7 @@ class TestConcreteLangMatching:
                 "competitor_id": "canary-multi",
                 "modality": "stt",
                 "plugin": "ovos-stt-plugin-onnx-asr",
-                "langs": ["en", "de", "fr", "es"],
+                "langs": ["en-US", "de-DE", "fr-FR", "es-ES"],
             },
         )
         _write(
@@ -648,7 +650,7 @@ class TestConcreteLangMatching:
                 "competitor_id": "canary-multi",
                 "modality": "stt",
                 "plugin": "ovos-stt-plugin-onnx-asr",
-                "langs": ["en", "de", "fr", "es"],
+                "langs": ["en-US", "de-DE", "fr-FR", "es-ES"],
             },
         )
         _write(

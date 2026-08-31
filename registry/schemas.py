@@ -20,10 +20,48 @@ metrics; ``role: unrestricted`` marks openly-available training/development data
 
 from __future__ import annotations
 
+import re
 from enum import Enum
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+
+# ---------------------------------------------------------------------------
+# BCP-47 language tag validation
+# ---------------------------------------------------------------------------
+
+# Full lang-REGION tags only — a bare primary subtag (e.g. "en") is a defect,
+# not a shorthand. Accepts:
+#   - a 2-3 letter primary subtag
+#   - an optional 4-letter script subtag (Title-case, e.g. "Cyrl", "Arab")
+#   - an optional region: ISO 3166 alpha-2 (upper-case) or UN M.49 3-digit
+#     (e.g. "419"), including the tts placeholder region "ZZ"
+#   - an optional private-use subtag chain ("-x-...")
+_BCP47_RE = re.compile(
+    r"^[a-z]{2,3}"
+    r"(-[A-Z][a-z]{3})?"
+    r"(-([A-Z]{2}|[0-9]{3}))?"
+    r"(-x-[a-z0-9]+(-[a-z0-9]+)*)?$"
+)
+
+
+def validate_lang_tag(tag: str) -> str:
+    """Validate a single BCP-47 language tag (or the literal ``"multi"``).
+
+    Raises ``ValueError`` on a bare primary subtag or any other malformed
+    tag. Full lang-REGION tags are required everywhere in the registry —
+    see the project's HARD rule on this.
+    """
+    if tag in ("multi", ""):
+        # "" is the resolved_dataset_lang() sentinel for "unset — fall back
+        # to parsing the dataset id's trailing locale suffix instead".
+        return tag
+    if "-" not in tag or not _BCP47_RE.match(tag):
+        raise ValueError(
+            f"{tag!r} is not a valid BCP-47 language tag — full lang-REGION "
+            "tags are required (e.g. 'en-US', not bare 'en')"
+        )
+    return tag
 
 # ---------------------------------------------------------------------------
 # Family aliases — collapsing config-variant siblings of the same engine
@@ -255,6 +293,19 @@ class DatasetDef(BaseModel):
         None,
         description="Language list for multilingual corpora (lang='multi')",
     )
+
+    @field_validator("lang")
+    @classmethod
+    def _validate_lang(cls, v: str) -> str:
+        return validate_lang_tag(v)
+
+    @field_validator("langs")
+    @classmethod
+    def _validate_langs(cls, v: list[str] | None) -> list[str] | None:
+        if v is None:
+            return v
+        return [validate_lang_tag(tag) for tag in v]
+
     license: str | None = None
     role: Literal["eval", "train", "unrestricted"] = "eval"
     paradigm: Literal["template", "keyword"] | None = Field(
@@ -533,6 +584,12 @@ class CompetitorDef(BaseModel):
         default_factory=list,
         description="BCP-47 language tags this competitor supports",
     )
+
+    @field_validator("langs")
+    @classmethod
+    def _validate_langs(cls, v: list[str]) -> list[str]:
+        return [validate_lang_tag(tag) for tag in v]
+
     alias: list[str] | None = Field(
         None,
         description=(
