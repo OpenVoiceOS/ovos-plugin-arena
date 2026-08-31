@@ -162,19 +162,42 @@ def load_predictions_dir(
     return rows
 
 
+#: Build-process-lifetime cache: "repo_id@revision" -> resolved commit sha.
+#: An assemble run calls this once per source repo already (``sources`` in
+#: ``arena.cli.cmd_assemble`` is a deduped set), but the cache still matters:
+#: it makes the "at most once per repo per run" contract hold even if a
+#: future caller resolves the same repo from more than one place (e.g. a
+#: dataset's own board plus a paradigm sub-league sharing an owner), and it
+#: is what a test can assert against without mocking every call site.
+_revision_cache: dict[str, str] = {}
+
+
 def resolve_predictions_revision(repo_id: str, revision: str = "main") -> str:
     """Resolve *revision* (a branch, tag, or SHA) to an immutable commit SHA.
 
     Used by ``assemble`` (§C — pinned predictions revision) so a benchmark
     board's provenance is a fixed commit, not a floating ref that could
-    change under it after the board is published.
+    change under it after the board is published. Memoized per
+    ``repo_id@revision`` for the life of the process (see
+    ``_revision_cache``) — a fresh process re-resolves, since a floating
+    ref like ``main`` can move between runs.
     """
+    key = f"{repo_id}@{revision}"
+    if key in _revision_cache:
+        return _revision_cache[key]
+
     from huggingface_hub import HfApi
 
     info = HfApi().dataset_info(repo_id, revision=revision)
     if not info.sha:
         raise ValueError(f"HF did not return a commit sha for {repo_id}@{revision}")
+    _revision_cache[key] = info.sha
     return info.sha
+
+
+def reset_revision_cache() -> None:
+    """Clear the module-level revision-resolution cache (tests only)."""
+    _revision_cache.clear()
 
 
 def fetch_hf_predictions(repo_id: str, revision: str = "main") -> Path:

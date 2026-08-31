@@ -546,11 +546,18 @@ def cmd_assemble(args: argparse.Namespace) -> int:
     sources = [s.strip() for s in args.predictions.split(",") if s.strip()]
     if not sources:
         # Registry-driven default: every eval dataset's predictions_hf repo.
+        # Scoped to --modality when given, so a modality-scoped assemble
+        # resolves+downloads only the repos it will actually write boards
+        # for, instead of every repo in the registry (§assemble
+        # scalability — an unscoped default here was the dominant cost of
+        # a full assemble, and made even a single-modality run pay for
+        # every OTHER modality's HF round trips too).
         from registry.loaders import list_prediction_repos
 
-        sources = list_prediction_repos()
+        sources = list_prediction_repos(modality=args.modality or None)
         log.info("No --predictions given — using %d registry prediction "
-                 "repos", len(sources))
+                 "repos%s", len(sources),
+                 f" for modality {args.modality!r}" if args.modality else "")
     dataset_info = _dataset_info_lookup(sources)
     source_langs = _prediction_source_langs(sources)
     written_files: set[str] = set()
@@ -933,6 +940,37 @@ def _prune_stale_artifacts(
         log.info("Pruned stale artifact %s (registry no longer produces this key)",
                   name)
     return pruned
+
+
+def cmd_prune_data(args: argparse.Namespace) -> int:
+    """Standalone entry point for ``_prune_stale_artifacts`` (§assemble
+    scalability — the sharded assemble workflow's commit job).
+
+    Each matrix leg's own ``assemble --modality <m>`` already prunes its
+    own modality's stale artifacts, but only inside that leg's ephemeral
+    runner workspace — a deletion there is invisible to the commit job,
+    whose ``download-artifact --merge-multiple`` step only adds/overwrites
+    files onto the dev checkout, never deletes. Run this in the commit job
+    AFTER the artifact download and BEFORE the exports, once, over the
+    merged data dir: with no ``written_files`` from a live assemble run
+    to skip, every prunable file gets checked fresh against the current
+    registry — a strict superset of what each leg's own in-run check does,
+    so still correct — and it stays registry-derived, no network needed.
+    """
+    registry_root = Path(args.registry).resolve()
+    if str(registry_root.parent) not in sys.path:
+        sys.path.insert(0, str(registry_root.parent))
+
+    data_dir = Path(args.data_dir)
+    if not data_dir.is_dir():
+        log.warning("prune-data: %s does not exist — nothing to prune", data_dir)
+        return 0
+    pruned = _prune_stale_artifacts(data_dir, written_files=set(), modality_scope=None)
+    if pruned:
+        log.info("Pruned %d stale artifact(s): %s", len(pruned), ", ".join(pruned))
+    else:
+        log.info("prune-data: nothing to prune")
+    return 0
 
 
 def _prune_stale_badges(out_dir: Path) -> list[str]:
@@ -1844,6 +1882,15 @@ def main(argv=None):
     )
     p.add_argument("--data-dir", default="frontend-static/public/data")
 
+    p = sub.add_parser(
+        "prune-data",
+        help="Delete battles/benchmark/leaderboard/elo-seed artifacts the "
+             "registry no longer produces (standalone form of assemble's "
+             "own prune step — for the sharded workflow's commit job)",
+    )
+    p.add_argument("--registry", default="registry")
+    p.add_argument("--data-dir", default="frontend-static/public/data")
+
     args = parser.parse_args(argv)
     commands = {
         "assemble": cmd_assemble,
@@ -1854,6 +1901,7 @@ def main(argv=None):
         "export-evidence": cmd_export_evidence,
         "validate-registry": cmd_validate_registry,
         "audit-seeds": cmd_audit_seeds,
+        "prune-data": cmd_prune_data,
     }
     if args.command not in commands:
         parser.print_help()
