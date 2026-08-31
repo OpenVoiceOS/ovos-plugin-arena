@@ -34,8 +34,9 @@ script and registry fighters:
 | `tts` | `benchmarks/tts_intents_prompts.py` | human votes only (no objective metric, no ELO seed) |
 
 The intent leagues are fully populated with published predictions. STT, TTS
-and wake-word fighters and datasets are registered and runnable, and await a
-prediction sweep. Pages deployment activates when the repository goes public.
+and wake-word fighters and datasets are registered and runnable, and
+prediction sweeps run on an ongoing basis: boards render as swept rows land.
+Pages deployment is live at https://openvoiceos.github.io/ovos-plugin-arena/.
 
 ## Transparency
 

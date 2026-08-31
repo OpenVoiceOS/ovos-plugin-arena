@@ -1010,6 +1010,7 @@ def bootstrap_ratio_ci(
     return (percentile(ratios, CI_LOWER_PCT), percentile(ratios, CI_UPPER_PCT))
 
 
+# R11 benchmark boards carry confidence intervals
 def primary_metric_ci(modality: str, rows: list[PredictionRow]) -> tuple[float, float] | None:
     """Bootstrap 95% CI for *rows*' primary metric under *modality*, or None
     when the modality has no CI strategy or too few scoreable rows."""
@@ -1045,7 +1046,7 @@ def significant_from_cis(
 def pair_metric_significant(
     modality: str, rows_a: list[PredictionRow], rows_b: list[PredictionRow]
 ) -> bool:
-    """True when two competitors' primary-metric CIs (§4 A1.2, same dataset)
+    """R5a significance gate. True when two competitors' primary-metric CIs (§4 A1.2, same dataset)
     do not overlap — i.e. there is a statistically meaningful difference to
     seed a rating with, rather than benchmark noise (§4 seed-battle bias
     audit). Modalities without a CI strategy, or with too few scoreable
