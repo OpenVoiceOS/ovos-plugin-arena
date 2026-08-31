@@ -1,9 +1,9 @@
 """Every benchmarks/*.py script's default dataset id must resolve in the registry.
 
 Each ``benchmarks/*.py`` script is a thin wrapper that hardcodes a default
-dataset id (either via ``run_benchmark(adapter, dataset_id, ...)``,
-``run_benchmark(dataset_id, ...)`` for the intent league, or a module-level
-``DATASET_ID`` for the g2p league). A default that does not exist in the
+dataset id (either via ``run_benchmark(adapter, dataset_id, ...)`` or
+``run_benchmark(dataset_id, ...)`` for the intent league). A default that
+does not exist in the
 registry silently breaks the plain ``python benchmarks/<script>.py`` smoke
 run documented in every script's own docstring. This regression-tested
 ``speech-vs-nonspeech`` (no locale suffix) for VAD.
@@ -54,17 +54,6 @@ def _run_benchmark_string_args(tree: ast.Module) -> list[str]:
     return found
 
 
-def _dataset_id_assignment(tree: ast.Module) -> str | None:
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Assign):
-            targets = [t.id for t in node.targets if isinstance(t, ast.Name)]
-            if "DATASET_ID" in targets and isinstance(node.value, ast.Constant):
-                value = node.value.value
-                if isinstance(value, str):
-                    return value
-    return None
-
-
 def _resolve_modality_and_dataset(path: Path) -> tuple[str, str]:
     tree = ast.parse(path.read_text(), filename=str(path))
     imported = _imported_names(tree)
@@ -75,11 +64,6 @@ def _resolve_modality_and_dataset(path: Path) -> tuple[str, str]:
         str_args = _run_benchmark_string_args(tree)
         assert str_args, f"{path.name}: no string dataset id found in run_benchmark(...) call"
         return modality, str_args[0]
-
-    dataset_id = _dataset_id_assignment(tree)
-    if dataset_id is not None:
-        # g2p league: DATASET_ID + runner.g2p_bench.
-        return "g2p", dataset_id
 
     str_args = _run_benchmark_string_args(tree)
     if str_args:

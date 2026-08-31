@@ -509,12 +509,6 @@ def _dataset_info_lookup(prediction_sources: list[str]) -> dict[str, dict[str, A
             entry["license"] = dataset.license
         if dataset.notes:
             entry["notes"] = dataset.notes
-        # §A6 — g2p gold provenance tier travels WITH the board metadata, so
-        # a tool-derived/machine-generated gold's caveat is never separated
-        # from the numbers it produced.
-        if dataset.provenance_tier:
-            entry["provenance_tier"] = dataset.provenance_tier
-            entry["tool_derived"] = dataset.tool_derived
         own_repos = [r for r in hf_repos
                      if r.endswith(f"-bench-{dataset.dataset_id}")]
         if dataset.predictions_hf:
@@ -730,7 +724,7 @@ def cmd_assemble(args: argparse.Namespace) -> int:
         if args.modality and modality != args.modality:
             continue
         if modality in VOTELESS_MODALITIES:
-            # §A6 — vote-less leagues (g2p) get benchmark boards only, no
+            # Vote-less leagues get benchmark boards only, no
             # battles/elo-seed/leaderboard artifacts at all.
             continue
         group = battle_group(modality)

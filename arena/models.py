@@ -50,10 +50,6 @@ class Modality(str, enum.Enum):
     # a separate benchmark board scored from continuous-audio detection
     # events rather than isolated clips (arena.metrics.score_ww_stream).
     WW_STREAM = "ww_stream"
-    # Grapheme-to-phoneme league (§A6) — vote-less: benchmark boards only
-    # (phoneme error rate, provenance-tiered gold), no battles/ELO/votes.
-    # See VOTELESS_MODALITIES below and arena.metrics.score_g2p.
-    G2P = "g2p"
 
 
 INTENT_MODALITIES = frozenset(
@@ -66,7 +62,7 @@ def is_intent_modality(modality: str) -> bool:
     return modality in INTENT_MODALITIES
 
 
-# §A6 — leagues with no battles/ELO/votes at all: benchmark boards only.
+# Leagues with no battles/ELO/votes at all: benchmark boards only.
 # ``cmd_assemble`` (arena/cli.py) MUST NOT emit ``battles-*``/``elo-seed-*``/
 # ``leaderboard-*`` artifacts for these modalities, and the prune/superseded-
 # artifact guard (``_clean_merged_artifacts``) must not treat a missing
@@ -74,7 +70,8 @@ def is_intent_modality(modality: str) -> bool:
 # it is benchmark-only in practice (no registered eval dataset publishes
 # votes), but its identity battle_group mapping was never explicitly gated,
 # so leaving it out preserves existing behaviour exactly.
-VOTELESS_MODALITIES = frozenset({Modality.G2P.value})  # R20 vote-less leagues
+# R20 vote-less leagues
+VOTELESS_MODALITIES: frozenset[str] = frozenset()
 
 
 def battle_group(modality: str) -> str:
@@ -110,7 +107,6 @@ LEAGUE_LABELS: dict[str, str] = {
     Modality.TTS.value: "TTS",
     Modality.WAKE_WORD.value: "Wake Word",
     Modality.VAD.value: "VAD",
-    Modality.G2P.value: "G2P",
 }
 
 LEAGUE_ORDER: tuple[str, ...] = (
@@ -121,7 +117,6 @@ LEAGUE_ORDER: tuple[str, ...] = (
     Modality.TTS.value,
     Modality.WAKE_WORD.value,
     Modality.VAD.value,
-    Modality.G2P.value,
 )
 
 
@@ -129,9 +124,9 @@ def leagues() -> list[dict[str, Any]]:
     """League descriptors for ``data/index.json``: ``{id, label, battle_group,
     order, voteless}`` in tab order, one per :class:`Modality`. §R# — each of
     the three intent leagues is now its own battle_group (identity mapping);
-    they no longer collapse into a shared ``"intent"`` pool. §A6 —
-    ``voteless`` (True for `g2p`) tells the frontend to skip the ladder
-    section entirely rather than render an always-empty one."""
+    they no longer collapse into a shared ``"intent"`` pool. ``voteless``
+    tells the frontend to skip the ladder section entirely rather than
+    render an always-empty one, for leagues with benchmark boards only."""
     return [
         {
             "id": modality,

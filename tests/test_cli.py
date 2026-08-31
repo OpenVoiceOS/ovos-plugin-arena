@@ -289,7 +289,7 @@ class TestAssemblePipeline:
         league_ids = [entry["id"] for entry in index["leagues"]]
         assert league_ids == [
             "intent_template", "intent_keyword", "intent",
-            "stt", "tts", "wake_word", "vad", "g2p",
+            "stt", "tts", "wake_word", "vad",
         ]
         for entry in index["leagues"]:
             assert set(entry) == {"id", "label", "battle_group", "order", "voteless"}
