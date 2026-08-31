@@ -14,10 +14,6 @@ on:
 permissions:
   contents: write
 
-concurrency:
-  group: arena-data
-  cancel-in-progress: false
-
 jobs:
   # One matrix leg per modality (arena.registry.schemas.Modality). Each leg
   # only resolves+downloads its own modality's HF prediction repos —
@@ -95,6 +91,25 @@ jobs:
   # group below) — every matrix leg's artifacts merge into the SAME working
   # tree and this job makes the single data commit for the whole run, same
   # as the pre-sharding single-job design.
+  #
+  # This job-level group is the ONLY concurrency declaration in this
+  # workflow — deliberately. A WORKFLOW-level `concurrency: group:
+  # arena-data` used to sit at the top of this file, which put every
+  # still-running matrix leg (not just this commit job) inside the same
+  # group as tally.yml's single job. Runs 33404190154 (assemble, single-job
+  # era) and 33414447333 (assemble, matrix era) both had a leg killed with
+  # "The operation was canceled" while still executing, well before its
+  # 50-minute timeout, in the same minute a same-group Tally votes run was
+  # being resolved (dispatched 16:47:08, held pending, and only cancelled
+  # at 17:01:11 — right as this run's `commit` job, itself requesting group
+  # arena-data, and the `assemble (intent_template)` leg were finishing at
+  # 17:00:16-19). With workflow-level concurrency, the whole run — matrix
+  # legs included — is a member of the group for its entire lifetime, so a
+  # second, unrelated run (or job) contending for that same group can pull
+  # in-flight legs into the group's scheduling/eviction decision even
+  # though cancel-in-progress is false. Only the job that actually needs to
+  # serialize (the commit, which pushes to dev) should be in the group;
+  # matrix legs must never share a concurrency group with anything.
   commit:
     needs: assemble
     if: always()

@@ -367,6 +367,27 @@ class BenchmarkBoard(BaseModel):
         ),
     )
     entries: list[BenchmarkEntry] = Field(default_factory=list)
+    entries_hash: str | None = Field(
+        None,
+        description=(
+            "sha256 of this board's own ``entries``, set at write time. "
+            "Lets a rerun cheaply verify a stored ``input_hash`` is trust"
+            "worthy — self-consistent with the file's own content, not "
+            "hand-edited or corrupted out from under it — before skipping "
+            "the bootstrap recompute the input_hash would otherwise avoid."
+        ),
+    )
+    input_hash: str | None = Field(
+        None,
+        description=(
+            "arena.metrics.benchmark_board_input_signature() of the "
+            "prediction rows (+ scoring-logic version) this board was "
+            "built from. A future assemble run with an identical signature "
+            "skips the O(rounds * samples) bootstrap CI recompute entirely "
+            "(same input, same logic => same output) instead of paying it "
+            "just to rediscover the file is unchanged."
+        ),
+    )
 
 
 class EloEntry(BaseModel):

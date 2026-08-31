@@ -18,6 +18,8 @@ Intent scoring conventions
 
 from __future__ import annotations
 
+import hashlib
+import json
 import logging
 import random
 import re
@@ -35,6 +37,14 @@ BOOTSTRAP_ROUNDS = 1000
 CI_LOWER_PCT = 2.5
 CI_UPPER_PCT = 97.5
 BOOTSTRAP_SEED = 0
+
+# Bumped whenever scoring/CI logic that affects a benchmark board's OUTPUT
+# changes (a new/changed scorer, BOOTSTRAP_ROUNDS, the CI percentiles, …).
+# Folded into ``benchmark_board_input_signature`` so a stale on-disk
+# ``input_hash`` never survives a scoring-logic change — the whole point of
+# the signature is "same input AND same logic produces the same output",
+# not just "same input".
+BOARD_LOGIC_VERSION = 1
 
 PRIMARY_METRIC = {
     "intent": "accuracy",
@@ -1059,14 +1069,53 @@ def pair_metric_significant(
     return significant_from_cis(ci_a, ci_b)
 
 
+def benchmark_board_input_signature(by_competitor: dict[str, list[PredictionRow]]) -> str:
+    """Stable hash of everything that determines a benchmark board's
+    scored output: every competitor's rows plus ``BOARD_LOGIC_VERSION``.
+
+    Two calls with the same rows (regardless of dict/list ORDER — both are
+    sorted before hashing) and the same scoring logic hash identically.
+    Lets a caller skip the O(rounds * samples) bootstrap CI entirely when
+    the on-disk board already carries this exact signature — the recompute
+    would just reproduce the same numbers (see cli.py's board-write loop,
+    which already no-ops the file WRITE on unchanged content via
+    ``_unchanged``; this skips the expensive COMPUTE that precedes it).
+    """
+    # Sort each competitor's own rows by sample_id/plugin_id, so row ORDER
+    # never affects the hash — only row CONTENT does — then sort competitors.
+    rows_repr = sorted(
+        (
+            competitor_id,
+            sorted(
+                (row.model_dump(mode="json") for row in rows),
+                key=lambda d: (d.get("sample_id", ""), d.get("plugin_id", "")),
+            ),
+        )
+        for competitor_id, rows in by_competitor.items()
+    )
+    payload = json.dumps(
+        {"logic_version": BOARD_LOGIC_VERSION, "rows": rows_repr},
+        sort_keys=True,
+        default=str,
+    )
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
 def build_benchmark_board(
     modality: str,
     dataset_id: str,
     lang: str,
     by_competitor: dict[str, list[PredictionRow]],
     generated_at: str,
+    input_hash: str | None = None,
 ) -> BenchmarkBoard:
-    """Build one benchmark board from per-competitor row lists."""
+    """Build one benchmark board from per-competitor row lists.
+
+    *input_hash*, when given, is stamped onto the returned board as-is
+    (normally ``benchmark_board_input_signature(by_competitor)`` — the
+    caller computes it once and reuses it both here and for the
+    unchanged-input skip check, rather than hashing twice).
+    """
     scorer = _SCORERS.get(modality)
     primary = PRIMARY_METRIC.get(modality, "accuracy")
     entries: list[BenchmarkEntry] = []
@@ -1139,6 +1188,7 @@ def build_benchmark_board(
         primary_metric=primary,
         wer_normalizer_version=WER_NORMALIZER_VERSION if modality == "stt" else None,
         entries=entries,
+        input_hash=input_hash,
     )
 
 
