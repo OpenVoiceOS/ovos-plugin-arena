@@ -9,6 +9,8 @@ from arena.metrics import (
     domain_of,
     expected_calibration_error,
     intelligibility_scores,
+    row_intelligibility_agreement,
+    row_intelligibility_cer,
     row_intelligibility_wer,
     row_is_correct,
     row_quality_dimension,
@@ -18,6 +20,7 @@ from arena.metrics import (
     score_stt,
     score_tts,
     score_wake_word,
+    tts_seed_score,
     ww_row_correct,
 )
 from arena.models import PredictionRow
@@ -463,6 +466,68 @@ class TestRowIntelligibilityWer:
     def test_nan_guard(self):
         assert row_intelligibility_wer(
             _row(extras={"intelligibility_wer": float("nan")})) is None
+
+
+class TestRowIntelligibilityCer:
+    def test_present(self):
+        assert row_intelligibility_cer(_row(extras={"intelligibility_cer": 0.2})) == 0.2
+
+    def test_missing(self):
+        assert row_intelligibility_cer(_row()) is None
+
+    def test_non_numeric_ignored(self):
+        assert row_intelligibility_cer(
+            _row(extras={"intelligibility_cer": "nope"})) is None
+
+    def test_nan_guard(self):
+        assert row_intelligibility_cer(
+            _row(extras={"intelligibility_cer": float("nan")})) is None
+
+
+class TestRowIntelligibilityAgreement:
+    def test_present(self):
+        assert row_intelligibility_agreement(
+            _row(extras={"intelligibility_agreement": 0.6})) == 0.6
+
+    def test_missing_defaults_to_one(self):
+        # Legacy rows scored before panels existed default to full
+        # agreement — nothing to disagree with.
+        assert row_intelligibility_agreement(_row()) == 1.0
+
+    def test_non_numeric_defaults_to_one(self):
+        assert row_intelligibility_agreement(
+            _row(extras={"intelligibility_agreement": "nope"})) == 1.0
+
+    def test_nan_guard_defaults_to_one(self):
+        assert row_intelligibility_agreement(
+            _row(extras={"intelligibility_agreement": float("nan")})) == 1.0
+
+
+class TestTtsSeedScore:
+    def test_formula(self):
+        row = _row(extras={"utmos": 4.0, "intelligibility_cer": 0.2,
+                            "intelligibility_agreement": 0.5})
+        # (4/5) * (1-0.2) * 0.5 = 0.32
+        assert tts_seed_score(row) == pytest.approx(0.32)
+
+    def test_defaults_agreement_to_one_when_absent(self):
+        row = _row(extras={"utmos": 4.0, "intelligibility_cer": 0.2})
+        # (4/5) * (1-0.2) * 1.0 = 0.64
+        assert tts_seed_score(row) == pytest.approx(0.64)
+
+    def test_missing_utmos_is_none(self):
+        row = _row(extras={"intelligibility_cer": 0.2})
+        assert tts_seed_score(row) is None
+
+    def test_missing_cer_is_none(self):
+        row = _row(extras={"utmos": 4.0})
+        assert tts_seed_score(row) is None
+
+    def test_caps_utmos_and_cer_before_combining(self):
+        row = _row(extras={"utmos": 6.0, "intelligibility_cer": 1.5,
+                            "intelligibility_agreement": 1.0})
+        # utmos capped to 5 -> 5/5=1.0; cer capped to 1 -> (1-1)=0.0
+        assert tts_seed_score(row) == pytest.approx(0.0)
 
 
 class TestIntelligibilityScores:

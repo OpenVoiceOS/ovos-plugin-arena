@@ -579,6 +579,80 @@ def row_intelligibility_wer(row: PredictionRow) -> float | None:
     return value
 
 
+def row_intelligibility_cer(row: PredictionRow) -> float | None:
+    """Per-row ROVER-consensus STT round-trip CER (§4 R16), or None when
+    unscored/non-finite. Same shape as :func:`row_intelligibility_wer` —
+    CJK/no-space languages have no meaningful WER, so the ELO seed formula
+    below always uses CER, never WER."""
+    value = row.extras.get("intelligibility_cer")
+    if value is None:
+        return None
+    try:
+        value = float(value)
+    except (TypeError, ValueError):
+        return None
+    if value != value:  # NaN guard
+        return None
+    return value
+
+
+def row_intelligibility_agreement(row: PredictionRow) -> float | None:
+    """Per-row inter-judge ROVER agreement (§4 R16 extension) — the mean
+    per-slot vote share of the ROVER consensus (``arena.rover``): how much
+    the judge panel agreed on what the clip said. ``1.0`` for legacy rows
+    scored before panels existed (a single judge trivially "agrees with
+    itself") — see :func:`tts_seed_score`, which relies on that default."""
+    value = row.extras.get("intelligibility_agreement")
+    if value is None:
+        return 1.0
+    try:
+        value = float(value)
+    except (TypeError, ValueError):
+        return 1.0
+    if value != value:  # NaN guard
+        return 1.0
+    return value
+
+
+def tts_seed_score(row: PredictionRow) -> float | None:
+    """Composite TTS ELO-seed score: naturalness x intelligibility x
+    inter-judge agreement.
+
+    ``score = (utmos / 5.0) * (1.0 - min(cer, 1.0)) * agreement``
+
+    A voice that is judged natural (high UTMOS) but unintelligible (high
+    ROVER-consensus CER, §4 R16) is not a good voice, and vice versa — the
+    two dimensions are multiplied, not averaged or ladder-compared, because
+    either one being bad should tank the composite: a beautifully-voiced
+    clip nobody can understand and a perfectly-transcribable robotic
+    monotone are both bad TTS. ``agreement`` (``arena.rover``'s mean
+    per-slot ROVER vote share, §4 R16 extension) discounts the
+    intelligibility term further when the judge panel itself could not
+    agree on what was said — panel disagreement is evidence the speech was
+    unclear, independent of what any single judge's CER says, so a
+    genuinely garbled clip is penalised twice by design: once through a
+    high CER and again through low agreement. Rows scored before judge
+    panels existed (or scored by a single judge) default ``agreement`` to
+    ``1.0`` (nothing to disagree with), so this reduces to the two-factor
+    formula for them.
+
+    UTMOS is capped into ``[0, 5]`` before dividing (a pathological model
+    output outside that range must not invert the product), and CER is
+    capped into ``[0, 1]`` before subtracting so a CER above 100% cannot
+    make the intelligibility factor negative. Returns ``None`` when either
+    UTMOS or CER is missing — no partial score, so callers can tell "not
+    computable" apart from "computed to near-zero".
+    """
+    utmos = row_utmos(row)
+    cer = row_intelligibility_cer(row)
+    if utmos is None or cer is None:
+        return None
+    utmos = max(0.0, min(utmos, 5.0))
+    cer = max(0.0, min(cer, 1.0))
+    agreement = row_intelligibility_agreement(row)
+    return (utmos / 5.0) * (1.0 - cer) * agreement
+
+
 def row_slot_match(row: PredictionRow) -> float | None:
     """Per-row exact slot match (1.0/0.0), or None when not applicable.
 

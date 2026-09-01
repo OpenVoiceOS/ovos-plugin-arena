@@ -99,6 +99,50 @@ class TestAutoOutcome:
                  extras={"utmos": 3.5})
         assert auto_outcome(a, b, "tts") is None
 
+    def test_tts_composite_score_beats_raw_utmos(self):
+        # A carries higher UTMOS but is far less intelligible (high CER) —
+        # tts_seed_score = (utmos/5) * (1-cer) must let B win despite B's
+        # lower UTMOS: 4.5/5*(1-0.8)=0.18 (A) vs 3.0/5*(1-0.05)=0.57 (B).
+        a = _row("x", "https://hf/a.wav", reference=None, input_text="hi",
+                 extras={"utmos": 4.5, "intelligibility_cer": 0.8})
+        b = _row("y", "https://hf/b.wav", reference=None, input_text="hi",
+                 extras={"utmos": 3.0, "intelligibility_cer": 0.05})
+        assert auto_outcome(a, b, "tts") == VoteOutcome.CANDIDATE_B
+        assert auto_outcome(b, a, "tts") == VoteOutcome.CANDIDATE_A
+
+    def test_tts_low_agreement_discounts_composite_score(self):
+        # Same UTMOS/CER on both sides, but A's judges disagreed heavily on
+        # what was said (low intelligibility_agreement) — A must lose even
+        # though its raw CER matches B's.
+        a = _row("x", "https://hf/a.wav", reference=None, input_text="hi",
+                 extras={"utmos": 4.0, "intelligibility_cer": 0.1,
+                         "intelligibility_agreement": 0.3})
+        b = _row("y", "https://hf/b.wav", reference=None, input_text="hi",
+                 extras={"utmos": 4.0, "intelligibility_cer": 0.1,
+                         "intelligibility_agreement": 1.0})
+        assert auto_outcome(a, b, "tts") == VoteOutcome.CANDIDATE_B
+
+    def test_tts_mixed_cer_signal_no_vote(self):
+        # A has an intelligibility CER, B is a legacy row without one —
+        # mixing a composite score against a raw UTMOS is not a fair
+        # comparison, so there is no auto-vote at all.
+        a = _row("x", "https://hf/a.wav", reference=None, input_text="hi",
+                 extras={"utmos": 3.0, "intelligibility_cer": 0.1})
+        b = _row("y", "https://hf/b.wav", reference=None, input_text="hi",
+                 extras={"utmos": 4.5})
+        assert auto_outcome(a, b, "tts") is None
+        assert auto_outcome(b, a, "tts") is None
+
+    def test_tts_legacy_rows_without_cer_fall_back_to_utmos(self):
+        # Both rows predate intelligibility judging (no CER at all) — the
+        # comparison must still fall back to plain UTMOS, same as before
+        # ROVER seeding existed.
+        a = _row("x", "https://hf/a.wav", reference=None, input_text="hi",
+                 extras={"utmos": 4.2})
+        b = _row("y", "https://hf/b.wav", reference=None, input_text="hi",
+                 extras={"utmos": 2.1})
+        assert auto_outcome(a, b, "tts") == VoteOutcome.CANDIDATE_A
+
 
 class TestAssembleBattles:
     def test_identical_predictions_skipped(self):

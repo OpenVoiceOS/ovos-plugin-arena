@@ -385,10 +385,17 @@ def _reset_intelligibility_judge_cache(monkeypatch):
 
 
 def _patch_judge(monkeypatch, fake_judge, model_id="fake-model", revision="fake-rev"):
-    """Patch _get_intelligibility_judge to return a fake judge for any lang."""
+    """Patch judge resolution so the whole panel is one fake judge (panel of
+    one — still runs through the ROVER path per owner directive)."""
     monkeypatch.setattr(
         tts_bench, "_get_intelligibility_judge",
         lambda lang: (fake_judge, revision, model_id))
+    monkeypatch.setattr(
+        tts_bench, "resolve_judge_panel",
+        lambda lang: [(model_id, revision)])
+    monkeypatch.setattr(
+        tts_bench, "_load_intelligibility_judge",
+        lambda mid, rev: (fake_judge, rev))
 
 
 class TestIntelligibility:
@@ -409,6 +416,113 @@ class TestIntelligibility:
             "8f23f0c03c8761650bdb5b40aaf3e40d2c15f1ce"
         )
         assert len(fake_judge.calls) == 1
+        assert fields["extras"]["intelligibility_rover"] is True
+        assert fields["extras"]["intelligibility_consensus"] == "hello there"
+        assert fields["extras"]["intelligibility_agreement"] == 1.0
+        assert fields["extras"]["intelligibility_judges"] == [
+            {
+                "model": "nemo-parakeet-tdt-0.6b-v3",
+                "revision": "8f23f0c03c8761650bdb5b40aaf3e40d2c15f1ce",
+                "transcript": "hello there",
+            }
+        ]
+
+    def test_rover_recomputed_from_stored_judges_matches_stored_consensus(
+        self, tmp_path, monkeypatch
+    ):
+        # Owner directive: intelligibility_judges must be durable enough
+        # that ROVER can be recomputed later purely from stored data.
+        from arena.rover import rover_consensus_from_judges
+
+        monkeypatch.setattr(tts_bench, "_get_utmos_judge", lambda: FakeJudge())
+        fake_judge = FakeIntelligibilityJudge(text="hello there")
+        _patch_judge(monkeypatch, fake_judge, "nemo-parakeet-tdt-0.6b-v3",
+                     "8f23f0c03c8761650bdb5b40aaf3e40d2c15f1ce")
+
+        fields = tts_bench.TTSBench().predict(
+            RealWavEngine(), {"input_text": "hello there"}, _ctx(tmp_path))
+
+        recomputed = rover_consensus_from_judges(
+            fields["extras"]["intelligibility_judges"])
+        assert recomputed == fields["extras"]["intelligibility_consensus"]
+
+    def test_rover_recomputed_from_stored_judges_with_real_disagreement(
+        self, tmp_path, monkeypatch
+    ):
+        # The panel-of-one variant above short-circuits before
+        # _align_pair/_vote_slot ever run. This exercises a genuine 3-judge
+        # disagreement: recomputing from the stored intelligibility_judges
+        # extras must reproduce both the stored consensus AND the stored
+        # agreement exactly, and mutating a stored transcript must change
+        # the recomputed consensus (proving the recomputation actually
+        # reads the stored data, not some cached/short-circuited value).
+        from arena.rover import rover_consensus_and_agreement_from_judges
+
+        monkeypatch.setattr(tts_bench, "_get_utmos_judge", lambda: FakeJudge())
+        judge_a = FakeIntelligibilityJudge(text="hello there friend")
+        judge_b = FakeIntelligibilityJudge(text="hello there friend")
+        judge_c = FakeIntelligibilityJudge(text="hallo there fiend")
+
+        panel = [("judge-a", "rev-a"), ("judge-b", "rev-b"), ("judge-c", "rev-c")]
+        judges_by_id = {"judge-a": judge_a, "judge-b": judge_b, "judge-c": judge_c}
+        monkeypatch.setattr(tts_bench, "resolve_judge_panel", lambda lang: panel)
+        monkeypatch.setattr(
+            tts_bench, "_load_intelligibility_judge",
+            lambda mid, rev: (judges_by_id[mid], rev))
+
+        fields = tts_bench.TTSBench().predict(
+            RealWavEngine(), {"input_text": "hello there friend"}, _ctx(tmp_path))
+
+        stored_judges = fields["extras"]["intelligibility_judges"]
+        assert len({j["transcript"] for j in stored_judges}) > 1  # genuine disagreement
+
+        recomputed_consensus, recomputed_agreement = (
+            rover_consensus_and_agreement_from_judges(stored_judges))
+        assert recomputed_consensus == fields["extras"]["intelligibility_consensus"]
+        assert recomputed_agreement == fields["extras"]["intelligibility_agreement"]
+
+        # Mutating one stored transcript must change the recomputed
+        # consensus — proves recomputation reads the stored transcripts,
+        # not a cached/short-circuited value.
+        mutated_judges = [dict(j) for j in stored_judges]
+        mutated_judges[0]["transcript"] = "completely unrelated words here"
+        mutated_consensus, _mutated_agreement = (
+            rover_consensus_and_agreement_from_judges(mutated_judges))
+        assert mutated_consensus != recomputed_consensus
+
+    def test_multi_judge_panel_scores_off_rover_consensus_not_raw(
+        self, tmp_path, monkeypatch
+    ):
+        # Two of three panel judges agree; ROVER consensus should match the
+        # prompt exactly (WER/CER 0) even though the third judge alone
+        # mangled the transcript — proving the score comes from consensus,
+        # not from any single raw judge transcript.
+        monkeypatch.setattr(tts_bench, "_get_utmos_judge", lambda: FakeJudge())
+        good_a = FakeIntelligibilityJudge(text="hello there")
+        good_b = FakeIntelligibilityJudge(text="hello there")
+        bad = FakeIntelligibilityJudge(text="totally different")
+
+        panel = [("judge-a", "rev-a"), ("judge-b", "rev-b"), ("judge-c", "rev-c")]
+        judges_by_id = {"judge-a": good_a, "judge-b": good_b, "judge-c": bad}
+        monkeypatch.setattr(tts_bench, "resolve_judge_panel", lambda lang: panel)
+        monkeypatch.setattr(
+            tts_bench, "_load_intelligibility_judge",
+            lambda mid, rev: (judges_by_id[mid], rev))
+
+        fields = tts_bench.TTSBench().predict(
+            RealWavEngine(), {"input_text": "hello there"}, _ctx(tmp_path))
+
+        assert fields["extras"]["intelligibility_consensus"] == "hello there"
+        assert fields["extras"]["intelligibility_wer"] == pytest.approx(0.0)
+        assert fields["extras"]["intelligibility_cer"] == pytest.approx(0.0)
+        assert fields["extras"]["intelligibility_judge"] == "judge-a"
+        assert len(fields["extras"]["intelligibility_judges"]) == 3
+        assert {j["transcript"] for j in fields["extras"]["intelligibility_judges"]} == {
+            "hello there", "totally different"
+        }
+        # 2/3 judges agree on every word ("hello there" vs "totally
+        # different" share no words) — mean per-slot vote share = 2/3.
+        assert fields["extras"]["intelligibility_agreement"] == pytest.approx(2 / 3)
 
     def test_wer_reflects_mismatched_transcript(self, tmp_path, monkeypatch):
         monkeypatch.setattr(tts_bench, "_get_utmos_judge", lambda: FakeJudge())
@@ -457,6 +571,11 @@ class TestIntelligibility:
             raise RuntimeError("judge blew up")
 
         monkeypatch.setattr(tts_bench, "_get_intelligibility_judge", boom)
+
+        def boom_panel(lang):
+            raise RuntimeError("judge blew up")
+
+        monkeypatch.setattr(tts_bench, "resolve_judge_panel", boom_panel)
         fields = tts_bench.TTSBench().predict(
             RealWavEngine(), {"input_text": "hello there"}, _ctx(tmp_path))
 
@@ -610,6 +729,37 @@ class TestJudgeResolution:
         assert id_en == id_de == "nemo-parakeet-tdt-0.6b-v3"
         assert judge_en is judge_de
         assert loads["n"] == 1
+
+
+class TestJudgePanel:
+    """runner.asr_judges.resolve_judge_panel — ROVER judge panels (§4 R16)."""
+
+    def test_dedicated_model_lang_panel_also_includes_whisper(self):
+        # pt-PT has a dedicated recommends model — the panel must still
+        # include the multilingual whisper-base wrapper as a second judge,
+        # not just the dedicated model alone.
+        from runner.asr_judges import resolve_judge_panel
+
+        panel = resolve_judge_panel("pt-PT")
+        model_ids = [m for m, _rev in panel]
+        assert model_ids == ["OpenVoiceOS/whisper-medium-pt-onnx", "whisper-base"]
+        assert len(set(model_ids)) == len(model_ids)  # deduped
+
+    def test_whisper_only_lang_gets_panel_of_one(self):
+        # Malagasy has no dedicated onnx-asr export anywhere — the primary
+        # judge already IS whisper-base, so the panel degrades to one
+        # member instead of listing whisper-base twice.
+        from runner.asr_judges import resolve_judge_panel
+
+        panel = resolve_judge_panel("mg-MG")
+        assert panel == [("whisper-base", "998334d3bfe2deba3c8e6821f05388dbf2b706d2")]
+
+    def test_panel_primary_matches_resolve_judge_model(self):
+        from runner.asr_judges import resolve_judge_model, resolve_judge_panel
+
+        primary = resolve_judge_model("vi-VN")
+        panel = resolve_judge_panel("vi-VN")
+        assert panel[0] == primary
 
 
 # ---------------------------------------------------------------------------

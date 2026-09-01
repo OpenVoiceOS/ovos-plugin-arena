@@ -29,8 +29,10 @@ from arena.metrics import (
     primary_metric_ci,
     row_is_correct,
     row_metric_value,
+    row_intelligibility_cer,
     row_utmos,
     row_wer,
+    tts_seed_score,
     secondary_ladder_metrics_for,
     significant_from_cis,
     ww_row_correct,
@@ -85,13 +87,26 @@ def auto_outcome(
         return VoteOutcome.CANDIDATE_A if wer_a < wer_b else VoteOutcome.CANDIDATE_B
 
     if modality == "tts":
-        # No ground-truth reference to call "correct" against — UTMOS
-        # (objective naturalness MOS, higher is better) picks the winner
-        # instead, same shape as STT's WER comparison above (§4 R14).
-        utmos_a, utmos_b = row_utmos(row_a), row_utmos(row_b)
-        if utmos_a is None or utmos_b is None or utmos_a == utmos_b:
-            return None
-        return VoteOutcome.CANDIDATE_A if utmos_a > utmos_b else VoteOutcome.CANDIDATE_B
+        # No ground-truth reference to call "correct" against — the
+        # composite ``tts_seed_score`` (UTMOS naturalness x ROVER-consensus
+        # intelligibility x inter-judge agreement, §4 R14/R16) picks the
+        # winner when both rows carry an intelligibility CER. Rows scored
+        # before intelligibility judging existed (both missing CER) fall
+        # back to a UTMOS-only comparison so old shards still seed;  a row
+        # with CER against one without is a mixed signal — no auto-vote,
+        # rather than silently comparing an apples score to an oranges one.
+        cer_a, cer_b = row_intelligibility_cer(row_a), row_intelligibility_cer(row_b)
+        if cer_a is not None and cer_b is not None:
+            score_a, score_b = tts_seed_score(row_a), tts_seed_score(row_b)
+            if score_a is None or score_b is None or score_a == score_b:
+                return None
+            return VoteOutcome.CANDIDATE_A if score_a > score_b else VoteOutcome.CANDIDATE_B
+        if cer_a is None and cer_b is None:
+            utmos_a, utmos_b = row_utmos(row_a), row_utmos(row_b)
+            if utmos_a is None or utmos_b is None or utmos_a == utmos_b:
+                return None
+            return VoteOutcome.CANDIDATE_A if utmos_a > utmos_b else VoteOutcome.CANDIDATE_B
+        return None  # exactly one row carries a CER — mixed signal, no vote
 
     correct_a = _is_correct(row_a, modality)
     correct_b = _is_correct(row_b, modality)

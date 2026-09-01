@@ -107,6 +107,75 @@ bias audit) so a large benchmark dataset can never outweigh a modest number
 of real human votes. See that section once implemented for the cap
 mechanism.
 
+## How auto-battles are decided
+
+Every modality's auto-battle outcome (`arena/assembler.py:auto_outcome`)
+compares the same benchmark metric a human voter would be shown, never a
+metric invented just for seeding, and always returns "no signal" (no
+auto-vote at all) rather than guessing when the comparison isn't fair.
+
+- **Intent, wake word, VAD** — correctness. A row is either right or wrong
+  against its reference label (including OOD rejection: predicting nothing
+  on an out-of-scope sample is correct). A battle seeds only when the two
+  candidates disagree on correctness; both right or both wrong carries no
+  signal.
+- **STT** — lower word error rate wins. Equal WER, or either side missing
+  a WER, carries no signal.
+- **TTS** — the composite seed score below.
+
+**The TTS composite seed score** combines objective naturalness with
+intelligibility and how much the intelligibility judges agreed with each
+other:
+
+```
+tts_seed_score = (min(max(utmos, 0), 5) / 5) * (1 - min(cer, 1)) * agreement
+```
+
+- `utmos` is the clip's naturalness MOS (§ Objective TTS scoring: UTMOS),
+  capped into `[0, 5]` before dividing so a pathological out-of-range
+  model output cannot invert the product.
+- `cer`, the character error rate of the ROVER consensus transcript
+  against the prompt, capped into `[0, 1]` before subtracting so a CER
+  above 100% cannot make the intelligibility factor negative. CER, not
+  WER, is used here because CJK and other no-space languages have no
+  meaningful word boundaries for WER to count.
+- `agreement`, the ROVER panel's mean per-slot vote share (§ Objective TTS
+  scoring: intelligibility) — how much the judge panel agreed on what was
+  said, on a clip that is genuinely garbled, panel members tend to
+  transcribe *different* things, and CER against just one of them
+  understates how unintelligible the clip really was. Multiplying by
+  agreement means a garbled clip is penalised twice by design: once
+  through a high CER, and again through low agreement. Rows scored before
+  judge panels existed (or scored by a single judge) default `agreement`
+  to `1.0` (nothing to disagree with), which reduces the formula to its
+  two-factor form for them.
+
+The three factors are multiplied, not averaged, because a voice failing
+badly on any one dimension is a bad voice: a beautifully-voiced clip
+nobody can understand and a perfectly transcribable robotic monotone are
+both bad TTS, and a multiplicative score lets either failure mode tank the
+composite on its own.
+
+**No-vote rules**, same shape as every other modality:
+
+- Either row missing `utmos` — no vote.
+- Both rows missing `cer` (legacy rows predating intelligibility judging)
+  — fall back to a plain UTMOS comparison, exactly like the league behaved
+  before ROVER-consensus intelligibility scoring existed.
+- Exactly one row carrying a `cer` and the other not — no vote. Comparing
+  a composite score against a bare UTMOS number would be mixing two
+  different kinds of signal; better to skip the seed than seed on an
+  unfair comparison.
+- Equal composite scores (or equal UTMOS, in the legacy fallback) — no
+  vote, there is nothing to prefer.
+
+**Seeding weight.** Every auto-battle outcome, across every modality, seeds
+the ELO ledger at a reduced weight (`BT_AUTO_WEIGHT`, § Auto vs. human
+weighting) capped further per competitor pair (§ Seed-battle bias audit)
+so no benchmark corpus, however large, can outweigh a modest number of real
+human votes. Human votes are always the primary signal; the benchmark seed
+only fills in a reasonable starting order before enough of them exist.
+
 ## The confidence interval: bootstrap over human votes only
 
 `bootstrap_confidence_intervals()` resamples the **human vote list only**,
@@ -478,26 +547,61 @@ distributional blind spots:
 ## Objective TTS scoring: intelligibility (§4 R16)
 
 Alongside UTMOS, `runner/tts_bench.py` scores every synthesised clip for
-**intelligibility**: it transcribes the rendered clip back to text with a
-pinned STT judge, the best offline `onnx-asr` model for the clip's
-language (usually a conformer), resolved by `runner/asr_judges.py` from
-ovos-config's offline-STT recommends with a per-language fallback table,
-never faster-whisper, and scores the transcript against the
+**intelligibility**: a small panel of offline `onnx-asr` judges for the
+clip's language, resolved by `runner/asr_judges.py::resolve_judge_panel`,
+each transcribes the clip independently, their transcripts are combined
+into one consensus transcript with word-level ROVER
+(`arena/rover.py`, Recognizer Output Voting Error Reduction), and the
+consensus, never a single raw judge transcript, is scored against the
 original prompt with the same canonical WER (and a companion CER) the STT
-league uses (`arena.metrics.normalize_transcript`, §E), this is the
-"round trip" check: can a listener's own ears/ASR actually recover the words
-the fighter was asked to say, as distinct from how *natural* it sounded
-(UTMOS's job).
+league uses (`arena.metrics.normalize_transcript`, §E). This is the
+"round trip" check: can a listener's own ears/ASR actually recover the
+words the fighter was asked to say, as distinct from how *natural* it
+sounded (UTMOS's job).
 
-**Provenance.** Each scored row records the judge's identity and pinned
-revision in `extras`, mirroring the UTMOS convention:
+**Why a panel, and why ROVER.** One judge model's quirks (a habit of
+dropping articles, a weak accent model) should not single-handedly decide
+whether a clip counts as intelligible. The panel is every distinct
+language-specific `onnx-asr` model available for the clip's language, plus
+the multilingual `whisper-base` wrapper (never `faster-whisper`), which is
+always a panel member, not merely a fallback for languages with no
+dedicated export; a language with no dedicated export gets a panel of one
+(`whisper-base` alone), and ROVER degrades gracefully to that single
+transcript. ROVER aligns each hypothesis word-for-word onto a running
+consensus (pairwise-progressive alignment: every hypothesis after the
+first is aligned onto the growing consensus with ordinary two-sequence
+dynamic programming, the same approximation of true N-way alignment tools
+like `sclite` use by default for more than two hypotheses) and then takes
+the plurality vote per aligned word slot, including a gap (no word at all)
+as a valid winner, so a word only one judge inserted is correctly voted
+out rather than kept by default.
+
+**Provenance and reproducibility.** Each scored row records the full
+per-judge panel output in `extras`, mirroring the UTMOS convention but
+keeping every judge's raw transcript, not just the consensus, so ROVER (or
+a future reweighted variant of it) can be recomputed later purely from the
+stored row, with no ASR re-run:
 
 - `intelligibility_wer` / `intelligibility_cer`, word/character error rate
-  of the STT judge's transcript against the prompt text (§E normalization,
-  lower is better). - `intelligibility_judge`, the per-language onnx-asr judge model id
-  (e.g. `nemo-parakeet-tdt-0.6b-v3` for en-US). - `intelligibility_judge_revision`, the HF commit sha pinned at authoring
-  time, recorded for provenance (`onnx_asr.load_model` cannot pin a
-  revision at load time, see `runner/asr_judges.py`).
+  of the ROVER consensus transcript against the prompt text (§E
+  normalization, lower is better) — always derived from the consensus,
+  including a panel of one, where the "consensus" is just that judge's own
+  transcript but still flows through the same ROVER path.
+- `intelligibility_consensus`, the ROVER consensus transcript itself.
+- `intelligibility_agreement`, the panel's mean per-slot ROVER vote
+  share — how much the judges agreed on what was said (§ How auto-battles
+  are decided uses this to discount the TTS ELO seed score).
+- `intelligibility_judges`, the full panel: a list of
+  `{model, revision, transcript}` per judge, the durable record a future
+  recomputation reads.
+- `intelligibility_judge` / `intelligibility_judge_revision`, the primary
+  judge's model id and pinned HF commit sha (`resolve_judge_model`'s
+  choice — the language-specific model when one exists, `whisper-base`
+  otherwise), recorded for provenance the same way `utmos_judge` is
+  (`onnx_asr.load_model` cannot pin a revision at load time, see
+  `runner/asr_judges.py`).
+- `intelligibility_rover`, `true` on every panel-scored row — marks that
+  the WER/CER came from ROVER consensus, not a single raw transcript.
 
 **Pitfalls this metric is designed around.** These are production failure
 modes, not hypotheticals, each one has a dedicated regression test in

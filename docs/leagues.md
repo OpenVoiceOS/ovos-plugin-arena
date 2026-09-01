@@ -198,11 +198,15 @@ primary metric separates the two fighters: the correct one "wins" that battle,
 replayed in deterministic order at **K/4** to seed the ladder before any human
 vote (§4 R5, §5). Intent uses per-row correctness (incl. OOD rejection). Wake-word uses per-clip correctness. Both reduce to "exactly one fighter right
 on this sample → it wins". TTS has no ground-truth reference, but it does have
-an objective, reference-free naturalness score (UTMOS, §4 R14): the
-higher-scoring clip "wins" that battle, same shape as the others, gated by the
-same significance check (R5a) and per-pair weight cap (R5b). Human votes
-remain the TTS league's primary ranking signal, the UTMOS board and its ELO
-seed are a secondary, objective cross-check alongside them.
+an objective, reference-free naturalness score (UTMOS, §4 R14) combined with
+ROVER-consensus intelligibility (§4 R16): the clip with the higher
+UTMOS x intelligibility x inter-judge-agreement composite score "wins" that
+battle (see [methodology.md, "How auto-battles are decided"](methodology.md#how-auto-battles-are-decided)
+for the formula), same shape as the others, gated by the same significance
+check (R5a) and per-pair weight cap (R5b). Legacy rows without an
+intelligibility score fall back to a plain UTMOS comparison. Human votes
+remain the TTS league's primary ranking signal, the composite board and its
+ELO seed are a secondary, objective cross-check alongside them.
 
 ## Out of scope here
 
