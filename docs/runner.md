@@ -498,4 +498,4 @@ workflow's `workflow_dispatch` exposes these as the `competitor` and
   bumping into the next hour's scheduled trigger.
 
 ---
-[← Benchmarks](benchmarks.md) · [Home](index.md) · [Leagues →](leagues.md)
+[← Benchmarks](benchmarks.md) · [Home](index.md) · [Reproduce a row →](reproduce-a-row.md)

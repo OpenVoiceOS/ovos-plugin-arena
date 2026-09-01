@@ -12,6 +12,7 @@ README doesn't have room for.
 | [`adding-a-fighter.md`](adding-a-fighter.md) | Worked walkthrough of one real fighter file end to end, plus how a merged fighter actually gets benched and reaches the boards. |
 | [`benchmarks.md`](benchmarks.md) | Per-modality benchmark scripts: shared engines, common flags, what each league's benchmark measures. |
 | [`runner.md`](runner.md) | The always-on STT prediction runner (`runner/queue.yaml`, the `ser9` deployment, `queue_tools.py` sweep generation). |
+| [`reproduce-a-row.md`](reproduce-a-row.md) | Reproduce one leaderboard row end to end: install, run a benchmark script, assemble a board, and compare against the published number. |
 | [`leagues.md`](leagues.md) | Canonical definition of what each league scores and how — the metric formulas, in one place. |
 | [`methodology.md`](methodology.md) | Why the rating system works the way it does: Bradley-Terry vs. sequential ELO, confidence intervals, vote-fraud resistance, UTMOS/intelligibility scoring. |
 | [`operations.md`](operations.md) | Maintainer runbook for the vote loop: verifying a vote landed, auditing discards, replaying from public logs, troubleshooting. |
