@@ -175,3 +175,145 @@ class TestRescoreFile:
         monkeypatch.setattr(rescore_tts, "_score_quality_dimensions", boom)
         rescored, skipped = rescore_tts.rescore_file(jsonl_path, tmp_path)
         assert (rescored, skipped) == (0, 1)
+
+
+class TestNeedsIntelligibilityRejudge:
+    def test_legacy_row_without_marker_needs_rejudge(self):
+        assert rescore_tts._needs_intelligibility_rejudge(
+            {"extras": {"intelligibility_wer": 0.2, "intelligibility_cer": 0.1}})
+
+    def test_row_with_rover_marker_does_not_need_rejudge(self):
+        assert not rescore_tts._needs_intelligibility_rejudge(
+            {"extras": {"intelligibility_rover": True}})
+
+    def test_no_extras_needs_rejudge(self):
+        assert rescore_tts._needs_intelligibility_rejudge({})
+
+
+def _stub_panel_result(wer=0.05, cer=0.02):
+    return {
+        "wer": wer,
+        "cer": cer,
+        "judge_model_id": "stub-model-a",
+        "judge_revision": "main",
+        "judges": [{"model": "stub-model-a", "revision": "main", "transcript": "hello world"}],
+        "consensus": "hello world",
+        "agreement": 1.0,
+    }
+
+
+class TestRejudgeIntelligibility:
+    """``--rejudge-intelligibility`` upgrades legacy single-judge rows to a
+    full #143 ROVER panel result, from the stored wav, without touching the
+    quality-dims backfill's default (flag-off) behaviour."""
+
+    def _write_row(self, tmp_path, extras):
+        wav = tmp_path / "audio" / "en-US" / "voice_a" / "abc.wav"
+        wav.parent.mkdir(parents=True)
+        wav.write_bytes(b"RIFF....WAVEfmt ")
+        url = ("https://huggingface.co/datasets/OpenVoiceOS/ovos-tts-bench-d"
+               "/resolve/main/audio/en-US/voice_a/abc.wav")
+        jsonl_path = tmp_path / "predictions" / "en-US" / "voice_a.jsonl"
+        _write_jsonl(jsonl_path, [
+            {"sample_id": "en-US/00000", "competitor_id": "voice_a",
+             "audio_url": url, "lang": "en-US", "input_text": "hello world",
+             "extras": {
+                 "sigmos.ovrl": 4.0, "dnsmos.ovrl": 3.0, "nisqa.mos": 4.2,
+                 **extras}},
+        ])
+        return jsonl_path
+
+    def test_legacy_row_fully_upgraded(self, tmp_path, monkeypatch):
+        jsonl_path = self._write_row(tmp_path, {
+            "intelligibility_wer": 0.9, "intelligibility_cer": 0.8,
+            "intelligibility_judge": "old-model", "intelligibility_judge_revision": "main",
+        })
+        calls = []
+
+        def fake_score(wav_path, text, lang):
+            calls.append((wav_path, text, lang))
+            return _stub_panel_result()
+
+        monkeypatch.setattr(rescore_tts, "_score_intelligibility", fake_score)
+
+        rescored, skipped = rescore_tts.rescore_file(
+            jsonl_path, tmp_path, rejudge_intelligibility=True)
+        assert (rescored, skipped) == (1, 0)
+        assert calls == [(tmp_path / "audio" / "en-US" / "voice_a" / "abc.wav",
+                           "hello world", "en-US")]
+
+        row = json.loads(jsonl_path.read_text().splitlines()[0])
+        extras = row["extras"]
+        assert extras["intelligibility_wer"] == pytest.approx(0.05)
+        assert extras["intelligibility_cer"] == pytest.approx(0.02)
+        assert extras["intelligibility_judge"] == "stub-model-a"
+        assert extras["intelligibility_judge_revision"] == "main"
+        assert extras["intelligibility_judges"] == [
+            {"model": "stub-model-a", "revision": "main", "transcript": "hello world"}]
+        assert extras["intelligibility_consensus"] == "hello world"
+        assert extras["intelligibility_agreement"] == pytest.approx(1.0)
+        assert extras["intelligibility_rover"] is True
+        # quality dims untouched (already present, not re-scored)
+        assert extras["sigmos.ovrl"] == pytest.approx(4.0)
+
+    def test_row_already_rover_scored_is_untouched(self, tmp_path, monkeypatch):
+        jsonl_path = self._write_row(tmp_path, {
+            "intelligibility_wer": 0.05, "intelligibility_cer": 0.02,
+            "intelligibility_judge": "stub-model-a", "intelligibility_judge_revision": "main",
+            "intelligibility_judges": [{"model": "stub-model-a", "revision": "main",
+                                         "transcript": "hello world"}],
+            "intelligibility_consensus": "hello world", "intelligibility_agreement": 1.0,
+            "intelligibility_rover": True,
+        })
+        called = []
+        monkeypatch.setattr(
+            rescore_tts, "_score_intelligibility",
+            lambda w, t, l: called.append((w, t, l)) or _stub_panel_result())
+
+        rescored, skipped = rescore_tts.rescore_file(
+            jsonl_path, tmp_path, rejudge_intelligibility=True)
+        assert (rescored, skipped) == (0, 1)
+        assert called == []
+
+    def test_missing_wav_is_skipped_and_counted(self, tmp_path, monkeypatch):
+        jsonl_path = tmp_path / "predictions" / "en-US" / "voice_a.jsonl"
+        url = ("https://huggingface.co/datasets/OpenVoiceOS/ovos-tts-bench-d"
+               "/resolve/main/audio/en-US/voice_a/nope.wav")
+        _write_jsonl(jsonl_path, [
+            {"sample_id": "en-US/00000", "competitor_id": "voice_a",
+             "audio_url": url, "lang": "en-US", "input_text": "hello world",
+             "extras": {
+                 "sigmos.ovrl": 4.0, "dnsmos.ovrl": 3.0, "nisqa.mos": 4.2,
+                 "intelligibility_wer": 0.9, "intelligibility_cer": 0.8}},
+        ])
+        called = []
+        monkeypatch.setattr(
+            rescore_tts, "_score_intelligibility",
+            lambda w, t, l: called.append((w, t, l)) or _stub_panel_result())
+
+        rescored, skipped = rescore_tts.rescore_file(
+            jsonl_path, tmp_path, rejudge_intelligibility=True)
+        assert (rescored, skipped) == (0, 1)
+        assert called == []
+        row = json.loads(jsonl_path.read_text().splitlines()[0])
+        # legacy fields untouched — nothing to score against
+        assert row["extras"]["intelligibility_wer"] == pytest.approx(0.9)
+        assert "intelligibility_rover" not in row["extras"]
+
+    def test_without_flag_legacy_intelligibility_untouched(self, tmp_path, monkeypatch):
+        jsonl_path = self._write_row(tmp_path, {
+            "intelligibility_wer": 0.9, "intelligibility_cer": 0.8,
+            "intelligibility_judge": "old-model", "intelligibility_judge_revision": "main",
+        })
+        called = []
+        monkeypatch.setattr(
+            rescore_tts, "_score_intelligibility",
+            lambda w, t, l: called.append((w, t, l)) or _stub_panel_result())
+
+        # flag defaults to False; quality dims already present so nothing
+        # to rescore at all — file must be left byte-identical.
+        original_bytes = jsonl_path.read_bytes()
+        rescored, skipped = rescore_tts.rescore_file(jsonl_path, tmp_path)
+        assert (rescored, skipped) == (0, 1)
+        assert called == []
+        assert jsonl_path.read_bytes() == original_bytes
