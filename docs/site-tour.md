@@ -68,11 +68,11 @@ diagonal is masked out since a fighter is never matched against itself.
 
 ## Fighters (the bestiary)
 
-The Fighters page lists every registered competitor as a card: its species
-(the plugin class it instantiates), its architecture types, and the
-`mycroft.conf` pipeline it ships. Fighters that share a species and differ
-only by hyperparameter collapse into one group card with a variant count,
-the same grouping the ladder uses.
+The Fighters page lists every registered competitor with at least one
+prediction row as a card: its species (the plugin class it instantiates),
+its architecture types, and the `mycroft.conf` pipeline it ships. Fighters
+that share a species and differ only by hyperparameter collapse into one
+group card with a variant count, the same grouping the ladder uses.
 
 ![Fighters dex: three cards — Palavreado (single fighter), Hierarchical KNN (single fighter), and Jurebes (collapsed group card reading "63 variants")](img/fighters-dex.png)
 
@@ -81,6 +81,13 @@ underneath, each with its own species, model, and pipeline detail.
 
 ![Fighters dex expanded: the Jurebes group open with its toggle arrow pointing down, showing one member card (Jurebes autoencoder_linear_svc) with its description and species](img/fighters-dex-expanded.png)
 
+A fighter that is registered but has no predictions anywhere — no
+benchmark board, no battle, no leaderboard entry — does not appear on the
+main grid or in any battle/matchup picker. It sits in a collapsed
+**Upcoming fighters** section below the grid instead, so a league with
+many registered-but-untested fighters (some leagues carry far more
+registrations than published results) does not clutter the active roster.
+
 ## Fighter detail
 
 Each fighter has its own page: identity, rank and rating, the exact
@@ -88,7 +95,8 @@ Each fighter has its own page: identity, rank and rating, the exact
 run against a labelled dataset — a **dataset provenance** card. The card
 names the dataset, its language, its license, and links straight to the
 published predictions on Hugging Face, so a rating traces back to the data
-that produced it.
+that produced it. A fighter with no predictions yet shows an **awaiting
+predictions** notice instead of empty rank/provenance sections.
 
 ![Fighter detail page: Piper (Lessac high, en-US) config JSON block, followed by a Dataset provenance card linking intents-for-eval-prompts, en-US, apache-2.0, and a predictions link](img/fighter-detail.png)
 
