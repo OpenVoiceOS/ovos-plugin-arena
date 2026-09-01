@@ -542,6 +542,31 @@ quadruples the per-sample inference cost of TTS scoring relative to UTMOS
 alone — acceptable for this arena's batch benchmark runs, which are not
 latency-sensitive.
 
+**Running five judges on the same clip raises an obvious question: do they
+even agree with each other?** Every TTS benchmark board carries a judge
+agreement panel that answers this directly, rather than leaving a reader to
+eyeball five separate columns and guess. For each pair of judges (UTMOS,
+SIGMOS, DNSMOS, NISQA, and intelligibility, the last inverted so higher is
+always better before comparing), the board ranks the fighters by each
+judge's mean score and computes the Spearman rank correlation between the
+two rankings — implemented directly with numpy rather than pulling in
+scipy, since ranking with average ranks for ties and then taking a Pearson
+correlation of the rank vectors is the entire algorithm. A rho near 1 means
+the two judges rank the fighters the same way; near 0 means they disagree;
+near -1 means they rank them in opposite order. Alongside the matrix, each
+judge's own top-5 fighters are listed side by side, so a reader can see at
+a glance whether the same voices keep coming up regardless of who is
+judging, or whether the leaderboard's shape depends on which single judge
+happens to be primary. The panel only appears once a board has at least
+three scored fighters, because a correlation computed over one or two
+points is not a correlation, it is noise dressed up as a number. Even a
+strong rho does not mean the judges are individually correct: five models
+can agree with each other while sharing the same blind spot relative to a
+human listener, and rank agreement says nothing about whether any of them
+tracks human perception well in an underrepresented language or accent.
+High agreement is evidence a board's ranking is not an artifact of one
+judge's idiosyncrasies; it is not evidence the ranking is right.
+
 ## Performance data on prediction rows (§3.2, M1)
 
 Every row a benchmark script writes now carries a small, optional set of

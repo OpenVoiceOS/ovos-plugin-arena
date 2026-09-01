@@ -282,6 +282,24 @@ class BattlesPool(BaseModel):
     skipped_reference_mismatches: int = 0
 
 
+class JudgeAgreement(BaseModel):
+    """TTS boards only: pairwise rank agreement between the objective
+    quality/intelligibility judges (UTMOS, SIGMOS, DNSMOS, NISQA,
+    Intelligibility) that scored this board's fighters (arena.metrics'
+    ``_tts_judge_agreement``)."""
+
+    n_fighters: int = 0
+    # judge -> judge -> Spearman rho, symmetric with a 1.0 diagonal. Only
+    # judges with at least one scored fighter appear here; a pair with
+    # fewer than 2 fighters scored by BOTH judges is simply absent rather
+    # than a fabricated 0.0/None.
+    matrix: dict[str, dict[str, float]] = Field(default_factory=dict)
+    # judge -> its top-5 fighter ids by that judge's mean score, descending
+    # (lower-is-better judges like Intelligibility are ranked by their
+    # inverted score, so "top" always means "best" here).
+    top5: dict[str, list[str]] = Field(default_factory=dict)
+
+
 # ---------------------------------------------------------------------------
 # Boards
 # ---------------------------------------------------------------------------
@@ -383,6 +401,11 @@ class BenchmarkBoard(BaseModel):
             "just to rediscover the file is unchanged."
         ),
     )
+    # TTS boards only: pairwise Spearman rank agreement between the
+    # objective judges, plus each judge's top-5 — lets a reader tell a
+    # robust ranking from one judge picking favorites. None for every
+    # non-TTS modality.
+    judge_agreement: JudgeAgreement | None = None
 
 
 class EloEntry(BaseModel):
