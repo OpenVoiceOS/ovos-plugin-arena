@@ -98,9 +98,36 @@ python -m runner.queue_tools --no-row-check --out /tmp/sweep-queue.yaml
 python -m runner.queue_tools --modality wake_word > /tmp/ww-queue.yaml
 ```
 
-Entries are ordered cheapest-engine-first (a static weight heuristic, e.g.
-`vosk`/`webrtc` before `whisper`/cloud STT) then by competitor id, so a
-sweep run burns through fast/cheap fighters before slow/expensive ones.
+Entries are ordered breadth-first across fighters, not fighter-major: every
+fighter gets its first missing (dataset, lang) pair before any fighter gets
+a second, then a second before any third, and so on. Each fighter's own
+missing pairs are tiered by how many (dataset, lang) pairs it already has
+published — a fighter still at zero predictions is always scheduled ahead
+of a fighter with one or more already done. Without this, a fighter
+compatible with many datasets fills the front of the queue with its own
+entries while a fighter compatible with only one or two sits at the back,
+and a sweep run that doesn't drain the whole queue leaves most fighters at
+zero predictions — which is exactly what happened to the STT board.
+
+Within a tier, entries are ordered cheapest-engine-first (a static weight
+heuristic, e.g. `vosk`/`webrtc` before `whisper`/cloud STT), and among
+equally-cheap entries the dataset with the most fighters already present is
+preferred, so a fresh prediction lands on a dataset that already has other
+competitors on it — pairing up into a battle right away — instead of a
+dataset nobody else has touched yet.
+
+The cheap-first weight is matched against the competitor id AFTER
+stripping its engine-wrapper prefix (derived from the registry `plugin`
+field, e.g. `onnx-asr` out of `ovos-stt-plugin-onnx-asr`), so a big model
+family riding a generally-cheap wrapper — `onnx-asr-parakeet-tdt-11b`,
+`onnx-asr-cohere-transcribe-2b` — is weighted by the model, not by the
+wrapper it happens to load through.
+
+This breadth-first policy is not unique to the queue generator: the fleet
+daemon (`runner.autorun`, below) reorders its own eligible-pair list the
+same way every sweep, and the hourly one-shot job restricts its random
+draw to the lowest-coverage tier before picking — see their own sections
+for how each applies it.
 
 Emitted jobs use the registry-referenced job shape:
 
@@ -271,7 +298,14 @@ fighter explicitly with `--include`/`--exclude`.
 
 Every pair gets one `--batch`-sized turn per sweep, then autorun moves to
 the next pair — a slow fighter against a huge dataset never blocks the rest
-from making progress.
+from making progress. Round-robin alone guarantees every eligible pair
+gets a turn each full sweep, but WHICH pair goes first still matters for a
+sweep that gets interrupted (SIGTERM, a killed process) partway through —
+so each sweep re-derives the same breadth-first tiering the queue
+generator uses ("Generating a full-sweep queue", above) and works through
+the lowest-coverage fighters first. The presence signal comes from one HF
+listing per modality (`--no-seed` disables it — with no listing available,
+a sweep just keeps its natural enumeration order instead).
 
 A pair is marked complete (and skipped from then on) only when a batch
 returns fewer new rows than requested **and reports zero errors**. A short
@@ -349,10 +383,16 @@ python -m runner.autorun --one-shot --light \
 Each run:
 
 1. enumerates every eligible `(fighter, dataset, lang)` pair (same
-   eligibility rules as forever-mode) and **shuffles** the candidate list
-   with a seeded RNG — `--seed` makes the shuffle (and so the pick)
-   reproducible/debuggable; unset (the default, and what the workflow
-   uses) draws from entropy;
+   eligibility rules as forever-mode), restricts the candidate list to the
+   lowest published-coverage tier (one HF listing per modality, same
+   presence signal as the queue generator and forever-mode's sweep
+   ordering — `--no-seed` disables this and falls back to picking across
+   every eligible pair), then **shuffles** what's left with a seeded RNG —
+   `--seed` makes the shuffle (and so the pick) reproducible/debuggable;
+   unset (the default, and what the workflow uses) draws from entropy.
+   Without the tier restriction, a fighter compatible with many datasets
+   has more candidate pairs and so wins a uniform draw more often than a
+   fighter still at zero predictions;
 2. walks the shuffled list ONE candidate at a time and only THEN checks
    whether that one candidate is already complete (seeds its local shard
    from the published HF shard, compares sample ids already written

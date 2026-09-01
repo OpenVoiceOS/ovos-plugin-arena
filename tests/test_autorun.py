@@ -516,6 +516,192 @@ class _NoShuffleRandom:
         return None
 
 
+class TestBreadthOrderedKeys:
+    """AutoRunner._breadth_ordered_keys — reuses runner.queue_tools'
+    breadth_tier_sort/find_missing_pairs presence signal to order a
+    sweep's eligible pairs, same policy as the queue generator."""
+
+    def _lookup(self, entries):
+        return {
+            PairKey(m, c.competitor_id, d.dataset_id, l): (m, c, d, l)
+            for m, c, d, l in entries
+        }
+
+    def test_zero_coverage_fighter_ordered_before_deep_fighters_second_pair(
+        self, monkeypatch, tmp_path
+    ):
+        entries = [
+            ("stt", _comp("deep"), _ds("d1"), "en"),
+            ("stt", _comp("deep"), _ds("d2"), "en"),
+            ("stt", _comp("shallow"), _ds("d1"), "en"),
+        ]
+        lookup = self._lookup(entries)
+
+        def fake_find_missing_pairs(modality, registry_root=None, lister=None,
+                                     check_rows=True, min_rows=1,
+                                     present_by_competitor=None,
+                                     present_by_dataset=None):
+            # "deep" already has 1 published pair; "shallow" has 0 — the
+            # exact HF-listing/lang-matching machinery is queue_tools' own
+            # concern and already covered by test_queue_tools.py; this
+            # fake stands in for its presence-counting side effect only.
+            present_by_competitor["deep"] = 1
+            present_by_dataset["d1"] = 1
+            return []
+
+        monkeypatch.setattr(autorun_module, "find_missing_pairs", fake_find_missing_pairs)
+
+        runner = AutoRunner(
+            AutoRunConfig(output_dir=tmp_path, upload=False), lister=object()
+        )
+        ordered = runner._breadth_ordered_keys(lookup, registry_root=None)
+        ids = [k.competitor_id for k in ordered]
+        assert ids[0] == "shallow"
+        assert ids.index("shallow") < ids.index("deep")
+
+    def test_no_lister_keeps_natural_order_and_skips_listing(self, tmp_path, monkeypatch):
+        entries = [
+            ("stt", _comp("b"), _ds("d"), "en"),
+            ("stt", _comp("a"), _ds("d"), "en"),
+        ]
+        lookup = self._lookup(entries)
+        calls = []
+        monkeypatch.setattr(
+            autorun_module, "find_missing_pairs",
+            lambda *a, **k: calls.append(1),
+        )
+        runner = AutoRunner(AutoRunConfig(output_dir=tmp_path, upload=False), lister=None)
+        ordered = runner._breadth_ordered_keys(lookup, registry_root=None)
+        assert ordered == list(lookup.keys())
+        assert calls == []
+
+    def test_listing_failure_falls_back_to_natural_order(self, tmp_path, monkeypatch):
+        entries = [("stt", _comp("a"), _ds("d"), "en")]
+        lookup = self._lookup(entries)
+
+        def boom(*a, **k):
+            raise ConnectionError("simulated network failure")
+
+        monkeypatch.setattr(autorun_module, "find_missing_pairs", boom)
+        runner = AutoRunner(
+            AutoRunConfig(output_dir=tmp_path, upload=False), lister=object()
+        )
+        ordered = runner._breadth_ordered_keys(lookup, registry_root=None)
+        assert ordered == list(lookup.keys())
+
+
+class TestOneShotBreadthTier:
+    """run_one_shot restricts its random draw to the lowest published-
+    coverage tier when a lister is available (see docstring update)."""
+
+    def test_picks_zero_coverage_fighter_over_deep_fighter_with_lister(
+        self, tmp_path, monkeypatch
+    ):
+        deep_comp, shallow_comp = _comp("deep"), _comp("shallow")
+        ds = _ds("d")
+        entries = [("stt", deep_comp, ds, "en"), ("stt", shallow_comp, ds, "en")]
+        monkeypatch.setattr(autorun_module, "enumerate_all_pairs", lambda *a, **k: entries)
+        monkeypatch.setattr(autorun_module.random, "Random", _NoShuffleRandom)
+
+        def fake_find_missing_pairs(modality, registry_root=None, lister=None,
+                                     check_rows=True, min_rows=1,
+                                     present_by_competitor=None,
+                                     present_by_dataset=None):
+            present_by_competitor["deep"] = 3
+            return []
+
+        monkeypatch.setattr(autorun_module, "find_missing_pairs", fake_find_missing_pairs)
+
+        sizes = {
+            PairKey("stt", "deep", "d", "en").to_str(): 5,
+            PairKey("stt", "shallow", "d", "en").to_str(): 5,
+        }
+        fake = FakeProcessor(sizes)
+        config = AutoRunConfig(output_dir=tmp_path, batch=10, upload=False)
+        # _NoShuffleRandom leaves candidate order exactly as built — "deep"
+        # is first in `entries`/candidates, so a uniform pick (the old
+        # behaviour) would draw it first every time. With the lister
+        # present, tiering must restrict the draw to "shallow" (tier 0)
+        # only, since "deep" is at tier 3.
+        runner = AutoRunner(config, process_fn=fake, lister=object())
+        runner.pair_is_complete = lambda *a, **k: False
+
+        summary = runner.run_one_shot(["stt"], max_samples=5, seed=1)
+        assert summary["pairs"][0]["pair"] == PairKey("stt", "shallow", "d", "en").to_str()
+
+    def test_no_lister_falls_back_to_uniform_pick_unchanged(self, tmp_path, monkeypatch):
+        """No lister (--no-seed) must keep the exact pre-existing uniform
+        behaviour — the first candidate in enumeration order, since
+        _NoShuffleRandom makes shuffle a no-op."""
+        deep_comp, shallow_comp = _comp("deep"), _comp("shallow")
+        ds = _ds("d")
+        entries = [("stt", deep_comp, ds, "en"), ("stt", shallow_comp, ds, "en")]
+        monkeypatch.setattr(autorun_module, "enumerate_all_pairs", lambda *a, **k: entries)
+        monkeypatch.setattr(autorun_module.random, "Random", _NoShuffleRandom)
+        monkeypatch.setattr(
+            autorun_module, "find_missing_pairs",
+            lambda *a, **k: (_ for _ in ()).throw(AssertionError("must not be called")),
+        )
+
+        sizes = {
+            PairKey("stt", "deep", "d", "en").to_str(): 5,
+            PairKey("stt", "shallow", "d", "en").to_str(): 5,
+        }
+        fake = FakeProcessor(sizes)
+        config = AutoRunConfig(output_dir=tmp_path, batch=10, upload=False)
+        runner = AutoRunner(config, process_fn=fake, lister=None)
+        runner.pair_is_complete = lambda *a, **k: False
+
+        summary = runner.run_one_shot(["stt"], max_samples=5, seed=1)
+        assert summary["pairs"][0]["pair"] == PairKey("stt", "deep", "d", "en").to_str()
+
+
+class TestSweepOnceAppliesBreadthOrder:
+    """End-to-end (not just the _breadth_ordered_keys unit): calling
+    _sweep_once with a fake lister must actually leave the scheduler's own
+    iteration order breadth-first — this is what guards the wiring itself
+    (the `self.scheduler.set_order(...)` call in `_sweep_once`), not just
+    the pure ordering function it calls."""
+
+    def test_sweep_once_orders_scheduler_pairs_zero_coverage_first(
+        self, monkeypatch, tmp_path
+    ):
+        deep_comp, shallow_comp = _comp("deep"), _comp("shallow")
+        ds1, ds2 = _ds("d1"), _ds("d2")
+        entries = [
+            ("stt", deep_comp, ds1, "en"),
+            ("stt", deep_comp, ds2, "en"),
+            ("stt", shallow_comp, ds1, "en"),
+        ]
+        monkeypatch.setattr(autorun_module, "enumerate_all_pairs", lambda *a, **k: entries)
+
+        def fake_find_missing_pairs(modality, registry_root=None, lister=None,
+                                     check_rows=True, min_rows=1,
+                                     present_by_competitor=None,
+                                     present_by_dataset=None):
+            # "deep" already has 1 published pair; "shallow" has 0.
+            present_by_competitor["deep"] = 1
+            present_by_dataset["d1"] = 1
+            return []
+
+        monkeypatch.setattr(autorun_module, "find_missing_pairs", fake_find_missing_pairs)
+
+        sizes = {
+            PairKey("stt", "deep", "d1", "en").to_str(): 0,
+            PairKey("stt", "deep", "d2", "en").to_str(): 0,
+            PairKey("stt", "shallow", "d1", "en").to_str(): 0,
+        }
+        fake = FakeProcessor(sizes)
+        config = AutoRunConfig(output_dir=tmp_path, batch=2, upload=False)
+        runner = AutoRunner(config, process_fn=fake, lister=object())
+
+        runner._sweep_once(["stt"], {}, None)
+
+        ids = [p.competitor_id for p in runner.scheduler._pairs]
+        assert ids[0] == "shallow"
+        assert ids.index("shallow") < ids.index("deep")
+
+
 class TestOneShot:
     def test_seeded_pick_excludes_complete_pairs(self, tmp_path, monkeypatch):
         a_comp, b_comp = _comp("A"), _comp("B")
