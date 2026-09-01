@@ -50,7 +50,15 @@ from typing import Callable, Iterable, Iterator
 from registry.loaders import load_all_competitors, load_all_datasets
 from runner import media_bench as mb
 from runner.intent_bench import HF_OWNER, resolve_revision, results_repo_for
-from runner.queue_tools import HFLister, HubLister, dataset_langs, is_compatible
+from runner.queue_tools import (
+    HFLister,
+    HubLister,
+    breadth_tier_sort,
+    dataset_langs,
+    engine_weight,
+    find_missing_pairs,
+    is_compatible,
+)
 
 log = logging.getLogger("autorun")
 
@@ -373,6 +381,19 @@ class RoundRobinScheduler:
         kept_set = set(kept)
         new_ones = [p for p in pairs if p not in kept_set]
         self._pairs = kept + new_ones
+
+    def set_order(self, pairs: Iterable[PairKey]) -> None:
+        """Replace the internal iteration order wholesale, keeping
+        completed/quarantined/error-streak state untouched.
+
+        Distinct from :meth:`set_pairs`: that method reconciles ADD/REMOVE
+        against a freshly reloaded registry and deliberately preserves the
+        order already in flight for pairs it keeps. This method exists so a
+        caller can re-apply a freshly computed breadth-first tiering (see
+        ``AutoRunner._breadth_ordered_keys``) every sweep as coverage
+        changes, without fighting that preservation.
+        """
+        self._pairs = list(pairs)
 
     def mark_complete(self, pair: PairKey) -> None:
         self.completed.add(pair)
@@ -781,6 +802,9 @@ class AutoRunner:
             for m, c, d, l in entries
         }
         self.scheduler.set_pairs(lookup.keys())
+        self.scheduler.set_order(
+            self._breadth_ordered_keys(lookup, registry_root)
+        )
 
         for pair in self.scheduler.sweep():
             if self._stop:
@@ -788,6 +812,60 @@ class AutoRunner:
             m, c, d, l = lookup[pair]
             self.process_pair(m, c, d, l)
             self.flush_all()
+
+    def _breadth_ordered_keys(
+        self, lookup: dict[PairKey, tuple], registry_root: Path | None,
+    ) -> list[PairKey]:
+        """Breadth-first-tier the pairs currently eligible for this sweep.
+
+        Coverage is lumpy for the exact reason ``runner.queue_tools``'
+        generator was: a fighter compatible with many datasets keeps
+        getting its NEXT pair processed before a fighter still at zero
+        predictions gets its first. Round-robin already guarantees every
+        pair gets one batch per sweep, but a killed/interrupted sweep (or
+        the deadline-bounded discovery walk in ``run_one_shot``) still
+        benefits from working through the lowest-coverage fighters first.
+
+        The presence signal reuses ``runner.queue_tools.find_missing_pairs``
+        (listing-only, ``check_rows=False`` — no per-file row downloads) so
+        the exact same lang-aware HF-path matching applies here as in the
+        queue generator, with no duplicated logic. Requires a real
+        ``self.lister`` (unset with ``--no-seed``); without one this falls
+        back to the pairs' natural enumeration order rather than skip
+        ordering silently — see the module docstring on ``--no-seed``.
+        """
+        keys = list(lookup.keys())
+        if self.lister is None:
+            return keys
+        present_by_competitor: dict[str, int] = {}
+        present_by_dataset: dict[str, int] = {}
+        modalities = {m for m, _c, _d, _l in lookup.values()}
+        try:
+            for modality in modalities:
+                find_missing_pairs(
+                    modality,
+                    registry_root=registry_root,
+                    lister=self.lister,
+                    check_rows=False,
+                    present_by_competitor=present_by_competitor,
+                    present_by_dataset=present_by_dataset,
+                )
+        except Exception:
+            log.warning(
+                "breadth-order presence listing failed — keeping natural "
+                "enumeration order for this sweep", exc_info=True,
+            )
+            return keys
+        return breadth_tier_sort(
+            keys,
+            competitor_id_of=lambda k: k.competitor_id,
+            dataset_id_of=lambda k: k.dataset_id,
+            weight_of=lambda k: engine_weight(
+                k.competitor_id, lookup[k][1].plugin
+            ),
+            present_by_competitor=present_by_competitor,
+            present_by_dataset=present_by_dataset,
+        )
 
     # -- one-shot (CI-friendly) mode -------------------------------------
 
@@ -809,10 +887,17 @@ class AutoRunner:
         """Run one (or, budget permitting, several) randomly chosen pairs.
 
         Picks ONE eligible, not-yet-complete ``(fighter, dataset, lang)``
-        pair uniformly at random (seeded by *seed* for a reproducible
-        pick; entropy if *seed* is ``None``), processes up to
-        *max_samples* new samples for it, uploads the shard, and returns
-        a summary dict.
+        pair at random (seeded by *seed* for a reproducible pick; entropy
+        if *seed* is ``None``), processes up to *max_samples* new samples
+        for it, uploads the shard, and returns a summary dict. The random
+        draw is NOT uniform across every eligible pair — with a real
+        ``self.lister`` it is restricted first to the lowest published-
+        coverage tier (fighters with the fewest already-published pairs),
+        the same breadth-first policy ``runner.queue_tools``' sweep
+        generator applies, so a fighter compatible with many datasets
+        cannot keep winning the draw over one still at zero predictions.
+        Falls back to a uniform pick across all candidates with no
+        ``self.lister`` (``--no-seed``) or if the presence listing fails.
 
         **Discovery is lazy, not exhaustive.** The candidate pool for each
         round is *shuffled* (seeded) and then walked one at a time:
@@ -900,6 +985,47 @@ class AutoRunner:
                     summary["nothing_to_do"] = True
                     log.info("one-shot: nothing to do — every eligible pair is complete")
                 break
+
+            # Restrict the draw to the lowest published-coverage tier
+            # instead of picking uniformly across every eligible pair —
+            # otherwise a fighter with many compatible datasets keeps
+            # getting drawn (it has more candidate pairs, so a uniform
+            # pick favors it) while a fighter still at zero predictions
+            # can go unpicked run after run. One HF listing per modality
+            # (metadata only, check_rows=False — no per-file row
+            # downloads), reusing the exact presence signal
+            # runner.queue_tools' sweep generator computes. Requires a
+            # real self.lister (unset with --no-seed); without one this
+            # falls back to the prior uniform pick across all candidates.
+            if self.lister is not None:
+                present_by_competitor: dict[str, int] = {}
+                present_by_dataset: dict[str, int] = {}
+                try:
+                    for modality in {m for m, _c, _d, _l in entries}:
+                        find_missing_pairs(
+                            modality,
+                            registry_root=registry_root,
+                            lister=self.lister,
+                            check_rows=False,
+                            present_by_competitor=present_by_competitor,
+                            present_by_dataset=present_by_dataset,
+                        )
+                    min_tier = min(
+                        present_by_competitor.get(p.competitor_id, 0)
+                        for p in candidates
+                    )
+                    lowest_tier = [
+                        p for p in candidates
+                        if present_by_competitor.get(p.competitor_id, 0) == min_tier
+                    ]
+                    if lowest_tier:
+                        candidates = lowest_tier
+                except Exception:
+                    log.warning(
+                        "one-shot: breadth-tier presence listing failed — "
+                        "falling back to a uniform pick across all "
+                        "candidates", exc_info=True,
+                    )
             rng.shuffle(candidates)
 
             result = None

@@ -11,6 +11,8 @@ import pytest
 
 from runner.queue_tools import (
     HFLister,
+    MissingPair,
+    breadth_first_order,
     dataset_langs,
     engine_weight,
     enumerate_pairs,
@@ -356,6 +358,83 @@ class TestFindMissingPairs:
 # ---------------------------------------------------------------------------
 
 
+class TestEngineWeightWrapperPrefixBug:
+    """Regression: matching ENGINE_WEIGHTS by plain substring against the
+    full competitor_id let a generic engine-wrapper prefix ("onnx-asr", len
+    8) tie in length against an unrelated, coincidentally-same-length
+    model-family key ("parakeet", len 8) and win by dict insertion order —
+    every onnx-asr-parakeet-* id (including the 11B
+    onnx-asr-parakeet-tdt-11b) got the wrapper's cheap weight (4) instead
+    of a weight reflecting the actual (huge) model. Reproduced on the real
+    registry: onnx-asr-parakeet-tdt-11b landed at position 27 of 796 in the
+    STT dry-run."""
+
+    def test_parakeet_11b_outweighs_bare_onnx_asr_wrapper(self):
+        heavy = engine_weight("onnx-asr-parakeet-tdt-11b", "ovos-stt-plugin-onnx-asr")
+        bare_wrapper = engine_weight("onnx-asr-camoes-whisper-asr", "ovos-stt-plugin-onnx-asr")
+        assert heavy > bare_wrapper
+
+    def test_cohere_2b_is_expensive_not_cheap_wrapper_default(self):
+        from runner.queue_tools import ENGINE_WEIGHTS
+
+        weight = engine_weight("onnx-asr-cohere-transcribe-2b", "ovos-stt-plugin-onnx-asr")
+        assert weight > ENGINE_WEIGHTS["onnx-asr"]
+
+    def test_coreml_parakeet_1_1b_outweighs_bare_coreml_wrapper(self):
+        from runner.queue_tools import _DEFAULT_WEIGHT
+
+        heavy = engine_weight("coreml-parakeet-tdt-1.1b-fp16", "ovos-stt-plugin-coreml")
+        # coreml has no bare-wrapper entry in ENGINE_WEIGHTS at all — falls
+        # to _DEFAULT_WEIGHT — the family match must still beat that.
+        assert heavy > _DEFAULT_WEIGHT
+
+    def test_vosk_wrapper_weight_unaffected_by_family_stripping(self):
+        """Stripping the wrapper prefix must not break the ordinary
+        wrapper-level match (e.g. plain "vosk-big-en" has no family
+        remainder left after stripping "vosk-")."""
+        assert engine_weight("vosk-big-en", "ovos-stt-plugin-vosk") == 1
+
+    def test_granite_voxtral_qwen3_all_outweigh_bare_onnx_asr_wrapper(self):
+        from runner.queue_tools import ENGINE_WEIGHTS
+
+        bare = ENGINE_WEIGHTS["onnx-asr"]
+        for cid in (
+            "onnx-asr-granite-speech-3.3-2b",
+            "onnx-asr-voxtral-mini-3b",
+            "onnx-asr-qwen3-0.6b",
+        ):
+            assert engine_weight(cid, "ovos-stt-plugin-onnx-asr") > bare
+
+    def test_cohere_2b_sits_between_parakeet_11b_and_parakeet_1_1b(self):
+        """Size-tiering within/across families: cohere-transcribe-2b (a ~2B
+        model) must sit strictly below the 11B parakeet-tdt variant and
+        strictly above the 1.1B parakeet variants — not tied with either."""
+        w_11b = engine_weight("onnx-asr-parakeet-tdt-11b", "ovos-stt-plugin-onnx-asr")
+        w_cohere_2b = engine_weight("onnx-asr-cohere-transcribe-2b", "ovos-stt-plugin-onnx-asr")
+        w_1_1b = engine_weight("onnx-asr-parakeet-rnnt-1.1b", "ovos-stt-plugin-onnx-asr")
+        assert w_1_1b < w_cohere_2b < w_11b
+
+    def test_wrapper_prefix_family_substring_does_not_leak_once_stripped(self):
+        """Stripping-decides-the-outcome case: a wrapper plugin whose own
+        name happens to contain a FAMILY_WEIGHTS key (here "canary" —
+        following the real registry convention "ovos-<modality>-plugin-
+        <wrapper>", e.g. the real "ovos-stt-plugin-onnx-asr") must NOT let
+        that coincidental substring apply to a competitor that isn't
+        actually running that model family. With correct stripping, the
+        wrapper text is removed before family matching ever sees it; with
+        stripping removed (the regression this guards), the family key
+        would match the un-stripped full id and silently misclassify an
+        ordinary fighter as the "canary" family."""
+        weight = engine_weight("canary-community-baseline-v1", "ovos-stt-plugin-canary")
+        from runner.queue_tools import _DEFAULT_WEIGHT
+
+        # No FAMILY_WEIGHTS/ENGINE_WEIGHTS key survives once "canary-" (the
+        # wrapper prefix) is stripped from the remainder "community-
+        # baseline-v1" — must fall all the way to the default weight, not
+        # the "canary" family weight (7).
+        assert weight == _DEFAULT_WEIGHT
+
+
 class TestEngineWeight:
     def test_vosk_cheaper_than_whisper(self):
         assert engine_weight("vosk-pt", "ovos-stt-plugin-vosk") < engine_weight(
@@ -372,6 +451,112 @@ class TestEngineWeight:
         missing = find_missing_pairs("stt", registry_root=mini_registry, lister=lister)
         weights = [engine_weight(mp.competitor.competitor_id, mp.competitor.plugin) for mp in missing]
         assert weights == sorted(weights)
+
+
+# ---------------------------------------------------------------------------
+# Breadth-first ordering — pure function, synthetic registry
+# ---------------------------------------------------------------------------
+
+
+def _mp(competitor_id, plugin, dataset_id, reason="no_file"):
+    from registry.schemas import CompetitorDef, DatasetDef
+
+    comp = CompetitorDef(competitor_id=competitor_id, modality="stt", plugin=plugin, langs=[])
+    ds = DatasetDef(
+        dataset_id=dataset_id,
+        modality="stt",
+        source={"type": "huggingface", "hf_id": "x"},
+        lang="en-US",
+    )
+    return MissingPair("stt", comp, ds, reason)
+
+
+class TestBreadthFirstOrder:
+    def test_every_fighter_gets_first_pair_before_any_second(self):
+        """A (deep) fighter compatible with many datasets and a (shallow)
+        fighter compatible with only one must not let the deep fighter's
+        2nd/3rd pair jump ahead of the shallow fighter's 1st pair — the
+        defect this guards: old fighter-major sort put deep-A-2, deep-A-3
+        before shallow-B-1, leaving B at zero coverage for a whole sweep."""
+        missing = [
+            _mp("deep-A", "vosk", "ds1"),
+            _mp("deep-A", "vosk", "ds2"),
+            _mp("deep-A", "vosk", "ds3"),
+            _mp("shallow-B", "vosk", "ds1"),
+        ]
+        ordered = breadth_first_order(missing, present_by_competitor={}, present_by_dataset={})
+        pairs = [(mp.competitor.competitor_id, mp.dataset.dataset_id) for mp in ordered]
+        idx_shallow = pairs.index(("shallow-B", "ds1"))
+        idx_deep_2nd_or_3rd = min(
+            pairs.index(("deep-A", "ds2")), pairs.index(("deep-A", "ds3"))
+        )
+        assert idx_shallow < idx_deep_2nd_or_3rd
+
+    def test_already_present_fighter_is_deferred_a_tier(self):
+        """A fighter that already has 1 published pair must be scheduled
+        AFTER every fighter still at zero, for its next pair."""
+        missing = [
+            _mp("has-one", "vosk", "ds2"),
+            _mp("zero-cov", "vosk", "ds1"),
+        ]
+        ordered = breadth_first_order(
+            missing,
+            present_by_competitor={"has-one": 1},
+            present_by_dataset={},
+        )
+        ids = [mp.competitor.competitor_id for mp in ordered]
+        assert ids == ["zero-cov", "has-one"]
+
+    def test_cheap_engine_wins_within_tier(self):
+        missing = [
+            _mp("fw-a", "ovos-stt-plugin-fasterwhisper", "ds1"),
+            _mp("vosk-b", "ovos-stt-plugin-vosk", "ds2"),
+        ]
+        ordered = breadth_first_order(missing, present_by_competitor={}, present_by_dataset={})
+        assert ordered[0].competitor.competitor_id == "vosk-b"
+
+    def test_dataset_with_more_fighters_present_preferred_within_tier(self):
+        """Same tier, same engine weight: prefer the dataset that already
+        has more fighters present, so a fresh prediction pairs up into a
+        battle instead of landing on a dataset nobody else has touched."""
+        missing = [
+            _mp("c", "vosk", "lonely-ds"),
+            _mp("c", "vosk", "popular-ds"),
+        ]
+        ordered = breadth_first_order(
+            missing,
+            present_by_competitor={},
+            present_by_dataset={"lonely-ds": 0, "popular-ds": 5},
+        )
+        assert ordered[0].dataset.dataset_id == "popular-ds"
+
+    def test_deterministic_across_calls(self):
+        missing = [
+            _mp("b", "vosk", "ds1"),
+            _mp("a", "vosk", "ds1"),
+            _mp("a", "vosk", "ds2"),
+        ]
+        r1 = breadth_first_order(list(missing), {}, {})
+        r2 = breadth_first_order(list(missing), {}, {})
+        key = lambda ms: [(m.competitor.competitor_id, m.dataset.dataset_id) for m in ms]
+        assert key(r1) == key(r2)
+
+    def test_find_missing_pairs_is_breadth_first_on_real_diff(self, mini_registry):
+        """End-to-end: with nothing published yet, vosk-en (1 compatible
+        dataset) and vosk-pt (1 compatible dataset) must both appear before
+        fasterwhisper-multi's SECOND pair (it is compatible with both
+        datasets, so fighter-major order would put both of its pairs before
+        one of the single-dataset fighters)."""
+        lister = FakeLister(files={})
+        missing = find_missing_pairs("stt", registry_root=mini_registry, lister=lister)
+        ids = [mp.competitor.competitor_id for mp in missing]
+        fw_positions = [i for i, cid in enumerate(ids) if cid == "fasterwhisper-multi"]
+        assert len(fw_positions) == 2
+        second_fw = max(fw_positions)
+        assert ids.count("vosk-en") == 1
+        assert ids.count("vosk-pt") == 1
+        assert ids.index("vosk-en") < second_fw
+        assert ids.index("vosk-pt") < second_fw
 
 
 # ---------------------------------------------------------------------------

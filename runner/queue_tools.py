@@ -50,13 +50,81 @@ ENGINE_WEIGHTS: dict[str, int] = {
     "azure": 7,
     "google": 7,
     "openai": 8,
-    "parakeet": 9,
 }
 _DEFAULT_WEIGHT = 5
 
+# Model-family weights, matched only against the competitor_id remainder
+# AFTER stripping the engine-wrapper prefix (e.g. "parakeet-tdt-11b" out of
+# "onnx-asr-parakeet-tdt-11b", or "parakeet-tdt-1.1b-fp16" out of
+# "coreml-parakeet-tdt-1.1b-fp16") — see engine_weight's docstring for the
+# bug this fixes. Longest match among these wins; a match here always
+# overrides the wrapper's own base weight in ENGINE_WEIGHTS, since it is
+# strictly more specific by construction (the wrapper prefix has already
+# been stripped off), not a coincidental same-length substring collision.
+FAMILY_WEIGHTS: dict[str, int] = {
+    # Size-tiered within a family, largest/most-expensive first — a bare
+    # family name (no size token in the id) falls to that family's own
+    # generic entry near the bottom, cheaper than any sized variant above
+    # it: an unsized id is never assumed to be the biggest member.
+    "parakeet-tdt-11b": 10,
+    "cohere-transcribe-2b": 9,
+    "parakeet-rnnt-1.1b": 8,
+    "parakeet-tdt-1.1b": 8,
+    "parakeet-ctc-1.1b": 8,
+    "granite": 8,
+    "voxtral": 8,
+    "cohere": 7,
+    "qwen3": 7,
+    "canary": 7,
+    "parakeet": 6,
+}
+
+# A wrapper's engine-family prefix, derived from the registry ``plugin`` id
+# (e.g. "ovos-stt-plugin-onnx-asr" -> "onnx-asr") rather than a hand-
+# maintained list — every competitor's ``plugin`` field is already registry
+# data, so this reads it straight off what's passed to engine_weight.
+_PLUGIN_PREFIX_RE = re.compile(r"^ovos-[a-z0-9]+-plugin-", re.IGNORECASE)
+
+
+def _wrapper_prefix(plugin: str | None) -> str | None:
+    if not plugin:
+        return None
+    match = _PLUGIN_PREFIX_RE.match(plugin)
+    if not match:
+        return None
+    return plugin[match.end():].lower() or None
+
 
 def engine_weight(competitor_id: str, plugin: str | None) -> int:
-    """Static cheap-first ordering heuristic; longest match wins ties."""
+    """Static cheap-first ordering heuristic; longest match wins ties.
+
+    Regression this guards: matching :data:`ENGINE_WEIGHTS` by plain
+    substring against the full ``competitor_id`` let a generic engine-
+    wrapper prefix (``onnx-asr``) tie in length against an unrelated,
+    coincidentally-same-length model-family key (``parakeet``) and win the
+    tie by dict insertion order — so every ``onnx-asr-parakeet-*`` id
+    (including the 11B ``onnx-asr-parakeet-tdt-11b``) got the wrapper's
+    cheap weight (4) instead of the family's expensive one (9). Model-
+    family keys (:data:`FAMILY_WEIGHTS`) are now matched only against the
+    remainder of ``competitor_id`` after stripping the wrapper prefix
+    derived from ``plugin`` (:func:`_wrapper_prefix`), and always win over
+    the wrapper's own base weight when they match — no length-tie
+    coincidence possible between the two dicts.
+    """
+    remainder = competitor_id.lower()
+    wrapper = _wrapper_prefix(plugin)
+    if wrapper and remainder.startswith(wrapper + "-"):
+        remainder = remainder[len(wrapper) + 1:]
+
+    family_best: int | None = None
+    family_len = -1
+    for key, weight in FAMILY_WEIGHTS.items():
+        if key in remainder and len(key) > family_len:
+            family_best = weight
+            family_len = len(key)
+    if family_best is not None:
+        return family_best
+
     haystacks = [competitor_id.lower(), (plugin or "").lower()]
     best: int | None = None
     best_len = -1
@@ -238,10 +306,32 @@ def find_missing_pairs(
     min_rows: int = 1,
     lister: HFLister | None = None,
     check_rows: bool = True,
+    present_by_competitor: dict[str, int] | None = None,
+    present_by_dataset: dict[str, int] | None = None,
 ) -> list[MissingPair]:
-    """Diff registry pairs for *modality* against HF prediction state."""
+    """Diff registry pairs for *modality* against HF prediction state.
+
+    *present_by_competitor*/*present_by_dataset*, if given, are populated
+    in place with the same presence counts used internally for breadth-first
+    tiering (competitor_id/dataset_id -> number of already-published pairs)
+    — callers outside this module (``runner.autorun``) that need the raw
+    presence signal for their own tiering pass these in instead of
+    re-deriving the HF-listing/lang-matching logic above.
+    """
     lister = lister or HubLister()
     missing: list[MissingPair] = []
+    if present_by_competitor is None:
+        present_by_competitor = {}
+    if present_by_dataset is None:
+        present_by_dataset = {}
+
+    def _mark_present(competitor: CompetitorDef, dataset: DatasetDef) -> None:
+        present_by_competitor[competitor.competitor_id] = (
+            present_by_competitor.get(competitor.competitor_id, 0) + 1
+        )
+        present_by_dataset[dataset.dataset_id] = (
+            present_by_dataset.get(dataset.dataset_id, 0) + 1
+        )
 
     for competitor, dataset in enumerate_pairs(modality, registry_root):
         if not dataset.predictions_hf:
@@ -291,15 +381,112 @@ def find_missing_pairs(
                 missing.append(
                     MissingPair(modality, competitor, dataset, "low_rows", rows=rows)
                 )
+            else:
+                _mark_present(competitor, dataset)
+        else:
+            _mark_present(competitor, dataset)
 
-    def sort_key(mp: MissingPair):
+    return breadth_first_order(missing, present_by_competitor, present_by_dataset)
+
+
+# ---------------------------------------------------------------------------
+# Breadth-first ordering
+# ---------------------------------------------------------------------------
+#
+# Coverage is lumpy when missing pairs are sorted fighter-major (every pair
+# for one competitor before the next): a fighter compatible with many
+# datasets soaks up the front of the queue while a fighter compatible with
+# only one or two sits at the back, so a long sweep run can finish with most
+# fighters still at zero predictions. Breadth-first instead tiers missing
+# pairs by how many (dataset, lang) pairs a fighter *already has* published
+# — every fighter gets its first pair before any fighter gets a second, then
+# a second before any third, and so on — so partial coverage spreads across
+# every fighter before any one of them goes deep.
+
+
+def breadth_tier_sort(
+    items: list,
+    competitor_id_of,
+    dataset_id_of,
+    weight_of,
+    present_by_competitor: dict[str, int],
+    present_by_dataset: dict[str, int],
+) -> list:
+    """Order arbitrary *items* breadth-first across fighters.
+
+    Generic engine behind :func:`breadth_first_order` — factored out so a
+    caller outside this module with its own item shape (``runner.autorun``'s
+    ``PairKey``, not :class:`MissingPair`) can reuse the exact same tiering
+    instead of re-deriving it. *competitor_id_of*/*dataset_id_of*/
+    *weight_of* are accessor callables over one item.
+
+    *present_by_competitor* and *present_by_dataset* are presence counts —
+    how many (dataset, lang) pairs each competitor/dataset already has
+    published predictions for — computed from the same HF listing the
+    sweep diff already does (see :func:`find_missing_pairs`). Pure function,
+    no I/O: both maps are plain ``dict[str, int]`` so this is unit-testable
+    against a synthetic registry without touching HuggingFace.
+
+    Within a tier, cheaper jobs go first (*weight_of* — smaller/CPU
+    fighters before slow/expensive ones), and among equally-cheap jobs the
+    dataset with the most fighters already present is preferred, so fresh
+    predictions land on datasets that already have enough competitors to
+    pair up into battles rather than spreading onto a dataset no one else
+    has touched yet.
+    """
+    by_competitor: dict[str, list] = {}
+    for item in items:
+        by_competitor.setdefault(competitor_id_of(item), []).append(item)
+
+    tiered: list[tuple[int, object]] = []
+    for competitor_id, group in by_competitor.items():
+        base_tier = present_by_competitor.get(competitor_id, 0)
+        # Deterministic per-competitor order before tier assignment: the
+        # dataset with the most fighters already present goes first (so the
+        # fighter's earliest tiers land on datasets that pair up into
+        # battles), tie-broken by dataset_id for reproducibility.
+        group.sort(
+            key=lambda it: (
+                -present_by_dataset.get(dataset_id_of(it), 0),
+                dataset_id_of(it),
+            )
+        )
+        for offset, item in enumerate(group):
+            tiered.append((base_tier + offset, item))
+
+    def sort_key(entry: tuple[int, object]):
+        tier, item = entry
         return (
-            engine_weight(mp.competitor.competitor_id, mp.competitor.plugin),
-            mp.competitor.competitor_id,
-            mp.dataset.dataset_id,
+            tier,
+            weight_of(item),
+            -present_by_dataset.get(dataset_id_of(item), 0),
+            competitor_id_of(item),
+            dataset_id_of(item),
         )
 
-    return sorted(missing, key=sort_key)
+    return [item for _tier, item in sorted(tiered, key=sort_key)]
+
+
+def breadth_first_order(
+    missing: list[MissingPair],
+    present_by_competitor: dict[str, int],
+    present_by_dataset: dict[str, int],
+) -> list[MissingPair]:
+    """Order *missing* pairs breadth-first across fighters.
+
+    See :func:`breadth_tier_sort` for the tiering rules — this is that
+    generic engine specialized to :class:`MissingPair`.
+    """
+    return breadth_tier_sort(
+        missing,
+        competitor_id_of=lambda mp: mp.competitor.competitor_id,
+        dataset_id_of=lambda mp: mp.dataset.dataset_id,
+        weight_of=lambda mp: engine_weight(
+            mp.competitor.competitor_id, mp.competitor.plugin
+        ),
+        present_by_competitor=present_by_competitor,
+        present_by_dataset=present_by_dataset,
+    )
 
 
 # ---------------------------------------------------------------------------
