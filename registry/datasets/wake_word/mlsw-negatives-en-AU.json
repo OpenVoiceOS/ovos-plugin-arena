@@ -15,5 +15,9 @@
   "license": "cc-by-4.0",
   "role": "unrestricted",
   "notes": "MLCommons ml_spoken_words (Multilingual Spoken Words Corpus) — 1-second real keyword-clip recordings, HF parquet-convert mirror (refs/convert/parquet, config 'en_wav', split 'partial-test' — the smallest available partial split; the base repo ships a loading script and is not viewer/streamable, so the auto-converted parquet mirror is the only fetchable form). Registered as a hard-negative source for the wake_word league: real short keyword clips in this language that MUST NOT trigger any wake-word engine, a harder false-accept test than synthetic or ambient-noise negatives. role=unrestricted (openly-available supplementary corpus, not itself a positive/negative eval set). Wireable into the wake_word league via negatives_dataset_ids (resolved through the registry loader and streamed via runner.audio_io.stream_audio_dataset, the HF-parquet path used by STT/VAD positives, rather than the file-listing negatives_sources/negatives_hf mechanism, which only works for audiofolder-shaped corpora and cannot consume this corpus's parquet row-group audio): not yet wired to a fighter dataset in this language, since none is currently registered in the wake_word league.",
-  "predictions_hf": "OpenVoiceOS/ovos-wake-word-bench-mlsw-negatives-en-AU"
+  "predictions_hf": "OpenVoiceOS/ovos-wake-word-bench-mlsw-negatives-en-AU",
+  "sample_policy": {
+    "max_samples": 5000,
+    "seed": 1337
+  }
 }

@@ -199,6 +199,31 @@ DatasetSource = HuggingFaceSource | PathSource
 # ---------------------------------------------------------------------------
 
 
+class SamplePolicy(BaseModel):
+    """Registry-owned sampling cap for a dataset (§ sampling policy).
+
+    A sweep's effective sample set used to depend on whatever ``--max-samples``
+    the operator typed, which made cross-fighter and cross-run comparisons
+    unreliable and let an unbounded sweep stream a whole corpus by accident.
+    ``sample_policy`` moves that decision into the registry: ``max_samples``
+    caps how many rows the streamer draws per language (``None`` means no
+    cap — small curated eval sets stay uncapped), and ``seed`` pins the
+    deterministic subset selection (sorted corpus order, seeded shuffle, head
+    ``max_samples``) so every fighter and every run see the SAME rows. An
+    operator ``--max-samples`` smaller than the policy's cap still wins, for
+    smoke runs.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    max_samples: int | None = Field(
+        None, description="Cap on rows drawn per language; None = all rows.",
+    )
+    seed: int = Field(
+        1337, description="Seed for the deterministic sorted-shuffle-head subset selection.",
+    )
+
+
 class DatasetDef(BaseModel):
     """Definition of one benchmark corpus (``registry/datasets/<mod>/<id>.json``).
 
@@ -363,6 +388,16 @@ class DatasetDef(BaseModel):
         ),
     )
     notes: str | None = None
+    sample_policy: SamplePolicy | None = Field(
+        None,
+        description=(
+            "Registry-owned deterministic sampling cap for this dataset — "
+            "see SamplePolicy. Applied by runner.audio_io.stream_audio_dataset "
+            "and by pooled wake-word negatives (each negatives_dataset_ids "
+            "entry uses ITS OWN sample_policy). Left unset for small curated "
+            "sets that are meant to stream in full."
+        ),
+    )
     predictions_revision: str | None = Field(
         None,
         description=(

@@ -13,7 +13,7 @@ import logging
 import time
 from collections.abc import Iterator
 
-from runner.audio_io import stream_audio_dataset, stream_manifest_audio
+from runner.audio_io import resolve_sample_cap, stream_audio_dataset, stream_manifest_audio
 from runner.media_bench import MediaBenchAdapter, PredictContext, load_plugin_class
 
 log = logging.getLogger("stt-bench")
@@ -59,22 +59,28 @@ class STTBench(MediaBenchAdapter):
             src = src.model_copy(update=update)
         # Manifest-backed corpora (metadata.csv / manifest.jsonl beside the
         # audio, e.g. speech_MASSIVE_pt-PT) vs parquet-embedded audio (MInDS-14).
-        streamer = (stream_manifest_audio
-                    if (src.file_pattern or "").endswith((".csv", ".tsv", ".jsonl"))
-                    else stream_audio_dataset)
+        is_manifest = (src.file_pattern or "").endswith((".csv", ".tsv", ".jsonl"))
+        streamer = stream_manifest_audio if is_manifest else stream_audio_dataset
         # max_samples counts against the streamer's own cap, so pull one extra
         # sentinel-skip pass worth of slack isn't needed here: the streamer
         # yields raw rows and this generator filters after, same as any other
         # consumer — a caller asking for N samples may get fewer than N if
         # sentinel rows fall inside the requested window, same tradeoff the
         # resumable JSONL skip logic already accepts for failed samples.
-        for sample_id, sample in streamer(
-            src,
+        #
+        # The registry's sample_policy (dataset-owned cap + seed), not the
+        # raw CLI --max-samples, decides the effective cap and the
+        # deterministic subset every fighter draws — see resolve_sample_cap.
+        effective_max_samples, seed = resolve_sample_cap(dataset_def, max_samples)
+        stream_kwargs = dict(
             audio_key=audio_key,
             extra_keys={"ground_truth": gt_col},
             revision=revision,
-            max_samples=max_samples,
-        ):
+            max_samples=effective_max_samples,
+        )
+        if not is_manifest:
+            stream_kwargs["seed"] = seed
+        for sample_id, sample in streamer(src, **stream_kwargs):
             if _is_sentinel_reference(sample.get("ground_truth")):
                 log.debug("skipping sentinel-reference sample %s", sample_id)
                 continue

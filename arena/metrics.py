@@ -956,9 +956,13 @@ def pair_metric_significant(
     return significant_from_cis(ci_a, ci_b)
 
 
-def benchmark_board_input_signature(by_competitor: dict[str, list[PredictionRow]]) -> str:
+def benchmark_board_input_signature(
+    by_competitor: dict[str, list[PredictionRow]],
+    sample_set_ids: set[str] | None = None,
+) -> str:
     """Stable hash of everything that determines a benchmark board's
-    scored output: every competitor's rows plus ``BOARD_LOGIC_VERSION``.
+    scored output: every competitor's rows, ``BOARD_LOGIC_VERSION``, and
+    (when applicable) the published sample-set manifest's id set.
 
     Two calls with the same rows (regardless of dict/list ORDER — both are
     sorted before hashing) and the same scoring logic hash identically.
@@ -967,6 +971,12 @@ def benchmark_board_input_signature(by_competitor: dict[str, list[PredictionRow]
     would just reproduce the same numbers (see cli.py's board-write loop,
     which already no-ops the file WRITE on unchanged content via
     ``_unchanged``; this skips the expensive COMPUTE that precedes it).
+
+    ``sample_set_ids`` MUST be included here: publishing a new/changed
+    manifest for a policy-capped dataset doesn't touch any prediction row,
+    so without this the unchanged-input skip above would never notice a
+    republished manifest and the board would keep stale coverage/ranking
+    forever instead of "republish and the board re-filters automatically".
     """
     # Sort each competitor's own rows by sample_id/plugin_id, so row ORDER
     # never affects the hash — only row CONTENT does — then sort competitors.
@@ -981,7 +991,11 @@ def benchmark_board_input_signature(by_competitor: dict[str, list[PredictionRow]
         for competitor_id, rows in by_competitor.items()
     )
     payload = json.dumps(
-        {"logic_version": BOARD_LOGIC_VERSION, "rows": rows_repr},
+        {
+            "logic_version": BOARD_LOGIC_VERSION,
+            "rows": rows_repr,
+            "sample_set_ids": sorted(sample_set_ids) if sample_set_ids is not None else None,
+        },
         sort_keys=True,
         default=str,
     )
@@ -1117,6 +1131,7 @@ def build_benchmark_board(
     by_competitor: dict[str, list[PredictionRow]],
     generated_at: str,
     input_hash: str | None = None,
+    sample_set_ids: set[str] | None = None,
 ) -> BenchmarkBoard:
     """Build one benchmark board from per-competitor row lists.
 
@@ -1124,6 +1139,17 @@ def build_benchmark_board(
     (normally ``benchmark_board_input_signature(by_competitor)`` — the
     caller computes it once and reuses it both here and for the
     unchanged-input skip check, rather than hashing twice).
+
+    *sample_set_ids*, when given, is a published ``sample_sets/<lang>.json``
+    manifest's id set (see ``runner.publish_sample_set``) for a
+    ``sample_policy``-capped dataset. Every competitor's rows are filtered
+    to it BEFORE scoring, so fighters that were swept on different sample
+    populations (a full-corpus sweep predating the policy, a smaller ad hoc
+    ``--max-samples``, the current policy subset) are compared on the exact
+    same rows rather than each on however many rows it happens to have.
+    ``None`` means no manifest applied — either the dataset carries no
+    ``sample_policy``, or one exists but its manifest hasn't been published
+    yet; entries are scored unfiltered and marked ``sample_set="unmanaged"``.
     """
     scorer = _SCORERS.get(modality)
     primary = PRIMARY_METRIC.get(modality, "accuracy")
@@ -1131,6 +1157,14 @@ def build_benchmark_board(
     cis: dict[str, tuple[float, float] | None] = {}
     if scorer is not None:
         for competitor_id, rows in by_competitor.items():
+            plugin_id = rows[0].plugin_id if rows else ""
+            sample_set = "unmanaged"
+            coverage = None
+            if sample_set_ids is not None:
+                sample_set = "manifest"
+                kept = [r for r in rows if r.sample_id in sample_set_ids]
+                coverage = (len(kept) / len(sample_set_ids)) if sample_set_ids else 0.0
+                rows = kept
             ci = primary_metric_ci(modality, rows)
             cis[competitor_id] = ci
             # §G version-blend guard: flag (never silently aggregate) when a
@@ -1147,7 +1181,7 @@ def build_benchmark_board(
             entries.append(
                 BenchmarkEntry(
                     competitor_id=competitor_id,
-                    plugin_id=rows[0].plugin_id if rows else "",
+                    plugin_id=plugin_id,
                     samples=len(rows),
                     metrics=scorer(rows),
                     primary_metric_ci_lower=ci[0] if ci else None,
@@ -1155,6 +1189,8 @@ def build_benchmark_board(
                     plugin_versions=versions,
                     version_blended=version_blended,
                     perf=perf_metrics_by_tier(rows) or None,
+                    sample_set=sample_set,
+                    sample_set_coverage=coverage,
                 )
             )
 
@@ -1169,18 +1205,39 @@ def build_benchmark_board(
             return False
         return entry.metrics.get("n_scored", 1.0) != 0.0
 
-    ranked = [e for e in entries if _has_signal(e)]
+    # A fighter whose rows barely intersect the published manifest (e.g. a
+    # sweep that predates the sample_policy, or an ad hoc small
+    # --max-samples) is not comparable to a fighter that covers it fully —
+    # ranking them together would silently mix sample populations again,
+    # exactly the gap sample_set_ids exists to close. Below-threshold
+    # coverage is unranked the same way a failed run is, with its own
+    # reason so a frontend/operator can tell the two apart.
+    _MIN_COVERAGE = 0.9
+
+    def _partial_coverage(entry: BenchmarkEntry) -> bool:
+        return (entry.sample_set_coverage is not None
+                and entry.sample_set_coverage < _MIN_COVERAGE)
+
+    ranked = [e for e in entries if _has_signal(e) and not _partial_coverage(e)]
+    partial = [e for e in entries if _has_signal(e) and _partial_coverage(e)]
     failed = [e for e in entries if not _has_signal(e)]
 
     reverse = primary in _HIGHER_BETTER
     ranked.sort(key=lambda e: e.metrics.get(primary), reverse=reverse)
     for i, entry in enumerate(ranked, 1):
         entry.rank = i
+    for entry in partial:
+        entry.rank = 0
+        entry.unranked = True
+        entry.unranked_reason = (
+            f"sample_set_partial — covers {entry.sample_set_coverage:.0%} "
+            "of the published manifest"
+        )
     for entry in failed:
         entry.rank = 0
         entry.unranked = True
         entry.unranked_reason = "run failed — no scored samples"
-    entries = ranked + failed
+    entries = ranked + partial + failed
 
     if ranked:
         leader_ci = cis.get(ranked[0].competitor_id)

@@ -26,6 +26,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from runner.audio_io import (
+    resolve_sample_cap,
     stream_audio_dataset,
     stream_manifest_audio,
     stream_ww,
@@ -85,16 +86,17 @@ class WakeWordBench(MediaBenchAdapter):
             return
         audio_key = fields.get("audio", "audio")
         label_col = fields.get("label", "label")
+        effective_max_samples, seed = resolve_sample_cap(dataset_def, max_samples)
         if getattr(source, "file_pattern", None):
             yield from stream_manifest_audio(
                 source, audio_key=audio_key,
                 extra_keys={"label": label_col}, revision=revision,
-                max_samples=max_samples)
+                max_samples=effective_max_samples)
         else:
             yield from stream_audio_dataset(
                 source, audio_key=audio_key,
                 extra_keys={"label": label_col}, revision=revision,
-                max_samples=max_samples)
+                max_samples=effective_max_samples, seed=seed)
 
     def load_engine(self, competitor, lang: str) -> WWStack:
         from ovos_plugin_manager.wakewords import load_wake_word_plugin

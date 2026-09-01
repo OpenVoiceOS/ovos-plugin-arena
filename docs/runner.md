@@ -40,6 +40,59 @@ provenance. New runs never construct an `STTRow`.
 
 ---
 
+## Sampling policy
+
+How many rows a sweep draws per (dataset, language) is a registry decision,
+not an operator one. A dataset's `sample_policy` (`max_samples`, `seed`) in
+its `registry/datasets/<modality>/<id>.json` entry caps the row count and
+pins a deterministic subset — the corpus rows are shuffled with that seed and
+truncated to `max_samples`, so every fighter and every run draw the exact
+same rows for that dataset. Large corpora that would otherwise stream
+whole-corpus sweeps (VoxPopuli, MLS, mTEDx, Speech-MASSIVE, and the pooled
+`ml_spoken_words` wake-word negatives) carry a policy; small curated eval
+sets are left uncapped and stream in full.
+
+The `--max-samples` CLI flag still exists for smoke runs. The effective cap
+is always the SMALLER of the CLI value and the dataset's policy cap: an
+operator cap smaller than the policy shrinks a run for a smoke test; an
+operator cap larger than the policy (or the default of 0, meaning
+unbounded) is clamped down to the policy's cap and logged, never allowed to
+stream past it. Without a `sample_policy`, a dataset keeps the old
+behaviour — `--max-samples`, if given, takes the first rows in corpus order.
+
+### Publishing sample-set manifests
+
+A `sample_policy` fixes WHICH rows a sweep draws, but a sweep run doesn't by
+itself record which rows those were, and a benchmark board scores each
+fighter over its own rows. Without a shared record of the selected subset,
+two fighters swept at different times — one before the policy existed, one
+against it, one against a smaller ad hoc `--max-samples` — end up ranked
+together over different sample populations. `runner/publish_sample_set.py`
+closes that gap: it recomputes a dataset's policy-selected sample ids
+directly from the source corpus (no audio decoding, just the id-bearing
+columns) and publishes them as `sample_sets/<lang>.json` inside the
+dataset's predictions repo, right next to `predictions/<lang>/*.jsonl`.
+
+```bash
+python -m runner.publish_sample_set --upload
+```
+
+runs every dataset that declares a `sample_policy`; scope it with
+`--modality` or `--dataset` for a single one, or drop `--upload` (the
+default) to print row counts without touching HF. `arena.cli assemble`
+downloads each dataset's manifest automatically when one exists and
+restricts every fighter's rows — and battle/ELO assembly — to it before
+scoring, so board rankings are always over a comparable sample set. A
+fighter whose rows cover less than 90% of the manifest is marked unranked
+rather than silently scored on a smaller population.
+
+Manifests are cheap to regenerate: if a dataset's `sample_policy` changes
+(a different cap or seed), republishing its manifest is enough — the next
+`assemble` run picks up the new ids and re-filters/re-scores every board
+automatically, no resweep required, no runner changes needed.
+
+---
+
 ## Adding jobs
 
 Edit `runner/queue.yaml`. Each job entry looks like:

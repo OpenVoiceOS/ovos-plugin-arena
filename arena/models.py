@@ -345,6 +345,20 @@ class BenchmarkEntry(BaseModel):
     # aggregate. None for fighters with no ``model_hf_repo`` registered, or
     # when the lookup failed.
     model_mb: float | None = None
+    # Sample-set comparability (registry sample_policy §feat/registry-sample-
+    # policy) — "manifest" when this entry's rows were filtered to a
+    # published sample_sets/<lang>.json manifest before scoring (so every
+    # fighter on the board was scored against the SAME rows); "unmanaged"
+    # when no manifest was applied — either the dataset has no
+    # sample_policy, or one exists but its manifest hasn't been published
+    # yet (arena.cli assemble falls back to unfiltered scoring and logs a
+    # warning rather than failing the whole board).
+    sample_set: str = "unmanaged"
+    # Fraction of the published manifest's ids this competitor's rows
+    # actually covered (kept / len(manifest)) — None when sample_set is
+    # "unmanaged". A fighter swept before the manifest existed, or with a
+    # smaller ad hoc --max-samples, can cover only part of it.
+    sample_set_coverage: float | None = None
 
 
 class BenchmarkBoard(BaseModel):

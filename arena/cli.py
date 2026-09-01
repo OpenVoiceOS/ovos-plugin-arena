@@ -490,6 +490,53 @@ def _prediction_source_langs(prediction_sources: list[str]) -> dict[str, str | N
     return {s: langs.get(s) for s in prediction_sources}
 
 
+_SAMPLE_SET_CACHE: dict[tuple[str, str, str], set[str] | None] = {}
+
+
+def _load_sample_set(modality: str, dataset_id: str, lang: str) -> set[str] | None:
+    """Load a published ``sample_sets/<lang>.json`` manifest's id set for
+    one (modality, dataset, lang), or ``None`` when the dataset carries no
+    ``sample_policy`` or the manifest hasn't been published yet — in which
+    case the caller falls back to unfiltered scoring (§comparability gap,
+    board build stays best-effort rather than failing outright) and
+    ``build_benchmark_board`` marks every entry ``sample_set="unmanaged"``.
+    """
+    key = (modality, dataset_id, lang)
+    if key in _SAMPLE_SET_CACHE:
+        return _SAMPLE_SET_CACHE[key]
+
+    result: set[str] | None = None
+    try:
+        from registry.loaders import load_dataset
+
+        dataset = load_dataset(modality, dataset_id)
+        if dataset.sample_policy is not None:
+            from huggingface_hub import hf_hub_download
+
+            from runner.intent_bench import results_repo_for
+
+            repo = dataset.predictions_hf or results_repo_for(modality, dataset_id)
+            lang_file = lang.replace("-", "_")
+            local = hf_hub_download(
+                repo, f"sample_sets/{lang_file}.json",
+                repo_type="dataset", revision="main",
+            )
+            with open(local, encoding="utf-8") as fh:
+                manifest = json.load(fh)
+            result = set(manifest["sample_ids"])
+    except Exception as exc:
+        log.warning(
+            "%s/%s/%s: sample_policy is set but no sample_sets manifest is "
+            "published yet (%s) — scoring unfiltered this run; publish one "
+            "with runner.publish_sample_set for a comparable board",
+            modality, dataset_id, lang, exc,
+        )
+        result = None
+
+    _SAMPLE_SET_CACHE[key] = result
+    return result
+
+
 def _dataset_info_lookup(prediction_sources: list[str]) -> dict[str, dict[str, Any]]:
     """Registry metadata per dataset_id, for the benchmark board UI."""
     info: dict[str, dict[str, Any]] = {}
@@ -766,7 +813,8 @@ def cmd_assemble(args: argparse.Namespace) -> int:
                     by_competitor.setdefault(competitor_id, []).append(row)
             board_file = f"benchmark-{modality}-{dataset_id}-{lang}.json"
             board_path = data_dir / board_file
-            input_hash = benchmark_board_input_signature(by_competitor)
+            sample_set_ids = _load_sample_set(modality, dataset_id, lang)
+            input_hash = benchmark_board_input_signature(by_competitor, sample_set_ids)
             # Skip the O(rounds * samples) bootstrap CI entirely when this
             # board's prediction rows (+ scoring logic) are byte-identical to
             # the last assemble run — same input, same logic, same output, so
@@ -774,13 +822,16 @@ def cmd_assemble(args: argparse.Namespace) -> int:
             # _unchanged() would no-op anyway. Only dataset_info/predictions_
             # revisions/generated_at can legitimately differ without a row
             # change, and none of those affect the ranked entries, so reusing
-            # the on-disk entries verbatim is safe.
+            # the on-disk entries verbatim is safe. sample_set_ids is baked
+            # into input_hash above, so a republished manifest also busts
+            # this cache — no separate resweep needed.
             if _board_disk_input_hash(board_path) == input_hash:
                 written_files.add(board_file)
                 log.info("Unchanged %s (input identical — skipped bootstrap)", board_path)
                 continue
             board = build_benchmark_board(
                 modality, dataset_id, lang, by_competitor, now, input_hash=input_hash,
+                sample_set_ids=sample_set_ids,
             )
             _attach_model_sizes(board, modality)
             board.dataset_info = dataset_info.get(dataset_id)
@@ -813,7 +864,14 @@ def cmd_assemble(args: argparse.Namespace) -> int:
             group = battle_group(modality)
             bs = battle_samples.setdefault((group, dataset_id, lang), {})
             es = elo_samples.setdefault((group, lang), {}).setdefault(dataset_id, {})
+            # Same comparability fix as the benchmark board: when this
+            # dataset has a published sample-set manifest, battles/ELO are
+            # restricted to it too, so a battle is never assembled between
+            # two fighters' rows drawn from different sample populations.
+            sample_set_ids = _load_sample_set(modality, dataset_id, lang)
             for sample_id, comp_rows in samples.items():
+                if sample_set_ids is not None and sample_id not in sample_set_ids:
+                    continue
                 bs.setdefault(sample_id, {}).update(comp_rows)
                 es.setdefault(sample_id, {}).update(comp_rows)
 
