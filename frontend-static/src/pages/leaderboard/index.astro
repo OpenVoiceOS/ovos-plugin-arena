@@ -12,6 +12,8 @@ import Base from '../../layouts/Base.astro';
     breaks every league down into a head-to-head grid.
   </p>
 
+  <p id="lb-provenance" style="display:none;font-size:0.85rem;color:var(--muted);margin:0 0 1rem"></p>
+
   <div id="lb-loading" class="card" aria-live="polite">Loading the arena…</div>
   <div id="lb-empty" class="card" style="display:none">
     Try another league or language. No standings yet — run the <code>assemble.yml</code> action to build them from prediction data.
@@ -200,6 +202,7 @@ import Base from '../../layouts/Base.astro';
   <script>
     import { spriteSvg } from '../../lib/sprite.js';
     import { groupedLangOptionsHtml } from '../../lib/lang.js';
+    import { boardVoteProvenance, provenanceHtml } from '../../lib/provenance.js';
 
     const BASE = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
 
@@ -368,7 +371,7 @@ import Base from '../../layouts/Base.astro';
     let leagues = [], leagueById = {};
     // metadata only — {file, modality, dataset_id, lang, count}, cheap to
     // hold in full since the frontend needs it to know what's fetchable.
-    let benchmarksMeta = [], leaderboardsMeta = [];
+    let benchmarksMeta = [], leaderboardsMeta = [], indexData = null;
     let fighters = {};
     // plugin_id -> family, from the bestiary export's registry-derived
     // reverse lookup — the only way to place a "ghost" board/battle row
@@ -940,6 +943,12 @@ import Base from '../../layouts/Base.astro';
       benches.sort((a, b) => (a.dataset_id || '').localeCompare(b.dataset_id || ''));
       const elo = eloBoards[0];
 
+      const prov = document.getElementById('lb-provenance');
+      const provHtml = provenanceHtml(boardVoteProvenance(elo, indexData),
+        `${BASE}methodology/#where-ratings-come-from`);
+      prov.innerHTML = provHtml;
+      prov.style.display = provHtml ? '' : 'none';
+
       // Reconcile the ?metric= selection against this board's actual
       // ladders — an invalid/stale metric (wrong league, older link) falls
       // back to the primary metric rather than rendering nothing.
@@ -1036,6 +1045,7 @@ import Base from '../../layouts/Base.astro';
       cacheV = index?.generated_at ? `?v=${encodeURIComponent(index.generated_at)}` : '';
       benchmarksMeta = index?.benchmarks || [];
       leaderboardsMeta = index?.leaderboards || [];
+      indexData = index;
       leagues = (index?.leagues && index.leagues.length) ? index.leagues : DEFAULT_LEAGUES;
       leagueById = Object.fromEntries(leagues.map(l => [l.id, l]));
       const bestiary = await fetchJson(`${BASE}data/competitors.json${cacheV}`);

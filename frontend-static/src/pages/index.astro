@@ -22,6 +22,7 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
     </div>
 
     <div id="stats" class="card" style="display:none;gap:2.5rem;flex-wrap:wrap;justify-content:center;text-align:center"></div>
+    <p id="provenance" style="display:none;text-align:center;font-size:0.85rem;color:var(--muted);margin:0.6rem 0 0"></p>
 
     <div style="display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));margin-top:1.5rem;">
       <div class="card">
@@ -61,6 +62,7 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
     </div>
 
     <script>
+      import { totalVoteProvenance, provenanceHtml } from '../lib/provenance.js';
       const BASE = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
       async function stats() {
         const index = await fetch(`${BASE}data/index.json`)
@@ -76,6 +78,14 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
         el.innerHTML = stat(boards, 'benchmark boards') + stat(langs, 'languages')
           + stat(battles, 'open battles');
         el.style.display = 'flex';
+
+        const prov = document.getElementById('provenance');
+        const html = provenanceHtml(totalVoteProvenance(index),
+          `${BASE}methodology/#where-ratings-come-from`, 'across all boards');
+        if (html) {
+          prov.innerHTML = html;
+          prov.style.display = 'block';
+        }
       }
       stats();
     </script>

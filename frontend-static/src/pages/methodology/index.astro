@@ -15,6 +15,28 @@ const gh = 'https://github.com/OpenVoiceOS/ovos-plugin-arena/blob/dev/docs';
     normative rules.
   </p>
 
+  <h2 id="where-ratings-come-from">Where ratings come from</h2>
+  <p style="max-width:65ch">
+    Every ladder starts from <strong>auto-judged battles</strong>: two fighters'
+    outputs on the same labelled sample, scored against the reference answer
+    (exact match for intents, lower WER for STT, higher UTMOS for TTS) with no
+    person involved. Each auto-judged battle is a pairwise comparison between
+    two already-scored predictions, not an independent judge call — the
+    scoring happens once per prediction at benchmark time, and every fighter
+    pair sharing a sample is then compared on that same pair of scores. Those
+    auto-battles are seeded into the rating at a fraction of a human vote's
+    weight, so a large benchmark run bootstraps the board without drowning
+    out real preference. From there, <strong>blind
+    human votes</strong> cast in the <a href={`${base}battle/`}>battle
+    page</a> refine the same rating — the more human votes a matchup has, the
+    more its rating reflects human preference rather than the benchmark seed.
+    Every leaderboard states its own human-vote and auto-battle count, and
+    the whole log is public: any board on this site can be rebuilt byte for
+    byte by replaying the committed vote history, which is exactly what the
+    <a href="https://github.com/OpenVoiceOS/ovos-plugin-arena/blob/dev/.github/workflows/replay-proof.yml">replay-proof workflow</a>
+    does on every push.
+  </p>
+
   <h2>Ratings: Bradley-Terry, not sequential ELO</h2>
   <p style="max-width:65ch">
     Sequential ELO depends on the order votes arrive — replay the same votes in a
