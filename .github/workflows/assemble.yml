@@ -29,7 +29,11 @@ jobs:
   # never cancels the others.
   assemble:
     runs-on: ubuntu-latest
-    timeout-minutes: 50
+    # The intent_template leg walks every language of every template
+    # dataset (~50 languages x 5 datasets) and takes just under an hour on a
+    # hosted runner; the daily cron is 24h apart, so a generous cap costs
+    # nothing and a tight one silently drops the leg's whole board refresh.
+    timeout-minutes: 120
     strategy:
       fail-fast: false
       matrix:
