@@ -16,6 +16,7 @@ from __future__ import annotations
 import json
 import logging
 from collections import defaultdict
+from collections.abc import Iterator
 from pathlib import Path
 
 from arena.models import PredictionRow
@@ -125,6 +126,51 @@ def read_jsonl(path: Path) -> list[PredictionRow]:
     return rows
 
 
+def _load_paths(predictions_dir: Path, paths: list[Path]) -> list[PredictionRow]:
+    rows: list[PredictionRow] = []
+    for path in paths:
+        file_rows = read_jsonl(path)
+        logger.info("Loaded %d rows from %s",
+                    len(file_rows), path.relative_to(predictions_dir))
+        rows.extend(file_rows)
+    return rows
+
+
+def iter_predictions_dir(
+    predictions_dir: Path, lang: str | None = None
+) -> Iterator[list[PredictionRow]]:
+    """Like :func:`load_predictions_dir`, but yields one chunk of rows at a
+    time instead of building one list for the whole *predictions_dir* —
+    so a caller can group each chunk and release its raw rows before the
+    next one loads (see ``arena.cli.cmd_assemble``).
+
+    A concrete *lang* (one dataset's own shard, the common case) is small
+    enough to stay one chunk. A genuinely multi/unknown-lang dataset
+    (``lang=None``) is chunked per top-level lang subdirectory instead —
+    that is what bounds memory for a dataset repo that bundles every
+    language's predictions together (e.g. the intents-for-eval repo's 989
+    files across ~15 langs, ~1.7M rows total if loaded as one list: the
+    §assemble memory hosted-runner OOM was this exact dataset, loaded
+    whole, under a 7GB cap). Flat legacy root-level files (no lang
+    subdirs at all) are still yielded as a single chunk.
+    """
+    if lang:
+        paths = sorted(predictions_dir.glob("*.jsonl"))
+        lang_dir = predictions_dir / lang
+        if lang_dir.is_dir():
+            paths = sorted(set(paths) | set(lang_dir.glob("*.jsonl")))
+        yield _load_paths(predictions_dir, paths)
+        return
+
+    root_files = sorted(predictions_dir.glob("*.jsonl"))
+    if root_files:
+        yield _load_paths(predictions_dir, root_files)
+    for sub in sorted(p for p in predictions_dir.iterdir() if p.is_dir()):
+        chunk = _load_paths(predictions_dir, sorted(sub.glob("**/*.jsonl")))
+        if chunk:
+            yield chunk
+
+
 def load_predictions_dir(
     predictions_dir: Path, lang: str | None = None
 ) -> list[PredictionRow]:
@@ -144,21 +190,14 @@ def load_predictions_dir(
     concrete-lang dataset's own dir. Merging those into the same
     competitor pool silently poisons that dataset's scores with
     wrong-language predictions.
-    """
-    if lang:
-        paths = sorted(predictions_dir.glob("*.jsonl"))
-        lang_dir = predictions_dir / lang
-        if lang_dir.is_dir():
-            paths = sorted(set(paths) | set(lang_dir.glob("*.jsonl")))
-    else:
-        paths = sorted(predictions_dir.glob("**/*.jsonl"))
 
+    Whole-list convenience wrapper over :func:`iter_predictions_dir` — use
+    that directly (as ``arena.cli.cmd_assemble`` does) when *predictions_dir*
+    may be large enough that holding every row at once matters.
+    """
     rows: list[PredictionRow] = []
-    for path in paths:
-        file_rows = read_jsonl(path)
-        logger.info("Loaded %d rows from %s",
-                    len(file_rows), path.relative_to(predictions_dir))
-        rows.extend(file_rows)
+    for chunk in iter_predictions_dir(predictions_dir, lang=lang):
+        rows.extend(chunk)
     return rows
 
 
@@ -231,6 +270,21 @@ def load_predictions(
     if path.is_dir():
         return load_predictions_dir(path, lang=lang)
     return load_predictions_dir(fetch_hf_predictions(source, revision), lang=lang)
+
+
+def iter_predictions(
+    source: str, revision: str = "main", lang: str | None = None
+) -> Iterator[list[PredictionRow]]:
+    """Like :func:`load_predictions`, but yields one chunk of rows at a
+    time via :func:`iter_predictions_dir` instead of returning one list
+    for the whole *source*. Used by ``arena.cli.cmd_assemble`` so a large
+    multi-lang predictions source never has to sit fully in memory before
+    grouping starts."""
+    path = Path(source)
+    if path.is_dir():
+        yield from iter_predictions_dir(path, lang=lang)
+        return
+    yield from iter_predictions_dir(fetch_hf_predictions(source, revision), lang=lang)
 
 
 def group_rows(

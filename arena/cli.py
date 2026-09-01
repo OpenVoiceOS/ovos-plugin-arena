@@ -571,7 +571,13 @@ def _predictions_revision_for(source: str, default_revision: str) -> tuple[str, 
 
 
 def cmd_assemble(args: argparse.Namespace) -> int:
-    from arena.predictions import group_rows, load_predictions
+    from arena.predictions import (
+        fetch_hf_predictions,
+        group_rows,
+        iter_predictions,
+        iter_predictions_dir,
+        read_jsonl,
+    )
 
     data_dir = Path(args.output)
     data_dir.mkdir(parents=True, exist_ok=True)
@@ -599,19 +605,283 @@ def cmd_assemble(args: argparse.Namespace) -> int:
     # commit SHA (registry ``predictions_revision`` when set, else
     # ``--revision``) and record the resolved mapping for the boards.
     resolved_revisions: dict[str, str] = {}
-    rows = []
+    fetch_revisions: dict[str, str] = {}
     for source in sources:
         fetch_revision, meta = _predictions_revision_for(source, args.revision)
+        fetch_revisions[source] = fetch_revision
         if meta.get("resolved_sha"):
             resolved_revisions[source] = meta["resolved_sha"]
-        log.info("Loading predictions from %s@%s …", source, fetch_revision)
+
+    # §assemble memory — the whole rest of this function processes ONE LANG
+    # AT A TIME instead of loading every source's (or even one large
+    # multi-lang source's) raw rows into memory before grouping/writing
+    # anything. A large multi-dataset league (e.g. intent_template's 17
+    # predictions repos) — and, within it, a single multi-lang dataset repo
+    # bundling every lang's shards together (intents-for-eval: 989 files
+    # across ~15 langs, ~1.7M rows if loaded as one structure) — held every
+    # raw ``PredictionRow`` object for the ENTIRE modality (or, even just
+    # loading per-source/per-lang-chunk with a single shared ``grouped``
+    # kept across the whole run, the entire multi-lang dataset) in memory
+    # at once. That is what OOM-killed the hosted runner's 7GB matrix leg
+    # (proved locally: capped at 7GB via a cgroup, the process is
+    # SIGKILLed by the kernel OOM killer — first during the initial
+    # unchunked load, and still during the per-source-chunked load,
+    # because ``grouped`` itself kept accumulating every lang of
+    # intents-for-eval before any board/battle/ELO artifact was written
+    # and its rows released).
+    #
+    # ``elo-seed``/``leaderboard`` artifacts are the only ones that merge
+    # data ACROSS datasets, and they are scoped to (battle_group, lang) —
+    # never across langs. So the true minimum working set for correctness
+    # is one lang's rows across every source, not a whole source's (or the
+    # whole modality's) rows. Each source's local predictions dir is
+    # resolved once (a cached HF snapshot download, or the local dir
+    # itself — no repeat network fetches) and its lang scope is
+    # discovered: a concrete-lang source (``source_langs[source]`` set)
+    # contributes just that one lang; a multi-lang source contributes
+    # every lang subdirectory it actually publishes. The lang loop below
+    # then loads + groups + builds + writes + discards one lang's data
+    # before moving to the next, so peak memory is bounded by one lang's
+    # rows (across every source that publishes it) plus that lang's
+    # board/battle/ELO artifacts — never the whole modality's.
+    source_dirs: dict[str, Path] = {}
+    target_langs: set[str] = set()
+    for source in sources:
+        lang = source_langs.get(source)
+        if lang:
+            target_langs.add(lang)
+            continue
         try:
-            rows.extend(load_predictions(
-                source, revision=fetch_revision, lang=source_langs.get(source)))
+            path = Path(source)
+            if not path.is_dir():
+                path = fetch_hf_predictions(source, fetch_revisions[source])
+            source_dirs[source] = path
+            subdirs = [p.name for p in path.iterdir() if p.is_dir()]
+            if subdirs:
+                target_langs.update(subdirs)
+            else:
+                # Flat legacy layout (no per-lang subdirs, e.g. an old
+                # repo or a test fixture) — the lang scope can't be read
+                # off directory names, so peek the rows themselves. Safe
+                # to read fully here: this layout is always small (it is
+                # never the large per-lang-sharded layout the memory
+                # bound above targets — that one always ships as
+                # ``predictions/<lang>/*.jsonl``).
+                for jsonl_path in sorted(path.glob("*.jsonl")):
+                    for row in read_jsonl(jsonl_path):
+                        if row.lang:
+                            target_langs.add(row.lang)
         except Exception as exc:
             log.error("Skipping %s: %s", source, exc)
 
-    if not rows:
+    now = _now_iso()
+    registry_dataset_langs = _registry_dataset_langs()
+    ww_phrases = _wakeword_phrases()
+    unregistered_competitors: dict[str, int] = {}
+    all_seen_modalities: set[str] = set()
+    any_data = False
+
+    for target_lang in sorted(target_langs):
+        grouped: dict[tuple[str, str, str], dict[str, dict[str, Any]]] = {}
+        for source in sources:
+            src_lang = source_langs.get(source)
+            if src_lang and src_lang != target_lang:
+                continue
+            try:
+                if src_lang == target_lang:
+                    chunks = iter_predictions(
+                        source, revision=fetch_revisions[source], lang=target_lang)
+                else:
+                    src_dir = source_dirs.get(source)
+                    if src_dir is None:
+                        continue
+                    chunks = iter_predictions_dir(src_dir, lang=target_lang)
+                for chunk in chunks:
+                    if not chunk:
+                        continue
+                    chunk_grouped = group_rows(chunk, unregistered=unregistered_competitors)
+                    del chunk
+                    for key, samples in chunk_grouped.items():
+                        dest = grouped.setdefault(key, {})
+                        for sample_id, comp_rows in samples.items():
+                            dest.setdefault(sample_id, {}).update(comp_rows)
+                    del chunk_grouped
+            except Exception as exc:
+                log.error("Skipping %s (%s): %s", source, target_lang, exc)
+                continue
+
+        if not grouped:
+            continue
+
+        # Legacy daemon rows keyed by the raw hf path (e.g.
+        # FBK-MT/Speech-MASSIVE-test/de-DE/test) instead of the canonical
+        # registry id: a board or battle filename built from such an id
+        # explodes into nonexistent directories. Filter ONCE, before every
+        # loop that embeds dataset_id in a filename; the runner-side fix
+        # re-keys new rows, and stale rows are re-run/replaced, not shimmed.
+        for modality, dataset_id, lang in [k for k in grouped
+                                           if "/" in k[1] or "\\" in k[1]]:
+            log.warning("skipping non-canonical dataset_id %r (%s/%s): "
+                        "contains a path separator", dataset_id, modality, lang)
+            del grouped[(modality, dataset_id, lang)]
+
+        # Legacy predictions rows carrying a pre-normalization short lang
+        # code (e.g. ``lang: "fr"`` published to an HF predictions repo
+        # before the dataset's own registry entry settled on ``fr-FR``)
+        # would otherwise keep regenerating a short-code board every
+        # single run — no amount of post-hoc pruning survives that, since
+        # the very next assemble run recreates the exact key it just
+        # deleted. Drop rows whose lang the dataset's registry entry
+        # doesn't recognize *at the source*, before any board/battle/seed
+        # is built from them. Datasets absent from the registry entirely
+        # (predictions dir passed via --predictions with no matching
+        # registry entry, e.g. some test fixtures) are left alone — there
+        # is nothing canonical to check them against.
+        for modality, dataset_id, lang in list(grouped):
+            valid_langs = registry_dataset_langs.get(dataset_id)
+            if valid_langs is not None and lang not in valid_langs:
+                log.warning(
+                    "dropping %d sample(s) for %s/%s/%s: %r is not a lang the "
+                    "registry's %r entry produces (%s) — pre-normalization "
+                    "legacy predictions row(s), re-published under the wrong "
+                    "lang at the source",
+                    len(grouped[(modality, dataset_id, lang)]), modality,
+                    dataset_id, lang, lang, dataset_id, sorted(valid_langs),
+                )
+                del grouped[(modality, dataset_id, lang)]
+
+        if not grouped:
+            continue
+        any_data = True
+        all_seen_modalities.update(m for (m, _, _) in grouped)
+
+        # Benchmark boards stay per (modality, dataset, lang) — paradigm-pure, so a
+        # template engine is never ranked against a keyword engine on metrics.
+        for (modality, dataset_id, lang), samples in sorted(grouped.items()):
+            if args.modality and modality != args.modality:
+                continue
+            by_competitor: dict[str, list] = {}
+            for sample_rows in samples.values():
+                for competitor_id, row in sample_rows.items():
+                    by_competitor.setdefault(competitor_id, []).append(row)
+            board_file = f"benchmark-{modality}-{dataset_id}-{lang}.json"
+            board_path = data_dir / board_file
+            input_hash = benchmark_board_input_signature(by_competitor)
+            # Skip the O(rounds * samples) bootstrap CI entirely when this
+            # board's prediction rows (+ scoring logic) are byte-identical to
+            # the last assemble run — same input, same logic, same output, so
+            # recomputing would just reproduce the file _write_json_payload's
+            # _unchanged() would no-op anyway. Only dataset_info/predictions_
+            # revisions/generated_at can legitimately differ without a row
+            # change, and none of those affect the ranked entries, so reusing
+            # the on-disk entries verbatim is safe.
+            if _board_disk_input_hash(board_path) == input_hash:
+                written_files.add(board_file)
+                log.info("Unchanged %s (input identical — skipped bootstrap)", board_path)
+                continue
+            board = build_benchmark_board(
+                modality, dataset_id, lang, by_competitor, now, input_hash=input_hash,
+            )
+            _attach_model_sizes(board, modality)
+            board.dataset_info = dataset_info.get(dataset_id)
+            own_revisions = {
+                src: sha for src, sha in resolved_revisions.items()
+                if src.endswith(f"-bench-{dataset_id}")
+            }
+            board.predictions_revisions = own_revisions or None
+            board.entries_hash = hashlib.sha256(
+                json.dumps(
+                    [e.model_dump(mode="json") for e in board.entries],
+                    sort_keys=True, default=str,
+                ).encode("utf-8")
+            ).hexdigest()
+            _write_json(board_path, board)
+            written_files.add(board_file)
+
+        # Battles + ELO pool by battle group: every plugin that answered the same
+        # stimulus in a language competes, so the intent paradigm leagues merge into
+        # one open arena (battles across all plugins, same language).
+        battle_samples: dict[tuple[str, str, str], dict[str, dict[str, Any]]] = {}
+        elo_samples: dict[tuple[str, str], dict[str, dict[str, dict[str, Any]]]] = {}
+        for (modality, dataset_id, lang), samples in grouped.items():
+            if args.modality and modality != args.modality:
+                continue
+            if modality in VOTELESS_MODALITIES:
+                # Vote-less leagues get benchmark boards only, no
+                # battles/elo-seed/leaderboard artifacts at all.
+                continue
+            group = battle_group(modality)
+            bs = battle_samples.setdefault((group, dataset_id, lang), {})
+            es = elo_samples.setdefault((group, lang), {}).setdefault(dataset_id, {})
+            for sample_id, comp_rows in samples.items():
+                bs.setdefault(sample_id, {}).update(comp_rows)
+                es.setdefault(sample_id, {}).update(comp_rows)
+
+        for (group, dataset_id, lang), samples in sorted(battle_samples.items()):
+            stats: dict[str, int] = {}
+            battles = assemble_battles(
+                group, dataset_id, lang, samples,
+                max_battles=args.max_battles, stats=stats,
+            )
+            pool = BattlesPool(
+                modality=group,
+                dataset_id=dataset_id,
+                lang=lang,
+                generated_at=now,
+                dataset_info=dataset_info.get(dataset_id),
+                battles=battles,
+                skipped_reference_mismatches=stats.get(
+                    "skipped_reference_mismatches", 0
+                ),
+            )
+            battles_file = f"battles-{group}-{dataset_id}-{lang}.json"
+            _write_json(data_dir / battles_file, pool)
+            written_files.add(battles_file)
+
+        for (group, lang), samples_by_dataset in sorted(elo_samples.items()):
+            seed = seed_elo(group, lang, samples_by_dataset, now)
+            seed.secondary_metrics = seed_secondary_metrics(group, samples_by_dataset)
+            elo_seed_file = f"elo-seed-{group}-{lang}.json"
+            _write_json(data_dir / elo_seed_file, seed)
+            written_files.add(elo_seed_file)
+
+            # Free-form matchup pool: every competitor pair, for direct subjective
+            # votes that replay into this same ELO ladder. For wake word, restrict
+            # pairs to the same phrase (a 'hey jarvis' detector is not comparable
+            # to a 'computer' one).
+            subgroups = ww_phrases if group == "wake_word" else None
+            pool = BattlesPool(
+                modality=group,
+                dataset_id="freeform",
+                lang=lang,
+                generated_at=now,
+                battles=freeform_battles(group, lang, seed.competitor_plugin,
+                                         subgroups=subgroups),
+            )
+            freeform_file = f"battles-{group}-freeform-{lang}.json"
+            _write_json(data_dir / freeform_file, pool)
+            written_files.add(freeform_file)
+
+            # Bootstrap the ELO board when none exists yet; `tally` owns it after
+            # — but `tally` only rewrites a board when at least one vote is
+            # counted *anywhere* in that run (`cmd_tally`'s `if
+            # counted_decisions:` guard), so a fighter that only ever gets
+            # prediction rows (never a human vote) could sit off a leaderboard
+            # that already existed before it was onboarded, forever. Every
+            # assemble run resyncs the board with the current seed to close
+            # that gap.
+            leaderboard_file = f"leaderboard-{group}-{lang}.json"
+            board_path = data_dir / leaderboard_file
+            written_files.add(leaderboard_file)
+            if not board_path.exists():
+                elo_board = build_elo_board(group, lang, seed, [], {})
+                _write_json(board_path, elo_board)
+            else:
+                _sync_leaderboard_with_seed(board_path, group, lang, seed)
+
+        del grouped, battle_samples, elo_samples
+
+    if not any_data:
         # A league with zero fighters/predictions registered (e.g. a
         # modality nobody has submitted a competitor for yet, like
         # ww_stream) is not a build failure — there is genuinely nothing
@@ -622,8 +892,6 @@ def cmd_assemble(args: argparse.Namespace) -> int:
                  "leaving existing data untouched", scope)
         return 0
 
-    unregistered_competitors: dict[str, int] = {}
-    grouped = group_rows(rows, unregistered=unregistered_competitors)
     if unregistered_competitors:
         _write_json_payload(
             data_dir / "assemble-summary.json",
@@ -634,172 +902,17 @@ def cmd_assemble(args: argparse.Namespace) -> int:
                 ),
             },
         )
-    # Legacy daemon rows keyed by the raw hf path (e.g.
-    # FBK-MT/Speech-MASSIVE-test/de-DE/test) instead of the canonical
-    # registry id: a board or battle filename built from such an id explodes
-    # into nonexistent directories. Filter ONCE, before every loop that
-    # embeds dataset_id in a filename; the runner-side fix re-keys new rows,
-    # and stale rows are re-run/replaced, not shimmed.
-    for modality, dataset_id, lang in [k for k in grouped
-                                       if "/" in k[1] or "\\" in k[1]]:
-        log.warning("skipping non-canonical dataset_id %r (%s/%s): "
-                    "contains a path separator", dataset_id, modality, lang)
-        del grouped[(modality, dataset_id, lang)]
-
-    # Legacy predictions rows carrying a pre-normalization short lang code
-    # (e.g. ``lang: "fr"`` published to an HF predictions repo before the
-    # dataset's own registry entry settled on ``fr-FR``) would otherwise
-    # keep regenerating a short-code board every single run — no amount of
-    # post-hoc pruning survives that, since the very next assemble run
-    # recreates the exact key it just deleted. Drop rows whose lang the
-    # dataset's registry entry doesn't recognize *at the source*, before
-    # any board/battle/seed is built from them. Datasets absent from the
-    # registry entirely (predictions dir passed via --predictions with no
-    # matching registry entry, e.g. some test fixtures) are left alone —
-    # there is nothing canonical to check them against.
-    registry_dataset_langs = _registry_dataset_langs()
-    for modality, dataset_id, lang in list(grouped):
-        valid_langs = registry_dataset_langs.get(dataset_id)
-        if valid_langs is not None and lang not in valid_langs:
-            log.warning(
-                "dropping %d sample(s) for %s/%s/%s: %r is not a lang the "
-                "registry's %r entry produces (%s) — pre-normalization "
-                "legacy predictions row(s), re-published under the wrong "
-                "lang at the source",
-                len(grouped[(modality, dataset_id, lang)]), modality,
-                dataset_id, lang, lang, dataset_id, sorted(valid_langs),
-            )
-            del grouped[(modality, dataset_id, lang)]
-    now = _now_iso()
-
-    # Benchmark boards stay per (modality, dataset, lang) — paradigm-pure, so a
-    # template engine is never ranked against a keyword engine on metrics.
-    for (modality, dataset_id, lang), samples in sorted(grouped.items()):
-        if args.modality and modality != args.modality:
-            continue
-        by_competitor: dict[str, list] = {}
-        for sample_rows in samples.values():
-            for competitor_id, row in sample_rows.items():
-                by_competitor.setdefault(competitor_id, []).append(row)
-        board_file = f"benchmark-{modality}-{dataset_id}-{lang}.json"
-        board_path = data_dir / board_file
-        input_hash = benchmark_board_input_signature(by_competitor)
-        # Skip the O(rounds * samples) bootstrap CI entirely when this
-        # board's prediction rows (+ scoring logic) are byte-identical to
-        # the last assemble run — same input, same logic, same output, so
-        # recomputing would just reproduce the file _write_json_payload's
-        # _unchanged() would no-op anyway. Only dataset_info/predictions_
-        # revisions/generated_at can legitimately differ without a row
-        # change, and none of those affect the ranked entries, so reusing
-        # the on-disk entries verbatim is safe.
-        if _board_disk_input_hash(board_path) == input_hash:
-            written_files.add(board_file)
-            log.info("Unchanged %s (input identical — skipped bootstrap)", board_path)
-            continue
-        board = build_benchmark_board(
-            modality, dataset_id, lang, by_competitor, now, input_hash=input_hash,
-        )
-        _attach_model_sizes(board, modality)
-        board.dataset_info = dataset_info.get(dataset_id)
-        own_revisions = {
-            src: sha for src, sha in resolved_revisions.items()
-            if src.endswith(f"-bench-{dataset_id}")
-        }
-        board.predictions_revisions = own_revisions or None
-        board.entries_hash = hashlib.sha256(
-            json.dumps(
-                [e.model_dump(mode="json") for e in board.entries],
-                sort_keys=True, default=str,
-            ).encode("utf-8")
-        ).hexdigest()
-        _write_json(board_path, board)
-        written_files.add(board_file)
-
-    # Battles + ELO pool by battle group: every plugin that answered the same
-    # stimulus in a language competes, so the intent paradigm leagues merge into
-    # one open arena (battles across all plugins, same language).
-    battle_samples: dict[tuple[str, str, str], dict[str, dict[str, Any]]] = {}
-    elo_samples: dict[tuple[str, str], dict[str, dict[str, dict[str, Any]]]] = {}
-    for (modality, dataset_id, lang), samples in grouped.items():
-        if args.modality and modality != args.modality:
-            continue
-        if modality in VOTELESS_MODALITIES:
-            # Vote-less leagues get benchmark boards only, no
-            # battles/elo-seed/leaderboard artifacts at all.
-            continue
-        group = battle_group(modality)
-        bs = battle_samples.setdefault((group, dataset_id, lang), {})
-        es = elo_samples.setdefault((group, lang), {}).setdefault(dataset_id, {})
-        for sample_id, comp_rows in samples.items():
-            bs.setdefault(sample_id, {}).update(comp_rows)
-            es.setdefault(sample_id, {}).update(comp_rows)
 
     # Sub-leagues now merged into a group leave stale per-paradigm battle/ELO
-    # files behind; drop them (benchmark boards are kept).
-    _clean_merged_artifacts(data_dir, {m for (m, _, _) in grouped})
-
-    for (group, dataset_id, lang), samples in sorted(battle_samples.items()):
-        stats: dict[str, int] = {}
-        battles = assemble_battles(
-            group, dataset_id, lang, samples,
-            max_battles=args.max_battles, stats=stats,
-        )
-        pool = BattlesPool(
-            modality=group,
-            dataset_id=dataset_id,
-            lang=lang,
-            generated_at=now,
-            dataset_info=dataset_info.get(dataset_id),
-            battles=battles,
-            skipped_reference_mismatches=stats.get(
-                "skipped_reference_mismatches", 0
-            ),
-        )
-        battles_file = f"battles-{group}-{dataset_id}-{lang}.json"
-        _write_json(data_dir / battles_file, pool)
-        written_files.add(battles_file)
-
-    ww_phrases = _wakeword_phrases()
-    for (group, lang), samples_by_dataset in sorted(elo_samples.items()):
-        seed = seed_elo(group, lang, samples_by_dataset, now)
-        seed.secondary_metrics = seed_secondary_metrics(group, samples_by_dataset)
-        elo_seed_file = f"elo-seed-{group}-{lang}.json"
-        _write_json(data_dir / elo_seed_file, seed)
-        written_files.add(elo_seed_file)
-
-        # Free-form matchup pool: every competitor pair, for direct subjective
-        # votes that replay into this same ELO ladder. For wake word, restrict
-        # pairs to the same phrase (a 'hey jarvis' detector is not comparable
-        # to a 'computer' one).
-        subgroups = ww_phrases if group == "wake_word" else None
-        pool = BattlesPool(
-            modality=group,
-            dataset_id="freeform",
-            lang=lang,
-            generated_at=now,
-            battles=freeform_battles(group, lang, seed.competitor_plugin,
-                                     subgroups=subgroups),
-        )
-        freeform_file = f"battles-{group}-freeform-{lang}.json"
-        _write_json(data_dir / freeform_file, pool)
-        written_files.add(freeform_file)
-
-        # Bootstrap the ELO board when none exists yet; `tally` owns it after
-        # — but `tally` only rewrites a board when at least one vote is
-        # counted *anywhere* in that run (`cmd_tally`'s `if
-        # counted_decisions:` guard), so a fighter that only ever gets
-        # prediction rows (never a human vote) could sit off a leaderboard
-        # that already existed before it was onboarded, forever. Every
-        # assemble run resyncs the board with the current seed to close
-        # that gap.
-        leaderboard_file = f"leaderboard-{group}-{lang}.json"
-        board_path = data_dir / leaderboard_file
-        written_files.add(leaderboard_file)
-        if not board_path.exists():
-            elo_board = build_elo_board(group, lang, seed, [], {})
-            _write_json(board_path, elo_board)
-        else:
-            _sync_leaderboard_with_seed(board_path, group, lang, seed)
+    # files behind; drop them (benchmark boards are kept). Safe to run once
+    # here, after every lang's artifacts are written: it only ever deletes
+    # ``battles-<sub-league-modality>-*``/``elo-seed-<...>``/
+    # ``leaderboard-<...>`` files, which never share a filename prefix with
+    # the merged-group files this run just wrote (those are named
+    # ``<...>-<battle_group>-*``, always a different string than the
+    # sub-league modality unless the sub-league IS its own group, in which
+    # case ``_clean_merged_artifacts`` is a no-op for it).
+    _clean_merged_artifacts(data_dir, all_seen_modalities)
 
     modality_scope = {args.modality} if args.modality else None
     pruned = _prune_stale_artifacts(data_dir, written_files, modality_scope)

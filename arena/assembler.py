@@ -193,6 +193,27 @@ def assemble_battles(
     candidates: dict[tuple[str, str], list[tuple[int, str, Battle]]] = {}
     skipped_reference_mismatches = 0
 
+    # §assemble memory — no single pair's queue can ever contribute more
+    # than `max_battles` battles to the final pool (the round-robin below
+    # stops the instant `len(battles) == max_battles`, regardless of how
+    # many pairs are still queued), so nothing is lost by capping each
+    # pair's candidate list to its `max_battles` best (lowest
+    # (priority, battle_id)) entries as they stream in. Without this, a
+    # dataset with many near-duplicate competitors builds
+    # O(C(competitors, 2) * samples) candidate Battle objects before the
+    # cap is ever applied — for intent_template's intents-for-eval/en-US
+    # pool (~90 competitors, ~1400 samples) that is millions of Battle
+    # objects held in memory just to keep 200, and it OOM-killed the
+    # hosted runner's 7GB assemble matrix leg. `_PAIR_RESORT_MULTIPLE`
+    # trades a little extra sorting for not re-sorting on every single
+    # insert.
+    pair_cap = max(max_battles, 1)
+    _PAIR_RESORT_MULTIPLE = 4
+
+    def _trim_pair(bucket: list[tuple[int, str, Battle]]) -> None:
+        bucket.sort(key=lambda c: (c[0], c[1]))
+        del bucket[pair_cap:]
+
     for sample_id in sorted(samples):
         rows = samples[sample_id]
         for comp_a, comp_b in itertools.combinations(sorted(rows), 2):
@@ -240,11 +261,16 @@ def assemble_battles(
             )
             priority = _battle_priority(row_a, row_b, modality)
             pair_a, pair_b = sorted((comp_a, comp_b))
-            candidates.setdefault((pair_a, pair_b), []).append((priority, bid, battle))
+            bucket = candidates.setdefault((pair_a, pair_b), [])
+            bucket.append((priority, bid, battle))
+            if len(bucket) > pair_cap * _PAIR_RESORT_MULTIPLE:
+                _trim_pair(bucket)
 
-    # Sort within each pair by (priority, battle_id) — deterministic
+    # Sort within each pair by (priority, battle_id) — deterministic —
+    # and apply the final trim (a no-op for a pair the loop above already
+    # trimmed down to `pair_cap`).
     for pair_candidates in candidates.values():
-        pair_candidates.sort(key=lambda c: (c[0], c[1]))
+        _trim_pair(pair_candidates)
 
     # Round-robin across pairs (sorted) until the cap is hit
     battles: list[Battle] = []
