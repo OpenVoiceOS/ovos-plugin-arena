@@ -38,6 +38,7 @@ import argparse
 import fnmatch
 import json
 import logging
+import multiprocessing as mp
 import random
 import re
 import signal
@@ -531,6 +532,45 @@ class AutoRunConfig:
     # marked complete (that would silently drop real, never-collected
     # samples) nor left retried forever every single sweep.
     max_consecutive_error_batches: int = 5
+    # How long the parent waits for a batch's *child process* beyond
+    # whatever slack is left on the batch's own deadline, before deciding
+    # the child is wedged (typically stuck inside ``adapter.load_engine``)
+    # and killing it. This is on top of, not instead of, the deadline —
+    # a hung model load never even reaches the per-sample SIGALRM in
+    # ``runner.plugin_runner``, so without this watchdog a bad engine load
+    # blocks the pair (and the whole daemon, pre-isolation) indefinitely.
+    load_timeout: float = 1200.0  # 20 minutes
+
+
+class _ChildTimeoutError(RuntimeError):
+    """A batch's child process did not report back within its timeout."""
+
+
+def _child_run_pair_batch(conn, adapter_factory, competitor, dataset_id, lang,
+                           eval_def, revision, out_path, audio_dir, results_repo,
+                           max_new_samples, deadline):
+    """Entry point for the isolated child process (module-level: must be
+    importable by name for :mod:`multiprocessing`'s ``spawn`` start method).
+
+    Runs exactly one ``mb.run_competitor_lang`` call and reports the result
+    (or the failure) back to the parent over *conn*. Never raises out of
+    this function — any exception, including one from ``adapter_factory()``
+    itself, is captured and sent back so the parent can quarantine the
+    fighter with real diagnostics instead of just "child died".
+    """
+    try:
+        adapter = adapter_factory()
+        result = mb.run_competitor_lang(
+            adapter, competitor, dataset_id, lang, eval_def, revision,
+            out_path, audio_dir, results_repo,
+            max_new_samples=max_new_samples, deadline=deadline,
+        )
+        conn.send(("ok", result))
+    except BaseException as exc:  # noqa: BLE001 - report every failure home
+        import traceback
+        conn.send(("error", repr(exc), traceback.format_exc()))
+    finally:
+        conn.close()
 
 
 class AutoRunner:
@@ -584,7 +624,6 @@ class AutoRunner:
 
     def _run_pair_batch(self, modality, competitor, dataset, lang, batch,
                          deadline: float | None = None) -> mb.BatchResult:
-        adapter = adapter_factories()[modality]()
         bench_dir = self.config.output_dir / dataset.dataset_id
         out_path = (bench_dir / modality / "predictions" / lang
                     / f"{competitor.competitor_id}.jsonl")
@@ -599,10 +638,84 @@ class AutoRunner:
                             competitor.competitor_id, dataset.dataset_id, lang, exc)
 
         revision = _revision_for(dataset)
-        return mb.run_competitor_lang(
-            adapter, competitor, dataset.dataset_id, lang, dataset, revision,
-            out_path, audio_dir, repo, max_new_samples=batch, deadline=deadline,
+        adapter_factory = adapter_factories()[modality]
+        return self._run_child_batch(
+            adapter_factory, competitor, dataset.dataset_id, lang, dataset,
+            revision, out_path, audio_dir, repo, batch, deadline,
         )
+
+    def _run_child_batch(self, adapter_factory, competitor, dataset_id, lang,
+                          eval_def, revision, out_path, audio_dir, results_repo,
+                          max_new_samples, deadline: float | None) -> mb.BatchResult:
+        """Run one batch of ``mb.run_competitor_lang`` in a ``spawn``ed child
+        process so a wedged/leaking ``adapter.load_engine`` (onnxruntime,
+        torch, ...) never accumulates in — or hangs — the long-lived autorun
+        daemon. ``spawn`` rather than ``fork``: forking a process that has
+        already loaded onnxruntime/torch threads is unsafe.
+
+        The parent waits at most ``deadline`` slack plus
+        :attr:`AutoRunConfig.load_timeout`; past that the child is
+        considered wedged (typically stuck inside the model load itself,
+        which has no timeout of its own — the per-sample SIGALRM in
+        ``runner.plugin_runner`` never even gets that far) and killed.
+        """
+        pair_desc = f"{competitor.competitor_id}/{dataset_id}/{lang}"
+        ctx = mp.get_context("spawn")
+        parent_conn, child_conn = ctx.Pipe(duplex=False)
+        proc = ctx.Process(
+            target=_child_run_pair_batch,
+            args=(child_conn, adapter_factory, competitor, dataset_id, lang,
+                  eval_def, revision, out_path, audio_dir, results_repo,
+                  max_new_samples, deadline),
+            daemon=True,
+        )
+        proc.start()
+        child_conn.close()  # parent only reads
+
+        now = time.monotonic()
+        slack = max(0.0, deadline - now) if deadline is not None else 0.0
+        timeout = slack + self.config.load_timeout
+
+        try:
+            if not parent_conn.poll(timeout):
+                self._kill_child(proc, pair_desc)
+                raise _ChildTimeoutError(
+                    f"load_or_batch_timeout: {pair_desc} exceeded {timeout:.0f}s "
+                    f"(load_timeout={self.config.load_timeout:.0f}s)"
+                )
+            try:
+                outcome = parent_conn.recv()
+            except EOFError:
+                proc.join(5)
+                raise RuntimeError(
+                    f"{pair_desc}: child process died without a result "
+                    f"(exitcode={proc.exitcode})"
+                )
+        finally:
+            parent_conn.close()
+
+        proc.join(5)
+        if proc.is_alive():
+            self._kill_child(proc, pair_desc)
+
+        status = outcome[0]
+        if status == "ok":
+            return outcome[1]
+        _, err_repr, tb = outcome
+        log.error("child process for %s raised:\n%s", pair_desc, tb)
+        raise RuntimeError(f"{pair_desc}: {err_repr}")
+
+    @staticmethod
+    def _kill_child(proc, pair_desc: str) -> None:
+        if not proc.is_alive():
+            return
+        log.error("child process for %s is wedged — terminating pid=%s",
+                   pair_desc, proc.pid)
+        proc.terminate()
+        proc.join(5)
+        if proc.is_alive():
+            proc.kill()
+            proc.join(5)
 
     def pair_is_complete(self, modality, competitor, dataset, lang,
                           deadline: float | None = None) -> bool:
@@ -1007,6 +1120,10 @@ def build_arg_parser() -> argparse.ArgumentParser:
                         help="Consecutive all-error (0 written, some "
                         "errored) batches before a pair's fighter is "
                         "quarantined instead of retried forever (default: 5)")
+    parser.add_argument("--load-timeout", type=float, default=1200.0,
+                        help="Extra seconds (beyond any deadline slack) the "
+                        "parent waits for a batch's child process before "
+                        "killing it as wedged (default: 1200, i.e. 20min)")
     parser.add_argument("--output-dir", default="predictions",
                         help="Local root for prediction JSONLs / audio / "
                         "state file (default: predictions)")
@@ -1126,6 +1243,7 @@ def main(argv: list[str] | None = None) -> int:
         upload=not args.no_upload,
         seed_from_hf=not args.no_seed,
         max_consecutive_error_batches=args.max_consecutive_error_batches,
+        load_timeout=args.load_timeout,
     )
     lister = None if args.no_seed else HubLister()
     runner = AutoRunner(config, lister=lister)
