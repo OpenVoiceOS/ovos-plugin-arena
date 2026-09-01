@@ -47,6 +47,13 @@ stages. A single-stage pipeline benchmarks one engine; a multi-stage pipeline
 is an ensemble fighter. `plugin` is derived automatically for single-engine
 pipelines, so you can omit it.
 
+Each stage name is an OPM `opm.pipeline` entry point plus a confidence
+tier, not a package name: `ovos-adapt-parser` provides the
+`ovos-adapt-pipeline-plugin` entry point, `padacioso` provides
+`ovos-padacioso-pipeline-plugin`, and `ovos-core` itself only ships the
+`ovos-converse-pipeline-plugin`, `ovos-fallback-pipeline-plugin` and
+`ovos-stop-pipeline-plugin` entry points, none of them an intent matcher.
+
 ```json
 {
   "competitor_id": "example-padatious-medium",

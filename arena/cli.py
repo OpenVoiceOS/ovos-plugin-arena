@@ -632,6 +632,7 @@ def cmd_assemble(args: argparse.Namespace) -> int:
     data_dir.mkdir(parents=True, exist_ok=True)
 
     sources = [s.strip() for s in args.predictions.split(",") if s.strip()]
+    explicit_local_dirs = [s for s in sources if Path(s).is_dir()]
     if not sources:
         # Registry-driven default: every eval dataset's predictions_hf repo.
         # Scoped to --modality when given, so a modality-scoped assemble
@@ -948,6 +949,23 @@ def cmd_assemble(args: argparse.Namespace) -> int:
         # to assemble, and the matrix leg should complete cleanly instead
         # of failing the whole workflow run every single day.
         scope = f" for modality {args.modality!r}" if args.modality else ""
+        if explicit_local_dirs:
+            # An explicit --predictions local dir yielding zero rows is not
+            # the same "genuinely nothing to assemble" case as the HF/
+            # registry-driven path above: it almost always means the
+            # directory doesn't match the expected layout
+            # (<dir>/<lang-REGION>/<fighter>.jsonl, see
+            # ``iter_predictions_dir``) rather than a real empty league, so
+            # silently no-op'ing here just hides a wrong path. Fail loudly
+            # instead.
+            log.error(
+                "nothing to assemble%s — 0 rows loaded from %s; expected "
+                "<lang-REGION>/<fighter>.jsonl directly under each given "
+                "directory (e.g. predictions/snips/intent_template/en-US/"
+                "some-fighter.jsonl)",
+                scope, ", ".join(explicit_local_dirs),
+            )
+            return 1
         log.info("nothing to assemble%s — no predictions loaded, "
                  "leaving existing data untouched", scope)
         return 0
