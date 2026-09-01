@@ -29,7 +29,7 @@ from pathlib import Path
 from arena.metrics import domain_of
 from arena.version import __version__ as ARENA_VERSION
 from registry.loaders import load_all_competitors, load_dataset
-from runner.audio_io import stream_audio_dataset, stream_manifest_audio
+from runner.audio_io import resolve_sample_cap, stream_audio_dataset, stream_manifest_audio
 from runner.intent_pipeline import (
     ENGINE_REGISTRY,
     IntentPipeline,
@@ -135,13 +135,16 @@ def _iter_audio_samples(dataset_def, lang: str, revision: str, max_samples: int)
         if src.file_pattern:
             update["file_pattern"] = src.file_pattern.format(lang=lang)
         src = src.model_copy(update=update)
-    streamer = (stream_manifest_audio
-                if (src.file_pattern or "").endswith((".csv", ".tsv", ".jsonl"))
-                else stream_audio_dataset)
-    yield from streamer(
-        src, audio_key=audio_key, extra_keys={"expected_intent": intent_key},
-        revision=revision, max_samples=max_samples,
+    is_manifest = (src.file_pattern or "").endswith((".csv", ".tsv", ".jsonl"))
+    streamer = stream_manifest_audio if is_manifest else stream_audio_dataset
+    effective_max_samples, seed = resolve_sample_cap(dataset_def, max_samples)
+    stream_kwargs = dict(
+        audio_key=audio_key, extra_keys={"expected_intent": intent_key},
+        revision=revision, max_samples=effective_max_samples,
     )
+    if not is_manifest:
+        stream_kwargs["seed"] = seed
+    yield from streamer(src, **stream_kwargs)
 
 
 def transcribe_dataset(

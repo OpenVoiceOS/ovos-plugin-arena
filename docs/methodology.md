@@ -146,6 +146,35 @@ settled result.
 - **`provisional`** boards should be captioned as such in the frontend
   rather than presented with the same confidence as an established board.
 
+## Dataset sampling policy
+
+A benchmark board is only comparable across fighters if every fighter is
+scored against the same rows. Some eval corpora are far larger than a sweep
+needs — streaming a whole large corpus every run wastes compute without
+improving the estimate, and letting each sweep's sample count depend on
+whatever `--max-samples` an operator happened to type that day makes runs
+incomparable to each other even for the same fighter. A large dataset's
+registry entry declares a `sample_policy`: a row cap and a seed that pin one
+deterministic subset, drawn the same way every time a sweep streams that
+dataset. Datasets small enough to score in full carry no policy and stream
+unrestricted.
+
+Declaring a policy only fixes which rows a sweep *would* draw — it does not
+by itself make two already-swept fighters comparable. A fighter swept before
+a dataset had a policy, one swept against the policy, and one swept with a
+smaller ad hoc `--max-samples` can each hold a different subset of the
+corpus's rows, and a board built straight from those predictions would rank
+them against each other anyway, silently mixing sample populations. Closing
+that gap is a separate, explicit step: publishing the policy's selected row
+ids as a manifest (`sample_sets/<lang>.json`, alongside a dataset's
+predictions) that board assembly downloads and filters every fighter's rows
+against before scoring. A fighter is only ranked once its rows cover most of
+the manifest; one that covers too little is marked unranked instead of
+folded into the ranking on an incomplete or mismatched sample. A dataset
+whose policy exists but has no published manifest yet falls back to scoring
+whatever rows each fighter happens to have, flagged as an unmanaged sample
+set rather than treated as comparable.
+
 ## Per-metric ladders
 
 A league's primary metric is not the only number worth ranking on. A TTS

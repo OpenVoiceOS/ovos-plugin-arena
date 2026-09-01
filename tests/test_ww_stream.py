@@ -399,7 +399,7 @@ class TestPooledDatasetNegatives:
         monkeypatch.setattr("registry.loaders.load_dataset", fake_load_dataset)
 
         def fake_stream_audio_dataset(source, audio_key, extra_keys, revision,
-                                      max_samples=0, id_key=None):
+                                      max_samples=0, id_key=None, seed=None):
             assert source.hf_id == "MLCommons/ml_spoken_words"
             for i in range(3):
                 yield f"clip{i}", {

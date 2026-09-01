@@ -353,7 +353,8 @@ class TestSentinelReferenceFilter:
         ]
 
         def fake_stream_audio_dataset(source, audio_key, extra_keys,
-                                       revision, max_samples=0, id_key=None):
+                                       revision, max_samples=0, id_key=None,
+                                       seed=None):
             yield from fake_rows
 
         monkeypatch.setattr(

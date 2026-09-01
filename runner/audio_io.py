@@ -9,11 +9,59 @@ arena core and tests do not pull in audio stacks.
 from __future__ import annotations
 
 import logging
+import random
 from collections.abc import Iterable, Iterator
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
 TARGET_SR = 16000
+
+
+def select_sample_positions(total: int, max_samples: int | None, seed: int) -> set[int] | None:
+    """Deterministic subset of row positions out of a ``total``-row corpus.
+
+    Sorted corpus order (positions ``0..total-1``, the stable order the
+    streamer already visits files/rows in) is shuffled with a fixed ``seed``
+    and truncated to the first ``max_samples`` — the SAME subset every run,
+    for every fighter, given the same ``(total, max_samples, seed)``.
+    Returns ``None`` when no cap applies (stream every row).
+    """
+    if not max_samples or max_samples >= total:
+        return None
+    positions = list(range(total))
+    random.Random(seed).shuffle(positions)
+    return set(positions[:max_samples])
+
+
+def resolve_sample_cap(dataset_def, cli_max_samples: int = 0) -> tuple[int, int | None]:
+    """Merge an operator ``--max-samples`` with the dataset's ``sample_policy``.
+
+    The effective cap is the SMALLER of the CLI value and the policy's cap:
+    a CLI cap of 0/absent defers entirely to the registry policy (every
+    fighter then draws the SAME registry-owned subset); an explicit CLI cap
+    smaller than the policy's cap still wins (smoke runs stay small); a CLI
+    cap LARGER than the policy's is clamped down to the policy's cap and
+    logged — an operator can shrink a sweep below the policy, never grow it
+    past what the policy allows. Returns ``(effective_max_samples, seed)``;
+    ``seed`` is ``None`` when no policy applies (legacy plain
+    head-of-stream truncation, unchanged behaviour for datasets that don't
+    declare a ``sample_policy``).
+    """
+    policy = getattr(dataset_def, "sample_policy", None)
+    policy_cap = policy.max_samples if policy else None
+    if policy_cap is None:
+        return cli_max_samples, None
+    if cli_max_samples and cli_max_samples < policy_cap:
+        return cli_max_samples, policy.seed
+    if cli_max_samples and cli_max_samples > policy_cap:
+        logger.info(
+            "--max-samples %d exceeds %s's sample_policy cap of %d — "
+            "clamped to %d",
+            cli_max_samples, getattr(dataset_def, "dataset_id", "<dataset>"),
+            policy_cap, policy_cap,
+        )
+    return policy_cap, policy.seed
 
 
 def decode_audio_bytes(raw_bytes: bytes, target_sr: int = TARGET_SR):
@@ -202,9 +250,14 @@ def _pooled_dataset_negatives(dataset_ids: list[str], max_per_class: int
         neg_def = load_dataset("wake_word", did)
         fields = neg_def.reference_fields or {}
         audio_key = fields.get("audio", "audio")
+        # each pooled negatives source uses ITS OWN sample_policy — a big
+        # unrestricted corpus (e.g. ml_spoken_words) stays capped even when
+        # the parent wake-word dataset's own share (`per`) would ask for more.
+        effective_per, seed = resolve_sample_cap(neg_def, per)
         for sid, sample in stream_audio_dataset(
                 neg_def.source, audio_key=audio_key, extra_keys={},
-                revision=neg_def.source.revision, max_samples=per):
+                revision=neg_def.source.revision, max_samples=effective_per,
+                seed=seed):
             sample["label"] = "negative"
             sample.setdefault("audio_url", None)
             yield f"{did}/{sid}", sample
@@ -490,22 +543,13 @@ def stream_manifest_audio(
             count += 1
 
 
-def stream_audio_dataset(
-    source,
-    audio_key: str,
-    extra_keys: dict[str, str],
-    revision: str,
-    max_samples: int = 0,
-    id_key: str | None = None,
-) -> Iterator[tuple[str, dict]]:
-    """Yield ``(sample_id, {"array", "sr", **extras})`` per audio sample.
-
-    *extra_keys* maps an output field name to its source column name (e.g.
-    ``{"ground_truth": "transcription"}`` for STT, ``{"label": "label"}`` for
-    wake word); the named columns are copied through verbatim.
+def resolve_parquet_locals(source, revision: str) -> list[str]:
+    """Download every parquet shard for *source* and return local paths, in
+    the same file order the row-walk below visits them (``_parquet_files``'s
+    order). Downloads are cached by ``huggingface_hub``, so a caller that
+    already walked this source (e.g. :func:`stream_audio_dataset` right
+    after :func:`compute_sample_set`) pays no extra network cost.
     """
-    import numpy as np
-    import pyarrow.parquet as pq
     from huggingface_hub import hf_hub_download
 
     files = _parquet_files(source.hf_id, source.subset, source.split, revision)
@@ -514,40 +558,104 @@ def stream_audio_dataset(
             f"no parquet files for {source.hf_id} "
             f"subset={source.subset} split={source.split}"
         )
+    return [hf_hub_download(source.hf_id, pfile, repo_type="dataset",
+                            revision=revision) for pfile in files]
 
-    count = 0
-    for pfile in files:
-        local = hf_hub_download(source.hf_id, pfile, repo_type="dataset",
-                                revision=revision)
+
+def resolve_selected_positions(
+    locals_: list[str], max_samples: int, seed: int | None,
+) -> set[int] | None:
+    """:func:`select_sample_positions` over the corpus's total row count,
+    read cheaply from parquet footer metadata (no row-group I/O)."""
+    if seed is None or not max_samples:
+        return None
+    import pyarrow.parquet as pq
+
+    total = sum(pq.ParquetFile(lp).metadata.num_rows for lp in locals_)
+    return select_sample_positions(total, max_samples, seed)
+
+
+def _iter_parquet_rows(
+    locals_: list[str], audio_key: str,
+) -> Iterator[tuple[int, dict, Any]]:
+    """Yield ``(position, row, audio_cell)`` for every row across every
+    shard in *locals_*, in stable corpus order — position 0 is the first
+    row of the first shard, and so on. No audio is decoded here; ``row`` is
+    every column's raw cell for that row (incl. the still-undecoded
+    ``audio_cell``).
+
+    This is the SINGLE row-walk both :func:`stream_audio_dataset` (which
+    decodes audio for the rows it keeps) and
+    :func:`runner.publish_sample_set.compute_sample_set` (which only
+    derives sample ids, never decoding) build on — the two are guaranteed
+    to agree on which row is "position N" and what its sample_id is.
+    """
+    import pyarrow.parquet as pq
+
+    position = 0
+    for local in locals_:
         table = pq.read_table(local)
         for batch in table.to_batches(max_chunksize=64):
             rows = batch.to_pydict()
             n = len(rows.get(audio_key, []))
             for i in range(n):
-                if max_samples and count >= max_samples:
-                    return
-                audio_cell = (rows.get(audio_key) or [None])[i]
-                if audio_cell is None:
+                row = {k: (rows.get(k) or [None])[i] for k in (rows or {})}
+                yield position, row, row.get(audio_key)
+                position += 1
+
+
+def stream_audio_dataset(
+    source,
+    audio_key: str,
+    extra_keys: dict[str, str],
+    revision: str,
+    max_samples: int = 0,
+    id_key: str | None = None,
+    seed: int | None = None,
+) -> Iterator[tuple[str, dict]]:
+    """Yield ``(sample_id, {"array", "sr", **extras})`` per audio sample.
+
+    *extra_keys* maps an output field name to its source column name (e.g.
+    ``{"ground_truth": "transcription"}`` for STT, ``{"label": "label"}`` for
+    wake word); the named columns are copied through verbatim.
+
+    *seed*, when given together with *max_samples*, switches from plain
+    head-of-stream truncation to :func:`select_sample_positions`'s
+    deterministic sorted-shuffle-head subset — the caller (see
+    :func:`resolve_sample_cap`) passes a dataset's ``sample_policy.seed``
+    here so every fighter and every run draw the SAME rows. ``seed=None``
+    keeps the legacy behaviour (first *max_samples* rows in corpus order),
+    used when a dataset has no ``sample_policy``.
+    """
+    import numpy as np
+
+    locals_ = resolve_parquet_locals(source, revision)
+    selected = resolve_selected_positions(locals_, max_samples, seed)
+
+    count = 0
+    for pos, row, audio_cell in _iter_parquet_rows(locals_, audio_key):
+        if selected is not None and pos not in selected:
+            continue
+        if max_samples and count >= max_samples:
+            return
+        if audio_cell is None:
+            continue
+        array = sr = None
+        if isinstance(audio_cell, dict):
+            if audio_cell.get("array") is not None:
+                array = np.asarray(audio_cell["array"], dtype=np.float32)
+                sr = audio_cell.get("sampling_rate", TARGET_SR)
+            elif audio_cell.get("bytes"):
+                try:
+                    array, sr = decode_audio_bytes(audio_cell["bytes"])
+                except Exception as exc:
+                    logger.warning("decode error: %s", exc)
                     continue
-                array = sr = None
-                if isinstance(audio_cell, dict):
-                    if audio_cell.get("array") is not None:
-                        array = np.asarray(audio_cell["array"], dtype=np.float32)
-                        sr = audio_cell.get("sampling_rate", TARGET_SR)
-                    elif audio_cell.get("bytes"):
-                        try:
-                            array, sr = decode_audio_bytes(audio_cell["bytes"])
-                        except Exception as exc:
-                            logger.warning("decode error: %s", exc)
-                            continue
-                if array is None:
-                    continue
-                sample = {"array": array, "sr": sr}
-                for out_field, col in extra_keys.items():
-                    sample[out_field] = (rows.get(col) or [None])[i]
-                sid = _sample_id(
-                    {k: (rows.get(k) or [None])[i] for k in (rows or {})},
-                    audio_cell, audio_key, id_key, count,
-                )
-                yield sid, sample
-                count += 1
+        if array is None:
+            continue
+        sample = {"array": array, "sr": sr}
+        for out_field, col in extra_keys.items():
+            sample[out_field] = row.get(col)
+        sid = _sample_id(row, audio_cell, audio_key, id_key, pos)
+        yield sid, sample
+        count += 1
