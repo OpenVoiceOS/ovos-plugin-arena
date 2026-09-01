@@ -183,6 +183,33 @@ def _pool_negatives(sources, max_per_class):
     return out
 
 
+def _pooled_dataset_negatives(dataset_ids: list[str], max_per_class: int
+                              ) -> Iterator[tuple[str, dict]]:
+    """Wake-word negatives pooled from other *registry* datasets, resolved via
+    the registry loader and streamed through :func:`stream_audio_dataset` —
+    the generic parquet-aware audio path used for STT/VAD positives.
+
+    Unlike :func:`_pool_negatives` (raw HF repo file listing, audiofolder
+    corpora only), this handles negatives shipped as parquet row groups
+    (e.g. ml_spoken_words), which ``huggingface_hub.list_repo_files``-based
+    pooling cannot consume. Each source gets an even share of
+    ``max_per_class`` so one big corpus does not dominate the pool.
+    """
+    from registry.loaders import load_dataset
+
+    per = max(1, -(-max_per_class // len(dataset_ids))) if max_per_class else 0
+    for did in dataset_ids:
+        neg_def = load_dataset("wake_word", did)
+        fields = neg_def.reference_fields or {}
+        audio_key = fields.get("audio", "audio")
+        for sid, sample in stream_audio_dataset(
+                neg_def.source, audio_key=audio_key, extra_keys={},
+                revision=neg_def.source.revision, max_samples=per):
+            sample["label"] = "negative"
+            sample.setdefault("audio_url", None)
+            yield f"{did}/{sid}", sample
+
+
 def _ava_speech_windows(onsets: list, offsets: list, duration_s: float,
                         seg_s: float) -> tuple[list, list]:
     """Split one AVA-Speech-style onset/offset manifest into fixed-length
@@ -388,6 +415,13 @@ def stream_ww(dataset_def, revision: str, max_per_class: int = 0
         neg = same_neg
 
     yield from _emit_ww(pos, neg, max_per_class)
+
+    if dataset_def.negatives_dataset_ids:
+        # additional, independent negatives channel — pooled from other
+        # registry datasets (parquet-shaped corpora) on top of whichever of
+        # the above (negatives_sources/negatives_hf/same-corpus) applied.
+        yield from _pooled_dataset_negatives(
+            dataset_def.negatives_dataset_ids, max_per_class)
 
 
 def stream_manifest_audio(
