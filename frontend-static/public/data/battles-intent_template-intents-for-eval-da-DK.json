@@ -2,14 +2,13 @@
   "modality": "intent_template",
   "dataset_id": "intents-for-eval",
   "lang": "da-DK",
-  "generated_at": "2026-08-13T04:56:01.302612+00:00",
+  "generated_at": "2026-09-01T08:18:52.931728+00:00",
   "dataset_info": {
     "url": "https://huggingface.co/datasets/OpenVoiceOS/intents-for-eval",
     "license": "apache-2.0",
     "notes": "OVOS canonical paradigm-neutral intent benchmark: 50 intents, 1750 test rows per language across template / paraphrase / near_ood / far_ood / asr_noise / typos buckets, with slot annotations. far_ood rows carry expected_intent=null — the correct behaviour is no match.",
     "predictions": [
       "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-bench-intents-for-eval",
-      "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-keyword-bench-intents-for-eval",
       "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-template-bench-intents-for-eval"
     ],
     "train_datasets": {
@@ -88,39 +87,43 @@
       "plugin_b": "ovos-hierarchical-knn-pipeline"
     },
     {
-      "battle_id": "2600e3991c08aacc",
+      "battle_id": "1f6894265409043b",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/01338",
-      "input_text": "sæt lysstyrken til 50",
+      "sample_id": "da-DK/01444",
+      "input_text": "dagens nyheder",
       "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
+      "reference": "news:read_headlines",
       "prediction_a": {
-        "intent": null
+        "intent": "news:read_topic"
       },
       "prediction_b": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": null
       },
-      "competitor_a": "hierarchical-knn-medium",
-      "competitor_b": "jurebes-autoencoder-logreg-wide",
-      "plugin_a": "ovos-hierarchical-knn-pipeline",
-      "plugin_b": "ovos-jurebes-pipeline-plugin"
+      "competitor_a": "jurebes-autoencoder-logreg-wide",
+      "competitor_b": "hierarchical-knn-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-hierarchical-knn-pipeline"
     },
     {
-      "battle_id": "1c90678a4572b328",
+      "battle_id": "126607ab2f51d8ba",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/01404",
-      "input_text": "sæt lysstyrken til 50",
+      "sample_id": "da-DK/01127",
+      "input_text": "book lægebesøg til lørdag",
       "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
+      "reference": "calendar:create_event",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "calendar:reschedule_event",
+        "slots": {
+          "title": "lægebesøg",
+          "date": "lørdag"
+        }
       },
       "competitor_a": "hierarchical-knn-medium",
       "competitor_b": "jurebes-autoencoder-rbf-svc",
@@ -191,19 +194,22 @@
       "plugin_b": "ovos-hierarchical-knn-pipeline"
     },
     {
-      "battle_id": "18a5c3c4d1380104",
+      "battle_id": "00421edbac5b7a86",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/01306",
-      "input_text": "sæt lysstyrken til 50",
+      "sample_id": "da-DK/00416",
+      "input_text": "sæt termostaten til 22",
       "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
+      "reference": "smarthome:set_thermostat",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "smarthome:set_thermostat",
+        "slots": {
+          "temperature": "22"
+        }
       },
       "competitor_a": "hierarchical-knn-medium",
       "competitor_b": "jurebes-complement-nb-count",
@@ -231,44 +237,47 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "81fd34acec0de784",
+      "battle_id": "032025ce038c0ac9",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/01436",
-      "input_text": "sæt lysstyrken til 50",
+      "sample_id": "da-DK/00231",
+      "input_text": "sæt en arbejds-alarm til klokken 7",
       "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
+      "reference": "timers_alarms:set_alarm",
       "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "smarthome:set_brightness_light"
-      },
-      "competitor_a": "hierarchical-knn-medium",
-      "competitor_b": "jurebes-denoising-autoencoder-logreg",
-      "plugin_a": "ovos-hierarchical-knn-pipeline",
-      "plugin_b": "ovos-jurebes-pipeline-plugin"
-    },
-    {
-      "battle_id": "028ca7cb5ff42213",
-      "modality": "intent_template",
-      "dataset_id": "intents-for-eval",
-      "lang": "da-DK",
-      "sample_id": "da-DK/00682",
-      "input_text": "jeg skal bruge en tankstation",
-      "audio_url": null,
-      "reference": "navigation:find_nearby",
-      "prediction_a": {
-        "intent": "weather:weather_today"
+        "intent": "timers_alarms:set_alarm",
+        "slots": {
+          "time": "klokken 7"
+        }
       },
       "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-extra-trees",
+      "competitor_a": "jurebes-denoising-autoencoder-logreg",
       "competitor_b": "hierarchical-knn-medium",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-hierarchical-knn-pipeline"
+    },
+    {
+      "battle_id": "01576b7da345ad56",
+      "modality": "intent_template",
+      "dataset_id": "intents-for-eval",
+      "lang": "da-DK",
+      "sample_id": "da-DK/00714",
+      "input_text": "er vi der snart",
+      "audio_url": null,
+      "reference": "navigation:eta_query",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "navigation:traffic_status"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-extra-trees",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
       "battle_id": "00311f1615ea2f54",
@@ -324,7 +333,10 @@
       "audio_url": null,
       "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "prediction_b": {
         "intent": null
@@ -415,47 +427,48 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "00e04a23b18650f5",
+      "battle_id": "008c2a7a5b05dac0",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/00944",
-      "input_text": "fonetisk transkription af allestedsnærværende",
+      "sample_id": "da-DK/00126",
+      "input_text": "næste sang",
       "audio_url": null,
-      "reference": "search_qa:spell_word",
+      "reference": "media:skip_track",
       "prediction_a": {
-        "intent": "search_qa:define_word",
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:next_story"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-lda-classifier",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "1c4d7c27aebc0f23",
+      "modality": "intent_template",
+      "dataset_id": "intents-for-eval",
+      "lang": "da-DK",
+      "sample_id": "da-DK/01253",
+      "input_text": "omplanlæg team møde til fredag",
+      "audio_url": null,
+      "reference": "calendar:reschedule_event",
+      "prediction_a": {
+        "intent": "timers_alarms:snooze_alarm",
         "slots": {
-          "word": "allestedsnærværende"
+          "title": "team møde",
+          "date": "fredag"
         }
       },
       "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-lda-classifier",
+      "competitor_a": "jurebes-lda-logreg",
       "competitor_b": "hierarchical-knn-medium",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-hierarchical-knn-pipeline"
-    },
-    {
-      "battle_id": "04107beaebb71918",
-      "modality": "intent_template",
-      "dataset_id": "intents-for-eval",
-      "lang": "da-DK",
-      "sample_id": "da-DK/01306",
-      "input_text": "sæt lysstyrken til 50",
-      "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "smarthome:set_brightness_light"
-      },
-      "competitor_a": "hierarchical-knn-medium",
-      "competitor_b": "jurebes-lda-logreg",
-      "plugin_a": "ovos-hierarchical-knn-pipeline",
-      "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
       "battle_id": "01bcd970e3f2ac4c",
@@ -527,7 +540,10 @@
       "audio_url": null,
       "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "prediction_b": {
         "intent": null
@@ -550,7 +566,10 @@
         "intent": null
       },
       "prediction_b": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "competitor_a": "hierarchical-knn-medium",
       "competitor_b": "jurebes-logreg-char",
@@ -570,7 +589,10 @@
         "intent": null
       },
       "prediction_b": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "competitor_a": "hierarchical-knn-medium",
       "competitor_b": "jurebes-logreg-elasticnet",
@@ -618,44 +640,44 @@
       "plugin_b": "ovos-hierarchical-knn-pipeline"
     },
     {
-      "battle_id": "02c1a667266fa1c3",
+      "battle_id": "2cdc604bc78d3b86",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/01404",
-      "input_text": "sæt lysstyrken til 50",
+      "sample_id": "da-DK/01112",
+      "input_text": "hvordan er vejret",
       "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
+      "reference": "weather:weather_today",
       "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-lsa-logreg",
-      "competitor_b": "hierarchical-knn-medium",
-      "plugin_a": "ovos-jurebes-pipeline-plugin",
-      "plugin_b": "ovos-hierarchical-knn-pipeline"
+      "prediction_b": {
+        "intent": "weather:weather_location"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-lsa-logreg",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "02becaf7d6f7d40b",
+      "battle_id": "00ca9313202f7aa8",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/01420",
-      "input_text": "tysk tak",
+      "sample_id": "da-DK/00808",
+      "input_text": "ordbogsopslag for serendipitet",
       "audio_url": null,
-      "reference": "system_control:change_language",
+      "reference": "search_qa:define_word",
       "prediction_a": {
-        "intent": "search_qa:translate_phrase"
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-lsa-rbf-svc",
-      "competitor_b": "hierarchical-knn-medium",
-      "plugin_a": "ovos-jurebes-pipeline-plugin",
-      "plugin_b": "ovos-hierarchical-knn-pipeline"
+      "prediction_b": {
+        "intent": "search_qa:spell_word"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-lsa-rbf-svc",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
       "battle_id": "00463d278c72084d",
@@ -701,26 +723,6 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "636808c40871166c",
-      "modality": "intent_template",
-      "dataset_id": "intents-for-eval",
-      "lang": "da-DK",
-      "sample_id": "da-DK/01436",
-      "input_text": "sæt lysstyrken til 50",
-      "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "smarthome:set_brightness_light"
-      },
-      "competitor_a": "hierarchical-knn-medium",
-      "competitor_b": "jurebes-nb-complement",
-      "plugin_a": "ovos-hierarchical-knn-pipeline",
-      "plugin_b": "ovos-jurebes-pipeline-plugin"
-    },
-    {
       "battle_id": "15c9e2830814be72",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
@@ -733,7 +735,10 @@
         "intent": null
       },
       "prediction_b": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "competitor_a": "hierarchical-knn-medium",
       "competitor_b": "jurebes-nb-multinomial",
@@ -741,59 +746,19 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "0409d18dd3723184",
+      "battle_id": "04bb2fa3c440f88a",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/01306",
-      "input_text": "sæt lysstyrken til 50",
+      "sample_id": "da-DK/01561",
+      "input_text": "dagens overskrifter",
       "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
+      "reference": "news:read_headlines",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "smarthome:set_brightness_light"
-      },
-      "competitor_a": "hierarchical-knn-medium",
-      "competitor_b": "jurebes-nmf-logreg",
-      "plugin_a": "ovos-hierarchical-knn-pipeline",
-      "plugin_b": "ovos-jurebes-pipeline-plugin"
-    },
-    {
-      "battle_id": "3987632009708b1d",
-      "modality": "intent_template",
-      "dataset_id": "intents-for-eval",
-      "lang": "da-DK",
-      "sample_id": "da-DK/01404",
-      "input_text": "sæt lysstyrken til 50",
-      "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
-      "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "jurebes-nusvc",
-      "competitor_b": "hierarchical-knn-medium",
-      "plugin_a": "ovos-jurebes-pipeline-plugin",
-      "plugin_b": "ovos-hierarchical-knn-pipeline"
-    },
-    {
-      "battle_id": "0504433b5c373508",
-      "modality": "intent_template",
-      "dataset_id": "intents-for-eval",
-      "lang": "da-DK",
-      "sample_id": "da-DK/01436",
-      "input_text": "sæt lysstyrken til 50",
-      "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "news:read_topic"
       },
       "competitor_a": "hierarchical-knn-medium",
       "competitor_b": "jurebes-ovo-linear-svc",
@@ -861,41 +826,24 @@
       "plugin_b": "ovos-hierarchical-knn-pipeline"
     },
     {
-      "battle_id": "3ba1228f11ecc62d",
+      "battle_id": "7d8e3e890fc02735",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/01436",
-      "input_text": "sæt lysstyrken til 50",
+      "sample_id": "da-DK/01006",
+      "input_text": "forhold for i morgen",
       "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
+      "reference": "weather:weather_forecast",
       "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "weather:weather_location",
+        "slots": {
+          "date": "i morgen"
+        }
       },
       "prediction_b": {
         "intent": null
       },
       "competitor_a": "jurebes-pos-sequence-logreg",
-      "competitor_b": "hierarchical-knn-medium",
-      "plugin_a": "ovos-jurebes-pipeline-plugin",
-      "plugin_b": "ovos-hierarchical-knn-pipeline"
-    },
-    {
-      "battle_id": "1dbe8c7071fde9dd",
-      "modality": "intent_template",
-      "dataset_id": "intents-for-eval",
-      "lang": "da-DK",
-      "sample_id": "da-DK/01404",
-      "input_text": "sæt lysstyrken til 50",
-      "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
-      "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "jurebes-qda-classifier",
       "competitor_b": "hierarchical-knn-medium",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-hierarchical-knn-pipeline"
@@ -947,19 +895,19 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "01f8192e8f240c00",
+      "battle_id": "00e2f987387affba",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/00175",
-      "input_text": "ring mig om en halv time",
+      "sample_id": "da-DK/01105",
+      "input_text": "drage-vejr",
       "audio_url": null,
-      "reference": "timers_alarms:set_timer",
+      "reference": "weather:weather_wind",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "timers_alarms:set_alarm"
+        "intent": "news:read_topic"
       },
       "competitor_a": "hierarchical-knn-medium",
       "competitor_b": "jurebes-rbf-svc",
@@ -967,27 +915,24 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "082242f8b8ed8b3e",
+      "battle_id": "04dae842c7544dcb",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/00622",
-      "input_text": "ring til jens med kamera",
+      "sample_id": "da-DK/01320",
+      "input_text": "sluk og tænd",
       "audio_url": null,
-      "reference": "communication:video_call",
+      "reference": "system_control:restart",
       "prediction_a": {
-        "intent": null
+        "intent": "smarthome:lights_on"
       },
       "prediction_b": {
-        "intent": "communication:call_contact",
-        "slots": {
-          "contact": "jens"
-        }
+        "intent": null
       },
-      "competitor_a": "hierarchical-knn-medium",
-      "competitor_b": "jurebes-ridge",
-      "plugin_a": "ovos-hierarchical-knn-pipeline",
-      "plugin_b": "ovos-jurebes-pipeline-plugin"
+      "competitor_a": "jurebes-ridge",
+      "competitor_b": "hierarchical-knn-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-hierarchical-knn-pipeline"
     },
     {
       "battle_id": "000893d1a89b10d3",
@@ -999,7 +944,10 @@
       "audio_url": null,
       "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "prediction_b": {
         "intent": null
@@ -1019,7 +967,10 @@
       "audio_url": null,
       "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "prediction_b": {
         "intent": null
@@ -1030,16 +981,16 @@
       "plugin_b": "ovos-hierarchical-knn-pipeline"
     },
     {
-      "battle_id": "00a1afc51d8257f3",
+      "battle_id": "00da2f84525acc49",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/00685",
-      "input_text": "er der restauranter inden for gåafstand",
+      "sample_id": "da-DK/01367",
+      "input_text": "skærm ned til 15 procent",
       "audio_url": null,
-      "reference": "navigation:find_nearby",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": "navigation:traffic_status"
+        "intent": "media:set_volume"
       },
       "prediction_b": {
         "intent": null
@@ -1116,26 +1067,6 @@
       "plugin_b": "ovos-hierarchical-knn-pipeline"
     },
     {
-      "battle_id": "269db2db49806df4",
-      "modality": "intent_template",
-      "dataset_id": "intents-for-eval",
-      "lang": "da-DK",
-      "sample_id": "da-DK/01306",
-      "input_text": "sæt lysstyrken til 50",
-      "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "smarthome:set_brightness_light"
-      },
-      "competitor_a": "hierarchical-knn-medium",
-      "competitor_b": "jurebes-text-stats-logreg",
-      "plugin_a": "ovos-hierarchical-knn-pipeline",
-      "plugin_b": "ovos-jurebes-pipeline-plugin"
-    },
-    {
       "battle_id": "0186c568f270b48b",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
@@ -1185,7 +1116,10 @@
       "audio_url": null,
       "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "prediction_b": {
         "intent": null
@@ -1268,7 +1202,10 @@
         "intent": null
       },
       "prediction_b": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "competitor_a": "hierarchical-knn-medium",
       "competitor_b": "jurebes-voting-soft",
@@ -1608,22 +1545,25 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "0124a91a4bf2dd63",
+      "battle_id": "00032fbcfb4aabe0",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/00620",
-      "input_text": "videochat med lars for mig",
+      "sample_id": "da-DK/01306",
+      "input_text": "sæt lysstyrken til 50",
       "audio_url": null,
-      "reference": "communication:video_call",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "communication:call_contact"
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
-      "competitor_a": "jurebes-bagging-logreg",
-      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-bagging-logreg",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -1711,16 +1651,19 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "0d36f6f30d510c8e",
+      "battle_id": "03a16ad218363eda",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/00492",
-      "input_text": "kom på et opkald med lars",
+      "sample_id": "da-DK/01113",
+      "input_text": "hvordan er vejret i dag",
       "audio_url": null,
-      "reference": "communication:call_contact",
+      "reference": "weather:weather_today",
       "prediction_a": {
-        "intent": "communication:video_call"
+        "intent": "weather:weather_location",
+        "slots": {
+          "date": "i dag"
+        }
       },
       "prediction_b": {
         "intent": null
@@ -1771,16 +1714,19 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "047df7873f646721",
+      "battle_id": "04409178250348ed",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/00435",
-      "input_text": "skru alt op til 24",
+      "sample_id": "da-DK/01338",
+      "input_text": "sæt lysstyrken til 50",
       "audio_url": null,
-      "reference": "smarthome:set_thermostat",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": "media:set_volume"
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "prediction_b": {
         "intent": null
@@ -1791,22 +1737,25 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "609fb64d5486741b",
+      "battle_id": "0740b0ea7dbf0a0a",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/00620",
-      "input_text": "videochat med lars for mig",
+      "sample_id": "da-DK/01338",
+      "input_text": "sæt lysstyrken til 50",
       "audio_url": null,
-      "reference": "communication:video_call",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "communication:call_contact"
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
-      "competitor_a": "jurebes-hashing-sgd-log",
-      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-hashing-sgd-log",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -1914,16 +1863,19 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "11af3771c21fed6e",
+      "battle_id": "06fce24b1eb6b9a0",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/00492",
-      "input_text": "kom på et opkald med lars",
+      "sample_id": "da-DK/01017",
+      "input_text": "hvordan er vejret i dag",
       "audio_url": null,
-      "reference": "communication:call_contact",
+      "reference": "weather:weather_today",
       "prediction_a": {
-        "intent": "communication:video_call"
+        "intent": "weather:weather_location",
+        "slots": {
+          "date": "i dag"
+        }
       },
       "prediction_b": {
         "intent": null
@@ -1994,19 +1946,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "10c07d2737e76ee5",
+      "battle_id": "07fe2bd027e3159b",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/01291",
-      "input_text": "send den i seng for altid",
+      "sample_id": "da-DK/01113",
+      "input_text": "hvordan er vejret i dag",
       "audio_url": null,
-      "reference": "system_control:shutdown",
+      "reference": "weather:weather_today",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "communication:send_message"
+        "intent": "weather:weather_location",
+        "slots": {
+          "date": "i dag"
+        }
       },
       "competitor_a": "jurebes-logreg",
       "competitor_b": "jurebes-autoencoder-linear-svc",
@@ -2037,22 +1992,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "1843a7d4960c9be5",
+      "battle_id": "069e98235a76adc3",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/00944",
-      "input_text": "fonetisk transkription af allestedsnærværende",
+      "sample_id": "da-DK/00961",
+      "input_text": "hvordan er vejret i dag",
       "audio_url": null,
-      "reference": "search_qa:spell_word",
+      "reference": "weather:weather_today",
       "prediction_a": {
-        "intent": "search_qa:define_word",
-        "slots": {
-          "word": "allestedsnærværende"
-        }
+        "intent": null
       },
       "prediction_b": {
-        "intent": null
+        "intent": "weather:weather_location",
+        "slots": {
+          "date": "i dag"
+        }
       },
       "competitor_a": "jurebes-logreg-elasticnet",
       "competitor_b": "jurebes-autoencoder-linear-svc",
@@ -2083,19 +2038,16 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "0c86b944944b2399",
+      "battle_id": "070ed625f387efd9",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/00719",
-      "input_text": "har du en ankomsttid til kontoret",
+      "sample_id": "da-DK/01444",
+      "input_text": "dagens nyheder",
       "audio_url": null,
-      "reference": "navigation:eta_query",
+      "reference": "news:read_headlines",
       "prediction_a": {
-        "intent": "navigation:navigate_to",
-        "slots": {
-          "destination": "til kontoret"
-        }
+        "intent": "news:read_topic"
       },
       "prediction_b": {
         "intent": null
@@ -2106,19 +2058,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "289d1baa9b444144",
+      "battle_id": "09af5de6c850bb4a",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/00112",
-      "input_text": "en tand lavere sådan 35",
+      "sample_id": "da-DK/01113",
+      "input_text": "hvordan er vejret i dag",
       "audio_url": null,
-      "reference": "media:set_volume",
+      "reference": "weather:weather_today",
       "prediction_a": {
-        "intent": null
+        "intent": "weather:weather_location",
+        "slots": {
+          "date": "i dag"
+        }
       },
       "prediction_b": {
-        "intent": "navigation:find_nearby"
+        "intent": null
       },
       "competitor_a": "jurebes-autoencoder-linear-svc",
       "competitor_b": "jurebes-lsa-logreg",
@@ -2126,22 +2081,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "1198abc2e8c12144",
+      "battle_id": "0a0acd7084ae343d",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/00532",
-      "input_text": "kunne du sige til mor tillykke",
+      "sample_id": "da-DK/01460",
+      "input_text": "opdater mig om aktuelle begivenheder",
       "audio_url": null,
-      "reference": "communication:send_message",
+      "reference": "news:read_headlines",
       "prediction_a": {
-        "intent": null
+        "intent": "search_qa:factual_query"
       },
       "prediction_b": {
-        "intent": "communication:call_contact"
+        "intent": null
       },
-      "competitor_a": "jurebes-autoencoder-linear-svc",
-      "competitor_b": "jurebes-lsa-rbf-svc",
+      "competitor_a": "jurebes-lsa-rbf-svc",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -2216,25 +2171,25 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "1663e25c7f7fb281",
+      "battle_id": "00cd5a66d6e638a4",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/00625",
-      "input_text": "tænd kameraet til mor",
+      "sample_id": "da-DK/00164",
+      "input_text": "nedtælling 5 minutter",
       "audio_url": null,
-      "reference": "communication:video_call",
+      "reference": "timers_alarms:set_timer",
       "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "smarthome:lights_on",
+        "intent": "timers_alarms:snooze_alarm",
         "slots": {
-          "contact": "mor"
+          "duration": "5 minutter"
         }
       },
-      "competitor_a": "jurebes-nb-multinomial",
-      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-nb-multinomial",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -2259,22 +2214,25 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "2f4902d162bb79d9",
+      "battle_id": "04b4755a00733d76",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/00099",
-      "input_text": "skru ned til 15",
+      "sample_id": "da-DK/01113",
+      "input_text": "hvordan er vejret i dag",
       "audio_url": null,
-      "reference": "media:set_volume",
+      "reference": "weather:weather_today",
       "prediction_a": {
-        "intent": null
+        "intent": "weather:weather_location",
+        "slots": {
+          "date": "i dag"
+        }
       },
       "prediction_b": {
-        "intent": "smarthome:set_thermostat"
+        "intent": null
       },
-      "competitor_a": "jurebes-nusvc",
-      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-nusvc",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -2322,19 +2280,16 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "00ecd05cbcfd5d01",
+      "battle_id": "02ff8149fa0096e7",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/01014",
-      "input_text": "sig hvad jeg kan forvente i morgen",
+      "sample_id": "da-DK/00342",
+      "input_text": "kunne du lyse soveværelset op",
       "audio_url": null,
-      "reference": "weather:weather_forecast",
+      "reference": "smarthome:lights_on",
       "prediction_a": {
-        "intent": "calendar:list_events",
-        "slots": {
-          "date": "morgen"
-        }
+        "intent": "media:set_volume"
       },
       "prediction_b": {
         "intent": null
@@ -2428,19 +2383,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "4186f1d85ab55b51",
+      "battle_id": "17626a3b7e6dac27",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/00620",
-      "input_text": "videochat med lars for mig",
+      "sample_id": "da-DK/00961",
+      "input_text": "hvordan er vejret i dag",
       "audio_url": null,
-      "reference": "communication:video_call",
+      "reference": "weather:weather_today",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "communication:call_contact"
+        "intent": "weather:weather_location",
+        "slots": {
+          "date": "i dag"
+        }
       },
       "competitor_a": "jurebes-random-projection-logreg",
       "competitor_b": "jurebes-autoencoder-linear-svc",
@@ -2508,19 +2466,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "31a82d558897342d",
+      "battle_id": "16894c92ba4a2a67",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/00787",
-      "input_text": "spring navigationen over",
+      "sample_id": "da-DK/00961",
+      "input_text": "hvordan er vejret i dag",
       "audio_url": null,
-      "reference": "navigation:cancel_route",
+      "reference": "weather:weather_today",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "media:skip_track"
+        "intent": "weather:weather_location",
+        "slots": {
+          "date": "i dag"
+        }
       },
       "competitor_a": "jurebes-sgd-log",
       "competitor_b": "jurebes-autoencoder-linear-svc",
@@ -2537,7 +2498,7 @@
       "audio_url": null,
       "reference": "system_control:restart",
       "prediction_a": {
-        "intent": "smarthome:lock_door"
+        "intent": "system_control:shutdown"
       },
       "prediction_b": {
         "intent": null
@@ -2548,16 +2509,19 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "68b3044df9e3836a",
+      "battle_id": "3250108e86d8d996",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/01291",
-      "input_text": "send den i seng for altid",
+      "sample_id": "da-DK/00961",
+      "input_text": "hvordan er vejret i dag",
       "audio_url": null,
-      "reference": "system_control:shutdown",
+      "reference": "weather:weather_today",
       "prediction_a": {
-        "intent": "communication:send_message"
+        "intent": "weather:weather_location",
+        "slots": {
+          "date": "i dag"
+        }
       },
       "prediction_b": {
         "intent": null
@@ -2608,18 +2572,18 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "234cea82a1067a82",
+      "battle_id": "042f25946d844d64",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/00171",
-      "input_text": "buzz mig efter 15 minutter",
+      "sample_id": "da-DK/00961",
+      "input_text": "hvordan er vejret i dag",
       "audio_url": null,
-      "reference": "timers_alarms:set_timer",
+      "reference": "weather:weather_today",
       "prediction_a": {
-        "intent": "timers_alarms:snooze_alarm",
+        "intent": "weather:weather_location",
         "slots": {
-          "duration": "15 minutter"
+          "date": "i dag"
         }
       },
       "prediction_b": {
@@ -2691,42 +2655,42 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "149a56fb92c335cd",
+      "battle_id": "0f2aef012b1208b2",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/01746",
-      "input_text": "væk mig oM 45 minuntteR",
+      "sample_id": "da-DK/01113",
+      "input_text": "hvordan er vejret i dag",
       "audio_url": null,
-      "reference": "timers_alarms:set_timer",
+      "reference": "weather:weather_today",
       "prediction_a": {
-        "intent": "timers_alarms:set_alarm"
+        "intent": "weather:weather_location",
+        "slots": {
+          "date": "i dag"
+        }
       },
       "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-union-pos-tfidf-logreg",
-      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-union-pos-tfidf-logreg",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "17098245f46a686b",
+      "battle_id": "14153dc04b08c4e7",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/00625",
-      "input_text": "tænd kameraet til mor",
+      "sample_id": "da-DK/00963",
+      "input_text": "hvordan er det udenfor",
       "audio_url": null,
-      "reference": "communication:video_call",
+      "reference": "weather:weather_today",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "smarthome:lights_on",
-        "slots": {
-          "contact": "mor"
-        }
+        "intent": "weather:weather_location"
       },
       "competitor_a": "jurebes-union-skipgram-tfidf-logreg",
       "competitor_b": "jurebes-autoencoder-linear-svc",
@@ -2734,22 +2698,25 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "3965cf4ce06ecfd5",
+      "battle_id": "07341ca5eff1926e",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/00492",
-      "input_text": "kom på et opkald med lars",
+      "sample_id": "da-DK/01081",
+      "input_text": "hvordan er vejret i dag",
       "audio_url": null,
-      "reference": "communication:call_contact",
+      "reference": "weather:weather_today",
       "prediction_a": {
-        "intent": null
+        "intent": "weather:weather_location",
+        "slots": {
+          "date": "i dag"
+        }
       },
       "prediction_b": {
-        "intent": "communication:video_call"
+        "intent": null
       },
-      "competitor_a": "jurebes-union-text-stats-logreg",
-      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-union-text-stats-logreg",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -2897,19 +2864,19 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "03248347423a2040",
+      "battle_id": "01b5e15b8a6f16ec",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/01125",
-      "input_text": "planlæg team møde fredag",
+      "sample_id": "da-DK/00480",
+      "input_text": "ring til jens",
       "audio_url": null,
-      "reference": "calendar:create_event",
+      "reference": "communication:call_contact",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "calendar:cancel_event"
+        "intent": "communication:send_message"
       },
       "competitor_a": "jurebes-autoencoder-linear-svc",
       "competitor_b": "markov-medium",
@@ -2917,19 +2884,19 @@
       "plugin_b": "ovos-markov-pipeline-plugin"
     },
     {
-      "battle_id": "1fe7ae89c620406e",
+      "battle_id": "0a60dbff95b91430",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/01264",
-      "input_text": "skub middag med anna",
+      "sample_id": "da-DK/01404",
+      "input_text": "sæt lysstyrken til 50",
       "audio_url": null,
-      "reference": "calendar:reschedule_event",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "calendar:cancel_event"
+        "intent": "smarthome:set_brightness_light"
       },
       "competitor_a": "jurebes-autoencoder-linear-svc",
       "competitor_b": "nebulento-hierarchical-medium",
@@ -2946,7 +2913,7 @@
       "audio_url": null,
       "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": null
       },
       "prediction_b": {
         "intent": "smarthome:set_brightness_light",
@@ -3029,19 +2996,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "376f0c06bd6d17b2",
+      "battle_id": "1253931f1edd121e",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/00787",
-      "input_text": "spring navigationen over",
+      "sample_id": "da-DK/01436",
+      "input_text": "sæt lysstyrken til 50",
       "audio_url": null,
-      "reference": "navigation:cancel_route",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "media:skip_track"
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "competitor_a": "jurebes-autoencoder-logreg",
       "competitor_b": "jurebes-autoencoder-logreg-deep",
@@ -3049,22 +3019,25 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "3f19dd13097ae56f",
+      "battle_id": "1df8eafdf5f7a048",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/01197",
-      "input_text": "spring lægebesøget over",
+      "sample_id": "da-DK/01404",
+      "input_text": "sæt lysstyrken til 50",
       "audio_url": null,
-      "reference": "calendar:cancel_event",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": "media:skip_track"
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-autoencoder-logreg-wide",
-      "competitor_b": "jurebes-autoencoder-logreg",
+      "prediction_b": {
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-autoencoder-logreg-wide",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -3235,19 +3208,16 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "01822e99d211cdd9",
+      "battle_id": "014e3af21af1b4f9",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/01039",
-      "input_text": "london regnfuldt i dag",
+      "sample_id": "da-DK/00397",
+      "input_text": "skru lyset op til 85",
       "audio_url": null,
-      "reference": "weather:weather_location",
+      "reference": "smarthome:set_brightness_light",
       "prediction_a": {
-        "intent": "calendar:list_events",
-        "slots": {
-          "date": "i dag"
-        }
+        "intent": "media:set_volume"
       },
       "prediction_b": {
         "intent": null
@@ -3278,22 +3248,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "22a19d5b01b7f3ae",
+      "battle_id": "1e373a0259e99fc6",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/00622",
-      "input_text": "ring til jens med kamera",
+      "sample_id": "da-DK/01306",
+      "input_text": "sæt lysstyrken til 50",
       "audio_url": null,
-      "reference": "communication:video_call",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": "communication:call_contact",
-        "slots": {
-          "contact": "jens"
-        }
+        "intent": null
       },
       "prediction_b": {
-        "intent": null
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "competitor_a": "jurebes-autoencoder-logreg",
       "competitor_b": "jurebes-hashing-sgd-log",
@@ -3361,22 +3331,25 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "0ac702d737a71124",
+      "battle_id": "04270ccc5642751f",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/01237",
-      "input_text": "tidligste ting planlagt",
+      "sample_id": "da-DK/01338",
+      "input_text": "sæt lysstyrken til 50",
       "audio_url": null,
-      "reference": "calendar:next_event",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": null
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "prediction_b": {
-        "intent": "calendar:list_events"
+        "intent": null
       },
-      "competitor_a": "jurebes-autoencoder-logreg",
-      "competitor_b": "jurebes-label-guided-logreg",
+      "competitor_a": "jurebes-label-guided-logreg",
+      "competitor_b": "jurebes-autoencoder-logreg",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -3481,42 +3454,45 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "44ba3d177cab583b",
+      "battle_id": "287a312eec285b78",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/00622",
-      "input_text": "ring til jens med kamera",
+      "sample_id": "da-DK/01436",
+      "input_text": "sæt lysstyrken til 50",
       "audio_url": null,
-      "reference": "communication:video_call",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "communication:call_contact",
+        "intent": "smarthome:set_brightness_light",
         "slots": {
-          "contact": "jens"
+          "level": "50"
         }
       },
-      "competitor_a": "jurebes-logreg",
-      "competitor_b": "jurebes-autoencoder-logreg",
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-logreg",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "96dd140c21c0b1a7",
+      "battle_id": "5539044c62a40147",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/00492",
-      "input_text": "kom på et opkald med lars",
+      "sample_id": "da-DK/01338",
+      "input_text": "sæt lysstyrken til 50",
       "audio_url": null,
-      "reference": "communication:call_contact",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": null
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "prediction_b": {
-        "intent": "communication:video_call"
+        "intent": null
       },
       "competitor_a": "jurebes-logreg-char",
       "competitor_b": "jurebes-autoencoder-logreg",
@@ -3564,42 +3540,42 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "007f352edd9e1aca",
+      "battle_id": "0163e1ed030c34bb",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/00175",
-      "input_text": "ring mig om en halv time",
+      "sample_id": "da-DK/00145",
+      "input_text": "hop til det næste",
       "audio_url": null,
-      "reference": "timers_alarms:set_timer",
+      "reference": "media:skip_track",
       "prediction_a": {
-        "intent": null
+        "intent": "weather:weather_forecast"
       },
       "prediction_b": {
-        "intent": "timers_alarms:set_alarm"
+        "intent": null
       },
-      "competitor_a": "jurebes-autoencoder-logreg",
-      "competitor_b": "jurebes-lsa-linear-svc",
+      "competitor_a": "jurebes-lsa-linear-svc",
+      "competitor_b": "jurebes-autoencoder-logreg",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "80ebef491b91a73a",
+      "battle_id": "19bff20e34dbfc3d",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/00112",
-      "input_text": "en tand lavere sådan 35",
+      "sample_id": "da-DK/01112",
+      "input_text": "hvordan er vejret",
       "audio_url": null,
-      "reference": "media:set_volume",
+      "reference": "weather:weather_today",
       "prediction_a": {
-        "intent": null
+        "intent": "weather:weather_location"
       },
       "prediction_b": {
-        "intent": "navigation:find_nearby"
+        "intent": null
       },
-      "competitor_a": "jurebes-autoencoder-logreg",
-      "competitor_b": "jurebes-lsa-logreg",
+      "competitor_a": "jurebes-lsa-logreg",
+      "competitor_b": "jurebes-autoencoder-logreg",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -3644,22 +3620,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "031364f4f0a4e9d7",
+      "battle_id": "020bacf8adc23094",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/01367",
-      "input_text": "skærm ned til 15 procent",
+      "sample_id": "da-DK/01057",
+      "input_text": "er det fugtigt",
       "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
+      "reference": "weather:weather_humidity",
       "prediction_a": {
-        "intent": "media:set_volume"
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-nb-bernoulli",
-      "competitor_b": "jurebes-autoencoder-logreg",
+      "prediction_b": {
+        "intent": "weather:weather_location"
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-nb-bernoulli",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -3684,19 +3660,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "aae2e63d5abe81f7",
+      "battle_id": "355a7b0ca82085ad",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/00492",
-      "input_text": "kom på et opkald med lars",
+      "sample_id": "da-DK/01436",
+      "input_text": "sæt lysstyrken til 50",
       "audio_url": null,
-      "reference": "communication:call_contact",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": null
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "prediction_b": {
-        "intent": "communication:video_call"
+        "intent": null
       },
       "competitor_a": "jurebes-nb-multinomial",
       "competitor_b": "jurebes-autoencoder-logreg",
@@ -3916,22 +3895,25 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "2027812fda9e197b",
+      "battle_id": "233302b44783fbd2",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/00049",
-      "input_text": "lad musikken hvile",
+      "sample_id": "da-DK/01431",
+      "input_text": "output på fransk tak",
       "audio_url": null,
-      "reference": "media:pause_playback",
+      "reference": "system_control:change_language",
       "prediction_a": {
-        "intent": "media:resume_playback"
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-rbf-svc",
-      "competitor_b": "jurebes-autoencoder-logreg",
+      "prediction_b": {
+        "intent": "search_qa:translate_phrase",
+        "slots": {
+          "target_language": "fransk"
+        }
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-rbf-svc",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -3976,19 +3958,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "08b861184889e443",
+      "battle_id": "06b7099036033fa5",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/00492",
-      "input_text": "kom på et opkald med lars",
+      "sample_id": "da-DK/01436",
+      "input_text": "sæt lysstyrken til 50",
       "audio_url": null,
-      "reference": "communication:call_contact",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": null
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "prediction_b": {
-        "intent": "communication:video_call"
+        "intent": null
       },
       "competitor_a": "jurebes-sgd-log",
       "competitor_b": "jurebes-autoencoder-logreg",
@@ -4157,6 +4142,118 @@
         "intent": "communication:video_call"
       },
       "competitor_a": "jurebes-union-pos-char-logreg",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "0d14ce636346364e",
+      "modality": "intent_template",
+      "dataset_id": "intents-for-eval",
+      "lang": "da-DK",
+      "sample_id": "da-DK/01338",
+      "input_text": "sæt lysstyrken til 50",
+      "audio_url": null,
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-union-pos-tfidf-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "13c6d7854cc4147a",
+      "modality": "intent_template",
+      "dataset_id": "intents-for-eval",
+      "lang": "da-DK",
+      "sample_id": "da-DK/01338",
+      "input_text": "sæt lysstyrken til 50",
+      "audio_url": null,
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-union-skipgram-tfidf-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "239acf5334ae3c21",
+      "modality": "intent_template",
+      "dataset_id": "intents-for-eval",
+      "lang": "da-DK",
+      "sample_id": "da-DK/00944",
+      "input_text": "fonetisk transkription af allestedsnærværende",
+      "audio_url": null,
+      "reference": "search_qa:spell_word",
+      "prediction_a": {
+        "intent": "search_qa:define_word",
+        "slots": {
+          "word": "allestedsnærværende"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-union-text-stats-logreg",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "0526889f33955982",
+      "modality": "intent_template",
+      "dataset_id": "intents-for-eval",
+      "lang": "da-DK",
+      "sample_id": "da-DK/01197",
+      "input_text": "spring lægebesøget over",
+      "audio_url": null,
+      "reference": "calendar:cancel_event",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:skip_track"
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-voting-soft",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "058dadfe0f89eb87",
+      "modality": "intent_template",
+      "dataset_id": "intents-for-eval",
+      "lang": "da-DK",
+      "sample_id": "da-DK/01306",
+      "input_text": "sæt lysstyrken til 50",
+      "audio_url": null,
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-word-pos-logreg",
       "competitor_b": "jurebes-autoencoder-logreg",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"

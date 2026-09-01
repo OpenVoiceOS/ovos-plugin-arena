@@ -2,14 +2,13 @@
   "modality": "intent_template",
   "dataset_id": "intents-for-eval",
   "lang": "nl-NL",
-  "generated_at": "2026-08-13T04:56:01.302612+00:00",
+  "generated_at": "2026-09-01T08:18:52.931728+00:00",
   "dataset_info": {
     "url": "https://huggingface.co/datasets/OpenVoiceOS/intents-for-eval",
     "license": "apache-2.0",
     "notes": "OVOS canonical paradigm-neutral intent benchmark: 50 intents, 1750 test rows per language across template / paraphrase / near_ood / far_ood / asr_noise / typos buckets, with slot annotations. far_ood rows carry expected_intent=null — the correct behaviour is no match.",
     "predictions": [
       "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-bench-intents-for-eval",
-      "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-keyword-bench-intents-for-eval",
       "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-template-bench-intents-for-eval"
     ],
     "train_datasets": {
@@ -25,16 +24,19 @@
   },
   "battles": [
     {
-      "battle_id": "09d6e45ed7953935",
+      "battle_id": "11097910f3d63f19",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01404",
-      "input_text": "zet de helderheid op 50",
+      "sample_id": "nl-NL/00721",
+      "input_text": "wanneer ben ik bij de supermarkt",
       "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
+      "reference": "navigation:eta_query",
       "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "media:play_song",
+        "slots": {
+          "destination": "de supermarkt"
+        }
       },
       "prediction_b": {
         "intent": null
@@ -69,19 +71,19 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "042871bbb2db5e64",
+      "battle_id": "02fbe457277399d0",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00106",
-      "input_text": "ik wil het volume op 40",
+      "sample_id": "nl-NL/01445",
+      "input_text": "nieuws alsjeblieft",
       "audio_url": null,
-      "reference": "media:set_volume",
+      "reference": "news:read_headlines",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "media:play_song"
+        "intent": "news:read_topic"
       },
       "competitor_a": "hierarchical-knn-medium",
       "competitor_b": "jurebes-autoencoder-logreg-deep",
@@ -189,16 +191,16 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "53be559cf08e992d",
+      "battle_id": "d84b04d4a5b30d2d",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01436",
-      "input_text": "zet de helderheid op 50",
+      "sample_id": "nl-NL/01390",
+      "input_text": "zet het volume op nul",
       "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
+      "reference": "system_control:mute_system",
       "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "media:set_volume"
       },
       "prediction_b": {
         "intent": null
@@ -232,16 +234,19 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "1ebae8389d089467",
+      "battle_id": "302244c2547c5751",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01338",
-      "input_text": "zet de helderheid op 50",
+      "sample_id": "nl-NL/00225",
+      "input_text": "zet een wekker op 6:30 's ochtends",
       "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
+      "reference": "timers_alarms:set_alarm",
       "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "timers_alarms:set_alarm",
+        "slots": {
+          "time": "6 : 30 ' s ochtends"
+        }
       },
       "prediction_b": {
         "intent": null
@@ -439,24 +444,24 @@
       "plugin_b": "ovos-hierarchical-knn-pipeline"
     },
     {
-      "battle_id": "1ffbbf363464c653",
+      "battle_id": "10cb8fdac19d729e",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01743",
-      "input_text": "wamm in tokil nu",
+      "sample_id": "nl-NL/01063",
+      "input_text": "welk percentage luchtvochtigheid",
       "audio_url": null,
-      "reference": "weather:weather_location",
+      "reference": "weather:weather_humidity",
       "prediction_a": {
-        "intent": "system_control:change_language"
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-lda-logreg",
-      "competitor_b": "hierarchical-knn-medium",
-      "plugin_a": "ovos-jurebes-pipeline-plugin",
-      "plugin_b": "ovos-hierarchical-knn-pipeline"
+      "prediction_b": {
+        "intent": "timers_alarms:snooze_alarm"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-lda-logreg",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
       "battle_id": "01ce38947cf100db",
@@ -552,7 +557,10 @@
       "audio_url": null,
       "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "prediction_b": {
         "intent": null
@@ -603,16 +611,16 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "080c10046844daef",
+      "battle_id": "063c6efa04c81def",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01717",
-      "input_text": "een beRicht teryg",
+      "sample_id": "nl-NL/01496",
+      "input_text": "lees het nieuws",
       "audio_url": null,
-      "reference": "news:previous_story",
+      "reference": "news:read_headlines",
       "prediction_a": {
-        "intent": "communication:send_message"
+        "intent": "news:read_topic"
       },
       "prediction_b": {
         "intent": null
@@ -643,59 +651,59 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "0409595eafdeb863",
+      "battle_id": "094b169841256b96",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00532",
-      "input_text": "zou je mama gefeliciteerd kunnen zeggen",
+      "sample_id": "nl-NL/00181",
+      "input_text": "theetimer 4 minuten",
       "audio_url": null,
-      "reference": "communication:send_message",
+      "reference": "timers_alarms:set_timer",
       "prediction_a": {
-        "intent": "communication:call_contact",
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "timers_alarms:snooze_alarm",
         "slots": {
-          "contact": "mama"
+          "duration": "minuten"
         }
       },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "jurebes-lsa-rbf-svc",
-      "competitor_b": "hierarchical-knn-medium",
-      "plugin_a": "ovos-jurebes-pipeline-plugin",
-      "plugin_b": "ovos-hierarchical-knn-pipeline"
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-lsa-rbf-svc",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "047bb026e3a89685",
+      "battle_id": "0112f30e3de86e10",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01338",
-      "input_text": "zet de helderheid op 50",
+      "sample_id": "nl-NL/01460",
+      "input_text": "praat me bij over actualiteiten",
       "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
+      "reference": "news:read_headlines",
       "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-mlp-shallow",
-      "competitor_b": "hierarchical-knn-medium",
-      "plugin_a": "ovos-jurebes-pipeline-plugin",
-      "plugin_b": "ovos-hierarchical-knn-pipeline"
+      "prediction_b": {
+        "intent": "navigation:navigate_to"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-mlp-shallow",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "0055faa94f057a31",
+      "battle_id": "018978a943bde03d",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01404",
-      "input_text": "zet de helderheid op 50",
+      "sample_id": "nl-NL/01717",
+      "input_text": "een beRicht teryg",
       "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
+      "reference": "news:previous_story",
       "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "communication:send_message"
       },
       "prediction_b": {
         "intent": null
@@ -706,84 +714,24 @@
       "plugin_b": "ovos-hierarchical-knn-pipeline"
     },
     {
-      "battle_id": "1281de2aeba98832",
+      "battle_id": "e58ebbc65ab28b0d",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01436",
-      "input_text": "zet de helderheid op 50",
+      "sample_id": "nl-NL/01390",
+      "input_text": "zet het volume op nul",
       "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
+      "reference": "system_control:mute_system",
       "prediction_a": {
-        "intent": null
+        "intent": "media:set_volume"
       },
       "prediction_b": {
-        "intent": "smarthome:set_brightness_light"
-      },
-      "competitor_a": "hierarchical-knn-medium",
-      "competitor_b": "jurebes-nb-complement",
-      "plugin_a": "ovos-hierarchical-knn-pipeline",
-      "plugin_b": "ovos-jurebes-pipeline-plugin"
-    },
-    {
-      "battle_id": "6127af847f36d2b2",
-      "modality": "intent_template",
-      "dataset_id": "intents-for-eval",
-      "lang": "nl-NL",
-      "sample_id": "nl-NL/01436",
-      "input_text": "zet de helderheid op 50",
-      "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
-      "prediction_a": {
         "intent": null
       },
-      "prediction_b": {
-        "intent": "smarthome:set_brightness_light"
-      },
-      "competitor_a": "hierarchical-knn-medium",
-      "competitor_b": "jurebes-nb-multinomial",
-      "plugin_a": "ovos-hierarchical-knn-pipeline",
-      "plugin_b": "ovos-jurebes-pipeline-plugin"
-    },
-    {
-      "battle_id": "3aa1b8b9741cf67e",
-      "modality": "intent_template",
-      "dataset_id": "intents-for-eval",
-      "lang": "nl-NL",
-      "sample_id": "nl-NL/01404",
-      "input_text": "zet de helderheid op 50",
-      "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "smarthome:set_brightness_light"
-      },
-      "competitor_a": "hierarchical-knn-medium",
-      "competitor_b": "jurebes-nmf-logreg",
-      "plugin_a": "ovos-hierarchical-knn-pipeline",
-      "plugin_b": "ovos-jurebes-pipeline-plugin"
-    },
-    {
-      "battle_id": "2e49c5c3eb2d4336",
-      "modality": "intent_template",
-      "dataset_id": "intents-for-eval",
-      "lang": "nl-NL",
-      "sample_id": "nl-NL/01436",
-      "input_text": "zet de helderheid op 50",
-      "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "smarthome:set_brightness_light"
-      },
-      "competitor_a": "hierarchical-knn-medium",
-      "competitor_b": "jurebes-nusvc",
-      "plugin_a": "ovos-hierarchical-knn-pipeline",
-      "plugin_b": "ovos-jurebes-pipeline-plugin"
+      "competitor_a": "jurebes-nb-multinomial",
+      "competitor_b": "hierarchical-knn-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-hierarchical-knn-pipeline"
     },
     {
       "battle_id": "016318b131c560f7",
@@ -889,38 +837,18 @@
       "plugin_b": "ovos-hierarchical-knn-pipeline"
     },
     {
-      "battle_id": "3013eb6b4680a1ed",
+      "battle_id": "22ad3f4c981a0791",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01436",
+      "sample_id": "nl-NL/01338",
       "input_text": "zet de helderheid op 50",
       "audio_url": null,
       "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "jurebes-qda-classifier",
-      "competitor_b": "hierarchical-knn-medium",
-      "plugin_a": "ovos-jurebes-pipeline-plugin",
-      "plugin_b": "ovos-hierarchical-knn-pipeline"
-    },
-    {
-      "battle_id": "1f3af886bd8f3ae9",
-      "modality": "intent_template",
-      "dataset_id": "intents-for-eval",
-      "lang": "nl-NL",
-      "sample_id": "nl-NL/01136",
-      "input_text": "regel diner met anneke zaterdag avond",
-      "audio_url": null,
-      "reference": "calendar:create_event",
-      "prediction_a": {
-        "intent": "media:play_song",
+        "intent": "smarthome:set_brightness_light",
         "slots": {
-          "title": "diner met anneke"
+          "level": "50"
         }
       },
       "prediction_b": {
@@ -952,16 +880,16 @@
       "plugin_b": "ovos-hierarchical-knn-pipeline"
     },
     {
-      "battle_id": "20fe7b2803154ff9",
+      "battle_id": "086dd943f44f7c47",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00752",
-      "input_text": "zwaar naar het vliegveld",
+      "sample_id": "nl-NL/01453",
+      "input_text": "ik heb een nieuwsbriefing nodig",
       "audio_url": null,
-      "reference": "navigation:traffic_status",
+      "reference": "news:read_headlines",
       "prediction_a": {
-        "intent": "navigation:navigate_to"
+        "intent": "weather:weather_today"
       },
       "prediction_b": {
         "intent": null
@@ -1035,42 +963,39 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "00af873a30c689b6",
+      "battle_id": "01a9ccd8ffb77ab7",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00018",
-      "input_text": "hak er wim sonneveld in",
+      "sample_id": "nl-NL/01514",
+      "input_text": "ik ben klaar met deze ga verder",
       "audio_url": null,
-      "reference": "media:play_song",
+      "reference": "news:next_story",
       "prediction_a": {
-        "intent": null
+        "intent": "communication:hang_up"
       },
       "prediction_b": {
-        "intent": "weather:weather_wind",
-        "slots": {
-          "artist": "sonneveld"
-        }
+        "intent": null
       },
-      "competitor_a": "hierarchical-knn-medium",
-      "competitor_b": "jurebes-sgd-modified-huber",
-      "plugin_a": "ovos-hierarchical-knn-pipeline",
-      "plugin_b": "ovos-jurebes-pipeline-plugin"
+      "competitor_a": "jurebes-sgd-modified-huber",
+      "competitor_b": "hierarchical-knn-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-hierarchical-knn-pipeline"
     },
     {
-      "battle_id": "01f130ffe27f3620",
+      "battle_id": "095072b6a904f30c",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01338",
-      "input_text": "zet de helderheid op 50",
+      "sample_id": "nl-NL/01390",
+      "input_text": "zet het volume op nul",
       "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
+      "reference": "system_control:mute_system",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "media:set_volume"
       },
       "competitor_a": "hierarchical-knn-medium",
       "competitor_b": "jurebes-skipgram-logreg",
@@ -1116,26 +1041,6 @@
       "competitor_b": "jurebes-stemmed-logreg",
       "plugin_a": "ovos-hierarchical-knn-pipeline",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
-    },
-    {
-      "battle_id": "5632f0b66503e64b",
-      "modality": "intent_template",
-      "dataset_id": "intents-for-eval",
-      "lang": "nl-NL",
-      "sample_id": "nl-NL/01306",
-      "input_text": "zet de helderheid op 50",
-      "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
-      "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "jurebes-text-stats-logreg",
-      "competitor_b": "hierarchical-knn-medium",
-      "plugin_a": "ovos-jurebes-pipeline-plugin",
-      "plugin_b": "ovos-hierarchical-knn-pipeline"
     },
     {
       "battle_id": "01b6186b11dff2be",
@@ -1190,7 +1095,10 @@
       "audio_url": null,
       "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "prediction_b": {
         "intent": null
@@ -1210,7 +1118,10 @@
       "audio_url": null,
       "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "prediction_b": {
         "intent": null
@@ -1253,7 +1164,10 @@
         "intent": null
       },
       "prediction_b": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "competitor_a": "hierarchical-knn-medium",
       "competitor_b": "jurebes-union-text-stats-logreg",
@@ -1528,19 +1442,19 @@
       "plugin_b": "ovos-padatious-pipeline-plugin"
     },
     {
-      "battle_id": "0e69b9c52377c422",
+      "battle_id": "02559a7e2e2f6260",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00306",
-      "input_text": "wekker weer over 12",
+      "sample_id": "nl-NL/01528",
+      "input_text": "lees het nieuws",
       "audio_url": null,
-      "reference": "timers_alarms:snooze_alarm",
+      "reference": "news:read_headlines",
       "prediction_a": {
-        "intent": "news:read_topic"
+        "intent": null
       },
       "prediction_b": {
-        "intent": null
+        "intent": "news:read_topic"
       },
       "competitor_a": "jurebes-autoencoder-linear-svc",
       "competitor_b": "jurebes-autoencoder-logreg",
@@ -1608,25 +1522,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "30f0214cb446f348",
+      "battle_id": "0be0d85f6ef91b19",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01197",
-      "input_text": "sla het doktersbezoek over",
+      "sample_id": "nl-NL/00079",
+      "input_text": "zet de muziek weer aan",
       "audio_url": null,
-      "reference": "calendar:cancel_event",
+      "reference": "media:resume_playback",
       "prediction_a": {
-        "intent": "media:skip_track",
-        "slots": {
-          "title": "doktersbezoek"
-        }
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-autoencoder-linear-svc",
-      "competitor_b": "jurebes-bagging-logreg",
+      "prediction_b": {
+        "intent": "weather:weather_forecast"
+      },
+      "competitor_a": "jurebes-bagging-logreg",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -1691,16 +1602,16 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "006b95f4cb3b482b",
+      "battle_id": "0163a4fb03f25cbd",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00938",
-      "input_text": "hoe wordt serendipiteit geschreven",
+      "sample_id": "nl-NL/00107",
+      "input_text": "zet hem op 80",
       "audio_url": null,
-      "reference": "search_qa:spell_word",
+      "reference": "media:set_volume",
       "prediction_a": {
-        "intent": "weather:weather_forecast"
+        "intent": "calendar:create_event"
       },
       "prediction_b": {
         "intent": null
@@ -1794,22 +1705,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "0b7807d84efd3703",
+      "battle_id": "03a61cfa28a6eb66",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01669",
-      "input_text": "ik wil niets horen",
+      "sample_id": "nl-NL/01095",
+      "input_text": "is er een briesje",
       "audio_url": null,
-      "reference": "system_control:mute_system",
+      "reference": "weather:weather_wind",
       "prediction_a": {
-        "intent": null
+        "intent": "navigation:find_nearby"
       },
       "prediction_b": {
-        "intent": "media:play_song"
+        "intent": null
       },
-      "competitor_a": "jurebes-hashing-sgd-log",
-      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-hashing-sgd-log",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -1900,22 +1811,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "0042b4aeff3f06e4",
+      "battle_id": "000494eaeff6f367",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01101",
-      "input_text": "waait het hard buiten",
+      "sample_id": "nl-NL/00617",
+      "input_text": "bel anneke oog in oog",
       "audio_url": null,
-      "reference": "weather:weather_wind",
+      "reference": "communication:video_call",
       "prediction_a": {
-        "intent": null
+        "intent": "communication:call_contact"
       },
       "prediction_b": {
-        "intent": "weather:weather_today"
+        "intent": null
       },
-      "competitor_a": "jurebes-autoencoder-linear-svc",
-      "competitor_b": "jurebes-lda-classifier",
+      "competitor_a": "jurebes-lda-classifier",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -2000,19 +1911,16 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "1dfd72b51948c90e",
+      "battle_id": "0f19a42b59cdcaf4",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00721",
-      "input_text": "wanneer ben ik bij de supermarkt",
+      "sample_id": "nl-NL/00079",
+      "input_text": "zet de muziek weer aan",
       "audio_url": null,
-      "reference": "navigation:eta_query",
+      "reference": "media:resume_playback",
       "prediction_a": {
-        "intent": "media:play_song",
-        "slots": {
-          "destination": "de supermarkt"
-        }
+        "intent": "weather:weather_forecast"
       },
       "prediction_b": {
         "intent": null
@@ -2046,22 +1954,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "1e70a991f2b106b2",
+      "battle_id": "1692bc4db22edbd5",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01455",
-      "input_text": "lees de berichten van vandaag voor",
+      "sample_id": "nl-NL/00079",
+      "input_text": "zet de muziek weer aan",
       "audio_url": null,
-      "reference": "news:read_headlines",
+      "reference": "media:resume_playback",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "communication:read_messages"
+        "intent": "weather:weather_forecast"
       },
-      "competitor_a": "jurebes-autoencoder-linear-svc",
-      "competitor_b": "jurebes-logreg-elasticnet",
+      "competitor_a": "jurebes-logreg-elasticnet",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -2086,62 +1994,59 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "0542260717ef091e",
+      "battle_id": "024a72a3d8ce7e91",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00721",
-      "input_text": "wanneer ben ik bij de supermarkt",
+      "sample_id": "nl-NL/01592",
+      "input_text": "lees het nieuws",
       "audio_url": null,
-      "reference": "navigation:eta_query",
+      "reference": "news:read_headlines",
       "prediction_a": {
-        "intent": "media:play_song",
-        "slots": {
-          "destination": "de supermarkt"
-        }
+        "intent": "news:read_topic"
       },
       "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-autoencoder-linear-svc",
-      "competitor_b": "jurebes-lsa-linear-svc",
-      "plugin_a": "ovos-jurebes-pipeline-plugin",
-      "plugin_b": "ovos-jurebes-pipeline-plugin"
-    },
-    {
-      "battle_id": "27aec7fdda71a8bd",
-      "modality": "intent_template",
-      "dataset_id": "intents-for-eval",
-      "lang": "nl-NL",
-      "sample_id": "nl-NL/00076",
-      "input_text": "zet de muziek weer keihard aan",
-      "audio_url": null,
-      "reference": "media:resume_playback",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "weather:weather_forecast"
-      },
-      "competitor_a": "jurebes-lsa-logreg",
+      "competitor_a": "jurebes-lsa-linear-svc",
       "competitor_b": "jurebes-autoencoder-linear-svc",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "0393623aa38a9a86",
+      "battle_id": "18c3913a94afc548",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01099",
-      "input_text": "zijn er vlagen",
+      "sample_id": "nl-NL/01560",
+      "input_text": "lees het nieuws",
       "audio_url": null,
-      "reference": "weather:weather_wind",
+      "reference": "news:read_headlines",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "calendar:list_events"
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-lsa-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "0023e86b329ab96e",
+      "modality": "intent_template",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01095",
+      "input_text": "is er een briesje",
+      "audio_url": null,
+      "reference": "weather:weather_wind",
+      "prediction_a": {
+        "intent": "navigation:find_nearby"
+      },
+      "prediction_b": {
+        "intent": null
       },
       "competitor_a": "jurebes-autoencoder-linear-svc",
       "competitor_b": "jurebes-lsa-rbf-svc",
@@ -2172,22 +2077,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "045baec033121b93",
+      "battle_id": "02449c039a8d6288",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00944",
-      "input_text": "fonetische transcriptie van alomtegenwoordig",
+      "sample_id": "nl-NL/01156",
+      "input_text": "controleer mijn agenda",
       "audio_url": null,
-      "reference": "search_qa:spell_word",
+      "reference": "calendar:list_events",
       "prediction_a": {
-        "intent": "search_qa:define_word"
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-nb-bernoulli",
-      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "prediction_b": {
+        "intent": "calendar:cancel_event"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-nb-bernoulli",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -2255,25 +2160,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "287ddb69a531d300",
+      "battle_id": "1bbd55de7f0e260f",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00181",
-      "input_text": "theetimer 4 minuten",
+      "sample_id": "nl-NL/01479",
+      "input_text": "wat is nieuw in weer",
       "audio_url": null,
-      "reference": "timers_alarms:set_timer",
+      "reference": "news:read_topic",
       "prediction_a": {
-        "intent": "timers_alarms:snooze_alarm",
-        "slots": {
-          "duration": "minuten"
-        }
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-autoencoder-linear-svc",
-      "competitor_b": "jurebes-nusvc",
+      "prediction_b": {
+        "intent": "weather:weather_location"
+      },
+      "competitor_a": "jurebes-nusvc",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -2298,22 +2200,25 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "0cb8f188edc771eb",
+      "battle_id": "0856d31cb970e290",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01548",
-      "input_text": "ik wil die opnieuw horen",
+      "sample_id": "nl-NL/01436",
+      "input_text": "zet de helderheid op 50",
       "audio_url": null,
-      "reference": "news:previous_story",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "media:play_song"
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
-      "competitor_a": "jurebes-ovr-linear-svc",
-      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-ovr-linear-svc",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -2525,23 +2430,19 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "002e78bff60bd8ae",
+      "battle_id": "02fc2313aceab138",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00183",
-      "input_text": "ping me bij 6 minuten voor de pasta",
+      "sample_id": "nl-NL/01329",
+      "input_text": "het systeem heeft een reset nodig",
       "audio_url": null,
-      "reference": "timers_alarms:set_timer",
+      "reference": "system_control:restart",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "timers_alarms:snooze_alarm",
-        "slots": {
-          "duration": "minuten",
-          "label": "pasta"
-        }
+        "intent": "weather:weather_today"
       },
       "competitor_a": "jurebes-autoencoder-linear-svc",
       "competitor_b": "jurebes-sgd-modified-huber",
@@ -2549,16 +2450,16 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "15bc2131e47725b0",
+      "battle_id": "04ba485673be5a0a",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01388",
-      "input_text": "ik wil niets horen",
+      "sample_id": "nl-NL/01095",
+      "input_text": "is er een briesje",
       "audio_url": null,
-      "reference": "system_control:mute_system",
+      "reference": "weather:weather_wind",
       "prediction_a": {
-        "intent": "media:play_song"
+        "intent": "navigation:find_nearby"
       },
       "prediction_b": {
         "intent": null
@@ -2652,25 +2553,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "11b94606bf033ed1",
+      "battle_id": "04dd9dd15423af02",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00171",
-      "input_text": "seintje na 15 minuten",
+      "sample_id": "nl-NL/01095",
+      "input_text": "is er een briesje",
       "audio_url": null,
-      "reference": "timers_alarms:set_timer",
+      "reference": "weather:weather_wind",
       "prediction_a": {
-        "intent": null
+        "intent": "navigation:find_nearby"
       },
       "prediction_b": {
-        "intent": "timers_alarms:snooze_alarm",
-        "slots": {
-          "duration": "15 minuten"
-        }
+        "intent": null
       },
-      "competitor_a": "jurebes-union-logreg",
-      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-union-logreg",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -2695,16 +2593,16 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "15c4150043ca47a4",
+      "battle_id": "092ce055d59a9b94",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00076",
-      "input_text": "zet de muziek weer keihard aan",
+      "sample_id": "nl-NL/01095",
+      "input_text": "is er een briesje",
       "audio_url": null,
-      "reference": "media:resume_playback",
+      "reference": "weather:weather_wind",
       "prediction_a": {
-        "intent": "weather:weather_forecast"
+        "intent": "navigation:find_nearby"
       },
       "prediction_b": {
         "intent": null
@@ -2735,19 +2633,19 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "0889d2f1d570a6f9",
+      "battle_id": "01cb0cd6a9903095",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01356",
-      "input_text": "schroef de helderheid op naar 80",
+      "sample_id": "nl-NL/00079",
+      "input_text": "zet de muziek weer aan",
       "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
+      "reference": "media:resume_playback",
       "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": null
       },
       "prediction_b": {
-        "intent": null
+        "intent": "weather:weather_forecast"
       },
       "competitor_a": "jurebes-union-text-stats-logreg",
       "competitor_b": "jurebes-autoencoder-linear-svc",
@@ -2755,19 +2653,19 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "08cde9cf8de2e422",
+      "battle_id": "00c10b50f478a6ba",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01356",
-      "input_text": "schroef de helderheid op naar 80",
+      "sample_id": "nl-NL/01095",
+      "input_text": "is er een briesje",
       "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
+      "reference": "weather:weather_wind",
       "prediction_a": {
-        "intent": null
+        "intent": "navigation:find_nearby"
       },
       "prediction_b": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": null
       },
       "competitor_a": "jurebes-autoencoder-linear-svc",
       "competitor_b": "jurebes-voting-soft",
@@ -2775,19 +2673,19 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "2f442a365e16d3c3",
+      "battle_id": "188375504749b2e7",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00947",
-      "input_text": "welke letters vormen kortstondig",
+      "sample_id": "nl-NL/00079",
+      "input_text": "zet de muziek weer aan",
       "audio_url": null,
-      "reference": "search_qa:spell_word",
+      "reference": "media:resume_playback",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "search_qa:define_word"
+        "intent": "weather:weather_forecast"
       },
       "competitor_a": "jurebes-word-pos-logreg",
       "competitor_b": "jurebes-autoencoder-linear-svc",
@@ -2795,39 +2693,39 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "026565be79b1c711",
+      "battle_id": "003941bba55c6d20",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00394",
-      "input_text": "maak de kamer wat zachter zoiets als 40",
+      "sample_id": "nl-NL/01274",
+      "input_text": "noem mijn evenementen op",
       "audio_url": null,
-      "reference": "smarthome:set_brightness_light",
+      "reference": "calendar:list_events",
       "prediction_a": {
-        "intent": "weather:weather_today"
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "linha-fina-domain-medium",
-      "competitor_b": "jurebes-autoencoder-linear-svc",
-      "plugin_a": "ovos-linha-fina-domain-pipeline-plugin",
-      "plugin_b": "ovos-jurebes-pipeline-plugin"
+      "prediction_b": {
+        "intent": "timers_alarms:list_alarms"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "linha-fina-domain-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
     },
     {
-      "battle_id": "02ea6253cdef148e",
+      "battle_id": "02424e433509401e",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01661",
-      "input_text": "laat nav vallen",
+      "sample_id": "nl-NL/00992",
+      "input_text": "wat voor weer is het morgen",
       "audio_url": null,
-      "reference": "navigation:cancel_route",
+      "reference": "weather:weather_forecast",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "media:resume_playback"
+        "intent": "weather:weather_today"
       },
       "competitor_a": "jurebes-autoencoder-linear-svc",
       "competitor_b": "linha-fina-hierarchical-medium",
@@ -2855,22 +2753,19 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "18679e35bc8f0b16",
+      "battle_id": "0d30f38c6d135298",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00721",
-      "input_text": "wanneer ben ik bij de supermarkt",
+      "sample_id": "nl-NL/00037",
+      "input_text": "stop het liedje",
       "audio_url": null,
-      "reference": "navigation:eta_query",
+      "reference": "media:pause_playback",
       "prediction_a": {
-        "intent": "media:play_song",
-        "slots": {
-          "destination": "de supermarkt"
-        }
+        "intent": null
       },
       "prediction_b": {
-        "intent": null
+        "intent": "mycroft.stop"
       },
       "competitor_a": "jurebes-autoencoder-linear-svc",
       "competitor_b": "m2v-medium",
@@ -2878,24 +2773,24 @@
       "plugin_b": "ovos-m2v-pipeline"
     },
     {
-      "battle_id": "00ca6a7156732241",
+      "battle_id": "004f8dc6fada22ea",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00173",
-      "input_text": "wek me over 45 minuten",
+      "sample_id": "nl-NL/01517",
+      "input_text": "ga verder in het nieuws",
       "audio_url": null,
-      "reference": "timers_alarms:set_timer",
+      "reference": "news:next_story",
       "prediction_a": {
-        "intent": "search_qa:who_is"
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "markov-domain-medium",
-      "competitor_b": "jurebes-autoencoder-linear-svc",
-      "plugin_a": "ovos-markov-domain-pipeline-plugin",
-      "plugin_b": "ovos-jurebes-pipeline-plugin"
+      "prediction_b": {
+        "intent": "news:read_headlines"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "markov-domain-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-markov-domain-pipeline-plugin"
     },
     {
       "battle_id": "0687f2416d48588d",
@@ -3031,22 +2926,25 @@
       "plugin_b": "ovos-padatious-pipeline-plugin"
     },
     {
-      "battle_id": "0a1cc30cd47d9815",
+      "battle_id": "06c05ee6a3bef09e",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00752",
-      "input_text": "zwaar naar het vliegveld",
+      "sample_id": "nl-NL/01404",
+      "input_text": "zet de helderheid op 50",
       "audio_url": null,
-      "reference": "navigation:traffic_status",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": "navigation:navigate_to"
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-autoencoder-logreg-deep",
-      "competitor_b": "jurebes-autoencoder-logreg",
+      "prediction_b": {
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -3160,16 +3058,16 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "1a90b37f32eccd92",
+      "battle_id": "18f33b04e6f16c6c",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01669",
-      "input_text": "ik wil niets horen",
+      "sample_id": "nl-NL/01592",
+      "input_text": "lees het nieuws",
       "audio_url": null,
-      "reference": "system_control:mute_system",
+      "reference": "news:read_headlines",
       "prediction_a": {
-        "intent": "media:play_song"
+        "intent": "news:read_topic"
       },
       "prediction_b": {
         "intent": null
@@ -3283,19 +3181,19 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "11c87907ab8c33fe",
+      "battle_id": "0423fe7b4ccbd90e",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01455",
-      "input_text": "lees de berichten van vandaag voor",
+      "sample_id": "nl-NL/01592",
+      "input_text": "lees het nieuws",
       "audio_url": null,
       "reference": "news:read_headlines",
       "prediction_a": {
-        "intent": null
+        "intent": "news:read_topic"
       },
       "prediction_b": {
-        "intent": "communication:read_messages"
+        "intent": null
       },
       "competitor_a": "jurebes-autoencoder-logreg",
       "competitor_b": "jurebes-hashing-sgd-log",
@@ -3363,19 +3261,19 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "0f9ce5c84e2f0558",
+      "battle_id": "0bdc0e667be2964e",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00052",
-      "input_text": "kalmeer de muziek",
+      "sample_id": "nl-NL/01440",
+      "input_text": "lees het nieuws",
       "audio_url": null,
-      "reference": "media:pause_playback",
+      "reference": "news:read_headlines",
       "prediction_a": {
-        "intent": null
+        "intent": "news:read_topic"
       },
       "prediction_b": {
-        "intent": "media:resume_playback"
+        "intent": null
       },
       "competitor_a": "jurebes-autoencoder-logreg",
       "competitor_b": "jurebes-label-guided-logreg",
@@ -3406,16 +3304,16 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "27202a052fe7fde9",
+      "battle_id": "1147ad50a42c4401",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01743",
-      "input_text": "wamm in tokil nu",
+      "sample_id": "nl-NL/01063",
+      "input_text": "welk percentage luchtvochtigheid",
       "audio_url": null,
-      "reference": "weather:weather_location",
+      "reference": "weather:weather_humidity",
       "prediction_a": {
-        "intent": "system_control:change_language"
+        "intent": "timers_alarms:snooze_alarm"
       },
       "prediction_b": {
         "intent": null
@@ -3509,19 +3407,16 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "3927bcebf62b3d72",
+      "battle_id": "1f59106396148b60",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01141",
-      "input_text": "doktersbezoek volgende maandag in mijn agenda",
+      "sample_id": "nl-NL/01592",
+      "input_text": "lees het nieuws",
       "audio_url": null,
-      "reference": "calendar:create_event",
+      "reference": "news:read_headlines",
       "prediction_a": {
-        "intent": "calendar:list_events",
-        "slots": {
-          "date": "maandag"
-        }
+        "intent": "news:read_topic"
       },
       "prediction_b": {
         "intent": null
@@ -3532,25 +3427,25 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "1bd5483d01b6f0ae",
+      "battle_id": "146ad6745f70162b",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01197",
-      "input_text": "sla het doktersbezoek over",
+      "sample_id": "nl-NL/01338",
+      "input_text": "zet de helderheid op 50",
       "audio_url": null,
-      "reference": "calendar:cancel_event",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": "media:skip_track",
+        "intent": "smarthome:set_brightness_light",
         "slots": {
-          "title": "doktersbezoek"
+          "level": "50"
         }
       },
       "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-autoencoder-logreg",
-      "competitor_b": "jurebes-logreg-elasticnet",
+      "competitor_a": "jurebes-logreg-elasticnet",
+      "competitor_b": "jurebes-autoencoder-logreg",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -3575,22 +3470,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "168a9336e88a1f1b",
+      "battle_id": "12ba88d129291e82",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01356",
-      "input_text": "schroef de helderheid op naar 80",
+      "sample_id": "nl-NL/00948",
+      "input_text": "spelling van alomtegenwoordig",
       "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
+      "reference": "search_qa:spell_word",
       "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "search_qa:define_word"
       },
       "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-lsa-linear-svc",
-      "competitor_b": "jurebes-autoencoder-logreg",
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-lsa-linear-svc",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -3635,22 +3530,25 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "03a495f084158cdb",
+      "battle_id": "08cc1b53f7973b9a",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01738",
-      "input_text": "leEs dw berichen van vandaaag voor",
+      "sample_id": "nl-NL/01103",
+      "input_text": "stille lucht vandaag",
       "audio_url": null,
-      "reference": "news:read_headlines",
+      "reference": "weather:weather_wind",
       "prediction_a": {
-        "intent": "communication:read_messages"
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-mlp-shallow",
-      "competitor_b": "jurebes-autoencoder-logreg",
+      "prediction_b": {
+        "intent": "weather:weather_humidity",
+        "slots": {
+          "date": "vandaag"
+        }
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-mlp-shallow",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -3698,22 +3596,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "2ab9dd9d8d3d324b",
+      "battle_id": "09ce8704fcb7b9d8",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01669",
-      "input_text": "ik wil niets horen",
+      "sample_id": "nl-NL/01560",
+      "input_text": "lees het nieuws",
       "audio_url": null,
-      "reference": "system_control:mute_system",
+      "reference": "news:read_headlines",
       "prediction_a": {
-        "intent": null
+        "intent": "news:read_topic"
       },
       "prediction_b": {
-        "intent": "media:play_song"
+        "intent": null
       },
-      "competitor_a": "jurebes-nb-multinomial",
-      "competitor_b": "jurebes-autoencoder-logreg",
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-nb-multinomial",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -3868,20 +3766,16 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "15e237ef7358420e",
+      "battle_id": "03c9e31a3d761616",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00908",
-      "input_text": "verander goedemorgen naar spaans",
+      "sample_id": "nl-NL/01528",
+      "input_text": "lees het nieuws",
       "audio_url": null,
-      "reference": "search_qa:translate_phrase",
+      "reference": "news:read_headlines",
       "prediction_a": {
-        "intent": "system_control:change_language",
-        "slots": {
-          "phrase": "goedemorgen",
-          "target_language": "spaans"
-        }
+        "intent": "news:read_topic"
       },
       "prediction_b": {
         "intent": null
@@ -3912,19 +3806,19 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "267e5baef8a8442f",
+      "battle_id": "0ee22e68cbf216d5",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01388",
-      "input_text": "ik wil niets horen",
+      "sample_id": "nl-NL/01496",
+      "input_text": "lees het nieuws",
       "audio_url": null,
-      "reference": "system_control:mute_system",
+      "reference": "news:read_headlines",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "media:play_song"
+        "intent": "news:read_topic"
       },
       "competitor_a": "jurebes-random-projection-logreg",
       "competitor_b": "jurebes-autoencoder-logreg",
@@ -3955,25 +3849,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "04b24c8d04c9629f",
+      "battle_id": "0125f4e3de4cbb22",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00628",
-      "input_text": "facetime piet voor mij",
+      "sample_id": "nl-NL/01283",
+      "input_text": "zet uit",
       "audio_url": null,
-      "reference": "communication:video_call",
+      "reference": "system_control:shutdown",
       "prediction_a": {
-        "intent": "communication:call_contact",
-        "slots": {
-          "contact": "piet"
-        }
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-ridge",
-      "competitor_b": "jurebes-autoencoder-logreg",
+      "prediction_b": {
+        "intent": "smarthome:lights_off"
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-ridge",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -3998,22 +3889,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "2e24ae9cc16018a0",
+      "battle_id": "0aa255eb3a61fda0",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01141",
-      "input_text": "doktersbezoek volgende maandag in mijn agenda",
+      "sample_id": "nl-NL/01404",
+      "input_text": "zet de helderheid op 50",
       "audio_url": null,
-      "reference": "calendar:create_event",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": "calendar:list_events",
-        "slots": {
-          "date": "maandag"
-        }
+        "intent": null
       },
       "prediction_b": {
-        "intent": null
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "competitor_a": "jurebes-autoencoder-logreg",
       "competitor_b": "jurebes-sgd-log",
@@ -4021,43 +3912,36 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "01536dff5fbc70be",
+      "battle_id": "04038dc01a78e9d9",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01265",
-      "input_text": "kun je de tijd van doktersbezoek naar twaalf uur veranderen",
+      "sample_id": "nl-NL/01238",
+      "input_text": "wat staat er bovenaan mijn agenda",
       "audio_url": null,
-      "reference": "calendar:reschedule_event",
+      "reference": "calendar:next_event",
       "prediction_a": {
-        "intent": null
+        "intent": "calendar:list_events"
       },
       "prediction_b": {
-        "intent": "navigation:eta_query",
-        "slots": {
-          "title": "doktersbezoek",
-          "time": "twaalf uur"
-        }
+        "intent": null
       },
-      "competitor_a": "jurebes-autoencoder-logreg",
-      "competitor_b": "jurebes-sgd-modified-huber",
+      "competitor_a": "jurebes-sgd-modified-huber",
+      "competitor_b": "jurebes-autoencoder-logreg",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "673df08ad3cc91da",
+      "battle_id": "054a707f44f06814",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00181",
-      "input_text": "theetimer 4 minuten",
+      "sample_id": "nl-NL/01440",
+      "input_text": "lees het nieuws",
       "audio_url": null,
-      "reference": "timers_alarms:set_timer",
+      "reference": "news:read_headlines",
       "prediction_a": {
-        "intent": "timers_alarms:snooze_alarm",
-        "slots": {
-          "duration": "minuten"
-        }
+        "intent": "news:read_topic"
       },
       "prediction_b": {
         "intent": null
@@ -4111,25 +3995,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "49079e3d9f98928a",
+      "battle_id": "1f3f9c12a2fc94a7",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01197",
-      "input_text": "sla het doktersbezoek over",
+      "sample_id": "nl-NL/01528",
+      "input_text": "lees het nieuws",
       "audio_url": null,
-      "reference": "calendar:cancel_event",
+      "reference": "news:read_headlines",
       "prediction_a": {
-        "intent": "media:skip_track",
-        "slots": {
-          "title": "doktersbezoek"
-        }
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-autoencoder-logreg",
-      "competitor_b": "jurebes-text-stats-logreg",
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "jurebes-text-stats-logreg",
+      "competitor_b": "jurebes-autoencoder-logreg",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -4196,6 +4077,106 @@
       },
       "competitor_a": "jurebes-union-pos-char-logreg",
       "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "01ec32f040703dfd",
+      "modality": "intent_template",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01455",
+      "input_text": "lees de berichten van vandaag voor",
+      "audio_url": null,
+      "reference": "news:read_headlines",
+      "prediction_a": {
+        "intent": "communication:read_messages"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-union-pos-tfidf-logreg",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "07319274c5b6e31c",
+      "modality": "intent_template",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01528",
+      "input_text": "lees het nieuws",
+      "audio_url": null,
+      "reference": "news:read_headlines",
+      "prediction_a": {
+        "intent": "news:read_topic"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-union-skipgram-tfidf-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "00a630639eea1320",
+      "modality": "intent_template",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01496",
+      "input_text": "lees het nieuws",
+      "audio_url": null,
+      "reference": "news:read_headlines",
+      "prediction_a": {
+        "intent": "news:read_topic"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-union-text-stats-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "12213fe8d5f16e02",
+      "modality": "intent_template",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01440",
+      "input_text": "lees het nieuws",
+      "audio_url": null,
+      "reference": "news:read_headlines",
+      "prediction_a": {
+        "intent": "news:read_topic"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-voting-soft",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "01f0d5aae8a3021e",
+      "modality": "intent_template",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00752",
+      "input_text": "zwaar naar het vliegveld",
+      "audio_url": null,
+      "reference": "navigation:traffic_status",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "navigation:navigate_to"
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-word-pos-logreg",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     }

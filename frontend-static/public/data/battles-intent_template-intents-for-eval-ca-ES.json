@@ -2,14 +2,13 @@
   "modality": "intent_template",
   "dataset_id": "intents-for-eval",
   "lang": "ca-ES",
-  "generated_at": "2026-08-13T04:56:01.302612+00:00",
+  "generated_at": "2026-09-01T08:18:52.931728+00:00",
   "dataset_info": {
     "url": "https://huggingface.co/datasets/OpenVoiceOS/intents-for-eval",
     "license": "apache-2.0",
     "notes": "OVOS canonical paradigm-neutral intent benchmark: 50 intents, 1750 test rows per language across template / paraphrase / near_ood / far_ood / asr_noise / typos buckets, with slot annotations. far_ood rows carry expected_intent=null — the correct behaviour is no match.",
     "predictions": [
       "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-bench-intents-for-eval",
-      "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-keyword-bench-intents-for-eval",
       "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-template-bench-intents-for-eval"
     ],
     "train_datasets": {
@@ -45,24 +44,24 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "07d01e28c5dcb3a1",
+      "battle_id": "1b3932ca17c82b6e",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "ca-ES",
-      "sample_id": "ca-ES/01436",
-      "input_text": "posa la lluminositat al 50",
+      "sample_id": "ca-ES/01471",
+      "input_text": "dóna'm notícies de cnn",
       "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
+      "reference": "news:news_source",
       "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-autoencoder-logreg",
-      "competitor_b": "hierarchical-knn-medium",
-      "plugin_a": "ovos-jurebes-pipeline-plugin",
-      "plugin_b": "ovos-hierarchical-knn-pipeline"
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
       "battle_id": "0232892d063247fc",
@@ -141,7 +140,10 @@
         "intent": null
       },
       "prediction_b": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "competitor_a": "hierarchical-knn-medium",
       "competitor_b": "jurebes-bagging-logreg",
@@ -189,24 +191,24 @@
       "plugin_b": "ovos-hierarchical-knn-pipeline"
     },
     {
-      "battle_id": "38067f072d8df0fa",
+      "battle_id": "7b01c5f2929d0b5d",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "ca-ES",
-      "sample_id": "ca-ES/00133",
-      "input_text": "passa a la següent",
+      "sample_id": "ca-ES/00147",
+      "input_text": "no no salta-la",
       "audio_url": null,
       "reference": "media:skip_track",
       "prediction_a": {
-        "intent": null
+        "intent": "media:play_song"
       },
       "prediction_b": {
-        "intent": "news:next_story"
+        "intent": null
       },
-      "competitor_a": "hierarchical-knn-medium",
-      "competitor_b": "jurebes-complement-nb-count",
-      "plugin_a": "ovos-hierarchical-knn-pipeline",
-      "plugin_b": "ovos-jurebes-pipeline-plugin"
+      "competitor_a": "jurebes-complement-nb-count",
+      "competitor_b": "hierarchical-knn-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-hierarchical-knn-pipeline"
     },
     {
       "battle_id": "008febf9b095fbed",
@@ -218,7 +220,7 @@
       "audio_url": null,
       "reference": "weather:weather_today",
       "prediction_a": {
-        "intent": "system_control:restart"
+        "intent": "system_control:mute_system"
       },
       "prediction_b": {
         "intent": null
@@ -229,19 +231,23 @@
       "plugin_b": "ovos-hierarchical-knn-pipeline"
     },
     {
-      "battle_id": "2180025032acf406",
+      "battle_id": "01f096fa9e14a70a",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "ca-ES",
-      "sample_id": "ca-ES/00133",
-      "input_text": "passa a la següent",
+      "sample_id": "ca-ES/00241",
+      "input_text": "alarma de la reunió a les 9 del matí",
       "audio_url": null,
-      "reference": "media:skip_track",
+      "reference": "timers_alarms:set_alarm",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "news:next_story"
+        "intent": "timers_alarms:set_alarm",
+        "slots": {
+          "label": "reunió",
+          "time": "del matí"
+        }
       },
       "competitor_a": "hierarchical-knn-medium",
       "competitor_b": "jurebes-denoising-autoencoder-logreg",
@@ -249,19 +255,16 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "06bf227768bf4135",
+      "battle_id": "03a50bda2b533e09",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "ca-ES",
-      "sample_id": "ca-ES/00723",
-      "input_text": "eta a l'oficina més o menys",
+      "sample_id": "ca-ES/01291",
+      "input_text": "envia-la a dormir per sempre",
       "audio_url": null,
-      "reference": "navigation:eta_query",
+      "reference": "system_control:shutdown",
       "prediction_a": {
-        "intent": "navigation:navigate_to",
-        "slots": {
-          "destination": "l '"
-        }
+        "intent": "communication:send_message"
       },
       "prediction_b": {
         "intent": null
@@ -312,19 +315,19 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "1d9c044df62d15da",
+      "battle_id": "ffa0abf103010a62",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "ca-ES",
-      "sample_id": "ca-ES/01404",
-      "input_text": "posa la lluminositat al 50",
+      "sample_id": "ca-ES/01390",
+      "input_text": "baixa el volum a zero",
       "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
+      "reference": "system_control:mute_system",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "media:set_volume"
       },
       "competitor_a": "hierarchical-knn-medium",
       "competitor_b": "jurebes-hashing-sgd-log",
@@ -399,19 +402,19 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "1c138e6a75b77646",
+      "battle_id": "20a010d0808ed9de",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "ca-ES",
-      "sample_id": "ca-ES/00133",
-      "input_text": "passa a la següent",
+      "sample_id": "ca-ES/01707",
+      "input_text": "alguna cosa de ttemp a londes",
       "audio_url": null,
-      "reference": "media:skip_track",
+      "reference": "weather:weather_location",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "news:next_story"
+        "intent": "communication:read_messages"
       },
       "competitor_a": "hierarchical-knn-medium",
       "competitor_b": "jurebes-label-guided-logreg",
@@ -439,24 +442,27 @@
       "plugin_b": "ovos-hierarchical-knn-pipeline"
     },
     {
-      "battle_id": "14cedacd669dcde3",
+      "battle_id": "0070856e2996c372",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "ca-ES",
-      "sample_id": "ca-ES/00133",
-      "input_text": "passa a la següent",
+      "sample_id": "ca-ES/00476",
+      "input_text": "posa la lluminositat al 50",
       "audio_url": null,
-      "reference": "media:skip_track",
+      "reference": "smarthome:set_brightness_light",
       "prediction_a": {
-        "intent": "news:next_story"
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-lda-logreg",
-      "competitor_b": "hierarchical-knn-medium",
-      "plugin_a": "ovos-jurebes-pipeline-plugin",
-      "plugin_b": "ovos-hierarchical-knn-pipeline"
+      "prediction_b": {
+        "intent": "system_control:set_brightness_screen",
+        "slots": {
+          "level": "50"
+        }
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-lda-logreg",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
       "battle_id": "01d95cda8069de13",
@@ -548,7 +554,10 @@
       "audio_url": null,
       "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "prediction_b": {
         "intent": null
@@ -568,7 +577,10 @@
       "audio_url": null,
       "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "prediction_b": {
         "intent": null
@@ -599,18 +611,18 @@
       "plugin_b": "ovos-hierarchical-knn-pipeline"
     },
     {
-      "battle_id": "02ae888cf8363ee5",
+      "battle_id": "07f45f9c0b1f01c9",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "ca-ES",
-      "sample_id": "ca-ES/00492",
-      "input_text": "entra en trucada amb pau",
+      "sample_id": "ca-ES/01698",
+      "input_text": "entra en trucada amb jordi",
       "audio_url": null,
       "reference": "communication:call_contact",
       "prediction_a": {
         "intent": "communication:video_call",
         "slots": {
-          "contact": "pau"
+          "contact": "jordi"
         }
       },
       "prediction_b": {
@@ -622,24 +634,24 @@
       "plugin_b": "ovos-hierarchical-knn-pipeline"
     },
     {
-      "battle_id": "0506f4282afd3cfe",
+      "battle_id": "17da3440051eda9f",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "ca-ES",
-      "sample_id": "ca-ES/01436",
-      "input_text": "posa la lluminositat al 50",
+      "sample_id": "ca-ES/01440",
+      "input_text": "llegeix les notícies",
       "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
+      "reference": "news:read_headlines",
       "prediction_a": {
-        "intent": null
+        "intent": "news:read_topic"
       },
       "prediction_b": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": null
       },
-      "competitor_a": "hierarchical-knn-medium",
-      "competitor_b": "jurebes-lsa-logreg",
-      "plugin_a": "ovos-hierarchical-knn-pipeline",
-      "plugin_b": "ovos-jurebes-pipeline-plugin"
+      "competitor_a": "jurebes-lsa-logreg",
+      "competitor_b": "hierarchical-knn-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-hierarchical-knn-pipeline"
     },
     {
       "battle_id": "05f52997bc145e68",
@@ -654,7 +666,10 @@
         "intent": null
       },
       "prediction_b": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "competitor_a": "hierarchical-knn-medium",
       "competitor_b": "jurebes-lsa-rbf-svc",
@@ -662,24 +677,27 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "045e67ab96732666",
+      "battle_id": "025788b977c6abdf",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "ca-ES",
-      "sample_id": "ca-ES/01162",
-      "input_text": "alguna cosa al programa",
+      "sample_id": "ca-ES/01197",
+      "input_text": "salta la visita al metge",
       "audio_url": null,
-      "reference": "calendar:list_events",
+      "reference": "calendar:cancel_event",
       "prediction_a": {
-        "intent": null
+        "intent": "calendar:create_event",
+        "slots": {
+          "title": "visita al"
+        }
       },
       "prediction_b": {
-        "intent": "communication:read_messages"
+        "intent": null
       },
-      "competitor_a": "hierarchical-knn-medium",
-      "competitor_b": "jurebes-mlp-shallow",
-      "plugin_a": "ovos-hierarchical-knn-pipeline",
-      "plugin_b": "ovos-jurebes-pipeline-plugin"
+      "competitor_a": "jurebes-mlp-shallow",
+      "competitor_b": "hierarchical-knn-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-hierarchical-knn-pipeline"
     },
     {
       "battle_id": "010166769aa7087f",
@@ -702,84 +720,47 @@
       "plugin_b": "ovos-hierarchical-knn-pipeline"
     },
     {
-      "battle_id": "397a0440b9a55c65",
+      "battle_id": "2c331c7b69a12342",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "ca-ES",
-      "sample_id": "ca-ES/01338",
-      "input_text": "posa la lluminositat al 50",
+      "sample_id": "ca-ES/00762",
+      "input_text": "troba una gasolinera a prop",
       "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
+      "reference": "navigation:find_nearby",
       "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-nb-complement",
-      "competitor_b": "hierarchical-knn-medium",
-      "plugin_a": "ovos-jurebes-pipeline-plugin",
-      "plugin_b": "ovos-hierarchical-knn-pipeline"
+      "prediction_b": {
+        "intent": "navigation:find_nearby",
+        "slots": {
+          "place_type": "gasolinera"
+        }
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-nb-complement",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "0470138b236b16ee",
+      "battle_id": "2608339b647d8a52",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "ca-ES",
-      "sample_id": "ca-ES/00133",
-      "input_text": "passa a la següent",
+      "sample_id": "ca-ES/01390",
+      "input_text": "baixa el volum a zero",
       "audio_url": null,
-      "reference": "media:skip_track",
+      "reference": "system_control:mute_system",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "news:next_story"
+        "intent": "media:set_volume"
       },
       "competitor_a": "hierarchical-knn-medium",
       "competitor_b": "jurebes-nb-multinomial",
       "plugin_a": "ovos-hierarchical-knn-pipeline",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
-    },
-    {
-      "battle_id": "3ef9ed93ff2b2b99",
-      "modality": "intent_template",
-      "dataset_id": "intents-for-eval",
-      "lang": "ca-ES",
-      "sample_id": "ca-ES/01436",
-      "input_text": "posa la lluminositat al 50",
-      "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
-      "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "jurebes-nmf-logreg",
-      "competitor_b": "hierarchical-knn-medium",
-      "plugin_a": "ovos-jurebes-pipeline-plugin",
-      "plugin_b": "ovos-hierarchical-knn-pipeline"
-    },
-    {
-      "battle_id": "0e1c2e2db11b8f93",
-      "modality": "intent_template",
-      "dataset_id": "intents-for-eval",
-      "lang": "ca-ES",
-      "sample_id": "ca-ES/01436",
-      "input_text": "posa la lluminositat al 50",
-      "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
-      "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "jurebes-nusvc",
-      "competitor_b": "hierarchical-knn-medium",
-      "plugin_a": "ovos-jurebes-pipeline-plugin",
-      "plugin_b": "ovos-hierarchical-knn-pipeline"
     },
     {
       "battle_id": "08aa8e55bf711a52",
@@ -885,26 +866,6 @@
       "plugin_b": "ovos-hierarchical-knn-pipeline"
     },
     {
-      "battle_id": "1521b02b8b3a36fd",
-      "modality": "intent_template",
-      "dataset_id": "intents-for-eval",
-      "lang": "ca-ES",
-      "sample_id": "ca-ES/00134",
-      "input_text": "avança",
-      "audio_url": null,
-      "reference": "media:skip_track",
-      "prediction_a": {
-        "intent": "news:next_story"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "jurebes-qda-classifier",
-      "competitor_b": "hierarchical-knn-medium",
-      "plugin_a": "ovos-jurebes-pipeline-plugin",
-      "plugin_b": "ovos-hierarchical-knn-pipeline"
-    },
-    {
       "battle_id": "0400ef4c0bf56899",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
@@ -925,24 +886,24 @@
       "plugin_b": "ovos-hierarchical-knn-pipeline"
     },
     {
-      "battle_id": "0ee1803ab0c3afc7",
+      "battle_id": "1de0cfa8a54d1c90",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "ca-ES",
-      "sample_id": "ca-ES/01404",
-      "input_text": "posa la lluminositat al 50",
+      "sample_id": "ca-ES/01449",
+      "input_text": "actualització de notícies",
       "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
+      "reference": "news:read_headlines",
       "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-random-projection-logreg",
-      "competitor_b": "hierarchical-knn-medium",
-      "plugin_a": "ovos-jurebes-pipeline-plugin",
-      "plugin_b": "ovos-hierarchical-knn-pipeline"
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-random-projection-logreg",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
       "battle_id": "03192ebc715a58c5",
@@ -1020,7 +981,10 @@
         "intent": null
       },
       "prediction_b": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "competitor_a": "hierarchical-knn-medium",
       "competitor_b": "jurebes-sgd-log",
@@ -1060,7 +1024,10 @@
       "audio_url": null,
       "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "prediction_b": {
         "intent": null
@@ -1103,7 +1070,10 @@
         "intent": null
       },
       "prediction_b": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "competitor_a": "hierarchical-knn-medium",
       "competitor_b": "jurebes-stemmed-logreg",
@@ -1111,19 +1081,19 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "1e1c74a906c04040",
+      "battle_id": "9bdc8d64cde5663a",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "ca-ES",
-      "sample_id": "ca-ES/00133",
-      "input_text": "passa a la següent",
+      "sample_id": "ca-ES/00429",
+      "input_text": "ho vull a 21",
       "audio_url": null,
-      "reference": "media:skip_track",
+      "reference": "smarthome:set_thermostat",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "news:next_story"
+        "intent": "media:set_volume"
       },
       "competitor_a": "hierarchical-knn-medium",
       "competitor_b": "jurebes-text-stats-logreg",
@@ -1163,7 +1133,10 @@
       "audio_url": null,
       "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "prediction_b": {
         "intent": null
@@ -1206,7 +1179,10 @@
         "intent": null
       },
       "prediction_b": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "competitor_a": "hierarchical-knn-medium",
       "competitor_b": "jurebes-union-pos-tfidf-logreg",
@@ -1223,7 +1199,10 @@
       "audio_url": null,
       "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "prediction_b": {
         "intent": null
@@ -1289,7 +1268,10 @@
         "intent": null
       },
       "prediction_b": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "competitor_a": "hierarchical-knn-medium",
       "competitor_b": "jurebes-word-pos-logreg",
@@ -1544,25 +1526,25 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "057712f746893ccb",
+      "battle_id": "05740b1290295a7e",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "ca-ES",
-      "sample_id": "ca-ES/00566",
-      "input_text": "repassa el xat amb jordi",
+      "sample_id": "ca-ES/00385",
+      "input_text": "ajusta la lluminositat al 75",
       "audio_url": null,
-      "reference": "communication:read_messages",
+      "reference": "smarthome:set_brightness_light",
       "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "communication:video_call",
+        "intent": "system_control:set_brightness_screen",
         "slots": {
-          "contact": "jordi"
+          "level": "75"
         }
       },
-      "competitor_a": "jurebes-autoencoder-logreg-wide",
-      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-autoencoder-logreg-wide",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -1711,19 +1693,19 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "006fede2c5a11c0e",
+      "battle_id": "04ce1ff1d7e33096",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "ca-ES",
-      "sample_id": "ca-ES/01388",
-      "input_text": "no vull sentir res",
+      "sample_id": "ca-ES/00301",
+      "input_text": "posposa'm un altre cop",
       "audio_url": null,
-      "reference": "system_control:mute_system",
+      "reference": "timers_alarms:snooze_alarm",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "media:play_song"
+        "intent": "media:resume_playback"
       },
       "competitor_a": "jurebes-autoencoder-linear-svc",
       "competitor_b": "jurebes-extra-trees",
@@ -1751,22 +1733,25 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "0cdddf508e5c576c",
+      "battle_id": "056874a29fcb0aeb",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "ca-ES",
-      "sample_id": "ca-ES/01454",
-      "input_text": "posa'm al dia amb les notícies",
+      "sample_id": "ca-ES/01338",
+      "input_text": "posa la lluminositat al 50",
       "audio_url": null,
-      "reference": "news:read_headlines",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": null
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "prediction_b": {
-        "intent": "calendar:create_event"
+        "intent": null
       },
-      "competitor_a": "jurebes-autoencoder-linear-svc",
-      "competitor_b": "jurebes-hashing-sgd-hinge",
+      "competitor_a": "jurebes-hashing-sgd-hinge",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -1814,22 +1799,19 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "039f57446475c982",
+      "battle_id": "009fca73b4d79f4c",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "ca-ES",
-      "sample_id": "ca-ES/01334",
-      "input_text": "dóna a l'ordinador un nou inici",
+      "sample_id": "ca-ES/01508",
+      "input_text": "avança",
       "audio_url": null,
-      "reference": "system_control:restart",
+      "reference": "news:next_story",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "system_control:shutdown",
-        "slots": {
-          "destination": "l"
-        }
+        "intent": "media:skip_track"
       },
       "competitor_a": "jurebes-autoencoder-linear-svc",
       "competitor_b": "jurebes-knn",
@@ -1904,18 +1886,19 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "19d394ddc06d025e",
+      "battle_id": "0ae128a52b3edd66",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "ca-ES",
-      "sample_id": "ca-ES/01459",
-      "input_text": "resum de les notícies del matí",
+      "sample_id": "ca-ES/01124",
+      "input_text": "planifica visita al dentista a les 3 de la tarda",
       "audio_url": null,
-      "reference": "news:read_headlines",
+      "reference": "calendar:create_event",
       "prediction_a": {
-        "intent": "timers_alarms:set_alarm",
+        "intent": "calendar:reschedule_event",
         "slots": {
-          "time": "matí"
+          "title": "visita al dentista",
+          "time": "les 3 de la tarda"
         }
       },
       "prediction_b": {
@@ -2090,19 +2073,19 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "0b96531d09315e26",
+      "battle_id": "06db65b7449267fa",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "ca-ES",
-      "sample_id": "ca-ES/00266",
-      "input_text": "què tinc al calendari d'alarmes",
+      "sample_id": "ca-ES/01080",
+      "input_text": "quin temps fa",
       "audio_url": null,
-      "reference": "timers_alarms:list_alarms",
+      "reference": "weather:weather_today",
       "prediction_a": {
-        "intent": "calendar:list_events"
+        "intent": null
       },
       "prediction_b": {
-        "intent": null
+        "intent": "weather:weather_location"
       },
       "competitor_a": "jurebes-autoencoder-linear-svc",
       "competitor_b": "jurebes-lsa-logreg",
@@ -2196,22 +2179,25 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "0dc5fdb970f50e8c",
+      "battle_id": "0bdcd24e0135ab2b",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "ca-ES",
-      "sample_id": "ca-ES/01683",
-      "input_text": "converteix serendipitaten una definició",
+      "sample_id": "ca-ES/00385",
+      "input_text": "ajusta la lluminositat al 75",
       "audio_url": null,
-      "reference": "search_qa:define_word",
+      "reference": "smarthome:set_brightness_light",
       "prediction_a": {
-        "intent": "navigation:find_nearby"
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-autoencoder-linear-svc",
-      "competitor_b": "jurebes-nb-multinomial",
+      "prediction_b": {
+        "intent": "system_control:set_brightness_screen",
+        "slots": {
+          "level": "75"
+        }
+      },
+      "competitor_a": "jurebes-nb-multinomial",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -2302,19 +2288,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "02839734c9330802",
+      "battle_id": "0042e6d5d7b3e6a4",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "ca-ES",
-      "sample_id": "ca-ES/00593",
-      "input_text": "deixa-ho",
+      "sample_id": "ca-ES/01404",
+      "input_text": "posa la lluminositat al 50",
       "audio_url": null,
-      "reference": "communication:hang_up",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "smarthome:set_thermostat"
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "competitor_a": "jurebes-autoencoder-linear-svc",
       "competitor_b": "jurebes-passive-aggressive",
@@ -2388,25 +2377,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "04525fe2b4cb45f0",
+      "battle_id": "0a0cc30aaf6aad8b",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "ca-ES",
-      "sample_id": "ca-ES/00173",
-      "input_text": "desperta'm en 45 minuts",
+      "sample_id": "ca-ES/01683",
+      "input_text": "converteix serendipitaten una definició",
       "audio_url": null,
-      "reference": "timers_alarms:set_timer",
+      "reference": "search_qa:define_word",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "timers_alarms:snooze_alarm",
-        "slots": {
-          "duration": "minuts"
-        }
+        "intent": "navigation:find_nearby"
       },
-      "competitor_a": "jurebes-autoencoder-linear-svc",
-      "competitor_b": "jurebes-random-forest",
+      "competitor_a": "jurebes-random-forest",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -2454,19 +2440,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "050ac6a02c58f0a6",
+      "battle_id": "011754ce3b87deb4",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "ca-ES",
-      "sample_id": "ca-ES/01716",
-      "input_text": "apaga la jRat",
+      "sample_id": "ca-ES/01338",
+      "input_text": "posa la lluminositat al 50",
       "audio_url": null,
-      "reference": "navigation:cancel_route",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "smarthome:lights_off"
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "competitor_a": "jurebes-autoencoder-linear-svc",
       "competitor_b": "jurebes-ridge",
@@ -2540,26 +2529,25 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "0d61dd0e847429ab",
+      "battle_id": "042f64422f4d0896",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "ca-ES",
-      "sample_id": "ca-ES/00391",
-      "input_text": "regula la lluminositat de la sala d'estar al 50",
+      "sample_id": "ca-ES/00164",
+      "input_text": "compte enrere 5 minuts",
       "audio_url": null,
-      "reference": "smarthome:set_brightness_light",
+      "reference": "timers_alarms:set_timer",
       "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "system_control:set_brightness_screen",
+        "intent": "timers_alarms:snooze_alarm",
         "slots": {
-          "room": "sala d ' estar",
-          "level": "50"
+          "duration": "minuts"
         }
       },
-      "competitor_a": "jurebes-skipgram-logreg",
-      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-skipgram-logreg",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -2584,22 +2572,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "1fa428105cba42eb",
+      "battle_id": "03c3c00e24cb7aab",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "ca-ES",
-      "sample_id": "ca-ES/00566",
-      "input_text": "repassa el xat amb jordi",
+      "sample_id": "ca-ES/01338",
+      "input_text": "posa la lluminositat al 50",
       "audio_url": null,
-      "reference": "communication:read_messages",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": null
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "prediction_b": {
-        "intent": "communication:video_call",
-        "slots": {
-          "contact": "jordi"
-        }
+        "intent": null
       },
       "competitor_a": "jurebes-stemmed-logreg",
       "competitor_b": "jurebes-autoencoder-linear-svc",
@@ -2647,19 +2635,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "0aeebec7ea13be1d",
+      "battle_id": "074f9ddad5d341a9",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "ca-ES",
-      "sample_id": "ca-ES/01674",
-      "input_text": "avança ha saps notícies",
+      "sample_id": "ca-ES/01306",
+      "input_text": "posa la lluminositat al 50",
       "audio_url": null,
-      "reference": "news:next_story",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": null
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "prediction_b": {
-        "intent": "news:read_topic"
+        "intent": null
       },
       "competitor_a": "jurebes-union-logreg",
       "competitor_b": "jurebes-autoencoder-linear-svc",
@@ -2733,21 +2724,21 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "2168315c464fb7b1",
+      "battle_id": "06e4e8cc1bdc8e71",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "ca-ES",
-      "sample_id": "ca-ES/01459",
-      "input_text": "resum de les notícies del matí",
+      "sample_id": "ca-ES/00385",
+      "input_text": "ajusta la lluminositat al 75",
       "audio_url": null,
-      "reference": "news:read_headlines",
+      "reference": "smarthome:set_brightness_light",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "timers_alarms:set_alarm",
+        "intent": "system_control:set_brightness_screen",
         "slots": {
-          "time": "matí"
+          "level": "75"
         }
       },
       "competitor_a": "jurebes-union-text-stats-logreg",
@@ -2799,24 +2790,24 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "03f41e45f6e839a4",
+      "battle_id": "0367111030b2f367",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "ca-ES",
-      "sample_id": "ca-ES/01700",
-      "input_text": "posa'm l dia amb els esdevejniments",
+      "sample_id": "ca-ES/01593",
+      "input_text": "titulars d'avui",
       "audio_url": null,
       "reference": "news:read_headlines",
       "prediction_a": {
-        "intent": null
+        "intent": "weather:weather_today"
       },
       "prediction_b": {
-        "intent": "communication:call_contact"
+        "intent": null
       },
-      "competitor_a": "jurebes-autoencoder-linear-svc",
-      "competitor_b": "linha-fina-domain-medium",
-      "plugin_a": "ovos-jurebes-pipeline-plugin",
-      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
+      "competitor_a": "linha-fina-domain-medium",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "plugin_a": "ovos-linha-fina-domain-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
       "battle_id": "01d3bbb1b033708c",
@@ -2839,16 +2830,16 @@
       "plugin_b": "ovos-linha-fina-hierarchical-pipeline-plugin"
     },
     {
-      "battle_id": "05588fdc583067e3",
+      "battle_id": "01169ea53903958b",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "ca-ES",
-      "sample_id": "ca-ES/00052",
-      "input_text": "calma la música",
+      "sample_id": "ca-ES/00201",
+      "input_text": "pots cancel·lar el temporitzador",
       "audio_url": null,
-      "reference": "media:pause_playback",
+      "reference": "timers_alarms:cancel_timer",
       "prediction_a": {
-        "intent": "media:resume_playback"
+        "intent": "calendar:cancel_event"
       },
       "prediction_b": {
         "intent": null
@@ -3010,22 +3001,19 @@
       "plugin_b": "ovos-padatious-pipeline-plugin"
     },
     {
-      "battle_id": "235a1968b433e79d",
+      "battle_id": "104fa9b00c8a7e69",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "ca-ES",
-      "sample_id": "ca-ES/00566",
-      "input_text": "repassa el xat amb jordi",
+      "sample_id": "ca-ES/01306",
+      "input_text": "posa la lluminositat al 50",
       "audio_url": null,
-      "reference": "communication:read_messages",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": null
+        "intent": "smarthome:set_brightness_light"
       },
       "prediction_b": {
-        "intent": "communication:video_call",
-        "slots": {
-          "contact": "jordi"
-        }
+        "intent": null
       },
       "competitor_a": "padatious-medium",
       "competitor_b": "jurebes-autoencoder-linear-svc",
@@ -3099,22 +3087,25 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "1f541d1cc8f02882",
+      "battle_id": "0b9195463b941c83",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "ca-ES",
-      "sample_id": "ca-ES/01535",
-      "input_text": "dóna'm notícies de cnn",
+      "sample_id": "ca-ES/01404",
+      "input_text": "posa la lluminositat al 50",
       "audio_url": null,
-      "reference": "news:news_source",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": "news:read_topic"
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-autoencoder-logreg",
-      "competitor_b": "jurebes-bagging-logreg",
+      "competitor_a": "jurebes-bagging-logreg",
+      "competitor_b": "jurebes-autoencoder-logreg",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -3199,16 +3190,16 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "429ab49c9bc02a9c",
+      "battle_id": "300de14beca566ba",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "ca-ES",
-      "sample_id": "ca-ES/00746",
-      "input_text": "les carreteres flueixen",
+      "sample_id": "ca-ES/01442",
+      "input_text": "què hi ha a les notícies",
       "audio_url": null,
-      "reference": "navigation:traffic_status",
+      "reference": "news:read_headlines",
       "prediction_a": {
-        "intent": "timers_alarms:set_alarm"
+        "intent": "news:read_topic"
       },
       "prediction_b": {
         "intent": null
@@ -3262,25 +3253,25 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "07012ff617f95a41",
+      "battle_id": "003b3edb3d8cf9c2",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "ca-ES",
-      "sample_id": "ca-ES/00727",
-      "input_text": "quants quilòmetres a casa",
+      "sample_id": "ca-ES/01404",
+      "input_text": "posa la lluminositat al 50",
       "audio_url": null,
-      "reference": "navigation:eta_query",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": "navigation:navigate_to",
-        "slots": {
-          "destination": "casa"
-        }
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-hashing-sgd-hinge",
-      "competitor_b": "jurebes-autoencoder-logreg",
+      "prediction_b": {
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-hashing-sgd-hinge",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -3452,22 +3443,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "06cf454d91c491c2",
+      "battle_id": "03dc9ef1ef12b0a9",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "ca-ES",
-      "sample_id": "ca-ES/01651",
-      "input_text": "so a 70 gràcies",
+      "sample_id": "ca-ES/00133",
+      "input_text": "passa a la següent",
       "audio_url": null,
-      "reference": "media:set_volume",
+      "reference": "media:skip_track",
       "prediction_a": {
-        "intent": null
+        "intent": "news:next_story"
       },
       "prediction_b": {
-        "intent": "search_qa:translate_phrase"
+        "intent": null
       },
-      "competitor_a": "jurebes-autoencoder-logreg",
-      "competitor_b": "jurebes-linear-svc-char",
+      "competitor_a": "jurebes-linear-svc-char",
+      "competitor_b": "jurebes-autoencoder-logreg",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -3535,22 +3526,25 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "2be8501d59767cd4",
+      "battle_id": "13b0794bae956c43",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "ca-ES",
-      "sample_id": "ca-ES/01567",
-      "input_text": "dóna'm notícies de cnn",
+      "sample_id": "ca-ES/00969",
+      "input_text": "previsió del temps per avui",
       "audio_url": null,
-      "reference": "news:news_source",
+      "reference": "weather:weather_today",
       "prediction_a": {
-        "intent": "news:read_topic"
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-autoencoder-logreg",
-      "competitor_b": "jurebes-logreg-elasticnet",
+      "prediction_b": {
+        "intent": "weather:weather_forecast",
+        "slots": {
+          "date": "avui"
+        }
+      },
+      "competitor_a": "jurebes-logreg-elasticnet",
+      "competitor_b": "jurebes-autoencoder-logreg",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -3598,19 +3592,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "437538cc0d3f9e67",
+      "battle_id": "1c014ca17057aaf5",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "ca-ES",
-      "sample_id": "ca-ES/01535",
-      "input_text": "dóna'm notícies de cnn",
+      "sample_id": "ca-ES/00961",
+      "input_text": "quin temps fa avui",
       "audio_url": null,
-      "reference": "news:news_source",
+      "reference": "weather:weather_today",
       "prediction_a": {
-        "intent": null
+        "intent": "weather:weather_location",
+        "slots": {
+          "date": "avui"
+        }
       },
       "prediction_b": {
-        "intent": "news:read_topic"
+        "intent": null
       },
       "competitor_a": "jurebes-lsa-logreg",
       "competitor_b": "jurebes-autoencoder-logreg",
@@ -3618,19 +3615,19 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "0329b9969ce35248",
+      "battle_id": "01b59b473fc68186",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "ca-ES",
-      "sample_id": "ca-ES/01503",
-      "input_text": "dóna'm notícies de cnn",
+      "sample_id": "ca-ES/01684",
+      "input_text": "atura eh sons un instant",
       "audio_url": null,
-      "reference": "news:news_source",
+      "reference": "media:pause_playback",
       "prediction_a": {
-        "intent": "news:read_topic"
+        "intent": null
       },
       "prediction_b": {
-        "intent": null
+        "intent": "timers_alarms:set_timer"
       },
       "competitor_a": "jurebes-autoencoder-logreg",
       "competitor_b": "jurebes-lsa-rbf-svc",
@@ -3638,16 +3635,16 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "058a825075c8c729",
+      "battle_id": "04080fbed9a1a89f",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "ca-ES",
-      "sample_id": "ca-ES/00726",
-      "input_text": "ja som a prop",
+      "sample_id": "ca-ES/01730",
+      "input_text": "ensenya'm Erímef",
       "audio_url": null,
-      "reference": "navigation:eta_query",
+      "reference": "search_qa:define_word",
       "prediction_a": {
-        "intent": "navigation:find_nearby"
+        "intent": "search_qa:spell_word"
       },
       "prediction_b": {
         "intent": null
@@ -3698,22 +3695,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "2ff56deeaf168e72",
+      "battle_id": "064152df86f3832f",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "ca-ES",
-      "sample_id": "ca-ES/00370",
-      "input_text": "podríem quedar-nos a les fosques",
+      "sample_id": "ca-ES/01449",
+      "input_text": "actualització de notícies",
       "audio_url": null,
-      "reference": "smarthome:lights_off",
+      "reference": "news:read_headlines",
       "prediction_a": {
-        "intent": "timers_alarms:set_alarm"
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-autoencoder-logreg",
-      "competitor_b": "jurebes-nb-multinomial",
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "jurebes-nb-multinomial",
+      "competitor_b": "jurebes-autoencoder-logreg",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -3861,22 +3858,19 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "1c6b972619a4f187",
+      "battle_id": "076a26908bf89931",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "ca-ES",
-      "sample_id": "ca-ES/01459",
-      "input_text": "resum de les notícies del matí",
+      "sample_id": "ca-ES/01442",
+      "input_text": "què hi ha a les notícies",
       "audio_url": null,
       "reference": "news:read_headlines",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "timers_alarms:set_alarm",
-        "slots": {
-          "time": "matí"
-        }
+        "intent": "news:read_topic"
       },
       "competitor_a": "jurebes-qda-classifier",
       "competitor_b": "jurebes-autoencoder-logreg",
@@ -3947,16 +3941,19 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "0394bb268dd6cb9b",
+      "battle_id": "02e38cb1abdf2bd5",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "ca-ES",
-      "sample_id": "ca-ES/00307",
-      "input_text": "espera un altre quart d'hora",
+      "sample_id": "ca-ES/01436",
+      "input_text": "posa la lluminositat al 50",
       "audio_url": null,
-      "reference": "timers_alarms:snooze_alarm",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": "timers_alarms:set_timer"
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "prediction_b": {
         "intent": null
@@ -3967,19 +3964,18 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "0544d2013c8dd76b",
+      "battle_id": "021c7928509697f7",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "ca-ES",
-      "sample_id": "ca-ES/01744",
-      "input_text": "envia la isiita al metge a dilluns que ve",
+      "sample_id": "ca-ES/01306",
+      "input_text": "posa la lluminositat al 50",
       "audio_url": null,
-      "reference": "calendar:reschedule_event",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": "weather:weather_forecast",
+        "intent": "smarthome:set_brightness_light",
         "slots": {
-          "title": "metge",
-          "date": "que ve"
+          "level": "50"
         }
       },
       "prediction_b": {
@@ -3991,19 +3987,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "13f38530aa1a8568",
+      "battle_id": "0a69e52210663028",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "ca-ES",
-      "sample_id": "ca-ES/01503",
-      "input_text": "dóna'm notícies de cnn",
+      "sample_id": "ca-ES/01338",
+      "input_text": "posa la lluminositat al 50",
       "audio_url": null,
-      "reference": "news:news_source",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": "news:read_topic"
+        "intent": null
       },
       "prediction_b": {
-        "intent": null
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "competitor_a": "jurebes-autoencoder-logreg",
       "competitor_b": "jurebes-sgd-log",
@@ -4011,34 +4010,34 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "0010d08aceb180fa",
+      "battle_id": "01db083b2ad265df",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "ca-ES",
-      "sample_id": "ca-ES/01453",
-      "input_text": "em cal un briefing de notícies",
+      "sample_id": "ca-ES/00593",
+      "input_text": "deixa-ho",
       "audio_url": null,
-      "reference": "news:read_headlines",
+      "reference": "communication:hang_up",
       "prediction_a": {
-        "intent": null
+        "intent": "smarthome:set_thermostat"
       },
       "prediction_b": {
-        "intent": "news:previous_story"
+        "intent": null
       },
-      "competitor_a": "jurebes-autoencoder-logreg",
-      "competitor_b": "jurebes-sgd-modified-huber",
+      "competitor_a": "jurebes-sgd-modified-huber",
+      "competitor_b": "jurebes-autoencoder-logreg",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "051669471b872b15",
+      "battle_id": "04abeaea7b653fc3",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "ca-ES",
-      "sample_id": "ca-ES/01567",
-      "input_text": "dóna'm notícies de cnn",
+      "sample_id": "ca-ES/01449",
+      "input_text": "actualització de notícies",
       "audio_url": null,
-      "reference": "news:news_source",
+      "reference": "news:read_headlines",
       "prediction_a": {
         "intent": null
       },
@@ -4051,16 +4050,16 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "082c277425f1100b",
+      "battle_id": "00d4e0fca77aa373",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "ca-ES",
-      "sample_id": "ca-ES/01238",
-      "input_text": "què està al capdamunt de la meva agenda",
+      "sample_id": "ca-ES/01508",
+      "input_text": "avança",
       "audio_url": null,
-      "reference": "calendar:next_event",
+      "reference": "news:next_story",
       "prediction_a": {
-        "intent": "calendar:list_events"
+        "intent": "media:skip_track"
       },
       "prediction_b": {
         "intent": null
@@ -4091,16 +4090,19 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "312818e98247bad0",
+      "battle_id": "12ce6133f6eec246",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "ca-ES",
-      "sample_id": "ca-ES/01503",
-      "input_text": "dóna'm notícies de cnn",
+      "sample_id": "ca-ES/00969",
+      "input_text": "previsió del temps per avui",
       "audio_url": null,
-      "reference": "news:news_source",
+      "reference": "weather:weather_today",
       "prediction_a": {
-        "intent": "news:read_topic"
+        "intent": "weather:weather_forecast",
+        "slots": {
+          "date": "avui"
+        }
       },
       "prediction_b": {
         "intent": null
@@ -4151,19 +4153,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "291f092b481e6264",
+      "battle_id": "12e1853f3edb0a38",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "ca-ES",
-      "sample_id": "ca-ES/00726",
-      "input_text": "ja som a prop",
+      "sample_id": "ca-ES/01436",
+      "input_text": "posa la lluminositat al 50",
       "audio_url": null,
-      "reference": "navigation:eta_query",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "navigation:find_nearby"
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "competitor_a": "jurebes-autoencoder-logreg",
       "competitor_b": "jurebes-union-pos-char-logreg",
@@ -4187,6 +4192,66 @@
       },
       "competitor_a": "jurebes-autoencoder-logreg",
       "competitor_b": "jurebes-union-pos-tfidf-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "14e97a71aab7ea62",
+      "modality": "intent_template",
+      "dataset_id": "intents-for-eval",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/00716",
+      "input_text": "quants minuts queden",
+      "audio_url": null,
+      "reference": "navigation:eta_query",
+      "prediction_a": {
+        "intent": "timers_alarms:snooze_alarm"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-union-skipgram-tfidf-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "10c9a2365b91aafe",
+      "modality": "intent_template",
+      "dataset_id": "intents-for-eval",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/01449",
+      "input_text": "actualització de notícies",
+      "audio_url": null,
+      "reference": "news:read_headlines",
+      "prediction_a": {
+        "intent": "news:read_topic"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-union-text-stats-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "129d53a6318bd289",
+      "modality": "intent_template",
+      "dataset_id": "intents-for-eval",
+      "lang": "ca-ES",
+      "sample_id": "ca-ES/01535",
+      "input_text": "dóna'm notícies de cnn",
+      "audio_url": null,
+      "reference": "news:news_source",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "jurebes-voting-soft",
+      "competitor_b": "jurebes-autoencoder-logreg",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     }

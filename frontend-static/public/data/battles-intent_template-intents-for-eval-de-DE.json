@@ -2,14 +2,13 @@
   "modality": "intent_template",
   "dataset_id": "intents-for-eval",
   "lang": "de-DE",
-  "generated_at": "2026-08-13T04:56:01.302612+00:00",
+  "generated_at": "2026-09-01T08:18:52.931728+00:00",
   "dataset_info": {
     "url": "https://huggingface.co/datasets/OpenVoiceOS/intents-for-eval",
     "license": "apache-2.0",
     "notes": "OVOS canonical paradigm-neutral intent benchmark: 50 intents, 1750 test rows per language across template / paraphrase / near_ood / far_ood / asr_noise / typos buckets, with slot annotations. far_ood rows carry expected_intent=null — the correct behaviour is no match.",
     "predictions": [
       "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-bench-intents-for-eval",
-      "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-keyword-bench-intents-for-eval",
       "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-template-bench-intents-for-eval"
     ],
     "train_datasets": {
@@ -25,16 +24,19 @@
   },
   "battles": [
     {
-      "battle_id": "159c964532a79e0d",
+      "battle_id": "0bd153a1095236dd",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/01338",
-      "input_text": "stell die helligkeit auf 50",
+      "sample_id": "de-DE/00962",
+      "input_text": "wie wird das wetter heute",
       "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
+      "reference": "weather:weather_today",
       "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "weather:weather_forecast",
+        "slots": {
+          "date": "heute"
+        }
       },
       "prediction_b": {
         "intent": null
@@ -114,24 +116,27 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "16a1c09ff0e1a973",
+      "battle_id": "0aadcde9ae55cb8c",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/01436",
-      "input_text": "stell die helligkeit auf 50",
+      "sample_id": "de-DE/00962",
+      "input_text": "wie wird das wetter heute",
       "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
+      "reference": "weather:weather_today",
       "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-autoencoder-rbf-svc",
-      "competitor_b": "hierarchical-knn-medium",
-      "plugin_a": "ovos-jurebes-pipeline-plugin",
-      "plugin_b": "ovos-hierarchical-knn-pipeline"
+      "prediction_b": {
+        "intent": "weather:weather_forecast",
+        "slots": {
+          "date": "heute"
+        }
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-autoencoder-rbf-svc",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
       "battle_id": "062a8ebd3e317311",
@@ -143,7 +148,10 @@
       "audio_url": null,
       "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "prediction_b": {
         "intent": null
@@ -234,26 +242,6 @@
       "plugin_b": "ovos-hierarchical-knn-pipeline"
     },
     {
-      "battle_id": "45c7333fc5167911",
-      "modality": "intent_template",
-      "dataset_id": "intents-for-eval",
-      "lang": "de-DE",
-      "sample_id": "de-DE/01436",
-      "input_text": "stell die helligkeit auf 50",
-      "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
-      "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "jurebes-denoising-autoencoder-logreg",
-      "competitor_b": "hierarchical-knn-medium",
-      "plugin_a": "ovos-jurebes-pipeline-plugin",
-      "plugin_b": "ovos-hierarchical-knn-pipeline"
-    },
-    {
       "battle_id": "0164dae6cca3b830",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
@@ -317,24 +305,27 @@
       "plugin_b": "ovos-hierarchical-knn-pipeline"
     },
     {
-      "battle_id": "0e4545665fa5767a",
+      "battle_id": "1b36b2c3cb5f0b5d",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/00134",
-      "input_text": "weiter",
+      "sample_id": "de-DE/01306",
+      "input_text": "stell die helligkeit auf 50",
       "audio_url": null,
-      "reference": "media:skip_track",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": null
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "prediction_b": {
-        "intent": "news:next_story"
+        "intent": null
       },
-      "competitor_a": "hierarchical-knn-medium",
-      "competitor_b": "jurebes-hashing-sgd-log",
-      "plugin_a": "ovos-hierarchical-knn-pipeline",
-      "plugin_b": "ovos-jurebes-pipeline-plugin"
+      "competitor_a": "jurebes-hashing-sgd-log",
+      "competitor_b": "hierarchical-knn-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-hierarchical-knn-pipeline"
     },
     {
       "battle_id": "011a28ee5d15ee35",
@@ -443,12 +434,12 @@
       "plugin_b": "ovos-hierarchical-knn-pipeline"
     },
     {
-      "battle_id": "1c0f5578714276c4",
+      "battle_id": "0c21a15ec80871ac",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/00923",
-      "input_text": "wie hoch ist der mount everest",
+      "sample_id": "de-DE/00833",
+      "input_text": "wie ist wie hoch der mount everest ist",
       "audio_url": null,
       "reference": "search_qa:factual_query",
       "prediction_a": {
@@ -543,19 +534,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "004f666d67929486",
+      "battle_id": "50f8307758faf86e",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/00134",
-      "input_text": "weiter",
+      "sample_id": "de-DE/01436",
+      "input_text": "stell die helligkeit auf 50",
       "audio_url": null,
-      "reference": "media:skip_track",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "news:next_story"
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "competitor_a": "hierarchical-knn-medium",
       "competitor_b": "jurebes-logreg-char",
@@ -666,16 +660,19 @@
       "plugin_b": "ovos-hierarchical-knn-pipeline"
     },
     {
-      "battle_id": "01eb8532e0ad1715",
+      "battle_id": "00509abc53e68f39",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/01074",
-      "input_text": "tropisches gefühl draußen",
+      "sample_id": "de-DE/01203",
+      "input_text": "die teambesprechung ist abgesagt",
       "audio_url": null,
-      "reference": "weather:weather_humidity",
+      "reference": "calendar:cancel_event",
       "prediction_a": {
-        "intent": "weather:weather_today"
+        "intent": "calendar:create_event",
+        "slots": {
+          "title": "teambesprechung"
+        }
       },
       "prediction_b": {
         "intent": null
@@ -706,26 +703,6 @@
       "plugin_b": "ovos-hierarchical-knn-pipeline"
     },
     {
-      "battle_id": "158d12583dee3d8b",
-      "modality": "intent_template",
-      "dataset_id": "intents-for-eval",
-      "lang": "de-DE",
-      "sample_id": "de-DE/01404",
-      "input_text": "stell die helligkeit auf 50",
-      "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
-      "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "jurebes-nb-complement",
-      "competitor_b": "hierarchical-knn-medium",
-      "plugin_a": "ovos-jurebes-pipeline-plugin",
-      "plugin_b": "ovos-hierarchical-knn-pipeline"
-    },
-    {
       "battle_id": "11f6c22b82649206",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
@@ -744,46 +721,6 @@
       "competitor_b": "jurebes-nb-multinomial",
       "plugin_a": "ovos-hierarchical-knn-pipeline",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
-    },
-    {
-      "battle_id": "23a35fd3ea372220",
-      "modality": "intent_template",
-      "dataset_id": "intents-for-eval",
-      "lang": "de-DE",
-      "sample_id": "de-DE/01436",
-      "input_text": "stell die helligkeit auf 50",
-      "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "smarthome:set_brightness_light"
-      },
-      "competitor_a": "hierarchical-knn-medium",
-      "competitor_b": "jurebes-nmf-logreg",
-      "plugin_a": "ovos-hierarchical-knn-pipeline",
-      "plugin_b": "ovos-jurebes-pipeline-plugin"
-    },
-    {
-      "battle_id": "13782a1caee2720d",
-      "modality": "intent_template",
-      "dataset_id": "intents-for-eval",
-      "lang": "de-DE",
-      "sample_id": "de-DE/00134",
-      "input_text": "weiter",
-      "audio_url": null,
-      "reference": "media:skip_track",
-      "prediction_a": {
-        "intent": "news:next_story"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "jurebes-nusvc",
-      "competitor_b": "hierarchical-knn-medium",
-      "plugin_a": "ovos-jurebes-pipeline-plugin",
-      "plugin_b": "ovos-hierarchical-knn-pipeline"
     },
     {
       "battle_id": "0305289a77451f9c",
@@ -821,7 +758,10 @@
         "intent": null
       },
       "prediction_b": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "competitor_a": "hierarchical-knn-medium",
       "competitor_b": "jurebes-ovr-linear-svc",
@@ -869,16 +809,19 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "3554c81b13f1f395",
+      "battle_id": "466ff51bfda9e115",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/01338",
-      "input_text": "stell die helligkeit auf 50",
+      "sample_id": "de-DE/00958",
+      "input_text": "übersetze hallo ins spanische",
       "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
+      "reference": "search_qa:translate_phrase",
       "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "search_qa:translate_phrase",
+        "slots": {
+          "phrase": "hallo"
+        }
       },
       "prediction_b": {
         "intent": null
@@ -887,26 +830,6 @@
       "competitor_b": "hierarchical-knn-medium",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-hierarchical-knn-pipeline"
-    },
-    {
-      "battle_id": "0c325142d146648c",
-      "modality": "intent_template",
-      "dataset_id": "intents-for-eval",
-      "lang": "de-DE",
-      "sample_id": "de-DE/01404",
-      "input_text": "stell die helligkeit auf 50",
-      "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "smarthome:set_brightness_light"
-      },
-      "competitor_a": "hierarchical-knn-medium",
-      "competitor_b": "jurebes-qda-classifier",
-      "plugin_a": "ovos-hierarchical-knn-pipeline",
-      "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
       "battle_id": "04a0ce300fea298d",
@@ -949,16 +872,16 @@
       "plugin_b": "ovos-hierarchical-knn-pipeline"
     },
     {
-      "battle_id": "1a794e5e6c5ff681",
+      "battle_id": "0d5e8d0e825e20df",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/01306",
-      "input_text": "stell die helligkeit auf 50",
+      "sample_id": "de-DE/01560",
+      "input_text": "lies die nachrichten",
       "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
+      "reference": "news:read_headlines",
       "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "communication:read_messages"
       },
       "prediction_b": {
         "intent": null
@@ -1052,16 +975,16 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "56bd5d1215e8cfad",
+      "battle_id": "f118f6766e5472f5",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/01306",
-      "input_text": "stell die helligkeit auf 50",
+      "sample_id": "de-DE/01390",
+      "input_text": "lautstärke auf null",
       "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
+      "reference": "system_control:mute_system",
       "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "media:set_volume"
       },
       "prediction_b": {
         "intent": null
@@ -1112,16 +1035,16 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "47de8b1f7039de9d",
+      "battle_id": "730478ad8dee663d",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/01306",
-      "input_text": "stell die helligkeit auf 50",
+      "sample_id": "de-DE/01387",
+      "input_text": "pst",
       "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
+      "reference": "system_control:mute_system",
       "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "system_control:mute_system"
       },
       "prediction_b": {
         "intent": null
@@ -1190,7 +1113,10 @@
         "intent": null
       },
       "prediction_b": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "competitor_a": "hierarchical-knn-medium",
       "competitor_b": "jurebes-union-pos-char-logreg",
@@ -1198,19 +1124,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "26c1a194a21aec6a",
+      "battle_id": "1bafe967dac4c802",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/01390",
-      "input_text": "lautstärke auf null",
+      "sample_id": "de-DE/01347",
+      "input_text": "helligkeit auf hundert",
       "audio_url": null,
-      "reference": "system_control:mute_system",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "media:set_volume"
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "hundert"
+        }
       },
       "competitor_a": "hierarchical-knn-medium",
       "competitor_b": "jurebes-union-pos-tfidf-logreg",
@@ -1270,7 +1199,10 @@
         "intent": null
       },
       "prediction_b": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "competitor_a": "hierarchical-knn-medium",
       "competitor_b": "jurebes-voting-soft",
@@ -1290,7 +1222,10 @@
         "intent": null
       },
       "prediction_b": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "competitor_a": "hierarchical-knn-medium",
       "competitor_b": "jurebes-word-pos-logreg",
@@ -1524,22 +1459,22 @@
       "plugin_b": "ovos-padatious-pipeline-plugin"
     },
     {
-      "battle_id": "096357eddb9803c9",
+      "battle_id": "018ebbc19d6bbe70",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/01167",
-      "input_text": "etwas morgen",
+      "sample_id": "de-DE/01445",
+      "input_text": "nachrichten bitte",
       "audio_url": null,
-      "reference": "calendar:list_events",
+      "reference": "news:read_headlines",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "search_qa:translate_phrase"
+        "intent": "news:read_topic"
       },
-      "competitor_a": "jurebes-autoencoder-logreg",
-      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-autoencoder-logreg",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -1584,22 +1519,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "0cddbf85672cd6ca",
+      "battle_id": "0825fd740527acc9",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/01740",
-      "input_text": "facetime stefan fürr mch",
+      "sample_id": "de-DE/00306",
+      "input_text": "wecker nochmal in 12",
       "audio_url": null,
-      "reference": "communication:video_call",
+      "reference": "timers_alarms:snooze_alarm",
       "prediction_a": {
-        "intent": null
+        "intent": "timers_alarms:set_alarm"
       },
       "prediction_b": {
-        "intent": "communication:send_message"
+        "intent": null
       },
-      "competitor_a": "jurebes-autoencoder-linear-svc",
-      "competitor_b": "jurebes-autoencoder-rbf-svc",
+      "competitor_a": "jurebes-autoencoder-rbf-svc",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -1767,45 +1702,48 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "047a918ddedfc116",
+      "battle_id": "10fcfb81fb6600c9",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/00948",
-      "input_text": "rechtschreibung von allgegenwärtig",
+      "sample_id": "de-DE/01404",
+      "input_text": "stell die helligkeit auf 50",
       "audio_url": null,
-      "reference": "search_qa:spell_word",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "search_qa:define_word",
+        "intent": "smarthome:set_brightness_light",
         "slots": {
-          "word": "allgegenwärtig"
+          "level": "50"
         }
       },
-      "competitor_a": "jurebes-autoencoder-linear-svc",
-      "competitor_b": "jurebes-hashing-sgd-hinge",
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-hashing-sgd-hinge",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "29be6e6e3fae3c90",
+      "battle_id": "0eb2f92f5328cafd",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/00401",
-      "input_text": "dreh das wohnzimmer auf 90",
+      "sample_id": "de-DE/01306",
+      "input_text": "stell die helligkeit auf 50",
       "audio_url": null,
-      "reference": "smarthome:set_brightness_light",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": "smarthome:set_thermostat"
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-autoencoder-linear-svc",
-      "competitor_b": "jurebes-hashing-sgd-log",
+      "competitor_a": "jurebes-hashing-sgd-log",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -1830,22 +1768,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "007318423bcf8323",
+      "battle_id": "001b421bcc0c1092",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/00147",
-      "input_text": "ne ne überspring das",
+      "sample_id": "de-DE/01225",
+      "input_text": "das nächste im kalender",
       "audio_url": null,
-      "reference": "media:skip_track",
+      "reference": "calendar:next_event",
       "prediction_a": {
-        "intent": "communication:send_message"
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-knn",
-      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "prediction_b": {
+        "intent": "calendar:list_events"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-knn",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -1910,19 +1848,19 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "2bf881d4435e59d1",
+      "battle_id": "0e89ba4773b20369",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/00401",
-      "input_text": "dreh das wohnzimmer auf 90",
+      "sample_id": "de-DE/00487",
+      "input_text": "verbind mich mit mama",
       "audio_url": null,
-      "reference": "smarthome:set_brightness_light",
+      "reference": "communication:call_contact",
       "prediction_a": {
-        "intent": null
+        "intent": "system_control:change_language"
       },
       "prediction_b": {
-        "intent": "smarthome:set_thermostat"
+        "intent": null
       },
       "competitor_a": "jurebes-lda-logreg",
       "competitor_b": "jurebes-autoencoder-linear-svc",
@@ -1973,36 +1911,39 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "0294b21a54f9bfe3",
+      "battle_id": "009df47f0c94c236",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/01167",
-      "input_text": "etwas morgen",
+      "sample_id": "de-DE/00025",
+      "input_text": "stopp den song",
       "audio_url": null,
-      "reference": "calendar:list_events",
+      "reference": "media:pause_playback",
       "prediction_a": {
-        "intent": "weather:weather_forecast"
+        "intent": null
       },
       "prediction_b": {
-        "intent": "search_qa:translate_phrase"
+        "intent": "media:play_song"
       },
-      "competitor_a": "jurebes-linear-svc-hinge",
-      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-linear-svc-hinge",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "2f4fa988e93ebe0d",
+      "battle_id": "0694bb6d520870f3",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/00752",
-      "input_text": "hart zum flughafen",
+      "sample_id": "de-DE/01404",
+      "input_text": "stell die helligkeit auf 50",
       "audio_url": null,
-      "reference": "navigation:traffic_status",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": "navigation:navigate_to"
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "prediction_b": {
         "intent": null
@@ -2036,22 +1977,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "1bb94720fd8da205",
+      "battle_id": "13fb4ea8afda3742",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/01297",
-      "input_text": "ok zeit zum ausschalten",
+      "sample_id": "de-DE/01475",
+      "input_text": "wetter schlagzeilen",
       "audio_url": null,
-      "reference": "system_control:shutdown",
+      "reference": "news:read_topic",
       "prediction_a": {
-        "intent": "navigation:eta_query"
+        "intent": "weather:weather_location"
       },
       "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-logreg-elasticnet",
-      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-logreg-elasticnet",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -2076,42 +2017,39 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "069a3c87cbf41fd5",
+      "battle_id": "192e2428a6d12b58",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/00492",
-      "input_text": "schalte zu einem anruf mit stefan",
+      "sample_id": "de-DE/01497",
+      "input_text": "schlagzeilen von heute",
       "audio_url": null,
-      "reference": "communication:call_contact",
+      "reference": "news:read_headlines",
       "prediction_a": {
-        "intent": "communication:video_call"
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-lsa-linear-svc",
-      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "prediction_b": {
+        "intent": "news:news_source"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-lsa-linear-svc",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "1c0ecd4028db422f",
+      "battle_id": "067979ea314988df",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/00173",
-      "input_text": "weck mich in 45 minuten",
+      "sample_id": "de-DE/01445",
+      "input_text": "nachrichten bitte",
       "audio_url": null,
-      "reference": "timers_alarms:set_timer",
+      "reference": "news:read_headlines",
       "prediction_a": {
-        "intent": null
+        "intent": "news:read_topic"
       },
       "prediction_b": {
-        "intent": "timers_alarms:snooze_alarm",
-        "slots": {
-          "duration": "minuten"
-        }
+        "intent": null
       },
       "competitor_a": "jurebes-lsa-logreg",
       "competitor_b": "jurebes-autoencoder-linear-svc",
@@ -2119,25 +2057,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "08541139d9729ea6",
+      "battle_id": "11cf7fcf7c2cee2b",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/00948",
-      "input_text": "rechtschreibung von allgegenwärtig",
+      "sample_id": "de-DE/01363",
+      "input_text": "dreh den bildschirm auf 100",
       "audio_url": null,
-      "reference": "search_qa:spell_word",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": null
+        "intent": "media:set_volume"
       },
       "prediction_b": {
-        "intent": "search_qa:define_word",
-        "slots": {
-          "word": "allgegenwärtig"
-        }
+        "intent": null
       },
-      "competitor_a": "jurebes-autoencoder-linear-svc",
-      "competitor_b": "jurebes-lsa-rbf-svc",
+      "competitor_a": "jurebes-lsa-rbf-svc",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -2242,22 +2177,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "11988d7744380721",
+      "battle_id": "065401beed47e0b6",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/00401",
-      "input_text": "dreh das wohnzimmer auf 90",
+      "sample_id": "de-DE/01475",
+      "input_text": "wetter schlagzeilen",
       "audio_url": null,
-      "reference": "smarthome:set_brightness_light",
+      "reference": "news:read_topic",
       "prediction_a": {
-        "intent": null
+        "intent": "weather:weather_location"
       },
       "prediction_b": {
-        "intent": "smarthome:set_thermostat"
+        "intent": null
       },
-      "competitor_a": "jurebes-nusvc",
-      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-nusvc",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -2302,16 +2237,19 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "0445a94170ae4113",
+      "battle_id": "010e7675c774317f",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/01659",
-      "input_text": "ist es knochentrocken",
+      "sample_id": "de-DE/01338",
+      "input_text": "stell die helligkeit auf 50",
       "audio_url": null,
-      "reference": "weather:weather_humidity",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": "weather:weather_today"
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "prediction_b": {
         "intent": null
@@ -2322,25 +2260,25 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "021f513455b96d88",
+      "battle_id": "009b46e9807ced07",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/00948",
-      "input_text": "rechtschreibung von allgegenwärtig",
+      "sample_id": "de-DE/01338",
+      "input_text": "stell die helligkeit auf 50",
       "audio_url": null,
-      "reference": "search_qa:spell_word",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "search_qa:define_word",
+        "intent": "smarthome:set_brightness_light",
         "slots": {
-          "word": "allgegenwärtig"
+          "level": "50"
         }
       },
-      "competitor_a": "jurebes-autoencoder-linear-svc",
-      "competitor_b": "jurebes-perceptron",
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-perceptron",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -2431,19 +2369,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "0866e2c08c53c7cc",
+      "battle_id": "0f37b5195c8b2a8e",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/00087",
-      "input_text": "lass den song zu ende laufen",
+      "sample_id": "de-DE/01306",
+      "input_text": "stell die helligkeit auf 50",
       "audio_url": null,
-      "reference": "media:resume_playback",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "media:play_song"
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "competitor_a": "jurebes-autoencoder-linear-svc",
       "competitor_b": "jurebes-rbf-svc",
@@ -2691,19 +2632,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "2b75ed1ccf7c75c9",
+      "battle_id": "015b9147b11e9a57",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/00401",
-      "input_text": "dreh das wohnzimmer auf 90",
+      "sample_id": "de-DE/00962",
+      "input_text": "wie wird das wetter heute",
       "audio_url": null,
-      "reference": "smarthome:set_brightness_light",
+      "reference": "weather:weather_today",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "smarthome:set_thermostat"
+        "intent": "weather:weather_forecast",
+        "slots": {
+          "date": "heute"
+        }
       },
       "competitor_a": "jurebes-union-skipgram-tfidf-logreg",
       "competitor_b": "jurebes-autoencoder-linear-svc",
@@ -2731,41 +2675,41 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "188b33fec85a046e",
+      "battle_id": "0fc4d4f70ca15a69",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/00173",
-      "input_text": "weck mich in 45 minuten",
+      "sample_id": "de-DE/01338",
+      "input_text": "stell die helligkeit auf 50",
       "audio_url": null,
-      "reference": "timers_alarms:set_timer",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": "timers_alarms:snooze_alarm",
+        "intent": "smarthome:set_brightness_light",
         "slots": {
-          "duration": "minuten"
+          "level": "50"
         }
       },
       "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-autoencoder-linear-svc",
-      "competitor_b": "jurebes-voting-soft",
+      "competitor_a": "jurebes-voting-soft",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "0f9756bd0bc9eecb",
+      "battle_id": "0175abbbcfeac75b",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/00723",
-      "input_text": "eta zum büro grob",
+      "sample_id": "de-DE/01404",
+      "input_text": "stell die helligkeit auf 50",
       "audio_url": null,
-      "reference": "navigation:eta_query",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": "navigation:navigate_to",
+        "intent": "smarthome:set_brightness_light",
         "slots": {
-          "destination": "zum büro"
+          "level": "50"
         }
       },
       "prediction_b": {
@@ -2837,24 +2781,24 @@
       "plugin_b": "ovos-linha-fina-pipeline-plugin"
     },
     {
-      "battle_id": "07d85593a2671c73",
+      "battle_id": "081ab9a91d558156",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/00134",
-      "input_text": "weiter",
+      "sample_id": "de-DE/00008",
+      "input_text": "spiel den song auf uns",
       "audio_url": null,
-      "reference": "media:skip_track",
+      "reference": "media:play_song",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "news:next_story"
+        "intent": "ovos.common_play.play_search"
       },
-      "competitor_a": "m2v-medium",
-      "competitor_b": "jurebes-autoencoder-linear-svc",
-      "plugin_a": "ovos-m2v-pipeline",
-      "plugin_b": "ovos-jurebes-pipeline-plugin"
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "m2v-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-m2v-pipeline"
     },
     {
       "battle_id": "00cbec4ddc5ea9db",
@@ -2877,24 +2821,24 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "07b1af6566ce4c13",
+      "battle_id": "037b6a6b9f69c862",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/01514",
-      "input_text": "ich bin fertig damit weiter",
+      "sample_id": "de-DE/00710",
+      "input_text": "ankunftszeit ins büro",
       "audio_url": null,
-      "reference": "news:next_story",
+      "reference": "navigation:eta_query",
       "prediction_a": {
-        "intent": "communication:hang_up"
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "markov-medium",
-      "competitor_b": "jurebes-autoencoder-linear-svc",
-      "plugin_a": "ovos-markov-pipeline-plugin",
-      "plugin_b": "ovos-jurebes-pipeline-plugin"
+      "prediction_b": {
+        "intent": "navigation:navigate_to"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "markov-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-markov-pipeline-plugin"
     },
     {
       "battle_id": "148e8577eea3779d",
@@ -2963,19 +2907,19 @@
       "plugin_b": "ovos-padacioso-pipeline-plugin"
     },
     {
-      "battle_id": "47b84ad88d9dcd0f",
+      "battle_id": "06256cf51e9f9db1",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/01394",
-      "input_text": "bring das ding zum schweigen",
+      "sample_id": "de-DE/01306",
+      "input_text": "stell die helligkeit auf 50",
       "audio_url": null,
-      "reference": "system_control:mute_system",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": null
+        "intent": "smarthome:set_brightness_light"
       },
       "prediction_b": {
-        "intent": "navigation:navigate_to"
+        "intent": null
       },
       "competitor_a": "padatious-domain-medium",
       "competitor_b": "jurebes-autoencoder-linear-svc",
@@ -2983,19 +2927,19 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "209ced8e107de2e1",
+      "battle_id": "04238d0c158a831b",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/01167",
-      "input_text": "etwas morgen",
+      "sample_id": "de-DE/01306",
+      "input_text": "stell die helligkeit auf 50",
       "audio_url": null,
-      "reference": "calendar:list_events",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": null
+        "intent": "smarthome:set_brightness_light"
       },
       "prediction_b": {
-        "intent": "search_qa:translate_phrase"
+        "intent": null
       },
       "competitor_a": "padatious-medium",
       "competitor_b": "jurebes-autoencoder-linear-svc",
@@ -3003,22 +2947,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "0ecbd7b5bbdfe3b6",
+      "battle_id": "09e4bbaac5eb9c2e",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/00173",
-      "input_text": "weck mich in 45 minuten",
+      "sample_id": "de-DE/01404",
+      "input_text": "stell die helligkeit auf 50",
       "audio_url": null,
-      "reference": "timers_alarms:set_timer",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": "timers_alarms:snooze_alarm",
-        "slots": {
-          "duration": "minuten"
-        }
+        "intent": null
       },
       "prediction_b": {
-        "intent": null
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "competitor_a": "jurebes-autoencoder-logreg",
       "competitor_b": "jurebes-autoencoder-logreg-deep",
@@ -3046,48 +2990,42 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "00ab931b2b5290cc",
+      "battle_id": "002a9f504e50d8d9",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/00622",
-      "input_text": "ruf hans mit kamera an",
+      "sample_id": "de-DE/01496",
+      "input_text": "lies die nachrichten",
       "audio_url": null,
-      "reference": "communication:video_call",
+      "reference": "news:read_headlines",
       "prediction_a": {
-        "intent": "communication:call_contact",
-        "slots": {
-          "contact": "hans"
-        }
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-autoencoder-logreg",
-      "competitor_b": "jurebes-autoencoder-rbf-svc",
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "jurebes-autoencoder-rbf-svc",
+      "competitor_b": "jurebes-autoencoder-logreg",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "2c02a510484ff6cc",
+      "battle_id": "1e6003563c0f6b59",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/00173",
-      "input_text": "weck mich in 45 minuten",
+      "sample_id": "de-DE/01440",
+      "input_text": "lies die nachrichten",
       "audio_url": null,
-      "reference": "timers_alarms:set_timer",
+      "reference": "news:read_headlines",
       "prediction_a": {
-        "intent": "timers_alarms:snooze_alarm",
-        "slots": {
-          "duration": "minuten"
-        }
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-autoencoder-logreg",
-      "competitor_b": "jurebes-bagging-logreg",
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "jurebes-bagging-logreg",
+      "competitor_b": "jurebes-autoencoder-logreg",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -3164,7 +3102,7 @@
       "audio_url": null,
       "reference": "navigation:find_nearby",
       "prediction_a": {
-        "intent": "system_control:change_language"
+        "intent": "news:news_source"
       },
       "prediction_b": {
         "intent": null
@@ -3175,14 +3113,14 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "59ce274c1d9f7f38",
+      "battle_id": "1decedabfacb16bc",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/00556",
-      "input_text": "warten nachrichten",
+      "sample_id": "de-DE/01445",
+      "input_text": "nachrichten bitte",
       "audio_url": null,
-      "reference": "communication:read_messages",
+      "reference": "news:read_headlines",
       "prediction_a": {
         "intent": "news:read_topic"
       },
@@ -3195,42 +3133,45 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "02a34cc407f8cbe8",
+      "battle_id": "00250335991fcf5d",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/00174",
-      "input_text": "sag mir wenn 7 minuten um sind",
+      "sample_id": "de-DE/01268",
+      "input_text": "das abendessen mit anna muss verschoben werden",
       "audio_url": null,
-      "reference": "timers_alarms:set_timer",
+      "reference": "calendar:reschedule_event",
       "prediction_a": {
-        "intent": "timers_alarms:snooze_alarm",
+        "intent": "calendar:cancel_event",
         "slots": {
-          "duration": "minuten"
+          "title": "mit anna"
         }
       },
       "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-autoencoder-logreg",
-      "competitor_b": "jurebes-extra-trees",
+      "competitor_a": "jurebes-extra-trees",
+      "competitor_b": "jurebes-autoencoder-logreg",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "00d527caeb6d6020",
+      "battle_id": "00cafc38477127de",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/01294",
-      "input_text": "lass uns das ding ausmachen",
+      "sample_id": "de-DE/00209",
+      "input_text": "kümmer dich nicht mehr um den eier-timer",
       "audio_url": null,
-      "reference": "system_control:shutdown",
+      "reference": "timers_alarms:cancel_timer",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "smarthome:lights_off"
+        "intent": "timers_alarms:snooze_alarm",
+        "slots": {
+          "label": "eier"
+        }
       },
       "competitor_a": "jurebes-autoencoder-logreg",
       "competitor_b": "jurebes-gradient-boosting",
@@ -3238,19 +3179,19 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "071f0e5c2165b7b2",
+      "battle_id": "022a3cf193b4f9fe",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/00050",
-      "input_text": "könntest du den song festhalten",
+      "sample_id": "de-DE/01592",
+      "input_text": "lies die nachrichten",
       "audio_url": null,
-      "reference": "media:pause_playback",
+      "reference": "news:read_headlines",
       "prediction_a": {
-        "intent": null
+        "intent": "news:read_topic"
       },
       "prediction_b": {
-        "intent": "media:play_song"
+        "intent": null
       },
       "competitor_a": "jurebes-autoencoder-logreg",
       "competitor_b": "jurebes-hashing-sgd-hinge",
@@ -3458,19 +3399,19 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "110a9ce50b3c0555",
+      "battle_id": "02530c55c99a3c8f",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/01747",
-      "input_text": "Erehh den schlüssel rum",
+      "sample_id": "de-DE/01496",
+      "input_text": "lies die nachrichten",
       "audio_url": null,
-      "reference": "smarthome:lock_door",
+      "reference": "news:read_headlines",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "timers_alarms:cancel_timer"
+        "intent": "news:read_topic"
       },
       "competitor_a": "jurebes-logreg",
       "competitor_b": "jurebes-autoencoder-logreg",
@@ -3478,19 +3419,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "11247d9374615f95",
+      "battle_id": "00404868b8d27a3b",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/01227",
-      "input_text": "was ist das nächste was ich tun muss",
+      "sample_id": "de-DE/01436",
+      "input_text": "stell die helligkeit auf 50",
       "audio_url": null,
-      "reference": "calendar:next_event",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": null
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "prediction_b": {
-        "intent": "search_qa:define_word"
+        "intent": null
       },
       "competitor_a": "jurebes-logreg-char",
       "competitor_b": "jurebes-autoencoder-logreg",
@@ -3498,18 +3442,18 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "29689a10ab4130b8",
+      "battle_id": "07438c3db472df70",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/00174",
-      "input_text": "sag mir wenn 7 minuten um sind",
+      "sample_id": "de-DE/00165",
+      "input_text": "erinnere mich in 10 minuten",
       "audio_url": null,
       "reference": "timers_alarms:set_timer",
       "prediction_a": {
         "intent": "timers_alarms:snooze_alarm",
         "slots": {
-          "duration": "minuten"
+          "duration": "10 minuten"
         }
       },
       "prediction_b": {
@@ -3541,19 +3485,19 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "12d4d4a719990a6a",
+      "battle_id": "006d533a8a0dcb9e",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/00502",
-      "input_text": "starte einen anruf mit hans",
+      "sample_id": "de-DE/01560",
+      "input_text": "lies die nachrichten",
       "audio_url": null,
-      "reference": "communication:call_contact",
+      "reference": "news:read_headlines",
       "prediction_a": {
-        "intent": null
+        "intent": "news:read_topic"
       },
       "prediction_b": {
-        "intent": "communication:video_call"
+        "intent": null
       },
       "competitor_a": "jurebes-autoencoder-logreg",
       "competitor_b": "jurebes-lsa-linear-svc",
@@ -3561,65 +3505,65 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "3548face91cffd3d",
+      "battle_id": "0adfc3d12959a614",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/00622",
-      "input_text": "ruf hans mit kamera an",
+      "sample_id": "de-DE/01592",
+      "input_text": "lies die nachrichten",
       "audio_url": null,
-      "reference": "communication:video_call",
+      "reference": "news:read_headlines",
       "prediction_a": {
-        "intent": null
+        "intent": "news:read_topic"
       },
       "prediction_b": {
-        "intent": "communication:call_contact",
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-lsa-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "0545b73c7bbebfcf",
+      "modality": "intent_template",
+      "dataset_id": "intents-for-eval",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00932",
+      "input_text": "schreibweise von serendipität",
+      "audio_url": null,
+      "reference": "search_qa:spell_word",
+      "prediction_a": {
+        "intent": "search_qa:define_word",
         "slots": {
-          "contact": "hans"
+          "word": "serendipität"
         }
       },
-      "competitor_a": "jurebes-lsa-logreg",
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-lsa-rbf-svc",
       "competitor_b": "jurebes-autoencoder-logreg",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "0f042d7d5ffff158",
+      "battle_id": "096e3e3868e4879b",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/00080",
-      "input_text": "ok spiel nochmal",
+      "sample_id": "de-DE/00331",
+      "input_text": "ist dunkel mach die lampe an",
       "audio_url": null,
-      "reference": "media:resume_playback",
+      "reference": "smarthome:lights_on",
       "prediction_a": {
-        "intent": null
+        "intent": "smarthome:lights_off"
       },
       "prediction_b": {
-        "intent": "media:play_song"
-      },
-      "competitor_a": "jurebes-autoencoder-logreg",
-      "competitor_b": "jurebes-lsa-rbf-svc",
-      "plugin_a": "ovos-jurebes-pipeline-plugin",
-      "plugin_b": "ovos-jurebes-pipeline-plugin"
-    },
-    {
-      "battle_id": "07220932851292d8",
-      "modality": "intent_template",
-      "dataset_id": "intents-for-eval",
-      "lang": "de-DE",
-      "sample_id": "de-DE/00114",
-      "input_text": "ton auf 70 danke",
-      "audio_url": null,
-      "reference": "media:set_volume",
-      "prediction_a": {
         "intent": null
       },
-      "prediction_b": {
-        "intent": "search_qa:translate_phrase"
-      },
-      "competitor_a": "jurebes-autoencoder-logreg",
-      "competitor_b": "jurebes-mlp-shallow",
+      "competitor_a": "jurebes-mlp-shallow",
+      "competitor_b": "jurebes-autoencoder-logreg",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -3648,39 +3592,36 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "2a1038b07a3b4838",
+      "battle_id": "00d452ceaf61f9c5",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/00556",
-      "input_text": "warten nachrichten",
+      "sample_id": "de-DE/01440",
+      "input_text": "lies die nachrichten",
       "audio_url": null,
-      "reference": "communication:read_messages",
+      "reference": "news:read_headlines",
       "prediction_a": {
-        "intent": "news:read_topic"
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-autoencoder-logreg",
-      "competitor_b": "jurebes-nb-complement",
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "jurebes-nb-complement",
+      "competitor_b": "jurebes-autoencoder-logreg",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "1178927397f05c02",
+      "battle_id": "08b08df511ebe952",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/00622",
-      "input_text": "ruf hans mit kamera an",
+      "sample_id": "de-DE/01528",
+      "input_text": "lies die nachrichten",
       "audio_url": null,
-      "reference": "communication:video_call",
+      "reference": "news:read_headlines",
       "prediction_a": {
-        "intent": "communication:call_contact",
-        "slots": {
-          "contact": "hans"
-        }
+        "intent": "news:read_topic"
       },
       "prediction_b": {
         "intent": null
@@ -3691,22 +3632,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "0bb0a927f6a9beea",
+      "battle_id": "09c0e52f5e47cdd3",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/01390",
-      "input_text": "lautstärke auf null",
+      "sample_id": "de-DE/01592",
+      "input_text": "lies die nachrichten",
       "audio_url": null,
-      "reference": "system_control:mute_system",
+      "reference": "news:read_headlines",
       "prediction_a": {
-        "intent": "media:set_volume"
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-autoencoder-logreg",
-      "competitor_b": "jurebes-nmf-logreg",
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "jurebes-nmf-logreg",
+      "competitor_b": "jurebes-autoencoder-logreg",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -3754,21 +3695,21 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "093b7ead70bee5e2",
+      "battle_id": "05a4e946baa37d28",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/01103",
-      "input_text": "stille luft heute",
+      "sample_id": "de-DE/01338",
+      "input_text": "stell die helligkeit auf 50",
       "audio_url": null,
-      "reference": "weather:weather_wind",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "weather:weather_humidity",
+        "intent": "smarthome:set_brightness_light",
         "slots": {
-          "date": "heute"
+          "level": "50"
         }
       },
       "competitor_a": "jurebes-autoencoder-logreg",
@@ -3840,22 +3781,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "2557c75b906b9dfd",
+      "battle_id": "24b99764132bd0ca",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/01747",
-      "input_text": "Erehh den schlüssel rum",
+      "sample_id": "de-DE/01560",
+      "input_text": "lies die nachrichten",
       "audio_url": null,
-      "reference": "smarthome:lock_door",
+      "reference": "news:read_headlines",
       "prediction_a": {
-        "intent": null
+        "intent": "news:read_topic"
       },
       "prediction_b": {
-        "intent": "timers_alarms:cancel_timer"
+        "intent": null
       },
-      "competitor_a": "jurebes-qda-classifier",
-      "competitor_b": "jurebes-autoencoder-logreg",
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-qda-classifier",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -3966,22 +3907,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "10eb67976590f248",
+      "battle_id": "0038a6dc67cd820d",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/01747",
-      "input_text": "Erehh den schlüssel rum",
+      "sample_id": "de-DE/01496",
+      "input_text": "lies die nachrichten",
       "audio_url": null,
-      "reference": "smarthome:lock_door",
+      "reference": "news:read_headlines",
       "prediction_a": {
-        "intent": "timers_alarms:cancel_timer"
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-autoencoder-logreg",
-      "competitor_b": "jurebes-sgd-log",
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "jurebes-sgd-log",
+      "competitor_b": "jurebes-autoencoder-logreg",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -4009,22 +3950,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "272cb1f9b67f49bb",
+      "battle_id": "090f6abd62bd06ea",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/00556",
-      "input_text": "warten nachrichten",
+      "sample_id": "de-DE/01560",
+      "input_text": "lies die nachrichten",
       "audio_url": null,
-      "reference": "communication:read_messages",
+      "reference": "news:read_headlines",
       "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
         "intent": "news:read_topic"
       },
-      "competitor_a": "jurebes-skipgram-logreg",
-      "competitor_b": "jurebes-autoencoder-logreg",
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-skipgram-logreg",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -4052,16 +3993,19 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "15e22c6748a144f6",
+      "battle_id": "028f0ebdf958c93a",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/01227",
-      "input_text": "was ist das nächste was ich tun muss",
+      "sample_id": "de-DE/00962",
+      "input_text": "wie wird das wetter heute",
       "audio_url": null,
-      "reference": "calendar:next_event",
+      "reference": "weather:weather_today",
       "prediction_a": {
-        "intent": "search_qa:define_word"
+        "intent": "weather:weather_forecast",
+        "slots": {
+          "date": "heute"
+        }
       },
       "prediction_b": {
         "intent": null
@@ -4072,25 +4016,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "3097fae48e2bbf64",
+      "battle_id": "0fba50c6133c6515",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/00173",
-      "input_text": "weck mich in 45 minuten",
+      "sample_id": "de-DE/01445",
+      "input_text": "nachrichten bitte",
       "audio_url": null,
-      "reference": "timers_alarms:set_timer",
+      "reference": "news:read_headlines",
       "prediction_a": {
-        "intent": "timers_alarms:snooze_alarm",
-        "slots": {
-          "duration": "minuten"
-        }
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-autoencoder-logreg",
-      "competitor_b": "jurebes-text-stats-logreg",
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "jurebes-text-stats-logreg",
+      "competitor_b": "jurebes-autoencoder-logreg",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -4115,22 +4056,19 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "19fdd1012abc7c3c",
+      "battle_id": "104a2a150dd57260",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/00723",
-      "input_text": "eta zum büro grob",
+      "sample_id": "de-DE/01528",
+      "input_text": "lies die nachrichten",
       "audio_url": null,
-      "reference": "navigation:eta_query",
+      "reference": "news:read_headlines",
       "prediction_a": {
-        "intent": null
+        "intent": "news:read_topic"
       },
       "prediction_b": {
-        "intent": "navigation:navigate_to",
-        "slots": {
-          "destination": "zum büro"
-        }
+        "intent": null
       },
       "competitor_a": "jurebes-autoencoder-logreg",
       "competitor_b": "jurebes-union-logreg",
@@ -4138,12 +4076,118 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "15338b9171d1d501",
+      "battle_id": "06e5bc2e7e535855",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "de-DE",
-      "sample_id": "de-DE/00173",
-      "input_text": "weck mich in 45 minuten",
+      "sample_id": "de-DE/01560",
+      "input_text": "lies die nachrichten",
+      "audio_url": null,
+      "reference": "news:read_headlines",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "jurebes-union-pos-char-logreg",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "1a26e4123f0851af",
+      "modality": "intent_template",
+      "dataset_id": "intents-for-eval",
+      "lang": "de-DE",
+      "sample_id": "de-DE/01747",
+      "input_text": "Erehh den schlüssel rum",
+      "audio_url": null,
+      "reference": "smarthome:lock_door",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "timers_alarms:cancel_timer"
+      },
+      "competitor_a": "jurebes-union-pos-tfidf-logreg",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "07691b5ea557769d",
+      "modality": "intent_template",
+      "dataset_id": "intents-for-eval",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00753",
+      "input_text": "autobahn voll nach hause",
+      "audio_url": null,
+      "reference": "navigation:traffic_status",
+      "prediction_a": {
+        "intent": "navigation:navigate_to",
+        "slots": {
+          "destination": "hause"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-union-skipgram-tfidf-logreg",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "034228d454fb28ba",
+      "modality": "intent_template",
+      "dataset_id": "intents-for-eval",
+      "lang": "de-DE",
+      "sample_id": "de-DE/01404",
+      "input_text": "stell die helligkeit auf 50",
+      "audio_url": null,
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-union-text-stats-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "02fc4011bf30452e",
+      "modality": "intent_template",
+      "dataset_id": "intents-for-eval",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00752",
+      "input_text": "hart zum flughafen",
+      "audio_url": null,
+      "reference": "navigation:traffic_status",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "navigation:navigate_to"
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-voting-soft",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "00c57bc8037065b1",
+      "modality": "intent_template",
+      "dataset_id": "intents-for-eval",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00165",
+      "input_text": "erinnere mich in 10 minuten",
       "audio_url": null,
       "reference": "timers_alarms:set_timer",
       "prediction_a": {
@@ -4152,10 +4196,10 @@
       "prediction_b": {
         "intent": "timers_alarms:snooze_alarm",
         "slots": {
-          "duration": "minuten"
+          "duration": "10 minuten"
         }
       },
-      "competitor_a": "jurebes-union-pos-char-logreg",
+      "competitor_a": "jurebes-word-pos-logreg",
       "competitor_b": "jurebes-autoencoder-logreg",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"

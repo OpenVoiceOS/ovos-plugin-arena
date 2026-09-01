@@ -2,14 +2,13 @@
   "modality": "intent_template",
   "dataset_id": "intents-for-eval",
   "lang": "fr-FR",
-  "generated_at": "2026-08-13T04:56:01.302612+00:00",
+  "generated_at": "2026-09-01T08:18:52.931728+00:00",
   "dataset_info": {
     "url": "https://huggingface.co/datasets/OpenVoiceOS/intents-for-eval",
     "license": "apache-2.0",
     "notes": "OVOS canonical paradigm-neutral intent benchmark: 50 intents, 1750 test rows per language across template / paraphrase / near_ood / far_ood / asr_noise / typos buckets, with slot annotations. far_ood rows carry expected_intent=null — the correct behaviour is no match.",
     "predictions": [
       "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-bench-intents-for-eval",
-      "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-keyword-bench-intents-for-eval",
       "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-template-bench-intents-for-eval"
     ],
     "train_datasets": {
@@ -48,27 +47,27 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "0ac2e30e7bfdbd77",
+      "battle_id": "02f091b3da02b974",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "fr-FR",
-      "sample_id": "fr-FR/00753",
-      "input_text": "autoroute bondée vers la maison",
+      "sample_id": "fr-FR/00444",
+      "input_text": "règle la luminosité à 50",
       "audio_url": null,
-      "reference": "navigation:traffic_status",
+      "reference": "smarthome:set_brightness_light",
       "prediction_a": {
-        "intent": "navigation:navigate_to",
-        "slots": {
-          "destination": "la maison"
-        }
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-autoencoder-logreg",
-      "competitor_b": "hierarchical-knn-medium",
-      "plugin_a": "ovos-jurebes-pipeline-plugin",
-      "plugin_b": "ovos-hierarchical-knn-pipeline"
+      "prediction_b": {
+        "intent": "system_control:set_brightness_screen",
+        "slots": {
+          "level": "50"
+        }
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
       "battle_id": "07208c33492d4fca",
@@ -91,19 +90,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "23baf905f06a39a4",
+      "battle_id": "9115c0c9566c6820",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "fr-FR",
-      "sample_id": "fr-FR/01306",
-      "input_text": "règle la luminosité à 50",
+      "sample_id": "fr-FR/00752",
+      "input_text": "difficile vers l'aéroport",
       "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
+      "reference": "navigation:traffic_status",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "navigation:navigate_to",
+        "slots": {
+          "destination": "' aéroport"
+        }
       },
       "competitor_a": "hierarchical-knn-medium",
       "competitor_b": "jurebes-autoencoder-logreg-wide",
@@ -160,7 +162,10 @@
       "audio_url": null,
       "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "prediction_b": {
         "intent": null
@@ -171,16 +176,16 @@
       "plugin_b": "ovos-hierarchical-knn-pipeline"
     },
     {
-      "battle_id": "0670bfd691cd485f",
+      "battle_id": "054c23f49e196a5b",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "fr-FR",
-      "sample_id": "fr-FR/01458",
-      "input_text": "actualités du monde s'il te plaît",
+      "sample_id": "fr-FR/01508",
+      "input_text": "avance",
       "audio_url": null,
-      "reference": "news:read_headlines",
+      "reference": "news:next_story",
       "prediction_a": {
-        "intent": "news:news_source"
+        "intent": "media:skip_track"
       },
       "prediction_b": {
         "intent": null
@@ -191,24 +196,24 @@
       "plugin_b": "ovos-hierarchical-knn-pipeline"
     },
     {
-      "battle_id": "06b5efab6053b031",
+      "battle_id": "2d9e91969162e9b2",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "fr-FR",
-      "sample_id": "fr-FR/01436",
-      "input_text": "règle la luminosité à 50",
+      "sample_id": "fr-FR/01672",
+      "input_text": "baisse le volume zéro",
       "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
+      "reference": "system_control:mute_system",
       "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-complement-nb-count",
-      "competitor_b": "hierarchical-knn-medium",
-      "plugin_a": "ovos-jurebes-pipeline-plugin",
-      "plugin_b": "ovos-hierarchical-knn-pipeline"
+      "prediction_b": {
+        "intent": "media:set_volume"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-complement-nb-count",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
       "battle_id": "009e32c46b1c5ac2",
@@ -234,24 +239,27 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "06fb642234b31a6d",
+      "battle_id": "269a19da923d21a8",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "fr-FR",
-      "sample_id": "fr-FR/01404",
-      "input_text": "règle la luminosité à 50",
+      "sample_id": "fr-FR/00224",
+      "input_text": "mets une alarme à 7 heures du matin",
       "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
+      "reference": "timers_alarms:set_alarm",
       "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-denoising-autoencoder-logreg",
-      "competitor_b": "hierarchical-knn-medium",
-      "plugin_a": "ovos-jurebes-pipeline-plugin",
-      "plugin_b": "ovos-hierarchical-knn-pipeline"
+      "prediction_b": {
+        "intent": "timers_alarms:set_alarm",
+        "slots": {
+          "time": "7 heures du matin"
+        }
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-denoising-autoencoder-logreg",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
       "battle_id": "00d1ccbd80e73954",
@@ -301,16 +309,16 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "0142efd1733025bd",
+      "battle_id": "0d3d5d6216f364d7",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "fr-FR",
-      "sample_id": "fr-FR/00134",
-      "input_text": "avance",
+      "sample_id": "fr-FR/00266",
+      "input_text": "qu'est-ce qu'il y a dans mon planning d'alarmes",
       "audio_url": null,
-      "reference": "media:skip_track",
+      "reference": "timers_alarms:list_alarms",
       "prediction_a": {
-        "intent": "news:next_story"
+        "intent": "calendar:list_events"
       },
       "prediction_b": {
         "intent": null
@@ -330,7 +338,10 @@
       "audio_url": null,
       "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "prediction_b": {
         "intent": null
@@ -444,24 +455,27 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "0edaa8444747787e",
+      "battle_id": "2348acb74702ba59",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "fr-FR",
-      "sample_id": "fr-FR/01404",
-      "input_text": "règle la luminosité à 50",
+      "sample_id": "fr-FR/00283",
+      "input_text": "arrête le minuteur des pâtes",
       "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
+      "reference": "timers_alarms:cancel_timer",
       "prediction_a": {
-        "intent": null
+        "intent": "timers_alarms:cancel_timer",
+        "slots": {
+          "label": "pâtes"
+        }
       },
       "prediction_b": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": null
       },
-      "competitor_a": "hierarchical-knn-medium",
-      "competitor_b": "jurebes-lda-logreg",
-      "plugin_a": "ovos-hierarchical-knn-pipeline",
-      "plugin_b": "ovos-jurebes-pipeline-plugin"
+      "competitor_a": "jurebes-lda-logreg",
+      "competitor_b": "hierarchical-knn-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-hierarchical-knn-pipeline"
     },
     {
       "battle_id": "03e3a659d58e9219",
@@ -536,7 +550,10 @@
       "audio_url": null,
       "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "prediction_b": {
         "intent": null
@@ -590,16 +607,19 @@
       "plugin_b": "ovos-hierarchical-knn-pipeline"
     },
     {
-      "battle_id": "02dca0b37a4f9987",
+      "battle_id": "03111f7cd097adb1",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "fr-FR",
-      "sample_id": "fr-FR/00125",
-      "input_text": "passe à la suivante",
+      "sample_id": "fr-FR/00754",
+      "input_text": "des ralentissements vers le bureau",
       "audio_url": null,
-      "reference": "media:skip_track",
+      "reference": "navigation:traffic_status",
       "prediction_a": {
-        "intent": "news:next_story"
+        "intent": "navigation:navigate_to",
+        "slots": {
+          "destination": "le bureau"
+        }
       },
       "prediction_b": {
         "intent": null
@@ -610,24 +630,24 @@
       "plugin_b": "ovos-hierarchical-knn-pipeline"
     },
     {
-      "battle_id": "0214fc44fccf2f93",
+      "battle_id": "0913e2ecb630846c",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "fr-FR",
-      "sample_id": "fr-FR/01696",
-      "input_text": "facetime pierre moi",
+      "sample_id": "fr-FR/01324",
+      "input_text": "envoie la machine pour un reset",
       "audio_url": null,
-      "reference": "communication:video_call",
+      "reference": "system_control:restart",
       "prediction_a": {
-        "intent": "communication:call_contact"
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-lsa-linear-svc",
-      "competitor_b": "hierarchical-knn-medium",
-      "plugin_a": "ovos-jurebes-pipeline-plugin",
-      "plugin_b": "ovos-hierarchical-knn-pipeline"
+      "prediction_b": {
+        "intent": "communication:send_message"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-lsa-linear-svc",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
       "battle_id": "0925019add603727",
@@ -690,36 +710,42 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "018037677a0df0b1",
+      "battle_id": "017e99abac014fb6",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "fr-FR",
-      "sample_id": "fr-FR/01697",
-      "input_text": "qu'est-ce que j'ai raté dans messages",
+      "sample_id": "fr-FR/01593",
+      "input_text": "les titres d'aujourd'hui",
       "audio_url": null,
-      "reference": "communication:read_messages",
+      "reference": "news:read_headlines",
       "prediction_a": {
-        "intent": "calendar:list_events"
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-nb-bernoulli",
-      "competitor_b": "hierarchical-knn-medium",
-      "plugin_a": "ovos-jurebes-pipeline-plugin",
-      "plugin_b": "ovos-hierarchical-knn-pipeline"
+      "prediction_b": {
+        "intent": "news:read_topic",
+        "slots": {
+          "date": "' hui"
+        }
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-nb-bernoulli",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "01d6b8e6d2defe25",
+      "battle_id": "1ab4b1c64d964793",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "fr-FR",
-      "sample_id": "fr-FR/00030",
-      "input_text": "passe à la suivante",
+      "sample_id": "fr-FR/00681",
+      "input_text": "trouve-moi une pharmacie près d'ici",
       "audio_url": null,
-      "reference": "media:skip_track",
+      "reference": "navigation:find_nearby",
       "prediction_a": {
-        "intent": "news:next_story"
+        "intent": "navigation:find_nearby",
+        "slots": {
+          "place_type": "pharmacie"
+        }
       },
       "prediction_b": {
         "intent": null
@@ -730,62 +756,42 @@
       "plugin_b": "ovos-hierarchical-knn-pipeline"
     },
     {
-      "battle_id": "0e4ca629d8f87183",
+      "battle_id": "294a9bcad6bf5450",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "fr-FR",
-      "sample_id": "fr-FR/00133",
-      "input_text": "passe à la suivante",
+      "sample_id": "fr-FR/01390",
+      "input_text": "baisse le volume à zéro",
       "audio_url": null,
-      "reference": "media:skip_track",
-      "prediction_a": {
-        "intent": "news:next_story"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "jurebes-nb-multinomial",
-      "competitor_b": "hierarchical-knn-medium",
-      "plugin_a": "ovos-jurebes-pipeline-plugin",
-      "plugin_b": "ovos-hierarchical-knn-pipeline"
-    },
-    {
-      "battle_id": "1aef9abeef400b64",
-      "modality": "intent_template",
-      "dataset_id": "intents-for-eval",
-      "lang": "fr-FR",
-      "sample_id": "fr-FR/00125",
-      "input_text": "passe à la suivante",
-      "audio_url": null,
-      "reference": "media:skip_track",
+      "reference": "system_control:mute_system",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "news:next_story"
+        "intent": "media:set_volume"
       },
       "competitor_a": "hierarchical-knn-medium",
-      "competitor_b": "jurebes-nmf-logreg",
+      "competitor_b": "jurebes-nb-multinomial",
       "plugin_a": "ovos-hierarchical-knn-pipeline",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "15a56c3d4c6c6f7e",
+      "battle_id": "87aa27305bb5226c",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "fr-FR",
-      "sample_id": "fr-FR/00125",
-      "input_text": "passe à la suivante",
+      "sample_id": "fr-FR/01366",
+      "input_text": "luminosité max à 100",
       "audio_url": null,
-      "reference": "media:skip_track",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "news:next_story"
+        "intent": "system_control:set_brightness_screen"
       },
       "competitor_a": "hierarchical-knn-medium",
-      "competitor_b": "jurebes-nusvc",
+      "competitor_b": "jurebes-nmf-logreg",
       "plugin_a": "ovos-hierarchical-knn-pipeline",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -890,42 +896,19 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "35344a3576e200bc",
+      "battle_id": "010ee260d0669482",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "fr-FR",
-      "sample_id": "fr-FR/00133",
-      "input_text": "passe à la suivante",
+      "sample_id": "fr-FR/01324",
+      "input_text": "envoie la machine pour un reset",
       "audio_url": null,
-      "reference": "media:skip_track",
+      "reference": "system_control:restart",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "news:next_story"
-      },
-      "competitor_a": "hierarchical-knn-medium",
-      "competitor_b": "jurebes-qda-classifier",
-      "plugin_a": "ovos-hierarchical-knn-pipeline",
-      "plugin_b": "ovos-jurebes-pipeline-plugin"
-    },
-    {
-      "battle_id": "0a91b9c1302a827a",
-      "modality": "intent_template",
-      "dataset_id": "intents-for-eval",
-      "lang": "fr-FR",
-      "sample_id": "fr-FR/00753",
-      "input_text": "autoroute bondée vers la maison",
-      "audio_url": null,
-      "reference": "navigation:traffic_status",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "navigation:navigate_to",
-        "slots": {
-          "destination": "la maison"
-        }
+        "intent": "communication:send_message"
       },
       "competitor_a": "hierarchical-knn-medium",
       "competitor_b": "jurebes-random-forest",
@@ -933,44 +916,44 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "153317056364dafc",
+      "battle_id": "0ea03d355b1c890f",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "fr-FR",
-      "sample_id": "fr-FR/00133",
-      "input_text": "passe à la suivante",
-      "audio_url": null,
-      "reference": "media:skip_track",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "news:next_story"
-      },
-      "competitor_a": "hierarchical-knn-medium",
-      "competitor_b": "jurebes-random-projection-logreg",
-      "plugin_a": "ovos-hierarchical-knn-pipeline",
-      "plugin_b": "ovos-jurebes-pipeline-plugin"
-    },
-    {
-      "battle_id": "0f77a6b942348e9d",
-      "modality": "intent_template",
-      "dataset_id": "intents-for-eval",
-      "lang": "fr-FR",
-      "sample_id": "fr-FR/00134",
+      "sample_id": "fr-FR/01508",
       "input_text": "avance",
       "audio_url": null,
-      "reference": "media:skip_track",
+      "reference": "news:next_story",
       "prediction_a": {
-        "intent": "news:next_story"
+        "intent": "media:skip_track"
       },
       "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-rbf-svc",
+      "competitor_a": "jurebes-random-projection-logreg",
       "competitor_b": "hierarchical-knn-medium",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-hierarchical-knn-pipeline"
+    },
+    {
+      "battle_id": "11dc44141aaaa510",
+      "modality": "intent_template",
+      "dataset_id": "intents-for-eval",
+      "lang": "fr-FR",
+      "sample_id": "fr-FR/01727",
+      "input_text": "il fait lour",
+      "audio_url": null,
+      "reference": "weather:weather_humidity",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:weather_today"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-rbf-svc",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
       "battle_id": "00545a0f60f4374a",
@@ -1013,24 +996,27 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "4ad8eca17340de63",
+      "battle_id": "5a7b83cb3962bb6e",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "fr-FR",
-      "sample_id": "fr-FR/00133",
-      "input_text": "passe à la suivante",
+      "sample_id": "fr-FR/00753",
+      "input_text": "autoroute bondée vers la maison",
       "audio_url": null,
-      "reference": "media:skip_track",
+      "reference": "navigation:traffic_status",
       "prediction_a": {
-        "intent": "news:next_story"
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-sgd-log",
-      "competitor_b": "hierarchical-knn-medium",
-      "plugin_a": "ovos-jurebes-pipeline-plugin",
-      "plugin_b": "ovos-hierarchical-knn-pipeline"
+      "prediction_b": {
+        "intent": "navigation:navigate_to",
+        "slots": {
+          "destination": "la maison"
+        }
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-sgd-log",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
       "battle_id": "002d662a39d593ca",
@@ -1045,7 +1031,7 @@
         "intent": null
       },
       "prediction_b": {
-        "intent": "system_control:restart"
+        "intent": "weather:weather_wind"
       },
       "competitor_a": "hierarchical-knn-medium",
       "competitor_b": "jurebes-sgd-modified-huber",
@@ -1062,7 +1048,10 @@
       "audio_url": null,
       "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "prediction_b": {
         "intent": null
@@ -1119,19 +1108,19 @@
       "plugin_b": "ovos-hierarchical-knn-pipeline"
     },
     {
-      "battle_id": "006b8f9c47409878",
+      "battle_id": "5556ba32661d84d4",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "fr-FR",
-      "sample_id": "fr-FR/01404",
-      "input_text": "règle la luminosité à 50",
+      "sample_id": "fr-FR/01090",
+      "input_text": "il y a du vent",
       "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
+      "reference": "weather:weather_wind",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "media:set_volume"
       },
       "competitor_a": "hierarchical-knn-medium",
       "competitor_b": "jurebes-text-stats-logreg",
@@ -1191,7 +1180,10 @@
         "intent": null
       },
       "prediction_b": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "competitor_a": "hierarchical-knn-medium",
       "competitor_b": "jurebes-union-pos-char-logreg",
@@ -1277,7 +1269,10 @@
         "intent": null
       },
       "prediction_b": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "competitor_a": "hierarchical-knn-medium",
       "competitor_b": "jurebes-voting-soft",
@@ -1617,22 +1612,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "1d1c0e18fac07d02",
+      "battle_id": "0ea58a11e823587f",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "fr-FR",
-      "sample_id": "fr-FR/01691",
-      "input_text": "recommande un restaurantproche",
+      "sample_id": "fr-FR/00967",
+      "input_text": "donne-moi la météo",
       "audio_url": null,
-      "reference": "navigation:find_nearby",
+      "reference": "weather:weather_today",
       "prediction_a": {
-        "intent": "timers_alarms:set_timer"
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-autoencoder-linear-svc",
-      "competitor_b": "jurebes-bagging-logreg",
+      "prediction_b": {
+        "intent": "weather:weather_location"
+      },
+      "competitor_a": "jurebes-bagging-logreg",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -1740,19 +1735,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "066bfd1706063ccf",
+      "battle_id": "070426854b4a998f",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "fr-FR",
-      "sample_id": "fr-FR/01451",
-      "input_text": "des nouvelles de dernière minute",
+      "sample_id": "fr-FR/00015",
+      "input_text": "envoie du claude françois",
       "audio_url": null,
-      "reference": "news:read_headlines",
+      "reference": "media:play_song",
       "prediction_a": {
-        "intent": "news:read_topic"
+        "intent": null
       },
       "prediction_b": {
-        "intent": null
+        "intent": "communication:send_message",
+        "slots": {
+          "artist": "françois"
+        }
       },
       "competitor_a": "jurebes-extra-trees",
       "competitor_b": "jurebes-autoencoder-linear-svc",
@@ -1780,16 +1778,21 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "02d94f0522cc49bb",
+      "battle_id": "01a108ea9ac55a4f",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "fr-FR",
-      "sample_id": "fr-FR/00365",
-      "input_text": "éteins tout dans le salon",
+      "sample_id": "fr-FR/00179",
+      "input_text": "réveille-moi à 8 minutes pour le linge",
       "audio_url": null,
-      "reference": "smarthome:lights_off",
+      "reference": "timers_alarms:set_timer",
       "prediction_a": {
-        "intent": "system_control:shutdown"
+        "intent": "timers_alarms:set_alarm",
+        "slots": {
+          "time": "8",
+          "duration": "minutes",
+          "label": "linge"
+        }
       },
       "prediction_b": {
         "intent": null
@@ -1800,22 +1803,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "14adf173fa2c39ba",
+      "battle_id": "058bd0c8046d7ca6",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "fr-FR",
-      "sample_id": "fr-FR/01455",
-      "input_text": "lis les nouvelles d'aujourd'hui",
+      "sample_id": "fr-FR/01338",
+      "input_text": "règle la luminosité à 50",
       "audio_url": null,
-      "reference": "news:read_headlines",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": "news:read_topic",
-        "slots": {
-          "date": "' hui"
-        }
+        "intent": null
       },
       "prediction_b": {
-        "intent": null
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "competitor_a": "jurebes-autoencoder-linear-svc",
       "competitor_b": "jurebes-hashing-sgd-log",
@@ -1883,19 +1886,19 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "1dedc54b3f5f6d38",
+      "battle_id": "065e3bd7bd249fbe",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "fr-FR",
-      "sample_id": "fr-FR/00334",
-      "input_text": "monte les lumières de la cuisine",
+      "sample_id": "fr-FR/01095",
+      "input_text": "il y a une brise",
       "audio_url": null,
-      "reference": "smarthome:lights_on",
+      "reference": "weather:weather_wind",
       "prediction_a": {
-        "intent": null
+        "intent": "navigation:find_nearby"
       },
       "prediction_b": {
-        "intent": "smarthome:set_brightness_light"
+        "intent": null
       },
       "competitor_a": "jurebes-autoencoder-linear-svc",
       "competitor_b": "jurebes-label-guided-logreg",
@@ -2032,21 +2035,21 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "1d6cb9b8dbe6915a",
+      "battle_id": "115a47ac75ca1fcc",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "fr-FR",
-      "sample_id": "fr-FR/00752",
-      "input_text": "difficile vers l'aéroport",
+      "sample_id": "fr-FR/01306",
+      "input_text": "règle la luminosité à 50",
       "audio_url": null,
-      "reference": "navigation:traffic_status",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "navigation:navigate_to",
+        "intent": "smarthome:set_brightness_light",
         "slots": {
-          "destination": "' aéroport"
+          "level": "50"
         }
       },
       "competitor_a": "jurebes-autoencoder-linear-svc",
@@ -2055,22 +2058,19 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "40fda525f35d20f6",
+      "battle_id": "2ac9130690e87d0a",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "fr-FR",
-      "sample_id": "fr-FR/00754",
-      "input_text": "des ralentissements vers le bureau",
+      "sample_id": "fr-FR/00967",
+      "input_text": "donne-moi la météo",
       "audio_url": null,
-      "reference": "navigation:traffic_status",
+      "reference": "weather:weather_today",
       "prediction_a": {
-        "intent": null
+        "intent": "weather:weather_location"
       },
       "prediction_b": {
-        "intent": "navigation:navigate_to",
-        "slots": {
-          "destination": "le bureau"
-        }
+        "intent": null
       },
       "competitor_a": "jurebes-autoencoder-linear-svc",
       "competitor_b": "jurebes-logreg-elasticnet",
@@ -2121,22 +2121,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "18a28b29d3ade02b",
+      "battle_id": "0fdb89caee3e32ba",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "fr-FR",
-      "sample_id": "fr-FR/01691",
-      "input_text": "recommande un restaurantproche",
+      "sample_id": "fr-FR/00292",
+      "input_text": "retarde l'alarme",
       "audio_url": null,
-      "reference": "navigation:find_nearby",
+      "reference": "timers_alarms:snooze_alarm",
       "prediction_a": {
-        "intent": null
+        "intent": "timers_alarms:set_alarm"
       },
       "prediction_b": {
-        "intent": "timers_alarms:set_timer"
+        "intent": null
       },
-      "competitor_a": "jurebes-lsa-logreg",
-      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-lsa-logreg",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -2164,25 +2164,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "040c989c67a03f64",
+      "battle_id": "04350dd018caf10f",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "fr-FR",
-      "sample_id": "fr-FR/01269",
-      "input_text": "on peut repousser la visite chez le médecin",
+      "sample_id": "fr-FR/01519",
+      "input_text": "allons-y",
       "audio_url": null,
-      "reference": "calendar:reschedule_event",
+      "reference": "news:next_story",
       "prediction_a": {
-        "intent": null
+        "intent": "navigation:navigate_to"
       },
       "prediction_b": {
-        "intent": "calendar:cancel_event",
-        "slots": {
-          "title": "visite chez le"
-        }
+        "intent": null
       },
-      "competitor_a": "jurebes-autoencoder-linear-svc",
-      "competitor_b": "jurebes-mlp-shallow",
+      "competitor_a": "jurebes-mlp-shallow",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -2422,45 +2419,45 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "0151872cddb9d2e6",
+      "battle_id": "02f048be892f53f3",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "fr-FR",
-      "sample_id": "fr-FR/01678",
-      "input_text": "trafic chargé vers centre-ville",
+      "sample_id": "fr-FR/00751",
+      "input_text": "trafic chargé vers le centre-ville",
       "audio_url": null,
       "reference": "navigation:traffic_status",
       "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
         "intent": "navigation:navigate_to",
         "slots": {
-          "destination": "- ville"
+          "destination": "le centre - ville"
         }
       },
-      "competitor_a": "jurebes-autoencoder-linear-svc",
-      "competitor_b": "jurebes-random-forest",
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-random-forest",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "251b0cbc88c6ca31",
+      "battle_id": "01e65291779089b1",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "fr-FR",
-      "sample_id": "fr-FR/01455",
-      "input_text": "lis les nouvelles d'aujourd'hui",
+      "sample_id": "fr-FR/01338",
+      "input_text": "règle la luminosité à 50",
       "audio_url": null,
-      "reference": "news:read_headlines",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": null
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "level": "50"
+        }
       },
       "prediction_b": {
-        "intent": "news:read_topic",
-        "slots": {
-          "date": "' hui"
-        }
+        "intent": null
       },
       "competitor_a": "jurebes-random-projection-logreg",
       "competitor_b": "jurebes-autoencoder-linear-svc",
@@ -2514,19 +2511,19 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "036461351c55793a",
+      "battle_id": "016f27fba5268714",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "fr-FR",
-      "sample_id": "fr-FR/01488",
-      "input_text": "récap des nouvelles tech",
+      "sample_id": "fr-FR/01508",
+      "input_text": "avance",
       "audio_url": null,
-      "reference": "news:read_topic",
+      "reference": "news:next_story",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "news:read_headlines"
+        "intent": "media:skip_track"
       },
       "competitor_a": "jurebes-autoencoder-linear-svc",
       "competitor_b": "jurebes-sgd-hinge",
@@ -2623,25 +2620,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "10d5b0d9b42d8509",
+      "battle_id": "10c6b9d3188b4786",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "fr-FR",
-      "sample_id": "fr-FR/00171",
-      "input_text": "préviens-moi après 15 minutes",
+      "sample_id": "fr-FR/00292",
+      "input_text": "retarde l'alarme",
       "audio_url": null,
-      "reference": "timers_alarms:set_timer",
+      "reference": "timers_alarms:snooze_alarm",
       "prediction_a": {
-        "intent": null
+        "intent": "timers_alarms:set_alarm"
       },
       "prediction_b": {
-        "intent": "timers_alarms:snooze_alarm",
-        "slots": {
-          "duration": "15 minutes"
-        }
+        "intent": null
       },
-      "competitor_a": "jurebes-stemmed-logreg",
-      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-stemmed-logreg",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -2686,25 +2680,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "124d1efa15c0857e",
+      "battle_id": "080e760a7d30d96f",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "fr-FR",
-      "sample_id": "fr-FR/00170",
-      "input_text": "alerte-moi dans 20 minutes",
+      "sample_id": "fr-FR/00291",
+      "input_text": "reporte l'alarme",
       "audio_url": null,
-      "reference": "timers_alarms:set_timer",
+      "reference": "timers_alarms:snooze_alarm",
       "prediction_a": {
-        "intent": "timers_alarms:snooze_alarm",
-        "slots": {
-          "duration": "minutes"
-        }
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-autoencoder-linear-svc",
-      "competitor_b": "jurebes-union-logreg",
+      "prediction_b": {
+        "intent": "timers_alarms:set_alarm"
+      },
+      "competitor_a": "jurebes-union-logreg",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -2729,25 +2720,25 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "1e7fb99e10907f07",
+      "battle_id": "0d2611767bfd419a",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "fr-FR",
-      "sample_id": "fr-FR/00170",
-      "input_text": "alerte-moi dans 20 minutes",
+      "sample_id": "fr-FR/01306",
+      "input_text": "règle la luminosité à 50",
       "audio_url": null,
-      "reference": "timers_alarms:set_timer",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "timers_alarms:snooze_alarm",
+        "intent": "smarthome:set_brightness_light",
         "slots": {
-          "duration": "minutes"
+          "level": "50"
         }
       },
-      "competitor_a": "jurebes-union-pos-tfidf-logreg",
-      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-union-pos-tfidf-logreg",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -2798,45 +2789,39 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "1197d9762d65e93c",
+      "battle_id": "07d9bdbb8623e751",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "fr-FR",
-      "sample_id": "fr-FR/00171",
-      "input_text": "préviens-moi après 15 minutes",
+      "sample_id": "fr-FR/01095",
+      "input_text": "il y a une brise",
       "audio_url": null,
-      "reference": "timers_alarms:set_timer",
+      "reference": "weather:weather_wind",
       "prediction_a": {
-        "intent": "timers_alarms:snooze_alarm",
-        "slots": {
-          "duration": "15 minutes"
-        }
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-autoencoder-linear-svc",
-      "competitor_b": "jurebes-voting-soft",
+      "prediction_b": {
+        "intent": "navigation:find_nearby"
+      },
+      "competitor_a": "jurebes-voting-soft",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "24b6ea8c627a52f8",
+      "battle_id": "03b0759af413aebc",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "fr-FR",
-      "sample_id": "fr-FR/00754",
-      "input_text": "des ralentissements vers le bureau",
+      "sample_id": "fr-FR/00291",
+      "input_text": "reporte l'alarme",
       "audio_url": null,
-      "reference": "navigation:traffic_status",
+      "reference": "timers_alarms:snooze_alarm",
       "prediction_a": {
-        "intent": null
+        "intent": "timers_alarms:set_alarm"
       },
       "prediction_b": {
-        "intent": "navigation:navigate_to",
-        "slots": {
-          "destination": "le bureau"
-        }
+        "intent": null
       },
       "competitor_a": "jurebes-autoencoder-linear-svc",
       "competitor_b": "jurebes-word-pos-logreg",
@@ -3032,27 +3017,24 @@
       "plugin_b": "ovos-padacioso-pipeline-plugin"
     },
     {
-      "battle_id": "2013000bb3bc31c9",
+      "battle_id": "0d8d772bcab41c40",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "fr-FR",
-      "sample_id": "fr-FR/01270",
-      "input_text": "mets le rendez-vous chez le dentiste à demain",
+      "sample_id": "fr-FR/01512",
+      "input_text": "passe à la suivante",
       "audio_url": null,
-      "reference": "calendar:reschedule_event",
+      "reference": "news:next_story",
       "prediction_a": {
-        "intent": "calendar:create_event",
-        "slots": {
-          "title": "le rendez-vous chez le dentiste"
-        }
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "padatious-domain-medium",
-      "competitor_b": "jurebes-autoencoder-linear-svc",
-      "plugin_a": "ovos-padatious-pipeline-plugin",
-      "plugin_b": "ovos-jurebes-pipeline-plugin"
+      "prediction_b": {
+        "intent": "media:skip_track"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "padatious-domain-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
     },
     {
       "battle_id": "1daaf743f0bb4670",
@@ -3122,22 +3104,26 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "0aea38a58fd3aa29",
+      "battle_id": "07679ff618751554",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "fr-FR",
-      "sample_id": "fr-FR/00502",
-      "input_text": "lance un appel avec jean",
+      "sample_id": "fr-FR/00860",
+      "input_text": "traduis bonjour en espagnol",
       "audio_url": null,
-      "reference": "communication:call_contact",
+      "reference": "search_qa:translate_phrase",
       "prediction_a": {
-        "intent": "communication:video_call"
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-autoencoder-rbf-svc",
-      "competitor_b": "jurebes-autoencoder-logreg",
+      "prediction_b": {
+        "intent": "system_control:change_language",
+        "slots": {
+          "phrase": "bonjour",
+          "target_language": "espagnol"
+        }
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-autoencoder-rbf-svc",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -3240,7 +3226,7 @@
         "intent": null
       },
       "prediction_b": {
-        "intent": "system_control:restart"
+        "intent": "timers_alarms:set_timer"
       },
       "competitor_a": "jurebes-autoencoder-logreg",
       "competitor_b": "jurebes-decision-tree",
@@ -3311,25 +3297,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "00fa363e3d9637c6",
+      "battle_id": "003c699b6a9ee885",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "fr-FR",
-      "sample_id": "fr-FR/00980",
-      "input_text": "humidité élevée aujourd'hui",
+      "sample_id": "fr-FR/01508",
+      "input_text": "avance",
       "audio_url": null,
-      "reference": "weather:weather_today",
+      "reference": "news:next_story",
       "prediction_a": {
-        "intent": null
+        "intent": "media:skip_track"
       },
       "prediction_b": {
-        "intent": "weather:weather_humidity",
-        "slots": {
-          "date": "aujourd ' hui"
-        }
+        "intent": null
       },
-      "competitor_a": "jurebes-autoencoder-logreg",
-      "competitor_b": "jurebes-hashing-sgd-hinge",
+      "competitor_a": "jurebes-hashing-sgd-hinge",
+      "competitor_b": "jurebes-autoencoder-logreg",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -3440,25 +3423,25 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "027cd32a7f6bf479",
+      "battle_id": "0037e2f75fd064d8",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "fr-FR",
-      "sample_id": "fr-FR/00727",
-      "input_text": "combien de kilomètres jusqu'à la maison",
+      "sample_id": "fr-FR/00728",
+      "input_text": "navigue jusqu'à la maison",
       "audio_url": null,
-      "reference": "navigation:eta_query",
+      "reference": "navigation:navigate_to",
       "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
         "intent": "navigation:traffic_status",
         "slots": {
           "destination": "la maison"
         }
       },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "jurebes-lda-classifier",
-      "competitor_b": "jurebes-autoencoder-logreg",
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-lda-classifier",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -3695,24 +3678,19 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "04d08af45d5cdb82",
+      "battle_id": "01b480cb6ea4ab2e",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "fr-FR",
-      "sample_id": "fr-FR/00179",
-      "input_text": "réveille-moi à 8 minutes pour le linge",
+      "sample_id": "fr-FR/01526",
+      "input_text": "donne-moi un autre titre",
       "audio_url": null,
-      "reference": "timers_alarms:set_timer",
+      "reference": "news:next_story",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "timers_alarms:set_alarm",
-        "slots": {
-          "time": "8",
-          "duration": "minutes",
-          "label": "linge"
-        }
+        "intent": "search_qa:translate_phrase"
       },
       "competitor_a": "jurebes-autoencoder-logreg",
       "competitor_b": "jurebes-mlp-shallow",
@@ -3720,22 +3698,22 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "01559e0ef187d6e5",
+      "battle_id": "00467dcc28424b24",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "fr-FR",
-      "sample_id": "fr-FR/00327",
-      "input_text": "lumières allumées dans le salon",
+      "sample_id": "fr-FR/01020",
+      "input_text": "quel est le taux d'humidité",
       "audio_url": null,
-      "reference": "smarthome:lights_on",
+      "reference": "weather:weather_humidity",
       "prediction_a": {
-        "intent": "smarthome:set_thermostat"
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-nb-bernoulli",
-      "competitor_b": "jurebes-autoencoder-logreg",
+      "prediction_b": {
+        "intent": "search_qa:define_word"
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-nb-bernoulli",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -3803,16 +3781,19 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "0447c3f8e6ffaf12",
+      "battle_id": "02083dbe0e359ab4",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "fr-FR",
-      "sample_id": "fr-FR/00492",
-      "input_text": "rejoins un appel avec pierre",
+      "sample_id": "fr-FR/00476",
+      "input_text": "règle la luminosité à 50",
       "audio_url": null,
-      "reference": "communication:call_contact",
+      "reference": "smarthome:set_brightness_light",
       "prediction_a": {
-        "intent": "communication:video_call"
+        "intent": "system_control:set_brightness_screen",
+        "slots": {
+          "level": "50"
+        }
       },
       "prediction_b": {
         "intent": null
@@ -3863,45 +3844,49 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "0235badff105fcd2",
+      "battle_id": "10588f40455b626b",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "fr-FR",
-      "sample_id": "fr-FR/01748",
-      "input_text": "passe à la nnkuvelle zuiante",
+      "sample_id": "fr-FR/01139",
+      "input_text": "n'oublie pas d'ajouter réunion d'équipe à 10h30",
       "audio_url": null,
-      "reference": "news:next_story",
+      "reference": "calendar:create_event",
       "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "media:skip_track"
-      },
-      "competitor_a": "jurebes-autoencoder-logreg",
-      "competitor_b": "jurebes-passive-aggressive",
-      "plugin_a": "ovos-jurebes-pipeline-plugin",
-      "plugin_b": "ovos-jurebes-pipeline-plugin"
-    },
-    {
-      "battle_id": "09c389faeba6764d",
-      "modality": "intent_template",
-      "dataset_id": "intents-for-eval",
-      "lang": "fr-FR",
-      "sample_id": "fr-FR/00754",
-      "input_text": "des ralentissements vers le bureau",
-      "audio_url": null,
-      "reference": "navigation:traffic_status",
-      "prediction_a": {
-        "intent": "navigation:navigate_to",
+        "intent": "calendar:cancel_event",
         "slots": {
-          "destination": "le bureau"
+          "title": "réunion d ' équipe",
+          "time": "10h30"
         }
       },
       "prediction_b": {
         "intent": null
       },
-      "competitor_a": "jurebes-perceptron",
+      "competitor_a": "jurebes-passive-aggressive",
       "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "05e54a14cc6ee3ec",
+      "modality": "intent_template",
+      "dataset_id": "intents-for-eval",
+      "lang": "fr-FR",
+      "sample_id": "fr-FR/00378",
+      "input_text": "règle la luminosité à 50",
+      "audio_url": null,
+      "reference": "smarthome:set_brightness_light",
+      "prediction_a": {
+        "intent": "system_control:set_brightness_screen",
+        "slots": {
+          "level": "50"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-perceptron",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
@@ -4018,12 +4003,12 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "068b331880364340",
+      "battle_id": "00a7321c615f936a",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "fr-FR",
-      "sample_id": "fr-FR/01297",
-      "input_text": "ok heure d'éteindre",
+      "sample_id": "fr-FR/01400",
+      "input_text": "éteins",
       "audio_url": null,
       "reference": "system_control:shutdown",
       "prediction_a": {
@@ -4246,6 +4231,52 @@
       },
       "competitor_a": "jurebes-autoencoder-logreg",
       "competitor_b": "jurebes-union-pos-char-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "0a76c7672f3bffa5",
+      "modality": "intent_template",
+      "dataset_id": "intents-for-eval",
+      "lang": "fr-FR",
+      "sample_id": "fr-FR/00171",
+      "input_text": "préviens-moi après 15 minutes",
+      "audio_url": null,
+      "reference": "timers_alarms:set_timer",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "timers_alarms:snooze_alarm",
+        "slots": {
+          "duration": "15 minutes"
+        }
+      },
+      "competitor_a": "jurebes-union-pos-tfidf-logreg",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "2b25de5ec5e6bc3e",
+      "modality": "intent_template",
+      "dataset_id": "intents-for-eval",
+      "lang": "fr-FR",
+      "sample_id": "fr-FR/00701",
+      "input_text": "comment est la circulation vers le bureau",
+      "audio_url": null,
+      "reference": "navigation:traffic_status",
+      "prediction_a": {
+        "intent": "navigation:navigate_to",
+        "slots": {
+          "destination": "le bureau"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-union-skipgram-tfidf-logreg",
       "plugin_a": "ovos-jurebes-pipeline-plugin",
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     }
