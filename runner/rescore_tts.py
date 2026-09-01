@@ -25,6 +25,14 @@ This script:
 Rows that already carry ``sigmos.ovrl``, ``dnsmos.ovrl`` AND ``nisqa.mos``
 are skipped (idempotent re-runs), and rows with no ``audio_url`` (a failed
 synthesis) are left untouched — there is no clip to rescore.
+
+``--rejudge-intelligibility`` additionally re-judges any row that predates
+#143's ROVER judge panel (no ``intelligibility_rover: true`` extra) by
+locating its stored wav the same way and re-running the panel — replacing
+the row's single-judge ``intelligibility_wer/cer`` with the full panel
+result (per-judge transcripts, ROVER consensus/agreement, and consensus-
+derived wer/cer). A row whose wav can no longer be found is skipped and
+logged, never crashes the run.
 """
 from __future__ import annotations
 
@@ -34,17 +42,37 @@ import logging
 from pathlib import Path
 
 from runner.intent_bench import HF_OWNER, results_repo_for
-from runner.tts_bench import _score_quality_dimensions  # noqa: F401 (patchable at module level; optional-dep import is inside tts_bench's own lazy judge getters)
+from runner.tts_bench import (  # noqa: F401 (patchable at module level; optional-dep imports are inside tts_bench's own lazy judge getters)
+    _score_intelligibility,
+    _score_quality_dimensions,
+)
 
 log = logging.getLogger("rescore-tts")
 
 MODALITY = "tts"
+
+# Extras keys a fresh ``_score_intelligibility`` panel result replaces —
+# both the legacy single-judge fields (§4 R16, pre-#143) and any error
+# marker left by a previous failed judging attempt.
+_INTELLIGIBILITY_EXTRAS_KEYS = (
+    "intelligibility_wer", "intelligibility_cer", "intelligibility_judge",
+    "intelligibility_judge_revision", "intelligibility_error",
+)
 
 
 def _needs_rescoring(row: dict) -> bool:
     extras = row.get("extras") or {}
     return ("sigmos.ovrl" not in extras or "dnsmos.ovrl" not in extras
             or "nisqa.mos" not in extras)
+
+
+def _needs_intelligibility_rejudge(row: dict) -> bool:
+    """A row needs re-judging (``--rejudge-intelligibility``) unless it
+    already carries a #143 ROVER panel result — legacy pre-#143 rows only
+    ever have the single-judge ``intelligibility_wer/cer`` fields and no
+    ``intelligibility_rover`` marker at all."""
+    extras = row.get("extras") or {}
+    return extras.get("intelligibility_rover") is not True
 
 
 def _download_repo_tree(repo_id: str, revision: str = "main") -> Path:
@@ -80,7 +108,8 @@ def _resolve_wav_path(repo_dir: Path, row: dict) -> Path | None:
     return path if path.is_file() else None
 
 
-def rescore_file(path: Path, repo_dir: Path) -> tuple[int, int]:
+def rescore_file(path: Path, repo_dir: Path,
+                  rejudge_intelligibility: bool = False) -> tuple[int, int]:
     """Rescore one predictions JSONL file in place, one row at a time.
 
     Rows are read, scored and written straight back out through a sibling
@@ -90,7 +119,13 @@ def rescore_file(path: Path, repo_dir: Path) -> tuple[int, int]:
     atomically renamed onto ``path`` at the end, so a crash mid-run never
     leaves a partially-rewritten predictions file behind.
 
-    Returns ``(n_rescored, n_skipped)``.
+    ``rejudge_intelligibility=True`` additionally re-scores any row that
+    doesn't yet carry a #143 ROVER panel result (``intelligibility_rover:
+    true``) from its stored wav, and REPLACES its intelligibility extras
+    wholesale — the judges transcripts, ROVER consensus/agreement and the
+    consensus-derived wer/cer — rather than leaving the legacy single-judge
+    fields sitting alongside them. Off by default, this leaves the quality-
+    dims backfill behaviour byte-identical to before.
     """
     rescored = 0
     skipped = 0
@@ -101,23 +136,56 @@ def rescore_file(path: Path, repo_dir: Path) -> tuple[int, int]:
             if not line.strip():
                 continue
             row = json.loads(line)
-            if _needs_rescoring(row):
+            needs_quality = _needs_rescoring(row)
+            needs_intel = rejudge_intelligibility and _needs_intelligibility_rejudge(row)
+            if needs_quality or needs_intel:
                 wav_path = _resolve_wav_path(repo_dir, row)
                 if wav_path is None:
                     skipped += 1
+                    if needs_intel:
+                        log.info(
+                            "skipping intelligibility rejudge for %s (%s): "
+                            "wav not found on disk", row.get("sample_id"),
+                            row.get("competitor_id"))
                 else:
-                    try:
-                        new_extras = _score_quality_dimensions(wav_path)
-                    except Exception as exc:
-                        log.warning("rescoring failed for %s (%s): %s",
-                                    row.get("sample_id"), row.get("competitor_id"), exc)
-                        new_extras = None
-                    if not new_extras:
-                        skipped += 1
-                    else:
-                        row.setdefault("extras", {}).update(new_extras)
+                    row_changed = False
+                    if needs_quality:
+                        try:
+                            new_extras = _score_quality_dimensions(wav_path)
+                        except Exception as exc:
+                            log.warning("rescoring failed for %s (%s): %s",
+                                        row.get("sample_id"), row.get("competitor_id"), exc)
+                            new_extras = None
+                        if new_extras:
+                            row.setdefault("extras", {}).update(new_extras)
+                            row_changed = True
+                    if needs_intel:
+                        try:
+                            result = _score_intelligibility(
+                                wav_path, row.get("input_text"), row.get("lang"))
+                        except Exception as exc:
+                            log.warning(
+                                "intelligibility rejudge failed for %s (%s): %s",
+                                row.get("sample_id"), row.get("competitor_id"), exc)
+                            result = None
+                        if result:
+                            extras = row.setdefault("extras", {})
+                            for key in _INTELLIGIBILITY_EXTRAS_KEYS:
+                                extras.pop(key, None)
+                            extras["intelligibility_wer"] = result["wer"]
+                            extras["intelligibility_cer"] = result["cer"]
+                            extras["intelligibility_judge"] = result["judge_model_id"]
+                            extras["intelligibility_judge_revision"] = result["judge_revision"]
+                            extras["intelligibility_judges"] = result["judges"]
+                            extras["intelligibility_consensus"] = result["consensus"]
+                            extras["intelligibility_agreement"] = result["agreement"]
+                            extras["intelligibility_rover"] = True
+                            row_changed = True
+                    if row_changed:
                         rescored += 1
                         changed = True
+                    else:
+                        skipped += 1
             else:
                 skipped += 1
             dst.write(json.dumps(row, ensure_ascii=False) + "\n")
@@ -129,14 +197,15 @@ def rescore_file(path: Path, repo_dir: Path) -> tuple[int, int]:
     return rescored, skipped
 
 
-def rescore_repo(repo_id: str, revision: str = "main") -> Path:
+def rescore_repo(repo_id: str, revision: str = "main",
+                  rejudge_intelligibility: bool = False) -> Path:
     """Download, rescore in place, and return the local repo dir for upload."""
     repo_dir = _download_repo_tree(repo_id, revision)
     predictions_dir = repo_dir / "predictions"
     total_rescored = 0
     total_skipped = 0
     for jsonl_path in sorted(predictions_dir.glob("**/*.jsonl")):
-        rescored, skipped = rescore_file(jsonl_path, repo_dir)
+        rescored, skipped = rescore_file(jsonl_path, repo_dir, rejudge_intelligibility)
         total_rescored += rescored
         total_skipped += skipped
         log.info("  %s: rescored %d, skipped %d",
@@ -167,11 +236,16 @@ def main() -> None:
     parser.add_argument("--revision", default="main")
     parser.add_argument("--upload", action="store_true",
                          help="Re-upload the rescored predictions/ folder")
+    parser.add_argument(
+        "--rejudge-intelligibility", action="store_true",
+        help="Also re-judge intelligibility with the #143 ROVER panel for "
+             "any row not yet carrying intelligibility_rover: true, from "
+             "its stored wav (no re-synthesis)")
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO)
     repo_id = results_repo_for(MODALITY, args.dataset_id, args.hf_owner)
-    repo_dir = rescore_repo(repo_id, args.revision)
+    repo_dir = rescore_repo(repo_id, args.revision, args.rejudge_intelligibility)
     if args.upload:
         upload_rescored(repo_id, repo_dir)
         log.info("Uploaded rescored predictions to %s", repo_id)
