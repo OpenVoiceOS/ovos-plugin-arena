@@ -712,6 +712,42 @@ import Base from '../../layouts/Base.astro';
       </div>`;
     }
 
+    // TTS boards only: pairwise Spearman rank agreement between the
+    // objective judges (arena/metrics.py's ``judge_agreement``), so a
+    // reader can tell a robust ranking from one judge picking favorites.
+    // Hidden below 3 scored fighters — a correlation over 2 points is not
+    // informative, and the backend itself only guarantees a matrix at n>=2.
+    function judgeAgreementHtml(board) {
+      const ja = board.judge_agreement;
+      if (!ja || ja.n_fighters < 3) return '';
+      const judges = Object.keys(ja.top5 || {});
+      if (!judges.length) return '';
+      const matrixRows = judges.map(j1 => `<tr>
+          <td class="metric-chip"><strong>${esc(j1)}</strong></td>
+          ${judges.map(j2 => `<td class="metric-chip">${
+            ja.matrix?.[j1]?.[j2] != null ? ja.matrix[j1][j2].toFixed(2) : '—'
+          }</td>`).join('')}
+        </tr>`).join('');
+      const top5Cols = judges.map(j => `<div>
+          <div class="nm" style="font-size:0.82rem;margin-bottom:0.3rem">${esc(j)}</div>
+          <ol style="margin:0;padding-left:1.1rem;font-family:var(--mono);font-size:0.78rem;color:var(--text)">
+            ${(ja.top5[j] || []).map(id => `<li>${esc(nameOf(id))}</li>`).join('')}
+          </ol>
+        </div>`).join('');
+      return `<div class="bench judge-agreement" style="margin-top:1rem">
+        <div class="lb-section-head" style="margin-bottom:0.6rem">
+          <h2 style="font-size:1rem">🤝 Judge agreement</h2>
+          <span class="tag">${ja.n_fighters} fighter${ja.n_fighters === 1 ? '' : 's'} scored</span>
+        </div>
+        <p class="lb-note">ρ near 1: judges rank voices the same way. ρ near 0: judges disagree.
+          ρ near -1: judges rank voices oppositely.</p>
+        <div style="overflow-x:auto"><table class="bench-tbl"><thead><tr>
+          <th></th>${judges.map(j => `<th>${esc(j)}</th>`).join('')}
+        </tr></thead><tbody>${matrixRows}</tbody></table></div>
+        <div class="judge-top5" style="display:flex;gap:1.5rem;flex-wrap:wrap;margin-top:1rem">${top5Cols}</div>
+      </div>`;
+    }
+
     // Collapse a benchmark board's rows the same way the ladder collapses
     // ranking rows: every entry sharing a family key (species/plugin, see
     // groupKeyOf) becomes one summary row showing that family's BEST
@@ -832,6 +868,7 @@ import Base from '../../layouts/Base.astro';
         return summary + members;
       }).join('');
       const pareto = paretoSectionHtml(board, primary, higher);
+      const judgeAgreement = league === 'tts' ? judgeAgreementHtml(board) : '';
       return `<div class="bench">
         <div class="lb-section-head" style="margin-bottom:0.8rem">
           <h2 style="font-size:1rem">📊 ${esc(board.dataset_id || '')}</h2>
@@ -841,6 +878,7 @@ import Base from '../../layouts/Base.astro';
         ${benchAwaitingCount ? `<p class="lb-note">${benchAwaitingCount} fighter${benchAwaitingCount === 1 ? '' : 's'} had no scored samples (runs failed)</p>` : ''}
         <div style="overflow-x:auto"><table class="bench-tbl"><thead>${head}</thead><tbody>${rows}</tbody></table></div>
         ${pareto}
+        ${judgeAgreement}
       </div>`;
     }
 

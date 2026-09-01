@@ -28,7 +28,7 @@ from collections import defaultdict
 from statistics import median
 from typing import Any
 
-from arena.models import BenchmarkBoard, BenchmarkEntry, PredictionRow
+from arena.models import BenchmarkBoard, BenchmarkEntry, JudgeAgreement, PredictionRow
 from arena.rating import percentile
 
 log = logging.getLogger(__name__)
@@ -988,6 +988,128 @@ def benchmark_board_input_signature(by_competitor: dict[str, list[PredictionRow]
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 
+# ---------------------------------------------------------------------------
+# TTS — judge agreement (UTMOS vs SIGMOS/DNSMOS/NISQA/Intelligibility)
+# ---------------------------------------------------------------------------
+#
+# UTMOS stays the board's primary metric, but a reader has no way to tell a
+# robust ranking from one judge picking favorites when several objective
+# judges score the same fighters. This computes the pairwise Spearman rank
+# correlation between every pair of judges (over the fighters both scored)
+# plus each judge's own top-5, straight from the per-fighter mean scores
+# already aggregated into ``BenchmarkEntry.metrics`` by ``score_tts`` above
+# — no separate row-level pass.
+
+#: judge display name -> the ``BenchmarkEntry.metrics`` key holding that
+#: judge's per-fighter mean score. Matches the metric keys ``score_tts``
+#: already writes (arena.metrics.TTS_QUALITY_DIMENSION_KEYS uses the
+#: overall/mos dimension per judge; per-dimension SIGMOS/NISQA breakdowns
+#: are not separate "judges" for this panel).
+_TTS_JUDGE_METRIC_KEYS = {
+    "UTMOS": "utmos",
+    "SIGMOS": "sigmos.ovrl",
+    "DNSMOS": "dnsmos.ovrl",
+    "NISQA": "nisqa.mos",
+    "Intelligibility": "intelligibility_wer",
+}
+#: Judges whose metric key is lower-is-better (WER) — negated before
+#: ranking/correlating so every judge's "score" here is oriented
+#: higher-is-better, matching the sense of the other judges.
+_TTS_JUDGE_LOWER_BETTER = {"Intelligibility"}
+
+TOP_N_JUDGE_AGREEMENT = 5
+
+
+def spearman_rho(x: list[float], y: list[float]) -> float | None:
+    """Spearman rank correlation of *x* and *y*, implemented directly with
+    numpy (no scipy dependency): rank each array with average ranks for
+    ties, then Pearson-correlate the two rank vectors.
+
+    Returns ``None`` when fewer than 2 paired values are given, or when
+    either ranked vector has zero variance (all-tied — correlation is
+    undefined, not 0.0).
+
+    numpy is imported lazily here (not at module level) — ``arena.metrics``
+    is on the base install's import path (``ovos-arena --help``), while
+    numpy is only pulled in by the ``audio``/``test`` extras, never core
+    ``dependencies``.
+    """
+    import numpy as np
+
+    if len(x) != len(y) or len(x) < 2:
+        return None
+    xr = _average_ranks(np.asarray(x, dtype=float))
+    yr = _average_ranks(np.asarray(y, dtype=float))
+    if xr.std() == 0.0 or yr.std() == 0.0:
+        return None
+    rho = float(np.corrcoef(xr, yr)[0, 1])
+    if rho != rho:  # NaN guard
+        return None
+    return rho
+
+
+def _average_ranks(values):
+    """1-based ranks of *values* (a numpy array), ascending, ties given their
+    average rank. Local ``import numpy`` for the same reason as
+    ``spearman_rho`` above (kept out of arena.metrics' module-level
+    imports)."""
+    import numpy as np
+
+    order = values.argsort(kind="mergesort")
+    ranks = np.empty(len(values), dtype=float)
+    ranks[order] = np.arange(1, len(values) + 1, dtype=float)
+    for v in np.unique(values):
+        mask = values == v
+        ranks[mask] = ranks[mask].mean()
+    return ranks
+
+
+def _tts_judge_agreement(entries: list[BenchmarkEntry]) -> JudgeAgreement:
+    """Per-judge mean scores -> pairwise Spearman matrix + top-N, robust to
+    missing judges/fighters (never raises on 0/1-fighter or 0-judge boards)."""
+    scores: dict[str, dict[str, float]] = {}
+    for judge, key in _TTS_JUDGE_METRIC_KEYS.items():
+        per_fighter = {
+            e.competitor_id: e.metrics[key] for e in entries if key in e.metrics
+        }
+        if not per_fighter:
+            continue
+        if judge in _TTS_JUDGE_LOWER_BETTER:
+            per_fighter = {c: -v for c, v in per_fighter.items()}
+        scores[judge] = per_fighter
+
+    fighters: set[str] = set()
+    for per_fighter in scores.values():
+        fighters.update(per_fighter)
+
+    top5 = {
+        judge: [
+            c for c, _ in sorted(
+                per_fighter.items(), key=lambda kv: kv[1], reverse=True,
+            )[:TOP_N_JUDGE_AGREEMENT]
+        ]
+        for judge, per_fighter in scores.items()
+    }
+
+    matrix: dict[str, dict[str, float]] = {}
+    judges = sorted(scores)
+    for j1 in judges:
+        for j2 in judges:
+            if j1 == j2:
+                matrix.setdefault(j1, {})[j2] = 1.0
+                continue
+            common = sorted(set(scores[j1]) & set(scores[j2]))
+            if len(common) < 2:
+                continue
+            rho = spearman_rho(
+                [scores[j1][c] for c in common], [scores[j2][c] for c in common],
+            )
+            if rho is not None:
+                matrix.setdefault(j1, {})[j2] = round(rho, 4)
+
+    return JudgeAgreement(n_fighters=len(fighters), matrix=matrix, top5=top5)
+
+
 def build_benchmark_board(
     modality: str,
     dataset_id: str,
@@ -1076,6 +1198,7 @@ def build_benchmark_board(
         wer_normalizer_version=WER_NORMALIZER_VERSION if modality == "stt" else None,
         entries=entries,
         input_hash=input_hash,
+        judge_agreement=_tts_judge_agreement(entries) if modality == "tts" else None,
     )
 
 
