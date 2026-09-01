@@ -1111,3 +1111,85 @@ class TestBenchmarkBoardBootstrapSkip:
         preds2 = _write_stt_predictions(tmp_path / "r2", {"base-pt": 0.9})
         assert main_args_assemble(preds2, out) == 0
         assert calls, "changed predictions must still recompute the board"
+
+
+def _write_predictions_for(tmp_path: Path, name: str, dataset_id: str) -> Path:
+    """Like ``_write_predictions`` but writable to a distinct source dir
+    with its own ``dataset_id`` — for tests that need multiple, distinct
+    ``--predictions`` sources."""
+    preds = tmp_path / name
+    preds.mkdir()
+    for competitor, correct in (("good", True), ("bad", False)):
+        rows = []
+        for i in range(6):
+            rows.append({
+                "competitor_id": competitor,
+                "sample_id": f"en-US/{i:05d}",
+                "dataset_id": dataset_id,
+                "lang": "en-US",
+                "plugin_id": f"plugin-{competitor}",
+                "utterance": f"utterance number {i}",
+                "reference_intent": "media:play_song",
+                "prediction": "media:play_song" if correct else f"wrong{i}",
+                "exact_match": correct,
+            })
+        (preds / f"{competitor}.jsonl").write_text(
+            "\n".join(json.dumps(r) for r in rows) + "\n"
+        )
+    return preds
+
+
+class TestAssemblePerSourceMemoryBound:
+    """§assemble memory — each ``--predictions`` source is loaded and
+    grouped independently, then its raw rows are released, instead of
+    every source's raw rows being concatenated into one list before a
+    single ``group_rows`` call. Regression for the hosted-runner OOM kill
+    on the intent_template matrix leg (its 17 predictions repos' raw rows
+    all held in memory at once before grouping ever started)."""
+
+    def test_group_rows_called_once_per_source_not_on_concatenated_rows(
+        self, tmp_path, monkeypatch,
+    ):
+        src_a = _write_predictions_for(tmp_path, "src-a", "dataset-a")
+        src_b = _write_predictions_for(tmp_path, "src-b", "dataset-b")
+        out = tmp_path / "data"
+
+        import arena.predictions as predictions_mod
+
+        real_group_rows = predictions_mod.group_rows
+        call_row_counts: list[int] = []
+
+        def counting_group_rows(rows, unregistered=None):
+            # Each call must see only ONE source's rows (12 = 2 competitors
+            # x 6 samples) — never the two sources' rows concatenated (24),
+            # which is what the pre-fix single accumulate-then-group call
+            # would have passed.
+            call_row_counts.append(len(rows))
+            return real_group_rows(rows, unregistered=unregistered)
+
+        monkeypatch.setattr(predictions_mod, "group_rows", counting_group_rows)
+
+        rc = 0
+        try:
+            main(["assemble", "--predictions", f"{src_a},{src_b}",
+                  "--output", str(out)])
+        except SystemExit as exc:
+            rc = exc.code
+        assert rc == 0
+
+        assert call_row_counts == [12, 12], (
+            f"group_rows must be called once per source with that source's "
+            f"own rows only, never on the sources' rows concatenated: "
+            f"{call_row_counts}"
+        )
+
+        # Functional correctness: both sources' datasets still made it into
+        # the merged output, per-source grouping didn't drop or shadow data.
+        assert (out / "benchmark-intent-dataset-a-en-US.json").exists()
+        assert (out / "benchmark-intent-dataset-b-en-US.json").exists()
+        board_a = json.loads(
+            (out / "benchmark-intent-dataset-a-en-US.json").read_text())
+        board_b = json.loads(
+            (out / "benchmark-intent-dataset-b-en-US.json").read_text())
+        assert board_a["entries"][0]["competitor_id"] == "good"
+        assert board_b["entries"][0]["competitor_id"] == "good"
