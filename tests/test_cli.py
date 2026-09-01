@@ -1079,15 +1079,47 @@ class TestEmptyLeagueAssemble:
         # Nothing to write, and nothing pre-existing gets clobbered.
         assert not out.exists() or list(out.glob("*ww_stream*")) == []
 
-    def test_predictions_source_yields_zero_rows_is_success_no_op(self, tmp_path):
-        # An explicit --predictions source that resolves to a directory
-        # with no matching rows (e.g. every row filtered as non-canonical
-        # or for a different lang) must exit 0, same as "no sources at all".
+    def test_registry_predictions_source_yields_zero_rows_is_success_no_op(
+        self, tmp_path, monkeypatch
+    ):
+        # A registry-driven source (no explicit --predictions) that resolves
+        # to a directory with no matching rows (e.g. every row filtered as
+        # non-canonical or for a different lang) must exit 0, same as "no
+        # sources at all" — the empty-league CI no-op this class guards.
+        import registry.loaders as loaders
+
+        empty_src = tmp_path / "empty-preds"
+        empty_src.mkdir()
+        monkeypatch.setattr(
+            loaders, "list_prediction_repos", lambda modality=None: [str(empty_src)]
+        )
+        out = tmp_path / "data"
+        rc = 0
+        try:
+            main(["assemble", "--output", str(out)])
+        except SystemExit as exc:
+            rc = exc.code
+        assert rc == 0
+
+    def test_explicit_local_predictions_dir_yields_zero_rows_fails_loudly(
+        self, tmp_path, caplog
+    ):
+        # An explicit --predictions local dir that resolves to zero rows is
+        # not the "genuinely nothing to assemble" case above — it almost
+        # always means the directory doesn't match the layout
+        # iter_predictions_dir expects (<lang-REGION>/<fighter>.jsonl
+        # directly under it), so it must fail loudly instead of silently
+        # leaving stale data untouched.
         empty_src = tmp_path / "empty-preds"
         empty_src.mkdir()
         out = tmp_path / "data"
-        rc = main_args_assemble(empty_src, out)
-        assert rc == 0
+        with caplog.at_level("ERROR"):
+            rc = main_args_assemble(empty_src, out)
+        assert rc == 1
+        assert any(
+            "0 rows loaded" in rec.message and str(empty_src) in rec.message
+            for rec in caplog.records
+        )
 
 
 class TestBenchmarkBoardBootstrapSkip:

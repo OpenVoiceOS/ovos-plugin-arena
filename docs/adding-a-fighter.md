@@ -77,7 +77,11 @@ instead of a `stt` block. See the intent example in
 [`add-a-fighter.md`](add-a-fighter.md#1-write-the-competitor-file). A
 multi-stage `pipeline` (for example Padatious then Adapt) is still **one**
 fighter file. The "shippable config" is the whole cascade, because that is
-what a user would actually configure.
+what a user would actually configure. Each stage name in that list is an
+OPM entry point plus a confidence tier, not the name of the package that
+provides it (`ovos-adapt-parser` provides `ovos-adapt-pipeline-plugin`,
+`padacioso` provides `ovos-padacioso-pipeline-plugin`; `ovos-core` itself
+only ships converse/fallback/stop, no intent matcher).
 
 ## Validate before opening a PR
 

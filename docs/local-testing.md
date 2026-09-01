@@ -105,12 +105,26 @@ rows land locally at `predictions/<dataset>/<modality>/<lang>/<competitor>.jsonl
 ## 5. Assemble battles and boards locally
 
 `assemble` also accepts a local predictions directory instead of an HF repo
-id, point it at what step 4 just wrote:
+id, point it at what step 4 just wrote. `--predictions` must be the
+directory that directly contains the `<lang-REGION>/<fighter>.jsonl` files,
+one level deeper than the `predictions/<dataset>` root a benchmark script
+writes to for an intent modality, and two levels deeper for an audio
+modality like STT:
 
 ```bash
 python -m arena.cli assemble \
-    --predictions predictions/snips \
+    --predictions predictions/snips/intent_template \
     --modality intent_template \
+    --output /tmp/arena-assemble-test
+```
+
+An STT example, after running `python benchmarks/stt_minds14.py --dataset
+minds14-en-US --max-samples 5`:
+
+```bash
+python -m arena.cli assemble \
+    --predictions predictions/minds14-en-US/stt/predictions \
+    --modality stt \
     --output /tmp/arena-assemble-test
 ```
 
