@@ -373,6 +373,24 @@ in a row with no progress, autorun quarantines the fighter instead (see
 below) so the pair stops burning cycles without ever being falsely counted
 as done.
 
+### Batch isolation and the load timeout
+
+Each pair's batch — including the model load that happens the first time a
+fighter is touched in that turn — runs in its own child process rather than
+inside the long-lived autorun daemon. A slow or leaking model load
+(onnxruntime, torch) is scoped to that one child: it never accumulates
+memory across sweeps or leaves the daemon holding stale model state, and a
+completed batch's process exits cleanly instead of relying on the plugin to
+release everything it allocated.
+
+The parent bounds how long it waits on a batch's child: past `--load-timeout`
+(default 20 minutes) beyond any deadline slack already in play, the child is
+treated as wedged — typically stuck inside the model load itself, which has
+no timeout of its own — and killed. A batch whose child times out, or whose
+child process exits with an error, quarantines the fighter the same way any
+other hard failure does (see below), so one bad load can't hang the fleet
+indefinitely.
+
 ### Resume
 
 Resume is layered, same as every other bench script:
