@@ -45,7 +45,18 @@ def _fake_judges(monkeypatch):
                          lambda p: dict(quality_extras))
 
     def fake_intelligibility(wav_path, prompt_text, lang):
-        return 0.1, 0.05, "fake-asr-model", "abc123"
+        return {
+            "wer": 0.1,
+            "cer": 0.05,
+            "judge_model_id": "fake-asr-model",
+            "judge_revision": "abc123",
+            "judges": [
+                {"model": "fake-asr-model", "revision": "abc123",
+                 "transcript": prompt_text},
+            ],
+            "consensus": prompt_text,
+            "agreement": 1.0,
+        }
 
     monkeypatch.setattr(tts_bench, "_score_intelligibility", fake_intelligibility)
     monkeypatch.setattr(backfill, "_score_intelligibility", fake_intelligibility)

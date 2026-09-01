@@ -155,3 +155,54 @@ def resolve_judge_model(lang: str) -> tuple[str, str]:
 
     revision = _REVISIONS.get(model_id) or "main"
     return model_id, revision
+
+
+def resolve_judge_panel(lang: str) -> list[tuple[str, str]]:
+    """Resolve ``lang`` to a small panel of ``(model id, revision)`` judges
+    for ROVER consensus intelligibility scoring (§4 R16 extension).
+
+    Owner directive: "use onnx-asr lang specific models + whisper as
+    judges" — the panel is every distinct language-specific onnx-asr model
+    available for ``lang`` (the ovos-config recommends primary from
+    :func:`resolve_judge_model`, plus any distinct onnx-asr LANG_DEFAULTS
+    alternate for the same primary subtag), deduped by model id, PLUS the
+    multilingual ``whisper-base`` wrapper, which is always a panel member —
+    not merely a long-tail fallback. The primary judge (used for
+    ``resolve_judge_model`` and as the ROVER tie-break) stays the
+    language-specific model when one exists, or ``whisper-base`` itself for
+    languages with no dedicated export — those get a panel of one, since
+    there is nothing else to vote against.
+
+    Never includes ``faster-whisper`` (see module docstring) — only
+    ``onnx-asr``-loadable models.
+    """
+    primary_id, primary_rev = resolve_judge_model(lang)
+    panel: list[tuple[str, str]] = [(primary_id, primary_rev)]
+    seen = {primary_id}
+
+    full = lang.lower()
+    primary_tag = full.split("-")[0]
+
+    candidate_ids: list[str] = []
+    recommend_id = _RECOMMENDS.get(full)
+    if recommend_id is None:
+        prefix_matches = sorted(k for k in _RECOMMENDS if k.split("-")[0] == primary_tag)
+        if prefix_matches:
+            recommend_id = _RECOMMENDS[prefix_matches[0]]
+    if recommend_id is not None:
+        candidate_ids.append(recommend_id)
+    fallback_id = _FALLBACK.get(primary_tag)
+    if fallback_id is not None:
+        candidate_ids.append(fallback_id)
+
+    for model_id in candidate_ids:
+        if model_id not in seen:
+            seen.add(model_id)
+            panel.append((model_id, _REVISIONS.get(model_id) or "main"))
+
+    if _UNIVERSAL_FALLBACK not in seen:
+        panel.append(
+            (_UNIVERSAL_FALLBACK, _REVISIONS.get(_UNIVERSAL_FALLBACK) or "main")
+        )
+
+    return panel

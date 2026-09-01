@@ -55,6 +55,7 @@ from collections import defaultdict
 from pathlib import Path
 
 from registry.loaders import load_competitor, load_dataset
+from runner.asr_judges import resolve_judge_model
 from runner.intent_bench import HF_OWNER, done_samples, resolve_revision, results_repo_for
 from runner.media_bench import make_row
 from runner.tts_bench import (
@@ -172,15 +173,24 @@ def backfill_pair(
         }
         extras.update(_score_quality_dimensions(wav_path))
         try:
-            wer, cer, judge_model_id, judge_revision = _score_intelligibility(
-                wav_path, text, lang)
-            extras["intelligibility_wer"] = wer
-            extras["intelligibility_cer"] = cer
-            extras["intelligibility_judge"] = judge_model_id
-            extras["intelligibility_judge_revision"] = judge_revision
+            result = _score_intelligibility(wav_path, text, lang)
+            extras["intelligibility_wer"] = result["wer"]
+            extras["intelligibility_cer"] = result["cer"]
+            extras["intelligibility_judge"] = result["judge_model_id"]
+            extras["intelligibility_judge_revision"] = result["judge_revision"]
+            extras["intelligibility_judges"] = result["judges"]
+            extras["intelligibility_consensus"] = result["consensus"]
+            extras["intelligibility_agreement"] = result["agreement"]
+            extras["intelligibility_rover"] = True
         except Exception as exc:
             log.warning("intelligibility scoring failed for %r (%s/%s): %s",
                         text, lang, competitor_id, exc)
+            judge_model_id, judge_revision = resolve_judge_model(lang)
+            extras["intelligibility_wer"] = 1.0
+            extras["intelligibility_cer"] = 1.0
+            extras["intelligibility_judge"] = judge_model_id
+            extras["intelligibility_judge_revision"] = judge_revision
+            extras["intelligibility_error"] = str(exc)
 
         fields = {
             "input_text": text,

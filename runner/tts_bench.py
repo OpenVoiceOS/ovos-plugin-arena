@@ -17,7 +17,7 @@ import logging
 import time
 from collections.abc import Iterator
 
-from runner.asr_judges import resolve_judge_model
+from runner.asr_judges import resolve_judge_model, resolve_judge_panel
 from runner.media_bench import MediaBenchAdapter, PredictContext, load_plugin_class
 from runner.perf import rss_mb
 
@@ -144,6 +144,15 @@ def _get_intelligibility_judge(lang: str) -> tuple[object, str, str]:
     that model should load into memory once per process, not once per lang.
     """
     model_id, revision = resolve_judge_model(lang)
+    model, revision = _load_intelligibility_judge(model_id, revision)
+    return model, revision, model_id
+
+
+def _load_intelligibility_judge(model_id: str, revision: str) -> tuple[object, str]:
+    """Lazily import and load one onnx-asr judge by model id, cached per
+    model id — several panel members (or several languages) can share the
+    same loaded model. See :func:`_get_intelligibility_judge` docstring for
+    the optional-dependency contract."""
     if model_id not in _intelligibility_judges:
         try:
             import onnx_asr
@@ -156,7 +165,7 @@ def _get_intelligibility_judge(lang: str) -> tuple[object, str, str]:
             ) from exc
         model = onnx_asr.load_model(model_id)
         _intelligibility_judges[model_id] = (model, revision)
-    return (*_intelligibility_judges[model_id], model_id)
+    return _intelligibility_judges[model_id]
 
 
 def _score_quality_dimensions(wav_path) -> dict:
@@ -209,8 +218,9 @@ def _transcribe(judge, array, sample_rate: int = 16000) -> str:
     return judge.recognize(array, sample_rate=sample_rate).strip()
 
 
-def _score_intelligibility(wav_path, prompt_text: str, lang: str) -> tuple[float, float, str, str]:
-    """STT round-trip WER/CER (§4 R16) for one rendered clip.
+def _score_intelligibility(wav_path, prompt_text: str, lang: str) -> dict:
+    """STT round-trip WER/CER via ROVER panel consensus (§4 R16) for one
+    rendered clip.
 
     Reads the raw file bytes and decodes through
     ``runner.audio_io.decode_audio_bytes`` — which transcodes non-wav
@@ -221,20 +231,46 @@ def _score_intelligibility(wav_path, prompt_text: str, lang: str) -> tuple[float
     shared decoder sidesteps it here exactly like the STT/wake-word
     benchmarks.
 
-    Returns ``(wer, cer, judge_model_id, judge_revision)`` — the judge
-    identity is resolved per-language, so it travels with the score instead
-    of being a module-level constant.
+    Every panel judge (``runner.asr_judges.resolve_judge_panel``) transcribes
+    the clip independently; ``wer``/``cer`` are ALWAYS derived from the
+    ROVER consensus of those transcripts (:mod:`arena.rover`) — never from a
+    single raw judge transcript, even for a panel of one, where the
+    "consensus" is just that one hypothesis but still flows through the
+    same ROVER path (owner directive). The per-judge raw transcripts are
+    returned too and MUST be persisted on the row: they are what lets a
+    future reweighted ROVER be recomputed purely from stored data, with no
+    ASR re-run.
     """
     from runner.audio_io import decode_audio_bytes
+    from arena.metrics import intelligibility_scores
+    from arena.rover import rover_consensus_and_agreement_from_judges
 
     with open(wav_path, "rb") as fh:
         array, _sr = decode_audio_bytes(fh.read())  # always 16k mono here
-    judge, revision, model_id = _get_intelligibility_judge(lang)
-    hypothesis = _transcribe(judge, array)
-    from arena.metrics import intelligibility_scores
 
-    wer, cer = intelligibility_scores(prompt_text, hypothesis)
-    return wer, cer, model_id, revision
+    panel = resolve_judge_panel(lang)
+    judges: list[dict] = []
+    for model_id, revision in panel:
+        judge, loaded_revision = _load_intelligibility_judge(model_id, revision)
+        transcript = _transcribe(judge, array)
+        judges.append({
+            "model": model_id,
+            "revision": loaded_revision,
+            "transcript": transcript,
+        })
+
+    consensus, agreement = rover_consensus_and_agreement_from_judges(judges)
+    wer, cer = intelligibility_scores(prompt_text, consensus)
+    primary_model_id, primary_revision = panel[0]
+    return {
+        "wer": wer,
+        "cer": cer,
+        "judge_model_id": primary_model_id,
+        "judge_revision": primary_revision,
+        "judges": judges,
+        "consensus": consensus,
+        "agreement": agreement,
+    }
 
 
 class TTSBench(MediaBenchAdapter):
@@ -334,12 +370,15 @@ class TTSBench(MediaBenchAdapter):
         # intelligibility scoring below: never drops the row.
         extras.update(_score_quality_dimensions(wav_path))
         try:
-            wer, cer, judge_model_id, judge_revision = _score_intelligibility(
-                wav_path, text, ctx.lang)
-            extras["intelligibility_wer"] = wer
-            extras["intelligibility_cer"] = cer
-            extras["intelligibility_judge"] = judge_model_id
-            extras["intelligibility_judge_revision"] = judge_revision
+            result = _score_intelligibility(wav_path, text, ctx.lang)
+            extras["intelligibility_wer"] = result["wer"]
+            extras["intelligibility_cer"] = result["cer"]
+            extras["intelligibility_judge"] = result["judge_model_id"]
+            extras["intelligibility_judge_revision"] = result["judge_revision"]
+            extras["intelligibility_judges"] = result["judges"]
+            extras["intelligibility_consensus"] = result["consensus"]
+            extras["intelligibility_agreement"] = result["agreement"]
+            extras["intelligibility_rover"] = True
         except Exception as exc:
             # Low-resource languages the judge transcribes weakly are
             # warn-only (§4 R16) — the real WER is still recorded (never
