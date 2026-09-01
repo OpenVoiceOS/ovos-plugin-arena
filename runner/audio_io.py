@@ -543,12 +543,25 @@ def stream_manifest_audio(
             count += 1
 
 
-def resolve_parquet_locals(source, revision: str) -> list[str]:
+def resolve_parquet_locals(
+    source, revision: str, etag_timeout: float | None = None,
+) -> list[str]:
     """Download every parquet shard for *source* and return local paths, in
     the same file order the row-walk below visits them (``_parquet_files``'s
     order). Downloads are cached by ``huggingface_hub``, so a caller that
     already walked this source (e.g. :func:`stream_audio_dataset` right
     after :func:`compute_sample_set`) pays no extra network cost.
+
+    *etag_timeout* (seconds), when given, is passed to ``hf_hub_download`` —
+    ``HF_HUB_ETAG_TIMEOUT``/``HF_HUB_DOWNLOAD_TIMEOUT`` env vars cover most
+    of this already, but an explicit per-call value doesn't depend on the
+    caller's environment being set correctly. ``_parquet_files``'s
+    ``list_repo_files`` metadata call, immediately above this in every
+    caller, accepts no such explicit timeout in this version of
+    ``huggingface_hub`` — a caller that needs to bound THAT call too (a
+    listing can itself hang) should run this whole function under an
+    external deadline (see ``runner.publish_sample_set``'s per-dataset
+    thread timeout).
     """
     from huggingface_hub import hf_hub_download
 
@@ -558,8 +571,9 @@ def resolve_parquet_locals(source, revision: str) -> list[str]:
             f"no parquet files for {source.hf_id} "
             f"subset={source.subset} split={source.split}"
         )
+    kwargs = {} if etag_timeout is None else {"etag_timeout": etag_timeout}
     return [hf_hub_download(source.hf_id, pfile, repo_type="dataset",
-                            revision=revision) for pfile in files]
+                            revision=revision, **kwargs) for pfile in files]
 
 
 def resolve_selected_positions(

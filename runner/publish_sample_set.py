@@ -24,17 +24,36 @@ the exact same :func:`runner.audio_io._sample_id` function
 :func:`runner.audio_io.stream_audio_dataset` uses, over the exact same
 :func:`runner.audio_io._iter_parquet_rows` row-walk, so a manifest's ids
 always match what streaming that dataset would actually produce.
+
+A hung per-shard HTTP request against a source corpus (mid-listing, the log
+goes silent for 25+ minutes even with the HF_HUB_ETAG_TIMEOUT/
+HF_HUB_DOWNLOAD_TIMEOUT env vars set — those cover file DOWNLOADS, not
+every metadata call a run makes) took the whole run down twice in
+production, and a restart redid every already-published manifest from
+scratch. Two things fix that: ``--skip-existing`` skips a dataset whose
+manifest is already published under the SAME policy, and every dataset's
+work runs under a bounded per-dataset timeout (``--timeout-secs``, default
+15 minutes) so one wedged corpus can never wedge the whole run — it's
+logged and skipped, the run moves on, and the failures are listed at the
+end so a rerun with ``--skip-existing`` only redoes the stragglers.
 """
 from __future__ import annotations
 
 import argparse
+import concurrent.futures
 import json
 import logging
+import os
 
 log = logging.getLogger("publish-sample-set")
 
+DEFAULT_TIMEOUT_SECS = 15 * 60
+DEFAULT_REQUEST_TIMEOUT_SECS = 30
 
-def compute_sample_set(dataset_def, revision: str) -> dict:
+
+def compute_sample_set(
+    dataset_def, revision: str, etag_timeout: float | None = None,
+) -> dict:
     """Build the manifest for one dataset (one lang, its own registry entry).
 
     Raises ``ValueError`` if the dataset has no ``sample_policy`` — there is
@@ -56,7 +75,8 @@ def compute_sample_set(dataset_def, revision: str) -> dict:
 
     fields = dataset_def.reference_fields or {}
     audio_key = fields.get("audio", "audio")
-    locals_ = resolve_parquet_locals(dataset_def.source, revision)
+    locals_ = resolve_parquet_locals(dataset_def.source, revision,
+                                     etag_timeout=etag_timeout)
     selected = resolve_selected_positions(locals_, policy.max_samples, policy.seed)
 
     total = 0
@@ -79,14 +99,63 @@ def compute_sample_set(dataset_def, revision: str) -> dict:
     }
 
 
-def publish_sample_set(dataset_def, revision: str, owner: str, dry_run: bool) -> dict:
-    """Compute one dataset's manifest and (unless *dry_run*) upload it."""
+def _manifest_repo_and_path(dataset_def, owner: str) -> tuple[str, str]:
     from runner.intent_bench import results_repo_for
 
-    manifest = compute_sample_set(dataset_def, revision)
     repo = results_repo_for(dataset_def.modality.value, dataset_def.dataset_id, owner)
-    lang_file = manifest["lang"].replace("-", "_")
-    path_in_repo = f"sample_sets/{lang_file}.json"
+    lang_file = dataset_def.lang.replace("-", "_")
+    return repo, f"sample_sets/{lang_file}.json"
+
+
+def existing_sample_set(dataset_def, owner: str) -> dict | None:
+    """Read a dataset's already-published ``sample_sets/<lang>.json``, if
+    any — used by ``--skip-existing`` to decide whether recomputation is
+    needed at all. Returns ``None`` on any error (no repo yet, no file yet,
+    a transient network failure, malformed JSON) — ``--skip-existing``
+    simply proceeds to recompute in that case, same as if nothing had ever
+    been published.
+    """
+    repo, path_in_repo = _manifest_repo_and_path(dataset_def, owner)
+    try:
+        from huggingface_hub import hf_hub_download
+
+        local = hf_hub_download(repo, path_in_repo, repo_type="dataset",
+                                revision="main")
+        with open(local, encoding="utf-8") as fh:
+            return json.load(fh)
+    except Exception:
+        return None
+
+
+def sample_set_is_current(existing: dict, dataset_def) -> bool:
+    """True when an already-published manifest (``existing``) was built
+    from the dataset's CURRENT ``sample_policy`` — the cheap check
+    ``--skip-existing`` needs. ``seed``, ``max_samples`` and ``total_rows``
+    are all already IN the manifest (:func:`existing_sample_set` already
+    read the one small file that holds them) — no corpus access needed to
+    compare them, which matters because re-touching the source corpus is
+    exactly what ``--skip-existing`` exists to avoid after a hang. A
+    manifest missing the fields needed to compare (an older/foreign schema)
+    falls back to existence-only — ``True``, since something published
+    under this exact (dataset, lang) key already exists and there is
+    nothing cheap left to check it against.
+    """
+    policy = dataset_def.sample_policy
+    if policy is None:
+        return False
+    if "seed" not in existing or "max_samples" not in existing:
+        return True  # can't compare — existence is all we can cheaply know
+    return (existing["seed"] == policy.seed
+            and existing["max_samples"] == policy.max_samples)
+
+
+def publish_sample_set(
+    dataset_def, revision: str, owner: str, dry_run: bool,
+    etag_timeout: float | None = None,
+) -> dict:
+    """Compute one dataset's manifest and (unless *dry_run*) upload it."""
+    manifest = compute_sample_set(dataset_def, revision, etag_timeout=etag_timeout)
+    repo, path_in_repo = _manifest_repo_and_path(dataset_def, owner)
 
     log.info("%s/%s: %d/%d rows selected (seed=%s, cap=%s)%s",
              dataset_def.dataset_id, dataset_def.lang,
@@ -114,9 +183,45 @@ def publish_sample_set(dataset_def, revision: str, owner: str, dry_run: bool) ->
     return manifest
 
 
+def _publish_one(dataset_def, owner: str, dry_run: bool,
+                 request_timeout: float | None) -> dict:
+    """One dataset's full unit of work — revision resolution AND manifest
+    computation/upload — run together under the caller's per-dataset
+    timeout, since either half can independently hang on a slow/wedged
+    corpus.
+    """
+    from runner.intent_bench import resolve_revision
+
+    revision = resolve_revision(dataset_def.source.hf_id,
+                                dataset_def.source.revision,
+                                timeout=request_timeout)
+    return publish_sample_set(dataset_def, revision, owner, dry_run,
+                              etag_timeout=request_timeout)
+
+
+def run_with_timeout(fn, timeout_secs: float):
+    """Run ``fn()`` in a worker thread, bounded by ``timeout_secs``.
+
+    Raises ``concurrent.futures.TimeoutError`` when ``fn`` doesn't finish in
+    time. The worker thread itself is NOT killed — Python cannot safely
+    interrupt a thread blocked in a C-level socket read — it is simply
+    abandoned so the caller can move on to the next dataset. A leaked
+    hung worker is why ``main()`` force-exits via ``os._exit`` instead of
+    returning normally whenever a timeout actually fired: a plain
+    ``ThreadPoolExecutor`` registers every worker it ever spawns with an
+    ``atexit`` hook that joins them all, which would hang interpreter exit
+    on exactly the wedged thread this function exists to escape.
+    """
+    executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+    future = executor.submit(fn)
+    try:
+        return future.result(timeout=timeout_secs)
+    finally:
+        executor.shutdown(wait=False)
+
+
 def main(argv=None) -> int:
     from registry.loaders import list_datasets
-    from runner.intent_bench import resolve_revision
 
     logging.basicConfig(level=logging.INFO, format="%(levelname)s  %(message)s")
     parser = argparse.ArgumentParser(
@@ -133,6 +238,21 @@ def main(argv=None) -> int:
     parser.add_argument("--dry-run", action="store_true",
                         help="Print counts only, never upload (default "
                              "unless --upload is given)")
+    parser.add_argument("--skip-existing", action="store_true",
+                        help="Skip a dataset whose sample_sets manifest is "
+                             "already published under the SAME policy "
+                             "(seed/max_samples) — resumes a run that died "
+                             "partway through without redoing prior work")
+    parser.add_argument("--timeout-secs", type=float, default=DEFAULT_TIMEOUT_SECS,
+                        help="Per-dataset wall-clock budget (default: "
+                             f"{DEFAULT_TIMEOUT_SECS}s / 15 min) — a dataset "
+                             "that exceeds it is logged and skipped, not "
+                             "allowed to wedge the whole run")
+    parser.add_argument("--request-timeout-secs", type=float,
+                        default=DEFAULT_REQUEST_TIMEOUT_SECS,
+                        help="Explicit per-request timeout passed to the "
+                             "HF metadata/download calls that accept one "
+                             f"(default: {DEFAULT_REQUEST_TIMEOUT_SECS}s)")
     parser.add_argument("--hf-owner", default="OpenVoiceOS")
     args = parser.parse_args(argv)
     dry_run = not args.upload or args.dry_run
@@ -149,16 +269,54 @@ def main(argv=None) -> int:
 
     log.info("Publishing sample sets for %d dataset(s)%s", len(targets),
              " (dry-run)" if dry_run else "")
-    failed = 0
+    failed: list[str] = []
+    timed_out: list[str] = []
     for dataset_def in targets:
+        label = f"{dataset_def.dataset_id}/{dataset_def.lang}"
+
+        if args.skip_existing:
+            existing = existing_sample_set(dataset_def, args.hf_owner)
+            if existing is not None and sample_set_is_current(existing, dataset_def):
+                log.info(
+                    "%s: sample_sets manifest already published for the "
+                    "current policy (seed=%s, cap=%s) — skipping",
+                    label, dataset_def.sample_policy.seed,
+                    dataset_def.sample_policy.max_samples,
+                )
+                continue
+
         try:
-            revision = resolve_revision(dataset_def.source.hf_id,
-                                        dataset_def.source.revision)
-            publish_sample_set(dataset_def, revision, args.hf_owner, dry_run)
+            run_with_timeout(
+                lambda dd=dataset_def: _publish_one(
+                    dd, args.hf_owner, dry_run, args.request_timeout_secs),
+                args.timeout_secs,
+            )
+        except concurrent.futures.TimeoutError:
+            log.error(
+                "%s: timed out after %.0fs — skipping. Rerun with "
+                "--skip-existing to retry only the stragglers.",
+                label, args.timeout_secs,
+            )
+            timed_out.append(label)
         except Exception:
-            log.exception("  %s/%s failed", dataset_def.dataset_id, dataset_def.lang)
-            failed += 1
-    return 1 if failed else 0
+            log.exception("%s: failed", label)
+            failed.append(label)
+
+    if timed_out:
+        log.error("Timed out (%d): %s", len(timed_out), ", ".join(timed_out))
+    if failed:
+        log.error("Failed (%d): %s", len(failed), ", ".join(failed))
+
+    if timed_out or failed:
+        if timed_out:
+            # a leaked hung worker thread would otherwise block interpreter
+            # exit — see run_with_timeout's docstring.
+            import sys
+            sys.stdout.flush()
+            sys.stderr.flush()
+            os._exit(1)
+        return 1
+    return 0
 
 
 if __name__ == "__main__":
