@@ -81,40 +81,51 @@ def _resolve_wav_path(repo_dir: Path, row: dict) -> Path | None:
 
 
 def rescore_file(path: Path, repo_dir: Path) -> tuple[int, int]:
-    """Rescore one predictions JSONL file in place.
+    """Rescore one predictions JSONL file in place, one row at a time.
+
+    Rows are read, scored and written straight back out through a sibling
+    temp file rather than being parsed into a list held for the whole file
+    — a prediction file can be thousands of rows, and each row's judge call
+    only needs the one row and its wav on disk at a time. The temp file is
+    atomically renamed onto ``path`` at the end, so a crash mid-run never
+    leaves a partially-rewritten predictions file behind.
 
     Returns ``(n_rescored, n_skipped)``.
     """
-    lines = path.read_text(encoding="utf-8").splitlines()
-    rows = [json.loads(line) for line in lines if line.strip()]
-
     rescored = 0
     skipped = 0
-    for row in rows:
-        if not _needs_rescoring(row):
-            skipped += 1
-            continue
-        wav_path = _resolve_wav_path(repo_dir, row)
-        if wav_path is None:
-            skipped += 1
-            continue
-        try:
-            new_extras = _score_quality_dimensions(wav_path)
-        except Exception as exc:
-            log.warning("rescoring failed for %s (%s): %s",
-                        row.get("sample_id"), row.get("competitor_id"), exc)
-            skipped += 1
-            continue
-        if not new_extras:
-            skipped += 1
-            continue
-        row.setdefault("extras", {}).update(new_extras)
-        rescored += 1
+    tmp_path = path.with_suffix(path.suffix + ".tmp")
+    changed = False
+    with path.open("r", encoding="utf-8") as src, tmp_path.open("w", encoding="utf-8") as dst:
+        for line in src:
+            if not line.strip():
+                continue
+            row = json.loads(line)
+            if _needs_rescoring(row):
+                wav_path = _resolve_wav_path(repo_dir, row)
+                if wav_path is None:
+                    skipped += 1
+                else:
+                    try:
+                        new_extras = _score_quality_dimensions(wav_path)
+                    except Exception as exc:
+                        log.warning("rescoring failed for %s (%s): %s",
+                                    row.get("sample_id"), row.get("competitor_id"), exc)
+                        new_extras = None
+                    if not new_extras:
+                        skipped += 1
+                    else:
+                        row.setdefault("extras", {}).update(new_extras)
+                        rescored += 1
+                        changed = True
+            else:
+                skipped += 1
+            dst.write(json.dumps(row, ensure_ascii=False) + "\n")
 
-    if rescored:
-        with path.open("w", encoding="utf-8") as fh:
-            for row in rows:
-                fh.write(json.dumps(row, ensure_ascii=False) + "\n")
+    if changed:
+        tmp_path.replace(path)
+    else:
+        tmp_path.unlink()
     return rescored, skipped
 
 
