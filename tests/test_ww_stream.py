@@ -343,3 +343,76 @@ class TestDetectStream:
         events = _detect_stream(stack, clip)
         assert len(events) == 1
         assert events[0][1] == pytest.approx(0.87)
+
+
+# ---------------------------------------------------------------------------
+# negatives_dataset_ids: parquet-pooled negatives (PR #125 follow-up)
+# ---------------------------------------------------------------------------
+
+
+class TestPooledDatasetNegatives:
+    """stream_ww pools extra negatives from other registry datasets whose
+    audio ships in parquet row groups (e.g. ml_spoken_words negatives),
+    resolved via the registry loader + stream_audio_dataset — the path
+    negatives_sources/negatives_hf cannot use (they only list audiofolder
+    repo files via huggingface_hub.list_repo_files).
+    """
+
+    def _fighter_def(self, **over):
+        from registry.schemas import DatasetDef
+
+        base = dict(
+            dataset_id="fighter", modality="wake_word",
+            source={"type": "huggingface", "hf_id": "org/fighter-repo",
+                    "revision": "main"},
+            wakeword="hey_test", lang="en-US",
+        )
+        base.update(over)
+        return DatasetDef(**base)
+
+    def _neg_registry_def(self):
+        from registry.schemas import DatasetDef
+
+        return DatasetDef(
+            dataset_id="mlsw-negatives-en-US", modality="wake_word",
+            source={"type": "huggingface", "hf_id": "MLCommons/ml_spoken_words",
+                    "revision": "refs/convert/parquet", "subset": "en_wav",
+                    "split": "partial-test"},
+            reference_fields={"audio": "audio"},
+            lang="en-US", role="unrestricted",
+        )
+
+    def test_negatives_dataset_ids_adds_parquet_pooled_negatives(self, monkeypatch):
+        import numpy as np
+
+        from runner import audio_io
+
+        # no network: same-corpus negatives come back empty so the only
+        # negatives observed are the parquet-pooled ones under test.
+        monkeypatch.setattr(audio_io, "_repo_audio", lambda hf, rev: [])
+
+        def fake_load_dataset(modality, dataset_id):
+            assert modality == "wake_word"
+            assert dataset_id == "mlsw-negatives-en-US"
+            return self._neg_registry_def()
+
+        monkeypatch.setattr("registry.loaders.load_dataset", fake_load_dataset)
+
+        def fake_stream_audio_dataset(source, audio_key, extra_keys, revision,
+                                      max_samples=0, id_key=None):
+            assert source.hf_id == "MLCommons/ml_spoken_words"
+            for i in range(3):
+                yield f"clip{i}", {
+                    "array": np.zeros(16000, dtype=np.float32), "sr": 16000,
+                }
+
+        monkeypatch.setattr(audio_io, "stream_audio_dataset",
+                            fake_stream_audio_dataset)
+        monkeypatch.setattr(audio_io, "_emit_ww", lambda pos, neg, cap: iter(()))
+
+        dataset_def = self._fighter_def(negatives_dataset_ids=["mlsw-negatives-en-US"])
+        results = list(audio_io.stream_ww(dataset_def, "main"))
+
+        assert results, "expected pooled parquet negatives to be yielded"
+        assert all(sample["label"] == "negative" for _, sample in results)
+        assert all(sid.startswith("mlsw-negatives-en-US/") for sid, _ in results)

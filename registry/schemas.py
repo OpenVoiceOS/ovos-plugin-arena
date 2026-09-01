@@ -301,6 +301,19 @@ class DatasetDef(BaseModel):
             "Overrides ``negatives_hf``."
         ),
     )
+    negatives_dataset_ids: list[str] | None = Field(
+        None,
+        description=(
+            "Wake word: registry dataset_ids of other datasets (usually "
+            "role=unrestricted parquet corpora, e.g. ml_spoken_words "
+            "negatives) to pool as additional false-accept negatives, "
+            "resolved via the registry loader and streamed through the "
+            "generic dataset-audio path (unlike ``negatives_sources``, which "
+            "lists raw HF repo files and only works for audiofolder "
+            "corpora); with no --max-samples cap this streams the full "
+            "referenced corpus each sweep."
+        ),
+    )
     predictions_hf: str | None = Field(
         None,
         description=(

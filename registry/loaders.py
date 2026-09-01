@@ -9,7 +9,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from registry.schemas import INTENT_MODALITIES, CompetitorDef, DatasetDef
+from registry.schemas import INTENT_MODALITIES, CompetitorDef, DatasetDef, Modality
 
 # Root of the registry tree — two levels up from this file (repo root)
 REGISTRY_ROOT: Path = Path(__file__).parent
@@ -183,12 +183,48 @@ def validate_registry(registry_root: Path | None = None) -> list[str]:
                 errors.append(f"{path}: {exc}")
 
     datasets_dir = root / "datasets"
+    all_datasets: dict[str, DatasetDef] = {}
+    dataset_paths: dict[str, Path] = {}
     if datasets_dir.exists():
         for path in sorted(datasets_dir.glob("**/*.json")):
             try:
-                DatasetDef.model_validate(json.loads(path.read_text()))
+                dataset = DatasetDef.model_validate(json.loads(path.read_text()))
+                all_datasets[dataset.dataset_id] = dataset
+                dataset_paths[dataset.dataset_id] = path
             except Exception as exc:
                 errors.append(f"{path}: {exc}")
+
+    # negatives_dataset_ids must resolve to a registered wake_word dataset —
+    # _pooled_dataset_negatives (runner/audio_io.py) loads each id via
+    # load_dataset("wake_word", did), so a missing or wrong-modality id only
+    # surfaces at benchmark-sweep time otherwise. A lang mismatch is not an
+    # error: cross-lingual hard negatives can be intentional, so it's only a
+    # warning (via the ``warnings`` module, matching the skip-and-warn
+    # convention used by ``list_datasets``/``load_all_datasets`` above).
+    for dataset_id, dataset in all_datasets.items():
+        if not dataset.negatives_dataset_ids:
+            continue
+        path = dataset_paths[dataset_id]
+        for neg_id in dataset.negatives_dataset_ids:
+            neg = all_datasets.get(neg_id)
+            if neg is None:
+                errors.append(
+                    f"{path}: negatives_dataset_ids references unknown "
+                    f"dataset_id {neg_id!r}"
+                )
+            elif neg.modality != Modality.WAKE_WORD:
+                errors.append(
+                    f"{path}: negatives_dataset_ids entry {neg_id!r} has "
+                    f"modality={neg.modality.value!r}, expected 'wake_word'"
+                )
+            elif neg.lang != dataset.lang:
+                import warnings
+                warnings.warn(
+                    f"{path}: negatives_dataset_ids entry {neg_id!r} has "
+                    f"lang={neg.lang!r}, differs from this dataset's "
+                    f"lang={dataset.lang!r}",
+                    stacklevel=2,
+                )
 
     return errors
 
