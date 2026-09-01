@@ -48,7 +48,7 @@ from arena.assembler import (
     seed_secondary_metrics,
 )
 from arena.badges import emit_badges
-from arena.elo import EloLedger
+from arena.elo import BT_AUTO_WEIGHT, EloLedger
 from arena.fraud import resolve_vote_weights
 from arena.metrics import (
     PRIMARY_METRIC,
@@ -1651,7 +1651,7 @@ def _index_entry(path: Path, count_key: str) -> dict[str, Any]:
         "battles_pools": len(payload.get("battles", [])),
         "freeform_pools": len(payload.get("battles", [])),
     }
-    return {
+    entry = {
         "file": path.name,
         "modality": payload.get("modality"),
         "dataset_id": payload.get("dataset_id"),
@@ -1659,6 +1659,13 @@ def _index_entry(path: Path, count_key: str) -> dict[str, Any]:
         "generated_at": payload.get("generated_at"),
         "count": counts[count_key],
     }
+    if count_key == "leaderboards":
+        # §provenance — carry each board's human/auto vote split into
+        # index.json so the site can total "N human votes, M auto-judged
+        # battles" without fetching every leaderboard-*.json file.
+        entry["human_vote_count"] = payload.get("human_vote_count", 0)
+        entry["vote_count"] = payload.get("vote_count", 0)
+    return entry
 
 
 def cmd_export_index(args: argparse.Namespace) -> int:
@@ -1687,6 +1694,10 @@ def cmd_export_index(args: argparse.Namespace) -> int:
             index["battles_pools"].append(_index_entry(path, "battles_pools"))
     index["has_bestiary"] = (data_dir / "competitors.json").exists()
     index["leagues"] = leagues()
+    # §provenance — the pairwise weight an auto-judged battle carries
+    # relative to a human vote (arena/elo.py BT_AUTO_WEIGHT), so the site
+    # can state it without hardcoding a copy of the constant.
+    index["auto_vote_weight"] = BT_AUTO_WEIGHT
 
     out_file = Path(args.output)
     if _unchanged(out_file, index):

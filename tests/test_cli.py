@@ -300,6 +300,27 @@ class TestAssemblePipeline:
         assert intent_entries["intent"]["battle_group"] == "intent"
         assert intent_entries["stt"]["battle_group"] == "stt"
 
+    def test_export_index_carries_vote_provenance(self, tmp_path):
+        """§provenance — each leaderboard entry in index.json carries its
+        own human/auto vote split, and the index carries the auto-vote
+        weight, so the site can total "N human votes, M auto-judged
+        battles" from index.json alone, without fetching every
+        leaderboard-*.json file."""
+        preds = _write_predictions(tmp_path)
+        out = tmp_path / "data"
+        assert main_args_assemble(preds, out) == 0
+        with pytest.raises(SystemExit) as exc:
+            main(["export-index", "--data-dir", str(out),
+                  "--output", str(out / "index.json")])
+        assert exc.value.code == 0
+        index = json.loads((out / "index.json").read_text())
+        board = json.loads((out / "leaderboard-intent-en-US.json").read_text())
+        [entry] = [e for e in index["leaderboards"]
+                   if e["file"] == "leaderboard-intent-en-US.json"]
+        assert entry["human_vote_count"] == board["human_vote_count"]
+        assert entry["vote_count"] == board["vote_count"]
+        assert index["auto_vote_weight"] == arena_cli.BT_AUTO_WEIGHT
+
     def test_assemble_deterministic_battle_ids(self, tmp_path):
         preds = _write_predictions(tmp_path)
         out1, out2 = tmp_path / "d1", tmp_path / "d2"
