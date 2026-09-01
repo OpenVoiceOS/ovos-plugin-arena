@@ -61,11 +61,18 @@ def split_name(lang: str) -> str:
 # ---------------------------------------------------------------------------
 
 
-def resolve_revision(hf_id: str, revision: str) -> str:
-    """Pin a branch name to the commit sha it points at right now."""
+def resolve_revision(hf_id: str, revision: str, timeout: float | None = None) -> str:
+    """Pin a branch name to the commit sha it points at right now.
+
+    *timeout* (seconds), when given, is passed straight through to
+    ``HfApi.dataset_info`` — the underlying request library's own default
+    can otherwise hang far longer than ``HF_HUB_ETAG_TIMEOUT``/
+    ``HF_HUB_DOWNLOAD_TIMEOUT`` cover (those only bound file downloads, not
+    every metadata call).
+    """
     from huggingface_hub import HfApi
 
-    info = HfApi().dataset_info(hf_id, revision=revision)
+    info = HfApi().dataset_info(hf_id, revision=revision, timeout=timeout)
     return info.sha or revision
 
 

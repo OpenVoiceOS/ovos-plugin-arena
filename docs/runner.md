@@ -91,6 +91,23 @@ Manifests are cheap to regenerate: if a dataset's `sample_policy` changes
 `assemble` run picks up the new ids and re-filters/re-scores every board
 automatically, no resweep required, no runner changes needed.
 
+The run is resumable and bounded, since a single wedged source corpus
+otherwise takes the whole thing down: each dataset's work (revision
+resolution, corpus listing, download, manifest upload) runs under a
+per-dataset wall-clock budget (`--timeout-secs`, default 15 minutes) — a
+dataset that hangs past it is logged and skipped rather than blocking every
+dataset queued behind it, and every timeout/failure is listed at the end.
+`--skip-existing` makes a restart cheap after that: it checks whether a
+dataset's manifest is already published under the SAME policy (same seed
+and cap) before recomputing anything, so rerunning
+
+```bash
+python -m runner.publish_sample_set --upload --skip-existing
+```
+
+after a partial run only redoes the datasets that didn't finish, not the
+ones already published.
+
 ---
 
 ## Adding jobs
