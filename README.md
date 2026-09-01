@@ -172,6 +172,7 @@ the local-testing guide, and the fighter walkthrough.
 | `docs/SPECIFICATION.md` | Full specification |
 | `docs/add-a-fighter.md` | How to add your plugin as a fighter |
 | `docs/operations.md` | Maintainer runbook for the vote loop (verify, audit, replay, troubleshoot) |
+| `docs/reproduce-a-row.md` | Reproduce one leaderboard row end to end in about five minutes |
 
 ---
 
