@@ -19,7 +19,9 @@ export-index
 
 export-bestiary
     Flatten the competitor registry into ``competitors.json`` for the
-    fighter-browser UI.
+    fighter-browser UI, tagging each competitor with ``has_predictions``
+    and the ``(dataset_id, lang)`` pairs it has at least one prediction row
+    for, read from the assembled benchmark boards.
 
 export-evidence
     Regenerate ``evidence.json`` — per-league completeness counts (fighters,
@@ -1769,6 +1771,40 @@ def cmd_export_index(args: argparse.Namespace) -> int:
     return 0
 
 
+def _competitor_prediction_presence(data_dir: Path) -> dict[str, list[dict[str, str]]]:
+    """competitor_id -> sorted [{"dataset_id", "lang"}, ...] for every
+    (dataset_id, lang) pair where that competitor has at least one row on a
+    ``benchmark-<modality>-<dataset_id>-<lang>.json`` board.
+
+    Reads the already-assembled board files instead of re-loading raw
+    prediction rows — every board is only ever written from
+    ``by_competitor`` (§cmd_assemble), which already required ≥1 row per
+    competitor to appear, so board membership is an exact (not
+    approximate) proxy for "has predictions" and costs zero extra HF round
+    trips."""
+    presence: dict[str, set[tuple[str, str]]] = {}
+    for path in sorted(data_dir.glob("benchmark-*.json")):
+        try:
+            payload = json.loads(path.read_text())
+        except (OSError, json.JSONDecodeError):
+            continue
+        dataset_id = payload.get("dataset_id")
+        lang = payload.get("lang")
+        if not dataset_id or not lang:
+            continue
+        for entry in payload.get("entries", []):
+            cid = entry.get("competitor_id")
+            if cid:
+                presence.setdefault(cid, set()).add((dataset_id, lang))
+    return {
+        cid: [
+            {"dataset_id": dataset_id, "lang": lang}
+            for dataset_id, lang in sorted(pairs)
+        ]
+        for cid, pairs in presence.items()
+    }
+
+
 def cmd_export_bestiary(args: argparse.Namespace) -> int:
     registry_root = Path(args.registry).resolve()
     if str(registry_root.parent) not in sys.path:
@@ -1777,9 +1813,14 @@ def cmd_export_bestiary(args: argparse.Namespace) -> int:
     from registry.schemas import INTENT_MODALITIES
 
     loaded = load_all_competitors(registry_root=registry_root)
-    competitors = [
-        comp.model_dump(mode="json", exclude_none=True) for comp in loaded
-    ]
+    presence = _competitor_prediction_presence(Path(args.data_dir))
+    competitors = []
+    for comp in loaded:
+        record = comp.model_dump(mode="json", exclude_none=True)
+        datasets = presence.get(comp.competitor_id, [])
+        record["has_predictions"] = bool(datasets)
+        record["prediction_datasets"] = datasets
+        competitors.append(record)
     competitors.sort(key=lambda c: (c["modality"], c["competitor_id"]))
 
     # plugin_id -> family reverse lookup, so the frontend can resolve a
@@ -2103,6 +2144,9 @@ def main(argv=None):
 
     p = sub.add_parser("export-bestiary", help="Flatten registry into competitors.json")
     p.add_argument("--registry", default="registry")
+    p.add_argument("--data-dir", default="frontend-static/public/data",
+                   help="Assembled data dir to read benchmark boards from, "
+                        "for has_predictions/prediction_datasets")
     p.add_argument("--output", default="frontend-static/public/data/competitors.json")
 
     p = sub.add_parser(

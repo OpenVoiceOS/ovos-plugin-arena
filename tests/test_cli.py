@@ -670,6 +670,44 @@ class TestExportBestiary:
         assert entry["species"] == "PadatiousPipeline"
         assert entry["types"]
 
+    def test_has_predictions_from_benchmark_boards(self, tmp_path):
+        """A fighter whose competitor_id appears on a benchmark board entry
+        is tagged has_predictions=True with its (dataset_id, lang) pair; a
+        registered fighter with no rows anywhere is tagged False with an
+        empty list — the exact presence map the "upcoming fighters" UI
+        split is built from."""
+        registry_root = tmp_path / "registry"
+        (registry_root / "competitors" / "stt").mkdir(parents=True)
+        (registry_root / "datasets" / "stt").mkdir(parents=True)
+        for cid in ("whisper-tiny", "ghost-stt"):
+            (registry_root / "competitors" / "stt" / f"{cid}.json").write_text(
+                json.dumps({
+                    "competitor_id": cid, "modality": "stt",
+                    "plugin": f"ovos-stt-plugin-{cid}", "species": "Whisper",
+                })
+            )
+
+        data_dir = tmp_path / "data"
+        data_dir.mkdir()
+        (data_dir / "benchmark-stt-fleurs-en.json").write_text(json.dumps({
+            "modality": "stt", "dataset_id": "fleurs-en", "lang": "en-US",
+            "entries": [{"competitor_id": "whisper-tiny"}],
+        }))
+
+        out = tmp_path / "competitors.json"
+        with pytest.raises(SystemExit) as exc:
+            main(["export-bestiary", "--registry", str(registry_root),
+                  "--data-dir", str(data_dir), "--output", str(out)])
+        assert exc.value.code == 0
+
+        by_id = {c["competitor_id"]: c for c in json.loads(out.read_text())["competitors"]}
+        assert by_id["whisper-tiny"]["has_predictions"] is True
+        assert by_id["whisper-tiny"]["prediction_datasets"] == [
+            {"dataset_id": "fleurs-en", "lang": "en-US"}
+        ]
+        assert by_id["ghost-stt"]["has_predictions"] is False
+        assert by_id["ghost-stt"]["prediction_datasets"] == []
+
     def test_plugin_families_is_intent_only(self, tmp_path):
         """plugin_families (arena/cli.py cmd_export_bestiary) is built with
         `and comp.modality in INTENT_MODALITIES` — TTS/STT/wake-word/VAD

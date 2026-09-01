@@ -48,6 +48,16 @@ const desc = fighter.description
     </div>
   </div>
 
+  <div class="card" id="awaiting-card" style="display:none">
+    <h2>Awaiting predictions</h2>
+    <p>
+      This fighter is registered but has not produced any predictions yet — it does not
+      appear on any leaderboard, benchmark board, battle, or matchup picker. It shows up
+      here, and in the "Upcoming fighters" section of the <a href={`${base}fighters/`}>fighter list</a>,
+      once its first benchmark or battle sweep runs.
+    </p>
+  </div>
+
   <div class="card">
     <h2>Details</h2>
     <table>
@@ -98,6 +108,19 @@ const desc = fighter.description
         setTimeout(() => (btn.textContent = 'Copy config'), 1500);
       } catch { btn.textContent = 'Copy failed'; }
     });
+
+    // Awaiting-predictions state: competitors.json (assembled from the
+    // registry + benchmark boards) is the source of truth for whether this
+    // fighter has any prediction rows anywhere — the registry JSON baked
+    // into `fighter` at build time never carries that.
+    (async () => {
+      const bestiary = await fetchJson(`${base}data/competitors.json`);
+      const entry = (bestiary?.competitors || [])
+        .find((c) => c.competitor_id === fighter.competitor_id);
+      if (entry && entry.has_predictions === false) {
+        document.getElementById('awaiting-card').style.display = '';
+      }
+    })();
 
     // Live rank/rating: look this fighter up in its league leaderboards.
     (async () => {
