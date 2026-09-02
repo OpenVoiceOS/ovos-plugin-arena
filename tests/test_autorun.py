@@ -1193,3 +1193,24 @@ class TestLowDiskGuard:
 
         assert any("still wedged" in r.message and "reusing previous ordering" in r.message
                     for r in caplog.records)
+
+
+class TestSocketTimeoutArg:
+    """--socket-timeout-secs: 0 disables it, positive values are seconds,
+    negative values are a usage error at parse time (not a raw ValueError
+    surfaced later out of socket.setdefaulttimeout())."""
+
+    def test_default_is_positive(self):
+        args = autorun_module.build_arg_parser().parse_args([])
+        assert args.socket_timeout_secs == 120.0
+
+    def test_zero_is_accepted(self):
+        args = autorun_module.build_arg_parser().parse_args(
+            ["--socket-timeout-secs", "0"])
+        assert args.socket_timeout_secs == 0.0
+
+    def test_negative_is_rejected_at_parse_time(self, capsys):
+        with pytest.raises(SystemExit):
+            autorun_module.build_arg_parser().parse_args(
+                ["--socket-timeout-secs", "-5"])
+        assert "must be >= 0" in capsys.readouterr().err

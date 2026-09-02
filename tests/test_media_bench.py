@@ -258,6 +258,42 @@ class TestPluginIsInstalled:
         )
         assert mb.plugin_is_installed("intent_freeform", "anything") is True
 
+    def test_real_installed_distribution_on_sys_path(self, tmp_path):
+        """No monkeypatching of ``importlib.metadata`` at all: a genuine
+        ``.dist-info`` directory is dropped on ``sys.path`` so
+        ``importlib.metadata.entry_points`` discovers it for real. This
+        exercises the whole real code path end to end, not just the
+        candidate-matching logic against a stubbed entry-point source."""
+        import sys
+
+        dist_info = tmp_path / "fake_arena_test_plugin-1.0.0.dist-info"
+        dist_info.mkdir()
+        (dist_info / "METADATA").write_text(
+            "Metadata-Version: 2.1\n"
+            "Name: fake-arena-test-plugin\n"
+            "Version: 1.0.0\n"
+        )
+        (dist_info / "entry_points.txt").write_text(
+            "[opm.stt]\n"
+            "fake-arena-test-plugin = fake_arena_test_mod:FakeCls\n"
+        )
+        (dist_info / "RECORD").write_text("")
+
+        import importlib
+
+        sys.path.insert(0, str(tmp_path))
+        try:
+            # Invalidate any cached distribution finders so the new
+            # dist-info on sys.path is actually picked up.
+            importlib.invalidate_caches()
+
+            assert mb.plugin_is_installed("stt", "fake-arena-test-plugin") is True
+            assert mb.plugin_is_installed(
+                "stt", "definitely-not-an-installed-arena-plugin"
+            ) is False
+        finally:
+            sys.path.remove(str(tmp_path))
+
 
 class TestPredictContext:
     def test_hf_audio_url(self):

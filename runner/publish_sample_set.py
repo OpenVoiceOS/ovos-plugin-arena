@@ -199,25 +199,52 @@ def _publish_one(dataset_def, owner: str, dry_run: bool,
                               etag_timeout=request_timeout)
 
 
+_executor: concurrent.futures.ThreadPoolExecutor | None = None
+_abandoned_executors = 0
+
+
 def run_with_timeout(fn, timeout_secs: float):
     """Run ``fn()`` in a worker thread, bounded by ``timeout_secs``.
 
     Raises ``concurrent.futures.TimeoutError`` when ``fn`` doesn't finish in
     time. The worker thread itself is NOT killed — Python cannot safely
-    interrupt a thread blocked in a C-level socket read — it is simply
-    abandoned so the caller can move on to the next dataset. A leaked
-    hung worker is why ``main()`` force-exits via ``os._exit`` instead of
-    returning normally whenever a timeout actually fired: a plain
-    ``ThreadPoolExecutor`` registers every worker it ever spawns with an
-    ``atexit`` hook that joins them all, which would hang interpreter exit
-    on exactly the wedged thread this function exists to escape.
+    interrupt a thread blocked in a C-level socket read. On a timeout the
+    single-worker executor backing it is abandoned (not shut down) and a
+    fresh one is created for the next call, so a caller that keeps calling
+    this in a loop never blocks on a wedged worker. The abandoned worker
+    isn't a permanent leak: process-wide socket.setdefaulttimeout() (see
+    autorun.main()) bounds the C-level read it's stuck in, so it eventually
+    raises and the thread exits on its own — this function only needs to
+    stop *waiting* on it, not kill it. ``main()`` still force-exits via
+    ``os._exit`` for one-shot runs, since a plain ``ThreadPoolExecutor``
+    registers every worker it ever spawns with an ``atexit`` hook that
+    joins them all, which would hang interpreter exit on a still-wedged
+    thread even though it's no longer referenced by this function.
+
+    Main thread only: the shared executor is a single worker, so it
+    head-of-line-blocks any concurrent caller, and a spurious timeout on
+    one call tears down the executor out from under another call's
+    still-healthy work. Both current call sites (this module's ``main()``
+    per-dataset loop, and ``autorun``'s one-shot breadth-tier presence listing)
+    call this serially from the main thread only — concurrent use is not
+    supported and would need its own executor per caller.
     """
-    executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+    global _executor, _abandoned_executors
+    if _executor is None:
+        _executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+    executor = _executor
     future = executor.submit(fn)
     try:
         return future.result(timeout=timeout_secs)
-    finally:
+    except concurrent.futures.TimeoutError:
+        _abandoned_executors += 1
+        log.warning(
+            "run_with_timeout: worker timed out and is being abandoned "
+            "(%d abandoned executor(s) so far)", _abandoned_executors,
+        )
+        _executor = None
         executor.shutdown(wait=False)
+        raise
 
 
 def main(argv=None) -> int:
