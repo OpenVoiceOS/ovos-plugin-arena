@@ -35,6 +35,16 @@ def _pair(mod="stt", comp="c", ds="d", lang="en"):
     return PairKey(mod, comp, ds, lang)
 
 
+@pytest.fixture(autouse=True)
+def _fighters_always_installed(monkeypatch):
+    """Every test fighter here is a SimpleNamespace stand-in, not a real
+    installed plugin — default the availability probe to "installed" so
+    unrelated tests aren't affected by TestUnavailablePlugins, which
+    overrides this per-test to exercise the real skip behaviour."""
+    monkeypatch.setattr(autorun_module.mb, "plugin_is_installed",
+                         lambda modality, plugin: True)
+
+
 # ---------------------------------------------------------------------------
 # RoundRobinScheduler
 # ---------------------------------------------------------------------------
@@ -962,3 +972,224 @@ class TestOneShot:
         runner3.pair_is_complete = slow_complete_check
         summary3 = runner3.run_one_shot(["stt"], max_samples=5, seed=0, time_budget_secs=10)
         assert not summary3["pairs"] and not summary3["nothing_to_do"] and summary3["discovery_bound"]
+
+
+class TestDiscoveryTimeout:
+    """A wedged breadth-order discovery round (runner.queue_tools'
+    HfApi()/hf_hub_download walk, no HTTP timeout of its own) must not hang
+    the daemon's main thread forever — it's bounded by
+    AutoRunConfig.discovery_timeout_secs and the sweep continues, reusing
+    the previous sweep's ordering."""
+
+    def test_hung_discovery_falls_back_to_previous_order_within_timeout(
+        self, monkeypatch, tmp_path
+    ):
+        entries = [
+            ("stt", _comp("deep"), _ds("d1"), "en"),
+            ("stt", _comp("deep"), _ds("d2"), "en"),
+            ("stt", _comp("shallow"), _ds("d1"), "en"),
+        ]
+        lookup = {
+            PairKey(m, c.competitor_id, d.dataset_id, l): (m, c, d, l)
+            for m, c, d, l in entries
+        }
+
+        calls = {"n": 0}
+
+        def fake_find_missing_pairs(modality, registry_root=None, lister=None,
+                                     check_rows=True, min_rows=1,
+                                     present_by_competitor=None,
+                                     present_by_dataset=None):
+            calls["n"] += 1
+            if calls["n"] == 1:
+                # First sweep: a normal, fast presence listing.
+                present_by_competitor["deep"] = 1
+                present_by_dataset["d1"] = 1
+                return []
+            # Second sweep: simulate the half-open-TCP hang — a call that
+            # blocks far longer than the configured discovery timeout,
+            # exactly like the real incident's zero-output stall. Finite
+            # (not forever) so the abandoned worker thread the bounded-
+            # worker pattern leaks doesn't wedge the test process itself.
+            import time as time_module
+            time_module.sleep(2)
+
+        monkeypatch.setattr(autorun_module, "find_missing_pairs", fake_find_missing_pairs)
+
+        config = AutoRunConfig(output_dir=tmp_path, upload=False,
+                                discovery_timeout_secs=0.2)
+        runner = AutoRunner(config, lister=object())
+
+        first = runner._breadth_ordered_keys(lookup, registry_root=None)
+        assert [k.competitor_id for k in first][0] == "shallow"
+
+        # The second call must return (not hang) within the configured
+        # discovery timeout, reusing the first sweep's ordering.
+        second = runner._breadth_ordered_keys(lookup, registry_root=None)
+        assert second == first
+
+
+class TestUnavailablePlugins:
+    """A fighter whose plugin package isn't installed is probed once
+    (cheap importlib.metadata entry-point check), never scheduled again,
+    and logged exactly once as a summary line — no per-cycle quarantine
+    churn."""
+
+    def test_missing_plugin_fighter_never_scheduled_present_one_unaffected(
+        self, monkeypatch, tmp_path, caplog
+    ):
+        present_comp = _comp("present")
+        missing_comp = _comp("missing")
+        ds = _ds("d")
+        entries = [
+            ("stt", present_comp, ds, "en"),
+            ("stt", missing_comp, ds, "en"),
+        ]
+        monkeypatch.setattr(autorun_module, "enumerate_all_pairs", lambda *a, **k: entries)
+
+        probe_calls = []
+
+        def fake_probe(modality, plugin):
+            probe_calls.append(plugin)
+            return plugin != "missing"
+
+        monkeypatch.setattr(autorun_module.mb, "plugin_is_installed", fake_probe)
+
+        sizes = {PairKey("stt", "present", "d", "en").to_str(): 5}
+        fake = FakeProcessor(sizes)
+        config = AutoRunConfig(output_dir=tmp_path, batch=10, upload=False)
+        runner = AutoRunner(config, process_fn=fake, lister=None)
+
+        with caplog.at_level("WARNING"):
+            runner._sweep_once(["stt"], {}, None)
+
+        assert "missing" in runner._unavailable_fighters
+        assert "present" not in runner._unavailable_fighters
+        assert PairKey("stt", "missing", "d", "en") not in runner.scheduler._pairs
+        assert PairKey("stt", "present", "d", "en") in runner.scheduler._pairs
+
+        summary_lines = [r.message for r in caplog.records
+                          if "plugin not installed" in r.message]
+        assert len(summary_lines) == 1
+        assert "missing" in summary_lines[0]
+
+        # A second sweep must not re-probe or re-log — the fighter is
+        # permanently skipped for this process.
+        caplog.clear()
+        runner._sweep_once(["stt"], {}, None)
+        assert probe_calls.count("missing") == 1
+        assert not any("plugin not installed" in r.message for r in caplog.records)
+
+
+class TestLowDiskGuard:
+    """Below AutoRunConfig.min_free_disk_gb free space, run_forever must
+    idle (the sleep_when_idle path) instead of starting a batch — an
+    ENOSPC wave SIGBUS-kills children and quarantines fighters that were
+    never actually broken."""
+
+    def test_low_disk_skips_sweep_and_idles(self, monkeypatch, tmp_path):
+        import shutil as shutil_module
+
+        fake_usage = SimpleNamespace(total=100 * 1024 ** 3, used=97 * 1024 ** 3,
+                                      free=3 * 1024 ** 3)  # 3GB free < 5GB floor
+        monkeypatch.setattr(shutil_module, "disk_usage", lambda path: fake_usage)
+        monkeypatch.setattr(autorun_module, "shutil", shutil_module)
+
+        sweep_calls = []
+        config = AutoRunConfig(output_dir=tmp_path, upload=False,
+                                sleep_when_idle=0, min_free_disk_gb=5.0)
+        runner = AutoRunner(config)
+        monkeypatch.setattr(runner, "_sweep_once", lambda *a, **k: sweep_calls.append(1))
+
+        # Stop after the first loop iteration.
+        def request_stop_after_sleep(seconds):
+            runner._stop = True
+        monkeypatch.setattr(runner, "_sleep_interruptibly", request_stop_after_sleep)
+
+        runner.run_forever(["stt"])
+
+        assert sweep_calls == []  # no batch started while disk was low
+
+    def test_enough_disk_runs_sweep_normally(self, monkeypatch, tmp_path):
+        import shutil as shutil_module
+
+        fake_usage = SimpleNamespace(total=100 * 1024 ** 3, used=10 * 1024 ** 3,
+                                      free=90 * 1024 ** 3)
+        monkeypatch.setattr(shutil_module, "disk_usage", lambda path: fake_usage)
+        monkeypatch.setattr(autorun_module, "shutil", shutil_module)
+
+        config = AutoRunConfig(output_dir=tmp_path, upload=False,
+                                min_free_disk_gb=5.0)
+        runner = AutoRunner(config)
+        assert runner._disk_low() is False
+
+    def test_five_wedged_sweeps_leak_at_most_one_thread_total(
+        self, monkeypatch, tmp_path
+    ):
+        """Regression for the per-sweep thread leak: run_with_timeout used
+        to spawn a fresh ThreadPoolExecutor (and abandon its worker) on
+        EVERY call, so N timed-out sweeps leaked N threads, unbounded
+        forever in a long-running daemon. Discovery now runs on a single
+        long-lived worker thread this AutoRunner instance owns — a sweep
+        that finds it still wedged reuses the previous ordering and does
+        NOT submit (and therefore does not spawn a thread for) another
+        discovery request. Across 5 sweeps against a permanently-blocked
+        stub, active thread count must grow by at most +1 (the one
+        worker), never +5."""
+        import threading
+
+        entries = [("stt", _comp("shallow"), _ds("d1"), "en")]
+        lookup = {
+            PairKey(m, c.competitor_id, d.dataset_id, l): (m, c, d, l)
+            for m, c, d, l in entries
+        }
+
+        never_returns = threading.Event()
+
+        def fake_find_missing_pairs(modality, registry_root=None, lister=None,
+                                     check_rows=True, min_rows=1,
+                                     present_by_competitor=None,
+                                     present_by_dataset=None):
+            never_returns.wait()  # blocks forever — the wedged connection
+
+        monkeypatch.setattr(autorun_module, "find_missing_pairs", fake_find_missing_pairs)
+
+        config = AutoRunConfig(output_dir=tmp_path, upload=False,
+                                discovery_timeout_secs=0.05)
+        runner = AutoRunner(config, lister=object())
+
+        baseline = threading.active_count()
+        for _ in range(5):
+            runner._breadth_ordered_keys(lookup, registry_root=None)
+        grown = threading.active_count() - baseline
+
+        assert grown <= 1, f"thread count grew by {grown} across 5 wedged sweeps"
+
+    def test_wedged_sweep_logs_reuse_message(self, monkeypatch, tmp_path, caplog):
+        import threading
+
+        entries = [("stt", _comp("shallow"), _ds("d1"), "en")]
+        lookup = {
+            PairKey(m, c.competitor_id, d.dataset_id, l): (m, c, d, l)
+            for m, c, d, l in entries
+        }
+        never_returns = threading.Event()
+
+        def fake_find_missing_pairs(modality, registry_root=None, lister=None,
+                                     check_rows=True, min_rows=1,
+                                     present_by_competitor=None,
+                                     present_by_dataset=None):
+            never_returns.wait()
+
+        monkeypatch.setattr(autorun_module, "find_missing_pairs", fake_find_missing_pairs)
+
+        config = AutoRunConfig(output_dir=tmp_path, upload=False,
+                                discovery_timeout_secs=0.05)
+        runner = AutoRunner(config, lister=object())
+
+        with caplog.at_level("ERROR"):
+            runner._breadth_ordered_keys(lookup, registry_root=None)  # times out, submits
+            runner._breadth_ordered_keys(lookup, registry_root=None)  # sees it still wedged
+
+        assert any("still wedged" in r.message and "reusing previous ordering" in r.message
+                    for r in caplog.records)

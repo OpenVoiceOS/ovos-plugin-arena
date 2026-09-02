@@ -39,11 +39,15 @@ import fnmatch
 import json
 import logging
 import multiprocessing as mp
+import queue
 import random
 import re
+import shutil
 import signal
 import sys
+import threading
 import time
+from collections import Counter
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable, Iterable, Iterator
@@ -51,6 +55,7 @@ from typing import Callable, Iterable, Iterator
 from registry.loaders import load_all_competitors, load_all_datasets
 from runner import media_bench as mb
 from runner.intent_bench import HF_OWNER, resolve_revision, results_repo_for
+from runner.publish_sample_set import run_with_timeout
 from runner.queue_tools import (
     HFLister,
     HubLister,
@@ -561,6 +566,18 @@ class AutoRunConfig:
     # ``runner.plugin_runner``, so without this watchdog a bad engine load
     # blocks the pair (and the whole daemon, pre-isolation) indefinitely.
     load_timeout: float = 1200.0  # 20 minutes
+    # Wall-clock budget for one breadth-order presence-listing round (the
+    # HfApi().list_repo_tree/hf_hub_download walk in runner.queue_tools'
+    # find_missing_pairs). A half-open TCP connection there has no HTTP
+    # timeout of its own and can wedge the daemon's main thread for hours
+    # with zero log output — see run_with_timeout's bounded-worker pattern.
+    discovery_timeout_secs: float = 300.0  # 5 minutes
+    # Free-space floor (GB) on the output filesystem, checked before every
+    # sweep. An ENOSPC wave SIGBUS-kills batch children mid-write and
+    # quarantines fighters that were never actually broken — below the
+    # floor the daemon idles (the same sleep_when_idle path) instead of
+    # starting a batch.
+    min_free_disk_gb: float = 5.0
 
 
 class _ChildTimeoutError(RuntimeError):
@@ -620,6 +637,27 @@ class AutoRunner:
         self._dataset_cache: dict[tuple[str, str], object] = {}
         self._last_flush = time.monotonic()
         self._stop = False
+        # Last successfully computed breadth ordering, reused verbatim
+        # when a discovery round times out instead of falling back to
+        # natural order (see _breadth_ordered_keys).
+        self._last_order: list[PairKey] | None = None
+        # competitor_id -> plugin name, for fighters whose plugin package
+        # is not installed in this process — probed once, permanently
+        # skipped, never scheduled or quarantine-churned.
+        self._unavailable_fighters: dict[str, str] = {}
+        self._probed_plugins: dict[tuple[str, str], bool] = {}  # (modality, plugin) -> installed
+        # Discovery (the breadth-order presence listing) runs on a SINGLE
+        # long-lived daemon worker thread owned by this instance, never a
+        # fresh thread per sweep — a sweep that finds discovery already
+        # stuck skips submitting another request and just reuses
+        # _last_order, so at most one discovery is ever outstanding no
+        # matter how many sweeps a wedged HF connection spans.
+        self._discovery_thread: threading.Thread | None = None
+        self._discovery_task_q: "queue.Queue" = queue.Queue()
+        self._discovery_result_q: "queue.Queue" = queue.Queue()
+        self._discovery_inflight = False
+        self._discovery_started_at: float | None = None  # time.monotonic()
+        self._discovery_started_wall: float | None = None  # time.time(), for logging
 
     @property
     def state_path(self) -> Path:
@@ -890,6 +928,9 @@ class AutoRunner:
         signal.signal(signal.SIGTERM, self.request_stop)
         try:
             while not self._stop:
+                if self._disk_low():
+                    self._sleep_interruptibly(self.config.sleep_when_idle)
+                    continue
                 self._sweep_once(modalities, filters, registry_root)
                 if self._stop:
                     break
@@ -905,9 +946,76 @@ class AutoRunner:
         while not self._stop and time.monotonic() < deadline:
             time.sleep(min(1.0, deadline - time.monotonic()))
 
+    def _disk_low(self) -> bool:
+        """``True`` (and logs a warning) when free space on the output
+        filesystem is below :attr:`AutoRunConfig.min_free_disk_gb`.
+
+        An ENOSPC wave SIGBUS-kills a batch child mid-write and quarantines
+        its fighter as if it were broken — checking before every sweep
+        instead lets the daemon idle through a temporarily full disk
+        without touching the scheduler at all.
+        """
+        output_dir = self.config.output_dir
+        try:
+            output_dir.mkdir(parents=True, exist_ok=True)
+            usage = shutil.disk_usage(output_dir)
+        except OSError:
+            return False
+        free_gb = usage.free / (1024 ** 3)
+        if free_gb < self.config.min_free_disk_gb:
+            log.warning(
+                "low disk: %.1fGB free on %s (floor %.1fGB) — idling %ds "
+                "instead of starting a batch",
+                free_gb, output_dir, self.config.min_free_disk_gb,
+                self.config.sleep_when_idle,
+            )
+            return True
+        return False
+
+    def _probe_new_fighters(self, entries) -> None:
+        """Permanently mark fighters whose plugin package isn't installed
+        as unavailable for this process, so they're never scheduled and
+        never quarantine-churned.
+
+        Probed once per (modality, plugin) the first time it's seen (a
+        cheap ``importlib.metadata`` entry-point check — see
+        ``runner.media_bench.plugin_is_installed``), not once per fighter
+        per sweep. A shared plugin across many fighters (or many
+        (dataset, lang) pairs of the same fighter) is only ever probed
+        once.
+        """
+        newly_unavailable: list[tuple[str, str]] = []
+        for modality, competitor, _dataset, _lang in entries:
+            plugin = competitor.plugin
+            if not plugin or competitor.competitor_id in self._unavailable_fighters:
+                continue
+            probe_key = (modality, plugin)
+            installed = self._probed_plugins.get(probe_key)
+            if installed is None:
+                installed = mb.plugin_is_installed(modality, plugin)
+                self._probed_plugins[probe_key] = installed
+            if not installed:
+                self._unavailable_fighters[competitor.competitor_id] = plugin
+                newly_unavailable.append((competitor.competitor_id, plugin))
+        if newly_unavailable:
+            counts = Counter(plugin for _cid, plugin in newly_unavailable)
+            detail = ", ".join(f"{p} ({n})" for p, n in sorted(counts.items()))
+            log.warning(
+                "%d fighter(s) skipped: plugin not installed: %s",
+                len(newly_unavailable), detail,
+            )
+
+    def _drop_unavailable(self, entries):
+        return [
+            e for e in entries
+            if e[1].competitor_id not in self._unavailable_fighters
+        ]
+
     def _sweep_once(self, modalities, filters, registry_root) -> None:
         entries = enumerate_all_pairs(modalities, registry_root)
         entries = apply_filters(entries, **filters)
+        self._probe_new_fighters(entries)
+        entries = self._drop_unavailable(entries)
         for modality, competitor, dataset, lang in entries:
             self._dataset_cache[(modality, dataset.dataset_id)] = dataset
         lookup = {
@@ -925,6 +1033,88 @@ class AutoRunner:
             m, c, d, l = lookup[pair]
             self.process_pair(m, c, d, l)
             self.flush_all()
+
+    # -- discovery worker (single long-lived daemon thread) -------------
+
+    def _ensure_discovery_worker(self) -> None:
+        """Start the single discovery worker thread if it isn't already
+        running. Lazily created, never recreated per sweep — a stuck
+        discovery call just keeps this one thread busy; nothing else is
+        ever spawned to replace or duplicate it, so thread count never
+        grows sweep over sweep no matter how long a call stays wedged.
+        """
+        if self._discovery_thread is not None and self._discovery_thread.is_alive():
+            return
+        self._discovery_thread = threading.Thread(
+            target=self._discovery_worker_loop,
+            name="autorun-discovery",
+            daemon=True,  # never blocks interpreter exit
+        )
+        self._discovery_thread.start()
+
+    def _discovery_worker_loop(self) -> None:
+        while True:
+            modalities, registry_root, lister = self._discovery_task_q.get()
+            present_by_competitor: dict[str, int] = {}
+            present_by_dataset: dict[str, int] = {}
+            try:
+                for modality in modalities:
+                    find_missing_pairs(
+                        modality,
+                        registry_root=registry_root,
+                        lister=lister,
+                        check_rows=False,
+                        present_by_competitor=present_by_competitor,
+                        present_by_dataset=present_by_dataset,
+                    )
+                self._discovery_result_q.put(
+                    ("ok", (present_by_competitor, present_by_dataset))
+                )
+            except Exception as exc:  # noqa: BLE001 - report, never crash the worker
+                self._discovery_result_q.put(("error", exc))
+
+    def _submit_discovery(self, modalities, registry_root) -> None:
+        self._ensure_discovery_worker()
+        self._discovery_inflight = True
+        self._discovery_started_at = time.monotonic()
+        self._discovery_started_wall = time.time()
+        self._discovery_task_q.put((modalities, registry_root, self.lister))
+
+    def _poll_discovery_result(self):
+        """Non-blocking: pop a result the worker has already produced, if
+        any. Used to pick up a call that was stuck on an EARLIER sweep the
+        moment it finally does return, however late."""
+        if not self._discovery_inflight:
+            return None
+        try:
+            outcome = self._discovery_result_q.get_nowait()
+        except queue.Empty:
+            return None
+        self._discovery_inflight = False
+        self._discovery_started_at = None
+        self._discovery_started_wall = None
+        return outcome
+
+    def _wait_discovery_result(self, timeout: float):
+        """Blocking up to *timeout*. If it doesn't arrive in time, the
+        worker keeps running the request in the background — inflight
+        stays ``True`` and no new thread is ever spawned to replace it."""
+        try:
+            outcome = self._discovery_result_q.get(timeout=timeout)
+        except queue.Empty:
+            return None
+        self._discovery_inflight = False
+        self._discovery_started_at = None
+        self._discovery_started_wall = None
+        return outcome
+
+    def _reuse_last_order(self, keys: list) -> list:
+        if self._last_order is None:
+            return keys
+        stale = [k for k in self._last_order if k in keys]
+        seen = set(stale)
+        stale.extend(k for k in keys if k not in seen)
+        return stale
 
     def _breadth_ordered_keys(
         self, lookup: dict[PairKey, tuple], registry_root: Path | None,
@@ -946,39 +1136,71 @@ class AutoRunner:
         ``self.lister`` (unset with ``--no-seed``); without one this falls
         back to the pairs' natural enumeration order rather than skip
         ordering silently — see the module docstring on ``--no-seed``.
+
+        Discovery itself runs on the single long-lived worker thread this
+        instance owns (see ``_ensure_discovery_worker``), never a fresh
+        thread per sweep — a wedged HF connection just keeps that one
+        thread busy across as many sweeps as it takes; this method never
+        spawns another one to wait alongside it, so the thread count this
+        instance owns never grows past one no matter how long discovery
+        stays stuck.
         """
         keys = list(lookup.keys())
         if self.lister is None:
             return keys
-        present_by_competitor: dict[str, int] = {}
-        present_by_dataset: dict[str, int] = {}
+
+        def _sorted(present_by_competitor, present_by_dataset):
+            return breadth_tier_sort(
+                keys,
+                competitor_id_of=lambda k: k.competitor_id,
+                dataset_id_of=lambda k: k.dataset_id,
+                weight_of=lambda k: engine_weight(
+                    k.competitor_id, lookup[k][1].plugin
+                ),
+                present_by_competitor=present_by_competitor,
+                present_by_dataset=present_by_dataset,
+            )
+
+        # A discovery round submitted on an earlier (possibly wedged)
+        # sweep may have finished since — pick it up before deciding
+        # whether to submit a new one, so a call that was stuck comes
+        # back into use the very next sweep after it actually returns.
+        late = self._poll_discovery_result()
+        if late is not None and late[0] == "ok":
+            present_by_competitor, present_by_dataset = late[1]
+            self._last_order = _sorted(present_by_competitor, present_by_dataset)
+            return self._last_order
+
+        if self._discovery_inflight:
+            log.error(
+                "discovery still wedged since %s, reusing previous ordering",
+                time.strftime(
+                    "%Y-%m-%d %H:%M:%S",
+                    time.localtime(self._discovery_started_wall),
+                ) if self._discovery_started_wall else "?",
+            )
+            return self._reuse_last_order(keys)
+
         modalities = {m for m, _c, _d, _l in lookup.values()}
-        try:
-            for modality in modalities:
-                find_missing_pairs(
-                    modality,
-                    registry_root=registry_root,
-                    lister=self.lister,
-                    check_rows=False,
-                    present_by_competitor=present_by_competitor,
-                    present_by_dataset=present_by_dataset,
-                )
-        except Exception:
+        self._submit_discovery(modalities, registry_root)
+        outcome = self._wait_discovery_result(self.config.discovery_timeout_secs)
+        if outcome is None:
+            log.error(
+                "breadth-order presence listing timed out after %.0fs — "
+                "leaving it running on the discovery worker and reusing "
+                "the previous sweep's ordering", self.config.discovery_timeout_secs,
+            )
+            return self._reuse_last_order(keys)
+        status, payload = outcome
+        if status == "error":
             log.warning(
                 "breadth-order presence listing failed — keeping natural "
-                "enumeration order for this sweep", exc_info=True,
+                "enumeration order for this sweep", exc_info=payload,
             )
             return keys
-        return breadth_tier_sort(
-            keys,
-            competitor_id_of=lambda k: k.competitor_id,
-            dataset_id_of=lambda k: k.dataset_id,
-            weight_of=lambda k: engine_weight(
-                k.competitor_id, lookup[k][1].plugin
-            ),
-            present_by_competitor=present_by_competitor,
-            present_by_dataset=present_by_dataset,
-        )
+        present_by_competitor, present_by_dataset = payload
+        self._last_order = _sorted(present_by_competitor, present_by_dataset)
+        return self._last_order
 
     # -- one-shot (CI-friendly) mode -------------------------------------
 
@@ -1079,6 +1301,8 @@ class AutoRunner:
 
             entries = enumerate_all_pairs(modalities, registry_root)
             entries = apply_filters(entries, **filters)
+            self._probe_new_fighters(entries)
+            entries = self._drop_unavailable(entries)
             lookup = {
                 PairKey(m, c.competitor_id, d.dataset_id, l): (m, c, d, l)
                 for m, c, d, l in entries
@@ -1113,7 +1337,8 @@ class AutoRunner:
             if self.lister is not None:
                 present_by_competitor: dict[str, int] = {}
                 present_by_dataset: dict[str, int] = {}
-                try:
+
+                def _discover(entries=entries) -> None:
                     for modality in {m for m, _c, _d, _l in entries}:
                         find_missing_pairs(
                             modality,
@@ -1123,6 +1348,9 @@ class AutoRunner:
                             present_by_competitor=present_by_competitor,
                             present_by_dataset=present_by_dataset,
                         )
+
+                try:
+                    run_with_timeout(_discover, self.config.discovery_timeout_secs)
                     min_tier = min(
                         present_by_competitor.get(p.competitor_id, 0)
                         for p in candidates
