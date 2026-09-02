@@ -221,10 +221,26 @@ _OPM_GROUP_BY_MODALITY = {
     "vad": "opm.VAD",
 }
 
+# Legacy entry-point groups OPM still loads and aliases onto the modern
+# ``opm.*`` groups above (mirrors ovos_plugin_manager.utils.DEPRECATED_ENTRYPOINTS,
+# inverted: modern group -> legacy groups). The legacy family spans two
+# prefixes, not just one: ``mycroft.plugin.*`` for stt/tts/wake_word and
+# ``ovos.plugin.*`` for VAD. Plugins registered under these (e.g.
+# ovos-tts-plugin-phoonnx under ``[mycroft.plugin.tts]``, or
+# ovos-vad-plugin-noise/ovos-vad-plugin-webrtcvad under ``[ovos.plugin.VAD]``)
+# are installed and loadable even though they never show up under the
+# modern group.
+_LEGACY_OPM_GROUPS_BY_MODALITY = {
+    "stt": ["mycroft.plugin.stt"],
+    "tts": ["mycroft.plugin.tts"],
+    "wake_word": ["mycroft.plugin.wake_word"],
+    "vad": ["ovos.plugin.VAD"],
+}
+
 
 def plugin_is_installed(modality: str, plugin: str) -> bool:
     """Cheap availability probe: does an ``ovos_plugin_manager`` entry point
-    for *plugin* exist under *modality*'s group?
+    for *plugin* exist under *modality*'s group (modern or legacy)?
 
     This is an ``importlib.metadata.entry_points`` name lookup — it never
     imports the plugin module (unlike actually resolving/instantiating it
@@ -239,7 +255,10 @@ def plugin_is_installed(modality: str, plugin: str) -> bool:
     group = _OPM_GROUP_BY_MODALITY.get(modality)
     if group is None:
         return True
-    names = {ep.name for ep in importlib.metadata.entry_points(group=group)}
+    groups = [group] + _LEGACY_OPM_GROUPS_BY_MODALITY.get(modality, [])
+    names = set()
+    for g in groups:
+        names |= {ep.name for ep in importlib.metadata.entry_points(group=g)}
     candidates = {plugin, plugin.replace("-", "_"), plugin.replace("_", "-")}
     return bool(names & candidates)
 
