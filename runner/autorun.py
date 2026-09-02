@@ -38,6 +38,7 @@ import argparse
 import fnmatch
 import json
 import logging
+import socket
 import multiprocessing as mp
 import queue
 import random
@@ -1450,6 +1451,14 @@ class AutoRunner:
 # ---------------------------------------------------------------------------
 
 
+def _non_negative_float(value: str) -> float:
+    parsed = float(value)
+    if parsed < 0:
+        raise argparse.ArgumentTypeError(
+            f"must be >= 0 (0 disables), got {value!r}")
+    return parsed
+
+
 def build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="python -m runner.autorun",
@@ -1534,6 +1543,10 @@ def build_arg_parser() -> argparse.ArgumentParser:
                         help="[--one-shot] Random pair draws to try before "
                         "giving up for this round if a fighter hard-fails "
                         "to load (default: 3)")
+    parser.add_argument("--socket-timeout-secs", type=_non_negative_float, default=120.0,
+                        help="Process-wide default socket timeout (seconds), "
+                        "applied via socket.setdefaulttimeout() before the "
+                        "run starts; 0 disables it (default: 120.0)")
     return parser
 
 
@@ -1553,6 +1566,22 @@ def _resolve_heavy_light(args) -> tuple[bool, bool]:
 
 def main(argv: list[str] | None = None) -> int:
     args = build_arg_parser().parse_args(argv)
+
+    # Two paths make untimed C-level socket reads on the main thread,
+    # outside the bounded discovery worker and outside the spawn child
+    # benchmarks run in (which does NOT inherit this default): the
+    # parent-side ``adapter.iter_samples`` scan in ``pair_is_complete``,
+    # and huggingface_hub's LFS upload in ``mb.upload_predictions`` /
+    # ``publish``, which has no timeout of its own. Observed in
+    # production: the main thread parked on a CLOSE-WAIT socket for 48+
+    # minutes with zero rows produced. ``hf_hub_download`` itself was
+    # already bounded by the ``HF_HUB_DOWNLOAD_TIMEOUT`` env var. This is
+    # a per-operation recv/send timeout, not a total wall-clock deadline
+    # for an upload/download — a slow-but-progressing transfer keeps
+    # resetting it and is not aborted.
+    if args.socket_timeout_secs:
+        socket.setdefaulttimeout(args.socket_timeout_secs)
+
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s [%(levelname)s] %(name)s %(message)s",

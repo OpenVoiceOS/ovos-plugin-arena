@@ -408,6 +408,19 @@ child process exits with an error, quarantines the fighter the same way any
 other hard failure does (see below), so one bad load can't hang the fleet
 indefinitely.
 
+### Main-thread socket timeout
+
+Model loads and batch predictions run inside a bounded child process (see
+above), but a handful of network calls stay on the main thread outside
+that boundary: seeding a shard from HF at the start of a pair, uploading a
+finished shard, and the `iter_samples` scan `pair_is_complete` uses to
+check whether a pair is already done. `--socket-timeout-secs` (default
+120, 0 disables) sets a process-wide `socket.setdefaulttimeout()` before
+the daemon starts, bounding every C-level socket read/write on the main
+thread. This is a per-operation timeout, not a total deadline for an
+upload or download — a transfer that's still making progress keeps
+resetting it and is never aborted mid-flight.
+
 ### Resume
 
 Resume is layered, same as every other bench script:
