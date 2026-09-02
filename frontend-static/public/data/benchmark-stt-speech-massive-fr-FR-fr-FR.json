@@ -2,7 +2,7 @@
   "modality": "stt",
   "dataset_id": "speech-massive-fr-FR",
   "lang": "fr-FR",
-  "generated_at": "2026-09-01T20:52:33.643567+00:00",
+  "generated_at": "2026-09-02T07:38:30.113511+00:00",
   "primary_metric": "wer_mean",
   "dataset_info": {
     "url": "https://huggingface.co/datasets/FBK-MT/Speech-MASSIVE-test",
@@ -13,7 +13,7 @@
     ]
   },
   "predictions_revisions": {
-    "OpenVoiceOS/ovos-stt-bench-speech-massive-fr-FR": "01f513100427d09b662fe3b0f5ad2dfd35e9c237"
+    "OpenVoiceOS/ovos-stt-bench-speech-massive-fr-FR": "47c8eebe0cb9a9b27bad751fbf2b498fb230cf89"
   },
   "wer_normalizer_version": 1,
   "entries": [
@@ -21,19 +21,94 @@
       "rank": 0,
       "competitor_id": "fasterwhisper-base-fr",
       "plugin_id": "ovos-stt-plugin-fasterwhisper",
-      "samples": 0,
-      "metrics": {},
-      "primary_metric_ci_lower": null,
-      "primary_metric_ci_upper": null,
+      "samples": 10,
+      "metrics": {
+        "wer_mean": 0.4334,
+        "wer_median": 0.3215,
+        "latency_ms_median": 1428.56
+      },
+      "primary_metric_ci_lower": 0.1147423887587822,
+      "primary_metric_ci_upper": 0.4889007092198581,
       "tied_with_leader": false,
-      "plugin_versions": [],
+      "plugin_versions": [
+        "ovos-stt-plugin-fasterwhisper==0.4.1a6"
+      ],
       "version_blended": false,
       "unranked": true,
-      "unranked_reason": "run failed — no scored samples",
-      "perf": null,
+      "unranked_reason": "sample_set_partial — covers 0% of the published manifest",
+      "perf": {
+        "gpu": {
+          "rtf": 0.5136,
+          "rtf_n": 10.0,
+          "peak_rss_mb": 3076.72,
+          "peak_rss_mb_n": 10.0
+        }
+      },
       "model_mb": null,
       "sample_set": "manifest",
-      "sample_set_coverage": 0.0
+      "sample_set_coverage": 0.005
+    },
+    {
+      "rank": 0,
+      "competitor_id": "onnx-asr-nvidia-fr-conformer-ctc-large",
+      "plugin_id": "ovos-stt-plugin-onnx-asr",
+      "samples": 10,
+      "metrics": {
+        "wer_mean": 0.1725,
+        "wer_median": 0.0,
+        "latency_ms_median": 360.53
+      },
+      "primary_metric_ci_lower": 0.02269100580270793,
+      "primary_metric_ci_upper": 0.2093889163780306,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-stt-plugin-onnx-asr==0.4.2a2"
+      ],
+      "version_blended": false,
+      "unranked": true,
+      "unranked_reason": "sample_set_partial — covers 0% of the published manifest",
+      "perf": {
+        "gpu": {
+          "rtf": 0.1196,
+          "rtf_n": 10.0,
+          "peak_rss_mb": 3292.94,
+          "peak_rss_mb_n": 10.0
+        }
+      },
+      "model_mb": 620.83,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.005
+    },
+    {
+      "rank": 0,
+      "competitor_id": "onnx-asr-wav2vec2-base-10k-voxpopuli-ft-fr",
+      "plugin_id": "ovos-stt-plugin-onnx-asr",
+      "samples": 10,
+      "metrics": {
+        "wer_mean": 0.4834,
+        "wer_median": 0.381,
+        "latency_ms_median": 330.94
+      },
+      "primary_metric_ci_lower": 0.25800825206301575,
+      "primary_metric_ci_upper": 0.5555555555555556,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-stt-plugin-onnx-asr==0.4.2a2"
+      ],
+      "version_blended": false,
+      "unranked": true,
+      "unranked_reason": "sample_set_partial — covers 0% of the published manifest",
+      "perf": {
+        "gpu": {
+          "rtf": 0.1162,
+          "rtf_n": 10.0,
+          "peak_rss_mb": 3293.84,
+          "peak_rss_mb_n": 10.0
+        }
+      },
+      "model_mb": 361.82,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.005
     },
     {
       "rank": 0,
@@ -108,7 +183,7 @@
       "sample_set_coverage": 0.0
     }
   ],
-  "entries_hash": "7bb364ae4c4db7ba8d06449f5cadae8aa5bccfa9f39bde5f0acb3706053b5c72",
-  "input_hash": "841cb814ed26fd709a4081950702695b3964c8dd65976a30e23eb063a55c79ee",
+  "entries_hash": "b53534a57b7849c972cdc3646563bb6a0a398b1cdcc09da6e002c93ef096cc2e",
+  "input_hash": "077d24cfe22830d1de69bddb9ea9c7528014c23f9f2b99657ad20f3ae9b95954",
   "judge_agreement": null
 }
