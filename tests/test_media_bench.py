@@ -294,6 +294,71 @@ class TestPluginIsInstalled:
         finally:
             sys.path.remove(str(tmp_path))
 
+    def test_real_distribution_registered_only_under_legacy_group(self, tmp_path):
+        """ovos_plugin_manager loads plugins registered under legacy
+        ``mycroft.plugin.*`` groups and aliases them onto the modern
+        ``opm.*`` groups (see ovos_plugin_manager.utils.DEPRECATED_ENTRYPOINTS).
+        A plugin such as ovos-tts-plugin-phoonnx registers only under
+        ``[mycroft.plugin.tts]`` — it is still installed and loadable, and
+        the probe must say so."""
+        import sys
+
+        dist_info = tmp_path / "fake_legacy_arena_test_plugin-1.0.0.dist-info"
+        dist_info.mkdir()
+        (dist_info / "METADATA").write_text(
+            "Metadata-Version: 2.1\n"
+            "Name: fake-legacy-arena-test-plugin\n"
+            "Version: 1.0.0\n"
+        )
+        (dist_info / "entry_points.txt").write_text(
+            "[mycroft.plugin.tts]\n"
+            "fake-legacy-arena-test-plugin = fake_legacy_arena_test_mod:FakeCls\n"
+        )
+        (dist_info / "RECORD").write_text("")
+
+        import importlib
+
+        sys.path.insert(0, str(tmp_path))
+        try:
+            importlib.invalidate_caches()
+
+            assert mb.plugin_is_installed("tts", "fake-legacy-arena-test-plugin") is True
+        finally:
+            sys.path.remove(str(tmp_path))
+
+    def test_real_distribution_registered_only_under_legacy_vad_group(self, tmp_path):
+        """The legacy family spans two entry-point prefixes, not one:
+        ``mycroft.plugin.*`` for stt/tts/wake_word, and ``ovos.plugin.*``
+        for VAD (see ovos_plugin_manager.utils.DEPRECATED_ENTRYPOINTS,
+        ``"ovos.plugin.VAD": "opm.VAD"``). Real arena fighters
+        ovos-vad-plugin-noise and ovos-vad-plugin-webrtcvad register only
+        under ``[ovos.plugin.VAD]`` — they are still installed and
+        loadable, and the probe must say so."""
+        import sys
+
+        dist_info = tmp_path / "fake_legacy_vad_test_plugin-1.0.0.dist-info"
+        dist_info.mkdir()
+        (dist_info / "METADATA").write_text(
+            "Metadata-Version: 2.1\n"
+            "Name: fake-legacy-vad-test-plugin\n"
+            "Version: 1.0.0\n"
+        )
+        (dist_info / "entry_points.txt").write_text(
+            "[ovos.plugin.VAD]\n"
+            "fake-legacy-vad-test-plugin = fake_legacy_vad_test_mod:FakeCls\n"
+        )
+        (dist_info / "RECORD").write_text("")
+
+        import importlib
+
+        sys.path.insert(0, str(tmp_path))
+        try:
+            importlib.invalidate_caches()
+
+            assert mb.plugin_is_installed("vad", "fake-legacy-vad-test-plugin") is True
+        finally:
+            sys.path.remove(str(tmp_path))
+
 
 class TestPredictContext:
     def test_hf_audio_url(self):
