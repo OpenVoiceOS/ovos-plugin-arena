@@ -211,6 +211,39 @@ def load_plugin_class(loader, name: str):
     raise RuntimeError(f"plugin not found: {name}")
 
 
+# ovos_plugin_manager entry-point group per arena modality — used only for
+# the cheap availability probe below, never for actually loading a plugin
+# (that stays load_plugin_class's job, with its dash/underscore fallback).
+_OPM_GROUP_BY_MODALITY = {
+    "stt": "opm.stt",
+    "tts": "opm.tts",
+    "wake_word": "opm.wake_word",
+    "vad": "opm.VAD",
+}
+
+
+def plugin_is_installed(modality: str, plugin: str) -> bool:
+    """Cheap availability probe: does an ``ovos_plugin_manager`` entry point
+    for *plugin* exist under *modality*'s group?
+
+    This is an ``importlib.metadata.entry_points`` name lookup — it never
+    imports the plugin module (unlike actually resolving/instantiating it
+    via :func:`load_plugin_class`), so it's safe to call once per fighter
+    at startup without paying for a full plugin load. Tolerates the same
+    dash/underscore entry-point naming :func:`load_plugin_class` does.
+    An unknown modality (no group mapping) is treated as installed —
+    nothing to probe against, so it must not block scheduling.
+    """
+    import importlib.metadata
+
+    group = _OPM_GROUP_BY_MODALITY.get(modality)
+    if group is None:
+        return True
+    names = {ep.name for ep in importlib.metadata.entry_points(group=group)}
+    candidates = {plugin, plugin.replace("-", "_"), plugin.replace("_", "-")}
+    return bool(names & candidates)
+
+
 def _primary(tag: str) -> str:
     """Primary language subtag, lowercased: ``pt-BR`` → ``pt``."""
     return tag.replace("_", "-").split("-")[0].lower()

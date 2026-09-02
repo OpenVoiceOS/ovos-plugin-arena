@@ -195,6 +195,70 @@ class TestLoadPluginClass:
             mb.load_plugin_class(lambda n: None, "missing-plugin")
 
 
+class TestPluginIsInstalled:
+    """Direct unit test of the real ``plugin_is_installed`` against
+    synthetic ``importlib.metadata`` entry points — a fake/monkeypatched
+    ``plugin_is_installed`` (as ``TestUnavailablePlugins`` in
+    tests/test_autorun.py uses) would pass even if this function itself
+    were mutated to always return True; this exercises the function
+    itself, not a stand-in for it."""
+
+    class _FakeEntryPoint:
+        def __init__(self, name):
+            self.name = name
+
+    def _entry_points_stub(self, installed_by_group):
+        def fake_entry_points(*, group):
+            return [self._FakeEntryPoint(n) for n in installed_by_group.get(group, [])]
+        return fake_entry_points
+
+    def test_present_dashed_name(self, monkeypatch):
+        import importlib.metadata
+
+        monkeypatch.setattr(
+            importlib.metadata, "entry_points",
+            self._entry_points_stub({"opm.stt": ["ovos-stt-plugin-x"]}),
+        )
+        assert mb.plugin_is_installed("stt", "ovos-stt-plugin-x") is True
+
+    def test_present_underscore_name_matches_dashed_registration(self, monkeypatch):
+        import importlib.metadata
+
+        # entry point registered with underscores, probed with dashes.
+        monkeypatch.setattr(
+            importlib.metadata, "entry_points",
+            self._entry_points_stub({"opm.stt": ["ovos_stt_plugin_x"]}),
+        )
+        assert mb.plugin_is_installed("stt", "ovos-stt-plugin-x") is True
+
+    def test_present_dashed_registration_probed_with_underscore(self, monkeypatch):
+        import importlib.metadata
+
+        monkeypatch.setattr(
+            importlib.metadata, "entry_points",
+            self._entry_points_stub({"opm.stt": ["ovos-stt-plugin-x"]}),
+        )
+        assert mb.plugin_is_installed("stt", "ovos_stt_plugin_x") is True
+
+    def test_absent_plugin_is_false(self, monkeypatch):
+        import importlib.metadata
+
+        monkeypatch.setattr(
+            importlib.metadata, "entry_points",
+            self._entry_points_stub({"opm.stt": ["ovos-stt-plugin-x"]}),
+        )
+        assert mb.plugin_is_installed("stt", "ovos-stt-plugin-definitely-not-installed") is False
+
+    def test_unknown_modality_is_treated_as_installed(self, monkeypatch):
+        import importlib.metadata
+
+        monkeypatch.setattr(
+            importlib.metadata, "entry_points",
+            self._entry_points_stub({}),
+        )
+        assert mb.plugin_is_installed("intent_freeform", "anything") is True
+
+
 class TestPredictContext:
     def test_hf_audio_url(self):
         ctx = mb.PredictContext(_competitor(), "en-US", "d", "tts",
