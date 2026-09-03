@@ -1,0 +1,34 @@
+{
+  "competitor_id": "padatious-no-padaos-medium",
+  "modality": "intent_template",
+  "config": {
+    "intents": {
+      "pipeline": [
+        "ovos-padatious-pipeline-plugin-medium"
+      ],
+      "ovos-padatious-pipeline-plugin": {
+        "conf_high": 0.95,
+        "conf_med": 0.8,
+        "conf_low": 0.5,
+        "domain_engine": false,
+        "cast_to_ascii": false,
+        "stem": false,
+        "disable_padaos": true,
+        "instant_train": false
+      }
+    }
+  },
+  "langs": [],
+  "display_name": "Padatious (no padaos)",
+  "species": "PadatiousPipeline",
+  "types": [
+    "neural-net",
+    "template-match"
+  ],
+  "description": "Same Padatious engine as padatious-medium, with the plugin's own exact-match regex layer switched off via 'disable_padaos': true: every utterance goes straight to the FastText-similarity IntentContainer match, skipping the padaos regex pre-pass.",
+  "links": {
+    "source": "https://github.com/OpenVoiceOS/ovos-padatious-pipeline-plugin"
+  },
+  "notes": "Same plugin id and medium-confidence gate as padatious-medium; the only config change is flipping 'disable_padaos' from false to true. padaos is the exact-match regex layer inside padatious (IntentContainer(disable_padaos=...)); this fighter exists to quantify how much accuracy it actually buys, particularly on exact-template-match utterances, versus the training/boot-time cost of maintaining it. Padatious itself is not changing: disable_padaos stays a permanent, opt-in option in the plugin regardless of what these numbers show.",
+  "size": "micro"
+}
