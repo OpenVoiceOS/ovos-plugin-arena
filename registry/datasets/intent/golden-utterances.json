@@ -1,0 +1,24 @@
+{
+  "dataset_id": "golden-utterances",
+  "modality": "intent",
+  "source": {
+    "type": "huggingface",
+    "hf_id": "OpenVoiceOS/ovos-golden-utterances-bench",
+    "revision": "main",
+    "file_pattern": "{lang}/test.jsonl"
+  },
+  "reference_fields": {
+    "utterance": "utterance",
+    "intent": "expected_intent"
+  },
+  "lang": "multi",
+  "langs": [
+    "ca-ES", "cs-CZ", "da-DK", "de-DE", "en-US", "es-ES", "eu-ES",
+    "fa-IR", "fr-FR", "gl-ES", "hu-HU", "it-IT", "nl-NL", "pl-PL",
+    "pt-BR", "pt-PT", "ru-RU", "sv-FI", "sv-SE"
+  ],
+  "license": "apache-2.0",
+  "role": "eval",
+  "predictions_hf": "OpenVoiceOS/ovos-intent-bench-golden-utterances",
+  "notes": "Hand-curated ground truth mined from the OVOS skill fleet's own end-to-end test suites, independent of the skills' own intent templates/vocab (source_repo/source_file/intent_label_original provenance columns retained per row). expected_intent is the canonical 'skill_id:intent_name' label with the .intent suffix already stripped by the corpus builder, matching this registry's label convention (see intents-for-eval). 1,121 rows across 19 languages (en-US 683, the rest 8-34 each). No train_datasets link: this eval set has no matching template/keyword training corpus in the registry (the skill fleet's own intent files are not registered as a paradigm-specific train corpus here), so golden-utterances is scoped to the open 'intent' (fusion) league only, same v1-scoping precedent as speech-massive-*. Rows also carry needs_manual/machine_generated flags for filtering low-confidence or synthetic rows, and a required_vocab/expected_messages pair for future slot/vocab scoring, but this entry does not map a 'slots' reference field — the corpus has no slot-span gold yet, so slot_exact_match is not scoreable against golden-utterances."
+}
