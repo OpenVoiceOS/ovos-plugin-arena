@@ -2,7 +2,7 @@
   "modality": "stt",
   "dataset_id": "speech-massive-ru-RU",
   "lang": "ru-RU",
-  "generated_at": "2026-09-01T20:52:33.643567+00:00",
+  "generated_at": "2026-09-03T07:47:41.650267+00:00",
   "primary_metric": "wer_mean",
   "dataset_info": {
     "url": "https://huggingface.co/datasets/FBK-MT/Speech-MASSIVE-test",
@@ -13,7 +13,7 @@
     ]
   },
   "predictions_revisions": {
-    "OpenVoiceOS/ovos-stt-bench-speech-massive-ru-RU": "64648d2290904cfc3746b2094687b18c81206409"
+    "OpenVoiceOS/ovos-stt-bench-speech-massive-ru-RU": "53848d83b09608cee8bf4c8095948b5904d7da04"
   },
   "wer_normalizer_version": 1,
   "entries": [
@@ -21,22 +21,66 @@
       "rank": 0,
       "competitor_id": "onnx-asr-conformer-transducer-ru",
       "plugin_id": "ovos-stt-plugin-onnx-asr",
-      "samples": 0,
-      "metrics": {},
-      "primary_metric_ci_lower": null,
-      "primary_metric_ci_upper": null,
+      "samples": 30,
+      "metrics": {
+        "wer_mean": 0.0982,
+        "wer_median": 0.0,
+        "latency_ms_median": 772.55
+      },
+      "primary_metric_ci_lower": 0.04185562015503876,
+      "primary_metric_ci_upper": 0.1619332298136646,
       "tied_with_leader": false,
-      "plugin_versions": [],
+      "plugin_versions": [
+        "ovos-stt-plugin-onnx-asr==0.4.2a2"
+      ],
       "version_blended": false,
       "unranked": true,
-      "unranked_reason": "run failed — no scored samples",
-      "perf": null,
+      "unranked_reason": "sample_set_partial — covers 2% of the published manifest",
+      "perf": {
+        "gpu": {
+          "rtf": 0.1465,
+          "rtf_n": 30.0,
+          "peak_rss_mb": 3251.54,
+          "peak_rss_mb_n": 30.0
+        }
+      },
       "model_mb": 615.7,
       "sample_set": "manifest",
-      "sample_set_coverage": 0.0
+      "sample_set_coverage": 0.015
+    },
+    {
+      "rank": 0,
+      "competitor_id": "onnx-asr-nvidia-ru-conformer-ctc-large",
+      "plugin_id": "ovos-stt-plugin-onnx-asr",
+      "samples": 30,
+      "metrics": {
+        "wer_mean": 0.1088,
+        "wer_median": 0.0,
+        "latency_ms_median": 460.11
+      },
+      "primary_metric_ci_lower": 0.052616367508366284,
+      "primary_metric_ci_upper": 0.17396082178690872,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-stt-plugin-onnx-asr==0.4.2a2"
+      ],
+      "version_blended": false,
+      "unranked": true,
+      "unranked_reason": "sample_set_partial — covers 2% of the published manifest",
+      "perf": {
+        "gpu": {
+          "rtf": 0.0938,
+          "rtf_n": 30.0,
+          "peak_rss_mb": 3343.47,
+          "peak_rss_mb_n": 30.0
+        }
+      },
+      "model_mb": 620.83,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.015
     }
   ],
-  "entries_hash": "2febc172c32c2681be2a9851e89b02e65c678af9596f5ef6e4800febb3f9fbde",
-  "input_hash": "94a5ad9825c7f07333b272ec14397c70dcf8731028f33dd110b6a939d751075b",
+  "entries_hash": "d9985b5fc62b7301787524e8646fd98ff08dd61352475b19f3b8997a8d3de894",
+  "input_hash": "20327c765a9ea0b402f1874defa8d9c04853afdf5a2603e88bfaacf6d1e32788",
   "judge_agreement": null
 }

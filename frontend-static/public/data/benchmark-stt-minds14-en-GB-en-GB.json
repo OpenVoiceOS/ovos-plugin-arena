@@ -2,7 +2,7 @@
   "modality": "stt",
   "dataset_id": "minds14-en-GB",
   "lang": "en-GB",
-  "generated_at": "2026-09-01T20:52:33.643567+00:00",
+  "generated_at": "2026-09-03T07:47:41.650267+00:00",
   "primary_metric": "wer_mean",
   "dataset_info": {
     "url": "https://huggingface.co/datasets/PolyAI/minds14",
@@ -13,33 +13,260 @@
     ]
   },
   "predictions_revisions": {
-    "OpenVoiceOS/ovos-stt-bench-minds14-en-GB": "56c377edb88016b62c737e70e3898bd2bb3198ed"
+    "OpenVoiceOS/ovos-stt-bench-minds14-en-GB": "a50d3802760b3d8f72b857d5d916d202d59a088c"
   },
   "wer_normalizer_version": 1,
   "entries": [
     {
       "rank": 1,
-      "competitor_id": "chromium-stt-en",
-      "plugin_id": "ovos-stt-plugin-chromium",
-      "samples": 585,
+      "competitor_id": "fasterwhisper-medium-en",
+      "plugin_id": "ovos-stt-plugin-fasterwhisper",
+      "samples": 10,
       "metrics": {
-        "wer_mean": 0.1989,
-        "wer_median": 0.1
+        "wer_mean": 0.1293,
+        "wer_median": 0.0312,
+        "latency_ms_median": 9760.57
       },
-      "primary_metric_ci_lower": 0.19176452628380017,
-      "primary_metric_ci_upper": 0.2397594850743101,
+      "primary_metric_ci_lower": 0.0291123439667129,
+      "primary_metric_ci_upper": 0.24348505434782608,
       "tied_with_leader": true,
-      "plugin_versions": [],
+      "plugin_versions": [
+        "ovos-stt-plugin-fasterwhisper==0.4.1a6"
+      ],
       "version_blended": false,
       "unranked": false,
       "unranked_reason": null,
-      "perf": null,
+      "perf": {
+        "gpu": {
+          "rtf": 1.8779,
+          "rtf_n": 10.0,
+          "peak_rss_mb": 2422.72,
+          "peak_rss_mb_n": 10.0
+        }
+      },
       "model_mb": null,
       "sample_set": "unmanaged",
       "sample_set_coverage": null
     },
     {
       "rank": 2,
+      "competitor_id": "onnx-asr-phi-4-multimodal-asr",
+      "plugin_id": "ovos-stt-plugin-onnx-asr",
+      "samples": 10,
+      "metrics": {
+        "wer_mean": 0.133,
+        "wer_median": 0.0469,
+        "latency_ms_median": 20127.78
+      },
+      "primary_metric_ci_lower": 0.03935985274567952,
+      "primary_metric_ci_upper": 0.19793328900709217,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-stt-plugin-onnx-asr==0.4.2a2"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": {
+        "gpu": {
+          "rtf": 4.705,
+          "rtf_n": 10.0,
+          "peak_rss_mb": 18279.14,
+          "peak_rss_mb_n": 10.0
+        }
+      },
+      "model_mb": 24696.04,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null
+    },
+    {
+      "rank": 3,
+      "competitor_id": "onnx-asr-qwen3-0.6b",
+      "plugin_id": "ovos-stt-plugin-onnx-asr",
+      "samples": 10,
+      "metrics": {
+        "wer_mean": 0.1363,
+        "wer_median": 0.0312,
+        "latency_ms_median": 4590.9
+      },
+      "primary_metric_ci_lower": 0.0291123439667129,
+      "primary_metric_ci_upper": 0.2814434511259172,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-stt-plugin-onnx-asr==0.4.2a2"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": {
+        "gpu": {
+          "rtf": 0.7772,
+          "rtf_n": 10.0,
+          "peak_rss_mb": 5618.75,
+          "peak_rss_mb_n": 10.0
+        }
+      },
+      "model_mb": 4480.7,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null
+    },
+    {
+      "rank": 4,
+      "competitor_id": "onnx-asr-ark-asr-0.6b",
+      "plugin_id": "ovos-stt-plugin-onnx-asr",
+      "samples": 10,
+      "metrics": {
+        "wer_mean": 0.1597,
+        "wer_median": 0.0312,
+        "latency_ms_median": 6460.33
+      },
+      "primary_metric_ci_lower": 0.03388418079096045,
+      "primary_metric_ci_upper": 0.24003448275862066,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-stt-plugin-onnx-asr==0.4.2a2"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": {
+        "gpu": {
+          "rtf": 1.284,
+          "rtf_n": 10.0,
+          "peak_rss_mb": 6073.34,
+          "peak_rss_mb_n": 10.0
+        }
+      },
+      "model_mb": 6198.27,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null
+    },
+    {
+      "rank": 5,
+      "competitor_id": "onnx-asr-nvidia-en-conformer-transducer-large",
+      "plugin_id": "ovos-stt-plugin-onnx-asr",
+      "samples": 10,
+      "metrics": {
+        "wer_mean": 0.1673,
+        "wer_median": 0.1286,
+        "latency_ms_median": 742.44
+      },
+      "primary_metric_ci_lower": 0.09341507330875419,
+      "primary_metric_ci_upper": 0.2584318093762108,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-stt-plugin-onnx-asr==0.4.2a2"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": {
+        "gpu": {
+          "rtf": 0.1553,
+          "rtf_n": 10.0,
+          "peak_rss_mb": 1984.97,
+          "peak_rss_mb_n": 10.0
+        }
+      },
+      "model_mb": 615.69,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null
+    },
+    {
+      "rank": 6,
+      "competitor_id": "onnx-asr-nvidia-en-conformer-transducer-xlarge",
+      "plugin_id": "ovos-stt-plugin-onnx-asr",
+      "samples": 10,
+      "metrics": {
+        "wer_mean": 0.1733,
+        "wer_median": 0.1069,
+        "latency_ms_median": 3831.01
+      },
+      "primary_metric_ci_lower": 0.08431224899598393,
+      "primary_metric_ci_upper": 0.30434782608695654,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-stt-plugin-onnx-asr==0.4.2a2"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": {
+        "gpu": {
+          "rtf": 0.7013,
+          "rtf_n": 10.0,
+          "peak_rss_mb": 4172.34,
+          "peak_rss_mb_n": 10.0
+        }
+      },
+      "model_mb": 3154.47,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null
+    },
+    {
+      "rank": 7,
+      "competitor_id": "chromium-stt-en",
+      "plugin_id": "ovos-stt-plugin-chromium",
+      "samples": 595,
+      "metrics": {
+        "wer_mean": 0.1979,
+        "wer_median": 0.1,
+        "latency_ms_median": 966.48
+      },
+      "primary_metric_ci_lower": 0.18988446032406495,
+      "primary_metric_ci_upper": 0.23915860398240654,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-stt-plugin-chromium==0.1.2"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": {
+        "gpu": {
+          "rtf": 0.195,
+          "rtf_n": 10.0,
+          "peak_rss_mb": 1270.44,
+          "peak_rss_mb_n": 10.0
+        }
+      },
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null
+    },
+    {
+      "rank": 8,
+      "competitor_id": "onnx-asr-nvidia-en-conformer-ctc-small",
+      "plugin_id": "ovos-stt-plugin-onnx-asr",
+      "samples": 10,
+      "metrics": {
+        "wer_mean": 0.201,
+        "wer_median": 0.1493,
+        "latency_ms_median": 167.33
+      },
+      "primary_metric_ci_lower": 0.08175779745860608,
+      "primary_metric_ci_upper": 0.32705757970071564,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-stt-plugin-onnx-asr==0.4.2a2"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": {
+        "gpu": {
+          "rtf": 0.035,
+          "rtf_n": 10.0,
+          "peak_rss_mb": 1477.9,
+          "peak_rss_mb_n": 10.0
+        }
+      },
+      "model_mb": 77.88,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null
+    },
+    {
+      "rank": 9,
       "competitor_id": "onnx-asr-parakeet-tdt-ctc-110m",
       "plugin_id": "ovos-stt-plugin-onnx-asr",
       "samples": 592,
@@ -63,7 +290,7 @@
       "sample_set_coverage": null
     },
     {
-      "rank": 3,
+      "rank": 10,
       "competitor_id": "onnx-asr-canary",
       "plugin_id": "ovos-stt-plugin-onnx-asr",
       "samples": 592,
@@ -87,49 +314,69 @@
       "sample_set_coverage": null
     },
     {
-      "rank": 4,
-      "competitor_id": "fasterwhisper-small-en",
-      "plugin_id": "ovos-stt-plugin-fasterwhisper",
-      "samples": 592,
-      "metrics": {
-        "wer_mean": 0.2344,
-        "wer_median": 0.1
-      },
-      "primary_metric_ci_lower": 0.20260416922792351,
-      "primary_metric_ci_upper": 0.26651827658488736,
-      "tied_with_leader": true,
-      "plugin_versions": [],
-      "version_blended": false,
-      "unranked": false,
-      "unranked_reason": null,
-      "perf": null,
-      "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null
-    },
-    {
-      "rank": 5,
+      "rank": 11,
       "competitor_id": "onnx-asr-citrinet-512-en",
       "plugin_id": "ovos-stt-plugin-onnx-asr",
-      "samples": 589,
+      "samples": 599,
       "metrics": {
-        "wer_mean": 0.2346,
-        "wer_median": 0.1
+        "wer_mean": 0.2326,
+        "wer_median": 0.1,
+        "latency_ms_median": 283.35
       },
-      "primary_metric_ci_lower": 0.20725261124355246,
-      "primary_metric_ci_upper": 0.27129279535301926,
+      "primary_metric_ci_lower": 0.20723518537528274,
+      "primary_metric_ci_upper": 0.268730471085404,
       "tied_with_leader": true,
-      "plugin_versions": [],
+      "plugin_versions": [
+        "ovos-stt-plugin-onnx-asr==0.4.2a2"
+      ],
       "version_blended": false,
       "unranked": false,
       "unranked_reason": null,
-      "perf": null,
+      "perf": {
+        "gpu": {
+          "rtf": 0.0559,
+          "rtf_n": 10.0,
+          "peak_rss_mb": 1557.14,
+          "peak_rss_mb_n": 10.0
+        }
+      },
       "model_mb": 137.58,
       "sample_set": "unmanaged",
       "sample_set_coverage": null
     },
     {
-      "rank": 6,
+      "rank": 12,
+      "competitor_id": "fasterwhisper-small-en",
+      "plugin_id": "ovos-stt-plugin-fasterwhisper",
+      "samples": 602,
+      "metrics": {
+        "wer_mean": 0.2327,
+        "wer_median": 0.1,
+        "latency_ms_median": 3152.09
+      },
+      "primary_metric_ci_lower": 0.20138228307628703,
+      "primary_metric_ci_upper": 0.2622548436588876,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-stt-plugin-fasterwhisper==0.4.1a6"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": {
+        "gpu": {
+          "rtf": 0.6181,
+          "rtf_n": 10.0,
+          "peak_rss_mb": 1605.12,
+          "peak_rss_mb_n": 10.0
+        }
+      },
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null
+    },
+    {
+      "rank": 13,
       "competitor_id": "onnx-asr-parakeet-tdt-06b-v3",
       "plugin_id": "ovos-stt-plugin-onnx-asr",
       "samples": 592,
@@ -153,7 +400,7 @@
       "sample_set_coverage": null
     },
     {
-      "rank": 7,
+      "rank": 14,
       "competitor_id": "whispercpp-base",
       "plugin_id": "ovos-stt-plugin-whispercpp",
       "samples": 592,
@@ -177,7 +424,7 @@
       "sample_set_coverage": null
     },
     {
-      "rank": 8,
+      "rank": 15,
       "competitor_id": "onnx-asr-conformer-ctc-en",
       "plugin_id": "ovos-stt-plugin-onnx-asr",
       "samples": 592,
@@ -188,7 +435,7 @@
       },
       "primary_metric_ci_lower": 0.24147320529764124,
       "primary_metric_ci_upper": 0.30472900007035725,
-      "tied_with_leader": false,
+      "tied_with_leader": true,
       "plugin_versions": [
         "ovos-stt-plugin-onnx-asr==0.0.1"
       ],
@@ -201,7 +448,7 @@
       "sample_set_coverage": null
     },
     {
-      "rank": 9,
+      "rank": 16,
       "competitor_id": "fasterwhisper-base-en",
       "plugin_id": "ovos-stt-plugin-fasterwhisper",
       "samples": 592,
@@ -225,7 +472,38 @@
       "sample_set_coverage": null
     },
     {
-      "rank": 10,
+      "rank": 17,
+      "competitor_id": "onnx-asr-omnilingual-ctc-300m",
+      "plugin_id": "ovos-stt-plugin-onnx-asr",
+      "samples": 10,
+      "metrics": {
+        "wer_mean": 0.2834,
+        "wer_median": 0.25,
+        "latency_ms_median": 2198.73
+      },
+      "primary_metric_ci_lower": 0.1527626811594203,
+      "primary_metric_ci_upper": 0.3956152758132956,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-stt-plugin-onnx-asr==0.4.2a2"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": {
+        "gpu": {
+          "rtf": 0.4115,
+          "rtf_n": 10.0,
+          "peak_rss_mb": 3416.23,
+          "peak_rss_mb_n": 10.0
+        }
+      },
+      "model_mb": 1557.86,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null
+    },
+    {
+      "rank": 18,
       "competitor_id": "rover-whisper-vosk-en",
       "plugin_id": "ovos-stt-plugin-rover",
       "samples": 592,
@@ -249,7 +527,7 @@
       "sample_set_coverage": null
     },
     {
-      "rank": 11,
+      "rank": 19,
       "competitor_id": "vosk-small-en",
       "plugin_id": "ovos-stt-plugin-vosk",
       "samples": 592,
@@ -273,28 +551,100 @@
       "sample_set_coverage": null
     },
     {
-      "rank": 12,
+      "rank": 20,
       "competitor_id": "vosk-big-en",
       "plugin_id": "ovos-stt-plugin-vosk",
-      "samples": 592,
+      "samples": 602,
       "metrics": {
-        "wer_mean": 0.435,
-        "wer_median": 0.3585
+        "wer_mean": 0.4306,
+        "wer_median": 0.3571,
+        "latency_ms_median": 1029.04
       },
-      "primary_metric_ci_lower": 0.4095399097150059,
-      "primary_metric_ci_upper": 0.4706856832506751,
+      "primary_metric_ci_lower": 0.40760263242138295,
+      "primary_metric_ci_upper": 0.46621130365564206,
       "tied_with_leader": false,
-      "plugin_versions": [],
+      "plugin_versions": [
+        "ovos-stt-plugin-vosk==0.2.8a2"
+      ],
       "version_blended": false,
       "unranked": false,
       "unranked_reason": null,
-      "perf": null,
+      "perf": {
+        "gpu": {
+          "rtf": 0.2285,
+          "rtf_n": 10.0,
+          "peak_rss_mb": 4430.55,
+          "peak_rss_mb_n": 10.0
+        }
+      },
       "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null
+    },
+    {
+      "rank": 21,
+      "competitor_id": "onnx-asr-wav2vec2-base-10k-voxpopuli-ft-en",
+      "plugin_id": "ovos-stt-plugin-onnx-asr",
+      "samples": 10,
+      "metrics": {
+        "wer_mean": 0.6497,
+        "wer_median": 0.5525,
+        "latency_ms_median": 920.88
+      },
+      "primary_metric_ci_lower": 0.4588170295742606,
+      "primary_metric_ci_upper": 0.7449029611844739,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-stt-plugin-onnx-asr==0.4.2a2"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": {
+        "gpu": {
+          "rtf": 0.1524,
+          "rtf_n": 10.0,
+          "peak_rss_mb": 2070.38,
+          "peak_rss_mb_n": 10.0
+        }
+      },
+      "model_mb": 361.76,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null
+    },
+    {
+      "rank": 22,
+      "competitor_id": "onnx-asr-nemotron-3.5-0.6b",
+      "plugin_id": "ovos-stt-plugin-onnx-asr",
+      "samples": 10,
+      "metrics": {
+        "wer_mean": 1.0,
+        "wer_median": 1.0,
+        "latency_ms_median": 2071.03
+      },
+      "primary_metric_ci_lower": 1.0,
+      "primary_metric_ci_upper": 1.0,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-stt-plugin-onnx-asr==0.4.2a2"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": {
+        "gpu": {
+          "rtf": 0.4053,
+          "rtf_n": 10.0,
+          "peak_rss_mb": 3951.3,
+          "peak_rss_mb_n": 10.0
+        }
+      },
+      "model_mb": 3046.02,
       "sample_set": "unmanaged",
       "sample_set_coverage": null
     }
   ],
-  "entries_hash": "45e15ad79dee80b8414ca5b4669da4379e02c53dde31dd469c4c6db3e5d2817a",
-  "input_hash": "6550746e5d853e95ba325e570bd2e41d75edcc666f9549903852030b3a2226f6",
+  "entries_hash": "feb3822b3348d8f9bcf871fd02056797804d63225fed90a6c009846cefafeb44",
+  "input_hash": "db6fb15b32b03a3b400f79e38b3d70a5f69e4b77d830563db1633103ec3e96f2",
   "judge_agreement": null
 }

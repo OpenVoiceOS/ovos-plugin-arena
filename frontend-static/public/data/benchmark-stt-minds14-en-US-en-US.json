@@ -2,7 +2,7 @@
   "modality": "stt",
   "dataset_id": "minds14-en-US",
   "lang": "en-US",
-  "generated_at": "2026-09-01T20:52:33.643567+00:00",
+  "generated_at": "2026-09-03T07:47:41.650267+00:00",
   "primary_metric": "wer_mean",
   "dataset_info": {
     "url": "https://huggingface.co/datasets/PolyAI/minds14",
@@ -13,7 +13,7 @@
     ]
   },
   "predictions_revisions": {
-    "OpenVoiceOS/ovos-stt-bench-minds14-en-US": "b60de6587c51359922c1925779d37e471ee723c5"
+    "OpenVoiceOS/ovos-stt-bench-minds14-en-US": "96e2e0f09617a9e5a636e2f8b19c977b66d80158"
   },
   "wer_normalizer_version": 1,
   "entries": [
@@ -114,19 +114,29 @@
       "rank": 5,
       "competitor_id": "fasterwhisper-small-en",
       "plugin_id": "ovos-stt-plugin-fasterwhisper",
-      "samples": 563,
+      "samples": 573,
       "metrics": {
-        "wer_mean": 0.3492,
-        "wer_median": 0.1111
+        "wer_mean": 0.3505,
+        "wer_median": 0.1111,
+        "latency_ms_median": 3207.85
       },
-      "primary_metric_ci_lower": 0.2886281244862789,
-      "primary_metric_ci_upper": 0.4030585440965263,
+      "primary_metric_ci_lower": 0.29215189887674026,
+      "primary_metric_ci_upper": 0.39864923971666666,
       "tied_with_leader": true,
-      "plugin_versions": [],
+      "plugin_versions": [
+        "ovos-stt-plugin-fasterwhisper==0.4.1a6"
+      ],
       "version_blended": false,
       "unranked": false,
       "unranked_reason": null,
-      "perf": null,
+      "perf": {
+        "gpu": {
+          "rtf": 0.4869,
+          "rtf_n": 10.0,
+          "peak_rss_mb": 1712.74,
+          "peak_rss_mb_n": 10.0
+        }
+      },
       "model_mb": null,
       "sample_set": "unmanaged",
       "sample_set_coverage": null
@@ -135,19 +145,29 @@
       "rank": 6,
       "competitor_id": "onnx-asr-citrinet-512-en",
       "plugin_id": "ovos-stt-plugin-onnx-asr",
-      "samples": 562,
+      "samples": 572,
       "metrics": {
-        "wer_mean": 0.3593,
-        "wer_median": 0.125
+        "wer_mean": 0.3618,
+        "wer_median": 0.125,
+        "latency_ms_median": 335.17
       },
-      "primary_metric_ci_lower": 0.30459354400845107,
-      "primary_metric_ci_upper": 0.4197703167837811,
+      "primary_metric_ci_lower": 0.3106146856618985,
+      "primary_metric_ci_upper": 0.42167114861203686,
       "tied_with_leader": true,
-      "plugin_versions": [],
+      "plugin_versions": [
+        "ovos-stt-plugin-onnx-asr==0.4.2a2"
+      ],
       "version_blended": false,
       "unranked": false,
       "unranked_reason": null,
-      "perf": null,
+      "perf": {
+        "gpu": {
+          "rtf": 0.0479,
+          "rtf_n": 10.0,
+          "peak_rss_mb": 1581.47,
+          "peak_rss_mb_n": 10.0
+        }
+      },
       "model_mb": 137.58,
       "sample_set": "unmanaged",
       "sample_set_coverage": null
@@ -202,6 +222,37 @@
     },
     {
       "rank": 9,
+      "competitor_id": "onnx-asr-nvidia-en-conformer-transducer-xlarge",
+      "plugin_id": "ovos-stt-plugin-onnx-asr",
+      "samples": 10,
+      "metrics": {
+        "wer_mean": 0.3716,
+        "wer_median": 0.4589,
+        "latency_ms_median": 4515.93
+      },
+      "primary_metric_ci_lower": 0.2856766917293233,
+      "primary_metric_ci_upper": 0.5675675675675675,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-stt-plugin-onnx-asr==0.4.2a2"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": {
+        "gpu": {
+          "rtf": 0.66,
+          "rtf_n": 10.0,
+          "peak_rss_mb": 4594.35,
+          "peak_rss_mb_n": 10.0
+        }
+      },
+      "model_mb": 3154.47,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null
+    },
+    {
+      "rank": 10,
       "competitor_id": "onnx-asr-conformer-ctc-en",
       "plugin_id": "ovos-stt-plugin-onnx-asr",
       "samples": 563,
@@ -225,28 +276,193 @@
       "sample_set_coverage": null
     },
     {
-      "rank": 10,
-      "competitor_id": "vosk-big-en",
-      "plugin_id": "ovos-stt-plugin-vosk",
-      "samples": 563,
+      "rank": 11,
+      "competitor_id": "onnx-asr-qwen3-0.6b",
+      "plugin_id": "ovos-stt-plugin-onnx-asr",
+      "samples": 10,
       "metrics": {
-        "wer_mean": 0.401,
-        "wer_median": 0.1667
+        "wer_mean": 0.3795,
+        "wer_median": 0.4589,
+        "latency_ms_median": 9055.42
       },
-      "primary_metric_ci_lower": 0.34496038407095453,
-      "primary_metric_ci_upper": 0.45835728083414107,
+      "primary_metric_ci_lower": 0.2772483802681378,
+      "primary_metric_ci_upper": 0.5911045218680504,
       "tied_with_leader": true,
-      "plugin_versions": [],
+      "plugin_versions": [
+        "ovos-stt-plugin-onnx-asr==0.4.2a2"
+      ],
       "version_blended": false,
       "unranked": false,
       "unranked_reason": null,
-      "perf": null,
+      "perf": {
+        "gpu": {
+          "rtf": 1.2956,
+          "rtf_n": 10.0,
+          "peak_rss_mb": 6041.65,
+          "peak_rss_mb_n": 10.0
+        }
+      },
+      "model_mb": 4480.7,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null
+    },
+    {
+      "rank": 12,
+      "competitor_id": "onnx-asr-nvidia-en-conformer-transducer-large",
+      "plugin_id": "ovos-stt-plugin-onnx-asr",
+      "samples": 10,
+      "metrics": {
+        "wer_mean": 0.3853,
+        "wer_median": 0.5035,
+        "latency_ms_median": 1776.87
+      },
+      "primary_metric_ci_lower": 0.29202617994100294,
+      "primary_metric_ci_upper": 0.6013383438818565,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-stt-plugin-onnx-asr==0.4.2a2"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": {
+        "gpu": {
+          "rtf": 0.2159,
+          "rtf_n": 10.0,
+          "peak_rss_mb": 2214.12,
+          "peak_rss_mb_n": 10.0
+        }
+      },
+      "model_mb": 615.69,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null
+    },
+    {
+      "rank": 13,
+      "competitor_id": "fasterwhisper-medium-en",
+      "plugin_id": "ovos-stt-plugin-fasterwhisper",
+      "samples": 10,
+      "metrics": {
+        "wer_mean": 0.397,
+        "wer_median": 0.4812,
+        "latency_ms_median": 9430.72
+      },
+      "primary_metric_ci_lower": 0.2672270114942528,
+      "primary_metric_ci_upper": 0.6103022514315461,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-stt-plugin-fasterwhisper==0.4.1a6"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": {
+        "gpu": {
+          "rtf": 1.3693,
+          "rtf_n": 10.0,
+          "peak_rss_mb": 2448.36,
+          "peak_rss_mb_n": 10.0
+        }
+      },
       "model_mb": null,
       "sample_set": "unmanaged",
       "sample_set_coverage": null
     },
     {
-      "rank": 11,
+      "rank": 14,
+      "competitor_id": "vosk-big-en",
+      "plugin_id": "ovos-stt-plugin-vosk",
+      "samples": 573,
+      "metrics": {
+        "wer_mean": 0.4006,
+        "wer_median": 0.1667,
+        "latency_ms_median": 2134.4
+      },
+      "primary_metric_ci_lower": 0.34994173135715567,
+      "primary_metric_ci_upper": 0.45636269950582203,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-stt-plugin-vosk==0.2.8a2"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": {
+        "gpu": {
+          "rtf": 0.2746,
+          "rtf_n": 10.0,
+          "peak_rss_mb": 4431.89,
+          "peak_rss_mb_n": 10.0
+        }
+      },
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null
+    },
+    {
+      "rank": 15,
+      "competitor_id": "onnx-asr-phi-4-multimodal-asr",
+      "plugin_id": "ovos-stt-plugin-onnx-asr",
+      "samples": 10,
+      "metrics": {
+        "wer_mean": 0.4043,
+        "wer_median": 0.4812,
+        "latency_ms_median": 34949.42
+      },
+      "primary_metric_ci_lower": 0.29111266789061746,
+      "primary_metric_ci_upper": 0.6250529661016949,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-stt-plugin-onnx-asr==0.4.2a2"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": {
+        "gpu": {
+          "rtf": 4.4744,
+          "rtf_n": 10.0,
+          "peak_rss_mb": 18661.68,
+          "peak_rss_mb_n": 10.0
+        }
+      },
+      "model_mb": 24696.04,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null
+    },
+    {
+      "rank": 16,
+      "competitor_id": "onnx-asr-nvidia-en-conformer-ctc-small",
+      "plugin_id": "ovos-stt-plugin-onnx-asr",
+      "samples": 10,
+      "metrics": {
+        "wer_mean": 0.4078,
+        "wer_median": 0.4839,
+        "latency_ms_median": 226.79
+      },
+      "primary_metric_ci_lower": 0.3129651717557252,
+      "primary_metric_ci_upper": 0.6099324233908737,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-stt-plugin-onnx-asr==0.4.2a2"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": {
+        "gpu": {
+          "rtf": 0.0346,
+          "rtf_n": 10.0,
+          "peak_rss_mb": 1561.12,
+          "peak_rss_mb_n": 10.0
+        }
+      },
+      "model_mb": 77.88,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null
+    },
+    {
+      "rank": 17,
       "competitor_id": "rover-whisper-vosk-en",
       "plugin_id": "ovos-stt-plugin-rover",
       "samples": 563,
@@ -270,7 +486,7 @@
       "sample_set_coverage": null
     },
     {
-      "rank": 12,
+      "rank": 18,
       "competitor_id": "vosk-small-en",
       "plugin_id": "ovos-stt-plugin-vosk",
       "samples": 563,
@@ -292,9 +508,133 @@
       "model_mb": null,
       "sample_set": "unmanaged",
       "sample_set_coverage": null
+    },
+    {
+      "rank": 19,
+      "competitor_id": "onnx-asr-ark-asr-0.6b",
+      "plugin_id": "ovos-stt-plugin-onnx-asr",
+      "samples": 10,
+      "metrics": {
+        "wer_mean": 0.4822,
+        "wer_median": 0.5806,
+        "latency_ms_median": 8952.22
+      },
+      "primary_metric_ci_lower": 0.3262983814215341,
+      "primary_metric_ci_upper": 0.6764705882352942,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-stt-plugin-onnx-asr==0.4.2a2"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": {
+        "gpu": {
+          "rtf": 1.3071,
+          "rtf_n": 10.0,
+          "peak_rss_mb": 6453.91,
+          "peak_rss_mb_n": 10.0
+        }
+      },
+      "model_mb": 6198.27,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null
+    },
+    {
+      "rank": 20,
+      "competitor_id": "onnx-asr-omnilingual-ctc-300m",
+      "plugin_id": "ovos-stt-plugin-onnx-asr",
+      "samples": 10,
+      "metrics": {
+        "wer_mean": 0.6103,
+        "wer_median": 0.6444,
+        "latency_ms_median": 3067.58
+      },
+      "primary_metric_ci_lower": 0.4787747035573122,
+      "primary_metric_ci_upper": 0.7189984101748808,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-stt-plugin-onnx-asr==0.4.2a2"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": {
+        "gpu": {
+          "rtf": 0.4293,
+          "rtf_n": 10.0,
+          "peak_rss_mb": 3577.8,
+          "peak_rss_mb_n": 10.0
+        }
+      },
+      "model_mb": 1557.86,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null
+    },
+    {
+      "rank": 21,
+      "competitor_id": "onnx-asr-wav2vec2-base-10k-voxpopuli-ft-en",
+      "plugin_id": "ovos-stt-plugin-onnx-asr",
+      "samples": 10,
+      "metrics": {
+        "wer_mean": 0.939,
+        "wer_median": 0.9,
+        "latency_ms_median": 1163.74
+      },
+      "primary_metric_ci_lower": 0.8020292003819671,
+      "primary_metric_ci_upper": 1.0689655172413792,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-stt-plugin-onnx-asr==0.4.2a2"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": {
+        "gpu": {
+          "rtf": 0.1569,
+          "rtf_n": 10.0,
+          "peak_rss_mb": 2357.88,
+          "peak_rss_mb_n": 10.0
+        }
+      },
+      "model_mb": 361.76,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null
+    },
+    {
+      "rank": 22,
+      "competitor_id": "onnx-asr-nemotron-3.5-0.6b",
+      "plugin_id": "ovos-stt-plugin-onnx-asr",
+      "samples": 10,
+      "metrics": {
+        "wer_mean": 1.0,
+        "wer_median": 1.0,
+        "latency_ms_median": 3244.91
+      },
+      "primary_metric_ci_lower": 1.0,
+      "primary_metric_ci_upper": 1.0,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-stt-plugin-onnx-asr==0.4.2a2"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": {
+        "gpu": {
+          "rtf": 0.4487,
+          "rtf_n": 10.0,
+          "peak_rss_mb": 4054.31,
+          "peak_rss_mb_n": 10.0
+        }
+      },
+      "model_mb": 3046.02,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null
     }
   ],
-  "entries_hash": "c7c28b8afc95bf90ece2cf8d6ae5347624662169ddaee5db024651a5019c9c31",
-  "input_hash": "58054927080c73d064a2ee5e370c15c0e31da72c9a72985459418416571f2571",
+  "entries_hash": "2c95148a07dfd4490d1bc392eb2fb38257a55fdb97b8493d7e2fdfa27b3332d6",
+  "input_hash": "ee8e71bc4706aca32d724b63366b43f076b3316adc18b2535f65dc189cf108b7",
   "judge_agreement": null
 }
