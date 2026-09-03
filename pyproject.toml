@@ -60,6 +60,13 @@ test = [
     # (runner/ww_bench.py) — tests must fail loudly, never skip, on missing
     # deps, so the probe dependency belongs in the test extra too.
     "ovoscope>=1.6.0a1",
+    # Intent-transformer tests (tests/test_intent_pipeline.py::
+    # TestIntentTransformers) exercise the real kw-template-matcher plugin
+    # against both the legacy padatious:register_intent topic and the
+    # OVOS-INTENT-4 ovos.intent.register.template spec topic — the latter
+    # support landed in kw-template-matcher's dev head (merge commit
+    # 5640d79) but has not yet reached an installable PyPI release.
+    "keyword-template-matcher>=0.1.6a1",
 ]
 lint = [
     "ruff>=0.6",

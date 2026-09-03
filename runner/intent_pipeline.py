@@ -295,13 +295,36 @@ class IntentPipeline:
                 "skill_id": "arena",
             })
             bus.emit(msg)
+            # OVOS-INTENT-4 §6 spec topic — ovos-workshop's Skill.register_
+            # template() dual-emits this alongside the legacy padatious
+            # topic (see ovos_workshop.intents.PadatiousIntentContainer.
+            # register_template), and kw-template-matcher >=0.1.6a1 keys
+            # templates registered from it as "skill_id:intent_name"
+            # (kw_template_matcher.opm.KeywordTemplateMatcher.
+            # handle_register_template) rather than the bare name the
+            # legacy topic uses. Emitting both lets the transformer serve
+            # both a legacy-form and a spec-form (m2v-style, skill-
+            # prefixed) match_type; kw-template-matcher de-duplicates a
+            # template set registered twice under different topics for
+            # the same (lang, key), so this is not a double-count.
+            spec_msg = Message("ovos.intent.register.template", {
+                "skill_id": "arena",
+                "intent_name": intent_id,
+                "samples": samples,
+                "lang": self.lang,
+                "blacklist": [],
+                "slot_blacklist": {},
+            })
+            bus.emit(spec_msg)
             # Mirror onto the intent-transformer bus (if configured) so
             # transformers that learn from registration traffic — e.g.
-            # kw-template-matcher's ``padatious:register_intent`` listener —
-            # see the same templates every pipeline plugin trains on,
-            # regardless of which stage ends up firing at predict() time.
+            # kw-template-matcher's ``padatious:register_intent`` and
+            # ``ovos.intent.register.template`` listeners — see the same
+            # templates every pipeline plugin trains on, regardless of
+            # which stage ends up firing at predict() time.
             if extra_bus is not None:
                 extra_bus.emit(msg)
+                extra_bus.emit(spec_msg)
 
         # Entities registered once per name — merged example values across
         # intents (some engines raise on re-registration)
@@ -392,26 +415,35 @@ class IntentPipeline:
         """Run the winning match through the configured intent-transformer
         chain and return any slot keys it added.
 
-        Constructed with the normalised ``intent_id`` (not the engine's raw,
-        possibly skill-prefixed ``match_type``) so it lines up with the name
-        transformers like kw-template-matcher learned from
-        ``padatious:register_intent`` (see ``_register_templates``).
+        Transformers like kw-template-matcher key what they learned by the
+        topic the templates arrived on: the legacy ``padatious:
+        register_intent`` topic keys by the bare intent name, while the
+        spec ``ovos.intent.register.template`` topic keys by the skill-
+        prefixed ``"arena:<intent_id>"`` form used by ``IntentHandlerMatch.
+        match_type`` for m2v-style fighters (see ``_register_templates``).
+        Try both forms and keep whichever one the transformer actually
+        recognised.
         """
         from ovos_plugin_manager.templates.pipeline import IntentHandlerMatch
 
         before = set(match_data.keys())
-        handler_match = IntentHandlerMatch(
-            match_type=intent_id,
-            match_data=dict(match_data),
-            skill_id="arena",
-            utterance=utterance,
-        )
-        transformed = self._xformers.transform(handler_match)
-        tdata = transformed.match_data if isinstance(transformed.match_data, dict) else {}
-        return {
-            k: v for k, v in tdata.items()
-            if k not in before and k not in _META_KEYS and isinstance(v, str)
-        }
+        for match_type in (intent_id, f"arena:{intent_id}"):
+            handler_match = IntentHandlerMatch(
+                match_type=match_type,
+                match_data=dict(match_data),
+                skill_id="arena",
+                utterance=utterance,
+            )
+            transformed = self._xformers.transform(handler_match)
+            tdata = (transformed.match_data
+                     if isinstance(transformed.match_data, dict) else {})
+            new_slots = {
+                k: v for k, v in tdata.items()
+                if k not in before and k not in _META_KEYS and isinstance(v, str)
+            }
+            if new_slots:
+                return new_slots
+        return {}
 
     @staticmethod
     def _normalise(match_type: str) -> str:

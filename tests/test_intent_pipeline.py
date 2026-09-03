@@ -194,6 +194,51 @@ class TestIntentTransformers:
         assert stage == "toy-label-pipeline-high"
         assert slots == {"song": "africa"}
 
+    def test_register_templates_emits_spec_topic(self):
+        # OVOS-INTENT-4 §6: ovos-workshop's Skill.register_template()
+        # dual-emits padatious:register_intent (legacy) and
+        # ovos.intent.register.template (spec) — the runner's own
+        # registration must do the same so transformers that only bind
+        # the spec topic (or key templates by its skill-prefixed form,
+        # like kw-template-matcher) still see the training data.
+        pipeline = _toy_pipeline(with_transformer=True)
+        seen = []
+        pipeline.xformer_bus.on(
+            "ovos.intent.register.template", lambda m: seen.append(m)
+        )
+
+        pipeline.train(TRAIN_ROWS)
+
+        assert len(seen) == 1
+        assert seen[0].data["skill_id"] == "arena"
+        assert seen[0].data["intent_name"] == "play_song"
+        assert seen[0].data["lang"] == "en-us"
+        assert "play africa" in seen[0].data["samples"]
+
+    def test_transform_slots_falls_back_to_skill_prefixed_key(self):
+        # kw-template-matcher keys templates it learned from the spec
+        # topic as "skill_id:intent_name" (m2v's IntentHandlerMatch.
+        # match_type convention) rather than the bare name the legacy
+        # padatious topic uses. Register a template ONLY via the spec
+        # topic (bypassing train()'s legacy emission) and confirm the
+        # runner's lookup still finds it by trying the skill-prefixed
+        # form after the bare form misses.
+        from ovos_bus_client.message import Message
+
+        pipeline = _toy_pipeline(with_transformer=True)
+        pipeline.xformer_bus.emit(Message("ovos.intent.register.template", {
+            "skill_id": "arena",
+            "intent_name": "spec_only_intent",
+            "samples": ["play {song}"],
+            "lang": "en-us",
+        }))
+
+        slots = pipeline._transform_slots(
+            "spec_only_intent", {"conf": 1.0}, "play africa"
+        )
+
+        assert slots == {"song": "africa"}
+
     def test_no_slots_without_transformer_configured(self):
         pipeline = _toy_pipeline(with_transformer=False)
         pipeline.train(TRAIN_ROWS)
