@@ -1,0 +1,36 @@
+{
+  "competitor_id": "m2v-nebulento",
+  "modality": "intent",
+  "config": {
+    "intents": {
+      "pipeline": [
+        "ovos-m2v-pipeline-high",
+        "ovos-nebulento-pipeline-plugin-medium"
+      ],
+      "ovos-m2v-pipeline": {
+        "conf_high": 0.7,
+        "conf_medium": 0.5,
+        "conf_low": 0.15
+      },
+      "ovos-nebulento-pipeline-plugin": {
+        "conf_high": 0.95,
+        "conf_med": 0.8,
+        "conf_low": 0.5,
+        "workers": 4
+      }
+    }
+  },
+  "langs": [],
+  "display_name": "M2V × Nebulento",
+  "types": [
+    "ensemble",
+    "embeddings",
+    "fuzzy-match"
+  ],
+  "description": "The embedding classifier takes the first shot at Model2Vec's trained label set, then Nebulento's fuzzy template matching mops up with runtime-registered templates and slot extraction — a padatious-free replacement candidate.",
+  "links": {
+    "source": "https://github.com/OpenVoiceOS/ovos-m2v-pipeline"
+  },
+  "size": "micro",
+  "notes": "HYPOTHESIS: m2v + nebulento is probably better than padatious. m2v-first (see sibling fighter) already showed an embedding-similarity front door changes what gets caught first, but it still leans on Padatious as the backstop, which means it inherits Padatious's two blockers to being a default: no slot extraction and no open-world runtime-registered intents. Nebulento fills both gaps — it extracts slots from its templates and accepts templates registered at runtime rather than only at training time — while still being a fuzzy/edit-distance matcher rather than a learned classifier, so pairing it with m2v's paraphrase-robust embedding similarity tests whether the combination can fully replace Padatious rather than merely front it. Comparators: padatious-stock (the plain baseline this fighter is trying to unseat) and the existing ensembles nebulatious and trident. REQUIRES ovos-m2v-pipeline>=0.9.0a1 — versions before 0.8.1a1 have a label-filter bug that poisons predictions; there is no plugin floor/pin field in this registry schema, so sweeps of this fighter must be run with that floor already installed in the runner environment."
+}
