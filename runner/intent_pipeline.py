@@ -202,6 +202,29 @@ class IntentPipeline:
             self.plugins[plugin_id] = plugin_cls(bus, plugin_config)
             self.buses[plugin_id] = bus
 
+        # Optional intent-transformer chain (production's ``IntentTransformers
+        # Service``), config-gated exactly like ovos-core. Each pipeline
+        # plugin above owns its own FakeBus so training/matching is isolated
+        # per engine; a transformer that learns from bus traffic (e.g.
+        # kw-template-matcher, which binds a ``padatious:register_intent``
+        # handler) would never see anything on those private buses. Rather
+        # than sharing one bus across every plugin — which would let engines
+        # observe each other's registration and training-trigger messages —
+        # the transformer chain gets its own bus, and ``train()`` mirrors
+        # each template registration onto it (see ``_register_templates``).
+        self.xformer_bus = None
+        self._xformers = None
+        xf_config = intents_config.get("intent_transformers")
+        if xf_config:
+            from ovos_plugin_manager.transformer_services import (
+                IntentTransformersService,
+            )
+            self.xformer_bus = FakeBus()
+            self._xformers = IntentTransformersService(
+                bus=self.xformer_bus,
+                config={"intent_transformers": xf_config},
+            )
+
     @property
     def stage_names(self) -> list[str]:
         return [f"{plugin_id}-{tier}" for plugin_id, tier in self.stages]
@@ -227,7 +250,7 @@ class IntentPipeline:
                     f"{plugin_id} — check the dataset's train_datasets links"
                 )
             if spec.paradigm == "template":
-                self._register_templates(bus, rows)
+                self._register_templates(bus, rows, extra_bus=self.xformer_bus)
             else:
                 self._register_keywords(bus, rows)
 
@@ -239,7 +262,7 @@ class IntentPipeline:
                 except TypeError:
                     pass  # train() signatures vary; bus message already fired
 
-    def _register_templates(self, bus, rows: list[dict]) -> None:
+    def _register_templates(self, bus, rows: list[dict], extra_bus=None) -> None:
         from ovos_bus_client.message import Message
 
         by_intent: dict[str, list[dict]] = {}
@@ -265,22 +288,33 @@ class IntentPipeline:
             samples = list(dict.fromkeys(s for s in samples if s))
             if not samples:
                 continue
-            bus.emit(Message("padatious:register_intent", {
+            msg = Message("padatious:register_intent", {
                 "name": intent_id,
                 "samples": samples,
                 "lang": self.lang,
                 "skill_id": "arena",
-            }))
+            })
+            bus.emit(msg)
+            # Mirror onto the intent-transformer bus (if configured) so
+            # transformers that learn from registration traffic — e.g.
+            # kw-template-matcher's ``padatious:register_intent`` listener —
+            # see the same templates every pipeline plugin trains on,
+            # regardless of which stage ends up firing at predict() time.
+            if extra_bus is not None:
+                extra_bus.emit(msg)
 
         # Entities registered once per name — merged example values across
         # intents (some engines raise on re-registration)
         for name, samples in entities.items():
-            bus.emit(Message("padatious:register_entity", {
+            msg = Message("padatious:register_entity", {
                 "name": name,
                 "samples": samples,
                 "lang": self.lang,
                 "skill_id": "arena",
-            }))
+            })
+            bus.emit(msg)
+            if extra_bus is not None:
+                extra_bus.emit(msg)
 
     def _register_keywords(self, bus, rows: list[dict]) -> None:
         from ovos_adapt.intent import IntentBuilder
@@ -345,10 +379,39 @@ class IntentPipeline:
             data = dict(raw_data) if isinstance(raw_data, dict) else {}
             confidence = data.get("conf", data.get("confidence"))
             slots = self._extract_slots(data)
+            if self._xformers is not None:
+                slots.update(self._transform_slots(intent_id, data, utterance))
             return intent_id, slots, confidence, latency_ms, f"{plugin_id}-{tier}"
 
         latency_ms = (time.perf_counter() - start) * 1000
         return None, {}, None, latency_ms, None
+
+    def _transform_slots(
+        self, intent_id: str, match_data: dict, utterance: str
+    ) -> dict[str, str]:
+        """Run the winning match through the configured intent-transformer
+        chain and return any slot keys it added.
+
+        Constructed with the normalised ``intent_id`` (not the engine's raw,
+        possibly skill-prefixed ``match_type``) so it lines up with the name
+        transformers like kw-template-matcher learned from
+        ``padatious:register_intent`` (see ``_register_templates``).
+        """
+        from ovos_plugin_manager.templates.pipeline import IntentHandlerMatch
+
+        before = set(match_data.keys())
+        handler_match = IntentHandlerMatch(
+            match_type=intent_id,
+            match_data=dict(match_data),
+            skill_id="arena",
+            utterance=utterance,
+        )
+        transformed = self._xformers.transform(handler_match)
+        tdata = transformed.match_data if isinstance(transformed.match_data, dict) else {}
+        return {
+            k: v for k, v in tdata.items()
+            if k not in before and k not in _META_KEYS and isinstance(v, str)
+        }
 
     @staticmethod
     def _normalise(match_type: str) -> str:

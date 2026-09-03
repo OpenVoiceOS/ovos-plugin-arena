@@ -494,7 +494,13 @@ def run_competitor_lang(
         if paradigm in needed
     }
 
-    pipeline = IntentPipeline(competitor.config["intents"], lang=lang)
+    intents_config = dict(competitor.config["intents"])
+    if "intent_transformers" in competitor.config:
+        # Fighter-declared, config-gated exactly like production's
+        # mycroft.conf ``intent_transformers`` section — carried alongside
+        # (not inside) ``intents`` since it is not a pipeline stage.
+        intents_config["intent_transformers"] = competitor.config["intent_transformers"]
+    pipeline = IntentPipeline(intents_config, lang=lang)
     log.info("  training %s for %s (stages: %s)",
              competitor.competitor_id, lang, ", ".join(pipeline.stage_names))
     pipeline.train(train_data)

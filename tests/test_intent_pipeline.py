@@ -128,3 +128,80 @@ class TestNormalise:
 
     def test_bare_intent_untouched(self):
         assert IntentPipeline._normalise("media:play_song") == "media:play_song"
+
+
+class _ToyLabelPipeline:
+    """Stand-in for a label-only classifier (e.g. m2v): it names the intent
+    but never extracts slots — exactly the case intent transformers exist to
+    cover."""
+
+    def __init__(self, bus, config):
+        self.bus = bus
+        self.config = config
+
+    def match_high(self, utterances, lang, message):
+        from ovos_plugin_manager.templates.pipeline import IntentHandlerMatch
+
+        utterance = utterances[0]
+        if "play" in utterance:
+            return IntentHandlerMatch(
+                match_type="play_song", match_data={"conf": 1.0},
+                skill_id="arena", utterance=utterance,
+            )
+        return None
+
+
+TRAIN_ROWS = {
+    "template": [{
+        "intent_id": "play_song",
+        "template": "play {song}",
+        "slots": [{"name": "song", "examples": ["africa"]}],
+    }],
+}
+
+
+def _toy_pipeline(with_transformer: bool) -> IntentPipeline:
+    config = {"pipeline": ["toy-label-pipeline-high"]}
+    if with_transformer:
+        config["intent_transformers"] = {"ovos-keyword-template-matcher": {}}
+    return IntentPipeline(config, lang="en-us")
+
+
+@pytest.mark.skipif(
+    __import__("importlib.util", fromlist=["find_spec"]).find_spec(
+        "kw_template_matcher") is None,
+    reason="keyword-template-matcher plugin not installed",
+)
+class TestIntentTransformers:
+    @pytest.fixture(autouse=True)
+    def _toy_engine_registered(self):
+        from runner import intent_pipeline as ip_mod
+
+        ip_mod.ENGINE_REGISTRY["toy-label-pipeline"] = ip_mod.EngineSpec(
+            f"{__name__}:_ToyLabelPipeline", "template", None, "toy", "toy")
+        yield
+        del ip_mod.ENGINE_REGISTRY["toy-label-pipeline"]
+
+    def test_slots_filled_with_transformer_configured(self):
+        pipeline = _toy_pipeline(with_transformer=True)
+        pipeline.train(TRAIN_ROWS)
+
+        intent_id, slots, confidence, _latency, stage = pipeline.predict(
+            "play africa"
+        )
+
+        assert intent_id == "play_song"
+        assert stage == "toy-label-pipeline-high"
+        assert slots == {"song": "africa"}
+
+    def test_no_slots_without_transformer_configured(self):
+        pipeline = _toy_pipeline(with_transformer=False)
+        pipeline.train(TRAIN_ROWS)
+
+        intent_id, slots, confidence, _latency, stage = pipeline.predict(
+            "play africa"
+        )
+
+        assert intent_id == "play_song"
+        assert stage == "toy-label-pipeline-high"
+        assert slots == {}
