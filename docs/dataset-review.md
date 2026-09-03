@@ -211,6 +211,33 @@ with zero inbound references. It has a `predictions_hf` field
 (`OpenVoiceOS/ovos-intent-bench-hass-intent-templates`) as if it were
 meant to back a board, but no eval dataset drives predictions into it.
 
+### `ovos-golden-utterances-bench`, regenerating from the skill fleet
+
+`OpenVoiceOS/ovos-golden-utterances-bench` on the HF hub is a held-out
+intent eval set built from the `test/end2end/golden_utterances*.jsonl`
+suites shipped by the `ovos-skill-*` fleet, one JSONL file per language.
+It is not built from a static, hand-curated corpus: every skill repo owns
+its own golden-utterances file(s), so the dataset drifts out of date as
+skills gain or edit test rows.
+
+`scripts/build_golden_utterances.py` reproduces the full pipeline:
+enumerate non-archived `ovos-skill-*` repos in the org, fetch every
+`golden_utterances*.jsonl` from each repo's default branch, normalize
+rows (strip the trailing `.intent` suffix from file-based intent labels,
+stamp `lang` from the row or the `golden_utterances_<locale>.jsonl`
+filename, defaulting to `en-US`), and write `<lang>/test.jsonl` plus a
+regenerated dataset card. Running it with `--out DIR` only builds and
+validates locally; `--publish` additionally uploads the result to the HF
+repo, refusing to publish (unless `--force`) if the new row count drops
+more than 20% below what is currently published — a guard against a
+transient GitHub API failure silently truncating the live dataset.
+
+Regenerate whenever skills merge new or edited golden-utterances rows:
+
+```
+python3 scripts/build_golden_utterances.py --publish
+```
+
 ## Gap analysis summary
 
 | modality | datasets | boards published | idle datasets |
