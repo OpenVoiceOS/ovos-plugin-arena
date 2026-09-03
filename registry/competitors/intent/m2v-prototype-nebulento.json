@@ -1,0 +1,37 @@
+{
+  "competitor_id": "m2v-prototype-nebulento",
+  "modality": "intent",
+  "config": {
+    "intents": {
+      "pipeline": [
+        "ovos-m2v-prototype-pipeline-high",
+        "ovos-nebulento-pipeline-plugin-medium"
+      ],
+      "ovos-m2v-prototype-pipeline": {
+        "conf_high": 0.6,
+        "conf_medium": 0.45,
+        "conf_low": 0.3
+      },
+      "ovos-nebulento-pipeline-plugin": {
+        "conf_high": 0.95,
+        "conf_med": 0.8,
+        "conf_low": 0.5,
+        "workers": 4
+      }
+    }
+  },
+  "langs": [],
+  "display_name": "M2V Prototype × Nebulento",
+  "types": [
+    "ensemble",
+    "embeddings",
+    "zero-shot",
+    "fuzzy-match"
+  ],
+  "description": "Tests whether zero-shot embedding matching plus fuzzy template slots can replace padatious with no training step at all: Model2Vec's prototype-mode pipeline takes the first shot with class prototypes embedded straight from registered templates, and Nebulento's fuzzy template matching backs it up for slot extraction and runtime-registered templates.",
+  "links": {
+    "source": "https://github.com/OpenVoiceOS/ovos-m2v-pipeline"
+  },
+  "size": "micro",
+  "notes": "HYPOTHESIS: m2v-prototype (see sibling fighter) shows that prototype-mode embedding similarity alone, with no trained head, can match runtime-registered intents. But it still lacks slot extraction. Nebulento fills that gap with template-based slot extraction and its own runtime-registered templates, so pairing it with the prototype pipeline's zero-shot front door tests a fully training-step-free replacement for padatious, not merely a front door for it. Comparators: padatious-stock (the trained baseline this fighter is trying to unseat), m2v-first/m2v-nebulento (the classifier-mode embedding fighters this pipeline is a zero-shot sibling to), and m2v-prototype (isolates whether adding Nebulento's fuzzy backstop helps over the pure prototype fighter alone). conf_high/conf_medium/conf_low on the prototype block are the cosine-calibrated defaults from ovos-m2v-pipeline PR #91. REQUIRES ovos-m2v-pipeline>=0.9.0a1 — the calibrated thresholds land with ovos-m2v-pipeline#91; sweeps run before that PR merges and releases exercise the pipeline's code defaults instead, so this fighter's sweep must be sequenced after #91 merges. There is no plugin floor/pin field in this registry schema, so the floor must already be installed in the runner environment."
+}

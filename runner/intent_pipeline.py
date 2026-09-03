@@ -81,6 +81,9 @@ ENGINE_REGISTRY: dict[str, EngineSpec] = {
     "ovos-m2v-pipeline": EngineSpec(
         "ovos_m2v_pipeline:Model2VecIntentPipeline", "template",
         "mycroft.ready", "ovos-m2v-pipeline", "m2v"),
+    "ovos-m2v-prototype-pipeline": EngineSpec(
+        "ovos_m2v_pipeline:Model2VecPrototypePipeline", "template",
+        "mycroft.ready", "ovos-m2v-pipeline", "m2v_prototype"),
     "ovos-hierarchical-knn-pipeline": EngineSpec(
         "ovos_hierarchical_knn_pipeline:HierarchicalKNNIntentPipeline",
         "template",

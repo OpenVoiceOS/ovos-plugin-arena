@@ -1,0 +1,29 @@
+{
+  "competitor_id": "m2v-prototype",
+  "modality": "intent",
+  "config": {
+    "intents": {
+      "pipeline": [
+        "ovos-m2v-prototype-pipeline-high",
+        "ovos-m2v-prototype-pipeline-medium"
+      ],
+      "ovos-m2v-prototype-pipeline": {
+        "conf_high": 0.6,
+        "conf_medium": 0.45,
+        "conf_low": 0.3
+      }
+    }
+  },
+  "langs": [],
+  "display_name": "M2V Prototype",
+  "types": [
+    "embeddings",
+    "zero-shot"
+  ],
+  "description": "A pure zero-shot fighter: Model2Vec's prototype-mode pipeline embeds each intent's templates into a class prototype at registration time and matches utterances against those prototypes by cosine similarity, with no trained classification head at all.",
+  "links": {
+    "source": "https://github.com/OpenVoiceOS/ovos-m2v-pipeline"
+  },
+  "size": "micro",
+  "notes": "HYPOTHESIS: every other fighter in the league, including the m2v-first/m2v-nebulento embedding-fronted ensembles, ultimately relies on a classifier (Padatious, Nebulento, or Model2Vec's own trained label set) that must see an intent's templates at a training step before it can match against them. Prototype mode instead embeds a class prototype directly from the templates handed to it at registration, so intents registered at runtime — after the pipeline is already live, with no retrain — are immediately matchable. This isolates the open-world/zero-shot axis: can embedding-prototype similarity alone, with no trained head, replace a trained classifier's raw matching accuracy. conf_high/conf_medium/conf_low are the cosine-calibrated defaults from ovos-m2v-pipeline PR #91, not the classifier-mode thresholds used by m2v-first/m2v-nebulento. REQUIRES ovos-m2v-pipeline>=0.9.0a1 — the calibrated thresholds land with ovos-m2v-pipeline#91; sweeps run before that PR merges and releases exercise the pipeline's code defaults instead, so this fighter's sweep must be sequenced after #91 merges. There is no plugin floor/pin field in this registry schema, so the floor must already be installed in the runner environment."
+}
