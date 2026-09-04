@@ -14,7 +14,8 @@ The Plugin Arena answers one recurring question for the OVOS ecosystem:
 *"which plugin should I use?"* It does so with two complementary signals:
 
 1. **Benchmarks**, plugin predictions evaluated against labelled datasets
-   (accuracy/F1 for intent, WER for STT, detection metrics for wake word),
+   (generalization accuracy/F1 for intent, WER for STT, detection metrics
+   for wake word),
    published openly and reproducibly.
 2. **Human preference**, chess-style ELO ratings produced by blind A/B
    "battles" where users pick the better of two plugin outputs. The initial
@@ -514,7 +515,21 @@ audio modalities share `runner/media_bench.py` (the intent leagues share
 1. **Intent**, `benchmarks/intent_intents_for_eval.py` and
    `benchmarks/intent_massive_templates.py`: the three intent leagues over
    `OpenVoiceOS/intents-for-eval` (12 langs) and `OpenVoiceOS/massive-templates`
-   (52 langs). Ranked by accuracy with an ELO seed.
+   (52 langs). Ranked by `generalization_accuracy` with an ELO seed.
+
+   About half of `intents-for-eval`'s test set is also training data: the
+   runner trains template engines on every phrase template AND on its
+   slot-filled expansions (`runner/intent_pipeline.py:expand_template`), and
+   the `template` and `near_ood` test rows are largely those expansions
+   verbatim — 95% and 83% of those two buckets on en-US, 46% of the corpus
+   (pt-PT measures 93%, 77%, 45%). Accuracy inside them measures
+   memorization and favours exact-string matchers, so boards rank on
+   `generalization_accuracy`, which covers only `paraphrase`, `typos`,
+   `asr_noise` and `far_ood`. Plain `accuracy` and every per-bucket column
+   remain published beside it. `near_ood` is published as
+   `acc_in_distribution`: no row in it has a null expected intent, and
+   almost every duplicated row repeats its training utterance under the same
+   gold label.
 2. **STT**, `benchmarks/stt_minds14.py` (`runner/stt_bench.py`): transcribes
    each fighter over MInDS-14. Ranked by WER with an ELO seed. A separate
    off-repo prediction runner also feeds legacy `ovos-stt-bench-*` rows,

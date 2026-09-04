@@ -66,6 +66,100 @@ class TestDomainOf:
         assert domain_of(None) is None
 
 
+class TestGeneralizationAccuracy:
+    """The ranked intent metric must ignore the buckets that leak training
+    data (``template``/``near_ood``), so a memorizer cannot outrank an engine
+    that actually handles unseen phrasings."""
+
+    def test_contaminated_buckets_do_not_enter_the_metric(self):
+        rows = [
+            _row(reference_intent="a", prediction="a", bucket="template"),
+            _row(reference_intent="a", prediction="a", bucket="near_ood"),
+            _row(reference_intent="a", prediction="b", bucket="paraphrase"),
+            _row(reference_intent="a", prediction="a", bucket="typos"),
+        ]
+        metrics = score_intent(rows)
+        assert metrics["accuracy"] == 0.75
+        assert metrics["generalization_accuracy"] == 0.5
+        assert metrics["acc_template"] == 1.0
+        assert metrics["acc_in_distribution"] == 1.0
+        assert "acc_near_ood" not in metrics
+
+    def test_all_contaminated_fighter_is_unranked_but_not_called_a_failure(self):
+        # Every row lands in a bucket the ranked metric excludes: there is no
+        # generalization_accuracy to rank on, but the run itself succeeded.
+        by_competitor = {
+            "memorizer": [
+                _row(competitor_id="memorizer", sample_id=f"t{i}",
+                     bucket="template", reference_intent="a", prediction="a")
+                for i in range(4)
+            ],
+            "generalizer": [
+                _row(competitor_id="generalizer", sample_id=f"p{i}",
+                     bucket="paraphrase", reference_intent="a", prediction="b")
+                for i in range(4)
+            ],
+        }
+        board = build_benchmark_board("intent", "d", "en-US", by_competitor, "t")
+        memorizer = next(e for e in board.entries
+                         if e.competitor_id == "memorizer")
+        assert memorizer.metrics["accuracy"] == 1.0
+        assert "generalization_accuracy" not in memorizer.metrics
+        assert memorizer.unranked is True
+        assert memorizer.rank == 0
+        assert "run failed" not in memorizer.unranked_reason
+        assert "generalization_accuracy" in memorizer.unranked_reason
+
+    def test_zero_row_fighter_still_reads_as_a_failed_run(self):
+        by_competitor = {"crashed": [], "ok": [
+            _row(competitor_id="ok", bucket="paraphrase",
+                 reference_intent="a", prediction="a"),
+        ]}
+        board = build_benchmark_board("intent", "d", "en-US", by_competitor, "t")
+        crashed = next(e for e in board.entries
+                       if e.competitor_id == "crashed")
+        assert crashed.metrics["n_scored"] == 0.0
+        assert crashed.unranked_reason == "run failed — no scored samples"
+
+    def test_crashed_stt_run_reads_as_a_failed_run_not_off_metric(self):
+        # score_stt returns {} (not an n_scored=0.0 placeholder) when a row
+        # never produced a transcript or reference to compute WER from.
+        by_competitor = {"crashed": [
+            _row(competitor_id="crashed", dataset_id="d", lang="en-US"),
+        ]}
+        board = build_benchmark_board("stt", "d", "en-US", by_competitor, "t")
+        crashed = next(e for e in board.entries
+                       if e.competitor_id == "crashed")
+        assert crashed.metrics == {}
+        assert crashed.unranked_reason == "run failed — no scored samples"
+
+    def test_memorizer_does_not_outrank_generalizer(self):
+        def rows(competitor, memorized, generalized):
+            out = []
+            for i in range(10):
+                for bucket, hit in (("template", memorized),
+                                    ("near_ood", memorized),
+                                    ("paraphrase", generalized),
+                                    ("typos", generalized)):
+                    out.append(_row(
+                        competitor_id=competitor, sample_id=f"{bucket}-{i}",
+                        bucket=bucket, reference_intent="a",
+                        prediction="a" if hit else "b",
+                    ))
+            return out
+
+        by_competitor = {
+            "memorizer": rows("memorizer", memorized=True, generalized=False),
+            "generalizer": rows("generalizer", memorized=False, generalized=True),
+        }
+        board = build_benchmark_board("intent", "d", "en-US", by_competitor, "t")
+        assert board.primary_metric == "generalization_accuracy"
+        ranked = [e.competitor_id for e in board.entries]
+        assert ranked == ["generalizer", "memorizer"]
+        scores = {e.competitor_id: e.metrics for e in board.entries}
+        assert scores["memorizer"]["accuracy"] == scores["generalizer"]["accuracy"]
+
+
 class TestScoreIntent:
     def test_accuracy_counts_ood_rejections(self):
         rows = [
@@ -547,7 +641,7 @@ class TestIntelligibilityScores:
 
 
 class TestBenchmarkBoard:
-    def test_intent_ranked_by_accuracy_desc(self):
+    def test_intent_ranked_by_generalization_accuracy_desc(self):
         by_competitor = {
             "weak": [_row(competitor_id="weak", reference_intent="a",
                           prediction="b")],
@@ -555,7 +649,7 @@ class TestBenchmarkBoard:
                             prediction="a")],
         }
         board = build_benchmark_board("intent", "d", "en-US", by_competitor, "t")
-        assert board.primary_metric == "accuracy"
+        assert board.primary_metric == "generalization_accuracy"
         assert [e.competitor_id for e in board.entries] == ["strong", "weak"]
         assert [e.rank for e in board.entries] == [1, 2]
 

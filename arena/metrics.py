@@ -12,6 +12,9 @@ Intent scoring conventions
   is a false positive (counted in ``ood_fpr`` and penalising that intent's
   precision in macro-F1).
 - ``accuracy`` covers ALL samples, counting correct OOD rejections.
+- ``generalization_accuracy`` covers only the samples an engine cannot have
+  seen during training (see ``CONTAMINATED_BUCKETS``) and is what the intent
+  boards rank on.
 - ``slot_f1`` is exact-match over the gold slot dict, evaluated only on
   rows where the intent was correct and gold slots exist.
 """
@@ -44,12 +47,29 @@ BOOTSTRAP_SEED = 0
 # ``input_hash`` never survives a scoring-logic change — the whole point of
 # the signature is "same input AND same logic produces the same output",
 # not just "same input".
-BOARD_LOGIC_VERSION = 1
+BOARD_LOGIC_VERSION = 2
+
+#: Test buckets whose utterances also reach the engines as training data.
+#: A template-paradigm fighter is trained on every phrase template AND on
+#: ``runner.intent_pipeline.expand_template``'s slot-filled expansions of it,
+#: and ``intents-for-eval``'s ``template`` and ``near_ood`` test rows are
+#: largely those same expansions verbatim — measured at 95% and 83% of the two
+#: buckets on en-US, 46% of the whole test set. Accuracy inside them is a
+#: memorization lookup, not evidence an engine understands anything, and it
+#: systematically favours exact-string matchers. They stay published as their
+#: own ``acc_*`` columns; they are excluded from the ranked metric.
+CONTAMINATED_BUCKETS = frozenset({"template", "near_ood"})
+
+#: Published column suffix for a raw dataset bucket name, where the dataset's
+#: own name misdescribes the rows. ``near_ood`` is not out-of-distribution: no
+#: row in it has a null expected intent, and the overwhelming majority repeat a
+#: training utterance under the same gold label.
+BUCKET_METRIC_NAMES = {"near_ood": "in_distribution"}
 
 PRIMARY_METRIC = {
-    "intent": "accuracy",
-    "intent_template": "accuracy",
-    "intent_keyword": "accuracy",
+    "intent": "generalization_accuracy",
+    "intent_template": "generalization_accuracy",
+    "intent_keyword": "generalization_accuracy",
     "stt": "wer_mean",
     "wake_word": "error_rate",
     "vad": "error_rate",
@@ -65,7 +85,9 @@ PRIMARY_METRIC = {
 # WER, latency).  ``accuracy`` is the only intent/wake-word board ranked
 # descending; ``utmos`` (TTS naturalness MOS, 1-5) is likewise ascending-bad —
 # every other primary metric ranks ascending.
-_HIGHER_BETTER = {"accuracy", "utmos", "slot_exact_match"}
+_HIGHER_BETTER = {
+    "accuracy", "generalization_accuracy", "utmos", "slot_exact_match",
+}
 
 #: Polarity of the flattened SIGMOS/DNSMOS/NISQA quality-dimension columns
 #: (§4 R14 extension) — NOT primary-metric ranking keys (UTMOS stays
@@ -214,6 +236,7 @@ def score_intent(rows: list[PredictionRow]) -> dict[str, float]:
     n = len(rows)
     f1s = [_f1(v["tp"], v["fp"], v["fn"]) for v in per_intent.values()]
     metrics: dict[str, float] = {
+        "n_scored": float(n),
         "accuracy": round(correct / n, 4) if n else 0.0,
         "macro_f1": round(sum(f1s) / len(f1s), 4) if f1s else 0.0,
     }
@@ -226,9 +249,19 @@ def score_intent(rows: list[PredictionRow]) -> dict[str, float]:
     ece = expected_calibration_error(rows)
     if ece is not None:
         metrics["ece"] = ece
+    clean_total = sum(
+        v["total"] for b, v in per_bucket.items() if b not in CONTAMINATED_BUCKETS
+    )
+    if clean_total:
+        clean_correct = sum(
+            v["correct"] for b, v in per_bucket.items()
+            if b not in CONTAMINATED_BUCKETS
+        )
+        metrics["generalization_accuracy"] = round(clean_correct / clean_total, 4)
     for bucket, v in sorted(per_bucket.items()):
         if v["total"]:
-            metrics[f"acc_{bucket}"] = round(v["correct"] / v["total"], 4)
+            name = BUCKET_METRIC_NAMES.get(bucket, bucket)
+            metrics[f"acc_{name}"] = round(v["correct"] / v["total"], 4)
     return metrics
 
 
@@ -900,6 +933,14 @@ def _intent_correct_indicators(rows: list[PredictionRow]) -> list[float]:
     return [1.0 if row_is_correct(r) else 0.0 for r in rows]
 
 
+def _intent_generalization_indicators(rows: list[PredictionRow]) -> list[float]:
+    return [
+        1.0 if row_is_correct(r) else 0.0
+        for r in rows
+        if (r.bucket or "test") not in CONTAMINATED_BUCKETS
+    ]
+
+
 def _ww_error_indicators(rows: list[PredictionRow]) -> list[float]:
     out = []
     for r in rows:
@@ -922,9 +963,9 @@ def _tts_utmos_values(rows: list[PredictionRow]) -> list[float]:
 # modality -> "mean" extractor (returns per-row 0/1 indicators, or raw values
 # for tts's UTMOS mean)
 _CI_MEAN_EXTRACTORS = {
-    "intent": _intent_correct_indicators,
-    "intent_template": _intent_correct_indicators,
-    "intent_keyword": _intent_correct_indicators,
+    "intent": _intent_generalization_indicators,
+    "intent_template": _intent_generalization_indicators,
+    "intent_keyword": _intent_generalization_indicators,
     "wake_word": _ww_error_indicators,
     "vad": _ww_error_indicators,
     "tts": _tts_utmos_values,
@@ -1274,10 +1315,16 @@ def build_benchmark_board(
     # it land at #1 whenever it's the board's only entry or every entry
     # happens to share that placeholder, so these are pulled out and marked
     # unranked instead of taking a rank.
+    # A run that scored rows but produced no primary metric is a different
+    # animal: nothing crashed, the rows simply all fall outside the ranked
+    # population (an intent fighter whose every row sits in a
+    # ``CONTAMINATED_BUCKETS`` bucket has no generalization_accuracy). It is
+    # equally unrankable, but calling it a failed run misdescribes it.
+    def _scored_any(entry: BenchmarkEntry) -> bool:
+        return bool(entry.metrics) and entry.metrics.get("n_scored", 1.0) != 0.0
+
     def _has_signal(entry: BenchmarkEntry) -> bool:
-        if primary not in entry.metrics:
-            return False
-        return entry.metrics.get("n_scored", 1.0) != 0.0
+        return primary in entry.metrics and _scored_any(entry)
 
     # A fighter whose rows barely intersect the published manifest (e.g. a
     # sweep that predates the sample_policy, or an ad hoc small
@@ -1294,7 +1341,8 @@ def build_benchmark_board(
 
     ranked = [e for e in entries if _has_signal(e) and not _partial_coverage(e)]
     partial = [e for e in entries if _has_signal(e) and _partial_coverage(e)]
-    failed = [e for e in entries if not _has_signal(e)]
+    off_metric = [e for e in entries if not _has_signal(e) and _scored_any(e)]
+    failed = [e for e in entries if not _scored_any(e)]
 
     reverse = primary in _HIGHER_BETTER
     ranked.sort(key=lambda e: e.metrics.get(primary), reverse=reverse)
@@ -1307,11 +1355,18 @@ def build_benchmark_board(
             f"sample_set_partial — covers {entry.sample_set_coverage:.0%} "
             "of the published manifest"
         )
+    for entry in off_metric:
+        entry.rank = 0
+        entry.unranked = True
+        entry.unranked_reason = (
+            f"no {primary} — the run scored samples, but none of them fall "
+            "inside the ranked metric's population"
+        )
     for entry in failed:
         entry.rank = 0
         entry.unranked = True
         entry.unranked_reason = "run failed — no scored samples"
-    entries = ranked + partial + failed
+    entries = ranked + partial + off_metric + failed
 
     if ranked:
         leader_ci = cis.get(ranked[0].competitor_id)

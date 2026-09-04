@@ -118,7 +118,9 @@ auto-vote at all) rather than guessing when the comparison isn't fair.
   against its reference label (including OOD rejection: predicting nothing
   on an out-of-scope sample is correct). A battle seeds only when the two
   candidates disagree on correctness; both right or both wrong carries no
-  signal.
+  signal. Intent battles are drawn only from the buckets
+  `generalization_accuracy` is computed over, so a seeded rating measures
+  the same thing the board ranks on.
 - **STT** — lower word error rate wins. Equal WER, or either side missing
   a WER, carries no signal.
 - **TTS** — the composite seed score below.
@@ -215,6 +217,43 @@ settled result.
 - **`provisional`** boards should be captioned as such in the frontend
   rather than presented with the same confidence as an established board.
 
+## Train/test overlap in the intent corpora
+
+Roughly half of `intents-for-eval`'s test set is also training data, so the
+intent boards rank on `generalization_accuracy` — accuracy restricted to the
+buckets an engine cannot have memorized — and not on plain `accuracy`.
+
+The overlap comes from how template-paradigm engines are trained. The runner
+registers each phrase template and also every slot-filled expansion of it
+(`runner/intent_pipeline.py:expand_template`), and the `template` and
+`near_ood` test rows are largely those same expansions, character for
+character. On en-US, 476 of 500 `template` rows (95%) and 331 of 400
+`near_ood` rows (83%) appear verbatim in the training utterances, 812 of
+1750 rows overall (46%); pt-PT measures 464/500, 308/400 and 790/1750 (45%).
+The remaining buckets are essentially clean: `paraphrase` 4/700, `far_ood`
+1/50, `typos` and `asr_noise` zero.
+
+Accuracy inside a contaminated bucket measures recall of the training set,
+not intent understanding, and it rewards exact-string matchers over engines
+that handle unseen phrasings. Because the contaminated buckets are 51% of
+the corpus and near-perfectly scored, a plain accuracy headline is roughly
+half memorization lookup. `generalization_accuracy` covers `paraphrase`,
+`typos`, `asr_noise` and `far_ood` only, and is the number to compare
+fighters on; the bootstrap confidence interval and the seeded ELO
+auto-battles behind the primary metric ladder are drawn from the same rows.
+Plain `accuracy` stays published beside it, as do the per-bucket `acc_*`
+columns, so the memorization score is visible rather than deleted — it is
+simply not what the board ranks on.
+
+The `near_ood` bucket is published as `acc_in_distribution`. Its name
+overstates its difficulty: no row in it has a null expected intent, and 327
+of the 331 en-US rows that duplicate a training utterance carry the same
+gold label as the row they duplicate. It is an in-distribution bucket.
+
+Corpora without bucket annotations, such as `banking77` and `clinc150`, have
+no contaminated buckets, so their `generalization_accuracy` equals their
+`accuracy`.
+
 ## Dataset sampling policy
 
 A benchmark board is only comparable across fighters if every fighter is
@@ -281,7 +320,7 @@ no such per-row value and are never ladderable: there is no sample-level
 
 | League | Ladders |
 | --- | --- |
-| `intent` / `intent_template` / `intent_keyword` | `accuracy` (primary), `slot_exact_match` (rows with gold slots and a correct intent) |
+| `intent` / `intent_template` / `intent_keyword` | `generalization_accuracy` (primary), `accuracy`, `slot_exact_match` (rows with gold slots and a correct intent) |
 | `stt` | `wer_mean` (primary) — no per-row CER is computed yet, so WER is the only ladder |
 | `tts` | `utmos` (primary), every SIGMOS/DNSMOS/NISQA quality dimension (`sigmos.noise`, `sigmos.col`, `sigmos.disc`, `sigmos.loud`, `sigmos.reverb`, `sigmos.sig`, `sigmos.ovrl`, `dnsmos.sig`, `dnsmos.bak`, `dnsmos.ovrl`, `nisqa.*`) |
 | `wake_word` / `vad` | `error_rate` (primary) only — no other per-row metric exists yet |
@@ -381,7 +420,7 @@ Every `BenchmarkEntry` carries a seeded bootstrap 95% CI
 primary metric, using one of two strategies depending on what kind of number
 the metric is:
 
-- **Mean of a per-row indicator** (intent `accuracy`, wake-word/VAD
+- **Mean of a per-row indicator** (intent `generalization_accuracy`, wake-word/VAD
   `error_rate`), bootstrap the 0/1 indicator list directly and report the
   percentile interval of the resampled mean.
 - **Ratio of summed counts** (STT `wer_mean` = total word errors / total

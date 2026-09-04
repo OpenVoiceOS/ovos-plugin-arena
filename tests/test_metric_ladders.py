@@ -184,7 +184,8 @@ class TestMetricLaddersOnBoard:
         seed.secondary_metrics = seed_secondary_metrics("intent", samples_by_dataset)
         board = build_elo_board("intent", "en-US", seed, [], {})
 
-        assert board.metric_ladders["accuracy"].auto_only is False
+        assert board.metric_ladders["generalization_accuracy"].auto_only is False
+        assert board.metric_ladders["accuracy"].auto_only is True
         assert board.metric_ladders["slot_exact_match"].auto_only is True
 
     def test_replay_reproduces_metric_ladders_byte_identical(self):

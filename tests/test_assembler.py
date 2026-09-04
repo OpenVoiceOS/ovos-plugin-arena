@@ -401,6 +401,99 @@ class TestSeedElo:
         assert seeds[0].ratings == seeds[1].ratings
 
 
+class TestSeedEloContamination:
+    """The seeded ladder is the board's primary-metric ranking, so it has to
+    battle over the same rows ``generalization_accuracy`` is computed from —
+    otherwise a rating labelled "generalization" is still a memorization
+    score."""
+
+    @staticmethod
+    def _mem_vs_gen():
+        """20 samples: the memorizer wins every contaminated row, the
+        generalizer wins every clean one."""
+        samples = {}
+        for i in range(10):
+            samples[f"template-{i}"] = {
+                "mem": _row("mem", "media:play_song", bucket="template"),
+                "gen": _row("gen", "wrong", bucket="template"),
+            }
+            samples[f"paraphrase-{i}"] = {
+                "mem": _row("mem", "wrong", bucket="paraphrase"),
+                "gen": _row("gen", "media:play_song", bucket="paraphrase"),
+            }
+        for sample_id, rows in samples.items():
+            samples[sample_id] = {
+                c: r.model_copy(update={"sample_id": sample_id})
+                for c, r in rows.items()
+            }
+        return samples
+
+    def test_contaminated_rows_seed_no_battles(self):
+        seed = seed_elo("intent", "en-US", {"d": self._mem_vs_gen()}, "t")
+        assert seed.auto_vote_count == 10
+        assert seed.wins["gen"] == 10
+        assert seed.wins["mem"] == 0
+        assert seed.ratings["gen"] > INITIAL_ELO > seed.ratings["mem"]
+
+    def test_near_ood_rows_seed_no_battles(self):
+        samples = _samples(*[
+            [_row("mem", "media:play_song", bucket="near_ood"),
+             _row("gen", "wrong", bucket="near_ood")]
+            for _ in range(10)
+        ])
+        seed = seed_elo("intent", "en-US", {"d": samples}, "t")
+        assert seed.auto_vote_count == 0
+        assert seed.ratings == {"mem": INITIAL_ELO, "gen": INITIAL_ELO}
+
+    def test_contaminated_gap_alone_does_not_open_the_significance_gate(self):
+        # Clean rows: the pair trades wins evenly, aggregate CIs overlap, no
+        # real signal. Contaminated rows: a big one-sided gap. Gating on
+        # overall accuracy would call the pair significant and seed the clean
+        # coin-flips as if they meant something.
+        samples = {}
+        for i in range(20):
+            samples[f"paraphrase-{i}"] = {
+                "x": _row("x", "media:play_song" if i % 2 == 0 else "wrong",
+                          bucket="paraphrase"),
+                "y": _row("y", "media:play_song" if i % 2 else "wrong",
+                          bucket="paraphrase"),
+            }
+            samples[f"template-{i}"] = {
+                "x": _row("x", "media:play_song", bucket="template"),
+                "y": _row("y", "wrong", bucket="template"),
+            }
+        for sample_id, rows in samples.items():
+            samples[sample_id] = {
+                c: r.model_copy(update={"sample_id": sample_id})
+                for c, r in rows.items()
+            }
+        seed = seed_elo("intent", "en-US", {"d": samples}, "t")
+        assert seed.auto_vote_count == 0
+        assert seed.pairwise_games == {}
+
+    def test_bucket_filter_is_intent_only(self):
+        # A wake-word or STT row carrying an intent-corpus bucket label is
+        # still a perfectly good battle — nothing was memorized there.
+        ww = _samples(*[
+            [_row("good", "detected", reference=None, label="positive",
+                  bucket="template"),
+             _row("bad", "not_detected", reference=None, label="positive",
+                  bucket="template")]
+            for _ in range(10)
+        ])
+        seed = seed_elo("wake_word", "en-US", {"d": ww}, "t")
+        assert seed.auto_vote_count == 10
+        assert seed.ratings["good"] > INITIAL_ELO > seed.ratings["bad"]
+
+        stt = _samples(*[
+            [_row("good", "play a song", wer=0.0, bucket="template"),
+             _row("bad", "clay a wrong", wer=0.5, bucket="template")]
+            for _ in range(10)
+        ])
+        seed = seed_elo("stt", "en-US", {"d": stt}, "t")
+        assert seed.auto_vote_count == 10
+
+
 class TestSeedEloBiasAudit:
     """§4 seed-battle bias audit (A1.3): significance gate + weight cap."""
 
