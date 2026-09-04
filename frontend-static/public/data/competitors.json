@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-03T08:24:50.147978+00:00",
+  "generated_at": "2026-09-04T08:19:30.495117+00:00",
   "competitors": [
     {
       "competitor_id": "cascade-soft",
@@ -358,6 +358,132 @@
           "lang": "da-DK"
         }
       ]
+    },
+    {
+      "competitor_id": "m2v-nebulento",
+      "schema_version": 1,
+      "modality": "intent",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-m2v-pipeline-high",
+            "ovos-nebulento-pipeline-plugin-medium"
+          ],
+          "ovos-m2v-pipeline": {
+            "conf_high": 0.7,
+            "conf_medium": 0.5,
+            "conf_low": 0.15
+          },
+          "ovos-nebulento-pipeline-plugin": {
+            "conf_high": 0.95,
+            "conf_med": 0.8,
+            "conf_low": 0.5,
+            "workers": 4
+          }
+        }
+      },
+      "langs": [],
+      "alias": [],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "M2V × Nebulento",
+      "types": [
+        "ensemble",
+        "embeddings",
+        "fuzzy-match"
+      ],
+      "description": "The embedding classifier takes the first shot at Model2Vec's trained label set, then Nebulento's fuzzy template matching mops up with runtime-registered templates and slot extraction — a padatious-free replacement candidate.",
+      "size": "micro",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-m2v-pipeline"
+      },
+      "notes": "HYPOTHESIS: m2v + nebulento is probably better than padatious. m2v-first (see sibling fighter) already showed an embedding-similarity front door changes what gets caught first, but it still leans on Padatious as the backstop, which means it inherits Padatious's two blockers to being a default: no slot extraction and no open-world runtime-registered intents. Nebulento fills both gaps — it extracts slots from its templates and accepts templates registered at runtime rather than only at training time — while still being a fuzzy/edit-distance matcher rather than a learned classifier, so pairing it with m2v's paraphrase-robust embedding similarity tests whether the combination can fully replace Padatious rather than merely front it. Comparators: padatious-stock (the plain baseline this fighter is trying to unseat) and the existing ensembles nebulatious and trident. REQUIRES ovos-m2v-pipeline>=0.9.0a1 — versions before 0.8.1a1 have a label-filter bug that poisons predictions; there is no plugin floor/pin field in this registry schema, so sweeps of this fighter must be run with that floor already installed in the runner environment.",
+      "has_predictions": false,
+      "prediction_datasets": []
+    },
+    {
+      "competitor_id": "m2v-prototype",
+      "schema_version": 1,
+      "modality": "intent",
+      "plugin": "ovos-m2v-prototype-pipeline",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-m2v-prototype-pipeline-high",
+            "ovos-m2v-prototype-pipeline-medium"
+          ],
+          "ovos-m2v-prototype-pipeline": {
+            "conf_high": 0.6,
+            "conf_medium": 0.45,
+            "conf_low": 0.3
+          }
+        }
+      },
+      "langs": [],
+      "alias": [
+        "ovos-m2v-prototype-pipeline"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "M2V Prototype",
+      "types": [
+        "embeddings",
+        "zero-shot"
+      ],
+      "description": "A pure zero-shot fighter: Model2Vec's prototype-mode pipeline embeds each intent's templates into a class prototype at registration time and matches utterances against those prototypes by cosine similarity, with no trained classification head at all.",
+      "size": "micro",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-m2v-pipeline"
+      },
+      "notes": "HYPOTHESIS: every other fighter in the league, including the m2v-first/m2v-nebulento embedding-fronted ensembles, ultimately relies on a classifier (Padatious, Nebulento, or Model2Vec's own trained label set) that must see an intent's templates at a training step before it can match against them. Prototype mode instead embeds a class prototype directly from the templates handed to it at registration, so intents registered at runtime — after the pipeline is already live, with no retrain — are immediately matchable. This isolates the open-world/zero-shot axis: can embedding-prototype similarity alone, with no trained head, replace a trained classifier's raw matching accuracy. conf_high/conf_medium/conf_low are the cosine-calibrated defaults from ovos-m2v-pipeline PR #91, not the classifier-mode thresholds used by m2v-first/m2v-nebulento. REQUIRES ovos-m2v-pipeline>=0.9.0a1 — the calibrated thresholds land with ovos-m2v-pipeline#91; sweeps run before that PR merges and releases exercise the pipeline's code defaults instead, so this fighter's sweep must be sequenced after #91 merges. There is no plugin floor/pin field in this registry schema, so the floor must already be installed in the runner environment.",
+      "has_predictions": false,
+      "prediction_datasets": []
+    },
+    {
+      "competitor_id": "m2v-prototype-nebulento",
+      "schema_version": 1,
+      "modality": "intent",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-m2v-prototype-pipeline-high",
+            "ovos-nebulento-pipeline-plugin-medium"
+          ],
+          "ovos-m2v-prototype-pipeline": {
+            "conf_high": 0.6,
+            "conf_medium": 0.45,
+            "conf_low": 0.3
+          },
+          "ovos-nebulento-pipeline-plugin": {
+            "conf_high": 0.95,
+            "conf_med": 0.8,
+            "conf_low": 0.5,
+            "workers": 4
+          }
+        }
+      },
+      "langs": [],
+      "alias": [],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "M2V Prototype × Nebulento",
+      "types": [
+        "ensemble",
+        "embeddings",
+        "zero-shot",
+        "fuzzy-match"
+      ],
+      "description": "Tests whether zero-shot embedding matching plus fuzzy template slots can replace padatious with no training step at all: Model2Vec's prototype-mode pipeline takes the first shot with class prototypes embedded straight from registered templates, and Nebulento's fuzzy template matching backs it up for slot extraction and runtime-registered templates.",
+      "size": "micro",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-m2v-pipeline"
+      },
+      "notes": "HYPOTHESIS: m2v-prototype (see sibling fighter) shows that prototype-mode embedding similarity alone, with no trained head, can match runtime-registered intents. But it still lacks slot extraction. Nebulento fills that gap with template-based slot extraction and its own runtime-registered templates, so pairing it with the prototype pipeline's zero-shot front door tests a fully training-step-free replacement for padatious, not merely a front door for it. Comparators: padatious-stock (the trained baseline this fighter is trying to unseat), m2v-first/m2v-nebulento (the classifier-mode embedding fighters this pipeline is a zero-shot sibling to), and m2v-prototype (isolates whether adding Nebulento's fuzzy backstop helps over the pure prototype fighter alone). conf_high/conf_medium/conf_low on the prototype block are the cosine-calibrated defaults from ovos-m2v-pipeline PR #91. REQUIRES ovos-m2v-pipeline>=0.9.0a1 — the calibrated thresholds land with ovos-m2v-pipeline#91; sweeps run before that PR merges and releases exercise the pipeline's code defaults instead, so this fighter's sweep must be sequenced after #91 merges. There is no plugin floor/pin field in this registry schema, so the floor must already be installed in the runner environment.",
+      "has_predictions": false,
+      "prediction_datasets": []
     },
     {
       "competitor_id": "mycroft-classic",
@@ -9592,6 +9718,51 @@
       ]
     },
     {
+      "competitor_id": "padatious-no-padaos-medium",
+      "schema_version": 1,
+      "modality": "intent_template",
+      "plugin": "ovos-padatious-pipeline-plugin",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-padatious-pipeline-plugin-medium"
+          ],
+          "ovos-padatious-pipeline-plugin": {
+            "conf_high": 0.95,
+            "conf_med": 0.8,
+            "conf_low": 0.5,
+            "domain_engine": false,
+            "cast_to_ascii": false,
+            "stem": false,
+            "disable_padaos": true,
+            "instant_train": false
+          }
+        }
+      },
+      "langs": [],
+      "alias": [
+        "ovos-padatious-pipeline-plugin"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "Padatious (no padaos)",
+      "species": "PadatiousPipeline",
+      "family": "PadatiousPipeline",
+      "types": [
+        "neural-net",
+        "template-match"
+      ],
+      "description": "Same Padatious engine as padatious-medium, with the plugin's own exact-match regex layer switched off via 'disable_padaos': true: every utterance goes straight to the FastText-similarity IntentContainer match, skipping the padaos regex pre-pass.",
+      "size": "micro",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-padatious-pipeline-plugin"
+      },
+      "notes": "Same plugin id and medium-confidence gate as padatious-medium; the only config change is flipping 'disable_padaos' from false to true. padaos is the exact-match regex layer inside padatious (IntentContainer(disable_padaos=...)); this fighter exists to quantify how much accuracy it actually buys, particularly on exact-template-match utterances, versus the training/boot-time cost of maintaining it. Padatious itself is not changing: disable_padaos stays a permanent, opt-in option in the plugin regardless of what these numbers show.",
+      "has_predictions": false,
+      "prediction_datasets": []
+    },
+    {
       "competitor_id": "chromium-stt-en",
       "schema_version": 1,
       "modality": "stt",
@@ -11238,6 +11409,10 @@
           "lang": "de-DE"
         },
         {
+          "dataset_id": "stt-sampler-v1",
+          "lang": "de-DE"
+        },
+        {
           "dataset_id": "voxpopuli-de-DE",
           "lang": "de-DE"
         }
@@ -11301,6 +11476,10 @@
         {
           "dataset_id": "minds14-en-US",
           "lang": "en-US"
+        },
+        {
+          "dataset_id": "stt-sampler-v1",
+          "lang": "en-AU"
         },
         {
           "dataset_id": "stt-sampler-v1",
@@ -11374,6 +11553,10 @@
           "lang": "es-ES"
         },
         {
+          "dataset_id": "stt-sampler-v1",
+          "lang": "es-ES"
+        },
+        {
           "dataset_id": "voxpopuli-es-ES",
           "lang": "es-ES"
         }
@@ -11433,6 +11616,10 @@
           "lang": "fr-FR"
         },
         {
+          "dataset_id": "stt-sampler-v1",
+          "lang": "fr-FR"
+        },
+        {
           "dataset_id": "voxpopuli-fr-FR",
           "lang": "fr-FR"
         }
@@ -11488,6 +11675,10 @@
           "lang": "it-IT"
         },
         {
+          "dataset_id": "stt-sampler-v1",
+          "lang": "it-IT"
+        },
+        {
           "dataset_id": "voxpopuli-it-IT",
           "lang": "it-IT"
         }
@@ -11540,6 +11731,10 @@
         },
         {
           "dataset_id": "speech-massive-nl-NL",
+          "lang": "nl-NL"
+        },
+        {
+          "dataset_id": "stt-sampler-v1",
           "lang": "nl-NL"
         },
         {
@@ -11599,6 +11794,10 @@
         },
         {
           "dataset_id": "speech-massive-pt-PT",
+          "lang": "pt-PT"
+        },
+        {
+          "dataset_id": "stt-sampler-v1",
           "lang": "pt-PT"
         },
         {
@@ -11805,6 +12004,10 @@
         },
         {
           "dataset_id": "stt-sampler-v1",
+          "lang": "en-AU"
+        },
+        {
+          "dataset_id": "stt-sampler-v1",
           "lang": "en-GB"
         },
         {
@@ -11957,6 +12160,10 @@
         },
         {
           "dataset_id": "mtedx-it-IT",
+          "lang": "it-IT"
+        },
+        {
+          "dataset_id": "stt-sampler-v1",
           "lang": "it-IT"
         },
         {
@@ -12135,6 +12342,10 @@
           "lang": "ca-ES"
         },
         {
+          "dataset_id": "stt-sampler-v1",
+          "lang": "es-ES"
+        },
+        {
           "dataset_id": "voxpopuli-es-ES",
           "lang": "es-ES"
         }
@@ -12193,6 +12404,10 @@
         },
         {
           "dataset_id": "speech-massive-de-DE",
+          "lang": "de-DE"
+        },
+        {
+          "dataset_id": "stt-sampler-v1",
           "lang": "de-DE"
         },
         {
@@ -12294,6 +12509,10 @@
         },
         {
           "dataset_id": "speech-massive-es-ES",
+          "lang": "es-ES"
+        },
+        {
+          "dataset_id": "stt-sampler-v1",
           "lang": "es-ES"
         },
         {
@@ -12438,6 +12657,10 @@
           "lang": "fr-FR"
         },
         {
+          "dataset_id": "stt-sampler-v1",
+          "lang": "fr-FR"
+        },
+        {
           "dataset_id": "voxpopuli-fr-FR",
           "lang": "fr-FR"
         }
@@ -12572,6 +12795,10 @@
         },
         {
           "dataset_id": "speech-massive-ru-RU",
+          "lang": "ru-RU"
+        },
+        {
+          "dataset_id": "stt-sampler-v1",
           "lang": "ru-RU"
         }
       ]
@@ -16424,6 +16651,10 @@
         },
         {
           "dataset_id": "stt-sampler-v1",
+          "lang": "en-AU"
+        },
+        {
+          "dataset_id": "stt-sampler-v1",
           "lang": "en-GB"
         },
         {
@@ -18742,6 +18973,10 @@
         },
         {
           "dataset_id": "stt-sampler-v1",
+          "lang": "en-AU"
+        },
+        {
+          "dataset_id": "stt-sampler-v1",
           "lang": "en-GB"
         },
         {
@@ -18884,6 +19119,10 @@
         },
         {
           "dataset_id": "stt-sampler-v1",
+          "lang": "en-AU"
+        },
+        {
+          "dataset_id": "stt-sampler-v1",
           "lang": "en-GB"
         },
         {
@@ -18952,6 +19191,10 @@
         },
         {
           "dataset_id": "speech-massive-fr-FR",
+          "lang": "fr-FR"
+        },
+        {
+          "dataset_id": "stt-sampler-v1",
           "lang": "fr-FR"
         },
         {
@@ -19422,6 +19665,18 @@
         {
           "dataset_id": "minds14-it-IT",
           "lang": "it-IT"
+        },
+        {
+          "dataset_id": "stt-sampler-v1",
+          "lang": "de-DE"
+        },
+        {
+          "dataset_id": "stt-sampler-v1",
+          "lang": "en-AU"
+        },
+        {
+          "dataset_id": "stt-sampler-v1",
+          "lang": "en-GB"
         }
       ]
     },
@@ -19470,6 +19725,14 @@
       "has_predictions": true,
       "prediction_datasets": [
         {
+          "dataset_id": "edacc-en-GB",
+          "lang": "en-GB"
+        },
+        {
+          "dataset_id": "minds14-en-AU",
+          "lang": "en-AU"
+        },
+        {
           "dataset_id": "stt-sampler-v1",
           "lang": "de-DE"
         },
@@ -19492,6 +19755,10 @@
         {
           "dataset_id": "stt-sampler-v1",
           "lang": "fr-FR"
+        },
+        {
+          "dataset_id": "stt-sampler-v1",
+          "lang": "it-IT"
         }
       ]
     },
