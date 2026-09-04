@@ -207,7 +207,11 @@ import Base from '../../layouts/Base.astro';
     const BASE = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
 
     const METRIC_COLUMNS = [
-      ['accuracy', 'Accuracy', true], ['macro_f1', 'Macro F1', true],
+      // The ranked intent metric excludes the test buckets that duplicate
+      // training data; plain accuracy stays as its own column (see
+      // docs/methodology.md, "Train/test overlap in the intent corpora").
+      ['generalization_accuracy', 'Generalization', true],
+      ['accuracy', 'Overall accuracy', true], ['macro_f1', 'Macro F1', true],
       ['ood_fpr', 'OOD FPR', true], ['slot_exact_match', 'Slot EM', true],
       ['wer_mean', 'WER mean', true], ['wer_median', 'WER med.', true],
       ['error_rate', 'Error', true], ['false_accept_rate', 'False acc.', true],
@@ -243,7 +247,7 @@ import Base from '../../layouts/Base.astro';
     // else here (wer_mean, error_rate, …) is "lower is better" and the
     // score-bar fill inverts it.
     const HIGHER_IS_BETTER = new Set([
-      'accuracy', 'utmos', 'sigmos.noise', 'sigmos.col', 'sigmos.disc', 'dnsmos.bak',
+      'accuracy', 'generalization_accuracy', 'utmos', 'sigmos.noise', 'sigmos.col', 'sigmos.disc', 'dnsmos.bak',
     ]);
     // metric key -> [key, label, percent] lookup built from METRIC_COLUMNS,
     // used so the primary-metric cell renders per its own percent flag
@@ -803,9 +807,9 @@ import Base from '../../layouts/Base.astro';
       // `samples` — `samples` counts *attempted* rows, so it is >=1 for
       // every entry on the board (a `samples` filter is dead code) and
       // proves nothing about scoring. `unranked` is set precisely for a
-      // run that crashed/produced zero *scored* samples for the primary
-      // metric (unranked_reason: "run failed — no scored samples") and is
-      // the row this filter needs to exclude. Filtered at render time,
+      // run with no rankable signal — it crashed, or its scored rows all
+      // fall outside the ranked metric's population — and is the row this
+      // filter needs to exclude. `unranked_reason` says which. Filtered at render time,
       // keeping the underlying board artifact (and any seed/replay data
       // it's built from) untouched.
       const allBoardEntries = board.entries;
@@ -813,7 +817,7 @@ import Base from '../../layouts/Base.astro';
       const benchAwaitingCount = allBoardEntries.length - benchEntries.length;
       if (!benchEntries.length) {
         return `<div class="bench">No entries with prediction data yet.${
-          benchAwaitingCount ? ` <p class="lb-note">${benchAwaitingCount} fighter${benchAwaitingCount === 1 ? '' : 's'} had no scored samples (runs failed)</p>` : ''}</div>`;
+          benchAwaitingCount ? ` <p class="lb-note">${benchAwaitingCount} fighter${benchAwaitingCount === 1 ? '' : 's'} unranked — no comparable score</p>` : ''}</div>`;
       }
       board = { ...board, entries: benchEntries };
       // The ladder metric picker also re-sorts this benchmark board: when
@@ -878,7 +882,7 @@ import Base from '../../layouts/Base.astro';
           <span class="tag">${wantsMetric ? 'sorted by' : 'primary metric'} · ${esc(metricLabel(primary))}</span>
           ${buckets.length ? '<button class="btn toggle-buckets" style="padding:0.1rem 0.6rem;font-size:0.72rem;margin-left:auto">show buckets</button>' : ''}
         </div>
-        ${benchAwaitingCount ? `<p class="lb-note">${benchAwaitingCount} fighter${benchAwaitingCount === 1 ? '' : 's'} had no scored samples (runs failed)</p>` : ''}
+        ${benchAwaitingCount ? `<p class="lb-note">${benchAwaitingCount} fighter${benchAwaitingCount === 1 ? '' : 's'} unranked — no comparable score</p>` : ''}
         <div style="overflow-x:auto"><table class="bench-tbl"><thead>${head}</thead><tbody>${rows}</tbody></table></div>
         ${pareto}
         ${judgeAgreement}
