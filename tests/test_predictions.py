@@ -85,8 +85,8 @@ class TestParseRow:
         assert row.competitor_id == "from-filename"
 
     def test_unknown_keys_preserved_in_extras(self):
-        row = parse_row(_intent_row(dataset_revision="abc123"), "c")
-        assert row.extras["dataset_revision"] == "abc123"
+        row = parse_row(_intent_row(some_new_column="abc123"), "c")
+        assert row.extras["some_new_column"] == "abc123"
 
 
 class TestReadJsonl:

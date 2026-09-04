@@ -182,6 +182,10 @@ class PredictionRow(BaseModel):
     prediction: str | None = None
     runner_version: str = ""
     created_at: str = ""
+    # HF dataset revision (commit sha) the row was produced against — §3.2
+    # reproducibility column. Already-published rows predate this field and
+    # stay valid with it unset.
+    dataset_revision: str | None = None
     # intent modality
     utterance: str | None = None
     reference_intent: str | None = None
