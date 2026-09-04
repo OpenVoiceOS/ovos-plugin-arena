@@ -70,6 +70,20 @@ class TestPredictionRow:
         assert row.reference_intent is None
         assert row.prediction is None
 
+    def test_dataset_revision_roundtrips(self):
+        """§3.2 reproducibility columns — dataset_revision (the HF dataset
+        revision the row was produced against) must be a modelled field,
+        not silently dropped by pydantic's extra="ignore" default."""
+        row = PredictionRow(
+            competitor_id="c", sample_id="s", dataset_id="d", lang="en-US",
+            plugin_id="p", dataset_revision="abc123deadbeef",
+        )
+        assert row.dataset_revision == "abc123deadbeef"
+        assert "dataset_revision" not in row.extras
+        payload = json.loads(row.model_dump_json())
+        again = PredictionRow(**payload)
+        assert again.dataset_revision == "abc123deadbeef"
+
 
 class TestArtifactRoundtrip:
     def test_battles_pool_json_roundtrip(self):
