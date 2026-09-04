@@ -2,11 +2,36 @@ name: Replay proof
 
 # CI-gated proof that replaying the public vote log deterministically
 # reproduces the published leaderboards (docs/operations.md "Replay
-# proof", §P5). Runs on every push to dev and once a day, and fails the
-# build loudly on any mismatch. Strict: published artifacts are derived
-# data — anything the replay path can't reproduce byte-for-field is a bug
-# in the committed data, not a tolerated exception.
+# proof", §P5). Strict: published artifacts are derived data — anything
+# the replay path can't reproduce byte-for-field is a bug in the
+# committed data, not a tolerated exception.
+#
+# When this runs, and why:
+#   - workflow_run on Assemble battles / Tally votes completing (success
+#     only): those two workflows are the only writers of
+#     frontend-static/public/data/, and their commits carry [skip ci] so
+#     the push trigger below never fires for them. This is the trigger
+#     that actually proves "the boards on dev right now replay clean" —
+#     it checks out dev's tip, not head_sha (see the checkout step for why).
+#   - schedule, unchanged: a daily backstop independent of any push.
+#   - push to dev: covers regular (non [skip ci]) merges. If the merge
+#     changed the board-generation logic itself (arena/metrics.py,
+#     arena/assembler.py, arena/cli.py), the boards under
+#     frontend-static/public/data/ were produced by the OLD logic and a
+#     replay against the NEW logic is guaranteed to mismatch until the
+#     next assemble/tally run regenerates them — that race is exactly
+#     what turned #157 (c2e89ff3, BOARD_LOGIC_VERSION 1->2) into a false
+#     red at 16:22 (run 33894718250), fixed for real only once assemble's
+#     17:06 data commit landed and a manual re-run (33921147433) passed.
+#     So on push, skip the replay when those files changed and rely on
+#     the workflow_run trigger to verify once assemble/tally catch up.
+#     The skip is gated at job level (not per-step) so it shows as
+#     "skipped" in the checks UI instead of a green success that verified
+#     nothing.
 on:
+  workflow_run:
+    workflows: ["Assemble battles", "Tally votes"]
+    types: [completed]
   push:
     branches: [dev]
   schedule:
@@ -15,12 +40,63 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
-  verify-replay:
+  detect:
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.logic.outputs.changed }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 2
+
+      - name: Determine whether board-generation logic changed in this push
+        id: logic
+        run: |
+          before="${{ github.event.before }}"
+          # First push of a branch (or a rewritten history from a
+          # force-push) leaves `before` as the all-zero sentinel, or an
+          # object git doesn't have locally with fetch-depth 2 — in either
+          # case there's no safe diff to compute, so fall back to running
+          # the replay rather than silently skipping it.
+          if [ -z "$before" ] || [ "$before" = "0000000000000000000000000000000000000000" ] || ! git cat-file -e "$before" 2>/dev/null; then
+            echo "changed=unknown" >> "$GITHUB_OUTPUT"
+          elif git diff --name-only "$before" "${{ github.sha }}" -- arena/metrics.py arena/assembler.py arena/cli.py | grep -q .; then
+            echo "changed=yes" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=no" >> "$GITHUB_OUTPUT"
+          fi
+
+  verify-replay:
+    needs: [detect]
+    if: |
+      always() &&
+      (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success') &&
+      (github.event_name != 'push' || needs.detect.outputs.changed != 'yes') &&
+      needs.detect.result != 'failure'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Skip notice (board logic changed this push)
+        if: github.event_name == 'push' && needs.detect.outputs.changed == 'yes'
+        run: |
+          echo "::notice::arena/metrics.py, arena/assembler.py or arena/cli.py changed in this push — the published boards under frontend-static/public/data/ still reflect the old logic and will legitimately mismatch until the next assemble/tally run regenerates them. Skipping the replay here; it will run automatically via the workflow_run trigger once that regeneration lands."
+
+      - uses: actions/checkout@v7
+        with:
+          # workflow_run always runs the workflow file from the default
+          # branch, but head_sha is dev's tip at the moment the
+          # assemble/tally run was CREATED — before that run pushes its
+          # [skip ci] data commit as its last step. Checking out head_sha
+          # here would verify the NEW replay logic against the OLD boards,
+          # the exact race this workflow exists to catch, one layer down.
+          # Use dev's current tip instead: by the time the workflow_run
+          # completed event fires, the source workflow's data commit has
+          # already landed there.
+          ref: ${{ github.event_name == 'workflow_run' && 'dev' || github.sha }}
+          fetch-depth: ${{ github.event_name == 'workflow_run' && 1 || 2 }}
 
       - uses: actions/setup-python@v7
         with:
