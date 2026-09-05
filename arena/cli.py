@@ -620,6 +620,23 @@ def _predictions_revision_for(source: str, default_revision: str) -> tuple[str, 
     with live rows as if it held none. ``RevisionNotFoundError`` therefore
     propagates so the caller records the source as failed and the operator
     sees which pin went stale.
+
+    A transient resolution failure (rate limiting, a 5xx, a timeout) is
+    retried inside ``resolve_predictions_revision`` before it ever reaches
+    here (see its docstring). Anything that still escapes that retry is
+    classified exactly as ``fetch_hf_predictions`` classifies a fetch
+    failure (``arena.predictions._is_missing``/``_is_unreadable``): a repo
+    that simply does not exist yet (``RepositoryNotFoundError``, or the
+    matching unauthenticated 401/404) is missing data, not a failed
+    source, so resolution falls back to fetching *default_revision* as-is
+    — the later fetch call independently reaches the same "no predictions
+    published yet" conclusion and yields no rows, exactly as if this
+    function had never run. Everything else (gated, private, or a failure
+    with no known non-transient, non-fatal cause) propagates: returning
+    the unresolved ref for it would silently degrade the board's
+    provenance from a pinned commit to a floating ref with only a log
+    line to show for it, so the caller records the source as failed
+    instead of fetching it unpinned.
     """
     if Path(source).is_dir():
         return default_revision, {}
@@ -640,7 +657,7 @@ def _predictions_revision_for(source: str, default_revision: str) -> tuple[str, 
         log.warning("Could not consult registry for %s pin: %s", source, exc)
 
     try:
-        from arena.predictions import resolve_predictions_revision
+        from arena.predictions import _is_missing, resolve_predictions_revision
 
         sha = resolve_predictions_revision(source, revision=revision)
         return sha, {"resolved_sha": sha}
@@ -654,13 +671,20 @@ def _predictions_revision_for(source: str, default_revision: str) -> tuple[str, 
         log.warning("Could not resolve %s@%s to a commit SHA", source, revision)
         return revision, {}
     except Exception as exc:
-        log.warning("Could not resolve %s@%s to a commit SHA: %s", source, revision, exc)
-        return revision, {}
+        if _is_missing(exc):
+            log.info(
+                "No predictions repo yet for %s — resolving as absent data, "
+                "not a failed source", source,
+            )
+            return revision, {}
+        log.warning(
+            "Could not resolve %s@%s to a commit SHA after retrying: %s "
+            "— refusing to fetch it unpinned", source, revision, exc,
+        )
+        raise
 
 
 def cmd_assemble(args: argparse.Namespace) -> int:
-    from huggingface_hub.utils import RevisionNotFoundError
-
     from arena.predictions import (
         fetch_hf_predictions,
         group_rows,
@@ -708,7 +732,12 @@ def cmd_assemble(args: argparse.Namespace) -> int:
     for source in sources:
         try:
             fetch_revision, meta = _predictions_revision_for(source, args.revision)
-        except RevisionNotFoundError:
+        except Exception:
+            # A stale pin (``RevisionNotFoundError``) and an exhausted
+            # transient-retry both mean this source's data could not be
+            # reached at all, so both are treated the same: recorded
+            # failed rather than fetched unpinned (see
+            # ``_predictions_revision_for``).
             unreadable_sources.append(source)
             continue
         fetch_revisions[source] = fetch_revision

@@ -223,6 +223,20 @@ def load_predictions_dir(
 _revision_cache: dict[str, str] = {}
 
 
+def _is_revision_resolution_fatal(exc: Exception) -> bool:
+    """True when *exc* means ``dataset_info`` will never resolve *revision*,
+    no matter how many times it is retried: the repo does not exist, is
+    gated, is private to credentials this run does not hold, or the
+    revision string itself does not exist on the repo. Anything else (a
+    429, a 5xx, a timeout, a dropped connection) is a transient Hub hiccup
+    that a retry can plausibly clear.
+    """
+    if isinstance(exc, (GatedRepoError, RevisionNotFoundError, RepositoryNotFoundError)):
+        return True
+    return (isinstance(exc, HfHubHTTPError) and exc.response is not None
+            and exc.response.status_code in (401, 403, 404))
+
+
 def resolve_predictions_revision(repo_id: str, revision: str = "main") -> str:
     """Resolve *revision* (a branch, tag, or SHA) to an immutable commit SHA.
 
@@ -232,6 +246,14 @@ def resolve_predictions_revision(repo_id: str, revision: str = "main") -> str:
     ``repo_id@revision`` for the life of the process (see
     ``_revision_cache``) — a fresh process re-resolves, since a floating
     ref like ``main`` can move between runs.
+
+    A transient Hub failure (rate limiting, a 5xx, a timeout) is retried
+    with the same bounded backoff ``fetch_hf_predictions`` uses
+    (``HF_FETCH_BACKOFF_SECONDS``) rather than handed to the caller after a
+    single attempt — an unauthenticated daily assemble walks the same
+    ~120 repos this way and trips the same rate limiter. A fatal failure
+    (see ``_is_revision_resolution_fatal``) propagates immediately,
+    unretried, so it stays visible.
     """
     key = f"{repo_id}@{revision}"
     if key in _revision_cache:
@@ -239,11 +261,26 @@ def resolve_predictions_revision(repo_id: str, revision: str = "main") -> str:
 
     from huggingface_hub import HfApi
 
-    info = HfApi().dataset_info(repo_id, revision=revision)
-    if not info.sha:
-        raise ValueError(f"HF did not return a commit sha for {repo_id}@{revision}")
-    _revision_cache[key] = info.sha
-    return info.sha
+    api = HfApi()
+    last: Exception | None = None
+    for attempt, pause in enumerate(HF_FETCH_BACKOFF_SECONDS, 1):
+        try:
+            info = api.dataset_info(repo_id, revision=revision)
+            if not info.sha:
+                raise ValueError(f"HF did not return a commit sha for {repo_id}@{revision}")
+            _revision_cache[key] = info.sha
+            return info.sha
+        except Exception as exc:
+            if _is_revision_resolution_fatal(exc):
+                raise
+            last = exc
+            if pause is None:
+                break
+            logger.warning(
+                "Resolving %s@%s failed (attempt %d/%d): %s — retrying in %ss",
+                repo_id, revision, attempt, len(HF_FETCH_BACKOFF_SECONDS), exc, pause)
+            time.sleep(pause)
+    raise last
 
 
 def reset_revision_cache() -> None:

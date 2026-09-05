@@ -1721,6 +1721,164 @@ class TestAssembleStalePredictionsRevisionPin:
         )
 
 
+class TestAssembleTransientRevisionResolutionFailure:
+    """A rate-limited or otherwise transient revision lookup must be
+    retried, and only recorded as a failed source (refusing to publish)
+    once that retry budget is exhausted — never returned as the
+    unresolved ref, which would silently float the board's provenance."""
+
+    def test_persistent_429_refuses_only_the_affected_lang(
+        self, tmp_path, monkeypatch, caplog
+    ):
+        import sys
+        import types
+
+        from huggingface_hub.utils import HfHubHTTPError
+
+        import arena.predictions as predictions_mod
+
+        predictions_mod.reset_revision_cache()
+        monkeypatch.setattr(predictions_mod, "HF_FETCH_BACKOFF_SECONDS",
+                            (0.0, 0.0, None))
+
+        out = tmp_path / "data"
+        preds = _write_multilang_stt_predictions(tmp_path / "r1", {
+            "pt-PT": {"base-pt": [0.6] * 5, "small-pt": [0.0] * 5},
+        })
+
+        source = "OpenVoiceOS/rate-limited-bench"
+        attempts = []
+
+        def dataset_info(repo_id, revision=None):
+            attempts.append(repo_id)
+            raise HfHubHTTPError(
+                "429 Client Error: Too Many Requests",
+                response=httpx.Response(
+                    429, request=httpx.Request("GET", "https://hf.co/x")))
+
+        monkeypatch.setitem(
+            sys.modules, "huggingface_hub",
+            types.SimpleNamespace(
+                HfApi=lambda: types.SimpleNamespace(dataset_info=dataset_info),
+                snapshot_download=lambda **kw: (_ for _ in ()).throw(
+                    AssertionError("an unresolvable source must never fall "
+                                    "through to a fetch"))))
+
+        import registry.loaders as loaders
+        real = loaders.list_datasets()
+        fake = next(d for d in real if d.predictions_hf).model_copy(
+            update={"predictions_hf": source, "predictions_revision": None,
+                    "lang": "en-US"})
+        monkeypatch.setattr(loaders, "list_datasets", lambda modality=None: [
+            fake if d.dataset_id == fake.dataset_id else d for d in real
+        ])
+
+        with caplog.at_level("WARNING"):
+            try:
+                code = main(["assemble", "--predictions", f"{preds},{source}",
+                             "--output", str(out)]) or 0
+            except SystemExit as exc:
+                code = exc.code
+
+        assert code == 1
+        assert len(attempts) == 3, "the 429 must be retried, not given up on immediately"
+        assert (out / "elo-seed-stt-pt-PT.json").exists(), (
+            "a healthy lang must still publish"
+        )
+        assert not (out / "elo-seed-stt-en-US.json").exists()
+        assert any("Refusing to publish" in r.getMessage() for r in caplog.records)
+        assert any(
+            "refusing to fetch it unpinned" in r.getMessage() and source in r.getMessage()
+            for r in caplog.records
+        )
+
+
+class TestAssembleMissingPredictionsRepoNotAFailedSource:
+    """A registered dataset whose predictions repo has never been swept has
+    no HF dataset repo to resolve a revision on at all — unauthenticated,
+    the Hub answers 401 for that exactly as it does for a private repo, and
+    ``huggingface_hub`` raises ``RepositoryNotFoundError`` for the pair (see
+    ``arena.predictions._is_missing``). That is missing data, the normal
+    state of an upcoming fighter, not a failed source — the revision
+    resolver must reach the same conclusion ``fetch_hf_predictions`` does,
+    not refuse the lang."""
+
+    @staticmethod
+    def _no_repo(monkeypatch, source):
+        import sys
+        import types
+
+        from huggingface_hub.utils import RepositoryNotFoundError
+
+        def _not_found():
+            return RepositoryNotFoundError(
+                "401 Client Error: Repository Not Found",
+                response=httpx.Response(
+                    401, request=httpx.Request("GET", "https://hf.co/x")))
+
+        def dataset_info(repo_id, revision=None):
+            raise _not_found()
+
+        def snapshot_download(**kwargs):
+            raise _not_found()
+
+        monkeypatch.setitem(
+            sys.modules, "huggingface_hub",
+            types.SimpleNamespace(
+                HfApi=lambda: types.SimpleNamespace(dataset_info=dataset_info),
+                snapshot_download=snapshot_download))
+
+    def test_never_swept_repo_still_publishes_the_healthy_source(
+        self, tmp_path, monkeypatch
+    ):
+        import arena.predictions as predictions_mod
+
+        predictions_mod.reset_revision_cache()
+        source = "OpenVoiceOS/ovos-intent-bench-golden-utterances"
+        self._no_repo(monkeypatch, source)
+
+        out = tmp_path / "data"
+        preds = _write_predictions(tmp_path)
+        try:
+            code = main(["assemble", "--predictions", f"{preds},{source}",
+                         "--output", str(out)]) or 0
+        except SystemExit as exc:
+            code = exc.code
+
+        assert code == 0
+        assert list(out.glob("elo-seed-*.json")), (
+            "the healthy local source must still publish"
+        )
+
+    def test_unknown_lang_missing_source_does_not_refuse_other_langs(
+        self, tmp_path, monkeypatch
+    ):
+        """A source with no concrete registry lang (``source_langs.get``
+        returns ``None``) has an unknown scope on a genuine failure — but a
+        never-swept repo isn't a failure at all, so it must not fall into
+        the undiscovered-sources/refuse-every-lang path either."""
+        import arena.predictions as predictions_mod
+
+        predictions_mod.reset_revision_cache()
+        source = "OpenVoiceOS/ovos-intent-bench-mtop-de-DE"
+        self._no_repo(monkeypatch, source)
+
+        out = tmp_path / "data"
+        preds = _write_multilang_stt_predictions(tmp_path / "r1", {
+            "pt-PT": {"base-pt": [0.6] * 5, "small-pt": [0.0] * 5},
+            "en-US": {"comp-a": [0.6] * 5, "comp-b": [0.0] * 5},
+        })
+        try:
+            code = main(["assemble", "--predictions", f"{preds},{source}",
+                         "--output", str(out)]) or 0
+        except SystemExit as exc:
+            code = exc.code
+
+        assert code == 0
+        assert (out / "elo-seed-stt-pt-PT.json").exists()
+        assert (out / "elo-seed-stt-en-US.json").exists()
+
+
 class TestPreLoadFailureScopedToConcreteLang:
     """A pre-load failure (stale pin, gated repo, ...) on a source whose
     lang is known statically from the registry must refuse only THAT lang
