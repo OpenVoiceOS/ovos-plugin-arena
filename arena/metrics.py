@@ -647,6 +647,18 @@ def row_intelligibility_agreement(row: PredictionRow) -> float | None:
     return value
 
 
+def row_intelligibility_unavailable(row: PredictionRow) -> bool:
+    """Whether the row's language has no ASR judge, so intelligibility was
+    deliberately not measured (``intelligibility: not_available``, §4 R16).
+
+    Distinct from a row that simply lacks the fields: those predate
+    intelligibility judging and might yet be rescored, while these carry a
+    standing statement that no judge exists for the language and a number
+    would be meaningless. See ``runner.asr_judges.judge_available``.
+    """
+    return row.extras.get("intelligibility") == "not_available"
+
+
 def tts_seed_score(row: PredictionRow) -> float | None:
     """Composite TTS ELO-seed score: naturalness x intelligibility x
     inter-judge agreement.
@@ -675,10 +687,20 @@ def tts_seed_score(row: PredictionRow) -> float | None:
     make the intelligibility factor negative. Returns ``None`` when either
     UTMOS or CER is missing — no partial score, so callers can tell "not
     computable" apart from "computed to near-zero".
+
+    Languages with no ASR judge (``intelligibility: not_available``, §4 R16)
+    have no intelligibility factor to multiply in at all, and inventing one
+    would rank their voices by the ASR fleet's coverage gap. Those rows seed
+    on naturalness alone. TTS boards are per language, so the two shapes of
+    seed are never mixed inside one ranking.
     """
     utmos = row_utmos(row)
+    if utmos is None:
+        return None
+    if row_intelligibility_unavailable(row):
+        return max(0.0, min(utmos, 5.0)) / 5.0
     cer = row_intelligibility_cer(row)
-    if utmos is None or cer is None:
+    if cer is None:
         return None
     utmos = max(0.0, min(utmos, 5.0))
     cer = max(0.0, min(cer, 1.0))

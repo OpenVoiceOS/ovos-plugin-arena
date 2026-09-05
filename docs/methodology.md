@@ -604,9 +604,9 @@ whether a clip counts as intelligible. The panel is every distinct
 language-specific `onnx-asr` model available for the clip's language, plus
 the multilingual `whisper-base` wrapper (never `faster-whisper`), which is
 always a panel member, not merely a fallback for languages with no
-dedicated export; a language with no dedicated export gets a panel of one
-(`whisper-base` alone), and ROVER degrades gracefully to that single
-transcript. ROVER aligns each hypothesis word-for-word onto a running
+dedicated export; a language Whisper covers but no dedicated export does
+gets a panel of one (`whisper-base` alone), and ROVER degrades gracefully
+to that single transcript. ROVER aligns each hypothesis word-for-word onto a running
 consensus (pairwise-progressive alignment: every hypothesis after the
 first is aligned onto the growing consensus with ordinary two-sequence
 dynamic programming, the same approximation of true N-way alignment tools
@@ -614,6 +614,28 @@ like `sclite` use by default for more than two hypotheses) and then takes
 the plurality vote per aligned word slot, including a gap (no word at all)
 as a valid winner, so a word only one judge inserted is correctly voted
 out rather than kept by default.
+
+**Languages with no judge are not scored for intelligibility.** A language
+is only judgeable if some ASR model actually covers it: an ovos-config
+offline-STT recommend, an entry in the `ovos-stt-plugin-onnx-asr` registry,
+or a judge this repo pins for it. A language with none of those still
+*resolves* to `whisper-base`, but only through the plugin's blanket default
+— no model was ever trained on it, so the panel transcribes noise and the
+round-trip error rate that comes back measures the ASR fleet's coverage
+rather than the voice. The published rates make the point better than the
+argument does: 1428% WER on Burmese, 588% on Javanese, 130% on Aragonese.
+
+`runner/asr_judges.py::judge_available` decides this per clip language, by
+asking the installed plugin rather than a table kept here, so a language
+the plugin has claimed is never mistaken for one nothing covers. Rows it
+rejects carry `intelligibility: not_available` with a null WER/CER and
+`intelligibility_judge: none` instead of a number. Their ELO seed is
+naturalness alone, the perceptual judges (UTMOS, SIGMOS, DNSMOS, NISQA)
+still score them, and the judge-agreement matrix on such a board has no
+intelligibility axis. A language leaves the set the moment an ASR model for
+it enters the registry, and `tests/test_tts_bench.py` pins the exact set
+the shipped registry produces. Because TTS boards are per language, a voice
+is never ranked against differently-scored voices of another language.
 
 **Provenance and reproducibility.** Each scored row records the full
 per-judge panel output in `extras`, mirroring the UTMOS convention but

@@ -41,10 +41,12 @@ import json
 import logging
 from pathlib import Path
 
+from runner.asr_judges import _UNIVERSAL_FALLBACK, judge_available
 from runner.intent_bench import HF_OWNER, results_repo_for
 from runner.tts_bench import (  # noqa: F401 (patchable at module level; optional-dep imports are inside tts_bench's own lazy judge getters)
     _score_intelligibility,
     _score_quality_dimensions,
+    unjudgeable_intelligibility_extras,
 )
 
 log = logging.getLogger("rescore-tts")
@@ -53,10 +55,12 @@ MODALITY = "tts"
 
 # Extras keys a fresh ``_score_intelligibility`` panel result replaces —
 # both the legacy single-judge fields (§4 R16, pre-#143) and any error
-# marker left by a previous failed judging attempt.
+# marker left by a previous failed judging attempt, or by a language that
+# had no ASR judge when it was benched.
 _INTELLIGIBILITY_EXTRAS_KEYS = (
     "intelligibility_wer", "intelligibility_cer", "intelligibility_judge",
     "intelligibility_judge_revision", "intelligibility_error",
+    "intelligibility",
 )
 
 
@@ -70,9 +74,30 @@ def _needs_intelligibility_rejudge(row: dict) -> bool:
     """A row needs re-judging (``--rejudge-intelligibility``) unless it
     already carries a #143 ROVER panel result — legacy pre-#143 rows only
     ever have the single-judge ``intelligibility_wer/cer`` fields and no
-    ``intelligibility_rover`` marker at all."""
+    ``intelligibility_rover`` marker at all. A row already marked
+    ``intelligibility: not_available`` is final: its language has no ASR
+    judge, so there is nothing to re-judge it with."""
     extras = row.get("extras") or {}
+    if extras.get("intelligibility") == "not_available":
+        return False
     return extras.get("intelligibility_rover") is not True
+
+
+def _is_unjudgeable_row(row: dict, lang: str) -> bool:
+    """Whether this row should be marked ``intelligibility: not_available``
+    rather than re-judged.
+
+    Two conditions, both required. The language must have no ASR judge
+    (§4 R16), and the row's stored score must have come from the blanket
+    ``whisper-base`` default or from no judge at all. A row scored by a
+    dedicated model is a real measurement and is never overwritten with the
+    marker — the marker deletes the WER/CER outright, so a wrong answer
+    here destroys data no rescore can bring back.
+    """
+    if judge_available(lang):
+        return False
+    judge = (row.get("extras") or {}).get("intelligibility_judge")
+    return judge in (None, "none", _UNIVERSAL_FALLBACK)
 
 
 def _download_repo_tree(repo_id: str, revision: str = "main") -> Path:
@@ -159,7 +184,14 @@ def rescore_file(path: Path, repo_dir: Path,
                         if new_extras:
                             row.setdefault("extras", {}).update(new_extras)
                             row_changed = True
-                    if needs_intel:
+                    lang = row.get("lang")
+                    if needs_intel and lang and _is_unjudgeable_row(row, lang):
+                        extras = row.setdefault("extras", {})
+                        for key in _INTELLIGIBILITY_EXTRAS_KEYS:
+                            extras.pop(key, None)
+                        extras.update(unjudgeable_intelligibility_extras())
+                        row_changed = True
+                    elif needs_intel:
                         try:
                             result = _score_intelligibility(
                                 wav_path, row.get("input_text"), row.get("lang"))

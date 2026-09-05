@@ -143,3 +143,42 @@ class TestTtsJudgeAgreementBoard:
         }
         board = build_benchmark_board("intent", "d", "en-US", by_competitor, "t")
         assert board.judge_agreement is None
+
+
+class TestBoardWithNoAsrJudge:
+    """A board for a language with no ASR judge carries no intelligibility
+    axis at all, rather than a 1x1 "Intelligibility vs Intelligibility = 1.0"
+    matrix that reads as a judge confirming itself."""
+
+    def _by_competitor(self):
+        extras = {"intelligibility": "not_available",
+                  "intelligibility_wer": None, "intelligibility_cer": None,
+                  "intelligibility_judge": "none"}
+        return {
+            "phoonnx-dii-unicode-an": [_row(
+                competitor_id="phoonnx-dii-unicode-an", lang="an-ES",
+                extras={"utmos": 3.3061, "sigmos.ovrl": 2.6621,
+                        "dnsmos.ovrl": 3.3111, "nisqa.mos": 3.9569, **extras})],
+            "phoonnx-miro-unicode-an": [_row(
+                competitor_id="phoonnx-miro-unicode-an", lang="an-ES",
+                extras={"utmos": 3.1, "sigmos.ovrl": 2.4,
+                        "dnsmos.ovrl": 3.0, "nisqa.mos": 3.7, **extras})],
+        }
+
+    def test_no_intelligibility_row_or_column(self):
+        board = build_benchmark_board(
+            "tts", "d", "an-ES", self._by_competitor(), "t")
+        ja = board.judge_agreement
+        assert ja is not None
+        assert "Intelligibility" not in ja.matrix
+        assert all("Intelligibility" not in row for row in ja.matrix.values())
+        assert "Intelligibility" not in ja.top5
+        assert "UTMOS" in ja.matrix
+
+    def test_board_metrics_carry_no_wer(self):
+        board = build_benchmark_board(
+            "tts", "d", "an-ES", self._by_competitor(), "t")
+        for entry in board.entries:
+            assert "intelligibility_wer" not in entry.metrics
+            assert "intelligibility_n_scored" not in entry.metrics
+            assert entry.metrics["utmos"]

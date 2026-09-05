@@ -373,8 +373,9 @@ Voting options MUST include: candidate A, candidate B, tie, both-wrong.
   blended entries, and CI/tooling can grep for them, rather than a reader
   assuming a single score reflects a single shipped version.
 - **R16, TTS intelligibility (STT round-trip WER/CER).** Alongside UTMOS
-  (R14), `runner/tts_bench.py` MUST transcribe every rendered clip back to
-  text with a pinned STT judge, the best offline onnx-asr model for the
+  (R14), `runner/tts_bench.py` MUST transcribe every rendered clip whose
+  language has an ASR judge back to text with a pinned STT judge, the best
+  offline onnx-asr model for the
   clip's language, resolved per `runner/asr_judges.py` from ovos-config's
   offline-STT recommends with an onnx-asr fallback table, never
   faster-whisper (model + revision recorded
@@ -387,12 +388,13 @@ Voting options MUST include: candidate A, candidate B, tie, both-wrong.
   resampled to 16 kHz mono before transcription regardless of the source
   container/rate, feeding the judge raw bytes at the wrong sample rate or
   an undecoded non-wav container produces a meaningless score, not an
-  error, so this is a silent-corruption risk rather than a crash. A
-  synthesis failure MUST still emit a row, scored `intelligibility_wer =
-  intelligibility_cer = 1.0`, rather than being silently dropped by the
-  runner's per-sample exception handling (§3.3), and a judge-side failure
-  (e.g. transcribing silence/noise) forces the same worst-case score rather
-  than leaving the row's intelligibility fields missing.
+  error, so this is a silent-corruption risk rather than a crash. For a
+  language with a judge, a synthesis failure MUST still emit a row, scored
+  `intelligibility_wer = intelligibility_cer = 1.0`, rather than being
+  silently dropped by the runner's per-sample exception handling (§3.3),
+  and a judge-side failure (e.g. transcribing silence/noise) forces the
+  same worst-case score rather than leaving the row's intelligibility
+  fields missing.
   `arena/metrics.py:score_tts` aggregates `intelligibility_wer` into the
   `tts` benchmark board as a **secondary** metric (mean + bootstrap 95% CI,
   R11), UTMOS (R14) stays primary. Low-resource languages the judge
@@ -400,6 +402,37 @@ Voting options MUST include: candidate A, candidate B, tie, both-wrong.
   never gates a board or blocks a run, since a high round-trip WER there
   reflects the STT judge's own blind spot as often as the TTS clip's actual
   intelligibility.
+
+  A language has an ASR judge when some ASR model covers it:
+  `runner/asr_judges.py:judge_available` MUST decide this from an
+  ovos-config offline-STT recommend, a judge this repo pins for the
+  language, or an entry in the installed `ovos-stt-plugin-onnx-asr`
+  registry, which it MUST read from the plugin rather than from a copy held
+  here — a copy drifts, and a language the plugin covers then reads as
+  unjudgeable and silently loses its scores. A language reaching
+  `whisper-base` only through the plugin's blanket default is NOT judged:
+  with no model trained on it, the panel transcribes noise and the
+  round-trip error rate measures the ASR fleet's coverage rather than the
+  voice. Rows for such a language MUST NOT carry a round-trip number at
+  all. They MUST carry
+  `intelligibility: not_available` with null `intelligibility_wer` and
+  `intelligibility_cer` and `intelligibility_judge: none`, including on a
+  synthesis failure, so a reader can tell an unmeasurable metric from a bad
+  one. `arena/metrics.py:tts_seed_score` MUST seed those rows from the
+  perceptual judges alone — UTMOS (R14), with SIGMOS/DNSMOS/NISQA recorded
+  as their own board columns — and MUST NOT substitute a default for the
+  absent intelligibility and agreement factors. With no
+  `intelligibility_wer` aggregated, the board's judge-agreement matrix
+  (R14 ext.) omits the intelligibility axis rather than reporting it
+  agreeing with itself. Every writer of TTS prediction rows — the bench
+  runner, the backfill tool and the rescore tool — MUST apply the same
+  test, so rows for one language never disagree about whether a round trip
+  exists, and a rescore MUST NOT replace a score produced by a
+  language-specific judge with the marker. Availability is decided per clip
+  language: the dataset-level `"multi"` tag is not a language, and a
+  multilingual corpus is judged one real language at a time. TTS boards are
+  keyed by language, so a seed of this shape is never ranked against an
+  intelligibility-weighted one.
 - **R18, Each intent league is its own ELO pool.** `battle_group()`
   (`arena/models.py`) is an identity mapping for every modality, including
   all three intent leagues (`intent`, `intent_template`, `intent_keyword`):
