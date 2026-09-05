@@ -44,6 +44,9 @@ audio = [
     # judge itself is per-language onnx-asr (runner/asr_judges.py, §4 R16).
     "faster-whisper",
     "onnx-asr[hub]",
+    # Holds the per-language ASR registry runner/asr_judges.py reads to
+    # decide which languages can be judged for intelligibility at all.
+    "ovos-stt-plugin-onnx-asr>=0.6.0a1",
     # WakeWordProbe (per-clip hotword driver, PR ovoscope#97) landed in
     # 1.6.0a1; not yet in a stable ovoscope release (latest stable is 1.5.0),
     # so this is a prerelease floor pin, not a stable-release requirement.
@@ -60,6 +63,10 @@ test = [
     # (runner/ww_bench.py) — tests must fail loudly, never skip, on missing
     # deps, so the probe dependency belongs in the test extra too.
     "ovoscope>=1.6.0a1",
+    # The judge-availability tests assert runner/asr_judges.py agrees with
+    # the plugin's real LANG_DEFAULTS registry, so they import it — same
+    # never-skip reasoning as ovoscope above.
+    "ovos-stt-plugin-onnx-asr>=0.6.0a1",
 ]
 lint = [
     "ruff>=0.6",

@@ -17,7 +17,7 @@ import logging
 import time
 from collections.abc import Iterator
 
-from runner.asr_judges import resolve_judge_model, resolve_judge_panel
+from runner.asr_judges import judge_available, resolve_judge_model, resolve_judge_panel
 from runner.media_bench import MediaBenchAdapter, PredictContext, load_plugin_class
 from runner.perf import rss_mb
 
@@ -213,6 +213,23 @@ def _score_quality_dimensions(wav_path) -> dict:
     return extras
 
 
+def unjudgeable_intelligibility_extras() -> dict:
+    """Extras marking a row whose language has no ASR judge (§4 R16).
+
+    WER/CER stay ``None`` rather than a number: with no judge for the
+    language the panel transcribes noise, and a numeric round-trip error
+    there measures ASR coverage, not the voice. Aggregation and the ELO
+    seed both read the explicit marker and fall back to naturalness alone.
+    """
+    return {
+        "intelligibility": "not_available",
+        "intelligibility_wer": None,
+        "intelligibility_cer": None,
+        "intelligibility_judge": "none",
+        "intelligibility_judge_revision": None,
+    }
+
+
 def _transcribe(judge, array, sample_rate: int = 16000) -> str:
     """Run the resolved onnx-asr judge over a decoded 16 kHz mono float32 array."""
     return judge.recognize(array, sample_rate=sample_rate).strip()
@@ -330,7 +347,16 @@ class TTSBench(MediaBenchAdapter):
                            else None)
             log.warning("synthesis failed for %r (%s): %s",
                         text, ctx.competitor.competitor_id, exc)
-            judge_model_id, judge_revision = resolve_judge_model(ctx.lang)
+            if judge_available(ctx.lang):
+                judge_model_id, judge_revision = resolve_judge_model(ctx.lang)
+                intelligibility = {
+                    "intelligibility_wer": 1.0,
+                    "intelligibility_cer": 1.0,
+                    "intelligibility_judge": judge_model_id,
+                    "intelligibility_judge_revision": judge_revision,
+                }
+            else:
+                intelligibility = unjudgeable_intelligibility_extras()
             return {
                 "input_text": text,
                 "prediction": None,
@@ -339,13 +365,7 @@ class TTSBench(MediaBenchAdapter):
                 "elapsed_ms": round(latency_ms, 3),
                 "peak_rss_mb": round(peak_rss_mb, 3) if peak_rss_mb is not None else None,
                 "audio_secs": None,  # synthesis failed — no clip was produced
-                "extras": {
-                    "synthesis_error": str(exc),
-                    "intelligibility_wer": 1.0,
-                    "intelligibility_cer": 1.0,
-                    "intelligibility_judge": judge_model_id,
-                    "intelligibility_judge_revision": judge_revision,
-                },
+                "extras": {"synthesis_error": str(exc), **intelligibility},
             }
         latency_ms = (time.perf_counter() - start) * 1000
         after_rss = rss_mb()
@@ -369,30 +389,36 @@ class TTSBench(MediaBenchAdapter):
         # additional secondary columns. Warn-only on failure, same as
         # intelligibility scoring below: never drops the row.
         extras.update(_score_quality_dimensions(wav_path))
-        try:
-            result = _score_intelligibility(wav_path, text, ctx.lang)
-            extras["intelligibility_wer"] = result["wer"]
-            extras["intelligibility_cer"] = result["cer"]
-            extras["intelligibility_judge"] = result["judge_model_id"]
-            extras["intelligibility_judge_revision"] = result["judge_revision"]
-            extras["intelligibility_judges"] = result["judges"]
-            extras["intelligibility_consensus"] = result["consensus"]
-            extras["intelligibility_agreement"] = result["agreement"]
-            extras["intelligibility_rover"] = True
-        except Exception as exc:
-            # Low-resource languages the judge transcribes weakly are
-            # warn-only (§4 R16) — the real WER is still recorded (never
-            # gates), but the judge itself crashing (e.g. on silence/noise)
-            # must not drop the row: force the worst-case score instead of
-            # leaving the metric silently missing.
-            log.warning("intelligibility scoring failed for %r (%s): %s",
-                        text, ctx.competitor.competitor_id, exc)
-            judge_model_id, judge_revision = resolve_judge_model(ctx.lang)
-            extras["intelligibility_wer"] = 1.0
-            extras["intelligibility_cer"] = 1.0
-            extras["intelligibility_judge"] = judge_model_id
-            extras["intelligibility_judge_revision"] = judge_revision
-            extras["intelligibility_error"] = str(exc)
+        if not judge_available(ctx.lang):
+            # No ASR judge claims this language, so there is no round-trip
+            # to measure (§4 R16) — the board keeps naturalness and the
+            # perceptual dimensions above, and says so explicitly.
+            extras.update(unjudgeable_intelligibility_extras())
+        else:
+            try:
+                result = _score_intelligibility(wav_path, text, ctx.lang)
+                extras["intelligibility_wer"] = result["wer"]
+                extras["intelligibility_cer"] = result["cer"]
+                extras["intelligibility_judge"] = result["judge_model_id"]
+                extras["intelligibility_judge_revision"] = result["judge_revision"]
+                extras["intelligibility_judges"] = result["judges"]
+                extras["intelligibility_consensus"] = result["consensus"]
+                extras["intelligibility_agreement"] = result["agreement"]
+                extras["intelligibility_rover"] = True
+            except Exception as exc:
+                # Low-resource languages the judge transcribes weakly are
+                # warn-only (§4 R16) — the real WER is still recorded (never
+                # gates), but the judge itself crashing (e.g. on silence/noise)
+                # must not drop the row: force the worst-case score instead of
+                # leaving the metric silently missing.
+                log.warning("intelligibility scoring failed for %r (%s): %s",
+                            text, ctx.competitor.competitor_id, exc)
+                judge_model_id, judge_revision = resolve_judge_model(ctx.lang)
+                extras["intelligibility_wer"] = 1.0
+                extras["intelligibility_cer"] = 1.0
+                extras["intelligibility_judge"] = judge_model_id
+                extras["intelligibility_judge_revision"] = judge_revision
+                extras["intelligibility_error"] = str(exc)
 
         return {
             "input_text": text,

@@ -317,3 +317,69 @@ class TestRejudgeIntelligibility:
         assert (rescored, skipped) == (0, 1)
         assert called == []
         assert jsonl_path.read_bytes() == original_bytes
+
+
+class TestUnjudgeableLanguageMigration:
+    """``--rejudge-intelligibility`` marks rows whose language has no ASR
+    judge, and must not touch a row that carries a real measurement."""
+
+    def _row(self, lang, extras):
+        url = (f"https://huggingface.co/datasets/OpenVoiceOS/ovos-tts-bench-d"
+               f"/resolve/main/audio/{lang}/voice_a/abc.wav")
+        return {"sample_id": "s1", "competitor_id": "voice_a", "lang": lang,
+                "audio_url": url, "extras": extras}
+
+    def _run(self, tmp_path, lang, row, monkeypatch, judge=None):
+        wav = tmp_path / "audio" / lang / "voice_a" / "abc.wav"
+        wav.parent.mkdir(parents=True)
+        wav.write_bytes(b"RIFF....WAVEfmt ")
+        jsonl_path = tmp_path / "predictions" / lang / "voice_a.jsonl"
+        _write_jsonl(jsonl_path, [row])
+        monkeypatch.setattr(
+            rescore_tts, "_score_quality_dimensions",
+            lambda p: {"sigmos.ovrl": 4.5, "dnsmos.ovrl": 3.2, "nisqa.mos": 4.6})
+
+        def must_not_run(*a, **kw):
+            raise AssertionError("no judge exists for this language")
+
+        monkeypatch.setattr(rescore_tts, "_score_intelligibility",
+                            judge or must_not_run)
+        rescore_tts.rescore_file(jsonl_path, tmp_path, rejudge_intelligibility=True)
+        return json.loads(jsonl_path.read_text().splitlines()[0])
+
+    def test_an_es_whisper_scored_row_is_replaced_by_the_marker(
+            self, tmp_path, monkeypatch):
+        row = self._row("an-ES", {
+            "utmos": 3.3061, "intelligibility_wer": 1.2996,
+            "intelligibility_cer": 0.9, "intelligibility_judge": "whisper-base"})
+        updated = self._run(tmp_path, "an-ES", row, monkeypatch)
+
+        assert updated["extras"]["intelligibility"] == "not_available"
+        assert updated["extras"]["intelligibility_wer"] is None
+        assert updated["extras"]["intelligibility_judge"] == "none"
+        assert updated["extras"]["utmos"] == pytest.approx(3.3061)
+
+    def test_row_scored_by_a_dedicated_model_is_never_overwritten(
+            self, tmp_path, monkeypatch):
+        # Russian resolves to gigaam-v2-rnnt in the plugin registry. Even if
+        # judge_available were to regress, a real measurement must survive.
+        row = self._row("ru-RU", {
+            "utmos": 3.9, "intelligibility_wer": 0.21,
+            "intelligibility_cer": 0.08, "intelligibility_judge": "gigaam-v2-rnnt"})
+        monkeypatch.setattr(rescore_tts, "judge_available", lambda lang: False)
+        panel = lambda *a, **kw: {
+            "wer": 0.21, "cer": 0.08, "judge_model_id": "gigaam-v2-rnnt",
+            "judge_revision": "abc", "judges": [], "consensus": "x",
+            "agreement": 1.0,
+        }
+        updated = self._run(tmp_path, "ru-RU", row, monkeypatch, judge=panel)
+
+        assert updated["extras"]["intelligibility_wer"] == pytest.approx(0.21)
+        assert updated["extras"]["intelligibility_cer"] == pytest.approx(0.08)
+        assert updated["extras"]["intelligibility_judge"] == "gigaam-v2-rnnt"
+        assert "intelligibility" not in updated["extras"]
+
+    def test_marked_row_is_not_rejudged_again(self):
+        row = {"extras": {"intelligibility": "not_available",
+                          "intelligibility_wer": None}}
+        assert rescore_tts._needs_intelligibility_rejudge(row) is False

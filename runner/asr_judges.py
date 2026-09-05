@@ -13,17 +13,19 @@ those files' models, refreshed by re-reading
 ``ovos_config/recommends/offline_stt/`` when ovos-config's recommends change.
 
 ovos-config only recommends ~20 languages today. Every other language falls
-back to :data:`_FALLBACK`, the best onnx-asr model per language from
-``ovos-stt-plugin-onnx-asr``'s own built-in registry
-(``ovos_stt_plugin_onnxasr.defaults.LANG_DEFAULTS``), itself sourced from the
-``OpenVoiceOS/stt-asr-onnx`` HuggingFace collection. A handful of long-tail
-languages (af, am, az, cy, he, id, jv, km, mn, ms, my, nb, sq, sw, th, tr)
-have no dedicated onnx-asr fine-tune published yet anywhere in that
-collection, so they fall back further to onnx-asr's own bundled
-multilingual ``whisper-base`` wrapper. That is still the ``onnx-asr``
-PACKAGE (onnxruntime, MIT) — architecturally a Whisper checkpoint, but never
-touching ``faster-whisper``. Document here, not silently, if any of those
-gets a dedicated export later.
+back to :data:`_FALLBACK`, a small set of judges pinned to a known HF commit
+(see :data:`_REVISIONS`), and then to onnx-asr's own bundled multilingual
+``whisper-base`` wrapper. That is still the ``onnx-asr`` PACKAGE
+(onnxruntime, MIT) — architecturally a Whisper checkpoint, but never
+touching ``faster-whisper``.
+
+Which languages can be judged at ALL is a separate question from which
+model judges them, and it is NOT answered by the tables here.
+:func:`judge_available` reads the installed ``ovos-stt-plugin-onnx-asr``
+registry (``ovos_stt_plugin_onnxasr.defaults.LANG_DEFAULTS``) directly, so
+a language the plugin has claimed since is never mistaken for one no ASR
+model covers. Copying that registry into this module is what makes the
+answer go stale.
 
 ``onnx_asr.load_model`` has no ``revision`` parameter (unlike
 ``faster_whisper.WhisperModel``) — it always resolves the model's *current*
@@ -54,11 +56,10 @@ _RECOMMENDS: dict[str, str] = {
     "pt-pt": "OpenVoiceOS/whisper-medium-pt-onnx",
 }
 
-# ovos-stt-plugin-onnx-asr's built-in LANG_DEFAULTS, keyed by primary
-# subtag, for languages ovos-config has no recommends/offline_stt/*.conf
-# for yet. Dedicated fine-tunes beat the multilingual fillers on their
-# language; multilingual `nemo-parakeet-tdt-0.6b-v3` and `whisper-base`
-# cover the rest.
+# Judges pinned to a known HF commit for languages ovos-config has no
+# recommends/offline_stt/*.conf for. This is a revision-pinning override
+# (see _REVISIONS), NOT a statement of which languages onnx-asr covers —
+# judge_available() reads the plugin's own registry for that.
 _FALLBACK: dict[str, str] = {
     # Best dedicated OVOS onnx export per language for langs ovos-config has
     # no recommends/offline_stt/*.conf for yet (verified against ovos-config
@@ -94,9 +95,8 @@ _FALLBACK: dict[str, str] = {
 }
 
 #: onnx-asr's own multilingual Whisper wrapper (the `onnx-asr` PACKAGE, not
-#: `faster-whisper`) — last-resort coverage for languages with no dedicated
-#: onnx-asr fine-tune anywhere yet: af, am, az, cy, he, id, jv, km, mn, ms,
-#: my, nb, sq, sw, th, tr.
+#: `faster-whisper`) — the panel's always-present multilingual member, and
+#: the resolver's last resort for a language with no dedicated export.
 _UNIVERSAL_FALLBACK = "whisper-base"
 
 #: HF commit sha per model id, pinned via ``HfApi().model_info(id).sha`` at
@@ -206,3 +206,62 @@ def resolve_judge_panel(lang: str) -> list[tuple[str, str]]:
         )
 
     return panel
+
+
+def _plugin_claims(lang: str) -> bool:
+    """Whether ``ovos-stt-plugin-onnx-asr``'s registry holds a model for ``lang``.
+
+    Asked of the installed plugin rather than a copy kept here: a copy goes
+    stale silently, and a language the plugin has claimed since would keep
+    reading as unjudgeable. The plugin's own ``_match`` does the lookup so
+    the answer matches what a real install resolves, nearest-tag matching
+    included (``nb`` reaches the ``no`` entry) — reimplementing that here
+    would be the same staleness in a different shape. Imported lazily:
+    ``arena.metrics`` and the non-audio CLI paths stay importable on a base
+    install.
+    """
+    try:
+        from ovos_stt_plugin_onnxasr.defaults import LANG_DEFAULTS, _match
+    except ImportError as exc:
+        raise RuntimeError(
+            "resolving TTS intelligibility judges requires the "
+            "'ovos-stt-plugin-onnx-asr' package (it holds the per-language "
+            "ASR registry) — install the 'audio' extra: "
+            "pip install ovos-plugin-arena[audio]"
+        ) from exc
+    return _match(lang, LANG_DEFAULTS) is not None
+
+
+def judge_available(lang: str) -> bool:
+    """Whether an ASR model claims ``lang``, so a round trip can be judged.
+
+    True when ovos-config recommends an offline STT for the language, when
+    :data:`_FALLBACK` pins a dedicated judge for it, or when the installed
+    ``ovos-stt-plugin-onnx-asr`` registry holds an entry for it — including
+    the languages that registry deliberately assigns to ``whisper-base``,
+    which Whisper does transcribe.
+
+    False when nothing claims the language. Such a language reaches
+    ``whisper-base`` only through the plugin's blanket ``DEFAULT_CPU_MODEL``,
+    with no model ever trained on it: the panel transcribes noise, and the
+    round-trip error rate that comes back measures the ASR fleet's coverage
+    rather than the voice (§4 R16). Callers MUST skip intelligibility
+    scoring for those languages instead of recording the number.
+
+    ``lang`` is one clip's own language tag. The dataset-level ``"multi"``
+    tag is not a language and raises — a multilingual corpus is benched one
+    real language at a time, and silently reading ``"multi"`` as unjudgeable
+    would drop intelligibility from every language on such a board.
+    """
+    full = lang.lower()
+    if not full or full == "multi":
+        raise ValueError(
+            f"{lang!r} is not a language tag — judge availability is decided "
+            f"per clip language, not per dataset"
+        )
+    primary = full.split("-")[0]
+    if full in _RECOMMENDS or any(k.split("-")[0] == primary for k in _RECOMMENDS):
+        return True
+    if primary in _FALLBACK:
+        return True
+    return _plugin_claims(full) or _plugin_claims(primary)

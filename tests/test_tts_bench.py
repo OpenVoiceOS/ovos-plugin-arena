@@ -824,3 +824,143 @@ class TestElapsedMsExcludesJudging:
         # latency_ms was already synthesis-scoped before this fix and must
         # stay that way too.
         assert fields["latency_ms"] < (self.SLEEP_SECONDS * 1000) / 2
+
+
+class TestNoAsrJudgeLanguages:
+    """Languages the ASR registry does not claim must not be scored for
+    intelligibility at all — the panel would transcribe noise and the
+    resulting WER would rank the ASR fleet's coverage gap as TTS quality.
+    """
+
+    def test_an_es_row_is_marked_not_available_and_never_transcribed(
+            self, tmp_path, monkeypatch):
+        monkeypatch.setattr(tts_bench, "_get_utmos_judge",
+                            lambda: FakeJudge(score=3.31))
+        # A judge that returns garbage — exactly what whisper-base does on a
+        # language it was never trained on. It must never be called.
+        garbage = FakeIntelligibilityJudge(text="una una una les les")
+        _patch_judge(monkeypatch, garbage)
+
+        fields = tts_bench.TTSBench().predict(
+            RealWavEngine(),
+            {"input_text": "y qué tal l'agua"},
+            _ctx(tmp_path, competitor_id="phoonnx-dii-unicode-an", lang="an-ES"),
+        )
+
+        extras = fields["extras"]
+        assert garbage.calls == []
+        assert extras["intelligibility"] == "not_available"
+        assert extras["intelligibility_wer"] is None
+        assert extras["intelligibility_cer"] is None
+        assert extras["intelligibility_judge"] == "none"
+        assert extras["utmos"] == pytest.approx(3.31)
+
+    def test_seed_score_is_utmos_only_for_a_no_judge_row(self, tmp_path, monkeypatch):
+        from arena.metrics import tts_seed_score
+        from arena.models import PredictionRow
+
+        monkeypatch.setattr(tts_bench, "_get_utmos_judge",
+                            lambda: FakeJudge(score=3.31))
+        _patch_judge(monkeypatch, FakeIntelligibilityJudge(text="garbage"))
+
+        fields = tts_bench.TTSBench().predict(
+            RealWavEngine(), {"input_text": "y qué tal l'agua"},
+            _ctx(tmp_path, lang="an-ES"))
+
+        row = PredictionRow(competitor_id="phoonnx-dii-unicode-an", sample_id="s",
+                            dataset_id="d", lang="an-ES", plugin_id="p",
+                            extras=fields["extras"])
+        # UTMOS alone, not floored by an unmeasurable intelligibility term.
+        assert tts_seed_score(row) == pytest.approx(3.31 / 5.0)
+
+    def test_pt_pt_row_still_scores_intelligibility(self, tmp_path, monkeypatch):
+        monkeypatch.setattr(tts_bench, "_get_utmos_judge", lambda: FakeJudge())
+        judge = FakeIntelligibilityJudge(text="ola mundo")
+        _patch_judge(monkeypatch, judge, "OpenVoiceOS/whisper-medium-pt-onnx",
+                     "7db38a22790ba3f831702db12cb19dd684642bf5")
+
+        fields = tts_bench.TTSBench().predict(
+            RealWavEngine(), {"input_text": "ola mundo"},
+            _ctx(tmp_path, lang="pt-PT"))
+
+        extras = fields["extras"]
+        assert judge.calls
+        assert "intelligibility" not in extras
+        assert extras["intelligibility_wer"] == pytest.approx(0.0)
+        assert extras["intelligibility_judge"] == "OpenVoiceOS/whisper-medium-pt-onnx"
+
+    def test_synthesis_failure_on_a_no_judge_language_records_no_wer(
+            self, tmp_path, monkeypatch):
+        monkeypatch.setattr(tts_bench, "_get_utmos_judge", lambda: FakeJudge())
+
+        class Boom:
+            def get_tts(self, text, wav_path, lang=None):
+                raise RuntimeError("no voice")
+
+        fields = tts_bench.TTSBench().predict(
+            Boom(), {"input_text": "hola"}, _ctx(tmp_path, lang="fy-NL"))
+
+        extras = fields["extras"]
+        assert extras["synthesis_error"]
+        assert extras["intelligibility"] == "not_available"
+        assert extras["intelligibility_wer"] is None
+
+    def test_judge_available_matches_the_plugin_registry_for_every_tts_lang(self):
+        """Ground truth is the installed plugin's registry, never a copy of
+        it kept in this repo: a copy drifts, and a language the plugin
+        claims then reads as unjudgeable and loses its scores."""
+        from ovos_stt_plugin_onnxasr.defaults import LANG_DEFAULTS, _match
+
+        from registry.loaders import list_datasets
+        from runner.asr_judges import _FALLBACK, _RECOMMENDS, judge_available
+
+        langs = set()
+        for dataset in list_datasets("tts"):
+            langs.update(dataset.langs or ([dataset.lang] if dataset.lang else []))
+        langs.discard("multi")
+        assert len(langs) > 20, "expected the real TTS registry, not an empty one"
+
+        unavailable = set()
+        for lang in sorted(langs):
+            primary = lang.lower().split("-")[0]
+            recommended = (lang.lower() in _RECOMMENDS
+                           or any(k.split("-")[0] == primary for k in _RECOMMENDS))
+            # _match is the plugin's own resolver, nearest-tag matching
+            # included — nb reaches the "no" entry, so nb-NO is judged.
+            claimed = (_match(lang.lower(), LANG_DEFAULTS) is not None
+                       or _match(primary, LANG_DEFAULTS) is not None)
+            expected = recommended or primary in _FALLBACK or claimed
+            assert judge_available(lang) is expected, lang
+            if not expected:
+                unavailable.add(lang)
+
+        # Every one of these is a language the ASR registry holds no model
+        # for, so their published round-trip rates measure the coverage gap:
+        # my-MM scored a 1428% WER, jv-ID 588%, an-ES 130%.
+        assert unavailable == {
+            "am-ET", "an-ES", "ast-ES", "az-AZ", "fy-NL",
+            "jv-ID", "km-KH", "mn-MN", "my-MM", "oc-FR",
+        }
+
+    def test_languages_the_plugin_claims_are_judged(self):
+        from ovos_stt_plugin_onnxasr.defaults import LANG_DEFAULTS
+        from runner.asr_judges import judge_available
+
+        # Each of these is a plugin registry entry the repo's own pinned
+        # fallback table does not hold.
+        for lang, model in (("ru-RU", "gigaam-v2-rnnt"),
+                            ("pl-PL", "OpenVoiceOS/yuriyvnv-parakeet-tdt-0.6b-pl-onnx"),
+                            ("ml-IN", "OpenVoiceOS/ai4bharat-indicconformer-ml-onnx"),
+                            ("el-GR", "nemo-parakeet-tdt-0.6b-v3")):
+            assert LANG_DEFAULTS[lang.split("-")[0]] == model
+            assert judge_available(lang) is True, lang
+
+    def test_multi_is_not_a_language(self):
+        from runner.asr_judges import judge_available
+
+        # Reading the dataset-level tag as unjudgeable would silently drop
+        # intelligibility from every language of a multilingual corpus.
+        with pytest.raises(ValueError):
+            judge_available("multi")
+        with pytest.raises(ValueError):
+            judge_available("")

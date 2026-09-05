@@ -323,3 +323,50 @@ class TestUploadPair:
         assert len(calls) == 1
         assert calls[0]["path_in_repo"] == "predictions/en-US/voice_a.jsonl"
         assert calls[0]["repo_id"] == "OpenVoiceOS/ovos-tts-bench-d"
+
+
+class TestBackfillSkipsUnjudgeableLanguages:
+    """The backfill tool writes the same rows the live bench does, so it
+    obeys the same rule: no round trip for a language with no ASR judge
+    (§4 R16). A backfilled row carrying a CER where its live sibling has
+    none would also break auto-vote pairing (``arena/assembler.py``)."""
+
+    def test_an_es_backfilled_row_is_marked_not_available(
+            self, tmp_path, monkeypatch, dataset_def, competitor):
+        text = "hello world"
+        monkeypatch.setattr(backfill, "load_competitor",
+                            lambda modality, cid: competitor)
+
+        def must_not_run(*a, **kw):
+            raise AssertionError("no judge exists for this language")
+
+        monkeypatch.setattr(backfill, "_score_intelligibility", must_not_run)
+
+        audio_dir = tmp_path / "audio"
+        _write_wav(audio_dir / f"{tts_bench._safe(text)}.wav")
+
+        rows = backfill.backfill_pair(dataset_def, "an-ES", "fake-voice",
+                                      audio_dir, "deadbeef", missing=[(0, text)])
+
+        extras = rows[0]["extras"]
+        assert extras["intelligibility"] == "not_available"
+        assert extras["intelligibility_wer"] is None
+        assert extras["intelligibility_cer"] is None
+        assert extras["intelligibility_judge"] == "none"
+        assert extras["utmos"] == pytest.approx(4.37)
+
+    def test_judged_language_still_gets_a_round_trip(
+            self, tmp_path, monkeypatch, dataset_def, competitor):
+        text = "hello world"
+        monkeypatch.setattr(backfill, "load_competitor",
+                            lambda modality, cid: competitor)
+
+        audio_dir = tmp_path / "audio"
+        _write_wav(audio_dir / f"{tts_bench._safe(text)}.wav")
+
+        rows = backfill.backfill_pair(dataset_def, "en-US", "fake-voice",
+                                      audio_dir, "deadbeef", missing=[(0, text)])
+
+        extras = rows[0]["extras"]
+        assert "intelligibility" not in extras
+        assert extras["intelligibility_wer"] == pytest.approx(0.1)

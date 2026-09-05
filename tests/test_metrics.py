@@ -714,3 +714,26 @@ class TestBenchmarkBoard:
         assert good.unranked is False
         assert failed.unranked is True
         assert failed.rank == 0
+
+
+class TestTtsSeedScoreWithoutAnAsrJudge:
+    def test_judged_language_seed_is_unchanged(self):
+        row = _row(modality="tts", lang="pt-PT", extras={
+            "utmos": 3.5843, "intelligibility_wer": 0.4173,
+            "intelligibility_cer": 0.2011, "intelligibility_agreement": 0.87,
+        })
+        # (3.5843 / 5) * (1 - 0.2011) * 0.87, computed independently.
+        assert tts_seed_score(row) == pytest.approx(
+            (3.5843 / 5.0) * (1.0 - 0.2011) * 0.87)
+
+    def test_unjudgeable_language_seeds_on_utmos_alone(self):
+        row = _row(modality="tts", lang="an-ES", extras={
+            "utmos": 3.3061, "intelligibility": "not_available",
+            "intelligibility_wer": None, "intelligibility_cer": None,
+            "intelligibility_judge": "none",
+        })
+        assert tts_seed_score(row) == pytest.approx(3.3061 / 5.0)
+
+    def test_missing_cer_without_the_marker_is_still_not_computable(self):
+        row = _row(modality="tts", lang="pt-PT", extras={"utmos": 3.5})
+        assert tts_seed_score(row) is None
