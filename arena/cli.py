@@ -57,6 +57,7 @@ from arena.metrics import (
     benchmark_board_input_signature,
     build_benchmark_board,
     metric_higher_is_better,
+    row_on_pinned_revision,
 )
 from arena.models import (
     VOTELESS_MODALITIES,
@@ -832,6 +833,7 @@ def cmd_assemble(args: argparse.Namespace) -> int:
 
     now = _now_iso()
     registry_dataset_langs = _registry_dataset_langs()
+    registry_dataset_revisions = _registry_dataset_revisions()
     ww_phrases = _wakeword_phrases()
     unregistered_competitors: dict[str, int] = {}
     all_seen_modalities: set[str] = set()
@@ -968,6 +970,7 @@ def cmd_assemble(args: argparse.Namespace) -> int:
             board = build_benchmark_board(
                 modality, dataset_id, lang, by_competitor, now, input_hash=input_hash,
                 sample_set_ids=sample_set_ids,
+                dataset_revision=registry_dataset_revisions.get(dataset_id),
             )
             _attach_model_sizes(board, modality)
             board.dataset_info = dataset_info.get(dataset_id)
@@ -1005,11 +1008,23 @@ def cmd_assemble(args: argparse.Namespace) -> int:
             # restricted to it too, so a battle is never assembled between
             # two fighters' rows drawn from different sample populations.
             sample_set_ids = _load_sample_set(modality, dataset_id, lang)
+            # A row swept against another revision of the corpus is dropped
+            # from the board, so it must not reach a battle or seed a rating
+            # either — the seeded ladder has to battle over the same
+            # population the board's primary metric is computed from.
+            pinned_revision = registry_dataset_revisions.get(dataset_id)
             for sample_id, comp_rows in samples.items():
                 if sample_set_ids is not None and sample_id not in sample_set_ids:
                     continue
-                bs.setdefault(sample_id, {}).update(comp_rows)
-                es.setdefault(sample_id, {}).update(comp_rows)
+                on_pin = {
+                    competitor_id: row
+                    for competitor_id, row in comp_rows.items()
+                    if row_on_pinned_revision(row, pinned_revision)
+                }
+                if not on_pin:
+                    continue
+                bs.setdefault(sample_id, {}).update(on_pin)
+                es.setdefault(sample_id, {}).update(on_pin)
 
         for (group, dataset_id, lang), samples in sorted(battle_samples.items()):
             stats: dict[str, int] = {}
@@ -1243,6 +1258,17 @@ def _registry_dataset_langs() -> dict[str, set[str]]:
             else {dataset.lang}
         out.setdefault(dataset.dataset_id, set()).update(langs)
     return out
+
+
+def _registry_dataset_revisions() -> dict[str, str | None]:
+    """``dataset_id -> source.revision`` across the whole registry.
+
+    Board assembly scores a dataset's rows against the revision its registry
+    entry pins; see ``arena.metrics.drop_rows_off_pinned_revision``.
+    """
+    from registry.loaders import list_datasets
+
+    return {d.dataset_id: d.source.revision for d in list_datasets()}
 
 
 def _registry_battle_groups() -> set[str]:

@@ -12,8 +12,9 @@ Intent scoring conventions
   is a false positive (counted in ``ood_fpr`` and penalising that intent's
   precision in macro-F1).
 - ``accuracy`` covers ALL samples, counting correct OOD rejections.
-- ``generalization_accuracy`` covers only the samples an engine cannot have
-  seen during training (see ``CONTAMINATED_BUCKETS``) and is what the intent
+- ``generalization_accuracy`` covers only the ``paraphrase``, ``far_ood``,
+  ``asr_noise`` and ``typos`` buckets — phrasings unlike the training
+  templates (see ``IN_DISTRIBUTION_BUCKETS``) — and is what the intent
   boards rank on.
 - ``slot_f1`` is exact-match over the gold slot dict, evaluated only on
   rows where the intent was correct and gold slots exist.
@@ -47,24 +48,91 @@ BOOTSTRAP_SEED = 0
 # ``input_hash`` never survives a scoring-logic change — the whole point of
 # the signature is "same input AND same logic produces the same output",
 # not just "same input".
-BOARD_LOGIC_VERSION = 2
+BOARD_LOGIC_VERSION = 3
 
-#: Test buckets whose utterances also reach the engines as training data.
-#: A template-paradigm fighter is trained on every phrase template AND on
-#: ``runner.intent_pipeline.expand_template``'s slot-filled expansions of it,
-#: and ``intents-for-eval``'s ``template`` and ``near_ood`` test rows are
-#: largely those same expansions verbatim — measured at 95% and 83% of the two
-#: buckets on en-US, 46% of the whole test set. Accuracy inside them is a
-#: memorization lookup, not evidence an engine understands anything, and it
-#: systematically favours exact-string matchers. They stay published as their
-#: own ``acc_*`` columns; they are excluded from the ranked metric.
-CONTAMINATED_BUCKETS = frozenset({"template", "near_ood"})
+#: Test buckets phrased close to the training data: ``template`` rows are
+#: expansions of held-out phrase templates (a template-paradigm fighter
+#: trains on every OTHER template and its slot-filled expansions, via
+#: ``runner.intent_pipeline.expand_template``), and ``in_distribution`` rows
+#: are in-domain paraphrase-adjacent utterances. ``generalization_accuracy``
+#: is defined as accuracy on phrasings unlike the training templates, so
+#: these buckets are excluded from it and scored only inside overall
+#: ``accuracy`` and their own published ``acc_*`` columns.
+#:
+#: ``near_ood`` is the same bucket under the name older ``intents-for-eval``
+#: revisions gave it, and is excluded identically. Rows carrying it only
+#: reach a scorer for a dataset the registry pins to a branch rather than a
+#: commit; on a sha-pinned dataset ``drop_rows_off_pinned_revision`` removes
+#: them before scoring.
+IN_DISTRIBUTION_BUCKETS = frozenset({"template", "in_distribution", "near_ood"})
 
-#: Published column suffix for a raw dataset bucket name, where the dataset's
-#: own name misdescribes the rows. ``near_ood`` is not out-of-distribution: no
-#: row in it has a null expected intent, and the overwhelming majority repeat a
-#: training utterance under the same gold label.
-BUCKET_METRIC_NAMES = {"near_ood": "in_distribution"}
+#: Published column suffix for a raw dataset bucket name, for buckets whose
+#: raw name doesn't match the column it should be published under. ``near_ood``
+#: is not out-of-distribution — no row in it has a null expected intent — so
+#: it is published as ``acc_in_distribution``, the name later revisions of the
+#: dataset use, and both spellings land in the same column.
+BUCKET_METRIC_NAMES: dict[str, str] = {"near_ood": "in_distribution"}
+
+
+def is_pinned_revision(revision: str | None) -> bool:
+    """Whether a registry ``source.revision`` names one immutable commit.
+
+    A 40-character hex sha identifies exactly one version of a corpus, so
+    rows produced against a different one are known to be a different
+    dataset. A branch name such as ``main`` moves, and rows carry whichever
+    sha it pointed at when they were produced, so there is nothing to
+    compare them against.
+    """
+    return bool(revision) and len(revision) == 40 and all(
+        c in "0123456789abcdef" for c in revision.lower()
+    )
+
+
+def row_on_pinned_revision(row: PredictionRow, pinned_revision: str | None) -> bool:
+    """Whether *row* may be scored for a dataset pinned to *pinned_revision*.
+
+    Rows are scored against the dataset revision the registry pins. A corpus
+    can change its row population, its bucket names and its train/test split
+    between revisions, so scoring an older shard under the current rules
+    silently answers a question nobody asked — see
+    ``drop_rows_off_pinned_revision``.
+    """
+    if not is_pinned_revision(pinned_revision):
+        return True
+    return row.dataset_revision == pinned_revision
+
+
+# R15b dataset-revision guard
+def drop_rows_off_pinned_revision(
+    by_competitor: dict[str, list[PredictionRow]],
+    pinned_revision: str | None,
+) -> tuple[dict[str, list[PredictionRow]], dict[str, int]]:
+    """Keep only rows produced against *pinned_revision*.
+
+    Returns the filtered mapping and, per competitor, how many rows were
+    dropped. When the registry pins a branch rather than a sha, nothing is
+    dropped and every count is zero.
+
+    A dataset revision defines the rows, the buckets and the train/test
+    split a score means something against. Scoring a shard swept on an
+    earlier revision under the current scoring rules produces a number that
+    describes neither revision: on ``intents-for-eval`` it moved padacioso's
+    ``generalization_accuracy`` from 0.0953 to 0.364, because the older
+    shard's ``near_ood`` rows entered a metric the newer revision's bucket
+    layout excludes. A competitor with no rows on the pinned revision has
+    not been swept against this dataset; it is left unscored rather than
+    ranked on rows from a corpus it was not measured on.
+    """
+    if not is_pinned_revision(pinned_revision):
+        return by_competitor, dict.fromkeys(by_competitor, 0)
+    kept: dict[str, list[PredictionRow]] = {}
+    dropped: dict[str, int] = {}
+    for competitor_id, rows in by_competitor.items():
+        on_pin = [r for r in rows if r.dataset_revision == pinned_revision]
+        kept[competitor_id] = on_pin
+        dropped[competitor_id] = len(rows) - len(on_pin)
+    return kept, dropped
+
 
 PRIMARY_METRIC = {
     "intent": "generalization_accuracy",
@@ -250,12 +318,12 @@ def score_intent(rows: list[PredictionRow]) -> dict[str, float]:
     if ece is not None:
         metrics["ece"] = ece
     clean_total = sum(
-        v["total"] for b, v in per_bucket.items() if b not in CONTAMINATED_BUCKETS
+        v["total"] for b, v in per_bucket.items() if b not in IN_DISTRIBUTION_BUCKETS
     )
     if clean_total:
         clean_correct = sum(
             v["correct"] for b, v in per_bucket.items()
-            if b not in CONTAMINATED_BUCKETS
+            if b not in IN_DISTRIBUTION_BUCKETS
         )
         metrics["generalization_accuracy"] = round(clean_correct / clean_total, 4)
     for bucket, v in sorted(per_bucket.items()):
@@ -959,7 +1027,7 @@ def _intent_generalization_indicators(rows: list[PredictionRow]) -> list[float]:
     return [
         1.0 if row_is_correct(r) else 0.0
         for r in rows
-        if (r.bucket or "test") not in CONTAMINATED_BUCKETS
+        if (r.bucket or "test") not in IN_DISTRIBUTION_BUCKETS
     ]
 
 
@@ -1269,6 +1337,7 @@ def build_benchmark_board(
     generated_at: str,
     input_hash: str | None = None,
     sample_set_ids: set[str] | None = None,
+    dataset_revision: str | None = None,
 ) -> BenchmarkBoard:
     """Build one benchmark board from per-competitor row lists.
 
@@ -1287,14 +1356,38 @@ def build_benchmark_board(
     ``None`` means no manifest applied — either the dataset carries no
     ``sample_policy``, or one exists but its manifest hasn't been published
     yet; entries are scored unfiltered and marked ``sample_set="unmanaged"``.
+
+    *dataset_revision* is the eval dataset's registry ``source.revision``.
+    When it names a commit sha, rows swept against any other revision of the
+    corpus are dropped before scoring (see
+    ``drop_rows_off_pinned_revision``) and counted per entry as
+    ``rows_other_revision``; a competitor left with nothing is unranked.
     """
     scorer = _SCORERS.get(modality)
     primary = PRIMARY_METRIC.get(modality, "accuracy")
     entries: list[BenchmarkEntry] = []
     cis: dict[str, tuple[float, float] | None] = {}
+    pinned = dataset_revision if is_pinned_revision(dataset_revision) else None
+    # Read plugin ids before the drop: a competitor whose every row is off
+    # the pin still names the plugin it was swept with.
+    plugin_ids = {
+        competitor_id: rows[0].plugin_id if rows else ""
+        for competitor_id, rows in by_competitor.items()
+    }
+    by_competitor, off_revision = drop_rows_off_pinned_revision(
+        by_competitor, pinned
+    )
+    for competitor_id, n_dropped in sorted(off_revision.items()):
+        if n_dropped:
+            log.warning(
+                "%s/%s/%s: dropping %d row(s) for competitor %r swept against "
+                "a dataset revision other than the pinned %s — rows are scored "
+                "against the revision the registry pins",
+                modality, dataset_id, lang, n_dropped, competitor_id, pinned,
+            )
     if scorer is not None:
         for competitor_id, rows in by_competitor.items():
-            plugin_id = rows[0].plugin_id if rows else ""
+            plugin_id = plugin_ids.get(competitor_id, "")
             sample_set = "unmanaged"
             coverage = None
             if sample_set_ids is not None:
@@ -1328,6 +1421,7 @@ def build_benchmark_board(
                     perf=perf_metrics_by_tier(rows) or None,
                     sample_set=sample_set,
                     sample_set_coverage=coverage,
+                    rows_other_revision=off_revision.get(competitor_id, 0),
                 )
             )
 
@@ -1340,7 +1434,7 @@ def build_benchmark_board(
     # A run that scored rows but produced no primary metric is a different
     # animal: nothing crashed, the rows simply all fall outside the ranked
     # population (an intent fighter whose every row sits in a
-    # ``CONTAMINATED_BUCKETS`` bucket has no generalization_accuracy). It is
+    # ``IN_DISTRIBUTION_BUCKETS`` bucket has no generalization_accuracy). It is
     # equally unrankable, but calling it a failed run misdescribes it.
     def _scored_any(entry: BenchmarkEntry) -> bool:
         return bool(entry.metrics) and entry.metrics.get("n_scored", 1.0) != 0.0
@@ -1361,10 +1455,19 @@ def build_benchmark_board(
         return (entry.sample_set_coverage is not None
                 and entry.sample_set_coverage < _MIN_COVERAGE)
 
-    ranked = [e for e in entries if _has_signal(e) and not _partial_coverage(e)]
-    partial = [e for e in entries if _has_signal(e) and _partial_coverage(e)]
-    off_metric = [e for e in entries if not _has_signal(e) and _scored_any(e)]
-    failed = [e for e in entries if not _scored_any(e)]
+    # A fighter whose every row came from another revision of the corpus has
+    # not been swept against this dataset at all. It is upcoming, not broken:
+    # calling it a failed run would blame the fighter for a re-sweep the
+    # dataset pin asked for.
+    def _off_revision(entry: BenchmarkEntry) -> bool:
+        return entry.samples == 0 and entry.rows_other_revision > 0
+
+    stale = [e for e in entries if _off_revision(e)]
+    scoreable = [e for e in entries if not _off_revision(e)]
+    ranked = [e for e in scoreable if _has_signal(e) and not _partial_coverage(e)]
+    partial = [e for e in scoreable if _has_signal(e) and _partial_coverage(e)]
+    off_metric = [e for e in scoreable if not _has_signal(e) and _scored_any(e)]
+    failed = [e for e in scoreable if not _scored_any(e)]
 
     reverse = primary in _HIGHER_BETTER
     ranked.sort(key=lambda e: e.metrics.get(primary), reverse=reverse)
@@ -1388,7 +1491,15 @@ def build_benchmark_board(
         entry.rank = 0
         entry.unranked = True
         entry.unranked_reason = "run failed — no scored samples"
-    entries = ranked + partial + off_metric + failed
+    for entry in stale:
+        entry.rank = 0
+        entry.unranked = True
+        entry.unranked_reason = (
+            f"no rows on the pinned dataset revision {pinned} — "
+            f"{entry.rows_other_revision} row(s) from another revision were "
+            "dropped; the fighter needs a re-sweep"
+        )
+    entries = ranked + partial + off_metric + failed + stale
 
     if ranked:
         leader_ci = cis.get(ranked[0].competitor_id)
@@ -1403,6 +1514,7 @@ def build_benchmark_board(
         lang=lang,
         generated_at=generated_at,
         primary_metric=primary,
+        dataset_revision=pinned,
         wer_normalizer_version=WER_NORMALIZER_VERSION if modality == "stt" else None,
         entries=entries,
         input_hash=input_hash,

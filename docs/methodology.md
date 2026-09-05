@@ -217,41 +217,38 @@ settled result.
 - **`provisional`** boards should be captioned as such in the frontend
   rather than presented with the same confidence as an established board.
 
-## Train/test overlap in the intent corpora
+## Train/test separation in the intent corpora
 
-Roughly half of `intents-for-eval`'s test set is also training data, so the
-intent boards rank on `generalization_accuracy` — accuracy restricted to the
-buckets an engine cannot have memorized — and not on plain `accuracy`.
+`intents-for-eval` separates train and test at the template level. Each
+language's template-paradigm train split (`train_templates.jsonl`) holds an
+80% sample of that intent's phrase templates; the `template` test bucket is
+built only from expansions of the remaining 20%, held out per intent, so a
+template engine is scored against phrasings it never trained on.
 
-The overlap comes from how template-paradigm engines are trained. The runner
-registers each phrase template and also every slot-filled expansion of it
-(`runner/intent_pipeline.py:expand_template`), and the `template` and
-`near_ood` test rows are largely those same expansions, character for
-character. On en-US, 476 of 500 `template` rows (95%) and 331 of 400
-`near_ood` rows (83%) appear verbatim in the training utterances, 812 of
-1750 rows overall (46%); pt-PT measures 464/500, 308/400 and 790/1750 (45%).
-The remaining buckets are essentially clean: `paraphrase` 4/700, `far_ood`
-1/50, `typos` and `asr_noise` zero.
+The separation rule is exact string match after normalisation, documented on
+the dataset card: no test row may be a training template or an expansion of
+one. Expanding the train split through the runner's own
+`runner/intent_pipeline.py:expand_template` and comparing it against the test
+split finds no test row that is a training expansion, in any of the twelve
+languages. Exact match is not similarity, and it leaves near misses in place:
+between 22 and 75 rows per language differ from a training expansion only by
+a diacritic or by one short function word. They come from distinct
+hand-authored templates and are kept. Rows that fail the rule are dropped
+rather than replaced, which is why per-language test counts range from 1,354
+to 1,384 instead of landing on a round number.
 
-Accuracy inside a contaminated bucket measures recall of the training set,
-not intent understanding, and it rewards exact-string matchers over engines
-that handle unseen phrasings. Because the contaminated buckets are 51% of
-the corpus and near-perfectly scored, a plain accuracy headline is roughly
-half memorization lookup. `generalization_accuracy` covers `paraphrase`,
-`typos`, `asr_noise` and `far_ood` only, and is the number to compare
-fighters on; the bootstrap confidence interval and the seeded ELO
-auto-battles behind the primary metric ladder are drawn from the same rows.
-Plain `accuracy` stays published beside it, as do the per-bucket `acc_*`
-columns, so the memorization score is visible rather than deleted — it is
-simply not what the board ranks on.
-
-The `near_ood` bucket is published as `acc_in_distribution`. Its name
-overstates its difficulty: no row in it has a null expected intent, and 327
-of the 331 en-US rows that duplicate a training utterance carry the same
-gold label as the row they duplicate. It is an in-distribution bucket.
+The intent boards rank on `generalization_accuracy`, which averages
+`paraphrase`, `far_ood`, `asr_noise` and `typos` only. `template` and
+`in_distribution` (the dataset's raw bucket name) are in-distribution
+buckets, not out-of-scope or memorized rows: `template` tests recall of a
+held-out template rather than free-form phrasing, and `in_distribution`
+holds in-domain paraphrase-adjacent utterances with a real expected intent.
+Both enter overall `accuracy` and are reported in their own `acc_template`
+and `acc_in_distribution` columns, but not the ranked metric, since they
+measure a narrower kind of generalization than the free-form buckets.
 
 Corpora without bucket annotations, such as `banking77` and `clinc150`, have
-no contaminated buckets, so their `generalization_accuracy` equals their
+no excluded buckets, so their `generalization_accuracy` equals their
 `accuracy`.
 
 ## Dataset sampling policy
@@ -282,6 +279,48 @@ folded into the ranking on an incomplete or mismatched sample. A dataset
 whose policy exists but has no published manifest yet falls back to scoring
 whatever rows each fighter happens to have, flagged as an unmanaged sample
 set rather than treated as comparable.
+
+An ad hoc `--max-samples` cap draws a stratified sample rather than the first
+N rows. Corpora that group their test split by bucket — `intents-for-eval`
+stores all 500 `template` rows, then `in_distribution`, then `paraphrase`,
+and only then `far_ood`, `asr_noise` and `typos` — would otherwise hand a
+capped sweep whole leading buckets and nothing from the trailing ones, and
+`generalization_accuracy` would quietly become a paraphrase-only score. The
+cap is apportioned across buckets in proportion to their share of the corpus,
+with at least one row from each, so every bucket the ranked metric averages
+is represented. The draw is seeded and therefore identical between runs,
+which is what lets a resumed sweep keep filling the same shard, and rows keep
+the index their `sample_id` is built from, so a capped sweep and a full sweep
+name the same row identically. A corpus with no buckets has nothing to
+stratify and keeps the leading-N slice.
+
+## Dataset revisions
+
+A benchmark score is only meaningful against the corpus it was measured on.
+A dataset revision can change the row population, rename buckets, or move the
+train/test boundary, so prediction rows carry the `dataset_revision` they were
+swept against and a board scores only the rows matching the revision its
+registry entry pins. Rows from any other revision are dropped before scoring
+and counted per fighter as `rows_other_revision`; a fighter with no rows on
+the pinned revision is shown as unscored and awaiting a re-sweep, never ranked
+and never used to seed a rating. A dataset pinned to a moving branch rather
+than a commit has no fixed revision to compare against, and its rows are all
+scored.
+
+The same rule governs resume, against the revision the registry declares
+rather than the sha a branch resolves to at run time. A `sample_id` is an
+index into whichever revision produced it, so for a sha-pinned dataset a
+runner counts a sample as done only when the existing row carries that sha,
+and clears rows from any other revision out of a shard before appending to
+it. Without that, re-pinning a dataset would leave every fighter looking
+complete and nothing would ever be re-swept. A row with no `dataset_revision`
+recorded cannot be shown to belong to the pin, so it is regenerated too.
+
+For a branch-pinned dataset — which is nearly all of them — a runner prunes
+nothing and counts every existing row as done. Its rows legitimately carry
+whichever sha the branch held when they were swept, and many predate the
+`dataset_revision` column entirely; comparing them against today's branch tip
+would empty every shard the first time anything landed upstream.
 
 ## Per-metric ladders
 
