@@ -1284,3 +1284,151 @@ class TestAssemblePerSourceMemoryBound:
             (out / "benchmark-intent-dataset-b-en-US.json").read_text())
         assert board_a["entries"][0]["competitor_id"] == "good"
         assert board_b["entries"][0]["competitor_id"] == "good"
+
+
+def _write_multilang_stt_predictions(
+    root: Path, rows_by_lang: dict[str, dict[str, list[float]]]
+) -> Path:
+    """*rows_by_lang*: {lang: {competitor_id: [wer per sample]}}.
+
+    Uses a dataset_id absent from the registry so no lang is filtered out
+    by the registry-lang guard — these are pure fixtures.
+    """
+    preds = root / "predictions"
+    preds.mkdir(parents=True, exist_ok=True)
+    for lang, competitors in rows_by_lang.items():
+        lang_dir = preds / lang
+        lang_dir.mkdir(exist_ok=True)
+        for competitor, wers in competitors.items():
+            lines = []
+            for i, wer in enumerate(wers):
+                lines.append(json.dumps({
+                    "competitor_id": competitor,
+                    "sample_id": f"{lang}/{i:05d}",
+                    "dataset_id": "fixture-stt",
+                    "lang": lang,
+                    "modality": "stt",
+                    "plugin_id": f"plugin-{competitor}",
+                    "audio_url": "https://example.com/a.wav",
+                    "reference_text": "ligar o alarme",
+                    "prediction": "ligar o alarme" if wer == 0.0 else "erro",
+                    "wer": wer,
+                }))
+            (lang_dir / f"{competitor}.jsonl").write_text("\n".join(lines) + "\n")
+    return preds
+
+
+class TestAssembleRefusesPartialInput:
+    """A seed merges every source of one lang, so publishing it after a
+    source failed to load silently rewrites public ratings from a subset
+    of the corpus (run 33927515324: a 429 on one predictions repo cut
+    en-US's auto vote count by ~880k and took battles from all 74
+    fighters). A lang with a failed source must publish nothing and the
+    command must exit non-zero."""
+
+    def test_failed_source_blocks_only_its_lang_and_fails_the_run(
+        self, tmp_path, monkeypatch
+    ):
+        import arena.predictions as predictions_mod
+
+        out = tmp_path / "data"
+        preds1 = _write_multilang_stt_predictions(tmp_path / "r1", {
+            "pt-PT": {"base-pt": [0.6] * 5, "small-pt": [0.0] * 5},
+            "en-US": {"comp-a": [0.6] * 5, "comp-b": [0.0] * 5},
+        })
+        assert main_args_assemble(preds1, out) == 0
+        pt_seed_before = (out / "elo-seed-stt-pt-PT.json").read_text()
+        pt_board_before = (out / "leaderboard-stt-pt-PT.json").read_text()
+
+        # Round 2: fresh, better corpus for both langs — but pt-PT's source
+        # raises, exactly as an HF 429 does.
+        preds2 = _write_multilang_stt_predictions(tmp_path / "r2", {
+            "pt-PT": {"base-pt": [0.6] * 8, "small-pt": [0.0] * 8},
+            "en-US": {"comp-a": [0.6] * 8, "comp-b": [0.0] * 8},
+        })
+        real_iter = predictions_mod.iter_predictions_dir
+
+        def flaky_iter(predictions_dir, lang=None):
+            if lang == "pt-PT":
+                raise RuntimeError("429 Client Error: Too Many Requests")
+            return real_iter(predictions_dir, lang=lang)
+
+        monkeypatch.setattr(predictions_mod, "iter_predictions_dir", flaky_iter)
+
+        assert main_args_assemble(preds2, out) == 1, (
+            "a degraded assemble must exit non-zero so the workflow's "
+            "commit step never runs for it"
+        )
+
+        assert (out / "elo-seed-stt-pt-PT.json").read_text() == pt_seed_before
+        assert (out / "leaderboard-stt-pt-PT.json").read_text() == pt_board_before
+
+        en_seed = json.loads((out / "elo-seed-stt-en-US.json").read_text())
+        assert en_seed["battles"]["comp-b"] == 8, (
+            "the healthy lang must still be assembled from its own sources"
+        )
+
+
+class TestAssembleResyncsVoteFreeBoardOnSeedChange:
+    """`verify-replay` rebuilds every published leaderboard from the
+    committed seed. A vote-free board whose seed's *numbers* changed while
+    its roster stayed the same used to be left describing the old seed,
+    which makes that replay proof go red."""
+
+    def test_changed_seed_same_roster_regenerates_the_board(self, tmp_path):
+        out = tmp_path / "data"
+        preds1 = _write_multilang_stt_predictions(tmp_path / "r1", {
+            "pt-PT": {"base-pt": [0.0] * 5, "small-pt": [0.6] * 5},
+        })
+        assert main_args_assemble(preds1, out) == 0
+        board_path = out / "leaderboard-stt-pt-PT.json"
+        first = json.loads(board_path.read_text())
+        assert first["entries"][0]["competitor_id"] == "base-pt"
+
+        # Same two fighters, reversed strengths: the seed's numbers move,
+        # the roster does not.
+        preds2 = _write_multilang_stt_predictions(tmp_path / "r2", {
+            "pt-PT": {"base-pt": [0.6] * 5, "small-pt": [0.0] * 5},
+        })
+        assert main_args_assemble(preds2, out) == 0
+
+        seed = load_elo_seeds(out)[("stt", "pt-PT")]
+        board = json.loads(board_path.read_text())
+        assert board["entries"][0]["competitor_id"] == "small-pt"
+        for entry in board["entries"]:
+            assert entry["battles"] == seed.battles[entry["competitor_id"]]
+
+        # The published board must reproduce exactly from the committed
+        # seed — this is what verify-replay checks in CI.
+        votes_file = tmp_path / "votes.json"
+        votes_file.write_text("[]")
+        rc = 0
+        try:
+            main(["verify-replay", "--data-dir", str(out),
+                  "--votes-file", str(votes_file)])
+        except SystemExit as exc:
+            rc = exc.code
+        assert rc == 0, "published board does not replay from the committed seed"
+
+    def test_appended_fighter_carries_the_build_elo_board_shape(self, tmp_path):
+        """The human-vote branch appends rather than replays, but it must
+        still emit the field shape build_elo_board produces — null CIs made
+        the whole board unreplayable until the next tally."""
+        out = tmp_path / "data"
+        preds1 = _write_multilang_stt_predictions(
+            tmp_path / "r1", {"pt-PT": {"base-pt": [0.6] * 5}})
+        assert main_args_assemble(preds1, out) == 0
+
+        board_path = out / "leaderboard-stt-pt-PT.json"
+        board = json.loads(board_path.read_text())
+        board["human_vote_count"] = 3
+        board["entries"][0]["human_votes"] = 3
+        board_path.write_text(json.dumps(board))
+
+        preds2 = _write_multilang_stt_predictions(
+            tmp_path / "r2", {"pt-PT": {"base-pt": [0.6] * 5, "small-pt": [0.0] * 5}})
+        assert main_args_assemble(preds2, out) == 0
+
+        small = next(e for e in json.loads(board_path.read_text())["entries"]
+                     if e["competitor_id"] == "small-pt")
+        assert small["ci_lower"] is not None and small["ci_upper"] is not None
