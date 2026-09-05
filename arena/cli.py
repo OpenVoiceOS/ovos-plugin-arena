@@ -613,17 +613,28 @@ def _predictions_revision_for(source: str, default_revision: str) -> tuple[str, 
     SHA (``meta["resolved_sha"]``) when resolution succeeded, or is empty
     when the source is a local directory or resolution failed (in which
     case the caller falls back to fetching at *revision_to_fetch* as-is).
+
+    A registry pin that no longer resolves gets no such fallback: falling
+    back would fetch the repo's default ref under a provenance claiming the
+    pinned one, or — once the pin string reaches the fetch — drop a source
+    with live rows as if it held none. ``RevisionNotFoundError`` therefore
+    propagates so the caller records the source as failed and the operator
+    sees which pin went stale.
     """
     if Path(source).is_dir():
         return default_revision, {}
 
+    from huggingface_hub.utils import RevisionNotFoundError
+
     revision = default_revision
+    pinned = False
     try:
         from registry.loaders import list_datasets
 
         for dataset in list_datasets():
             if dataset.predictions_hf == source and dataset.predictions_revision:
                 revision = dataset.predictions_revision
+                pinned = True
                 break
     except Exception as exc:
         log.warning("Could not consult registry for %s pin: %s", source, exc)
@@ -633,12 +644,23 @@ def _predictions_revision_for(source: str, default_revision: str) -> tuple[str, 
 
         sha = resolve_predictions_revision(source, revision=revision)
         return sha, {"resolved_sha": sha}
+    except RevisionNotFoundError:
+        if pinned:
+            log.warning(
+                "Pinned predictions revision %s@%s no longer exists on the Hub",
+                source, revision,
+            )
+            raise
+        log.warning("Could not resolve %s@%s to a commit SHA", source, revision)
+        return revision, {}
     except Exception as exc:
         log.warning("Could not resolve %s@%s to a commit SHA: %s", source, revision, exc)
         return revision, {}
 
 
 def cmd_assemble(args: argparse.Namespace) -> int:
+    from huggingface_hub.utils import RevisionNotFoundError
+
     from arena.predictions import (
         fetch_hf_predictions,
         group_rows,
@@ -675,8 +697,20 @@ def cmd_assemble(args: argparse.Namespace) -> int:
     # ``--revision``) and record the resolved mapping for the boards.
     resolved_revisions: dict[str, str] = {}
     fetch_revisions: dict[str, str] = {}
+    # A source whose data could not be reached at all. It contributes
+    # nothing, and every lang it could have contributed to refuses to
+    # publish rather than ship a silently thinner board — except a
+    # concrete-lang source (``source_langs[source]`` set), whose scope is
+    # known statically from the registry with no network, so only ITS lang
+    # is affected (``lang_failed_sources`` below), never every other lang
+    # too.
+    unreadable_sources: list[str] = []
     for source in sources:
-        fetch_revision, meta = _predictions_revision_for(source, args.revision)
+        try:
+            fetch_revision, meta = _predictions_revision_for(source, args.revision)
+        except RevisionNotFoundError:
+            unreadable_sources.append(source)
+            continue
         fetch_revisions[source] = fetch_revision
         if meta.get("resolved_sha"):
             resolved_revisions[source] = meta["resolved_sha"]
@@ -717,9 +751,20 @@ def cmd_assemble(args: argparse.Namespace) -> int:
     target_langs: set[str] = set()
     # A source that could not even be listed has an unknown lang scope, so
     # it potentially contributes to every lang — see the partial-input
-    # guard in the lang loop below.
-    undiscovered_sources: list[str] = []
+    # guard in the lang loop below. A concrete-lang source's scope is known
+    # statically (``source_langs``), so its pre-load failure is scoped to
+    # just that lang via ``lang_failed_sources`` instead.
+    undiscovered_sources: list[str] = [
+        s for s in unreadable_sources if not source_langs.get(s)]
+    lang_failed_sources: dict[str, list[str]] = {}
+    for source in unreadable_sources:
+        lang = source_langs.get(source)
+        if lang:
+            target_langs.add(lang)
+            lang_failed_sources.setdefault(lang, []).append(source)
     for source in sources:
+        if source in unreadable_sources:
+            continue
         lang = source_langs.get(source)
         if lang:
             target_langs.add(lang)
@@ -727,7 +772,12 @@ def cmd_assemble(args: argparse.Namespace) -> int:
         try:
             path = Path(source)
             if not path.is_dir():
-                path = fetch_hf_predictions(source, fetch_revisions[source])
+                fetched = fetch_hf_predictions(source, fetch_revisions[source])
+                if fetched is None:
+                    # Registered but never swept — no predictions repo
+                    # exists yet. Absent data, not a failed source.
+                    continue
+                path = fetched
             source_dirs[source] = path
             subdirs = [p.name for p in path.iterdir() if p.is_dir()]
             if subdirs:
@@ -746,6 +796,9 @@ def cmd_assemble(args: argparse.Namespace) -> int:
                             target_langs.add(row.lang)
         except Exception as exc:
             log.error("Skipping %s: %s", source, exc)
+            # Reached only for sources with no concrete registry lang (the
+            # ``if lang:`` branch above already ``continue``d those), so
+            # this failure's scope really is unknown/multi.
             undiscovered_sources.append(source)
 
     now = _now_iso()
@@ -759,8 +812,11 @@ def cmd_assemble(args: argparse.Namespace) -> int:
 
     for target_lang in sorted(target_langs):
         grouped: dict[tuple[str, str, str], dict[str, dict[str, Any]]] = {}
-        failed_sources: list[str] = list(undiscovered_sources)
+        failed_sources: list[str] = (
+            list(undiscovered_sources) + lang_failed_sources.get(target_lang, []))
         for source in sources:
+            if source in unreadable_sources:
+                continue
             src_lang = source_langs.get(source)
             if src_lang and src_lang != target_lang:
                 continue

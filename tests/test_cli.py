@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import httpx
 import pytest
 
 import arena.cli as arena_cli
@@ -1432,3 +1433,437 @@ class TestAssembleResyncsVoteFreeBoardOnSeedChange:
         small = next(e for e in json.loads(board_path.read_text())["entries"]
                      if e["competitor_id"] == "small-pt")
         assert small["ci_lower"] is not None and small["ci_upper"] is not None
+
+
+class TestAssembleMissingPredictionRepo:
+    """Most registered datasets have never been swept, so their prediction
+    repo does not exist yet — the arena already renders those fighters as
+    upcoming. Unauthenticated the Hub answers 401 for a nonexistent repo
+    exactly as it does for a private one, and counting that as a failed
+    source made every lang of a whole modality refuse to publish."""
+
+    @staticmethod
+    def _hub(monkeypatch, exc):
+        import sys
+        import types
+
+        import arena.predictions as predictions_mod
+
+        attempts = []
+
+        def boom(**kwargs):
+            attempts.append(kwargs["repo_id"])
+            raise exc
+
+        monkeypatch.setitem(sys.modules, "huggingface_hub",
+                            types.SimpleNamespace(snapshot_download=boom))
+        monkeypatch.setattr(predictions_mod, "resolve_predictions_revision",
+                            lambda repo_id, revision="main": revision)
+        monkeypatch.setattr(predictions_mod, "HF_FETCH_BACKOFF_SECONDS",
+                            (0.0, 0.0, None))
+        return attempts
+
+    @staticmethod
+    def _response(status: int):
+        import httpx
+
+        return httpx.Response(status, request=httpx.Request("GET", "https://hf.co/x"))
+
+    def _assemble(self, preds, out, extra):
+        try:
+            main(["assemble", "--predictions", f"{preds},{extra}",
+                  "--output", str(out)])
+        except SystemExit as exc:
+            return exc.code
+        return 0
+
+    def test_never_swept_repo_is_absent_data_not_a_failed_source(
+        self, tmp_path, monkeypatch, caplog
+    ):
+        from huggingface_hub.utils import RepositoryNotFoundError
+
+        out = tmp_path / "data"
+        preds = _write_multilang_stt_predictions(tmp_path / "r1", {
+            "en-US": {"comp-a": [0.6] * 5, "comp-b": [0.0] * 5},
+        })
+        attempts = self._hub(monkeypatch, RepositoryNotFoundError(
+            "401 Client Error: Invalid username or password",
+            response=self._response(401)))
+
+        with caplog.at_level("ERROR"):
+            assert self._assemble(preds, out, "OpenVoiceOS/never-swept-bench") == 0
+
+        assert attempts == ["OpenVoiceOS/never-swept-bench"], (
+            "a repo that does not exist will not appear on retry"
+        )
+        assert not any("Refusing to publish" in r.getMessage() for r in caplog.records)
+        seed = json.loads((out / "elo-seed-stt-en-US.json").read_text())
+        assert seed["battles"]["comp-b"] == 5, (
+            "the sources that do exist must still be assembled"
+        )
+
+    def test_rate_limited_repo_still_retries_and_refuses_to_publish(
+        self, tmp_path, monkeypatch, caplog
+    ):
+        import arena.predictions as predictions_mod
+        from huggingface_hub.utils import HfHubHTTPError
+
+        out = tmp_path / "data"
+        preds = _write_multilang_stt_predictions(tmp_path / "r1", {
+            "en-US": {"comp-a": [0.6] * 5, "comp-b": [0.0] * 5},
+        })
+        attempts = self._hub(monkeypatch, HfHubHTTPError(
+            "429 Too Many Requests", response=self._response(429)))
+
+        with caplog.at_level("ERROR"):
+            assert self._assemble(preds, out, "OpenVoiceOS/ovos-stt-bench-busy") == 1
+
+        assert len(attempts) == len(predictions_mod.HF_FETCH_BACKOFF_SECONDS)
+        assert any("Refusing to publish" in r.getMessage() for r in caplog.records)
+        assert not (out / "elo-seed-stt-en-US.json").exists()
+
+    def test_gated_repo_refuses_to_publish_and_names_the_repo(
+        self, tmp_path, monkeypatch, caplog
+    ):
+        from huggingface_hub.utils import GatedRepoError
+
+        out = tmp_path / "data"
+        preds = _write_multilang_stt_predictions(tmp_path / "r1", {
+            "en-US": {"comp-a": [0.6] * 5, "comp-b": [0.0] * 5},
+        })
+        attempts = self._hub(monkeypatch, GatedRepoError(
+            "403 Forbidden", response=self._response(403)))
+
+        with caplog.at_level("WARNING"):
+            assert self._assemble(preds, out, "OpenVoiceOS/ovos-stt-bench-gated") == 1
+
+        assert len(attempts) == 1, "a gated repo will not open up on retry"
+        assert any("OpenVoiceOS/ovos-stt-bench-gated" in r.getMessage()
+                   for r in caplog.records if r.levelname == "WARNING")
+        assert any("Refusing to publish" in r.getMessage() for r in caplog.records)
+        assert not (out / "elo-seed-stt-en-US.json").exists()
+
+
+class TestAssembleRepoWithoutPredictionsTree:
+    """A prediction repo can exist and hold no ``predictions/`` folder —
+    a dataset repo created by the sweep tooling before any sweep ran, or
+    one whose rows were removed. ``snapshot_download`` reports that by
+    succeeding with zero files and returning a snapshot path it never
+    created, so the discovery loop would walk a nonexistent directory."""
+
+    @staticmethod
+    def _hub(monkeypatch, snapshot_dir):
+        import sys
+        import types
+
+        import arena.predictions as predictions_mod
+
+        calls = []
+
+        def empty_snapshot(**kwargs):
+            calls.append(kwargs["repo_id"])
+            return str(snapshot_dir)
+
+        monkeypatch.setitem(sys.modules, "huggingface_hub",
+                            types.SimpleNamespace(snapshot_download=empty_snapshot))
+        monkeypatch.setattr(predictions_mod, "resolve_predictions_revision",
+                            lambda repo_id, revision="main": revision)
+        return calls
+
+    def test_empty_snapshot_is_absent_data_not_a_failed_source(
+        self, tmp_path, monkeypatch, caplog
+    ):
+        out = tmp_path / "data"
+        preds = _write_multilang_stt_predictions(tmp_path / "r1", {
+            "en-US": {"comp-a": [0.6] * 5, "comp-b": [0.0] * 5},
+        })
+        calls = self._hub(monkeypatch, tmp_path / "snapshots" / "deadbeef")
+
+        with caplog.at_level("ERROR"):
+            try:
+                code = main(["assemble", "--predictions",
+                             f"{preds},OpenVoiceOS/empty-bench",
+                             "--output", str(out)]) or 0
+            except SystemExit as exc:
+                code = exc.code
+        assert code == 0
+
+        assert calls == ["OpenVoiceOS/empty-bench"]
+        assert not any("Refusing to publish" in r.getMessage() for r in caplog.records)
+        assert not any("Skipping OpenVoiceOS/empty-bench" in r.getMessage()
+                       for r in caplog.records)
+        seed = json.loads((out / "elo-seed-stt-en-US.json").read_text())
+        assert seed["battles"]["comp-b"] == 5
+
+
+class TestAssembleStalePredictionsRevisionPin:
+    """A registry ``predictions_revision`` pin can go stale when the repo
+    is force-pushed or a tag is deleted. The repo still holds live rows on
+    its default ref, so a stale pin is an operator-visible failure, never
+    an empty source."""
+
+    def test_stale_pin_refuses_to_publish_and_names_repo_and_revision(
+        self, tmp_path, monkeypatch, caplog
+    ):
+        import sys
+        import types
+
+        import registry.loaders as loaders
+        from huggingface_hub.utils import RevisionNotFoundError
+
+        import arena.predictions as predictions_mod
+
+        predictions_mod.reset_revision_cache()
+        out = tmp_path / "data"
+        preds = _write_multilang_stt_predictions(tmp_path / "r1", {
+            "en-US": {"comp-a": [0.6] * 5, "comp-b": [0.0] * 5},
+        })
+        real = loaders.list_datasets()
+        pinned = next(d for d in real if d.predictions_hf).model_copy(
+            update={"predictions_revision": "v-deleted"})
+        source = pinned.predictions_hf
+
+        # The repo is alive and its default ref carries rows — only the pin
+        # is gone. Falling back to the pin string publishes those rows under
+        # a provenance claiming a commit that does not exist.
+        remote = _write_multilang_stt_predictions(tmp_path / "remote", {
+            "en-US": {"comp-a": [0.2] * 5, "comp-b": [0.9] * 5},
+        })
+        fetched = []
+
+        def dataset_info(repo_id, revision=None):
+            raise RevisionNotFoundError(
+                "404 Client Error: Revision Not Found",
+                response=httpx.Response(
+                    404, request=httpx.Request("GET", "https://hf.co/x")))
+
+        def snapshot_download(**kwargs):
+            fetched.append(kwargs["revision"])
+            return str(remote.parent)
+
+        monkeypatch.setitem(
+            sys.modules, "huggingface_hub",
+            types.SimpleNamespace(
+                HfApi=lambda: types.SimpleNamespace(dataset_info=dataset_info),
+                snapshot_download=snapshot_download))
+        monkeypatch.setattr(loaders, "list_datasets", lambda modality=None: [
+            pinned if d.dataset_id == pinned.dataset_id else d for d in real
+        ])
+
+        with caplog.at_level("WARNING"):
+            try:
+                code = main(["assemble", "--predictions", f"{preds},{source}",
+                             "--output", str(out)]) or 0
+            except SystemExit as exc:
+                code = exc.code
+        assert code == 1
+
+        assert any("Pinned predictions revision" in r.getMessage()
+                   and source in r.getMessage() and "v-deleted" in r.getMessage()
+                   for r in caplog.records if r.levelname == "WARNING"), (
+            "the operator must be told which pin went stale"
+        )
+        assert fetched == [], "a stale pin must never fall through to a fetch"
+        assert any("Refusing to publish" in r.getMessage() for r in caplog.records)
+        assert not (out / "elo-seed-stt-en-US.json").exists()
+
+    def test_unpinned_source_still_falls_back_when_resolution_fails(
+        self, tmp_path, monkeypatch
+    ):
+        """Only a pin is load-bearing. Without one there is nothing to
+        betray, so an unresolvable ``--revision`` keeps its graceful
+        fallback to fetching the ref as-is."""
+        import sys
+        import types
+
+        from huggingface_hub.utils import RevisionNotFoundError
+
+        import arena.predictions as predictions_mod
+
+        predictions_mod.reset_revision_cache()
+        source = "OpenVoiceOS/unpinned-bench"
+        remote = _write_multilang_stt_predictions(tmp_path / "remote", {
+            "en-US": {"comp-a": [0.2] * 5, "comp-b": [0.9] * 5},
+        })
+        fetched = []
+
+        def dataset_info(repo_id, revision=None):
+            raise RevisionNotFoundError(
+                "404 Client Error: Revision Not Found",
+                response=httpx.Response(
+                    404, request=httpx.Request("GET", "https://hf.co/x")))
+
+        def snapshot_download(**kwargs):
+            fetched.append(kwargs["revision"])
+            return str(remote.parent)
+
+        monkeypatch.setitem(
+            sys.modules, "huggingface_hub",
+            types.SimpleNamespace(
+                HfApi=lambda: types.SimpleNamespace(dataset_info=dataset_info),
+                snapshot_download=snapshot_download))
+
+        out = tmp_path / "data"
+        preds = _write_multilang_stt_predictions(tmp_path / "r1", {
+            "en-US": {"comp-a": [0.6] * 5, "comp-b": [0.0] * 5},
+        })
+        try:
+            code = main(["assemble", "--predictions", f"{preds},{source}",
+                         "--output", str(out)]) or 0
+        except SystemExit as exc:
+            code = exc.code
+        assert code == 0
+        assert fetched and set(fetched) == {"main"}, (
+            "an unresolvable ref without a pin is still fetched as-is"
+        )
+        assert (out / "elo-seed-stt-en-US.json").exists(), (
+            "the source is fetched and published, not recorded as failed"
+        )
+
+
+class TestPreLoadFailureScopedToConcreteLang:
+    """A pre-load failure (stale pin, gated repo, ...) on a source whose
+    lang is known statically from the registry must refuse only THAT lang
+    — every other healthy lang still publishes. Only a genuinely
+    multi/unknown-lang source's failure may refuse every lang."""
+
+    @staticmethod
+    def _pin_stale(monkeypatch, tmp_path, lang):
+        import sys
+        import types
+
+        import registry.loaders as loaders
+        from huggingface_hub.utils import RevisionNotFoundError
+
+        import arena.predictions as predictions_mod
+
+        predictions_mod.reset_revision_cache()
+        real = loaders.list_datasets()
+        pinned = next(d for d in real if d.predictions_hf).model_copy(
+            update={"predictions_revision": "v-deleted", "lang": lang})
+        source = pinned.predictions_hf
+
+        def dataset_info(repo_id, revision=None):
+            raise RevisionNotFoundError(
+                "404 Client Error: Revision Not Found",
+                response=httpx.Response(
+                    404, request=httpx.Request("GET", "https://hf.co/x")))
+
+        monkeypatch.setitem(
+            sys.modules, "huggingface_hub",
+            types.SimpleNamespace(
+                HfApi=lambda: types.SimpleNamespace(dataset_info=dataset_info),
+                snapshot_download=lambda **kw: (_ for _ in ()).throw(
+                    AssertionError("a stale pin must never fall through to a fetch"))))
+        monkeypatch.setattr(loaders, "list_datasets", lambda modality=None: [
+            pinned if d.dataset_id == pinned.dataset_id else d for d in real
+        ])
+        return source
+
+    def test_concrete_lang_failure_refuses_only_its_lang(
+        self, tmp_path, monkeypatch, caplog
+    ):
+        out = tmp_path / "data"
+        preds = _write_multilang_stt_predictions(tmp_path / "r1", {
+            "pt-PT": {"base-pt": [0.6] * 5, "small-pt": [0.0] * 5},
+            "en-US": {"comp-a": [0.6] * 5, "comp-b": [0.0] * 5},
+        })
+        source = self._pin_stale(monkeypatch, tmp_path, "fr-FR")
+
+        with caplog.at_level("WARNING"):
+            try:
+                code = main(["assemble", "--predictions", f"{preds},{source}",
+                             "--output", str(out)]) or 0
+            except SystemExit as exc:
+                code = exc.code
+
+        assert code == 1
+        assert (out / "elo-seed-stt-pt-PT.json").exists(), (
+            "a healthy lang must publish even though a concrete-lang "
+            "sibling source failed"
+        )
+        assert (out / "elo-seed-stt-en-US.json").exists()
+        assert not (out / "elo-seed-stt-fr-FR.json").exists()
+        refuse_lines = [r.getMessage() for r in caplog.records
+                        if "Refusing to publish" in r.getMessage()]
+        assert len(refuse_lines) == 1
+        assert "fr-FR" in refuse_lines[0]
+        assert "pt-PT" not in refuse_lines[0]
+        assert "en-US" not in refuse_lines[0]
+
+    def test_multi_lang_failure_still_refuses_every_lang(
+        self, tmp_path, monkeypatch, caplog
+    ):
+        out = tmp_path / "data"
+        preds = _write_multilang_stt_predictions(tmp_path / "r1", {
+            "pt-PT": {"base-pt": [0.6] * 5, "small-pt": [0.0] * 5},
+            "en-US": {"comp-a": [0.6] * 5, "comp-b": [0.0] * 5},
+        })
+        source = self._pin_stale(monkeypatch, tmp_path, "multi")
+
+        with caplog.at_level("WARNING"):
+            try:
+                code = main(["assemble", "--predictions", f"{preds},{source}",
+                             "--output", str(out)]) or 0
+            except SystemExit as exc:
+                code = exc.code
+
+        assert code == 1
+        assert not (out / "elo-seed-stt-pt-PT.json").exists(), (
+            "a genuinely unknown/multi-lang source's failure still "
+            "degrades every lang, per the original guard"
+        )
+        assert not (out / "elo-seed-stt-en-US.json").exists()
+
+    def test_gated_concrete_lang_source_refuses_only_its_lang(
+        self, tmp_path, monkeypatch, caplog
+    ):
+        import sys
+        import types
+
+        import registry.loaders as loaders
+        from huggingface_hub.utils import GatedRepoError
+
+        import arena.predictions as predictions_mod
+
+        predictions_mod.reset_revision_cache()
+        real = loaders.list_datasets()
+        pinned = next(d for d in real if d.predictions_hf).model_copy(
+            update={"predictions_revision": None, "lang": "fr-FR"})
+        source = pinned.predictions_hf
+        monkeypatch.setattr(loaders, "list_datasets", lambda modality=None: [
+            pinned if d.dataset_id == pinned.dataset_id else d for d in real
+        ])
+        monkeypatch.setattr(predictions_mod, "resolve_predictions_revision",
+                            lambda repo_id, revision="main": revision)
+
+        def boom(**kwargs):
+            raise GatedRepoError(
+                "403 Forbidden",
+                response=httpx.Response(
+                    403, request=httpx.Request("GET", "https://hf.co/x")))
+
+        monkeypatch.setitem(sys.modules, "huggingface_hub",
+                            types.SimpleNamespace(snapshot_download=boom))
+
+        out = tmp_path / "data"
+        preds = _write_multilang_stt_predictions(tmp_path / "r1", {
+            "pt-PT": {"base-pt": [0.6] * 5, "small-pt": [0.0] * 5},
+            "en-US": {"comp-a": [0.6] * 5, "comp-b": [0.0] * 5},
+        })
+
+        with caplog.at_level("WARNING"):
+            try:
+                code = main(["assemble", "--predictions", f"{preds},{source}",
+                             "--output", str(out)]) or 0
+            except SystemExit as exc:
+                code = exc.code
+
+        assert code == 1
+        assert (out / "elo-seed-stt-pt-PT.json").exists()
+        assert (out / "elo-seed-stt-en-US.json").exists()
+        assert not (out / "elo-seed-stt-fr-FR.json").exists()
+        refuse_lines = [r.getMessage() for r in caplog.records
+                        if "Refusing to publish" in r.getMessage()]
+        assert len(refuse_lines) == 1
+        assert "fr-FR" in refuse_lines[0]
