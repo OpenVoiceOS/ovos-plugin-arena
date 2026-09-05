@@ -419,3 +419,41 @@ class TestHfFetchRetry:
         with pytest.raises(RuntimeError, match="429"):
             predictions_mod.fetch_hf_predictions("Org/some-bench", "main")
         assert len(attempts) == 3
+
+    def test_default_backoff_actually_pauses_between_attempts(self):
+        """The retry loop is worthless against a real rate limiter if the
+        production constant has no positive pauses — this pins the contract
+        without sleeping, so a defaults-mutation regression fails fast."""
+        backoff = predictions_mod.HF_FETCH_BACKOFF_SECONDS
+        pauses = [p for p in backoff[:-1] if p is not None]
+        assert backoff[-1] is None
+        assert len(pauses) >= 2
+        assert pauses[0] >= 1.0
+        assert pauses == sorted(pauses)
+
+    def test_default_backoff_is_used_to_sleep_between_retries(self, monkeypatch):
+        import sys
+        import types
+
+        attempts = []
+
+        def flaky_snapshot_download(**kwargs):
+            attempts.append(kwargs["repo_id"])
+            if len(attempts) < 3:
+                raise RuntimeError("429 Client Error: Too Many Requests")
+            return "/tmp/snapshot"
+
+        monkeypatch.setitem(
+            sys.modules, "huggingface_hub",
+            types.SimpleNamespace(snapshot_download=flaky_snapshot_download),
+        )
+
+        sleeps = []
+        monkeypatch.setattr(predictions_mod.time, "sleep", sleeps.append)
+
+        path = predictions_mod.fetch_hf_predictions("Org/some-bench", "main")
+
+        assert len(attempts) == 3
+        assert path.name == "predictions"
+        expected = [p for p in predictions_mod.HF_FETCH_BACKOFF_SECONDS if p is not None][:2]
+        assert sleeps == expected
