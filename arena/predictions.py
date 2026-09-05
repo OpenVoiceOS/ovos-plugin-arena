@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import json
 import logging
+import time
 from collections import defaultdict
 from collections.abc import Iterator
 from pathlib import Path
@@ -22,6 +23,10 @@ from pathlib import Path
 from arena.models import PredictionRow
 
 logger = logging.getLogger(__name__)
+
+# Pause before each retry of a Hub download; the final ``None`` marks the
+# last attempt, after which the error is re-raised.
+HF_FETCH_BACKOFF_SECONDS: tuple[float | None, ...] = (5.0, 15.0, None)
 
 # §4 A2 schema convergence — memoized plugin_id -> competitor_id re-keying
 # (registry.loaders.get_competitor_by_alias scans every registry JSON file;
@@ -244,16 +249,33 @@ def fetch_hf_predictions(repo_id: str, revision: str = "main") -> Path:
 
     Returns the local path of the downloaded ``predictions`` directory.
     Public datasets need no token; CI therefore runs unauthenticated.
+
+    An unauthenticated daily assemble walks ~120 prediction repos back to
+    back and routinely trips the Hub's rate limiter, so the download is
+    retried a bounded number of times with a growing pause before the
+    failure is allowed to propagate. Bounded on purpose: a repo that is
+    genuinely gone must still fail the run rather than stall it.
     """
     from huggingface_hub import snapshot_download
 
-    local = snapshot_download(
-        repo_id=repo_id,
-        repo_type="dataset",
-        revision=revision,
-        allow_patterns=["predictions/**/*.jsonl", "predictions/*.jsonl"],
-    )
-    return Path(local) / "predictions"
+    last: Exception | None = None
+    for attempt, pause in enumerate(HF_FETCH_BACKOFF_SECONDS, 1):
+        try:
+            local = snapshot_download(
+                repo_id=repo_id,
+                repo_type="dataset",
+                revision=revision,
+                allow_patterns=["predictions/**/*.jsonl", "predictions/*.jsonl"],
+            )
+            return Path(local) / "predictions"
+        except Exception as exc:
+            last = exc
+            if pause is None:
+                break
+            logger.warning("Fetching %s failed (attempt %d/%d): %s — retrying in %ss",
+                        repo_id, attempt, len(HF_FETCH_BACKOFF_SECONDS), exc, pause)
+            time.sleep(pause)
+    raise last
 
 
 def load_predictions(

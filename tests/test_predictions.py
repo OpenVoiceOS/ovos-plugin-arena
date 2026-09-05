@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import json
 
+import pytest
+
 import arena.predictions as predictions_mod
 from arena.predictions import (
     group_rows,
@@ -366,3 +368,54 @@ class TestPerfFieldsBackwardCompat:
         key = ("intent", "intents-for-eval", "en-US")
         assert len(grouped[key]["en-US/00001"]) == 1
         assert len(grouped[key]["en-US/00002"]) == 1
+
+
+class TestHfFetchRetry:
+    """The daily assemble walks ~120 prediction repos unauthenticated and
+    routinely draws a 429 from the Hub; a single-shot download turned that
+    transient into a dropped dataset."""
+
+    def test_retries_a_rate_limited_download(self, monkeypatch):
+        import sys
+        import types
+
+        attempts = []
+
+        def flaky_snapshot_download(**kwargs):
+            attempts.append(kwargs["repo_id"])
+            if len(attempts) < 3:
+                raise RuntimeError("429 Client Error: Too Many Requests")
+            return "/tmp/snapshot"
+
+        monkeypatch.setitem(
+            sys.modules, "huggingface_hub",
+            types.SimpleNamespace(snapshot_download=flaky_snapshot_download),
+        )
+        monkeypatch.setattr(predictions_mod, "HF_FETCH_BACKOFF_SECONDS",
+                            (0.0, 0.0, None))
+
+        path = predictions_mod.fetch_hf_predictions("Org/some-bench", "main")
+
+        assert len(attempts) == 3
+        assert path.name == "predictions"
+
+    def test_gives_up_after_the_last_attempt(self, monkeypatch):
+        import sys
+        import types
+
+        attempts = []
+
+        def always_429(**kwargs):
+            attempts.append(kwargs["repo_id"])
+            raise RuntimeError("429 Client Error: Too Many Requests")
+
+        monkeypatch.setitem(
+            sys.modules, "huggingface_hub",
+            types.SimpleNamespace(snapshot_download=always_429),
+        )
+        monkeypatch.setattr(predictions_mod, "HF_FETCH_BACKOFF_SECONDS",
+                            (0.0, 0.0, None))
+
+        with pytest.raises(RuntimeError, match="429"):
+            predictions_mod.fetch_hf_predictions("Org/some-bench", "main")
+        assert len(attempts) == 3

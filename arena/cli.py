@@ -351,13 +351,21 @@ def _sync_leaderboard_with_seed(
 
     existing_ids = {e["competitor_id"] for e in payload.get("entries", [])}
     missing = sorted(set(seed.ratings) - existing_ids)
-    if not missing:
-        return
 
     if not payload.get("entries") or payload.get("human_vote_count", 0) == 0:
+        # A vote-free board is a pure function of the seed, so it is
+        # resynced whenever EITHER the roster or the seed's numbers moved.
+        # Keying this on missing fighters alone left a board describing a
+        # superseded seed with the same roster — and `verify-replay`
+        # rebuilds the published board from the committed seed, so that
+        # board goes red until the next vote tally happens to rewrite it.
         _write_json(board_path, build_elo_board(modality, lang, seed, [], {}))
-        log.info("Resynced %s from seed — %d previously-missing fighter(s): %s",
-                  board_path.name, len(missing), ", ".join(missing))
+        log.info("Resynced %s from seed (%d previously-missing fighter(s)%s)",
+                 board_path.name, len(missing),
+                 ": " + ", ".join(missing) if missing else "")
+        return
+
+    if not missing:
         return
 
     entries = payload.setdefault("entries", [])
@@ -380,8 +388,19 @@ def _sync_leaderboard_with_seed(
             "human_votes": 0,
             "auto_votes": battles,
             "bt_rating": round(rating, 2),
-            "ci_lower": None,
-            "ci_upper": None,
+            # An appended fighter has cast-in no human votes, and with zero
+            # human votes a bootstrap interval collapses to the seed-only
+            # point estimate (see arena.rating.bootstrap_confidence_
+            # intervals), so that is the honest value here. It is not the
+            # interval a full replay would give the fighter once votes
+            # arrive — this branch cannot run one, since a leaderboard
+            # stores per-fighter aggregates and not the pairwise matrices
+            # the fit needs, and the vote log is not available to
+            # `assemble`. The next `tally` recomputes it properly. What
+            # matters is that the shape stays the one `build_elo_board`
+            # produces: null CIs made the whole board unreplayable.
+            "ci_lower": round(rating, 2),
+            "ci_upper": round(rating, 2),
         })
     entries.sort(key=lambda e: (-(e.get("bt_rating") or 0.0), e["competitor_id"]))
     for i, entry in enumerate(entries, 1):
@@ -696,6 +715,10 @@ def cmd_assemble(args: argparse.Namespace) -> int:
     # board/battle/ELO artifacts — never the whole modality's.
     source_dirs: dict[str, Path] = {}
     target_langs: set[str] = set()
+    # A source that could not even be listed has an unknown lang scope, so
+    # it potentially contributes to every lang — see the partial-input
+    # guard in the lang loop below.
+    undiscovered_sources: list[str] = []
     for source in sources:
         lang = source_langs.get(source)
         if lang:
@@ -723,6 +746,7 @@ def cmd_assemble(args: argparse.Namespace) -> int:
                             target_langs.add(row.lang)
         except Exception as exc:
             log.error("Skipping %s: %s", source, exc)
+            undiscovered_sources.append(source)
 
     now = _now_iso()
     registry_dataset_langs = _registry_dataset_langs()
@@ -731,8 +755,11 @@ def cmd_assemble(args: argparse.Namespace) -> int:
     all_seen_modalities: set[str] = set()
     any_data = False
 
+    degraded_langs: dict[str, list[str]] = {}
+
     for target_lang in sorted(target_langs):
         grouped: dict[tuple[str, str, str], dict[str, dict[str, Any]]] = {}
+        failed_sources: list[str] = list(undiscovered_sources)
         for source in sources:
             src_lang = source_langs.get(source)
             if src_lang and src_lang != target_lang:
@@ -758,7 +785,28 @@ def cmd_assemble(args: argparse.Namespace) -> int:
                     del chunk_grouped
             except Exception as exc:
                 log.error("Skipping %s (%s): %s", source, target_lang, exc)
+                failed_sources.append(source)
                 continue
+
+        # Partial input must never be published. Every artifact this loop
+        # writes for a lang — the ELO seed above all — is a merge across
+        # ALL of that lang's sources, so building it from the survivors of
+        # a failed fetch silently rewrites public ratings downwards (run
+        # 33927515324: one 429 on the snips predictions repo dropped
+        # en-US's auto vote count from 8,521,627 to 7,639,078 and took
+        # battles away from all 74 fighters). Leave the committed
+        # artifacts alone and fail the run instead — same posture as the
+        # "nothing to assemble" branch below, which also declines to
+        # write rather than write something wrong.
+        if failed_sources:
+            log.error(
+                "Refusing to publish %s artifacts — %d source(s) failed to "
+                "load: %s. Existing committed artifacts left untouched.",
+                target_lang, len(failed_sources), ", ".join(sorted(set(failed_sources))),
+            )
+            degraded_langs[target_lang] = sorted(set(failed_sources))
+            del grouped
+            continue
 
         if not grouped:
             continue
@@ -941,6 +989,19 @@ def cmd_assemble(args: argparse.Namespace) -> int:
                 _sync_leaderboard_with_seed(board_path, group, lang, seed)
 
         del grouped, battle_samples, elo_samples
+
+    if degraded_langs:
+        # Non-zero exit so the workflow step fails. In assemble.yml the
+        # per-modality leg's "Upload data delta" step runs only on a
+        # successful assemble step, so failing the leg withholds this
+        # modality's entire artifact from the commit job — the other
+        # modalities' legs still commit their own output, which is the
+        # intended sharded behaviour. Stale-artifact pruning is skipped
+        # too: written_files is incomplete on a degraded run and pruning
+        # against it would delete the very boards this guard preserved.
+        log.error("assemble degraded — no artifacts written for %d lang(s): %s",
+                  len(degraded_langs), ", ".join(sorted(degraded_langs)))
+        return 1
 
     if not any_data:
         # A league with zero fighters/predictions registered (e.g. a
