@@ -189,6 +189,89 @@ class TestNeedsIntelligibilityRejudge:
     def test_no_extras_needs_rejudge(self):
         assert rescore_tts._needs_intelligibility_rejudge({})
 
+    def test_row_judged_by_a_superseded_model_needs_rejudge(self):
+        # Russian resolves to the plugin registry's dedicated model; a row
+        # carrying a whisper-base score is not comparable with the rest of
+        # its board's Russian rows (§4 R16).
+        assert rescore_tts._needs_intelligibility_rejudge({
+            "lang": "ru-RU",
+            "extras": {"intelligibility_rover": True,
+                       "intelligibility_judge": "whisper-base"},
+        })
+
+    def test_row_judged_by_the_resolved_model_is_left_alone(self):
+        from runner.asr_judges import resolve_judge_model
+
+        judge, _revision = resolve_judge_model("ru-RU")
+        assert not rescore_tts._needs_intelligibility_rejudge({
+            "lang": "ru-RU",
+            "extras": {"intelligibility_rover": True,
+                       "intelligibility_judge": judge},
+        })
+
+    def test_unchanged_lang_is_left_alone(self):
+        assert not rescore_tts._needs_intelligibility_rejudge({
+            "lang": "pt-PT",
+            "extras": {"intelligibility_rover": True,
+                       "intelligibility_judge": "OpenVoiceOS/whisper-medium-pt-onnx"},
+        })
+
+    def test_unjudgeable_row_stays_final_while_nothing_claims_the_lang(self):
+        assert not rescore_tts._needs_intelligibility_rejudge({
+            "lang": "jv-ID",
+            "extras": {"intelligibility": "not_available",
+                       "intelligibility_judge": "none"},
+        })
+
+    def test_unjudgeable_row_is_rejudged_once_the_registry_claims_the_lang(
+            self, monkeypatch):
+        # Leaving the marker in place would split one language's rows on one
+        # board between judged and unjudged (§4 R16). Re-judging is not
+        # stripping: the row carries no score to lose.
+        from ovos_stt_plugin_onnxasr.defaults import LANG_DEFAULTS
+
+        monkeypatch.setitem(LANG_DEFAULTS, "jv",
+                            "OpenVoiceOS/some-javanese-export-onnx")
+        assert rescore_tts._needs_intelligibility_rejudge({
+            "lang": "jv-ID",
+            "extras": {"intelligibility": "not_available",
+                       "intelligibility_judge": "none"},
+        })
+
+    def test_newly_claimed_lang_row_loses_the_marker_and_gains_a_score(
+            self, tmp_path, monkeypatch):
+        from ovos_stt_plugin_onnxasr.defaults import LANG_DEFAULTS
+
+        monkeypatch.setitem(LANG_DEFAULTS, "jv",
+                            "OpenVoiceOS/some-javanese-export-onnx")
+        wav = tmp_path / "audio" / "jv-ID" / "voice_a" / "abc.wav"
+        wav.parent.mkdir(parents=True)
+        wav.write_bytes(b"RIFF....WAVEfmt ")
+        url = ("https://huggingface.co/datasets/OpenVoiceOS/ovos-tts-bench-d"
+               "/resolve/main/audio/jv-ID/voice_a/abc.wav")
+        jsonl_path = tmp_path / "predictions" / "jv-ID" / "voice_a.jsonl"
+        _write_jsonl(jsonl_path, [
+            {"sample_id": "jv-ID/00000", "competitor_id": "voice_a",
+             "audio_url": url, "lang": "jv-ID", "input_text": "halo",
+             "extras": {"sigmos.ovrl": 4.0, "dnsmos.ovrl": 3.0,
+                        "nisqa.mos": 4.2, "intelligibility": "not_available",
+                        "intelligibility_wer": None, "intelligibility_cer": None,
+                        "intelligibility_judge": "none",
+                        "intelligibility_judge_revision": None}},
+        ])
+        monkeypatch.setattr(rescore_tts, "_score_intelligibility",
+                            lambda w, t, l: _stub_panel_result())
+
+        rescored, skipped = rescore_tts.rescore_file(
+            jsonl_path, tmp_path, rejudge_intelligibility=True)
+
+        assert (rescored, skipped) == (1, 0)
+        extras = json.loads(jsonl_path.read_text())["extras"]
+        assert "intelligibility" not in extras
+        assert extras["intelligibility_wer"] == pytest.approx(0.05)
+        assert extras["intelligibility_judge"] == "stub-model-a"
+        assert extras["intelligibility_rover"] is True
+
 
 def _stub_panel_result(wer=0.05, cer=0.02):
     return {
@@ -257,10 +340,13 @@ class TestRejudgeIntelligibility:
         assert extras["sigmos.ovrl"] == pytest.approx(4.0)
 
     def test_row_already_rover_scored_is_untouched(self, tmp_path, monkeypatch):
+        from runner.asr_judges import resolve_judge_model
+
+        judge, _revision = resolve_judge_model("en-US")
         jsonl_path = self._write_row(tmp_path, {
             "intelligibility_wer": 0.05, "intelligibility_cer": 0.02,
-            "intelligibility_judge": "stub-model-a", "intelligibility_judge_revision": "main",
-            "intelligibility_judges": [{"model": "stub-model-a", "revision": "main",
+            "intelligibility_judge": judge, "intelligibility_judge_revision": "main",
+            "intelligibility_judges": [{"model": judge, "revision": "main",
                                          "transcript": "hello world"}],
             "intelligibility_consensus": "hello world", "intelligibility_agreement": 1.0,
             "intelligibility_rover": True,

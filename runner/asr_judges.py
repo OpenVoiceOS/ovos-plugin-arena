@@ -12,20 +12,22 @@ small set of data files — so :data:`_RECOMMENDS` below is a pinned copy of
 those files' models, refreshed by re-reading
 ``ovos_config/recommends/offline_stt/`` when ovos-config's recommends change.
 
-ovos-config only recommends ~20 languages today. Every other language falls
-back to :data:`_FALLBACK`, a small set of judges pinned to a known HF commit
-(see :data:`_REVISIONS`), and then to onnx-asr's own bundled multilingual
-``whisper-base`` wrapper. That is still the ``onnx-asr`` PACKAGE
+ovos-config recommends only ~20 languages. A language it does not
+recommend falls back to :data:`_FALLBACK`, a small set of judges pinned to
+a known HF commit (see :data:`_REVISIONS`), and then to the installed
+``ovos-stt-plugin-onnx-asr`` registry
+(``ovos_stt_plugin_onnxasr.defaults.LANG_DEFAULTS``), which is the same
+source :func:`judge_available` asks whether a language can be judged at
+all. Both answers come from that one registry, so a language never reads as
+judgeable while being handed a model that was never trained on it. A
+language nothing claims resolves to no judge and raises: callers check
+:func:`judge_available` first and skip the metric (§4 R16).
+
+The registry does assign a few languages to onnx-asr's bundled
+multilingual ``whisper-base`` wrapper. That is a deliberate registry entry
+rather than a blanket default, and it is still the ``onnx-asr`` PACKAGE
 (onnxruntime, MIT) — architecturally a Whisper checkpoint, but never
 touching ``faster-whisper``.
-
-Which languages can be judged at ALL is a separate question from which
-model judges them, and it is NOT answered by the tables here.
-:func:`judge_available` reads the installed ``ovos-stt-plugin-onnx-asr``
-registry (``ovos_stt_plugin_onnxasr.defaults.LANG_DEFAULTS``) directly, so
-a language the plugin has claimed since is never mistaken for one no ASR
-model covers. Copying that registry into this module is what makes the
-answer go stale.
 
 ``onnx_asr.load_model`` has no ``revision`` parameter (unlike
 ``faster_whisper.WhisperModel``) — it always resolves the model's *current*
@@ -34,7 +36,10 @@ it is the HF commit sha pinned via ``HfApi().model_info(repo_id).sha`` at
 authoring time and recorded on every scored row purely for provenance (§4
 R16: "a judge upgrade must not silently reinterpret past scores" — if the
 upstream repo moves, the recorded revision tells you the scores predate
-that move even though the loader itself could not pin against it).
+that move even though the loader itself could not pin against it). A judge
+that comes from the plugin registry and has no sha pinned here records the
+plugin release that named it instead, which is the version that would have
+to change for the choice of model to change.
 """
 from __future__ import annotations
 
@@ -96,7 +101,7 @@ _FALLBACK: dict[str, str] = {
 
 #: onnx-asr's own multilingual Whisper wrapper (the `onnx-asr` PACKAGE, not
 #: `faster-whisper`) — the panel's always-present multilingual member, and
-#: the resolver's last resort for a language with no dedicated export.
+#: the plugin registry's own entry for languages with no dedicated export.
 _UNIVERSAL_FALLBACK = "whisper-base"
 
 #: HF commit sha per model id, pinned via ``HfApi().model_info(id).sha`` at
@@ -134,27 +139,44 @@ _REVISIONS: dict[str, str] = {
 }
 
 
-def resolve_judge_model(lang: str) -> tuple[str, str]:
-    """Resolve a BCP-47 ``lang`` tag to ``(onnx-asr model id, pinned revision)``.
+def _recommended(lang: str) -> str | None:
+    """The ovos-config offline-STT recommend for ``lang``, if there is one.
 
-    Lookup order (mirrors ovos-config's ``do_merge()``): exact full-tag
-    match in the ovos-config recommends copy, then a primary-subtag prefix
-    match within it, then the onnx-asr LANG_DEFAULTS fallback table by
-    primary subtag, then the universal onnx-asr ``whisper-base`` wrapper.
+    Mirrors ovos-config's own ``do_merge()`` lookup: exact full-tag match
+    first, then a primary-subtag prefix match.
     """
     full = lang.lower()
+    if full in _RECOMMENDS:
+        return _RECOMMENDS[full]
     primary = full.split("-")[0]
+    prefix_matches = sorted(k for k in _RECOMMENDS if k.split("-")[0] == primary)
+    return _RECOMMENDS[prefix_matches[0]] if prefix_matches else None
 
-    model_id = _RECOMMENDS.get(full)
-    if model_id is None:
-        prefix_matches = sorted(k for k in _RECOMMENDS if k.split("-")[0] == primary)
-        if prefix_matches:
-            model_id = _RECOMMENDS[prefix_matches[0]]
-    if model_id is None:
-        model_id = _FALLBACK.get(primary, _UNIVERSAL_FALLBACK)
 
-    revision = _REVISIONS.get(model_id) or "main"
-    return model_id, revision
+def resolve_judge_model(lang: str) -> tuple[str, str]:
+    """Resolve a BCP-47 ``lang`` tag to ``(onnx-asr model id, revision)``.
+
+    Lookup order: the ovos-config offline-STT recommend for the tag, then a
+    judge this repo pins to a known HF commit, then the installed
+    ``ovos-stt-plugin-onnx-asr`` registry — the same registry
+    :func:`judge_available` decides judgeability from, so every judgeable
+    language resolves to the model a real OVOS install would use for it.
+
+    A language nothing claims has no judge and raises: its round trip would
+    measure the ASR fleet's coverage rather than the voice (§4 R16), so
+    callers ask :func:`judge_available` and skip the metric instead.
+    """
+    model_id = _recommended(lang) or _FALLBACK.get(lang.lower().split("-")[0])
+    if model_id is not None:
+        return model_id, _REVISIONS.get(model_id) or "main"
+
+    model_id = _plugin_model(lang)
+    if model_id is None:
+        raise ValueError(
+            f"no ASR judge covers {lang!r} — check judge_available() before "
+            f"resolving a judge for a language"
+        )
+    return model_id, _REVISIONS.get(model_id) or _plugin_provenance()
 
 
 def resolve_judge_panel(lang: str) -> list[tuple[str, str]]:
@@ -162,15 +184,12 @@ def resolve_judge_panel(lang: str) -> list[tuple[str, str]]:
     for ROVER consensus intelligibility scoring (§4 R16 extension).
 
     Owner directive: "use onnx-asr lang specific models + whisper as
-    judges" — the panel is every distinct language-specific onnx-asr model
-    available for ``lang`` (the ovos-config recommends primary from
-    :func:`resolve_judge_model`, plus any distinct onnx-asr LANG_DEFAULTS
-    alternate for the same primary subtag), deduped by model id, PLUS the
-    multilingual ``whisper-base`` wrapper, which is always a panel member —
-    not merely a long-tail fallback. The primary judge (used for
-    ``resolve_judge_model`` and as the ROVER tie-break) stays the
-    language-specific model when one exists, or ``whisper-base`` itself for
-    languages with no dedicated export — those get a panel of one, since
+    judges" — the panel is the primary judge from
+    :func:`resolve_judge_model`, plus any distinct model the ovos-config
+    recommend and :data:`_FALLBACK` name for the language, deduped by model
+    id, PLUS the multilingual ``whisper-base`` wrapper, which is always a
+    panel member and not merely a long-tail fallback. A language whose
+    primary judge already IS ``whisper-base`` gets a panel of one, since
     there is nothing else to vote against.
 
     Never includes ``faster-whisper`` (see module docstring) — only
@@ -180,23 +199,8 @@ def resolve_judge_panel(lang: str) -> list[tuple[str, str]]:
     panel: list[tuple[str, str]] = [(primary_id, primary_rev)]
     seen = {primary_id}
 
-    full = lang.lower()
-    primary_tag = full.split("-")[0]
-
-    candidate_ids: list[str] = []
-    recommend_id = _RECOMMENDS.get(full)
-    if recommend_id is None:
-        prefix_matches = sorted(k for k in _RECOMMENDS if k.split("-")[0] == primary_tag)
-        if prefix_matches:
-            recommend_id = _RECOMMENDS[prefix_matches[0]]
-    if recommend_id is not None:
-        candidate_ids.append(recommend_id)
-    fallback_id = _FALLBACK.get(primary_tag)
-    if fallback_id is not None:
-        candidate_ids.append(fallback_id)
-
-    for model_id in candidate_ids:
-        if model_id not in seen:
+    for model_id in (_recommended(lang), _FALLBACK.get(lang.lower().split("-")[0])):
+        if model_id is not None and model_id not in seen:
             seen.add(model_id)
             panel.append((model_id, _REVISIONS.get(model_id) or "main"))
 
@@ -208,8 +212,8 @@ def resolve_judge_panel(lang: str) -> list[tuple[str, str]]:
     return panel
 
 
-def _plugin_claims(lang: str) -> bool:
-    """Whether ``ovos-stt-plugin-onnx-asr``'s registry holds a model for ``lang``.
+def _plugin_model(lang: str) -> str | None:
+    """The model ``ovos-stt-plugin-onnx-asr``'s registry holds for ``lang``.
 
     Asked of the installed plugin rather than a copy kept here: a copy goes
     stale silently, and a language the plugin has claimed since would keep
@@ -229,7 +233,27 @@ def _plugin_claims(lang: str) -> bool:
             "ASR registry) — install the 'audio' extra: "
             "pip install ovos-plugin-arena[audio]"
         ) from exc
-    return _match(lang, LANG_DEFAULTS) is not None
+    full = lang.lower()
+    key = _match(full, LANG_DEFAULTS) or _match(full.split("-")[0], LANG_DEFAULTS)
+    return LANG_DEFAULTS[key] if key is not None else None
+
+
+def _plugin_provenance() -> str:
+    """The plugin release naming a judge, recorded where no HF sha is pinned.
+
+    ``_REVISIONS`` covers the models this repo pins itself; a model the
+    plugin registry names has no sha here, and the version of the plugin
+    that named it is the thing that would have to change for the judge to
+    change (§4 R16 provenance).
+    """
+    from ovos_stt_plugin_onnxasr.version import (
+        VERSION_ALPHA, VERSION_BUILD, VERSION_MAJOR, VERSION_MINOR,
+    )
+
+    version = f"{VERSION_MAJOR}.{VERSION_MINOR}.{VERSION_BUILD}"
+    if VERSION_ALPHA:
+        version += f"a{VERSION_ALPHA}"
+    return f"ovos-stt-plugin-onnx-asr {version}"
 
 
 def judge_available(lang: str) -> bool:
@@ -260,8 +284,6 @@ def judge_available(lang: str) -> bool:
             f"per clip language, not per dataset"
         )
     primary = full.split("-")[0]
-    if full in _RECOMMENDS or any(k.split("-")[0] == primary for k in _RECOMMENDS):
+    if _recommended(full) is not None or primary in _FALLBACK:
         return True
-    if primary in _FALLBACK:
-        return True
-    return _plugin_claims(full) or _plugin_claims(primary)
+    return _plugin_model(full) is not None

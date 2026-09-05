@@ -31,6 +31,7 @@ from arena.metrics import (
     row_is_correct,
     row_metric_value,
     row_intelligibility_cer,
+    row_intelligibility_judge,
     row_utmos,
     row_wer,
     tts_seed_score,
@@ -114,6 +115,12 @@ def auto_outcome(
         # rather than silently comparing an apples score to an oranges one.
         cer_a, cer_b = row_intelligibility_cer(row_a), row_intelligibility_cer(row_b)
         if cer_a is not None and cer_b is not None:
+            # A WER from one ASR is not comparable with a WER from another
+            # (§4 R16), so two rows judged by different models are the same
+            # mixed signal as one row having no CER at all — no auto-vote.
+            judge_a, judge_b = row_intelligibility_judge(row_a), row_intelligibility_judge(row_b)
+            if judge_a is not None and judge_b is not None and judge_a != judge_b:
+                return None
             score_a, score_b = tts_seed_score(row_a), tts_seed_score(row_b)
             if score_a is None or score_b is None or score_a == score_b:
                 return None
