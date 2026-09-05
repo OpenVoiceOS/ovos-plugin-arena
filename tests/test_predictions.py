@@ -375,17 +375,18 @@ class TestHfFetchRetry:
     routinely draws a 429 from the Hub; a single-shot download turned that
     transient into a dropped dataset."""
 
-    def test_retries_a_rate_limited_download(self, monkeypatch):
+    def test_retries_a_rate_limited_download(self, monkeypatch, tmp_path):
         import sys
         import types
 
+        (tmp_path / "predictions").mkdir()
         attempts = []
 
         def flaky_snapshot_download(**kwargs):
             attempts.append(kwargs["repo_id"])
             if len(attempts) < 3:
                 raise RuntimeError("429 Client Error: Too Many Requests")
-            return "/tmp/snapshot"
+            return str(tmp_path)
 
         monkeypatch.setitem(
             sys.modules, "huggingface_hub",
@@ -431,17 +432,19 @@ class TestHfFetchRetry:
         assert pauses[0] >= 1.0
         assert pauses == sorted(pauses)
 
-    def test_default_backoff_is_used_to_sleep_between_retries(self, monkeypatch):
+    def test_default_backoff_is_used_to_sleep_between_retries(self, monkeypatch,
+                                                              tmp_path):
         import sys
         import types
 
+        (tmp_path / "predictions").mkdir()
         attempts = []
 
         def flaky_snapshot_download(**kwargs):
             attempts.append(kwargs["repo_id"])
             if len(attempts) < 3:
                 raise RuntimeError("429 Client Error: Too Many Requests")
-            return "/tmp/snapshot"
+            return str(tmp_path)
 
         monkeypatch.setitem(
             sys.modules, "huggingface_hub",
@@ -457,3 +460,113 @@ class TestHfFetchRetry:
         assert path.name == "predictions"
         expected = [p for p in predictions_mod.HF_FETCH_BACKOFF_SECONDS if p is not None][:2]
         assert sleeps == expected
+
+
+def _response(status: int):
+    import httpx
+
+    return httpx.Response(status, request=httpx.Request("GET", "https://hf.co/x"))
+
+
+class TestHfFetchMissingRepo:
+    """A dataset registered but never swept has no predictions repo yet —
+    the normal state of an upcoming fighter. Unauthenticated the Hub
+    answers 401 for it exactly as it does for a private repo, and treating
+    that as a failed source made a whole modality's assemble refuse to
+    publish every lang."""
+
+    def _hub(self, monkeypatch, exc):
+        import sys
+        import types
+
+        attempts = []
+
+        def boom(**kwargs):
+            attempts.append(kwargs["repo_id"])
+            raise exc
+
+        monkeypatch.setitem(sys.modules, "huggingface_hub",
+                            types.SimpleNamespace(snapshot_download=boom))
+        monkeypatch.setattr(predictions_mod, "HF_FETCH_BACKOFF_SECONDS",
+                            (0.0, 0.0, None))
+        return attempts
+
+    def test_missing_repo_is_no_data_and_is_not_retried(self, monkeypatch, caplog):
+        from huggingface_hub.utils import RepositoryNotFoundError
+
+        attempts = self._hub(monkeypatch, RepositoryNotFoundError("401 ...", response=_response(401)))
+
+        with caplog.at_level("INFO"):
+            assert predictions_mod.fetch_hf_predictions("Org/never-swept") is None
+        assert attempts == ["Org/never-swept"], "a nonexistent repo must not be retried"
+        assert load_predictions("Org/never-swept") == []
+        assert list(predictions_mod.iter_predictions("Org/never-swept")) == []
+        assert not [r for r in caplog.records if r.levelname in ("WARNING", "ERROR")]
+
+    def test_repo_without_a_predictions_tree_is_no_data(self, monkeypatch, tmp_path,
+                                                        caplog):
+        """A repo that exists but publishes no ``predictions/`` raises
+        nothing at all: ``snapshot_download`` with ``allow_patterns`` that
+        match no file succeeds, downloads zero files, and hands back a
+        snapshot path it never created. Only the returned path tells the
+        caller there is no data."""
+        import sys
+        import types
+
+        snapshot = tmp_path / "snapshots" / "deadbeef"
+        calls = []
+
+        def empty_snapshot(**kwargs):
+            calls.append(kwargs["repo_id"])
+            return str(snapshot)
+
+        monkeypatch.setitem(sys.modules, "huggingface_hub",
+                            types.SimpleNamespace(snapshot_download=empty_snapshot))
+
+        with caplog.at_level("INFO"):
+            assert predictions_mod.fetch_hf_predictions("Org/no-folder") is None
+        assert calls == ["Org/no-folder"]
+        assert load_predictions("Org/no-folder") == []
+        assert list(predictions_mod.iter_predictions("Org/no-folder")) == []
+        assert not [r for r in caplog.records if r.levelname in ("WARNING", "ERROR")]
+
+    def test_vanished_revision_fails_loudly_without_retrying(self, monkeypatch, caplog):
+        """A pinned revision that no longer resolves is not absent data —
+        the repo is there and its default ref may carry live rows. Reading
+        it as an unpublished dataset would drop a real source in silence."""
+        from huggingface_hub.utils import RevisionNotFoundError
+
+        attempts = self._hub(monkeypatch, RevisionNotFoundError(
+            "404 Client Error: Revision Not Found", response=_response(404)))
+
+        with caplog.at_level("WARNING"):
+            with pytest.raises(RevisionNotFoundError):
+                predictions_mod.fetch_hf_predictions("Org/pinned-bench", "v-gone")
+        assert len(attempts) == 1, "a deleted revision will not reappear on retry"
+        assert any("Org/pinned-bench" in r.getMessage()
+                   for r in caplog.records if r.levelname == "WARNING")
+
+    def test_gated_repo_fails_loudly_without_retrying(self, monkeypatch, caplog):
+        from huggingface_hub.utils import GatedRepoError
+
+        attempts = self._hub(monkeypatch, GatedRepoError("403 ...", response=_response(403)))
+
+        with caplog.at_level("WARNING"):
+            with pytest.raises(GatedRepoError):
+                predictions_mod.fetch_hf_predictions("Org/gated-bench")
+        assert len(attempts) == 1, "a gated repo will not become readable on retry"
+        assert any("Org/gated-bench" in r.getMessage()
+                   for r in caplog.records if r.levelname == "WARNING")
+
+    def test_forbidden_private_repo_fails_loudly_without_retrying(self, monkeypatch, caplog):
+        from huggingface_hub.utils import HfHubHTTPError
+
+        attempts = self._hub(
+            monkeypatch, HfHubHTTPError("403 Forbidden", response=_response(403)))
+
+        with caplog.at_level("WARNING"):
+            with pytest.raises(HfHubHTTPError):
+                predictions_mod.fetch_hf_predictions("Org/private-bench")
+        assert len(attempts) == 1
+        assert any("Org/private-bench" in r.getMessage()
+                   for r in caplog.records if r.levelname == "WARNING")

@@ -20,6 +20,13 @@ from collections import defaultdict
 from collections.abc import Iterator
 from pathlib import Path
 
+from huggingface_hub.utils import (
+    GatedRepoError,
+    HfHubHTTPError,
+    RepositoryNotFoundError,
+    RevisionNotFoundError,
+)
+
 from arena.models import PredictionRow
 
 logger = logging.getLogger(__name__)
@@ -244,17 +251,26 @@ def reset_revision_cache() -> None:
     _revision_cache.clear()
 
 
-def fetch_hf_predictions(repo_id: str, revision: str = "main") -> Path:
+def fetch_hf_predictions(repo_id: str, revision: str = "main") -> Path | None:
     """Download the ``predictions/`` folder of an HF dataset repo.
 
-    Returns the local path of the downloaded ``predictions`` directory.
+    Returns the local path of the downloaded ``predictions`` directory, or
+    ``None`` when the repo (or its ``predictions/`` folder) does not exist
+    — a dataset registered but never swept has no prediction repo yet, and
+    the arena already renders such fighters as upcoming. That is missing
+    data, not a failed source, so it neither retries nor fails the run.
+
     Public datasets need no token; CI therefore runs unauthenticated.
 
     An unauthenticated daily assemble walks ~120 prediction repos back to
-    back and routinely trips the Hub's rate limiter, so the download is
-    retried a bounded number of times with a growing pause before the
-    failure is allowed to propagate. Bounded on purpose: a repo that is
-    genuinely gone must still fail the run rather than stall it.
+    back and routinely trips the Hub's rate limiter, so a transient
+    failure is retried a bounded number of times with a growing pause
+    before it is allowed to propagate. Bounded on purpose: a repo that
+    stays unreachable must still fail the run rather than stall it. A repo
+    that is gated, private to credentials the run does hold, or pinned to a
+    revision that no longer exists is a registry pointing at something the
+    arena cannot read — that propagates immediately, unretried, so it stays
+    visible.
     """
     from huggingface_hub import snapshot_download
 
@@ -267,8 +283,18 @@ def fetch_hf_predictions(repo_id: str, revision: str = "main") -> Path:
                 revision=revision,
                 allow_patterns=["predictions/**/*.jsonl", "predictions/*.jsonl"],
             )
-            return Path(local) / "predictions"
+            predictions = Path(local) / "predictions"
+            if not predictions.is_dir():
+                logger.info("No predictions published for %s yet", repo_id)
+                return None
+            return predictions
         except Exception as exc:
+            if _is_missing(exc):
+                logger.info("No predictions published for %s yet", repo_id)
+                return None
+            if _is_unreadable(exc):
+                logger.warning("Cannot read predictions repo %s: %s", repo_id, exc)
+                raise
             last = exc
             if pause is None:
                 break
@@ -276,6 +302,41 @@ def fetch_hf_predictions(repo_id: str, revision: str = "main") -> Path:
                         repo_id, attempt, len(HF_FETCH_BACKOFF_SECONDS), exc, pause)
             time.sleep(pause)
     raise last
+
+
+def _is_missing(exc: Exception) -> bool:
+    """True when *exc* says the repo simply is not there. Unauthenticated,
+    the Hub answers 401 for both a private and a nonexistent repo;
+    ``huggingface_hub`` raises ``RepositoryNotFoundError`` for that pair,
+    and the arena reads it as nonexistent because every registered
+    prediction repo is meant to be public.
+
+    ``GatedRepoError`` subclasses ``RepositoryNotFoundError``, so it has to
+    be excluded before the isinstance check rather than after it.
+
+    A repo that exists but holds no ``predictions/`` tree is missing data
+    too, but no exception reports that: ``snapshot_download`` with
+    ``allow_patterns`` that match nothing succeeds, downloads zero files
+    and returns a snapshot path it never created. That case is caught by
+    the caller looking at the returned path instead."""
+    if isinstance(exc, GatedRepoError):
+        return False
+    return isinstance(exc, RepositoryNotFoundError)
+
+
+def _is_unreadable(exc: Exception) -> bool:
+    """True when the registry points at something this run cannot read: a
+    gated repo, a repo private to the credentials in hand (403), or a
+    pinned revision that no longer resolves. A vanished revision is not
+    absent data — the repo is there and its default ref may well carry
+    live rows — so it must stay visible rather than pass for an
+    unpublished dataset."""
+    if isinstance(exc, GatedRepoError):
+        return True
+    if isinstance(exc, RevisionNotFoundError):
+        return True
+    return (isinstance(exc, HfHubHTTPError) and exc.response is not None
+            and exc.response.status_code == 403)
 
 
 def load_predictions(
@@ -291,7 +352,8 @@ def load_predictions(
     path = Path(source)
     if path.is_dir():
         return load_predictions_dir(path, lang=lang)
-    return load_predictions_dir(fetch_hf_predictions(source, revision), lang=lang)
+    fetched = fetch_hf_predictions(source, revision)
+    return load_predictions_dir(fetched, lang=lang) if fetched else []
 
 
 def iter_predictions(
@@ -306,7 +368,9 @@ def iter_predictions(
     if path.is_dir():
         yield from iter_predictions_dir(path, lang=lang)
         return
-    yield from iter_predictions_dir(fetch_hf_predictions(source, revision), lang=lang)
+    fetched = fetch_hf_predictions(source, revision)
+    if fetched:
+        yield from iter_predictions_dir(fetched, lang=lang)
 
 
 def group_rows(
