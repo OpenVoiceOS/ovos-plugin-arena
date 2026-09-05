@@ -688,15 +688,64 @@ class TestJudgeResolution:
         assert model_id == "OpenVoiceOS/nvidia-parakeet-ctc-0.6b-vietnamese-onnx"
         assert revision == "ed9f55ba980eb1c9eeba02a5733eba7cba02f6e7"
 
-    def test_universal_whisper_base_fallback_for_long_tail_lang(self):
-        # No dedicated onnx-asr export exists for Malagasy — it falls all
-        # the way through to onnx-asr's own bundled whisper-base wrapper
-        # (still the onnx-asr package, never faster-whisper).
+    def test_plugin_registry_model_used_when_neither_table_has_the_lang(self):
+        # Neither ovos-config nor this repo's pinned table covers Russian,
+        # Greek, Polish or Malayalam — the plugin registry names a real
+        # model for each, and that is what judges them.
+        from ovos_stt_plugin_onnxasr.defaults import LANG_DEFAULTS
         from runner.asr_judges import resolve_judge_model
 
-        model_id, revision = resolve_judge_model("mg-MG")
-        assert model_id == "whisper-base"
+        for lang in ("ru-RU", "el-GR", "pl-PL", "ml-IN"):
+            model_id, _revision = resolve_judge_model(lang)
+            assert model_id == LANG_DEFAULTS[lang.split("-")[0]], lang
+            assert model_id != "whisper-base", lang
+
+    def test_plugin_model_records_the_plugin_release_as_provenance(self):
+        from runner.asr_judges import _plugin_provenance, resolve_judge_model
+
+        _model_id, revision = resolve_judge_model("ru-RU")
+        assert revision == _plugin_provenance()
+        assert revision.startswith("ovos-stt-plugin-onnx-asr ")
+
+    def test_registry_whisper_base_entry_resolves_to_whisper_base(self):
+        # The registry deliberately assigns Norwegian to its "no" entry,
+        # which is whisper-base — a real entry, so the language is judged.
+        from ovos_stt_plugin_onnxasr.defaults import LANG_DEFAULTS
+        from runner.asr_judges import resolve_judge_model
+
+        model_id, revision = resolve_judge_model("nb-NO")
+        assert model_id == LANG_DEFAULTS["no"] == "whisper-base"
         assert revision == "998334d3bfe2deba3c8e6821f05388dbf2b706d2"
+
+    def test_unclaimed_lang_raises_instead_of_resolving_to_whisper_base(self):
+        # Nothing claims Javanese. Handing it whisper-base would publish a
+        # round-trip rate measuring the ASR fleet's coverage (§4 R16).
+        from runner.asr_judges import judge_available, resolve_judge_model
+
+        assert judge_available("jv-ID") is False
+        with pytest.raises(ValueError):
+            resolve_judge_model("jv-ID")
+
+    def test_judged_langs_are_exactly_the_resolvable_ones(self):
+        # judge_available and resolve_judge_model must answer from one
+        # source: a language judged but resolved by a model never trained
+        # on it is the failure R16 forbids.
+        from registry.loaders import list_datasets
+        from runner.asr_judges import judge_available, resolve_judge_model
+
+        langs = set()
+        for dataset in list_datasets("tts"):
+            langs.update(dataset.langs or ([dataset.lang] if dataset.lang else []))
+        langs.discard("multi")
+        assert len(langs) > 20, "expected the real TTS registry, not an empty one"
+
+        for lang in sorted(langs):
+            try:
+                resolve_judge_model(lang)
+                resolves = True
+            except ValueError:
+                resolves = False
+            assert judge_available(lang) is resolves, lang
 
     def test_full_tag_beats_primary_subtag_prefix_match(self):
         # en-US is an exact recommends key; a made-up en-XX must still
@@ -746,12 +795,12 @@ class TestJudgePanel:
         assert len(set(model_ids)) == len(model_ids)  # deduped
 
     def test_whisper_only_lang_gets_panel_of_one(self):
-        # Malagasy has no dedicated onnx-asr export anywhere — the primary
-        # judge already IS whisper-base, so the panel degrades to one
-        # member instead of listing whisper-base twice.
+        # The registry has no dedicated export for Thai and assigns it
+        # whisper-base — the primary judge already IS whisper-base, so the
+        # panel degrades to one member instead of listing it twice.
         from runner.asr_judges import resolve_judge_panel
 
-        panel = resolve_judge_panel("mg-MG")
+        panel = resolve_judge_panel("th-TH")
         assert panel == [("whisper-base", "998334d3bfe2deba3c8e6821f05388dbf2b706d2")]
 
     def test_panel_primary_matches_resolve_judge_model(self):

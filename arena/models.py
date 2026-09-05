@@ -424,6 +424,14 @@ class BenchmarkBoard(BaseModel):
     # robust ranking from one judge picking favorites. None for every
     # non-TTS modality.
     judge_agreement: JudgeAgreement | None = None
+    # TTS boards only: the distinct intelligibility judges this board's rows
+    # were scored by, and how many same-sample competitor pairs were denied
+    # an intelligibility auto-vote because their judges disagreed. One
+    # language is meant to have exactly one judge (§4 R16); more than one
+    # means the board mixes scales, and lands in ``warnings``.
+    intelligibility_judges: list[str] = Field(default_factory=list)
+    intelligibility_judge_mismatched_pairs: int = 0
+    warnings: list[str] = Field(default_factory=list)
 
 
 class EloEntry(BaseModel):

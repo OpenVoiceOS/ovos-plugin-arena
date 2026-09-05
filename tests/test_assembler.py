@@ -133,6 +133,28 @@ class TestAutoOutcome:
         assert auto_outcome(a, b, "tts") is None
         assert auto_outcome(b, a, "tts") is None
 
+    def test_tts_pair_judged_by_different_models_gets_no_vote(self):
+        # A WER measured by one ASR is not comparable with one measured by
+        # another (§4 R16) — the pair is the same mixed signal as one row
+        # having no CER at all.
+        a = _row("x", "https://hf/a.wav", reference=None, input_text="hi",
+                 extras={"utmos": 3.0, "intelligibility_cer": 0.1,
+                         "intelligibility_judge": "whisper-base"})
+        b = _row("y", "https://hf/b.wav", reference=None, input_text="hi",
+                 extras={"utmos": 4.5, "intelligibility_cer": 0.5,
+                         "intelligibility_judge": "gigaam-v2-rnnt"})
+        assert auto_outcome(a, b, "tts") is None
+        assert auto_outcome(b, a, "tts") is None
+
+    def test_tts_pair_judged_by_the_same_model_still_votes(self):
+        a = _row("x", "https://hf/a.wav", reference=None, input_text="hi",
+                 extras={"utmos": 3.0, "intelligibility_cer": 0.1,
+                         "intelligibility_judge": "gigaam-v2-rnnt"})
+        b = _row("y", "https://hf/b.wav", reference=None, input_text="hi",
+                 extras={"utmos": 3.0, "intelligibility_cer": 0.5,
+                         "intelligibility_judge": "gigaam-v2-rnnt"})
+        assert auto_outcome(a, b, "tts") == VoteOutcome.CANDIDATE_A
+
     def test_tts_legacy_rows_without_cer_fall_back_to_utmos(self):
         # Both rows predate intelligibility judging (no CER at all) — the
         # comparison must still fall back to plain UTMOS, same as before

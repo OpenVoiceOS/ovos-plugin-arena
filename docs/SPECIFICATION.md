@@ -403,17 +403,29 @@ Voting options MUST include: candidate A, candidate B, tie, both-wrong.
   reflects the STT judge's own blind spot as often as the TTS clip's actual
   intelligibility.
 
+  Every row of one board for one language MUST be judged by the same model,
+  since a WER from one ASR is not comparable with a WER from another.
+  `runner/rescore_tts.py --rejudge-intelligibility` MUST therefore re-judge
+  any row whose stored `intelligibility_judge` differs from the model the
+  row's language resolves to, including a row marked
+  `intelligibility: not_available` whose language the registry has since
+  claimed. Boards MUST record the judges their rows carry and MUST NOT
+  compare two rows judged by different models: such a pair contributes no
+  intelligibility auto-vote, and a board holding more than one judge for
+  its language carries a warning naming them.
+
   A language has an ASR judge when some ASR model covers it:
   `runner/asr_judges.py:judge_available` MUST decide this from an
   ovos-config offline-STT recommend, a judge this repo pins for the
   language, or an entry in the installed `ovos-stt-plugin-onnx-asr`
   registry, which it MUST read from the plugin rather than from a copy held
   here — a copy drifts, and a language the plugin covers then reads as
-  unjudgeable and silently loses its scores. A language reaching
-  `whisper-base` only through the plugin's blanket default is NOT judged:
-  with no model trained on it, the panel transcribes noise and the
-  round-trip error rate measures the ASR fleet's coverage rather than the
-  voice. Rows for such a language MUST NOT carry a round-trip number at
+  unjudgeable and silently loses its scores. A language is judged if and
+  only if the registry lists it, a deliberate `whisper-base` entry
+  included; a language that reaches `whisper-base` only through the
+  plugin's blanket `DEFAULT_CPU_MODEL` fallback is NOT judged, since with
+  no model trained on it the panel transcribes noise and the round-trip
+  error rate measures the ASR fleet's coverage rather than the voice. Rows for such a language MUST NOT carry a round-trip number at
   all. They MUST carry
   `intelligibility: not_available` with null `intelligibility_wer` and
   `intelligibility_cer` and `intelligibility_judge: none`, including on a

@@ -432,6 +432,59 @@ class TestRowUtmos:
         assert row_utmos(_row(extras={"utmos": float("nan")})) is None
 
 
+class TestIntelligibilityJudgeAudit:
+    """A TTS board records which judges scored it (§4 R16): one language is
+    judged by one model, and a board that mixes two is comparing WERs
+    measured on different scales."""
+
+    def _tts_row(self, competitor, sample, judge, cer=0.1):
+        return _row(competitor_id=competitor, sample_id=sample,
+                    input_text="hi", prediction="https://hf/a.wav",
+                    extras={"utmos": 4.0, "intelligibility_cer": cer,
+                            "intelligibility_wer": cer,
+                            "intelligibility_judge": judge})
+
+    def test_single_judge_board_has_no_warning(self):
+        by_competitor = {
+            "a": [self._tts_row("a", "s1", "gigaam-v2-rnnt")],
+            "b": [self._tts_row("b", "s1", "gigaam-v2-rnnt")],
+        }
+        board = build_benchmark_board("tts", "d", "ru-RU", by_competitor, "t")
+        assert board.intelligibility_judges == ["gigaam-v2-rnnt"]
+        assert board.intelligibility_judge_mismatched_pairs == 0
+        assert board.warnings == []
+
+    def test_mixed_judge_board_warns_and_counts_skipped_pairs(self):
+        by_competitor = {
+            "a": [self._tts_row("a", "s1", "gigaam-v2-rnnt")],
+            "b": [self._tts_row("b", "s1", "whisper-base")],
+        }
+        board = build_benchmark_board("tts", "d", "ru-RU", by_competitor, "t")
+        assert board.intelligibility_judges == ["gigaam-v2-rnnt", "whisper-base"]
+        assert board.intelligibility_judge_mismatched_pairs == 1
+        assert len(board.warnings) == 1
+        assert "gigaam-v2-rnnt" in board.warnings[0]
+        assert "whisper-base" in board.warnings[0]
+
+    def test_unjudged_rows_are_not_a_judge(self):
+        # "none" marks a language with no judge — an absence, not a model
+        # the board mixes in.
+        by_competitor = {
+            "a": [self._tts_row("a", "s1", "none")],
+            "b": [self._tts_row("b", "s1", "none")],
+        }
+        board = build_benchmark_board("tts", "d", "jv-ID", by_competitor, "t")
+        assert board.intelligibility_judges == []
+        assert board.warnings == []
+
+    def test_non_tts_board_records_nothing(self):
+        by_competitor = {"a": [_row(competitor_id="a", reference_intent="x",
+                                    prediction="x")]}
+        board = build_benchmark_board("intent", "d", "en-US", by_competitor, "t")
+        assert board.intelligibility_judges == []
+        assert board.warnings == []
+
+
 class TestScoreTts:
     def test_mean(self):
         rows = [_row(extras={"utmos": 3.0}), _row(extras={"utmos": 4.0})]

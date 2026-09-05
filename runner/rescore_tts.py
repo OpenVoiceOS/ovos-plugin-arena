@@ -41,7 +41,9 @@ import json
 import logging
 from pathlib import Path
 
-from runner.asr_judges import _UNIVERSAL_FALLBACK, judge_available
+from runner.asr_judges import (
+    _UNIVERSAL_FALLBACK, judge_available, resolve_judge_model,
+)
 from runner.intent_bench import HF_OWNER, results_repo_for
 from runner.tts_bench import (  # noqa: F401 (patchable at module level; optional-dep imports are inside tts_bench's own lazy judge getters)
     _score_intelligibility,
@@ -75,12 +77,33 @@ def _needs_intelligibility_rejudge(row: dict) -> bool:
     already carries a #143 ROVER panel result — legacy pre-#143 rows only
     ever have the single-judge ``intelligibility_wer/cer`` fields and no
     ``intelligibility_rover`` marker at all. A row already marked
-    ``intelligibility: not_available`` is final: its language has no ASR
-    judge, so there is nothing to re-judge it with."""
+    ``intelligibility: not_available`` stays that way only while its
+    language still has no ASR judge; once the registry claims the language,
+    the row is judgeable and MUST be judged, or a board ends up with one
+    language split between judged and unjudged rows. Re-judging such a row
+    is not stripping it: the never-strip rule protects rows that carry a
+    real score.
+
+    A row whose stored judge is not the one its language resolves to also
+    needs re-judging: one board's rows for one language MUST all come from
+    the same model (§4 R16), and a row left behind by a judge change is not
+    comparable with the rows around it."""
     extras = row.get("extras") or {}
+    lang = row.get("lang")
     if extras.get("intelligibility") == "not_available":
+        return bool(lang) and judge_available(lang)
+    if extras.get("intelligibility_rover") is not True:
+        return True
+    return _judge_is_stale(row)
+
+
+def _judge_is_stale(row: dict) -> bool:
+    """Whether the row's stored judge is no longer the one its language resolves to."""
+    lang = row.get("lang")
+    judge = (row.get("extras") or {}).get("intelligibility_judge")
+    if not lang or judge in (None, "none") or not judge_available(lang):
         return False
-    return extras.get("intelligibility_rover") is not True
+    return judge != resolve_judge_model(lang)[0]
 
 
 def _is_unjudgeable_row(row: dict, lang: str) -> bool:

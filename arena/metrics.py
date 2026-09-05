@@ -22,6 +22,7 @@ Intent scoring conventions
 from __future__ import annotations
 
 import hashlib
+import itertools
 import json
 import logging
 import random
@@ -610,6 +611,14 @@ def row_intelligibility_wer(row: PredictionRow) -> float | None:
     if value != value:  # NaN guard
         return None
     return value
+
+
+def row_intelligibility_judge(row: PredictionRow) -> str | None:
+    """The ASR model that judged this row's round trip, or None when it was
+    never judged (``intelligibility_judge: none`` marks a language with no
+    judge, which is an absence rather than a model)."""
+    judge = row.extras.get("intelligibility_judge")
+    return judge if judge and judge != "none" else None
 
 
 def row_intelligibility_cer(row: PredictionRow) -> float | None:
@@ -1292,6 +1301,7 @@ def build_benchmark_board(
     primary = PRIMARY_METRIC.get(modality, "accuracy")
     entries: list[BenchmarkEntry] = []
     cis: dict[str, tuple[float, float] | None] = {}
+    scored_rows: dict[str, list[PredictionRow]] = {}
     if scorer is not None:
         for competitor_id, rows in by_competitor.items():
             plugin_id = rows[0].plugin_id if rows else ""
@@ -1302,6 +1312,7 @@ def build_benchmark_board(
                 kept = [r for r in rows if r.sample_id in sample_set_ids]
                 coverage = (len(kept) / len(sample_set_ids)) if sample_set_ids else 0.0
                 rows = kept
+            scored_rows[competitor_id] = rows
             ci = primary_metric_ci(modality, rows)
             cis[competitor_id] = ci
             # §G version-blend guard: flag (never silently aggregate) when a
@@ -1397,6 +1408,13 @@ def build_benchmark_board(
                 leader_ci, cis.get(entry.competitor_id)
             )
 
+    judges, mismatched_pairs, warnings = (
+        _intelligibility_judge_audit(scored_rows) if modality == "tts"
+        else ([], 0, [])
+    )
+    for warning in warnings:
+        log.warning("%s/%s/%s: %s", modality, dataset_id, lang, warning)
+
     return BenchmarkBoard(
         modality=modality,
         dataset_id=dataset_id,
@@ -1407,7 +1425,49 @@ def build_benchmark_board(
         entries=entries,
         input_hash=input_hash,
         judge_agreement=_tts_judge_agreement(entries) if modality == "tts" else None,
+        intelligibility_judges=judges,
+        intelligibility_judge_mismatched_pairs=mismatched_pairs,
+        warnings=warnings,
     )
+
+
+def _intelligibility_judge_audit(
+    rows_by_competitor: dict[str, list[PredictionRow]],
+) -> tuple[list[str], int, list[str]]:
+    """The distinct intelligibility judges a TTS board's rows carry, how many
+    same-sample competitor pairs their judges disagree on, and a warning
+    naming the judges when the board mixes more than one.
+
+    One language is judged by one model (§4 R16). A board that mixes two is
+    comparing WERs measured on different scales, and the pairs it skips are
+    the fighters that lose their intelligibility signal because of it.
+    """
+    judges: set[str] = set()
+    by_sample: dict[str, list[str]] = defaultdict(list)
+    for rows in rows_by_competitor.values():
+        for row in rows:
+            judge = row_intelligibility_judge(row)
+            if judge is None:
+                continue
+            judges.add(judge)
+            by_sample[row.sample_id].append(judge)
+
+    mismatched_pairs = sum(
+        1
+        for sample_judges in by_sample.values()
+        for judge_a, judge_b in itertools.combinations(sample_judges, 2)
+        if judge_a != judge_b
+    )
+
+    warnings: list[str] = []
+    if len(judges) > 1:
+        warnings.append(
+            "intelligibility scores mix judges "
+            f"({', '.join(sorted(judges))}) — WERs from different ASR models "
+            f"are not comparable, and {mismatched_pairs} competitor pair(s) "
+            "got no intelligibility auto-vote"
+        )
+    return sorted(judges), mismatched_pairs, warnings
 
 
 # ---------------------------------------------------------------------------
