@@ -67,14 +67,14 @@ class TestDomainOf:
 
 
 class TestGeneralizationAccuracy:
-    """The ranked intent metric must ignore the buckets that leak training
-    data (``template``/``near_ood``), so a memorizer cannot outrank an engine
-    that actually handles unseen phrasings."""
+    """The ranked intent metric must ignore the in-distribution buckets
+    (``template``/``in_distribution``), so a memorizer cannot outrank an
+    engine that actually handles unseen phrasings."""
 
-    def test_contaminated_buckets_do_not_enter_the_metric(self):
+    def test_in_distribution_buckets_do_not_enter_the_metric(self):
         rows = [
             _row(reference_intent="a", prediction="a", bucket="template"),
-            _row(reference_intent="a", prediction="a", bucket="near_ood"),
+            _row(reference_intent="a", prediction="a", bucket="in_distribution"),
             _row(reference_intent="a", prediction="b", bucket="paraphrase"),
             _row(reference_intent="a", prediction="a", bucket="typos"),
         ]
@@ -85,7 +85,7 @@ class TestGeneralizationAccuracy:
         assert metrics["acc_in_distribution"] == 1.0
         assert "acc_near_ood" not in metrics
 
-    def test_all_contaminated_fighter_is_unranked_but_not_called_a_failure(self):
+    def test_all_in_distribution_fighter_is_unranked_but_not_called_a_failure(self):
         # Every row lands in a bucket the ranked metric excludes: there is no
         # generalization_accuracy to rank on, but the run itself succeeded.
         by_competitor = {
@@ -138,7 +138,7 @@ class TestGeneralizationAccuracy:
             out = []
             for i in range(10):
                 for bucket, hit in (("template", memorized),
-                                    ("near_ood", memorized),
+                                    ("in_distribution", memorized),
                                     ("paraphrase", generalized),
                                     ("typos", generalized)):
                     out.append(_row(

@@ -40,6 +40,7 @@ from runner.intent_bench import (
     HF_OWNER,
     _now_iso,
     done_samples,
+    prune_other_revisions,
     resolve_revision,
     results_repo_for,
     split_name,
@@ -372,7 +373,12 @@ def run_competitor_lang(
     ``written < max_new_samples and errored == 0 and not deadline_hit``
     means the language is genuinely exhausted for this fighter.
     """
-    done = done_samples(out_path)
+    # The DECLARED pin, not ``revision`` (the sha the pin resolves to today):
+    # comparing a branch-pinned dataset's rows against a moving branch tip
+    # would wipe its shard on every upstream commit.
+    declared_revision = eval_def.source.revision
+    prune_other_revisions(out_path, declared_revision)
+    done = done_samples(out_path, declared_revision)
     engine = None
     ctx = PredictContext(
         competitor, lang, dataset_id, adapter.modality, audio_dir, results_repo
