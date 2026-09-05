@@ -25,7 +25,7 @@ import logging
 
 from arena.elo import EloLedger
 from arena.metrics import (
-    CONTAMINATED_BUCKETS,
+    IN_DISTRIBUTION_BUCKETS,
     metric_higher_is_better,
     primary_metric_ci,
     row_is_correct,
@@ -81,15 +81,15 @@ def seeds_elo(row: PredictionRow, modality: str) -> bool:
     """Whether *row* may contribute an auto-battle to the seeded ratings.
 
     The seeded ladder has to be built from the same population as the board's
-    primary metric, or a rating labelled "generalization" would still be a
-    memorization score. Intent rows in a ``CONTAMINATED_BUCKETS`` bucket are
-    training data the fighters have seen, and are excluded from
+    primary metric, or a rating labelled "generalization" would still reflect
+    in-distribution phrasing. Intent rows in an ``IN_DISTRIBUTION_BUCKETS``
+    bucket are phrased close to the training templates and are excluded from
     ``generalization_accuracy``; they are excluded here too. Every other
     modality battles on all of its rows.
     """
     return not (
         is_intent_modality(modality)
-        and (row.bucket or "test") in CONTAMINATED_BUCKETS
+        and (row.bucket or "test") in IN_DISTRIBUTION_BUCKETS
     )
 
 

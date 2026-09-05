@@ -401,16 +401,16 @@ class TestSeedElo:
         assert seeds[0].ratings == seeds[1].ratings
 
 
-class TestSeedEloContamination:
+class TestSeedEloInDistribution:
     """The seeded ladder is the board's primary-metric ranking, so it has to
     battle over the same rows ``generalization_accuracy`` is computed from —
-    otherwise a rating labelled "generalization" is still a memorization
-    score."""
+    otherwise a rating labelled "generalization" is still in-distribution
+    phrasing."""
 
     @staticmethod
     def _mem_vs_gen():
-        """20 samples: the memorizer wins every contaminated row, the
-        generalizer wins every clean one."""
+        """20 samples: the memorizer wins every in-distribution row, the
+        generalizer wins every out-of-distribution one."""
         samples = {}
         for i in range(10):
             samples[f"template-{i}"] = {
@@ -428,28 +428,28 @@ class TestSeedEloContamination:
             }
         return samples
 
-    def test_contaminated_rows_seed_no_battles(self):
+    def test_template_rows_seed_no_battles(self):
         seed = seed_elo("intent", "en-US", {"d": self._mem_vs_gen()}, "t")
         assert seed.auto_vote_count == 10
         assert seed.wins["gen"] == 10
         assert seed.wins["mem"] == 0
         assert seed.ratings["gen"] > INITIAL_ELO > seed.ratings["mem"]
 
-    def test_near_ood_rows_seed_no_battles(self):
+    def test_in_distribution_rows_seed_no_battles(self):
         samples = _samples(*[
-            [_row("mem", "media:play_song", bucket="near_ood"),
-             _row("gen", "wrong", bucket="near_ood")]
+            [_row("mem", "media:play_song", bucket="in_distribution"),
+             _row("gen", "wrong", bucket="in_distribution")]
             for _ in range(10)
         ])
         seed = seed_elo("intent", "en-US", {"d": samples}, "t")
         assert seed.auto_vote_count == 0
         assert seed.ratings == {"mem": INITIAL_ELO, "gen": INITIAL_ELO}
 
-    def test_contaminated_gap_alone_does_not_open_the_significance_gate(self):
-        # Clean rows: the pair trades wins evenly, aggregate CIs overlap, no
-        # real signal. Contaminated rows: a big one-sided gap. Gating on
-        # overall accuracy would call the pair significant and seed the clean
-        # coin-flips as if they meant something.
+    def test_in_distribution_gap_alone_does_not_open_the_significance_gate(self):
+        # Out-of-distribution rows: the pair trades wins evenly, aggregate
+        # CIs overlap, no real signal. In-distribution rows: a big one-sided
+        # gap. Gating on overall accuracy would call the pair significant and
+        # seed the out-of-distribution coin-flips as if they meant something.
         samples = {}
         for i in range(20):
             samples[f"paraphrase-{i}"] = {

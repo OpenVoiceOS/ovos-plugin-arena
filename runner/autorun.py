@@ -55,6 +55,7 @@ from typing import Callable, Iterable, Iterator
 
 from registry.loaders import load_all_competitors, load_all_datasets
 from runner import media_bench as mb
+from arena.metrics import is_pinned_revision
 from runner.intent_bench import HF_OWNER, resolve_revision, results_repo_for
 from runner.publish_sample_set import run_with_timeout
 from runner.queue_tools import (
@@ -518,7 +519,8 @@ def _revision_for(dataset) -> str:
 
 
 def seed_from_hf(
-    out_path: Path, repo: str, lang: str, competitor_id: str, lister: HFLister
+    out_path: Path, repo: str, lang: str, competitor_id: str, lister: HFLister,
+    dataset_revision: str | None = None,
 ) -> None:
     """Seed the local pending shard from the already-published HF shard.
 
@@ -529,6 +531,15 @@ def seed_from_hf(
     notes). Without this, two fleet hosts racing the same pair (or one host
     restarting into a fresh ``--output-dir``) would redo samples another
     host already published.
+
+    *dataset_revision* is the dataset's DECLARED ``source.revision``. When
+    it pins an immutable commit, the published shard may predate that pin,
+    and its rows from another revision are left behind rather than seeded:
+    they would count as done and suppress the very re-sweep the new pin
+    calls for. A shard with nothing on the pin seeds no file at all, so the
+    pair runs from scratch. A branch-pinned dataset is seeded verbatim —
+    its rows carry whichever sha the branch held when they were swept, and
+    filtering them against today's tip would discard the whole shard.
     """
     if out_path.exists():
         return
@@ -540,9 +551,38 @@ def seed_from_hf(
     from huggingface_hub import hf_hub_download
 
     local = hf_hub_download(repo, path_in_repo, repo_type="dataset")
+    payload = Path(local).read_bytes()
+    if is_pinned_revision(dataset_revision):
+        payload, skipped = _rows_on_revision(payload, dataset_revision)
+        if skipped:
+            log.info("seed %s <- %s: skipped %d row(s) from another dataset "
+                     "revision", out_path, repo, skipped)
+        if not payload:
+            return
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    out_path.write_bytes(Path(local).read_bytes())
-    log.info("seeded %s <- %s (%d bytes)", out_path, repo, size)
+    out_path.write_bytes(payload)
+    log.info("seeded %s <- %s (%d bytes)", out_path, repo, len(payload))
+
+
+def _rows_on_revision(payload: bytes, dataset_revision: str) -> tuple[bytes, int]:
+    """Split a jsonl shard into its rows on *dataset_revision* and a count
+    of the rows dropped. Unparseable lines are kept — this filters by
+    revision, it is not a validator."""
+    kept: list[bytes] = []
+    skipped = 0
+    for line in payload.splitlines():
+        if not line.strip():
+            continue
+        try:
+            row = json.loads(line)
+        except json.JSONDecodeError:
+            kept.append(line)
+            continue
+        if row.get("dataset_revision") == dataset_revision:
+            kept.append(line)
+        else:
+            skipped += 1
+    return b"".join(line + b"\n" for line in kept), skipped
 
 
 @dataclass
@@ -690,14 +730,15 @@ class AutoRunner:
         audio_dir = bench_dir / modality / "audio"
         repo = results_repo_for(modality, dataset.dataset_id, self.config.hf_owner)
 
+        revision = _revision_for(dataset)
         if self.config.seed_from_hf and self.lister is not None:
             try:
-                seed_from_hf(out_path, repo, lang, competitor.competitor_id, self.lister)
+                seed_from_hf(out_path, repo, lang, competitor.competitor_id,
+                             self.lister, dataset.source.revision)
             except Exception as exc:
                 log.warning("seed-from-HF failed for %s/%s/%s: %s — local-only",
                             competitor.competitor_id, dataset.dataset_id, lang, exc)
 
-        revision = _revision_for(dataset)
         adapter_factory = adapter_factories()[modality]
         return self._run_child_batch(
             adapter_factory, competitor, dataset.dataset_id, lang, dataset,
@@ -802,16 +843,17 @@ class AutoRunner:
         out_path = (bench_dir / modality / "predictions" / lang
                     / f"{competitor.competitor_id}.jsonl")
         repo = results_repo_for(modality, dataset.dataset_id, self.config.hf_owner)
+        revision = _revision_for(dataset)
         if self.config.seed_from_hf and self.lister is not None:
             try:
-                seed_from_hf(out_path, repo, lang, competitor.competitor_id, self.lister)
+                seed_from_hf(out_path, repo, lang, competitor.competitor_id,
+                             self.lister, dataset.source.revision)
             except Exception as exc:
                 log.warning("seed-from-HF failed for %s/%s/%s: %s — treating as incomplete",
                             competitor.competitor_id, dataset.dataset_id, lang, exc)
-        done = mb.done_samples(out_path)
+        done = mb.done_samples(out_path, dataset.source.revision)
         if not done:
             return False
-        revision = _revision_for(dataset)
         total = 0
         for sample_id, _sample in adapter.iter_samples(dataset, lang, revision, 0):
             if deadline is not None and time.monotonic() >= deadline:

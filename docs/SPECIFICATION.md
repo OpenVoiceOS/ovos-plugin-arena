@@ -372,6 +372,30 @@ Voting options MUST include: candidate A, candidate B, tie, both-wrong.
   and `version_blended` (true when more than one), the frontend can flag
   blended entries, and CI/tooling can grep for them, rather than a reader
   assuming a single score reflects a single shipped version.
+- **R15b, Dataset-revision guard.** Rows are scored against the dataset
+  revision the registry pins. When a dataset entry's `source.revision` names a
+  commit sha, `build_benchmark_board` MUST drop every prediction row whose
+  `dataset_revision` differs from it before scoring, and those rows MUST NOT
+  reach a battle or seed a rating either. The board records the pin as
+  `dataset_revision` and each `BenchmarkEntry` records the number of rows
+  dropped as `rows_other_revision`. A competitor left with no rows on the
+  pinned revision is unscored — unranked, with a reason naming the pin, and
+  contributing nothing to the ELO seed — rather than ranked on rows from a
+  corpus it was not measured against. A revision can change the row
+  population, rename buckets, or move the train/test boundary, so a score
+  carried across one describes neither revision. Where `source.revision` names
+  a branch there is no fixed revision to compare against and every row is
+  scored. Runners apply the same rule to resume, and MUST compare against the
+  DECLARED `source.revision`, never the sha a branch resolves to at run time:
+  a branch tip moves with every upstream commit, so comparing against the
+  resolved sha would discard every shard of every branch-pinned dataset. Where
+  `source.revision` is a commit sha, a sample counts as done only when its
+  existing row carries that same sha — a row with no `dataset_revision` cannot
+  be shown to belong to the pin and so is not done — and rows from any other
+  revision are cleared from an output shard before it is appended to. Where
+  `source.revision` is a branch, a runner MUST NOT prune anything and MUST
+  count every existing row as done, including rows published before
+  `dataset_revision` existed as a column (§3.2: loaders MUST NOT require it).
 - **R16, TTS intelligibility (STT round-trip WER/CER).** Alongside UTMOS
   (R14), `runner/tts_bench.py` MUST transcribe every rendered clip whose
   language has an ASR judge back to text with a pinned STT judge, the best
@@ -550,19 +574,19 @@ audio modalities share `runner/media_bench.py` (the intent leagues share
    `OpenVoiceOS/intents-for-eval` (12 langs) and `OpenVoiceOS/massive-templates`
    (52 langs). Ranked by `generalization_accuracy` with an ELO seed.
 
-   About half of `intents-for-eval`'s test set is also training data: the
-   runner trains template engines on every phrase template AND on its
-   slot-filled expansions (`runner/intent_pipeline.py:expand_template`), and
-   the `template` and `near_ood` test rows are largely those expansions
-   verbatim — 95% and 83% of those two buckets on en-US, 46% of the corpus
-   (pt-PT measures 93%, 77%, 45%). Accuracy inside them measures
-   memorization and favours exact-string matchers, so boards rank on
-   `generalization_accuracy`, which covers only `paraphrase`, `typos`,
-   `asr_noise` and `far_ood`. Plain `accuracy` and every per-bucket column
-   remain published beside it. `near_ood` is published as
-   `acc_in_distribution`: no row in it has a null expected intent, and
-   almost every duplicated row repeats its training utterance under the same
-   gold label.
+   `intents-for-eval` separates train and test at the template level: the
+   template-paradigm train split (`train_templates.jsonl`) holds out 20% of
+   each intent's phrase templates per language, and the `template` test
+   bucket is built only from expansions of those held-out templates, so a
+   template engine cannot have seen the exact phrase during training. The
+   `template` and `in_distribution` buckets stay excluded from
+   `generalization_accuracy` regardless — matching a held-out template still
+   measures a narrower kind of generalization than the free-form
+   `paraphrase`, `typos`, `asr_noise` and `far_ood` buckets the ranked
+   metric is scored on. Plain `accuracy` and every per-bucket column remain
+   published beside it. `in_distribution` (raw bucket name in the dataset)
+   holds in-domain paraphrase-adjacent utterances with a real expected
+   intent, distinct from the null-intent `far_ood` bucket.
 2. **STT**, `benchmarks/stt_minds14.py` (`runner/stt_bench.py`): transcribes
    each fighter over MInDS-14. Ranked by WER with an ELO seed. A separate
    off-repo prediction runner also feeds legacy `ovos-stt-bench-*` rows,

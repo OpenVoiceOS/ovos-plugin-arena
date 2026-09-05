@@ -23,10 +23,12 @@ import argparse
 import importlib.metadata
 import json
 import logging
+import random
+from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 
-from arena.metrics import domain_of
+from arena.metrics import domain_of, is_pinned_revision
 from arena.version import __version__ as ARENA_VERSION
 from registry.loaders import load_all_competitors, load_dataset
 from runner.audio_io import resolve_sample_cap, stream_audio_dataset, stream_manifest_audio
@@ -426,16 +428,145 @@ def make_row(
     return row
 
 
-def done_samples(out_path: Path) -> set:
-    """sample_ids already present in a (resumable) output file."""
+def done_samples(out_path: Path, dataset_revision: str | None = None) -> set:
+    """sample_ids already present in a (resumable) output file.
+
+    *dataset_revision* is the dataset's DECLARED ``source.revision``, never
+    the sha a branch happens to resolve to today. Only when it pins an
+    immutable commit does a row have to carry that same revision to count as
+    done: a ``sample_id`` is an index into whichever revision produced it,
+    so re-pinning a corpus must make its old rows regenerate rather than
+    read as complete. On a sha-pinned dataset a row with no
+    ``dataset_revision`` at all cannot be shown to belong to the pin, so it
+    is not done either.
+
+    A branch-pinned dataset has no fixed revision to compare against — its
+    rows legitimately carry whatever sha the branch held when they were
+    swept — so every row counts, exactly as before this check existed.
+    """
+    if not is_pinned_revision(dataset_revision):
+        dataset_revision = None
     done = set()
     if out_path.exists():
         for line in out_path.read_text().splitlines():
             try:
-                done.add(json.loads(line)["sample_id"])
+                row = json.loads(line)
+                if (dataset_revision is None
+                        or row.get("dataset_revision") == dataset_revision):
+                    done.add(row["sample_id"])
             except (json.JSONDecodeError, KeyError):
                 continue
     return done
+
+
+#: Seed for the ``--max-samples`` bucket sample. Fixed so two runs of the
+#: same cap draw the same rows and a resumed shard keeps growing rather than
+#: restarting on a fresh subset.
+SAMPLE_SEED = 0
+
+
+def stratified_sample(
+    indexed_rows: list[tuple[int, dict]], max_samples: int,
+) -> list[tuple[int, dict]]:
+    """Take *max_samples* of *indexed_rows*, proportionally per bucket.
+
+    ``intents-for-eval`` stores its test split grouped by bucket, so a head
+    slice takes whole leading buckets and nothing from the trailing ones —
+    ``--max-samples 1000`` of 1,381 rows yields no ``far_ood``,
+    ``asr_noise`` or ``typos`` at all, and ``generalization_accuracy``
+    degenerates into a paraphrase-only score. Sampling proportionally keeps
+    every bucket represented at roughly its share of the corpus.
+
+    Each bucket contributes at least one row, so a bucket too small to earn
+    a proportional slot is still measured. Rows keep their original index,
+    which is what ``sample_id`` is built from: the same row has the same id
+    whether it was drawn under a cap or in a full sweep. A corpus with a
+    single bucket (or none) has nothing to stratify and keeps the head
+    slice, so caps on unbucketed corpora draw exactly the rows they always
+    did.
+    """
+    if max_samples >= len(indexed_rows):
+        return indexed_rows
+    buckets: dict[str, list[tuple[int, dict]]] = defaultdict(list)
+    for index, row in indexed_rows:
+        buckets[row.get("split") or "test"].append((index, row))
+    if len(buckets) < 2:
+        return indexed_rows[:max_samples]
+    if max_samples <= len(buckets):
+        # Too small to apportion: spend the whole cap on breadth, taking one
+        # row from each of the largest buckets.
+        widest = sorted(buckets, key=lambda name: (-len(buckets[name]), name))
+        return sorted(
+            (buckets[name][0] for name in widest[:max_samples]),
+            key=lambda pair: pair[0],
+        )
+
+    quotas = {name: 1 for name in buckets}
+    remaining = max_samples - len(quotas)
+    # Largest-remainder apportionment over what is left after the floor, so
+    # the quotas sum to exactly max_samples without drifting toward the
+    # buckets that happen to be visited first.
+    shares = {
+        name: remaining * (len(rows) - 1) / (len(indexed_rows) - len(quotas))
+        for name, rows in buckets.items()
+    }
+    for name, share in shares.items():
+        quotas[name] += int(share)
+    leftover = max_samples - sum(quotas.values())
+    by_remainder = sorted(
+        shares, key=lambda name: (-(shares[name] % 1), name),
+    )
+    for name in by_remainder[:leftover]:
+        quotas[name] += 1
+
+    picked: list[tuple[int, dict]] = []
+    for name, rows in buckets.items():
+        take = min(quotas[name], len(rows))
+        rng = random.Random(f"{SAMPLE_SEED}:{name}")
+        picked.extend(rng.sample(rows, take))
+    return sorted(picked, key=lambda pair: pair[0])
+
+
+def prune_other_revisions(out_path: Path, dataset_revision: str | None) -> int:
+    """Drop rows not produced against *dataset_revision* from *out_path*.
+
+    Returns how many rows were removed. A shard is appended to across runs,
+    so a re-pinned dataset would otherwise leave one file holding two
+    revisions' rows — which then publishes as one shard and gets scored as
+    though it were a single sweep. Rewritten via a temporary file and an
+    atomic replace, so an interrupted prune leaves the original intact.
+
+    *dataset_revision* is the dataset's DECLARED ``source.revision``. Nothing
+    is pruned unless it pins an immutable commit: a branch pin resolves to a
+    different sha every time the branch moves, so comparing rows against the
+    resolved sha would delete the entire shard of every branch-pinned
+    dataset on the first run after any upstream commit — including rows
+    published before ``dataset_revision`` existed as a column at all.
+    """
+    if not is_pinned_revision(dataset_revision) or not out_path.exists():
+        return 0
+    kept: list[str] = []
+    dropped = 0
+    for line in out_path.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        try:
+            row = json.loads(line)
+        except json.JSONDecodeError:
+            kept.append(line)
+            continue
+        if row.get("dataset_revision") == dataset_revision:
+            kept.append(line)
+        else:
+            dropped += 1
+    if not dropped:
+        return 0
+    tmp = out_path.with_suffix(out_path.suffix + ".tmp")
+    tmp.write_text("".join(f"{line}\n" for line in kept), encoding="utf-8")
+    tmp.replace(out_path)
+    log.info("  %s: dropped %d row(s) from another dataset revision",
+             out_path.name, dropped)
+    return dropped
 
 
 # ---------------------------------------------------------------------------
@@ -467,16 +598,19 @@ def run_competitor_lang(
             "stt_config": eval_def.stt_config,
             "stt_revision": stt_revision,
         }
+        indexed = list(enumerate(test_rows))
     else:
-        test_rows = fetch_rows(eval_def, lang, revision)
+        indexed = list(enumerate(fetch_rows(eval_def, lang, revision)))
         if max_samples:
-            test_rows = test_rows[:max_samples]
+            indexed = stratified_sample(indexed, max_samples)
 
-    done = done_samples(out_path)
-    todo = [
-        (i, row) for i, row in enumerate(test_rows)
-        if f"{lang}/{i:05d}" not in done
-    ]
+    # The DECLARED pin, not ``revision`` (the sha the pin resolves to today):
+    # comparing a branch-pinned dataset's rows against a moving branch tip
+    # would wipe its shard on every upstream commit.
+    declared_revision = eval_def.source.revision
+    prune_other_revisions(out_path, declared_revision)
+    done = done_samples(out_path, declared_revision)
+    todo = [(i, row) for i, row in indexed if f"{lang}/{i:05d}" not in done]
     if not todo:
         log.info("  %s/%s: already complete", competitor.competitor_id, lang)
         return 0

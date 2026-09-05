@@ -207,6 +207,17 @@ class TestBuildEloBoard:
         assert board.provisional is False
 
 
+def _pinned_revision(dataset_id: str = "intents-for-eval") -> str:
+    """The dataset revision board assembly scores rows against.
+
+    Fixture rows have to carry it: rows swept against any other revision of
+    a sha-pinned corpus are dropped before scoring.
+    """
+    from arena.cli import _registry_dataset_revisions
+
+    return _registry_dataset_revisions()[dataset_id]
+
+
 def _write_predictions(tmp_path: Path) -> Path:
     preds = tmp_path / "predictions"
     preds.mkdir()
@@ -217,6 +228,7 @@ def _write_predictions(tmp_path: Path) -> Path:
                 "competitor_id": competitor,
                 "sample_id": f"en-US/{i:05d}",
                 "dataset_id": "intents-for-eval",
+                "dataset_revision": _pinned_revision(),
                 "lang": "en-US",
                 "plugin_id": f"plugin-{competitor}",
                 "utterance": f"utterance number {i}",
@@ -366,6 +378,7 @@ def _write_cross_league_predictions(tmp_path: Path) -> Path:
                 "competitor_id": competitor,
                 "sample_id": f"en-US/{i:05d}",
                 "dataset_id": "intents-for-eval",
+                "dataset_revision": _pinned_revision(),
                 "lang": "en-US",
                 "modality": modality,
                 "plugin_id": f"plugin-{competitor}",
@@ -941,6 +954,7 @@ class TestAuditSeeds:
                 {
                     "competitor_id": competitor, "sample_id": f"en-US/{i:05d}",
                     "dataset_id": "intents-for-eval", "lang": "en-US",
+                    "dataset_revision": _pinned_revision(),
                     "plugin_id": f"plugin-{competitor}", "utterance": f"utterance {i}",
                     "reference_intent": "media:play_song",
                     "prediction": "media:play_song" if correct else f"wrong{i}",
