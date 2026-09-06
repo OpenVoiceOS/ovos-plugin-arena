@@ -130,9 +130,6 @@ import Base from '../../layouts/Base.astro';
     // Diverging ramp: loss-red → neutral surface → win-green, 5 steps either
     // side of the 50%/even midpoint (site's own --win/--loss semantics reused
     // rather than introducing a new palette — this *is* a win rate).
-    // All steps keep >=4.4:1 contrast against white cell text (checked with
-    // the WCAG relative-luminance formula) so the % / +−= label never relies
-    // on color alone and stays legible at every step of the ramp.
     const LOSS_STEPS = ['#5c1e1c', '#742824', '#8f322a', '#a93c30', '#c24636'];
     const WIN_STEPS = ['#1d4a26', '#25592d', '#2d6834', '#35773b', '#3d8642'];
     const NEUTRAL = '#3a3336';
@@ -247,6 +244,27 @@ import Base from '../../layouts/Base.astro';
       return steps[idx];
     }
 
+    // Cell labels must clear 4.5:1 contrast at every ramp step, so the text
+    // color is picked per cell from relative luminance rather than fixed.
+    function relLuminance(hex) {
+      const c = hex.replace('#', '').match(/.{2}/g).map(h => {
+        const v = parseInt(h, 16) / 255;
+        return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+      });
+      return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+    }
+    function contrastRatio(l1, l2) {
+      const [hi, lo] = l1 > l2 ? [l1, l2] : [l2, l1];
+      return (hi + 0.05) / (lo + 0.05);
+    }
+    const LABEL_DARK = '#000000';
+    function cellTextColor(bg) {
+      const l = relLuminance(bg);
+      const white = contrastRatio(l, 1);
+      const dark = contrastRatio(l, relLuminance(LABEL_DARK));
+      return white >= dark ? '#fff' : LABEL_DARK;
+    }
+
     function orderedFighters() {
       const group = leagueById[league]?.battle_group;
       const eloMeta = leaderboardsMeta.filter(b => b.modality === group && b.lang === lang);
@@ -337,7 +355,8 @@ import Base from '../../layouts/Base.astro';
         const scored = rec.wins + rec.ties * 0.5;
         const winRate = scored / rec.total;
         const t = (winRate - 0.5) * 2;
-        return `<td class="mu-cell" tabindex="0" style="background:${rampColor(t)}"
+        const bg = rampColor(t);
+        return `<td class="mu-cell" tabindex="0" style="background:${bg};color:${cellTextColor(bg)}"
           data-row="${esc(rowId)}" data-col="${esc(colId)}" data-kind="votes"
           data-wr="${(winRate * 100).toFixed(0)}" data-w="${rec.wins}" data-l="${rec.losses}"
           data-t="${rec.ties}" data-n="${rec.total}">${(winRate * 100).toFixed(0)}</td>`;
@@ -365,7 +384,8 @@ import Base from '../../layouts/Base.astro';
             data-row="${esc(rowId)}" data-col="${esc(colId)}" data-kind="nodata"></td>`;
         }
         const label = cell.delta > 0 ? '+' : cell.delta < 0 ? '−' : '=';
-        return `<td class="mu-cell" tabindex="0" style="background:${rampColor(cell.norm)}"
+        const bg = rampColor(cell.norm);
+        return `<td class="mu-cell" tabindex="0" style="background:${bg};color:${cellTextColor(bg)}"
           data-row="${esc(rowId)}" data-col="${esc(colId)}" data-kind="bench"
           data-metric="${esc(primary)}" data-a="${cell.a}" data-b="${cell.b}"
           data-delta="${cell.delta.toFixed(4)}">${label}</td>`;

@@ -1,87 +1,35 @@
-# Astro Starter Kit: Minimal
+# OVOS Plugin Arena — frontend
 
-```sh
-npm create astro@latest -- --template minimal
-```
+This is the static Astro site that renders the OVOS Plugin Arena. leaderboards,
+head-to-head battles, matchup heatmaps, and the fighter roster all live here.
+The site reads its data from the JSON files under `public/data/`. That data
+comes from `arena.cli`, which builds it from prediction pools and vote
+tallies. Nobody edits those files by hand. Regenerate them through the CLI
+and rebuild the site.
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+To run the site locally, install dependencies with `npm ci`, then start the
+dev server with `npm run dev`. For a production build, run `npm run build`.
+That writes the static site to `dist/`. `npm run preview` serves that build
+locally before it goes out to GitHub Pages.
 
-## 🚀 Project Structure
+Pages live under `src/pages/`. `leaderboard/` and `matchups/` render the
+ranking tables and the head-to-head grids. `battle/` and `vote/` drive the
+blind-vote flow visitors use to cast votes. `fighters/` lists the roster, and
+`fighter/[id]/` renders one fighter's own page. `evidence/` and
+`methodology/` document how a rank or a matchup number came to be.
+`patch-notes/` tracks changes to the arena itself.
 
-Inside of your Astro project, you'll see the following folders and files:
+The site carries an accessibility gate, `npm run a11y`. It runs axe-core
+against the built `dist/` through Playwright and Chromium. It serves the
+build locally, scans a representative set of pages, and fails with a
+non-zero exit code on any critical or serious WCAG violation. It prints the
+rule, the offending selector, and a snippet of the markup. Run `npm run
+build` first so the gate scans real output. Install the browser once with
+`npx playwright install chromium` before the first run.
 
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
-```
-
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
-
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
-
-Any static assets, like images, can be placed in the `public/` directory.
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-
-## ♿ Accessibility gate
-
-`npm run a11y` runs [axe-core](https://github.com/dequelabs/axe-core) against
-the **built** site (`dist/`) via Playwright + Chromium. It serves `dist/`
-locally, scans a representative page set — home, leaderboard, battle (blind
-vote flow), a fighter detail page, the fighters bestiary, methodology, patch
-notes, and the free-vote flow — and fails (non-zero exit) if any
-**critical** or **serious** violation is found, printing the rule id, the
-offending selector, and a snippet of the offending HTML.
-
-```sh
-npm run build      # generates dist/
-npm run a11y       # scans it
-```
-
-The first run needs a Chromium binary:
-
-```sh
-npx playwright install chromium   # or `--with-deps chromium` if you have sudo
-```
-
-No system-level browser dependencies are required to just *run* Chromium
-headless on a typical Linux desktop; `--with-deps` is only needed in minimal
-containers that are missing shared libraries.
-
-The gate is wired into `.github/workflows/pages.yml` as a **non-blocking**
-step (`continue-on-error: true`) right after the build step, so violations
-show up in CI logs without blocking deploys. Once the team is happy with the
-signal, drop `continue-on-error` there to make it a hard gate.
-
-Notes for fixing violations found by the gate:
-- Prefer native semantic elements (`<button>`, `<a>`, `<table>`/`<th scope>`,
-  `<label>`) over sprinkling `aria-*` attributes onto generic `div`/`span`.
-- Most of this site's content is injected client-side via `innerHTML` from
-  page `<script>` tags, and injected markup **does not** receive Astro's
-  scoped-style attribute — so anything meant to style dynamically-injected
-  content (links, tables, badges…) belongs in `Base.astro`'s global
-  `<style is:global>` block, or in a per-page `<style is:global>` block, not
-  a scoped one. A scoped rule there will silently never apply and can hide
-  contrast/visual regressions that only axe (or a real browser) will catch.
-- Don't add `aria-live` to whole leaderboards/battle grids — it causes
-  screen readers to announce every re-render. Scope `aria-live` narrowly
-  (a single status line), if used at all.
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+Most of the page content here is injected client-side through `innerHTML`
+from `<script>` tags rather than rendered by Astro at build time. Styling for
+that injected markup, such as links, tables, or heatmap cells, has to live in
+a global `<style is:global>` block rather than a scoped one. A scoped rule
+never applies to injected content, and that can hide a contrast regression
+that only the gate, or a real browser, will catch.
