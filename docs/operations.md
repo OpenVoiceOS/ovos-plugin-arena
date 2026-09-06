@@ -107,13 +107,15 @@ python -m arena.cli tally --data-dir frontend-static/public/data \
                            --repo <owner>/<repo>
 ```
 
-Running `tally` without `--repo` (or with an empty one) skips fetching
-issues entirely and only replays whatever `battles-*.json` / vote data is
-already on disk locally, useful for a dry run over a hand-built or
-previously-fetched vote log, but note that with no `--repo` the
-account-age gate has nothing to check against and does not discard
-anything (there is no cached age to gate on). For a full, honest replay
-always pass `--repo`.
+Running `tally` without `--repo` (or with an empty one) records nothing
+and replays the committed vote record as it stands, useful for a dry run
+that rebuilds every board from data already on disk. `--keep-issues-open`
+fetches and records as usual but writes nothing back to GitHub, which is
+the read-only way to refresh the record against the live repository. The
+voter is still owed an answer, and the next run without the flag gives
+it: every run comments on and closes every recorded issue that is still
+open, not only the ones it recorded itself, so a dry run or a run that
+died mid-way leaves nothing hanging.
 
 The account-age cache (`voter-age-cache.json`, committed alongside the
 leaderboards) is fetched from the GitHub API once per author the first
@@ -126,8 +128,9 @@ each run's own `generated_at` timestamp).
 
 `verify-replay` (`.github/workflows/replay-proof.yml`, on every push to
 `dev` and daily) is the automated version of the manual replay above: it
-re-runs the exact same pure `dedupe_votes` → `resolve_vote_weights` →
-`build_elo_board` path `tally` uses, then diffs the freshly-replayed
+re-runs `replay_boards`, the exact same pure path `tally` and `assemble`
+build their boards with, over the committed `votes.jsonl`, then diffs the
+freshly-replayed
 standings against the committed `leaderboard-<league>-<lang>.json` and
 `vote-audit.json` files field-by-field (ratings, ranks, vote counts, `generated_at` is ignored). Exit 0 means every published board is exactly
 reproducible from the public vote log. Any other exit code means the
@@ -135,12 +138,22 @@ published data has drifted from what the log actually supports, and the
 CI job fails loudly with a JSON diff of exactly which fields moved.
 
 ```bash
+python -m arena.cli verify-replay --data-dir frontend-static/public/data
+# or against a snapshot of the record kept elsewhere:
 python -m arena.cli verify-replay --data-dir frontend-static/public/data \
-                                   --repo <owner>/<repo>
-# or, offline against a saved vote-issue snapshot:
-python -m arena.cli verify-replay --data-dir frontend-static/public/data \
-                                   --votes-file vote-log-snapshot.json
+                                   --votes-file vote-record-snapshot.jsonl
 ```
+
+Nothing here touches the network: the vote record, the seeds and the
+account-age cache are all committed. `assemble` and `tally` both publish
+the boards *and* `vote-audit.json` from that one replay, so a roster
+change that flips a recorded vote between counted and discarded can never
+leave the two disagreeing.
+
+A record line that does not parse stops both commands with the file and
+line number named and a non-zero exit. Public evidence that cannot be
+read is never skipped past: fix the line (its content is in the run that
+wrote it) and re-run.
 
 The check is strict: every committed `leaderboard-*.json` (and
 `vote-audit.json`) MUST be exactly what replaying the current vote log

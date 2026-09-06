@@ -10,9 +10,10 @@ assemble
     ``elo-seed-<mod>-<lang>.json`` (benchmark-derived initial ELO).
 
 tally
-    Read GitHub vote issues, dedupe (one vote per author per battle),
-    replay human votes on top of the ELO seed in issue-number order, write
-    ``leaderboard-<mod>-<lang>.json`` and close processed issues.
+    Record every GitHub vote issue not yet in ``votes.jsonl``, replay the
+    whole record on top of the ELO seeds (deduped to one vote per author
+    per battle, in issue-number order), write
+    ``leaderboard-<mod>-<lang>.json`` and close the newly recorded issues.
 
 export-index
     Regenerate ``index.json`` describing every data artifact.
@@ -38,6 +39,7 @@ import os
 import re
 import subprocess
 import sys
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -114,6 +116,57 @@ def parse_vote_title(title: str) -> tuple[str, str] | None:
     return m.group("battle_id"), m.group("choice").lower()
 
 
+VOTE_RECORD_FILE = "votes.jsonl"
+
+
+class VoteRecordError(RuntimeError):
+    """The vote record on disk cannot be read as written.
+
+    Public evidence that does not parse is a hard stop: skipping the bad
+    line would silently drop a cast vote from every future rating.
+    """
+
+
+def load_vote_records(path: Path) -> list[dict[str, Any]]:
+    """Read a vote record file, oldest issue first.
+
+    Raises ``VoteRecordError`` on any line that is not a JSON object with
+    an issue number, naming the offending line.
+    """
+    if not path.exists():
+        return []
+    records = []
+    for number, line in enumerate(path.read_text().splitlines(), 1):
+        if not line.strip():
+            continue
+        try:
+            record = json.loads(line)
+            record["issue"]
+        except (json.JSONDecodeError, KeyError, TypeError) as exc:
+            log.error("%s line %d is not a usable vote record: %s", path, number, exc)
+            raise VoteRecordError(f"{path} line {number}") from exc
+        records.append(record)
+    records.sort(key=lambda r: r["issue"])
+    return records
+
+
+def append_vote_records(path: Path, records: list[dict[str, Any]]) -> None:
+    """Add newly ingested issues to the record.
+
+    Existing lines are never rewritten — that is what makes the record
+    immutable evidence of what was publicly cast — and the file is
+    replaced atomically, so a run killed mid-write leaves the previous
+    record intact rather than a half-line no later run can parse.
+    """
+    if not records:
+        return
+    existing = path.read_text() if path.exists() else ""
+    added = "".join(json.dumps(record, sort_keys=True) + "\n" for record in records)
+    scratch = path.with_suffix(path.suffix + ".tmp")
+    scratch.write_text(existing + added)
+    os.replace(scratch, path)
+
+
 def dedupe_votes(raw_votes: list[dict]) -> list[dict]:
     """Keep the first vote per (author, battle_id), ordered by issue number."""
     seen: set = set()
@@ -182,9 +235,13 @@ def build_elo_board(
     lang: str,
     seed: EloSeed | None,
     human_votes: list[dict],
-    battles_pool: dict[str, dict[str, Any]],
 ) -> EloBoard:
     """Replay *human_votes* (ordered) on top of *seed* and rank the result.
+
+    Each vote carries the competitor pair it was cast on (``competitor_a`` /
+    ``competitor_b``), recorded when the vote was ingested — replay never
+    consults the live battles pool, so a battle pruned from the pool after
+    the vote was cast still replays (§4 R4).
 
     Two ratings are computed from the same replayed vote log: the legacy
     sequential ELO (``EloEntry.elo``, order-dependent, kept for continuity,
@@ -209,14 +266,9 @@ def build_elo_board(
     counted = 0
     human_results: list[PairResult] = []
     for vote in human_votes:
-        battle = battles_pool.get(vote["battle_id"])
-        if not battle:
-            continue
-        comp_a = battle["competitor_a"]
-        comp_b = battle["competitor_b"]
+        comp_a = vote["competitor_a"]
+        comp_b = vote["competitor_b"]
         weight = vote.get("weight", 1.0)
-        competitor_plugin.setdefault(comp_a, battle.get("plugin_a", ""))
-        competitor_plugin.setdefault(comp_b, battle.get("plugin_b", ""))
         ledger.apply(comp_a, comp_b, CHOICE_TO_OUTCOME[vote["choice"]], bt_weight=weight)
         human_results.append(
             PairResult(comp_a, comp_b, _CHOICE_TO_SCORE_A[vote["choice"]], weight=weight)
@@ -324,91 +376,113 @@ def _build_secondary_ladder(
     )
 
 
-def _sync_leaderboard_with_seed(
-    board_path: Path, modality: str, lang: str, seed: EloSeed
-) -> None:
-    """Make sure every seeded fighter appears on an already-existing board.
+@dataclass
+class ReplayResult:
+    """Everything a tally/verify/assemble run derives from the vote record.
 
-    ``cmd_assemble`` only ever *creates* ``leaderboard-<mod>-<lang>.json``
-    once — after that, ``tally`` is normally the one rewriting it from a
-    full vote replay. But ``tally`` only rewrites boards on a run where at
-    least one vote was counted *anywhere*, so a fighter onboarded after the
-    board already existed can be permanently missing if that (modality,
-    lang) board never collects a human vote.
-
-    When the on-disk board has no human votes yet, it is safe to fully
-    regenerate it from the current seed (identical to what the bootstrap
-    path above would produce) — there is no replayed vote state to lose.
-    When it already carries real human votes, ``assemble`` cannot safely
-    reconstruct the full Bradley-Terry replay (it has no battles pool or
-    vote log here), so missing fighters are appended at their seed rating
-    instead, leaving every existing entry untouched.
+    ``boards`` is keyed by (modality, lang); ``discarded`` and
+    ``downweighted`` are the §4 R13 audit trail, sorted by issue number so
+    the payload is byte-stable across runs.
     """
-    try:
-        payload = json.loads(board_path.read_text())
-    except (OSError, json.JSONDecodeError) as exc:
-        log.warning("Could not read %s: %s", board_path, exc)
-        return
 
-    existing_ids = {e["competitor_id"] for e in payload.get("entries", [])}
-    missing = sorted(set(seed.ratings) - existing_ids)
+    boards: dict[tuple[str, str], EloBoard]
+    counted_issues: set[int]
+    discarded: list[dict[str, Any]]
+    downweighted: list[dict[str, Any]]
 
-    if not payload.get("entries") or payload.get("human_vote_count", 0) == 0:
-        # A vote-free board is a pure function of the seed, so it is
-        # resynced whenever EITHER the roster or the seed's numbers moved.
-        # Keying this on missing fighters alone left a board describing a
-        # superseded seed with the same roster — and `verify-replay`
-        # rebuilds the published board from the committed seed, so that
-        # board goes red until the next vote tally happens to rewrite it.
-        _write_json(board_path, build_elo_board(modality, lang, seed, [], {}))
-        log.info("Resynced %s from seed (%d previously-missing fighter(s)%s)",
-                 board_path.name, len(missing),
-                 ": " + ", ".join(missing) if missing else "")
-        return
+    def audit_payload(self) -> dict[str, Any]:
+        return {
+            "counted": len(self.counted_issues),
+            "discarded": self.discarded,
+            "downweighted": self.downweighted,
+        }
 
-    if not missing:
-        return
 
-    entries = payload.setdefault("entries", [])
-    for competitor in missing:
-        rating = seed.ratings.get(competitor, 1200.0)
-        battles = seed.battles.get(competitor, 0)
-        wins = seed.wins.get(competitor, 0)
-        losses = seed.losses.get(competitor, 0)
-        ties = seed.ties.get(competitor, 0)
-        entries.append({
-            "rank": 0,
-            "competitor_id": competitor,
-            "plugin_id": seed.competitor_plugin.get(competitor, ""),
-            "elo": round(rating, 2),
-            "battles": battles,
-            "wins": wins,
-            "losses": losses,
-            "ties": ties,
-            "win_rate": round(wins / battles, 4) if battles else 0.0,
-            "human_votes": 0,
-            "auto_votes": battles,
-            "bt_rating": round(rating, 2),
-            # An appended fighter has cast-in no human votes, and with zero
-            # human votes a bootstrap interval collapses to the seed-only
-            # point estimate (see arena.rating.bootstrap_confidence_
-            # intervals), so that is the honest value here. It is not the
-            # interval a full replay would give the fighter once votes
-            # arrive — this branch cannot run one, since a leaderboard
-            # stores per-fighter aggregates and not the pairwise matrices
-            # the fit needs, and the vote log is not available to
-            # `assemble`. The next `tally` recomputes it properly. What
-            # matters is that the shape stays the one `build_elo_board`
-            # produces: null CIs made the whole board unreplayable.
-            "ci_lower": round(rating, 2),
-            "ci_upper": round(rating, 2),
-        })
-    entries.sort(key=lambda e: (-(e.get("bt_rating") or 0.0), e["competitor_id"]))
-    for i, entry in enumerate(entries, 1):
-        entry["rank"] = i
-    _write_json_payload(board_path, payload)
-    log.info("Appended %d previously-missing fighter(s) to %s: %s",
-              len(missing), board_path.name, ", ".join(missing))
+def replay_boards(
+    records: list[dict[str, Any]],
+    seeds: dict[tuple[str, str], EloSeed],
+    account_created_at: dict[str, str],
+) -> ReplayResult:
+    """Rebuild every leaderboard from the vote record and the ELO seeds.
+
+    The single replay path behind ``tally``, ``verify-replay`` and
+    ``assemble`` — pure, offline and deterministic (§P5). Its only inputs
+    are committed files: the append-only vote record, the seeds, and the
+    persisted voter age cache.
+
+    A recorded issue that never became a countable vote (an unparseable
+    title, a battle absent from the pool at ingest) is carried into the
+    audit trail rather than dropped, as is a vote whose competitor has
+    since left the seed roster (``competitor_retired``), every vote the
+    fraud rules reject, and any repeat of an issue number already in the
+    record (``duplicate_record`` — one issue is one vote, so a second row
+    for it is evidence of tampering and never a second rating input,
+    §4 R13).
+    """
+    seen_issues: set[int] = set()
+    unique: list[dict[str, Any]] = []
+    repeated: list[dict[str, Any]] = []
+    for record in records:
+        (repeated if record["issue"] in seen_issues else unique).append(record)
+        seen_issues.add(record["issue"])
+
+    votes = dedupe_votes([
+        {**r, "issue_number": r["issue"]}
+        for r in unique
+        if not r.get("invalid") and not r.get("discarded_reason")
+    ])
+    ages = dict(account_created_at)
+    for record in unique:
+        ages.setdefault(record["author"], record.get("account_created_at", ""))
+    decisions = resolve_vote_weights(
+        votes,
+        {v["battle_id"]: v["modality"] for v in votes},
+        {login: created for login, created in ages.items() if created},
+    )
+
+    def audit_entry(record: dict[str, Any], **extra: Any) -> dict[str, Any]:
+        return {
+            "issue_number": record["issue"],
+            "author": record["author"],
+            "battle_id": record.get("battle_id", ""),
+            **extra,
+        }
+
+    discarded = [
+        audit_entry(r, reason=r["discarded_reason"])
+        for r in unique if r.get("discarded_reason")
+    ]
+    discarded += [audit_entry(r, reason="duplicate_record") for r in repeated]
+    downweighted: list[dict[str, Any]] = []
+    counted_issues: set[int] = set()
+    votes_by_board: dict[tuple[str, str], list[dict[str, Any]]] = {}
+    for decision in decisions:
+        vote = decision.vote
+        if decision.weight <= 0:
+            discarded.append(audit_entry(vote, reason=decision.discarded_reason))
+            continue
+        key = (vote["modality"], vote["lang"])
+        seed = seeds.get(key)
+        if seed is not None and not {vote["competitor_a"], vote["competitor_b"]} <= set(
+            seed.ratings
+        ):
+            discarded.append(audit_entry(vote, reason="competitor_retired"))
+            continue
+        votes_by_board.setdefault(key, []).append({**vote, "weight": decision.weight})
+        counted_issues.add(vote["issue_number"])
+        if decision.weight < 1.0:
+            downweighted.append(audit_entry(vote, weight=decision.weight))
+
+    boards = {
+        (modality, lang): build_elo_board(
+            modality, lang, seeds.get((modality, lang)),
+            votes_by_board.get((modality, lang), []),
+        )
+        for modality, lang in sorted(set(seeds) | set(votes_by_board))
+    }
+    discarded.sort(key=lambda e: e["issue_number"])
+    downweighted.sort(key=lambda e: e["issue_number"])
+    return ReplayResult(boards, counted_issues, discarded, downweighted)
 
 
 def _unchanged(path: Path, payload: dict[str, Any]) -> bool:
@@ -716,6 +790,11 @@ def cmd_assemble(args: argparse.Namespace) -> int:
     dataset_info = _dataset_info_lookup(sources)
     source_langs = _prediction_source_langs(sources)
     written_files: set[str] = set()
+    try:
+        vote_records = load_vote_records(data_dir / VOTE_RECORD_FILE)
+    except VoteRecordError:
+        return 1
+    voter_ages = _load_json_dict(data_dir / "voter-age-cache.json")
 
     # §C reproducibility — pin every HF predictions source to an immutable
     # commit SHA (registry ``predictions_revision`` when set, else
@@ -1071,22 +1150,9 @@ def cmd_assemble(args: argparse.Namespace) -> int:
             _write_json(data_dir / freeform_file, pool)
             written_files.add(freeform_file)
 
-            # Bootstrap the ELO board when none exists yet; `tally` owns it after
-            # — but `tally` only rewrites a board when at least one vote is
-            # counted *anywhere* in that run (`cmd_tally`'s `if
-            # counted_decisions:` guard), so a fighter that only ever gets
-            # prediction rows (never a human vote) could sit off a leaderboard
-            # that already existed before it was onboarded, forever. Every
-            # assemble run resyncs the board with the current seed to close
-            # that gap.
-            leaderboard_file = f"leaderboard-{group}-{lang}.json"
-            board_path = data_dir / leaderboard_file
-            written_files.add(leaderboard_file)
-            if not board_path.exists():
-                elo_board = build_elo_board(group, lang, seed, [], {})
-                _write_json(board_path, elo_board)
-            else:
-                _sync_leaderboard_with_seed(board_path, group, lang, seed)
+            # The board itself is republished by the shared replay at the
+            # end of this run, once every seed is on disk.
+            written_files.add(f"leaderboard-{group}-{lang}.json")
 
         del grouped, battle_samples, elo_samples
 
@@ -1157,6 +1223,20 @@ def cmd_assemble(args: argparse.Namespace) -> int:
     pruned = _prune_stale_artifacts(data_dir, written_files, modality_scope)
     if pruned:
         log.info("Pruned %d stale artifact(s): %s", len(pruned), ", ".join(pruned))
+
+    # Published boards are derived data: rebuild every one of them, and
+    # the audit trail that goes with them, from the seeds now on disk and
+    # the committed vote record — the same replay `tally` and
+    # `verify-replay` run. A roster change here can flip a recorded vote
+    # between counted and discarded, and the board and the audit must
+    # never disagree about which (§4 R13, §P5).
+    replay = replay_boards(vote_records, load_elo_seeds(data_dir), voter_ages)
+    for (modality, lang), elo_board in sorted(replay.boards.items()):
+        _write_json(data_dir / f"leaderboard-{modality}-{lang}.json", elo_board)
+    _write_json_payload(
+        data_dir / "vote-audit.json",
+        {"generated_at": _now_iso(), **replay.audit_payload()},
+    )
 
     return 0
 
@@ -1528,6 +1608,83 @@ def _account_age_cache(data_dir: Path, authors: set[str]) -> dict[str, str]:
     return cache
 
 
+def ingest_vote_issues(
+    data_dir: Path,
+    issues: list[dict[str, Any]],
+    battles_pool: dict[str, dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Record every vote issue not already in the record, exactly once.
+
+    This is the only step that reads a GitHub issue title or touches the
+    network. What it writes is the vote as it was publicly cast — the
+    title seen, the author, the moment, and the battle context resolved
+    from the pool at that moment — so a later title edit can no longer
+    move a rating or slip past the fraud rules, and a battle pruned from
+    the pool later still replays (§6, §4 R4).
+
+    An unparseable title is recorded as ``invalid`` and a battle id absent
+    from the pool as ``discarded_reason``, so neither is silently dropped
+    (§4 R13) and neither is re-examined on the next run (§4 R12). An
+    author whose account age cannot be fetched leaves the issue
+    un-ingested and untouched, to be retried on the next run: recording a
+    vote without the age snapshot would gate it differently depending on
+    when the fetch happened to succeed.
+
+    Returns the records appended by this run.
+    """
+    record_path = data_dir / VOTE_RECORD_FILE
+    known = {record["issue"] for record in load_vote_records(record_path)}
+    fresh = sorted(
+        (issue for issue in issues if issue["number"] not in known),
+        key=lambda issue: issue["number"],
+    )
+    ages = _account_age_cache(
+        data_dir,
+        {(issue.get("author") or {}).get("login", "unknown") for issue in fresh},
+    )
+
+    records: list[dict[str, Any]] = []
+    for issue in fresh:
+        title = issue.get("title", "")
+        author = (issue.get("author") or {}).get("login", "unknown")
+        record: dict[str, Any] = {
+            "issue": issue["number"],
+            "author": author,
+            "created_at": issue.get("createdAt", ""),
+            "title_seen": title,
+        }
+        parsed = parse_vote_title(title)
+        if parsed is None:
+            record["invalid"] = "title does not match vote|<battle_id>|<choice>"
+            records.append(record)
+            continue
+        battle_id, choice = parsed
+        record["battle_id"] = battle_id
+        record["choice"] = choice
+        battle = battles_pool.get(battle_id)
+        if battle is None:
+            record["discarded_reason"] = "battle_not_in_pool"
+            records.append(record)
+            continue
+        if author not in ages:
+            log.warning("No account age for %s — issue #%d left for a later run",
+                        author, issue["number"])
+            continue
+        record.update(
+            modality=battle["modality"],
+            dataset_id=battle["dataset_id"],
+            lang=battle["lang"],
+            competitor_a=battle["competitor_a"],
+            competitor_b=battle["competitor_b"],
+            sample_id=battle["sample_id"],
+            account_created_at=ages[author],
+        )
+        records.append(record)
+
+    append_vote_records(record_path, records)
+    return records
+
+
 def cmd_tally(args: argparse.Namespace) -> int:
     data_dir = Path(args.data_dir)
     out_dir = Path(args.output)
@@ -1546,80 +1703,28 @@ def cmd_tally(args: argparse.Namespace) -> int:
         issue["number"] for issue in issues if issue.get("state") == "OPEN"
     }
 
-    raw_votes: list[dict] = []
-    invalid: list[tuple[int, str]] = []
-    for issue in issues:
-        number = issue["number"]
-        author = (issue.get("author") or {}).get("login", "unknown")
-        parsed = parse_vote_title(issue.get("title", ""))
-        if parsed is None:
-            invalid.append((number, "This issue does not match the vote title "
-                                    "format `vote|<battle_id>|<choice>`."))
-            continue
-        battle_id, choice = parsed
-        if battle_id not in battles_pool:
-            invalid.append((number, f"Battle `{battle_id}` is not in the "
-                                    "current battles pool."))
-            continue
-        raw_votes.append({
-            "issue_number": number,
-            "battle_id": battle_id,
-            "choice": choice,
-            "author": author,
-            "created_at": issue.get("createdAt", ""),
-        })
-
-    votes = dedupe_votes(raw_votes)
-    duplicates = {v["issue_number"] for v in raw_votes} - {
-        v["issue_number"] for v in votes
-    }
-    log.info("  → %d deduped vote(s) (%d duplicates, %d invalid)",
-             len(votes), len(duplicates), len(invalid))
-
-    # §4 A1.4 vote fraud rules — daily cap, account-age gate, one-sided
-    # downweight. Only the age-gate cache lookup touches the network
-    # (ingest); resolve_vote_weights itself is pure and replay-deterministic.
-    modality_by_battle = {
-        bid: b["modality"] for bid, b in battles_pool.items()
-    }
-    account_created_at = (
-        _account_age_cache(data_dir, {v["author"] for v in votes})
-        if args.repo else {}
+    try:
+        if args.repo:
+            newly_recorded = ingest_vote_issues(data_dir, issues, battles_pool)
+            log.info("  → %d newly recorded issue(s)", len(newly_recorded))
+        records = load_vote_records(data_dir / VOTE_RECORD_FILE)
+    except VoteRecordError:
+        return 1
+    result = replay_boards(
+        records, seeds, _load_json_dict(data_dir / "voter-age-cache.json"),
     )
-    decisions = resolve_vote_weights(votes, modality_by_battle, account_created_at)
-    counted_decisions = [d for d in decisions if d.weight > 0]
-    discarded_decisions = [d for d in decisions if d.weight <= 0]
-    log.info("  → %d counted vote(s), %d discarded by fraud rules",
-             len(counted_decisions), len(discarded_decisions))
+    log.info("  → %d counted vote(s), %d discarded, %d down-weighted",
+             len(result.counted_issues), len(result.discarded),
+             len(result.downweighted))
 
-    # Group votes per (modality, lang) board, carrying each vote's
-    # fraud-rule weight through to the rating.
-    votes_by_board: dict[tuple[str, str], list[dict]] = {}
-    for d in counted_decisions:
-        battle = battles_pool[d.vote["battle_id"]]
-        key = (battle["modality"], battle["lang"])
-        votes_by_board.setdefault(key, []).append({**d.vote, "weight": d.weight})
-
-    # Rebuild every board unconditionally — `build_elo_board` is a pure
-    # function of (seed, votes, battles_pool), and the seed itself can
-    # change between tally runs (a same-day `assemble` re-run loads fresh
-    # predictions and regenerates `elo-seed-*.json` with a different
-    # auto-battle tally) even when zero human votes were cast this run.
-    # Gating the rebuild on `counted_decisions` left a stale published
-    # board next to a fresh seed/battles pool whenever votes were zero,
-    # which breaks R19 (verify-replay reproducibility) the moment the
-    # underlying predictions grow — the workflow's git-diff guard already
-    # skips the commit when nothing actually changed, so this costs
-    # nothing when the seed is unchanged.
-    boards = set(seeds) | set(votes_by_board)
+    # Every board is rewritten on every run: the replay is a pure
+    # function of (seed, vote record), and the seed itself moves between
+    # runs (a same-day `assemble` reloads predictions and regenerates
+    # `elo-seed-*.json` with a different auto-battle tally) even when no
+    # vote was cast. The workflow's git-diff guard skips the commit when
+    # nothing actually changed, so an unchanged seed costs nothing.
     patch_note_entries: list[dict] = []
-    for modality, lang in sorted(boards):
-        board = build_elo_board(
-            modality, lang,
-            seeds.get((modality, lang)),
-            votes_by_board.get((modality, lang), []),
-            battles_pool,
-        )
+    for (modality, lang), board in sorted(result.boards.items()):
         board_path = out_dir / f"leaderboard-{modality}-{lang}.json"
         # Diff against the board currently on disk (git-tracked) before we
         # overwrite it, so patch notes reflect this run's movement (§A5.4).
@@ -1635,65 +1740,42 @@ def cmd_tally(args: argparse.Namespace) -> int:
         out_dir / "patch-notes.json",
         build_patch_notes(patch_note_entries, _now_iso()),
     )
-    if not counted_decisions:
-        log.info("No counted votes this run — boards still rebuilt from "
-                  "the current seed/battles pool (may be unchanged).")
 
-    # Discards are recorded, never silently dropped (§4 A1.4) — this file
-    # reflects the complete current vote log's audit trail every run.
-    audit_path = out_dir / "vote-audit.json"
-    audit_payload = {
-        "generated_at": _now_iso(),
-        "counted": len(counted_decisions),
-        "discarded": [
-            {"issue_number": d.vote["issue_number"], "author": d.vote["author"],
-             "battle_id": d.vote["battle_id"], "reason": d.discarded_reason}
-            for d in discarded_decisions
-        ],
-        "downweighted": [
-            {"issue_number": d.vote["issue_number"], "author": d.vote["author"],
-             "battle_id": d.vote["battle_id"], "weight": d.weight}
-            for d in counted_decisions if d.weight < 1.0
-        ],
-    }
-    _write_json_payload(audit_path, audit_payload)
+    # Discards are recorded, never silently dropped (§4 R13) — this file
+    # reflects the complete vote record's audit trail every run.
+    _write_json_payload(
+        out_dir / "vote-audit.json",
+        {"generated_at": _now_iso(), **result.audit_payload()},
+    )
 
-    # Comment/close only issues not yet actioned (still open) — every prior
-    # run's already-closed issues stay untouched even though they're
-    # re-fetched every time for full-history replay (R12).
+    # Comment and close every recorded issue that is still open, not only
+    # the ones recorded on this run: a `--keep-issues-open` run, or a run
+    # killed between recording and closing, otherwise leaves the voter
+    # without an answer forever. An issue already closed is never touched
+    # again (§4 R12).
     if args.repo and not args.keep_issues_open:
-        for d in counted_decisions:
-            number = d.vote["issue_number"]
+        discarded_reason = {
+            entry["issue_number"]: entry["reason"] for entry in result.discarded
+        }
+        for record in records:
+            number = record["issue"]
             if number not in open_issue_numbers:
                 continue
-            close_issue(
-                args.repo, number,
-                "Your vote has been counted — thank you! The leaderboard "
-                "will reflect it once this run's commit deploys.",
-                add_label="processed",
-            )
-        for d in discarded_decisions:
-            number = d.vote["issue_number"]
-            if number not in open_issue_numbers:
-                continue
-            close_issue(
-                args.repo, number,
-                "Your vote was recorded but did not count toward the "
-                f"rating ({d.discarded_reason}).",
-                add_label="processed",
-            )
-        for vote in raw_votes:
-            number = vote["issue_number"]
-            if number in duplicates and number in open_issue_numbers:
-                close_issue(
-                    args.repo, number,
-                    "Duplicate vote on this battle — your earlier vote was "
-                    "already counted.",
-                    add_label="processed",
-                )
-        for number, reason in invalid:
-            if number in open_issue_numbers:
-                close_issue(args.repo, number, reason, add_label="processed")
+            if number in result.counted_issues:
+                comment = ("Your vote has been counted — thank you! The "
+                           "leaderboard will reflect it once this run's "
+                           "commit deploys.")
+            elif number in discarded_reason:
+                comment = ("Your vote is recorded in the public vote log but "
+                           "did not count toward the rating "
+                           f"({discarded_reason[number]}).")
+            elif record.get("invalid"):
+                comment = ("This issue does not match the vote title format "
+                           "`vote|<battle_id>|<choice>`.")
+            else:
+                comment = ("Duplicate vote on this battle — your earlier vote "
+                           "was already counted.")
+            close_issue(args.repo, number, comment, add_label="processed")
 
     return 0
 
@@ -1745,76 +1827,41 @@ def _diff_board(replayed: dict[str, Any], published: dict[str, Any]) -> dict[str
 
 
 def cmd_verify_replay(args: argparse.Namespace) -> int:
-    """Replay the public vote log from scratch and prove it reproduces the
-    published leaderboards exactly (§P5, docs/operations.md "Replaying the
-    arena from public logs").
+    """Replay the public vote record from scratch and prove it reproduces
+    the published leaderboards exactly (§P5, docs/operations.md "Replay
+    proof").
 
-    Reuses the *same* pure replay path as ``tally`` (``dedupe_votes`` →
-    ``resolve_vote_weights`` → ``build_elo_board``) — this command never
-    reimplements ELO, it only re-runs the existing functions against the
-    current vote log and diffs the result against what is already
-    committed, instead of overwriting it. Never touches the network for
-    the account-age gate: it reads the already-committed
-    ``voter-age-cache.json`` as-is, same as replay purity requires
-    elsewhere in this module.
+    Runs the same pure replay path as ``tally`` and ``assemble``
+    (``replay_boards``) — this command never reimplements a rating, it
+    re-runs the shared function against the committed record and diffs
+    the result against what is published, instead of overwriting it.
+    Everything it reads is committed: the record, the seeds and
+    ``voter-age-cache.json``. It never touches the network.
     """
     data_dir = Path(args.data_dir)
-    battles_pool = load_battles_pools(data_dir)
     seeds = load_elo_seeds(data_dir)
-    log.info("Loaded %d battles, %d ELO seeds", len(battles_pool), len(seeds))
-
-    if args.votes_file:
-        log.info("Reading vote issues from %s (offline)", args.votes_file)
-        issues = json.loads(Path(args.votes_file).read_text())
-    elif args.repo:
-        log.info("Fetching vote issues from %s …", args.repo)
-        issues = fetch_vote_issues(args.repo)
-    else:
-        log.error("verify-replay needs --votes-file (offline fixture/snapshot) "
-                   "or --repo (live GitHub vote log)")
+    record_path = Path(args.votes_file or data_dir / VOTE_RECORD_FILE)
+    if args.votes_file and not record_path.exists():
+        log.error("No vote record at %s", record_path)
         return 2
-    log.info("  → %d vote issue(s)", len(issues))
+    try:
+        records = load_vote_records(record_path)
+    except VoteRecordError:
+        return 1
+    log.info("Loaded %d ELO seeds, %d recorded vote issue(s) from %s",
+             len(seeds), len(records), record_path)
 
-    raw_votes: list[dict] = []
-    for issue in issues:
-        parsed = parse_vote_title(issue.get("title", ""))
-        if parsed is None:
-            continue
-        battle_id, choice = parsed
-        if battle_id not in battles_pool:
-            continue
-        raw_votes.append({
-            "issue_number": issue["number"],
-            "battle_id": battle_id,
-            "choice": choice,
-            "author": (issue.get("author") or {}).get("login", "unknown"),
-            "created_at": issue.get("createdAt", ""),
-        })
-    votes = dedupe_votes(raw_votes)
-    log.info("  → %d deduped vote(s)", len(votes))
+    result = replay_boards(
+        records, seeds, _load_json_dict(data_dir / "voter-age-cache.json")
+    )
+    log.info("  → %d counted vote(s), %d discarded, %d down-weighted",
+             len(result.counted_issues), len(result.discarded),
+             len(result.downweighted))
 
-    modality_by_battle = {bid: b["modality"] for bid, b in battles_pool.items()}
-    account_created_at = _load_json_dict(data_dir / "voter-age-cache.json")
-    decisions = resolve_vote_weights(votes, modality_by_battle, account_created_at)
-    counted_decisions = [d for d in decisions if d.weight > 0]
-    log.info("  → %d counted vote(s), %d discarded by fraud rules",
-             len(counted_decisions), len(decisions) - len(counted_decisions))
-
-    votes_by_board: dict[tuple[str, str], list[dict]] = {}
-    for d in counted_decisions:
-        battle = battles_pool[d.vote["battle_id"]]
-        key = (battle["modality"], battle["lang"])
-        votes_by_board.setdefault(key, []).append({**d.vote, "weight": d.weight})
-
-    boards = sorted(set(seeds) | set(votes_by_board))
     mismatches: list[tuple[str, dict]] = []
     missing_published: list[str] = []
     checked = 0
-    for modality, lang in boards:
-        replayed = build_elo_board(
-            modality, lang, seeds.get((modality, lang)),
-            votes_by_board.get((modality, lang), []), battles_pool,
-        )
+    for (modality, lang), replayed in sorted(result.boards.items()):
         published_path = data_dir / f"leaderboard-{modality}-{lang}.json"
         if not published_path.exists():
             missing_published.append(published_path.name)
@@ -1837,25 +1884,6 @@ def cmd_verify_replay(args: argparse.Namespace) -> int:
     # replay path that produces it in `tally`.
     audit_path = data_dir / "vote-audit.json"
     if audit_path.exists():
-        replayed_audit = {
-            "counted": len(counted_decisions),
-            "discarded": sorted(
-                (
-                    {"issue_number": d.vote["issue_number"], "author": d.vote["author"],
-                     "battle_id": d.vote["battle_id"], "reason": d.discarded_reason}
-                    for d in decisions if d.weight <= 0
-                ),
-                key=lambda e: e["issue_number"],
-            ),
-            "downweighted": sorted(
-                (
-                    {"issue_number": d.vote["issue_number"], "author": d.vote["author"],
-                     "battle_id": d.vote["battle_id"], "weight": d.weight}
-                    for d in counted_decisions if d.weight < 1.0
-                ),
-                key=lambda e: e["issue_number"],
-            ),
-        }
         published_audit_raw = json.loads(audit_path.read_text())
         published_audit = {
             "counted": published_audit_raw.get("counted"),
@@ -1868,9 +1896,9 @@ def cmd_verify_replay(args: argparse.Namespace) -> int:
                 key=lambda e: e.get("issue_number", 0),
             ),
         }
-        if replayed_audit != published_audit:
+        if result.audit_payload() != published_audit:
             mismatches.append(("vote-audit.json", {
-                "replayed": replayed_audit, "published": published_audit,
+                "replayed": result.audit_payload(), "published": published_audit,
             }))
 
     if mismatches:
@@ -2324,9 +2352,8 @@ def main(argv=None):
     )
     p.add_argument("--data-dir", default="frontend-static/public/data")
     p.add_argument("--votes-file", default="",
-                   help="Offline vote-issue JSON array (fixture/snapshot) "
-                        "instead of a live GitHub fetch")
-    p.add_argument("--repo", default=os.environ.get("GITHUB_REPOSITORY", ""))
+                   help="Vote record JSONL to replay instead of the "
+                        "committed one (offline fixture/snapshot)")
 
     p = sub.add_parser("export-index", help="Regenerate data/index.json")
     p.add_argument("--data-dir", default="frontend-static/public/data")

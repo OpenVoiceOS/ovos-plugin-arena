@@ -153,6 +153,27 @@ jobs:
             --registry registry \
             --data-dir frontend-static/public/data
 
+      # Each matrix leg only ever holds its own modality's fresh seeds, so
+      # the leaderboards and vote-audit.json it derives describe a partial
+      # roster, and vote-audit.json has no modality in its name to be
+      # uploaded by anyway. Replay once here, over the fully merged seeds,
+      # so every artifact the replay proof compares comes from one run of
+      # the shared path. Records nothing and touches no network: no
+      # --repo. The legs' boards are dropped first so the patch-note diff
+      # is against what dev published, not against a board this run has
+      # already rewritten; the replay reproduces them exactly. The restore
+      # goes through `git ls-files` because a leg can publish a board for
+      # a (modality, lang) dev has never had: a shell glob would hand git
+      # that untracked path too, and git rejects the whole pathspec, which
+      # under `bash -e` would take the run's data commit with it.
+      - name: Replay the vote record over the merged seeds
+        run: |
+          git ls-files -z -- 'frontend-static/public/data/leaderboard-*.json' \
+            | git checkout --pathspec-from-file=- --pathspec-file-nul
+          python -m arena.cli tally \
+            --data-dir frontend-static/public/data \
+            --output frontend-static/public/data
+
       - name: Export bestiary and data index
         run: |
           python -m arena.cli export-bestiary \
