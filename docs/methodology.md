@@ -350,7 +350,7 @@ metric" signal to build a battle from. Concretely, today:
 
 | League | Ladders |
 | --- | --- |
-| `intent` / `intent_template` / `intent_keyword` | `generalization_accuracy` (primary), `accuracy`, `slot_exact_match` (rows with gold slots and a correct intent) |
+| every intent league | `generalization_accuracy` (primary), `accuracy`, `slot_exact_match` (rows with gold slots and a correct intent) |
 | `stt` | `wer_mean` (primary), no per-row CER is computed yet, so WER is the only ladder |
 | `tts` | `utmos` (primary), every SIGMOS/DNSMOS/NISQA quality dimension (`sigmos.noise`, `sigmos.col`, `sigmos.disc`, `sigmos.loud`, `sigmos.reverb`, `sigmos.sig`, `sigmos.ovrl`, `dnsmos.sig`, `dnsmos.bak`, `dnsmos.ovrl`, `nisqa.*`) |
 | `wake_word` / `vad` | `error_rate` (primary) only, no other per-row metric exists yet |
@@ -375,43 +375,42 @@ seed alone. Real TTS rosters today are smaller. If a future roster's scale
 makes this a bottleneck, the sample set can be capped or subsampled per metric
 without changing the artifact shape.
 
-## Per-league ELO pools and cross-league vote replay (§4 R18)
+## The shared intent battle pool (§4 R18)
 
-Every modality, including all three intent leagues, `intent`, `intent_template` and `intent_keyword`, runs its
-own battle pool and its own ELO ladder. `arena.models.battle_group()` is an identity mapping: a league's
-battle group is itself, so `arena.assembler` only ever pairs two fighters that already share
-a league. A template-paradigm engine (e.g. Padatious) is never blind-battled
-against a keyword-paradigm engine (e.g. Adapt), and neither paradigm-pure
-league pools with the open `intent` fusion league. This mirrors the leagues already
-being paradigm-pure on the benchmark side (§2.1), battles and ELO were the one
-place paradigms used to mix.
+Every intent league votes in one battle group. `arena.models.battle_group()` maps
+`intent_zero_shot`, `intent_online`, `intent_offline` and `intent_keyword` to the
+literal `intent`, so `arena.assembler` pairs any two fighters that answered the same
+stimulus in the same language, whatever preparation each of them needed. That is what
+a blind vote actually judges: the voter sees two answers and picks one, and how the
+engine was trained is invisible in that comparison. There is one
+`battles-intent-<dataset>-<lang>` pool, one `elo-seed-intent-<lang>` and one
+`leaderboard-intent-<lang>`. Every other modality is its own battle group.
 
-A single-stage embedding classifier (Model2Vec) is not a fourth league. It is a
-*strategy*, trained from one of the two intent training-data formats, and this
-shipped competitor trains from template-paradigm corpora (`runner/intent_pipeline.py`'s `EngineSpec.paradigm == "template"` for `ovos-m2v-pipeline`),
-so it lives in `registry/competitors/intent_template/` and competes in the `intent_template` league, same as any other template
-engine.
+Benchmark boards are the opposite case and stay per league
+(`benchmark-<league>-<dataset>-<lang>`): a metric compares numbers, and a number
+earned from a pretrained head trained on the corpus's own labels does not mean the
+same thing as one earned by training on the skill's templates at boot.
 
-**Battle ids are scoped per league.** A battle's id is a content hash of
-`(battle_group, dataset, lang, sample, sorted(competitor_a, competitor_b))`,
-and `battle_group` is an identity mapping onto the battle's own league, so a
-battle id computed for one league cannot collide with, or be confused with,
-a battle id from a different league.
+An embedding classifier is not a league of its own. It is a *strategy*, and where it
+competes depends on what it needs before it can answer: the m2v pipeline in classifier
+mode loads a pretrained head and competes in `intent_offline`, the same pipeline in
+prototype mode builds its prototypes from the templates a skill registers and competes
+in `intent_zero_shot`.
 
-A vote counts toward league X's replay if and only if its battle id is present
-in league X's committed battles pool, and, because matchmaking never mixes
-leagues, every battle in that pool necessarily pairs two league-X fighters. A
-vote whose battle id is absent from every per-league pool is handled by the
-tally pipeline's "battle not in the current pool" check (`arena/cli.py:cmd_tally`): the vote is
-uniformly discarded and reported in `vote-audit.json` rather than silently dropped or, worse,
-misattributed to whichever league happens to load first. This is deliberately
-conservative: it never lets a vote for one league leak into another league's
-rating.
+**Battle ids are scoped per battle group.** A battle's id is a content hash of
+`(battle_group, dataset, lang, sample, sorted(competitor_a, competitor_b))`, so an id
+minted in the intent group keeps resolving while both fighters are registered and still
+answer that sample — a fighter moving between intent leagues does not invalidate it.
 
-The check is a pure function of the vote log plus the committed battles
-pools, which are themselves a pure function of the registry and published
-predictions (P5), so replay stays deterministic and network-free per
-league, exactly like the rest of `tally`.
+A vote counts toward the replay if and only if its battle id is present in the committed
+battles pool for its group. A vote whose battle is gone — a retired fighter, a re-swept
+sample — is handled by the tally pipeline's "battle not in the current pool" check
+(`arena/cli.py:cmd_tally`): it is discarded and reported in `vote-audit.json` rather than
+silently dropped or, worse, misattributed.
+
+The check is a pure function of the vote log plus the committed battles pools, which are
+themselves a pure function of the registry and published predictions (P5), so replay
+stays deterministic and network-free, exactly like the rest of `tally`.
 
 ## Benchmark boards: significance, beyond a point estimate
 

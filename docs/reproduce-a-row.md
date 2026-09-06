@@ -71,7 +71,7 @@ you into — see the caveat at the bottom of this page.
 ```bash
 python -m arena.cli assemble \
     --predictions predictions/snips/intent_template \
-    --modality intent_template --output /tmp/arena-assemble-intent
+    --modality intent_online --output /tmp/arena-assemble-intent
 
 python -m arena.cli assemble \
     --predictions predictions/minds14-en-US/stt/predictions \
@@ -94,7 +94,7 @@ Open the matching file under `frontend-static/public/data/` and find the same
 ```bash
 python3 -c "
 import json
-d = json.load(open('frontend-static/public/data/benchmark-intent_template-snips-en-US.json'))
+d = json.load(open('frontend-static/public/data/benchmark-intent_online-snips-en-US.json'))
 row = next(e for e in d['entries'] if e['competitor_id'] == 'padacioso-medium')
 print(row['metrics']['accuracy'], row['samples'])
 "

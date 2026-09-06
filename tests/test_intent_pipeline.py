@@ -32,9 +32,19 @@ class TestEngineRegistry:
             "ovos-palavreado-hierarchical-pipeline",
         }
 
+    def test_every_engine_has_traits(self):
+        """Loading, paradigm and regime are three views of one engine list:
+        an engine the arena can run but the schema cannot classify would be
+        unfileable in any league."""
+        from registry.schemas import ENGINE_TRAITS
+
+        assert set(ENGINE_REGISTRY) == set(ENGINE_TRAITS)
+
     def test_paradigms(self):
-        assert ENGINE_REGISTRY["ovos-adapt-pipeline-plugin"].paradigm == "keyword"
-        assert ENGINE_REGISTRY["ovos-padatious-pipeline-plugin"].paradigm == "template"
+        from registry.schemas import engine_paradigm
+
+        assert engine_paradigm("ovos-adapt-pipeline-plugin") == "keyword"
+        assert engine_paradigm("ovos-padatious-pipeline-plugin") == "template"
 
     def test_unknown_plugin_raises(self):
         with pytest.raises(KeyError):
@@ -226,12 +236,17 @@ def _toy_pipeline(with_transformer: bool) -> IntentPipeline:
 class TestIntentTransformers:
     @pytest.fixture(autouse=True)
     def _toy_engine_registered(self):
+        from registry import schemas
         from runner import intent_pipeline as ip_mod
 
         ip_mod.ENGINE_REGISTRY["toy-label-pipeline"] = ip_mod.EngineSpec(
-            f"{__name__}:_ToyLabelPipeline", "template", None, "toy", "toy")
+            f"{__name__}:_ToyLabelPipeline", None, "toy")
+        schemas.ENGINE_TRAITS["toy-label-pipeline"] = schemas.EngineTraits(
+            paradigm="template", regime=schemas.TrainingRegime.ONLINE,
+            short_name="toy")
         yield
         del ip_mod.ENGINE_REGISTRY["toy-label-pipeline"]
+        del schemas.ENGINE_TRAITS["toy-label-pipeline"]
 
     def test_slots_filled_with_transformer_configured(self):
         pipeline = _toy_pipeline(with_transformer=True)

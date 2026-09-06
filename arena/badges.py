@@ -61,7 +61,12 @@ def render_rank_badge(
     label = fighter
     q = "?" if provisional else ""
     value = f"#{rank}{q} · {round(rating)}"
-    color = _LEAGUE_COLOR.get(modality.lower(), _DEFAULT_COLOR)
+    league = modality.lower()
+    # Every intent league shares the intent colour: they are one family of
+    # boards to the eye, told apart by their label.
+    color = _LEAGUE_COLOR.get(
+        "intent" if league.startswith("intent") else league, _DEFAULT_COLOR
+    )
 
     label_w = _text_width(label) + 2 * _PAD
     value_w = _text_width(value) + 2 * _PAD

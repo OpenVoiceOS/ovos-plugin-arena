@@ -55,6 +55,7 @@ from arena.badges import emit_badges
 from arena.elo import BT_AUTO_WEIGHT, EloLedger
 from arena.fraud import resolve_vote_weights
 from arena.metrics import (
+    MIN_BOARD_SAMPLES,
     PRIMARY_METRIC,
     benchmark_board_input_signature,
     build_benchmark_board,
@@ -611,8 +612,9 @@ def _load_sample_set(modality: str, dataset_id: str, lang: str) -> set[str] | No
     result: set[str] | None = None
     try:
         from registry.loaders import load_dataset
+        from registry.schemas import dataset_namespace
 
-        dataset = load_dataset(modality, dataset_id)
+        dataset = load_dataset(dataset_namespace(modality), dataset_id)
         if dataset.sample_policy is not None:
             from huggingface_hub import hf_hub_download
 
@@ -778,9 +780,26 @@ def cmd_assemble(args: argparse.Namespace) -> int:
         iter_predictions_dir,
         read_jsonl,
     )
+    from registry.schemas import INTENT_LEAGUES, Modality
 
     data_dir = Path(args.output)
     data_dir.mkdir(parents=True, exist_ok=True)
+
+    # ``--modality`` scopes a run to one league, except that battles, ELO
+    # seeds and leaderboards are per battle GROUP: every intent league shares
+    # the ``intent`` group, so any intent run has to see all of them at once
+    # or it would write a pooled artifact holding one league's fighters and
+    # the next run would overwrite it. Naming any intent league — or the
+    # group itself — therefore scopes the run to the whole group.
+    modality_scope: set[str] | None = None
+    if args.modality:
+        intent_group = {league.value for league in INTENT_LEAGUES}
+        modality_scope = (
+            intent_group
+            if args.modality == Modality.INTENT.value
+            or args.modality in intent_group
+            else {args.modality}
+        )
 
     sources = [s.strip() for s in args.predictions.split(",") if s.strip()]
     explicit_local_dirs = [s for s in sources if Path(s).is_dir()]
@@ -1041,7 +1060,7 @@ def cmd_assemble(args: argparse.Namespace) -> int:
         # Benchmark boards stay per (modality, dataset, lang) — paradigm-pure, so a
         # template engine is never ranked against a keyword engine on metrics.
         for (modality, dataset_id, lang), samples in sorted(grouped.items()):
-            if args.modality and modality != args.modality:
+            if modality_scope and modality not in modality_scope:
                 continue
             by_competitor: dict[str, list] = {}
             for sample_rows in samples.values():
@@ -1096,11 +1115,22 @@ def cmd_assemble(args: argparse.Namespace) -> int:
         battle_samples: dict[tuple[str, str, str], dict[str, dict[str, Any]]] = {}
         elo_samples: dict[tuple[str, str], dict[str, dict[str, dict[str, Any]]]] = {}
         for (modality, dataset_id, lang), samples in grouped.items():
-            if args.modality and modality != args.modality:
+            if modality_scope and modality not in modality_scope:
                 continue
             if modality in VOTELESS_MODALITIES:
                 # Vote-less leagues get benchmark boards only, no
                 # battles/elo-seed/leaderboard artifacts at all.
+                continue
+            if len(samples) < MIN_BOARD_SAMPLES:
+                # Too little data to rank on is too little to vote on: the
+                # board entries are unranked for the same reason, and a
+                # ladder seeded from a handful of utterances would publish
+                # a standing nobody can defend.
+                log.info(
+                    "%s/%s/%s: %d sample(s), under the %d a board needs — "
+                    "no battles or ELO seed",
+                    modality, dataset_id, lang, len(samples), MIN_BOARD_SAMPLES,
+                )
                 continue
             group = battle_group(modality)
             bs = battle_samples.setdefault((group, dataset_id, lang), {})
@@ -1258,7 +1288,6 @@ def cmd_assemble(args: argparse.Namespace) -> int:
     # case ``_clean_merged_artifacts`` is a no-op for it).
     _clean_merged_artifacts(data_dir, all_seen_modalities)
 
-    modality_scope = {args.modality} if args.modality else None
     pruned = _prune_stale_artifacts(data_dir, written_files, modality_scope)
     if pruned:
         log.info("Pruned %d stale artifact(s): %s", len(pruned), ", ".join(pruned))
@@ -2098,7 +2127,15 @@ def cmd_export_index(args: argparse.Namespace) -> int:
         else:
             index["battles_pools"].append(_index_entry(path, "battles_pools"))
     index["has_bestiary"] = (data_dir / "competitors.json").exists()
-    index["leagues"] = leagues()
+    # Only leagues with a ranked board are offered as tabs — a league whose
+    # fighters nobody has swept yet has nothing to show, and the site should
+    # not invite a click into an empty page. Read from the boards on disk,
+    # never from a hardcoded list.
+    ranked = {
+        entry["modality"] for entry in index["benchmarks"]
+        if entry["modality"] and entry["count"]
+    }
+    index["leagues"] = leagues(ranked)
     # §provenance — the pairwise weight an auto-judged battle carries
     # relative to a human vote (arena/elo.py BT_AUTO_WEIGHT), so the site
     # can state it without hardcoding a copy of the constant.
@@ -2272,6 +2309,7 @@ def cmd_export_evidence(args: argparse.Namespace) -> int:
     if str(registry_root.parent) not in sys.path:
         sys.path.insert(0, str(registry_root.parent))
     from registry.loaders import load_all_competitors, load_all_datasets
+    from registry.schemas import INTENT_MODALITIES, Modality
 
     data_dir = Path(args.data_dir)
     all_competitors = load_all_competitors(registry_root=registry_root)
@@ -2283,14 +2321,13 @@ def cmd_export_evidence(args: argparse.Namespace) -> int:
         modality = entry["id"]
         fighters = [c for c in all_competitors if c.modality == modality]
 
-        # The two paradigm sub-leagues (§18) don't own eval corpora of their
-        # own — they re-use the open "intent" league's eval corpora via
-        # ``train_datasets``, publishing to the HF repo declared by the
-        # matching ``intent_<paradigm>/`` training corpus (see
-        # ``registry.loaders.paradigm_league_repo``).
+        # Intent leagues don't own eval corpora — they share the corpora
+        # under ``registry/datasets/intent/``, and publish predictions to
+        # the repo keyed by the training datashape their fighters consume
+        # (see ``registry.loaders.paradigm_league_repo``).
         paradigm = (
-            {"intent_template": "template", "intent_keyword": "keyword"}
-            .get(modality)
+            "keyword" if modality == Modality.INTENT_KEYWORD.value
+            else "template" if modality in INTENT_MODALITIES else None
         )
         league_datasets: list[tuple[str, str | None]]
         if paradigm:
@@ -2473,7 +2510,10 @@ def main(argv=None):
                         "from the registry)")
     p.add_argument("--revision", default="main", help="HF revision to pin")
     p.add_argument("--output", default="frontend-static/public/data")
-    p.add_argument("--modality", default="", help="Only assemble this modality")
+    p.add_argument(
+        "--modality", default="",
+        help=("Only assemble this league; naming any intent league "
+              "assembles all of them, since they share one battle/ELO pool"))
     p.add_argument("--max-battles", type=int, default=200,
                    help="Max battles per (modality, dataset, lang) pool")
 

@@ -44,33 +44,13 @@ class TestLeagueParity:
     def test_registry_has_leagues(self):
         assert registry_modalities()
 
-    def test_leaderboard_default_leagues_cover_registry(self):
-        source = (PAGES_DIR / "leaderboard" / "index.astro").read_text()
-        ids = set(
-            re.findall(r"\{\s*id:\s*'([A-Za-z0-9_]+)'", _default_leagues_block(source))
-        )
-        missing = registry_modalities() - ids
-        assert not missing, f"DEFAULT_LEAGUES (leaderboard) missing: {missing}"
-
-    def test_leaderboard_default_leagues_mirror_models(self):
-        """DEFAULT_LEAGUES is the stale-index fallback and must stay in exact
-        lockstep with arena/models.py::leagues() — id, battle_group and order."""
-        from arena.models import leagues
-
-        source = (PAGES_DIR / "leaderboard" / "index.astro").read_text()
-        block = _default_leagues_block(source)
-        js = [
-            {"id": m.group(1), "battle_group": m.group(2), "order": int(m.group(3))}
-            for m in re.finditer(
-                r"\{\s*id:\s*'([A-Za-z0-9_]+)'.*?battle_group:\s*'([A-Za-z0-9_]+)',\s*order:\s*(\d+)",
-                block,
-            )
-        ]
-        py = [
-            {"id": lg["id"], "battle_group": lg["battle_group"], "order": lg["order"]}
-            for lg in leagues()
-        ]
-        assert js == py, "DEFAULT_LEAGUES drifted from arena.models.leagues()"
+    def test_no_hardcoded_league_fallback(self):
+        """The league list is data. A page that ships its own copy goes stale
+        the moment a league is added, renamed or left unswept — which is how
+        a tab for an empty league reached the site."""
+        for page in ("leaderboard", "matchups"):
+            source = (PAGES_DIR / page / "index.astro").read_text()
+            assert _default_leagues_block(source).strip() == "", page
 
     def test_battle_modality_labels(self):
         source = (PAGES_DIR / "battle" / "index.astro").read_text()

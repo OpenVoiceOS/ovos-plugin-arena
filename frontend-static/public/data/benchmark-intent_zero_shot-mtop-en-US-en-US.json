@@ -1,0 +1,65 @@
+{
+  "modality": "intent_zero_shot",
+  "dataset_id": "mtop-en-US",
+  "lang": "en-US",
+  "generated_at": "2026-09-06T18:55:59.115088+00:00",
+  "primary_metric": "generalization_accuracy",
+  "dataset_info": {
+    "url": "https://huggingface.co/datasets/tasksource/mtop",
+    "license": "cc-by-sa-4.0",
+    "notes": "MTOP (Li et al. 2020) — multilingual task-oriented semantic parsing benchmark, en-US slice. Registered against tasksource/mtop (the public HF mirror; facebook/flores-style gated mirrors were avoided — this one is ungated). The source ships one 'mtop' config with every language's rows concatenated and a 'lang' column ('en_XX' here) instead of a per-language config/split, so this entry filters on source.lang_field='lang'/lang_value='en_XX'. MTOP's own 'intent' column is prefixed with a generic parser tag rather than the real domain (e.g. 'IN:SEND_MESSAGE'); the arena's label convention is 'domain:intent' (see intents-for-eval), so reference_fields maps a 'domain' column too and the runner normalizes both into 'messaging:send_message' via normalize_hierarchical_label() before scoring. mteb/mtop_intent was considered as a fallback but ships a deprecated loading script the datasets library can no longer execute, so it was not used. tasksource/mtop ships a legacy Python loading script under its default 'mtop' config name, which the current `datasets` library refuses to execute ('Dataset scripts are no longer supported') — registered against HF's auto-generated parquet conversion instead (revision='refs/convert/parquet', builder config 'default'), the same escape hatch used elsewhere in this registry for legacy-script sources.",
+    "predictions": [
+      "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-bench-mtop-en-US",
+      "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-template-bench-mtop-en-US"
+    ],
+    "train_datasets": {
+      "template": {
+        "dataset_id": "mtop-en-US-train",
+        "url": "https://huggingface.co/datasets/tasksource/mtop"
+      }
+    }
+  },
+  "dataset_revision": null,
+  "predictions_revisions": {
+    "OpenVoiceOS/ovos-intent-bench-mtop-en-US": "9a460b5256dd80bf02e78ab554c8caae13863cd0",
+    "OpenVoiceOS/ovos-intent-template-bench-mtop-en-US": "d70fbb86d58a730e3ce448f3b91887ec10dadf6b"
+  },
+  "wer_normalizer_version": null,
+  "entries": [
+    {
+      "rank": 0,
+      "competitor_id": "m2v-prototype",
+      "plugin_id": "ovos-m2v-prototype-pipeline",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.8,
+        "macro_f1": 0.7128,
+        "latency_ms_median": 2.95,
+        "ece": 0.1053,
+        "generalization_accuracy": 0.8,
+        "acc_test": 0.8
+      },
+      "primary_metric_ci_lower": 0.6,
+      "primary_metric_ci_upper": 0.95,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-m2v-prototype-pipeline==0.9.0a1"
+      ],
+      "version_blended": false,
+      "unranked": true,
+      "unranked_reason": "too_few_samples — 20 scored row(s), under the 30 a board needs to say anything",
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    }
+  ],
+  "entries_hash": "7ad1f18e352e86f57fd34dfbea753e9e33a8d7dcb463ddb04c8053434bc21e32",
+  "input_hash": "7f1c2965b6f30b4985f72facd1cf6ded0feab6c6503f4832fbd21f110868051c",
+  "judge_agreement": null,
+  "intelligibility_judges": [],
+  "intelligibility_judge_mismatched_pairs": 0,
+  "warnings": []
+}

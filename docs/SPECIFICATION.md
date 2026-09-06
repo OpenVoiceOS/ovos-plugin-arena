@@ -54,20 +54,31 @@ The arena is the *rating and voting* venue. It is **not** an execution venue.
 ## 2.1 Leagues (modalities)
 
 Every modality is an independent league with its own benchmarks, battle
-pools and ELO standings: `stt`, `tts`, `wake_word`, and **three intent
-leagues**. Keyword-paradigm engines (hand-written vocabulary rules) and
-template-paradigm engines (phrase-template corpora) consume different
-supervision, so they MUST NOT be ranked against each other:
+pools and ELO standings: `stt`, `tts`, `wake_word`, and **four intent
+leagues**. Intent engines are separated by what they need before they can
+answer at all — a fighter handed the skill's phrasings and expected to answer
+immediately is doing a different job from one that trains on them at boot,
+and both differ from one shipping a model trained elsewhere. Keyword engines
+consume hand-written vocabulary rules rather than phrase templates, which is
+a different kind of supervision again. Engines from different leagues MUST
+NOT be ranked against each other:
 
 | League | Who competes |
 |---|---|
-| `intent_template` | template/embedding engines (Padatious, Padacioso, Nebulento, …) |
+| `intent_zero_shot` | engines that answer straight from the registered templates, with no training step |
+| `intent_online` | engines that train on those templates when the device boots (Padatious, Padacioso, Nebulento, …) |
+| `intent_offline` | engines carrying a pretrained artefact that never sees the device's templates |
 | `intent_keyword` | keyword engines (Adapt, Palavreado, …) |
-| `intent` | open league, mixed-paradigm pipeline **fusions** (ensembles) |
 
-Paradigm leagues are pure: a fighter in `intent_template` may only carry
-template-paradigm stages (enforced by the bench script). Fusions carry
-fun portmanteau names (Padapt = Padatious × Adapt).
+A fighter's league follows from its stages and MUST match: a fusion belongs
+to its heaviest stage's league, and a fighter built only from keyword engines
+is a keyword fighter. Fusions carry fun portmanteau names (Padapt =
+Padatious × Adapt).
+
+An offline fighter MUST declare the `label_set` its artefact was trained on
+— the dataset_ids whose labels it can emit. It is benchmarked only on those
+corpora; anywhere else its answers measure a label-space mismatch rather than
+the engine.
 
 The per-league task definitions and the exact metric formulas (what each
 benchmark board ranks by and what seeds ELO) are specified in
@@ -487,34 +498,32 @@ Voting options MUST include: candidate A, candidate B, tie, both-wrong.
   multilingual corpus is judged one real language at a time. TTS boards are
   keyed by language, so a seed of this shape is never ranked against an
   intelligibility-weighted one.
-- **R18, Each intent league is its own ELO pool.** `battle_group()`
-  (`arena/models.py`) is an identity mapping for every modality, including
-  all three intent leagues (`intent`, `intent_template`, `intent_keyword`):
-  matchmaking (`arena/assembler.py`) only ever pairs two fighters from the
-  *same* league, so a template engine is never blind-battled against a
-  keyword engine, nor against an open-league fusion. Each league gets its
-  own `battles-<league>-*.json` pool, `elo-seed-<league>-*.json`, and
-  `leaderboard-<league>-*.json`, there is no shared "intent" pool any
-  three leagues fall back into. A single-stage embedding classifier is not
-  a league of its own, it is a strategy trained from template-paradigm or
-  keyword-paradigm data (§2.1) and competes inside that data format's
-  league, same as any other engine.
+- **R18, Intent leagues share one battle pool.** `battle_group()`
+  (`arena/models.py`) maps every intent league to the single `intent` group;
+  every other modality is its own group. Matchmaking
+  (`arena/assembler.py`) pairs any two fighters that answered the same
+  stimulus in the same language, whatever preparation each needed: a blind
+  vote judges two outputs, and the training regime is invisible in that
+  judgement. There is one `battles-intent-*.json` pool, one
+  `elo-seed-intent-*.json` and one `leaderboard-intent-*.json`. Benchmark
+  boards stay per league (`benchmark-<league>-*.json`), where the regime
+  does change what a number means. An embedding classifier is not a league
+  of its own, it is a strategy: it competes in the league its own training
+  regime implies (§2.1), same as any other engine.
 
-  **Cross-league vote replay policy.** A historical vote counts toward a
-  league's Bradley-Terry/ELO replay only if the battle it references is
-  present in *that league's currently committed* battles pool, which, by
-  construction (matchmaking never pairs across leagues), only ever contains
-  battles between two same-league fighters. A vote cast against a battle
-  id that predates a league split (e.g. one minted under a former shared
-  pool, pairing fighters that are now in different leagues) is therefore
-  absent from every current league's pool and is discarded exactly like any
-  other "battle not in pool" vote (`arena/cli.py:cmd_tally`), recorded in
-  `vote-audit.json`, never silently dropped, but withheld from every
-  league's rating. This is a pure function of the vote log plus the
-  currently committed battles pools (themselves a pure function of the
-  registry and published predictions, P5), so replay stays deterministic
-  and network-free per league, same as the rest of `tally`. The public vote
-  log (the GitHub issue) itself is never edited or deleted by this rule.
+  **Vote replay policy.** A vote counts toward the replay only if the battle
+  it references is present in the currently committed pool for its group. A
+  battle id is a content hash of `(battle_group, dataset, lang, sample,
+  sorted(competitor_a, competitor_b))`, so an id survives a fighter changing
+  league — the group it hashed does not change. A vote whose battle is no
+  longer in the pool (a retired fighter, a re-swept sample) is discarded
+  exactly like any other "battle not in pool" vote
+  (`arena/cli.py:cmd_tally`), recorded in `vote-audit.json`, never silently
+  dropped. This is a pure function of the vote log plus the committed
+  battles pools (themselves a pure function of the registry and published
+  predictions, P5), so replay stays deterministic and network-free, same as
+  the rest of `tally`. The public vote log (the GitHub issue) itself is
+  never edited or deleted by this rule.
 - **R17, Streaming wake word is a separate board, not a compat shim.**
   Isolated-clip benchmarking (§3, wake_word league) structurally favors
   clip-shaped detectors: a streaming detector never gets to fire the way it
@@ -617,7 +626,7 @@ audio modalities share `runner/media_bench.py` (the intent leagues share
 (`--competitors`, `--langs`, `--max-samples`, `--dataset`, `--upload`).
 
 1. **Intent**, `benchmarks/intent_intents_for_eval.py` and
-   `benchmarks/intent_massive_templates.py`: the three intent leagues over
+   `benchmarks/intent_massive_templates.py`: the intent leagues over
    `OpenVoiceOS/intents-for-eval` (12 langs) and `OpenVoiceOS/massive-templates`
    (52 langs). Ranked by `generalization_accuracy` with an ELO seed.
 

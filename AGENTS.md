@@ -72,9 +72,11 @@ description.
   `arena.cli`, don't hand-edit.
 - Issue forms apply the `vote` label; URL `labels=` params are ignored for
   non-collaborators — don't move labelling back into the vote URL.
-- Intent leagues are independent modalities (`intent_template`,
-  `intent_keyword`, open `intent` for fusions) with separate boards/ELO;
-  paradigm leagues must stay pure (bench script enforces it). Fusions get
+- Intent leagues are keyed by training regime (`intent_zero_shot`,
+  `intent_online`, `intent_offline`) plus `intent_keyword` for keyword
+  supervision, each with its own benchmark boards; battles and ELO pool into
+  the shared `intent` group. A fighter's league follows
+  from its stages and the registry rejects it anywhere else. Fusions get
   portmanteau names (Padapt), never "default cascade" style ids.
 - Pages deploy job is gated on the repo being public; the build job always
   runs.

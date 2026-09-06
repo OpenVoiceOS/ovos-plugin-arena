@@ -1,1611 +1,6 @@
 {
-  "generated_at": "2026-09-06T20:11:48.223369+00:00",
+  "generated_at": "2026-09-06T21:01:04.744657+00:00",
   "competitors": [
-    {
-      "competitor_id": "cascade-soft",
-      "schema_version": 1,
-      "modality": "intent",
-      "config": {
-        "intents": {
-          "pipeline": [
-            "ovos-linha-fina-pipeline-plugin-high",
-            "ovos-palavreado-pipeline-plugin-medium",
-            "ovos-nebulento-pipeline-plugin-low"
-          ],
-          "ovos-linha-fina-pipeline-plugin": {
-            "conf_high": 0.8,
-            "conf_med": 0.6,
-            "conf_low": 0.4
-          },
-          "ovos-palavreado-pipeline-plugin": {
-            "conf_high": 0.65,
-            "conf_med": 0.45,
-            "conf_low": 0.25,
-            "max_words": 50
-          },
-          "ovos-nebulento-pipeline-plugin": {
-            "conf_high": 0.95,
-            "conf_med": 0.8,
-            "conf_low": 0.5,
-            "workers": 4
-          }
-        }
-      },
-      "langs": [],
-      "alias": [],
-      "capabilities": [
-        "clip"
-      ],
-      "display_name": "Cascade Soft",
-      "types": [
-        "ensemble",
-        "neural-net",
-        "keyword-match",
-        "fuzzy-match"
-      ],
-      "description": "A softness-descending confidence mixer: Linha-Fina (trained statistical classifier) leads at high, Palavreado (order-independent keyword bag, no learning) backs it at medium, Nebulento (fuzzy string matching, the loosest/most tolerant of the three) closes at low.",
-      "size": "micro",
-      "links": {
-        "source": "https://github.com/OpenVoiceOS/linha-fina"
-      },
-      "notes": "HYPOTHESIS: unlike trident (three-tier but engines picked for architectural distinctness), cascade-soft is picked for a deliberately monotonic 'strictness' gradient — trained classifier (least tolerant of paraphrase, most precise) -> rigid-but-vocab-flexible keyword bag -> fuzzy matcher (most tolerant of ASR noise/typos, least precise) — to test whether ordering engines by how loosely they match, not just by paradigm, is itself a useful axis distinct from trident's paradigm-diversity axis. Linha-Fina is a template-paradigm statistical classifier (see ENGINE_REGISTRY: 'linha_fina.opm:LinhaFinaPipeline', paradigm='template') distinct from both Jurebes (sklearn baseline family) and Padatious (neural+exact-gate), so this fighter and trident do not test the same top stage. exact_match not applicable to linha-fina/palavreado/nebulento (jurebes-only config key, verified absent from linha_fina/opm.py and palavreado/opm.py's self.config.get(...) call sites).",
-      "has_predictions": true,
-      "prediction_datasets": [
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "ca-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "da-DK"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "de-DE"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "en-US"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "es-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "eu-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "fr-FR"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "gl-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "it-IT"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "nl-NL"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "pt-BR"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "pt-PT"
-        }
-      ]
-    },
-    {
-      "competitor_id": "frankenparse",
-      "schema_version": 1,
-      "modality": "intent",
-      "config": {
-        "intents": {
-          "pipeline": [
-            "ovos-padatious-pipeline-plugin-high",
-            "ovos-adapt-pipeline-plugin-high",
-            "ovos-palavreado-pipeline-plugin-medium",
-            "ovos-nebulento-pipeline-plugin-medium",
-            "ovos-adapt-pipeline-plugin-low"
-          ],
-          "ovos-adapt-pipeline-plugin": {
-            "conf_high": 0.65,
-            "conf_med": 0.45,
-            "conf_low": 0.25
-          },
-          "ovos-padatious-pipeline-plugin": {
-            "conf_high": 0.95,
-            "conf_med": 0.8,
-            "conf_low": 0.5,
-            "domain_engine": false,
-            "cast_to_ascii": false,
-            "stem": false,
-            "disable_padaos": false,
-            "instant_train": false
-          },
-          "ovos-palavreado-pipeline-plugin": {
-            "conf_high": 0.65,
-            "conf_med": 0.45,
-            "conf_low": 0.25,
-            "max_words": 50
-          },
-          "ovos-nebulento-pipeline-plugin": {
-            "conf_high": 0.95,
-            "conf_med": 0.8,
-            "conf_low": 0.5,
-            "workers": 4
-          }
-        }
-      },
-      "langs": [],
-      "alias": [],
-      "capabilities": [
-        "clip"
-      ],
-      "display_name": "Frankenparse",
-      "types": [
-        "ensemble",
-        "neural-net",
-        "keyword-match",
-        "fuzzy-match"
-      ],
-      "description": "Four distinct paradigms, one engine each, staggered by tier: Padatious (neural template, exact matches included via its own internal padaos gate) leads, Adapt (keyword rules) backs it at high, then Palavreado (keyword bag) and Nebulento (fuzzy template) share medium recall, with Adapt low as the final catch-all.",
-      "size": "micro",
-      "links": {
-        "source": "https://github.com/OpenVoiceOS/ovos-plugin-arena"
-      },
-      "notes": "HYPOTHESIS: does a maximal-diversity cascade (one stage per paradigm, no paradigm repeated) beat curated 2-3 engine pairs? Slimmed from the original 7-stage config: dropped the explicit Padacioso-high stage because Padatious already runs padaos internally (disable_padaos=false) and returns conf=1.0 for perfect/regex matches before its neural score is even consulted, so a separate padacioso stage tested nothing padatious wasn't already doing; dropped the redundant padatious-medium retry since a second tier of the same trained classifier is not an independent paradigm and wasn't separately justified.",
-      "has_predictions": true,
-      "prediction_datasets": [
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "ca-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "da-DK"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "de-DE"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "en-US"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "es-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "eu-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "fr-FR"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "gl-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "it-IT"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "nl-NL"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "pt-BR"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "pt-PT"
-        }
-      ]
-    },
-    {
-      "competitor_id": "kw-slot-palavreado",
-      "schema_version": 1,
-      "modality": "intent",
-      "config": {
-        "intents": {
-          "pipeline": [
-            "ovos-palavreado-pipeline-plugin-high",
-            "ovos-padatious-pipeline-plugin-medium"
-          ],
-          "ovos-palavreado-pipeline-plugin": {
-            "conf_high": 0.65,
-            "conf_med": 0.45,
-            "conf_low": 0.25,
-            "max_words": 50
-          },
-          "ovos-padatious-pipeline-plugin": {
-            "conf_high": 0.95,
-            "conf_med": 0.8,
-            "conf_low": 0.5,
-            "domain_engine": false,
-            "cast_to_ascii": false,
-            "stem": false,
-            "disable_padaos": false,
-            "instant_train": false
-          }
-        }
-      },
-      "langs": [],
-      "alias": [],
-      "capabilities": [
-        "clip"
-      ],
-      "display_name": "KW Slot: Palavreado",
-      "types": [
-        "ensemble",
-        "keyword-match",
-        "neural-net"
-      ],
-      "description": "Replacement-family sibling: Palavreado (order-independent bag-of-keywords) fills the keyword-high slot, Padatious backs it up at medium — identical shape and backup to mycroft-classic, which stands in for the Adapt side of this A/B.",
-      "size": "micro",
-      "links": {
-        "source": "https://github.com/OpenVoiceOS/palavreado"
-      },
-      "notes": "FAMILY: kw-slot A/B — mycroft-classic (adapt-high -> padatious-medium) vs kw-slot-palavreado (palavreado-high -> padatious-medium). There is no separate kw-slot-adapt fighter: that config is identical to mycroft-classic (adapt-high -> padatious-medium), and per the 1-fighter-per-config rule mycroft-classic itself now serves as the 'keyword engine = adapt' side of this A/B rather than duplicating the same pipeline under a second competitor_id. This sibling swaps only the keyword-high engine (Palavreado in for Adapt); backup engine and tier (padatious-medium) held fixed against mycroft-classic. Isolates whether Adapt's stricter ordered require/optional grammar or Palavreado's looser order-independent bag-of-keywords matching makes a better front-door gate ahead of an identical Padatious backstop.",
-      "has_predictions": true,
-      "prediction_datasets": [
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "ca-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "da-DK"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "de-DE"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "en-US"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "es-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "eu-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "fr-FR"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "gl-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "it-IT"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "nl-NL"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "pt-BR"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "pt-PT"
-        }
-      ]
-    },
-    {
-      "competitor_id": "m2v-first",
-      "schema_version": 1,
-      "modality": "intent",
-      "config": {
-        "intents": {
-          "pipeline": [
-            "ovos-m2v-pipeline-high",
-            "ovos-padatious-pipeline-plugin-medium"
-          ],
-          "ovos-m2v-pipeline": {
-            "conf_high": 0.7,
-            "conf_medium": 0.5,
-            "conf_low": 0.15
-          },
-          "ovos-padatious-pipeline-plugin": {
-            "conf_high": 0.95,
-            "conf_med": 0.8,
-            "conf_low": 0.5,
-            "domain_engine": false,
-            "cast_to_ascii": false,
-            "stem": false,
-            "disable_padaos": false,
-            "instant_train": false
-          }
-        }
-      },
-      "langs": [],
-      "alias": [],
-      "capabilities": [
-        "clip"
-      ],
-      "display_name": "M2V First",
-      "types": [
-        "ensemble",
-        "embeddings",
-        "neural-net"
-      ],
-      "description": "The first embedding-fronted fighter in the league: Model2Vec sentence-embedding similarity leads at high confidence, Padatious's trained template classifier backs it at medium.",
-      "size": "micro",
-      "links": {
-        "source": "https://github.com/OpenVoiceOS/ovos-m2v-pipeline"
-      },
-      "notes": "HYPOTHESIS: none of the existing fighters (frankenparse, padapt, nebulatious, nebulapt, palavadapt) use embeddings at all — every stage in every prior fighter is either keyword-rule matching or a trained-per-intent template classifier. m2v-first tests whether leading with a general-purpose sentence-embedding similarity engine (Model2Vec, config-verified in ovos_m2v_pipeline/__init__.py: model default 'Jarbas/ovos-model2vec-intents-distiluse-base-multilingual-cased-v2', conf_high/conf_medium/conf_low keys) — which generalizes across paraphrases via embedding distance rather than exact template/keyword matching — beats a template classifier leading, when Padatious backs it up at medium. This isolates 'does an embedding-similarity front door change which utterances get caught first' from every non-embedding fusion already in the league. Distinct paradigm from Jurebes/Padatious (learned per-intent classifiers over hand-engineered or TF-IDF features) and from Nebulento (fuzzy string edit-distance, not vector similarity).",
-      "has_predictions": true,
-      "prediction_datasets": [
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "ca-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "da-DK"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "de-DE"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "en-US"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "es-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "eu-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "fr-FR"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "gl-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "it-IT"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "nl-NL"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "pt-BR"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "pt-PT"
-        },
-        {
-          "dataset_id": "mtop-de-DE",
-          "lang": "de-DE"
-        },
-        {
-          "dataset_id": "mtop-en-US",
-          "lang": "en-US"
-        }
-      ]
-    },
-    {
-      "competitor_id": "m2v-nebulento",
-      "schema_version": 1,
-      "modality": "intent",
-      "config": {
-        "intents": {
-          "pipeline": [
-            "ovos-m2v-pipeline-high",
-            "ovos-nebulento-pipeline-plugin-medium"
-          ],
-          "ovos-m2v-pipeline": {
-            "conf_high": 0.7,
-            "conf_medium": 0.5,
-            "conf_low": 0.15
-          },
-          "ovos-nebulento-pipeline-plugin": {
-            "conf_high": 0.95,
-            "conf_med": 0.8,
-            "conf_low": 0.5,
-            "workers": 4
-          }
-        }
-      },
-      "langs": [],
-      "alias": [],
-      "capabilities": [
-        "clip"
-      ],
-      "display_name": "M2V × Nebulento",
-      "types": [
-        "ensemble",
-        "embeddings",
-        "fuzzy-match"
-      ],
-      "description": "The embedding classifier takes the first shot at Model2Vec's trained label set, then Nebulento's fuzzy template matching mops up with runtime-registered templates and slot extraction — a padatious-free replacement candidate.",
-      "size": "micro",
-      "links": {
-        "source": "https://github.com/OpenVoiceOS/ovos-m2v-pipeline"
-      },
-      "notes": "HYPOTHESIS: m2v + nebulento is probably better than padatious. m2v-first (see sibling fighter) already showed an embedding-similarity front door changes what gets caught first, but it still leans on Padatious as the backstop, which means it inherits Padatious's two blockers to being a default: no slot extraction and no open-world runtime-registered intents. Nebulento fills both gaps — it extracts slots from its templates and accepts templates registered at runtime rather than only at training time — while still being a fuzzy/edit-distance matcher rather than a learned classifier, so pairing it with m2v's paraphrase-robust embedding similarity tests whether the combination can fully replace Padatious rather than merely front it. Comparators: padatious-stock (the plain baseline this fighter is trying to unseat) and the existing ensembles nebulatious and trident. REQUIRES ovos-m2v-pipeline>=0.9.0a1 — versions before 0.8.1a1 have a label-filter bug that poisons predictions; there is no plugin floor/pin field in this registry schema, so sweeps of this fighter must be run with that floor already installed in the runner environment.",
-      "has_predictions": true,
-      "prediction_datasets": [
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "ca-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "da-DK"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "de-DE"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "en-US"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "es-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "eu-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "fr-FR"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "gl-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "it-IT"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "nl-NL"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "pt-BR"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "pt-PT"
-        },
-        {
-          "dataset_id": "mtop-de-DE",
-          "lang": "de-DE"
-        },
-        {
-          "dataset_id": "mtop-en-US",
-          "lang": "en-US"
-        }
-      ]
-    },
-    {
-      "competitor_id": "m2v-prototype",
-      "schema_version": 1,
-      "modality": "intent",
-      "plugin": "ovos-m2v-prototype-pipeline",
-      "config": {
-        "intents": {
-          "pipeline": [
-            "ovos-m2v-prototype-pipeline-high",
-            "ovos-m2v-prototype-pipeline-medium"
-          ],
-          "ovos-m2v-prototype-pipeline": {
-            "conf_high": 0.6,
-            "conf_medium": 0.45,
-            "conf_low": 0.3
-          }
-        }
-      },
-      "langs": [],
-      "alias": [
-        "ovos-m2v-prototype-pipeline"
-      ],
-      "capabilities": [
-        "clip"
-      ],
-      "display_name": "M2V Prototype",
-      "types": [
-        "embeddings",
-        "zero-shot"
-      ],
-      "description": "A pure zero-shot fighter: Model2Vec's prototype-mode pipeline embeds each intent's templates into a class prototype at registration time and matches utterances against those prototypes by cosine similarity, with no trained classification head at all.",
-      "size": "micro",
-      "links": {
-        "source": "https://github.com/OpenVoiceOS/ovos-m2v-pipeline"
-      },
-      "notes": "HYPOTHESIS: every other fighter in the league, including the m2v-first/m2v-nebulento embedding-fronted ensembles, ultimately relies on a classifier (Padatious, Nebulento, or Model2Vec's own trained label set) that must see an intent's templates at a training step before it can match against them. Prototype mode instead embeds a class prototype directly from the templates handed to it at registration, so intents registered at runtime — after the pipeline is already live, with no retrain — are immediately matchable. This isolates the open-world/zero-shot axis: can embedding-prototype similarity alone, with no trained head, replace a trained classifier's raw matching accuracy. conf_high/conf_medium/conf_low are the cosine-calibrated defaults from ovos-m2v-pipeline PR #91, not the classifier-mode thresholds used by m2v-first/m2v-nebulento. REQUIRES ovos-m2v-pipeline>=0.9.0a1 — the calibrated thresholds land with ovos-m2v-pipeline#91; sweeps run before that PR merges and releases exercise the pipeline's code defaults instead, so this fighter's sweep must be sequenced after #91 merges. There is no plugin floor/pin field in this registry schema, so the floor must already be installed in the runner environment.",
-      "has_predictions": true,
-      "prediction_datasets": [
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "ca-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "da-DK"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "de-DE"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "en-US"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "es-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "eu-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "fr-FR"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "gl-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "it-IT"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "nl-NL"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "pt-BR"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "pt-PT"
-        },
-        {
-          "dataset_id": "mtop-de-DE",
-          "lang": "de-DE"
-        },
-        {
-          "dataset_id": "mtop-en-US",
-          "lang": "en-US"
-        }
-      ]
-    },
-    {
-      "competitor_id": "m2v-prototype-nebulento",
-      "schema_version": 1,
-      "modality": "intent",
-      "config": {
-        "intents": {
-          "pipeline": [
-            "ovos-m2v-prototype-pipeline-high",
-            "ovos-nebulento-pipeline-plugin-medium"
-          ],
-          "ovos-m2v-prototype-pipeline": {
-            "conf_high": 0.6,
-            "conf_medium": 0.45,
-            "conf_low": 0.3
-          },
-          "ovos-nebulento-pipeline-plugin": {
-            "conf_high": 0.95,
-            "conf_med": 0.8,
-            "conf_low": 0.5,
-            "workers": 4
-          }
-        }
-      },
-      "langs": [],
-      "alias": [],
-      "capabilities": [
-        "clip"
-      ],
-      "display_name": "M2V Prototype × Nebulento",
-      "types": [
-        "ensemble",
-        "embeddings",
-        "zero-shot",
-        "fuzzy-match"
-      ],
-      "description": "Tests whether zero-shot embedding matching plus fuzzy template slots can replace padatious with no training step at all: Model2Vec's prototype-mode pipeline takes the first shot with class prototypes embedded straight from registered templates, and Nebulento's fuzzy template matching backs it up for slot extraction and runtime-registered templates.",
-      "size": "micro",
-      "links": {
-        "source": "https://github.com/OpenVoiceOS/ovos-m2v-pipeline"
-      },
-      "notes": "HYPOTHESIS: m2v-prototype (see sibling fighter) shows that prototype-mode embedding similarity alone, with no trained head, can match runtime-registered intents. But it still lacks slot extraction. Nebulento fills that gap with template-based slot extraction and its own runtime-registered templates, so pairing it with the prototype pipeline's zero-shot front door tests a fully training-step-free replacement for padatious, not merely a front door for it. Comparators: padatious-stock (the trained baseline this fighter is trying to unseat), m2v-first/m2v-nebulento (the classifier-mode embedding fighters this pipeline is a zero-shot sibling to), and m2v-prototype (isolates whether adding Nebulento's fuzzy backstop helps over the pure prototype fighter alone). conf_high/conf_medium/conf_low on the prototype block are the cosine-calibrated defaults from ovos-m2v-pipeline PR #91. REQUIRES ovos-m2v-pipeline>=0.9.0a1 — the calibrated thresholds land with ovos-m2v-pipeline#91; sweeps run before that PR merges and releases exercise the pipeline's code defaults instead, so this fighter's sweep must be sequenced after #91 merges. There is no plugin floor/pin field in this registry schema, so the floor must already be installed in the runner environment.",
-      "has_predictions": true,
-      "prediction_datasets": [
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "ca-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "da-DK"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "de-DE"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "en-US"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "es-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "eu-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "fr-FR"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "gl-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "it-IT"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "nl-NL"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "pt-BR"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "pt-PT"
-        },
-        {
-          "dataset_id": "mtop-de-DE",
-          "lang": "de-DE"
-        },
-        {
-          "dataset_id": "mtop-en-US",
-          "lang": "en-US"
-        }
-      ]
-    },
-    {
-      "competitor_id": "mycroft-classic",
-      "schema_version": 1,
-      "modality": "intent",
-      "config": {
-        "intents": {
-          "pipeline": [
-            "ovos-adapt-pipeline-plugin-high",
-            "ovos-padatious-pipeline-plugin-medium"
-          ],
-          "ovos-adapt-pipeline-plugin": {
-            "conf_high": 0.65,
-            "conf_med": 0.45,
-            "conf_low": 0.25
-          },
-          "ovos-padatious-pipeline-plugin": {
-            "conf_high": 0.95,
-            "conf_med": 0.8,
-            "conf_low": 0.5,
-            "domain_engine": false,
-            "cast_to_ascii": false,
-            "stem": false,
-            "disable_padaos": false,
-            "instant_train": false
-          }
-        }
-      },
-      "langs": [],
-      "alias": [],
-      "capabilities": [
-        "clip"
-      ],
-      "display_name": "Mycroft Classic",
-      "types": [
-        "ensemble",
-        "keyword-match",
-        "neural-net"
-      ],
-      "description": "The historical Mycroft-AI intent order, before OVOS restructured the pipeline into confidence-interleaved stages: Adapt is the primary keyword-rule parser, Padatious runs only as a fallback after Adapt fails to match anything.",
-      "size": "micro",
-      "links": {
-        "source": "https://github.com/MycroftAI/mycroft-core/pull/939"
-      },
-      "notes": "SOURCE: mycroft-core PR #939 ('Implement Padatious support (examples based intent parser)', MatthewScholefield) added Padatious to mycroft-core by making PadatiousService inherit from FallbackSkill (per forslund's review comment 'Make PadatiousService inherit from FallbackSkill to fix new fallback changes' on that PR) — i.e. Padatious was wired in as a fallback handler invoked only when Adapt's IntentBuilder grammar produced no match, not as a co-equal parallel matcher. Author confirmed back-compat ('Adapt will still work :)'). This is the inverse of the modern OVOS/mycroft-dev order (see ovos-stock.json and current MycroftAI/mycroft-core dev intent_service.py, which interleaves padatious-high ahead of adapt) — the point of this fighter is to test whether that later re-ordering (template-first) actually helped, by running the original adapt-first/padatious-fallback shape through the arena. Modeled as adapt-high -> padatious-medium: Adapt gets first shot at its own high gate; Padatious's medium tier (not high) reflects that classic Padatious ran as a general-purpose fallback rather than a first-look high-confidence matcher. Arena skips: fallback-skill priority tiers (90-99 catch-all range documented in Mycroft's Fallback Skill docs) don't exist as an arena stage — Padatious substitutes directly for 'the fallback', consistent with the historical mechanism. SHARED BASELINE ROLE: this exact pipeline (adapt-high -> padatious-medium) is also the natural 'keyword engine = adapt' / 'template engine = padatious' cell of both replacement-study grids below — rather than keep separate duplicate-config fighters (kw-slot-adapt, tmpl-slot-padatious) alongside this one (1 fighter per config, no exceptions), mycroft-classic itself now serves as that shared baseline for both families: kw-slot family compares mycroft-classic against kw-slot-palavreado (keyword-engine A/B, Padatious backup+shape fixed); tmpl-slot family compares mycroft-classic against tmpl-slot-{nebulento,linhafina,jurebes} (template-engine 4-way, Adapt front+shape fixed). Its historical framing and its role as the shared adapt/padatious baseline are not in tension — the config is the same regardless of which question is being asked of it.",
-      "has_predictions": true,
-      "prediction_datasets": [
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "ca-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "da-DK"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "de-DE"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "en-US"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "es-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "eu-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "fr-FR"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "gl-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "it-IT"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "nl-NL"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "pt-BR"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "pt-PT"
-        }
-      ]
-    },
-    {
-      "competitor_id": "nebulacioso",
-      "schema_version": 1,
-      "modality": "intent",
-      "config": {
-        "intents": {
-          "pipeline": [
-            "ovos-padacioso-pipeline-plugin-high",
-            "ovos-nebulento-pipeline-plugin-low"
-          ],
-          "ovos-padacioso-pipeline-plugin": {
-            "conf_high": 0.95,
-            "conf_med": 0.8,
-            "conf_low": 0.5,
-            "workers": 4,
-            "fuzz": false
-          },
-          "ovos-nebulento-pipeline-plugin": {
-            "conf_high": 0.95,
-            "conf_med": 0.8,
-            "conf_low": 0.5,
-            "workers": 4
-          }
-        }
-      },
-      "langs": [],
-      "alias": [],
-      "capabilities": [
-        "clip"
-      ],
-      "display_name": "Nebulacioso",
-      "types": [
-        "ensemble",
-        "template-match",
-        "fuzzy-match"
-      ],
-      "description": "Padacioso's deterministic, regex-based template matcher takes the first shot and extracts slots from an exact match; Nebulento's fuzzy string matching mops up anything the strict templates miss. Both engines are training-free and dependency-light, making this the lightweight padatious replacement candidate for installs where model2vec is not available.",
-      "size": "micro",
-      "links": {
-        "source": "https://github.com/OpenVoiceOS/padacioso"
-      },
-      "notes": "HYPOTHESIS: Padacioso's high-confidence exact template gate plus Nebulento's fuzzy fallback should catch both exact and near-miss phrasings without any training step, unlike padatious or m2v-based fighters which need a trained model. Nebulento runs at its own low-confidence gate (conf_low) rather than medium so it actually fires as a fallback instead of sitting nearly silent behind Padacioso's high gate; conf_high/conf_med/conf_low values are copied verbatim from the single-engine nebulento-medium template fighter, only the pipeline tier differs.",
-      "has_predictions": true,
-      "prediction_datasets": [
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "ca-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "da-DK"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "de-DE"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "en-US"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "es-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "eu-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "fr-FR"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "gl-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "it-IT"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "nl-NL"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "pt-BR"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "pt-PT"
-        }
-      ]
-    },
-    {
-      "competitor_id": "nebulapt",
-      "schema_version": 1,
-      "modality": "intent",
-      "config": {
-        "intents": {
-          "pipeline": [
-            "ovos-adapt-pipeline-plugin-high",
-            "ovos-nebulento-pipeline-plugin-medium",
-            "ovos-adapt-pipeline-plugin-medium"
-          ],
-          "ovos-adapt-pipeline-plugin": {
-            "conf_high": 0.65,
-            "conf_med": 0.45,
-            "conf_low": 0.25
-          },
-          "ovos-nebulento-pipeline-plugin": {
-            "conf_high": 0.95,
-            "conf_med": 0.8,
-            "conf_low": 0.5,
-            "workers": 4
-          }
-        }
-      },
-      "langs": [],
-      "alias": [],
-      "capabilities": [
-        "clip"
-      ],
-      "display_name": "Nebulapt",
-      "types": [
-        "ensemble",
-        "fuzzy-match",
-        "keyword-match"
-      ],
-      "description": "Nebulento × Adapt fusion — precise keyword rules take the first shot, fuzzy matching mops up typos and ASR noise, and Adapt medium catches the remainder.",
-      "size": "micro",
-      "links": {
-        "source": "https://github.com/OpenVoiceOS/ovos-adapt-pipeline-plugin"
-      },
-      "notes": "HYPOTHESIS: does a strict keyword-rule engine (Adapt, low false-positive but brittle to phrasing/typos) at high confidence, backstopped by a fuzzy keyword matcher (Nebulento, tolerant of ASR noise and near-misses) at medium, and a lower-bar Adapt retry, beat either engine alone? Adapt and Nebulento are different matching strategies (strict rule vs fuzzy), so this tests real precision/recall complementarity, not a duplicate.",
-      "has_predictions": true,
-      "prediction_datasets": [
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "ca-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "da-DK"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "de-DE"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "en-US"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "es-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "eu-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "fr-FR"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "gl-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "it-IT"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "nl-NL"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "pt-BR"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "pt-PT"
-        }
-      ]
-    },
-    {
-      "competitor_id": "nebulatious",
-      "schema_version": 1,
-      "modality": "intent",
-      "config": {
-        "intents": {
-          "pipeline": [
-            "ovos-padatious-pipeline-plugin-high",
-            "ovos-nebulento-pipeline-plugin-medium",
-            "ovos-padatious-pipeline-plugin-medium"
-          ],
-          "ovos-padatious-pipeline-plugin": {
-            "conf_high": 0.95,
-            "conf_med": 0.8,
-            "conf_low": 0.5,
-            "domain_engine": false,
-            "cast_to_ascii": false,
-            "stem": false,
-            "disable_padaos": false,
-            "instant_train": false
-          },
-          "ovos-nebulento-pipeline-plugin": {
-            "conf_high": 0.95,
-            "conf_med": 0.8,
-            "conf_low": 0.5,
-            "workers": 4
-          }
-        }
-      },
-      "langs": [],
-      "alias": [],
-      "capabilities": [
-        "clip"
-      ],
-      "display_name": "Nebulatious",
-      "types": [
-        "ensemble",
-        "neural-net",
-        "fuzzy-match"
-      ],
-      "description": "Padatious × Nebulento fusion — the neural parser leads at high confidence, fuzzy string matching mops up typos and ASR noise, neural medium catches the rest.",
-      "size": "micro",
-      "links": {
-        "source": "https://github.com/OpenVoiceOS/ovos-padatious-pipeline-plugin"
-      },
-      "notes": "HYPOTHESIS: does a neural template classifier (Padatious) at high confidence, backed by a fuzzy template matcher (Nebulento) tuned for typos/ASR noise, beat either alone — and does retrying Padatious at a looser gate afterward recover cases the fuzzy stage still missed? Padatious's internal padaos exact-match gate already covers regex-perfect input (verified in ovos_padatious/intent_container.py), so this pair specifically probes the neural-vs-fuzzy paraphrase gap, not exact-match duplication.",
-      "has_predictions": true,
-      "prediction_datasets": [
-        {
-          "dataset_id": "banking77",
-          "lang": "en-US"
-        },
-        {
-          "dataset_id": "clinc150",
-          "lang": "en-US"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "ca-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "da-DK"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "de-DE"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "en-US"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "es-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "eu-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "fr-FR"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "gl-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "it-IT"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "nl-NL"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "pt-BR"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "pt-PT"
-        },
-        {
-          "dataset_id": "mtop-de-DE",
-          "lang": "de-DE"
-        },
-        {
-          "dataset_id": "mtop-en-US",
-          "lang": "en-US"
-        },
-        {
-          "dataset_id": "snips",
-          "lang": "en-US"
-        }
-      ]
-    },
-    {
-      "competitor_id": "ovos-stock",
-      "schema_version": 1,
-      "modality": "intent",
-      "config": {
-        "intents": {
-          "pipeline": [
-            "ovos-padatious-pipeline-plugin-high",
-            "ovos-adapt-pipeline-plugin-high",
-            "ovos-m2v-pipeline-high",
-            "ovos-adapt-pipeline-plugin-medium"
-          ],
-          "ovos-padatious-pipeline-plugin": {
-            "conf_high": 0.95,
-            "conf_med": 0.8,
-            "conf_low": 0.5,
-            "domain_engine": false,
-            "cast_to_ascii": false,
-            "stem": false,
-            "disable_padaos": false,
-            "instant_train": false
-          },
-          "ovos-adapt-pipeline-plugin": {
-            "conf_high": 0.65,
-            "conf_med": 0.45,
-            "conf_low": 0.25
-          },
-          "ovos-m2v-pipeline": {
-            "conf_high": 0.7,
-            "conf_medium": 0.5,
-            "conf_low": 0.15
-          }
-        }
-      },
-      "langs": [],
-      "alias": [],
-      "capabilities": [
-        "clip"
-      ],
-      "display_name": "OVOS Stock",
-      "types": [
-        "ensemble",
-        "neural-net",
-        "keyword-match"
-      ],
-      "description": "The real shipped ovos-core default intent pipeline, reproduced faithfully with the arena's available plugins: Padatious high, Adapt high, m2v (Model2Vec embedding) high, Adapt medium.",
-      "size": "micro",
-      "links": {
-        "source": "https://github.com/OpenVoiceOS/ovos-config"
-      },
-      "notes": "SOURCE: the exact shipped order, verbatim, from the installed ovos-config package's default mycroft.conf — /home/miro/.venvs/ovos/lib/python3.12/site-packages/ovos_config/mycroft.conf, 'intents.pipeline' key, lines 218-231 (ovos-config==<installed version>): [\"ovos-stop-pipeline-plugin-high\", \"ovos-converse-pipeline-plugin\", \"ovos-ocp-pipeline-plugin-high\", \"ovos-padatious-pipeline-plugin-high\", \"ovos-adapt-pipeline-plugin-high\", \"ovos-m2v-pipeline-high\", \"ovos-ocp-pipeline-plugin-medium\", \"ovos-fallback-pipeline-plugin-high\", \"ovos-stop-pipeline-plugin-medium\", \"ovos-adapt-pipeline-plugin-medium\", \"ovos-fallback-pipeline-plugin-medium\", \"ovos-fallback-pipeline-plugin-low\"]. SKIPS (arena cannot instantiate these outside a full ovos-core session — no skill-service converse loop, no OCP media-skill roster, no fallback-skill registry): ovos-stop-pipeline-plugin-{high,medium} (requires a running skill with stop handlers), ovos-converse-pipeline-plugin (requires active-skill session state), ovos-ocp-pipeline-plugin-{high,medium} (requires OCP media skills registered), ovos-fallback-pipeline-plugin-{high,medium,low} (requires fallback-skill registrations; nothing left to fall back to in the intent-only benchmark). What remains — padatious-high, adapt-high, m2v-high, adapt-medium — is exactly the intent-classifier subset of the stock order, in stock order, so this fighter is the arena's best-effort faithful reproduction of 'what ovos-core actually ships', not a curated fusion hypothesis. m2v-pipeline config keys verified in ovos_m2v_pipeline/__init__.py: conf_high (default 0.7), conf_medium (default 0.5, note the plugin uses 'conf_medium' not 'conf_med'), conf_low (default 0.15).",
-      "has_predictions": true,
-      "prediction_datasets": [
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "ca-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "da-DK"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "de-DE"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "en-US"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "es-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "eu-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "fr-FR"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "gl-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "it-IT"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "nl-NL"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "pt-BR"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "pt-PT"
-        }
-      ]
-    },
-    {
-      "competitor_id": "tmpl-slot-jurebes",
-      "schema_version": 1,
-      "modality": "intent",
-      "config": {
-        "intents": {
-          "pipeline": [
-            "ovos-adapt-pipeline-plugin-high",
-            "ovos-jurebes-pipeline-plugin-medium"
-          ],
-          "ovos-adapt-pipeline-plugin": {
-            "conf_high": 0.65,
-            "conf_med": 0.45,
-            "conf_low": 0.25
-          },
-          "ovos-jurebes-pipeline-plugin": {
-            "conf_high": 0.8,
-            "conf_med": 0.6,
-            "conf_low": 0.4,
-            "baseline": "mlp_shallow",
-            "enable_slots": true,
-            "exact_match": false
-          }
-        }
-      },
-      "langs": [],
-      "alias": [],
-      "capabilities": [
-        "clip"
-      ],
-      "display_name": "Template Slot: Jurebes",
-      "types": [
-        "ensemble",
-        "keyword-match",
-        "neural-net"
-      ],
-      "description": "Replacement-family member: Adapt fixed at keyword-high, Jurebes (sklearn MLP classifier, the top-accuracy baseline on the intents-for-eval en-US template board) fills the template-medium slot.",
-      "size": "micro",
-      "links": {
-        "source": "https://github.com/OpenVoiceOS/jurebes"
-      },
-      "notes": "FAMILY: tmpl-slot 4-way — mycroft-classic (adapt-high -> padatious-medium) is the shared baseline; siblings are tmpl-slot-nebulento, tmpl-slot-linhafina, tmpl-slot-jurebes (this file), each swapping only the template-medium engine with adapt-high held fixed. There is no separate tmpl-slot-padatious fighter: that config is identical to mycroft-classic, and per the 1-fighter-per-config rule mycroft-classic itself serves as the 'template engine = padatious' cell of this grid rather than duplicating the same pipeline under a second competitor_id. This sibling swaps in Jurebes using the same top-accuracy 'mlp_shallow' baseline selected for trident.json (accuracy 0.8154 on frontend-static/public/data/benchmark-intent_template-intents-for-eval-en-US.json among all jurebes-* entries), with exact_match forced to false so the fighter tests the trained classifier itself rather than jurebes's own internal exact-template short-circuit — consistent with the exact_match:false convention used everywhere jurebes appears in this pass. adapt-high held fixed as the front door, matching the other tmpl-slot siblings.",
-      "has_predictions": true,
-      "prediction_datasets": [
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "ca-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "da-DK"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "de-DE"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "en-US"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "es-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "eu-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "fr-FR"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "gl-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "it-IT"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "nl-NL"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "pt-BR"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "pt-PT"
-        }
-      ]
-    },
-    {
-      "competitor_id": "tmpl-slot-linhafina",
-      "schema_version": 1,
-      "modality": "intent",
-      "config": {
-        "intents": {
-          "pipeline": [
-            "ovos-adapt-pipeline-plugin-high",
-            "ovos-linha-fina-pipeline-plugin-medium"
-          ],
-          "ovos-adapt-pipeline-plugin": {
-            "conf_high": 0.65,
-            "conf_med": 0.45,
-            "conf_low": 0.25
-          },
-          "ovos-linha-fina-pipeline-plugin": {
-            "conf_high": 0.8,
-            "conf_med": 0.6,
-            "conf_low": 0.4
-          }
-        }
-      },
-      "langs": [],
-      "alias": [],
-      "capabilities": [
-        "clip"
-      ],
-      "display_name": "Template Slot: Linha-Fina",
-      "types": [
-        "ensemble",
-        "keyword-match",
-        "neural-net"
-      ],
-      "description": "Replacement-family member: Adapt fixed at keyword-high, Linha-Fina (trained statistical template classifier) fills the template-medium slot.",
-      "size": "micro",
-      "links": {
-        "source": "https://github.com/OpenVoiceOS/linha-fina"
-      },
-      "notes": "FAMILY: tmpl-slot 4-way — mycroft-classic (adapt-high -> padatious-medium) is the shared baseline; siblings are tmpl-slot-nebulento, tmpl-slot-linhafina (this file), tmpl-slot-jurebes, each swapping only the template-medium engine with adapt-high held fixed. There is no separate tmpl-slot-padatious fighter: that config is identical to mycroft-classic, and per the 1-fighter-per-config rule mycroft-classic itself serves as the 'template engine = padatious' cell of this grid rather than duplicating the same pipeline under a second competitor_id. This sibling swaps in Linha-Fina, a distinct trained-classifier engine from Padatious and Jurebes (see ENGINE_REGISTRY import path 'linha_fina.opm:LinhaFinaPipeline'), with adapt-high held fixed as the front door. Never previously paired with plain Adapt in the registry (linha-fina does not appear in frankenparse/padapt/nebulatious/nebulapt/palavadapt), so this is the first head-to-head data point for Linha-Fina against the keyword-rule paradigm specifically.",
-      "has_predictions": true,
-      "prediction_datasets": [
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "ca-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "da-DK"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "de-DE"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "en-US"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "es-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "eu-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "fr-FR"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "gl-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "it-IT"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "nl-NL"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "pt-BR"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "pt-PT"
-        }
-      ]
-    },
-    {
-      "competitor_id": "tmpl-slot-nebulento",
-      "schema_version": 1,
-      "modality": "intent",
-      "config": {
-        "intents": {
-          "pipeline": [
-            "ovos-adapt-pipeline-plugin-high",
-            "ovos-nebulento-pipeline-plugin-medium"
-          ],
-          "ovos-adapt-pipeline-plugin": {
-            "conf_high": 0.65,
-            "conf_med": 0.45,
-            "conf_low": 0.25
-          },
-          "ovos-nebulento-pipeline-plugin": {
-            "conf_high": 0.95,
-            "conf_med": 0.8,
-            "conf_low": 0.5,
-            "workers": 4
-          }
-        }
-      },
-      "langs": [],
-      "alias": [],
-      "capabilities": [
-        "clip"
-      ],
-      "display_name": "Template Slot: Nebulento",
-      "types": [
-        "ensemble",
-        "keyword-match",
-        "fuzzy-match"
-      ],
-      "description": "Replacement-family member: Adapt fixed at keyword-high, Nebulento (fuzzy string matching over templates) fills the template-medium slot.",
-      "size": "micro",
-      "links": {
-        "source": "https://github.com/OpenVoiceOS/nebulento"
-      },
-      "notes": "FAMILY: tmpl-slot 4-way — mycroft-classic (adapt-high -> padatious-medium) is the shared baseline; siblings are tmpl-slot-nebulento (this file), tmpl-slot-linhafina, tmpl-slot-jurebes, each swapping only the template-medium engine with adapt-high held fixed. There is no separate tmpl-slot-padatious fighter: that config is identical to mycroft-classic, and per the 1-fighter-per-config rule mycroft-classic itself serves as the 'template engine = padatious' cell of this grid rather than duplicating the same pipeline under a second competitor_id. This sibling swaps in Nebulento (fuzzy edit-distance-style template matching, tolerant of typos/ASR noise) as the backup, with adapt-high held fixed. Note this pipeline shape (adapt-high -> nebulento-medium -> [no third stage]) is a strict 2-stage subset of nebulapt.json's 3-stage adapt-high -> nebulento-medium -> adapt-medium; kept as a separate, deliberately shorter fighter because the family's isolation question is 'first successful replacement per engine' with no retry stage, whereas nebulapt additionally tests whether an adapt-medium retry recovers more on top of the pair — a different, additive hypothesis.",
-      "has_predictions": true,
-      "prediction_datasets": [
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "ca-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "da-DK"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "de-DE"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "en-US"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "es-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "eu-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "fr-FR"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "gl-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "it-IT"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "nl-NL"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "pt-BR"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "pt-PT"
-        }
-      ]
-    },
-    {
-      "competitor_id": "trident",
-      "schema_version": 1,
-      "modality": "intent",
-      "config": {
-        "intents": {
-          "pipeline": [
-            "ovos-padatious-pipeline-plugin-high",
-            "ovos-jurebes-pipeline-plugin-medium",
-            "ovos-nebulento-pipeline-plugin-low"
-          ],
-          "ovos-padatious-pipeline-plugin": {
-            "conf_high": 0.95,
-            "conf_med": 0.8,
-            "conf_low": 0.5,
-            "domain_engine": false,
-            "cast_to_ascii": false,
-            "stem": false,
-            "disable_padaos": false,
-            "instant_train": false
-          },
-          "ovos-jurebes-pipeline-plugin": {
-            "conf_high": 0.8,
-            "conf_med": 0.6,
-            "conf_low": 0.4,
-            "baseline": "mlp_shallow",
-            "enable_slots": true,
-            "exact_match": false
-          },
-          "ovos-nebulento-pipeline-plugin": {
-            "conf_high": 0.95,
-            "conf_med": 0.8,
-            "conf_low": 0.5,
-            "workers": 4
-          }
-        }
-      },
-      "langs": [],
-      "alias": [],
-      "capabilities": [
-        "clip"
-      ],
-      "display_name": "Trident",
-      "types": [
-        "ensemble",
-        "neural-net",
-        "fuzzy-match"
-      ],
-      "description": "A three-tier confidence mixer across three genuinely distinct template paradigms: Padatious (learned template similarity + internal exact-match gate) at high, Jurebes (sklearn MLP classifier over TF-IDF features, the top-accuracy baseline on the intents-for-eval en-US template board) at medium, Nebulento (fuzzy string matching) as the loosest low-confidence catch-all.",
-      "size": "micro",
-      "links": {
-        "source": "https://github.com/OpenVoiceOS/jurebes"
-      },
-      "notes": "HYPOTHESIS: does mixing three architecturally distinct classifiers by descending confidence tier — neural-template-with-exact-gate (Padatious) high, statistical-ML classifier (Jurebes) medium, fuzzy-string (Nebulento) low — beat any two-engine fusion in the league? Unlike frankenparse (which mixes paradigms but stays single-tier-per-engine at similar confidence bands), trident deliberately spans the full high/medium/low ladder with one engine per rung, so it also probes whether a strict confidence-descending cascade (not just paradigm diversity) is itself a useful shape. BASELINE SELECTION: 'mlp_shallow' is the top-accuracy entry on frontend-static/public/data/benchmark-intent_template-intents-for-eval-en-US.json among all jurebes-* competitor_ids (accuracy 0.8154, beating jurebes-sgd-modified-huber at 0.8143 and every other of the ~55 published jurebes sklearn baselines on that board). Config key verified in jurebes/opm.py (self.baseline = self.config.get('baseline', 'linear_svc')) and jurebes/baselines.py ('mlp_shallow': lambda: _p(tfidf_word(), MLPClassifier(hidden_layer_sizes=(64,), max_iter=500))). exact_match set to false per spec (jurebes/opm.py: self.exact_match = bool(self.config.get('exact_match', True)) — forced off here so this fighter tests the trained MLP classifier itself, not jurebes's own internal exact-template short-circuit, which would otherwise duplicate what Padatious's high-tier stage already does one step earlier in the cascade).",
-      "has_predictions": true,
-      "prediction_datasets": [
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "ca-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "da-DK"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "de-DE"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "en-US"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "es-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "eu-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "fr-FR"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "gl-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "it-IT"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "nl-NL"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "pt-BR"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "pt-PT"
-        },
-        {
-          "dataset_id": "mtop-de-DE",
-          "lang": "de-DE"
-        },
-        {
-          "dataset_id": "mtop-en-US",
-          "lang": "en-US"
-        }
-      ]
-    },
     {
       "competitor_id": "adapt-domain-medium",
       "schema_version": 1,
@@ -1624,6 +19,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-adapt-domain-pipeline-plugin"
       ],
@@ -1717,6 +113,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-adapt-hierarchical-pipeline-plugin"
       ],
@@ -1810,6 +207,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-adapt-pipeline-plugin"
       ],
@@ -1900,6 +298,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-palavreado-hierarchical-pipeline"
       ],
@@ -1994,6 +393,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-palavreado-pipeline-plugin"
       ],
@@ -2066,9 +466,757 @@
       ]
     },
     {
+      "competitor_id": "m2v-first",
+      "schema_version": 1,
+      "modality": "intent_offline",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-m2v-pipeline-high",
+            "ovos-padatious-pipeline-plugin-medium"
+          ],
+          "ovos-m2v-pipeline": {
+            "conf_high": 0.7,
+            "conf_medium": 0.5,
+            "conf_low": 0.15,
+            "model": "Jarbas/ovos-model2vec-intents-distiluse-base-multilingual-cased-v2",
+            "revision": "9f23a5ce1622ccec8122a9cd5359618d0cda53fd"
+          },
+          "ovos-padatious-pipeline-plugin": {
+            "conf_high": 0.95,
+            "conf_med": 0.8,
+            "conf_low": 0.5,
+            "domain_engine": false,
+            "cast_to_ascii": false,
+            "stem": false,
+            "disable_padaos": false,
+            "instant_train": false
+          }
+        }
+      },
+      "langs": [],
+      "training_regime": "offline",
+      "label_set": [],
+      "alias": [],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "M2V First",
+      "types": [
+        "ensemble",
+        "embeddings",
+        "neural-net"
+      ],
+      "description": "The first embedding-fronted fighter in the league: Model2Vec sentence-embedding similarity leads at high confidence, Padatious's trained template classifier backs it at medium.",
+      "model": "Jarbas/ovos-model2vec-intents-distiluse-base-multilingual-cased-v2",
+      "model_revision": "9f23a5ce1622ccec8122a9cd5359618d0cda53fd",
+      "model_hf_repo": "Jarbas/ovos-model2vec-intents-distiluse-base-multilingual-cased-v2",
+      "size": "micro",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-m2v-pipeline"
+      },
+      "notes": "HYPOTHESIS: none of the existing fighters (frankenparse, padapt, nebulatious, nebulapt, palavadapt) use embeddings at all — every stage in every prior fighter is either keyword-rule matching or a trained-per-intent template classifier. m2v-first tests whether leading with a general-purpose sentence-embedding similarity engine (Model2Vec, config-verified in ovos_m2v_pipeline/__init__.py: model default 'Jarbas/ovos-model2vec-intents-distiluse-base-multilingual-cased-v2', conf_high/conf_medium/conf_low keys) — which generalizes across paraphrases via embedding distance rather than exact template/keyword matching — beats a template classifier leading, when Padatious backs it up at medium. This isolates 'does an embedding-similarity front door change which utterances get caught first' from every non-embedding fusion already in the league. Distinct paradigm from Jurebes/Padatious (learned per-intent classifiers over hand-engineered or TF-IDF features) and from Nebulento (fuzzy string edit-distance, not vector similarity).",
+      "has_predictions": false,
+      "prediction_datasets": []
+    },
+    {
+      "competitor_id": "m2v-medium",
+      "schema_version": 1,
+      "modality": "intent_offline",
+      "plugin": "ovos-m2v-pipeline",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-m2v-pipeline-medium"
+          ],
+          "ovos-m2v-pipeline": {
+            "model": "Jarbas/ovos-model2vec-intents-distiluse-base-multilingual-cased-v2",
+            "mode": "classifier",
+            "ignore_intents": [],
+            "timeout": 1,
+            "renormalize": false,
+            "conf_high": 0.7,
+            "conf_medium": 0.5,
+            "conf_low": 0.15,
+            "revision": "9f23a5ce1622ccec8122a9cd5359618d0cda53fd"
+          }
+        }
+      },
+      "langs": [],
+      "training_regime": "offline",
+      "label_set": [],
+      "alias": [
+        "ovos-m2v-pipeline"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "Model2Vec",
+      "species": "Model2VecIntentPipeline",
+      "family": "Model2VecIntentPipeline",
+      "types": [
+        "embedding",
+        "neural-net"
+      ],
+      "description": "Classifies utterances with a pretrained Model2Vec static-embedding intent classifier restricted to intents registered by loaded skills. The default model is multilingual, distilled from LaBSE.",
+      "model": "Jarbas/ovos-model2vec-intents-distiluse-base-multilingual-cased-v2",
+      "model_revision": "9f23a5ce1622ccec8122a9cd5359618d0cda53fd",
+      "size": "medium",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-m2v-pipeline"
+      },
+      "notes": "Single-stage pipeline at the plugin's own medium-confidence gate; per-plugin config keeps the shipped defaults. The pinned model's classifier head carries 161 labels aimed at an older OVOS skill fleet: 20 of them appear in ovos-intents-v5, 15 in golden-utterances, none in intents-for-eval, and 141 in no registered corpus at all. It can therefore emit no registered corpus's label set, so label_set is empty and the fighter is unranked until a corpus it was trained on is registered. Published predictions are migrated from the legacy ovos-intent-benchmark, where this engine was trained on the benchmark's own corpora.",
+      "has_predictions": false,
+      "prediction_datasets": []
+    },
+    {
+      "competitor_id": "m2v-nebulento",
+      "schema_version": 1,
+      "modality": "intent_offline",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-m2v-pipeline-high",
+            "ovos-nebulento-pipeline-plugin-medium"
+          ],
+          "ovos-m2v-pipeline": {
+            "conf_high": 0.7,
+            "conf_medium": 0.5,
+            "conf_low": 0.15,
+            "model": "Jarbas/ovos-model2vec-intents-distiluse-base-multilingual-cased-v2",
+            "revision": "9f23a5ce1622ccec8122a9cd5359618d0cda53fd"
+          },
+          "ovos-nebulento-pipeline-plugin": {
+            "conf_high": 0.95,
+            "conf_med": 0.8,
+            "conf_low": 0.5,
+            "workers": 4
+          }
+        }
+      },
+      "langs": [],
+      "training_regime": "offline",
+      "label_set": [],
+      "alias": [],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "M2V × Nebulento",
+      "types": [
+        "ensemble",
+        "embeddings",
+        "fuzzy-match"
+      ],
+      "description": "The embedding classifier takes the first shot at Model2Vec's trained label set, then Nebulento's fuzzy template matching mops up with runtime-registered templates and slot extraction — a padatious-free replacement candidate.",
+      "model": "Jarbas/ovos-model2vec-intents-distiluse-base-multilingual-cased-v2",
+      "model_revision": "9f23a5ce1622ccec8122a9cd5359618d0cda53fd",
+      "model_hf_repo": "Jarbas/ovos-model2vec-intents-distiluse-base-multilingual-cased-v2",
+      "size": "micro",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-m2v-pipeline"
+      },
+      "notes": "HYPOTHESIS: m2v + nebulento is probably better than padatious. m2v-first (see sibling fighter) already showed an embedding-similarity front door changes what gets caught first, but it still leans on Padatious as the backstop, which means it inherits Padatious's two blockers to being a default: no slot extraction and no open-world runtime-registered intents. Nebulento fills both gaps — it extracts slots from its templates and accepts templates registered at runtime rather than only at training time — while still being a fuzzy/edit-distance matcher rather than a learned classifier, so pairing it with m2v's paraphrase-robust embedding similarity tests whether the combination can fully replace Padatious rather than merely front it. Comparators: padatious-stock (the plain baseline this fighter is trying to unseat) and the existing ensembles nebulatious and trident. REQUIRES ovos-m2v-pipeline>=0.9.0a1 — versions before 0.8.1a1 have a label-filter bug that poisons predictions; there is no plugin floor/pin field in this registry schema, so sweeps of this fighter must be run with that floor already installed in the runner environment.",
+      "has_predictions": false,
+      "prediction_datasets": []
+    },
+    {
+      "competitor_id": "m2v-v5-en-2m",
+      "schema_version": 1,
+      "modality": "intent_offline",
+      "plugin": "ovos-m2v-pipeline",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-m2v-pipeline-medium"
+          ],
+          "ovos-m2v-pipeline": {
+            "model": "OpenVoiceOS/ovos-m2v-intents-en-2M-v5",
+            "mode": "classifier",
+            "ignore_intents": [],
+            "timeout": 1,
+            "renormalize": false,
+            "conf_high": 0.7,
+            "conf_medium": 0.5,
+            "conf_low": 0.15,
+            "revision": "3cfb69e42f1ca2c7fa4b7536b1bd28238e6fb90f"
+          }
+        }
+      },
+      "langs": [
+        "en-US"
+      ],
+      "training_regime": "offline",
+      "label_set": [
+        "ovos-intents-v5"
+      ],
+      "alias": [
+        "ovos-m2v-pipeline"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "Model2Vec v5 · en 2M",
+      "species": "Model2VecIntentPipeline",
+      "family": "Model2VecIntentPipeline",
+      "types": [
+        "embedding",
+        "neural-net"
+      ],
+      "description": "Classifies an utterance with a pretrained Model2Vec static-embedding classifier head trained on the OVOS v5 intent corpus. The head is frozen: it emits only labels it was trained on, and never learns from the templates a skill registers.",
+      "model": "OpenVoiceOS/ovos-m2v-intents-en-2M-v5",
+      "model_revision": "3cfb69e42f1ca2c7fa4b7536b1bd28238e6fb90f",
+      "model_hf_repo": "OpenVoiceOS/ovos-m2v-intents-en-2M-v5",
+      "size": "tiny",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-m2v-pipeline",
+        "model": "https://huggingface.co/OpenVoiceOS/ovos-m2v-intents-en-2M-v5"
+      },
+      "notes": "English head emitting 198 of the corpus's 208 labels, measured from the pinned commit; the rest are counted against it. Single-stage pipeline at the plugin's own medium-confidence gate, shipped plugin defaults elsewhere.",
+      "has_predictions": false,
+      "prediction_datasets": []
+    },
+    {
+      "competitor_id": "m2v-v5-en-32m",
+      "schema_version": 1,
+      "modality": "intent_offline",
+      "plugin": "ovos-m2v-pipeline",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-m2v-pipeline-medium"
+          ],
+          "ovos-m2v-pipeline": {
+            "model": "OpenVoiceOS/ovos-m2v-intents-en-32M-v5",
+            "mode": "classifier",
+            "ignore_intents": [],
+            "timeout": 1,
+            "renormalize": false,
+            "conf_high": 0.7,
+            "conf_medium": 0.5,
+            "conf_low": 0.15,
+            "revision": "6b4e42323aad68372e3855ff2a166fdc53dd968e"
+          }
+        }
+      },
+      "langs": [
+        "en-US"
+      ],
+      "training_regime": "offline",
+      "label_set": [
+        "ovos-intents-v5"
+      ],
+      "alias": [
+        "ovos-m2v-pipeline"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "Model2Vec v5 · en 32M",
+      "species": "Model2VecIntentPipeline",
+      "family": "Model2VecIntentPipeline",
+      "types": [
+        "embedding",
+        "neural-net"
+      ],
+      "description": "Classifies an utterance with a pretrained Model2Vec static-embedding classifier head trained on the OVOS v5 intent corpus. The head is frozen: it emits only labels it was trained on, and never learns from the templates a skill registers.",
+      "model": "OpenVoiceOS/ovos-m2v-intents-en-32M-v5",
+      "model_revision": "6b4e42323aad68372e3855ff2a166fdc53dd968e",
+      "model_hf_repo": "OpenVoiceOS/ovos-m2v-intents-en-32M-v5",
+      "size": "base",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-m2v-pipeline",
+        "model": "https://huggingface.co/OpenVoiceOS/ovos-m2v-intents-en-32M-v5"
+      },
+      "notes": "English head emitting 198 of the corpus's 208 labels, measured from the pinned commit; the rest are counted against it. Single-stage pipeline at the plugin's own medium-confidence gate, shipped plugin defaults elsewhere.",
+      "has_predictions": false,
+      "prediction_datasets": []
+    },
+    {
+      "competitor_id": "m2v-v5-en-4m",
+      "schema_version": 1,
+      "modality": "intent_offline",
+      "plugin": "ovos-m2v-pipeline",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-m2v-pipeline-medium"
+          ],
+          "ovos-m2v-pipeline": {
+            "model": "OpenVoiceOS/ovos-m2v-intents-en-4M-v5",
+            "mode": "classifier",
+            "ignore_intents": [],
+            "timeout": 1,
+            "renormalize": false,
+            "conf_high": 0.7,
+            "conf_medium": 0.5,
+            "conf_low": 0.15,
+            "revision": "d13e5ebf0256612998571e5c7582a826dd1afcd8"
+          }
+        }
+      },
+      "langs": [
+        "en-US"
+      ],
+      "training_regime": "offline",
+      "label_set": [
+        "ovos-intents-v5"
+      ],
+      "alias": [
+        "ovos-m2v-pipeline"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "Model2Vec v5 · en 4M",
+      "species": "Model2VecIntentPipeline",
+      "family": "Model2VecIntentPipeline",
+      "types": [
+        "embedding",
+        "neural-net"
+      ],
+      "description": "Classifies an utterance with a pretrained Model2Vec static-embedding classifier head trained on the OVOS v5 intent corpus. The head is frozen: it emits only labels it was trained on, and never learns from the templates a skill registers.",
+      "model": "OpenVoiceOS/ovos-m2v-intents-en-4M-v5",
+      "model_revision": "d13e5ebf0256612998571e5c7582a826dd1afcd8",
+      "model_hf_repo": "OpenVoiceOS/ovos-m2v-intents-en-4M-v5",
+      "size": "tiny",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-m2v-pipeline",
+        "model": "https://huggingface.co/OpenVoiceOS/ovos-m2v-intents-en-4M-v5"
+      },
+      "notes": "English head emitting 198 of the corpus's 208 labels, measured from the pinned commit; the rest are counted against it. Single-stage pipeline at the plugin's own medium-confidence gate, shipped plugin defaults elsewhere.",
+      "has_predictions": false,
+      "prediction_datasets": []
+    },
+    {
+      "competitor_id": "m2v-v5-en-8m",
+      "schema_version": 1,
+      "modality": "intent_offline",
+      "plugin": "ovos-m2v-pipeline",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-m2v-pipeline-medium"
+          ],
+          "ovos-m2v-pipeline": {
+            "model": "OpenVoiceOS/ovos-m2v-intents-en-8M-v5",
+            "mode": "classifier",
+            "ignore_intents": [],
+            "timeout": 1,
+            "renormalize": false,
+            "conf_high": 0.7,
+            "conf_medium": 0.5,
+            "conf_low": 0.15,
+            "revision": "5c670a53d7d55d5b45d126e26d6772a58d4f997e"
+          }
+        }
+      },
+      "langs": [
+        "en-US"
+      ],
+      "training_regime": "offline",
+      "label_set": [
+        "ovos-intents-v5"
+      ],
+      "alias": [
+        "ovos-m2v-pipeline"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "Model2Vec v5 · en 8M",
+      "species": "Model2VecIntentPipeline",
+      "family": "Model2VecIntentPipeline",
+      "types": [
+        "embedding",
+        "neural-net"
+      ],
+      "description": "Classifies an utterance with a pretrained Model2Vec static-embedding classifier head trained on the OVOS v5 intent corpus. The head is frozen: it emits only labels it was trained on, and never learns from the templates a skill registers.",
+      "model": "OpenVoiceOS/ovos-m2v-intents-en-8M-v5",
+      "model_revision": "5c670a53d7d55d5b45d126e26d6772a58d4f997e",
+      "model_hf_repo": "OpenVoiceOS/ovos-m2v-intents-en-8M-v5",
+      "size": "small",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-m2v-pipeline",
+        "model": "https://huggingface.co/OpenVoiceOS/ovos-m2v-intents-en-8M-v5"
+      },
+      "notes": "English head emitting 198 of the corpus's 208 labels, measured from the pinned commit; the rest are counted against it. Single-stage pipeline at the plugin's own medium-confidence gate, shipped plugin defaults elsewhere.",
+      "has_predictions": false,
+      "prediction_datasets": []
+    },
+    {
+      "competitor_id": "m2v-v5-multi-128m",
+      "schema_version": 1,
+      "modality": "intent_offline",
+      "plugin": "ovos-m2v-pipeline",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-m2v-pipeline-medium"
+          ],
+          "ovos-m2v-pipeline": {
+            "model": "OpenVoiceOS/ovos-m2v-intents-multi-128M-v5",
+            "mode": "classifier",
+            "ignore_intents": [],
+            "timeout": 1,
+            "renormalize": false,
+            "conf_high": 0.7,
+            "conf_medium": 0.5,
+            "conf_low": 0.15,
+            "revision": "d094e039be5da702ca78d5dc3260555ad1cfa448"
+          }
+        }
+      },
+      "langs": [
+        "arb",
+        "bg-BG",
+        "ca-ES",
+        "cs-CZ",
+        "da-DK",
+        "de-DE",
+        "el-GR",
+        "en-US",
+        "es-419",
+        "es-ES",
+        "eu-ES",
+        "fa-IR",
+        "fi-FI",
+        "fr-FR",
+        "gl-ES",
+        "he-IL",
+        "hr-HR",
+        "hu-HU",
+        "id-ID",
+        "is-IS",
+        "it-IT",
+        "ja-JP",
+        "kab",
+        "lt-LT",
+        "ms-MY",
+        "nb-NO",
+        "nl-NL",
+        "nn-NO",
+        "pl-PL",
+        "pt-BR",
+        "pt-PT",
+        "ro-RO",
+        "ru-RU",
+        "sk-SK",
+        "sl-SI",
+        "sv-FI",
+        "sv-SE",
+        "th-TH",
+        "tr-TR",
+        "zh-CN"
+      ],
+      "training_regime": "offline",
+      "label_set": [
+        "ovos-intents-v5"
+      ],
+      "alias": [
+        "ovos-m2v-pipeline"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "Model2Vec v5 · multilingual 128M",
+      "species": "Model2VecIntentPipeline",
+      "family": "Model2VecIntentPipeline",
+      "types": [
+        "embedding",
+        "neural-net"
+      ],
+      "description": "Classifies an utterance with a pretrained Model2Vec static-embedding classifier head trained on the OVOS v5 intent corpus. The head is frozen: it emits only labels it was trained on, and never learns from the templates a skill registers.",
+      "model": "OpenVoiceOS/ovos-m2v-intents-multi-128M-v5",
+      "model_revision": "d094e039be5da702ca78d5dc3260555ad1cfa448",
+      "model_hf_repo": "OpenVoiceOS/ovos-m2v-intents-multi-128M-v5",
+      "size": "medium",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-m2v-pipeline",
+        "model": "https://huggingface.co/OpenVoiceOS/ovos-m2v-intents-multi-128M-v5"
+      },
+      "notes": "Multilingual head emitting 207 of the corpus's 208 labels, measured from the pinned commit; the rest are counted against it. Single-stage pipeline at the plugin's own medium-confidence gate, shipped plugin defaults elsewhere.",
+      "has_predictions": false,
+      "prediction_datasets": []
+    },
+    {
+      "competitor_id": "ovos-stock",
+      "schema_version": 1,
+      "modality": "intent_offline",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-padatious-pipeline-plugin-high",
+            "ovos-adapt-pipeline-plugin-high",
+            "ovos-m2v-pipeline-high",
+            "ovos-adapt-pipeline-plugin-medium"
+          ],
+          "ovos-padatious-pipeline-plugin": {
+            "conf_high": 0.95,
+            "conf_med": 0.8,
+            "conf_low": 0.5,
+            "domain_engine": false,
+            "cast_to_ascii": false,
+            "stem": false,
+            "disable_padaos": false,
+            "instant_train": false
+          },
+          "ovos-adapt-pipeline-plugin": {
+            "conf_high": 0.65,
+            "conf_med": 0.45,
+            "conf_low": 0.25
+          },
+          "ovos-m2v-pipeline": {
+            "conf_high": 0.7,
+            "conf_medium": 0.5,
+            "conf_low": 0.15,
+            "model": "Jarbas/ovos-model2vec-intents-distiluse-base-multilingual-cased-v2",
+            "revision": "9f23a5ce1622ccec8122a9cd5359618d0cda53fd"
+          }
+        }
+      },
+      "langs": [],
+      "training_regime": "offline",
+      "label_set": [],
+      "alias": [],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "OVOS Stock",
+      "types": [
+        "ensemble",
+        "neural-net",
+        "keyword-match"
+      ],
+      "description": "The real shipped ovos-core default intent pipeline, reproduced faithfully with the arena's available plugins: Padatious high, Adapt high, m2v (Model2Vec embedding) high, Adapt medium.",
+      "model": "Jarbas/ovos-model2vec-intents-distiluse-base-multilingual-cased-v2",
+      "model_revision": "9f23a5ce1622ccec8122a9cd5359618d0cda53fd",
+      "model_hf_repo": "Jarbas/ovos-model2vec-intents-distiluse-base-multilingual-cased-v2",
+      "size": "micro",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-config"
+      },
+      "notes": "SOURCE: the exact shipped order, verbatim, from the installed ovos-config package's default mycroft.conf — /home/miro/.venvs/ovos/lib/python3.12/site-packages/ovos_config/mycroft.conf, 'intents.pipeline' key, lines 218-231 (ovos-config==<installed version>): [\"ovos-stop-pipeline-plugin-high\", \"ovos-converse-pipeline-plugin\", \"ovos-ocp-pipeline-plugin-high\", \"ovos-padatious-pipeline-plugin-high\", \"ovos-adapt-pipeline-plugin-high\", \"ovos-m2v-pipeline-high\", \"ovos-ocp-pipeline-plugin-medium\", \"ovos-fallback-pipeline-plugin-high\", \"ovos-stop-pipeline-plugin-medium\", \"ovos-adapt-pipeline-plugin-medium\", \"ovos-fallback-pipeline-plugin-medium\", \"ovos-fallback-pipeline-plugin-low\"]. SKIPS (arena cannot instantiate these outside a full ovos-core session — no skill-service converse loop, no OCP media-skill roster, no fallback-skill registry): ovos-stop-pipeline-plugin-{high,medium} (requires a running skill with stop handlers), ovos-converse-pipeline-plugin (requires active-skill session state), ovos-ocp-pipeline-plugin-{high,medium} (requires OCP media skills registered), ovos-fallback-pipeline-plugin-{high,medium,low} (requires fallback-skill registrations; nothing left to fall back to in the intent-only benchmark). What remains — padatious-high, adapt-high, m2v-high, adapt-medium — is exactly the intent-classifier subset of the stock order, in stock order, so this fighter is the arena's best-effort faithful reproduction of 'what ovos-core actually ships', not a curated fusion hypothesis. m2v-pipeline config keys verified in ovos_m2v_pipeline/__init__.py: conf_high (default 0.7), conf_medium (default 0.5, note the plugin uses 'conf_medium' not 'conf_med'), conf_low (default 0.15).",
+      "has_predictions": false,
+      "prediction_datasets": []
+    },
+    {
+      "competitor_id": "cascade-soft",
+      "schema_version": 1,
+      "modality": "intent_online",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-linha-fina-pipeline-plugin-high",
+            "ovos-palavreado-pipeline-plugin-medium",
+            "ovos-nebulento-pipeline-plugin-low"
+          ],
+          "ovos-linha-fina-pipeline-plugin": {
+            "conf_high": 0.8,
+            "conf_med": 0.6,
+            "conf_low": 0.4
+          },
+          "ovos-palavreado-pipeline-plugin": {
+            "conf_high": 0.65,
+            "conf_med": 0.45,
+            "conf_low": 0.25,
+            "max_words": 50
+          },
+          "ovos-nebulento-pipeline-plugin": {
+            "conf_high": 0.95,
+            "conf_med": 0.8,
+            "conf_low": 0.5,
+            "workers": 4
+          }
+        }
+      },
+      "langs": [],
+      "training_regime": "online",
+      "alias": [],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "Cascade Soft",
+      "types": [
+        "ensemble",
+        "neural-net",
+        "keyword-match",
+        "fuzzy-match"
+      ],
+      "description": "A softness-descending confidence mixer: Linha-Fina (trained statistical classifier) leads at high, Palavreado (order-independent keyword bag, no learning) backs it at medium, Nebulento (fuzzy string matching, the loosest/most tolerant of the three) closes at low.",
+      "size": "micro",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/linha-fina"
+      },
+      "notes": "HYPOTHESIS: unlike trident (three-tier but engines picked for architectural distinctness), cascade-soft is picked for a deliberately monotonic 'strictness' gradient — trained classifier (least tolerant of paraphrase, most precise) -> rigid-but-vocab-flexible keyword bag -> fuzzy matcher (most tolerant of ASR noise/typos, least precise) — to test whether ordering engines by how loosely they match, not just by paradigm, is itself a useful axis distinct from trident's paradigm-diversity axis. Linha-Fina is a template-paradigm statistical classifier (see ENGINE_REGISTRY: 'linha_fina.opm:LinhaFinaPipeline', paradigm='template') distinct from both Jurebes (sklearn baseline family) and Padatious (neural+exact-gate), so this fighter and trident do not test the same top stage. exact_match not applicable to linha-fina/palavreado/nebulento (jurebes-only config key, verified absent from linha_fina/opm.py and palavreado/opm.py's self.config.get(...) call sites).",
+      "has_predictions": true,
+      "prediction_datasets": [
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "ca-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "da-DK"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "de-DE"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "en-US"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "es-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "eu-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "fr-FR"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "gl-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "it-IT"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "nl-NL"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "pt-BR"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "pt-PT"
+        }
+      ]
+    },
+    {
+      "competitor_id": "frankenparse",
+      "schema_version": 1,
+      "modality": "intent_online",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-padatious-pipeline-plugin-high",
+            "ovos-adapt-pipeline-plugin-high",
+            "ovos-palavreado-pipeline-plugin-medium",
+            "ovos-nebulento-pipeline-plugin-medium",
+            "ovos-adapt-pipeline-plugin-low"
+          ],
+          "ovos-adapt-pipeline-plugin": {
+            "conf_high": 0.65,
+            "conf_med": 0.45,
+            "conf_low": 0.25
+          },
+          "ovos-padatious-pipeline-plugin": {
+            "conf_high": 0.95,
+            "conf_med": 0.8,
+            "conf_low": 0.5,
+            "domain_engine": false,
+            "cast_to_ascii": false,
+            "stem": false,
+            "disable_padaos": false,
+            "instant_train": false
+          },
+          "ovos-palavreado-pipeline-plugin": {
+            "conf_high": 0.65,
+            "conf_med": 0.45,
+            "conf_low": 0.25,
+            "max_words": 50
+          },
+          "ovos-nebulento-pipeline-plugin": {
+            "conf_high": 0.95,
+            "conf_med": 0.8,
+            "conf_low": 0.5,
+            "workers": 4
+          }
+        }
+      },
+      "langs": [],
+      "training_regime": "online",
+      "alias": [],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "Frankenparse",
+      "types": [
+        "ensemble",
+        "neural-net",
+        "keyword-match",
+        "fuzzy-match"
+      ],
+      "description": "Four distinct paradigms, one engine each, staggered by tier: Padatious (neural template, exact matches included via its own internal padaos gate) leads, Adapt (keyword rules) backs it at high, then Palavreado (keyword bag) and Nebulento (fuzzy template) share medium recall, with Adapt low as the final catch-all.",
+      "size": "micro",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-plugin-arena"
+      },
+      "notes": "HYPOTHESIS: does a maximal-diversity cascade (one stage per paradigm, no paradigm repeated) beat curated 2-3 engine pairs? Slimmed from the original 7-stage config: dropped the explicit Padacioso-high stage because Padatious already runs padaos internally (disable_padaos=false) and returns conf=1.0 for perfect/regex matches before its neural score is even consulted, so a separate padacioso stage tested nothing padatious wasn't already doing; dropped the redundant padatious-medium retry since a second tier of the same trained classifier is not an independent paradigm and wasn't separately justified.",
+      "has_predictions": true,
+      "prediction_datasets": [
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "ca-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "da-DK"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "de-DE"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "en-US"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "es-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "eu-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "fr-FR"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "gl-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "it-IT"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "nl-NL"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "pt-BR"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "pt-PT"
+        }
+      ]
+    },
+    {
       "competitor_id": "jurebes-autoencoder-linear-svc",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -2086,6 +1234,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -2179,7 +1328,7 @@
     {
       "competitor_id": "jurebes-autoencoder-logreg",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -2197,6 +1346,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -2290,7 +1440,7 @@
     {
       "competitor_id": "jurebes-autoencoder-logreg-deep",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -2308,6 +1458,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -2401,7 +1552,7 @@
     {
       "competitor_id": "jurebes-autoencoder-logreg-wide",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -2419,6 +1570,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -2512,7 +1664,7 @@
     {
       "competitor_id": "jurebes-autoencoder-rbf-svc",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -2530,6 +1682,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -2623,7 +1776,7 @@
     {
       "competitor_id": "jurebes-bagging-logreg",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -2641,6 +1794,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -2734,7 +1888,7 @@
     {
       "competitor_id": "jurebes-bm25-linear-svc",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -2752,6 +1906,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -2845,7 +2000,7 @@
     {
       "competitor_id": "jurebes-bm25-logreg",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -2863,6 +2018,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -2956,7 +2112,7 @@
     {
       "competitor_id": "jurebes-complement-nb-count",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -2974,6 +2130,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -3067,7 +2224,7 @@
     {
       "competitor_id": "jurebes-decision-tree",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -3085,6 +2242,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -3178,7 +2336,7 @@
     {
       "competitor_id": "jurebes-denoising-autoencoder-logreg",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -3196,6 +2354,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -3289,7 +2448,7 @@
     {
       "competitor_id": "jurebes-extra-trees",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -3307,6 +2466,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -3400,7 +2560,7 @@
     {
       "competitor_id": "jurebes-gradient-boosting",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -3418,6 +2578,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -3511,7 +2672,7 @@
     {
       "competitor_id": "jurebes-hashing-sgd-hinge",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -3529,6 +2690,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -3622,7 +2784,7 @@
     {
       "competitor_id": "jurebes-hashing-sgd-log",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -3640,6 +2802,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -3733,7 +2896,7 @@
     {
       "competitor_id": "jurebes-hist-gbm",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -3751,6 +2914,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -3844,7 +3008,7 @@
     {
       "competitor_id": "jurebes-knn",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -3862,6 +3026,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -3955,7 +3120,7 @@
     {
       "competitor_id": "jurebes-label-guided-linear-svc",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -3973,6 +3138,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -4066,7 +3232,7 @@
     {
       "competitor_id": "jurebes-label-guided-logreg",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -4084,6 +3250,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -4177,7 +3344,7 @@
     {
       "competitor_id": "jurebes-lda-classifier",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -4195,6 +3362,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -4288,7 +3456,7 @@
     {
       "competitor_id": "jurebes-lda-logreg",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -4306,6 +3474,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -4399,7 +3568,7 @@
     {
       "competitor_id": "jurebes-lemmatized-logreg",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -4417,6 +3586,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -4441,7 +3611,7 @@
     {
       "competitor_id": "jurebes-linear-svc",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -4459,6 +3629,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -4552,7 +3723,7 @@
     {
       "competitor_id": "jurebes-linear-svc-char",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -4570,6 +3741,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -4663,7 +3835,7 @@
     {
       "competitor_id": "jurebes-linear-svc-hinge",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -4681,6 +3853,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -4774,7 +3947,7 @@
     {
       "competitor_id": "jurebes-logreg",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -4792,6 +3965,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -4885,7 +4059,7 @@
     {
       "competitor_id": "jurebes-logreg-char",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -4903,6 +4077,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -4996,7 +4171,7 @@
     {
       "competitor_id": "jurebes-logreg-elasticnet",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -5014,6 +4189,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -5107,7 +4283,7 @@
     {
       "competitor_id": "jurebes-logreg-l1",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -5125,6 +4301,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -5218,7 +4395,7 @@
     {
       "competitor_id": "jurebes-lsa-linear-svc",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -5236,6 +4413,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -5329,7 +4507,7 @@
     {
       "competitor_id": "jurebes-lsa-logreg",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -5347,6 +4525,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -5440,7 +4619,7 @@
     {
       "competitor_id": "jurebes-lsa-rbf-svc",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -5458,6 +4637,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -5551,7 +4731,7 @@
     {
       "competitor_id": "jurebes-mlp-shallow",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -5569,6 +4749,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -5662,7 +4843,7 @@
     {
       "competitor_id": "jurebes-nb-bernoulli",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -5680,6 +4861,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -5773,7 +4955,7 @@
     {
       "competitor_id": "jurebes-nb-complement",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -5791,6 +4973,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -5884,7 +5067,7 @@
     {
       "competitor_id": "jurebes-nb-multinomial",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -5902,6 +5085,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -5995,7 +5179,7 @@
     {
       "competitor_id": "jurebes-nmf-logreg",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -6013,6 +5197,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -6106,7 +5291,7 @@
     {
       "competitor_id": "jurebes-nusvc",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -6124,6 +5309,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -6217,7 +5403,7 @@
     {
       "competitor_id": "jurebes-ovo-linear-svc",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -6235,6 +5421,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -6328,7 +5515,7 @@
     {
       "competitor_id": "jurebes-ovr-linear-svc",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -6346,6 +5533,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -6439,7 +5627,7 @@
     {
       "competitor_id": "jurebes-passive-aggressive",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -6457,6 +5645,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -6550,7 +5739,7 @@
     {
       "competitor_id": "jurebes-perceptron",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -6568,6 +5757,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -6661,7 +5851,7 @@
     {
       "competitor_id": "jurebes-pos-sequence-logreg",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -6679,6 +5869,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -6752,7 +5943,7 @@
     {
       "competitor_id": "jurebes-qda-classifier",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -6770,6 +5961,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -6863,7 +6055,7 @@
     {
       "competitor_id": "jurebes-random-forest",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -6881,6 +6073,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -6974,7 +6167,7 @@
     {
       "competitor_id": "jurebes-random-projection-logreg",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -6992,6 +6185,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -7085,7 +6279,7 @@
     {
       "competitor_id": "jurebes-rbf-svc",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -7103,6 +6297,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -7196,7 +6391,7 @@
     {
       "competitor_id": "jurebes-ridge",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -7214,6 +6409,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -7307,7 +6503,7 @@
     {
       "competitor_id": "jurebes-sgd-hinge",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -7325,6 +6521,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -7418,7 +6615,7 @@
     {
       "competitor_id": "jurebes-sgd-log",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -7436,6 +6633,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -7529,7 +6727,7 @@
     {
       "competitor_id": "jurebes-sgd-modified-huber",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -7547,6 +6745,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -7640,7 +6839,7 @@
     {
       "competitor_id": "jurebes-skipgram-logreg",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -7658,6 +6857,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -7751,7 +6951,7 @@
     {
       "competitor_id": "jurebes-stacking",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -7769,6 +6969,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -7862,7 +7063,7 @@
     {
       "competitor_id": "jurebes-stemmed-logreg",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -7880,6 +7081,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -7953,7 +7155,7 @@
     {
       "competitor_id": "jurebes-text-stats-logreg",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -7971,6 +7173,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -8064,7 +7267,7 @@
     {
       "competitor_id": "jurebes-union-bm25-pos-logreg",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -8082,6 +7285,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -8155,7 +7359,7 @@
     {
       "competitor_id": "jurebes-union-logreg",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -8173,6 +7377,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -8266,7 +7471,7 @@
     {
       "competitor_id": "jurebes-union-pos-char-logreg",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -8284,6 +7489,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -8357,7 +7563,7 @@
     {
       "competitor_id": "jurebes-union-pos-tfidf-logreg",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -8375,6 +7581,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -8448,7 +7655,7 @@
     {
       "competitor_id": "jurebes-union-skipgram-tfidf-logreg",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -8466,6 +7673,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -8559,7 +7767,7 @@
     {
       "competitor_id": "jurebes-union-text-stats-logreg",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -8577,6 +7785,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -8670,7 +7879,7 @@
     {
       "competitor_id": "jurebes-voting-soft",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -8688,6 +7897,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -8781,7 +7991,7 @@
     {
       "competitor_id": "jurebes-word-pos-logreg",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-jurebes-pipeline-plugin",
       "config": {
         "intents": {
@@ -8799,6 +8009,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-jurebes-pipeline-plugin"
       ],
@@ -8870,9 +8081,107 @@
       ]
     },
     {
+      "competitor_id": "kw-slot-palavreado",
+      "schema_version": 1,
+      "modality": "intent_online",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-palavreado-pipeline-plugin-high",
+            "ovos-padatious-pipeline-plugin-medium"
+          ],
+          "ovos-palavreado-pipeline-plugin": {
+            "conf_high": 0.65,
+            "conf_med": 0.45,
+            "conf_low": 0.25,
+            "max_words": 50
+          },
+          "ovos-padatious-pipeline-plugin": {
+            "conf_high": 0.95,
+            "conf_med": 0.8,
+            "conf_low": 0.5,
+            "domain_engine": false,
+            "cast_to_ascii": false,
+            "stem": false,
+            "disable_padaos": false,
+            "instant_train": false
+          }
+        }
+      },
+      "langs": [],
+      "training_regime": "online",
+      "alias": [],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "KW Slot: Palavreado",
+      "types": [
+        "ensemble",
+        "keyword-match",
+        "neural-net"
+      ],
+      "description": "Replacement-family sibling: Palavreado (order-independent bag-of-keywords) fills the keyword-high slot, Padatious backs it up at medium — identical shape and backup to mycroft-classic, which stands in for the Adapt side of this A/B.",
+      "size": "micro",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/palavreado"
+      },
+      "notes": "FAMILY: kw-slot A/B — mycroft-classic (adapt-high -> padatious-medium) vs kw-slot-palavreado (palavreado-high -> padatious-medium). There is no separate kw-slot-adapt fighter: that config is identical to mycroft-classic (adapt-high -> padatious-medium), and per the 1-fighter-per-config rule mycroft-classic itself now serves as the 'keyword engine = adapt' side of this A/B rather than duplicating the same pipeline under a second competitor_id. This sibling swaps only the keyword-high engine (Palavreado in for Adapt); backup engine and tier (padatious-medium) held fixed against mycroft-classic. Isolates whether Adapt's stricter ordered require/optional grammar or Palavreado's looser order-independent bag-of-keywords matching makes a better front-door gate ahead of an identical Padatious backstop.",
+      "has_predictions": true,
+      "prediction_datasets": [
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "ca-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "da-DK"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "de-DE"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "en-US"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "es-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "eu-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "fr-FR"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "gl-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "it-IT"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "nl-NL"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "pt-BR"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "pt-PT"
+        }
+      ]
+    },
+    {
       "competitor_id": "linha-fina-domain-medium",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-linha-fina-domain-pipeline-plugin",
       "config": {
         "intents": {
@@ -8887,6 +8196,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-linha-fina-domain-pipeline-plugin"
       ],
@@ -8985,7 +8295,7 @@
     {
       "competitor_id": "linha-fina-hierarchical-medium",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-linha-fina-hierarchical-pipeline-plugin",
       "config": {
         "intents": {
@@ -9001,6 +8311,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-linha-fina-hierarchical-pipeline-plugin"
       ],
@@ -9099,7 +8410,7 @@
     {
       "competitor_id": "linha-fina-medium",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-linha-fina-pipeline-plugin",
       "config": {
         "intents": {
@@ -9114,6 +8425,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-linha-fina-pipeline-plugin"
       ],
@@ -9205,48 +8517,47 @@
       ]
     },
     {
-      "competitor_id": "m2v-medium",
+      "competitor_id": "m2v-prototype-nebulento",
       "schema_version": 1,
-      "modality": "intent_template",
-      "plugin": "ovos-m2v-pipeline",
+      "modality": "intent_online",
       "config": {
         "intents": {
           "pipeline": [
-            "ovos-m2v-pipeline-medium"
+            "ovos-m2v-prototype-pipeline-high",
+            "ovos-nebulento-pipeline-plugin-medium"
           ],
-          "ovos-m2v-pipeline": {
-            "model": "Jarbas/ovos-model2vec-intents-distiluse-base-multilingual-cased-v2",
-            "mode": "classifier",
-            "ignore_intents": [],
-            "timeout": 1,
-            "renormalize": false,
-            "conf_high": 0.7,
-            "conf_medium": 0.5,
-            "conf_low": 0.15
+          "ovos-m2v-prototype-pipeline": {
+            "conf_high": 0.6,
+            "conf_medium": 0.45,
+            "conf_low": 0.3
+          },
+          "ovos-nebulento-pipeline-plugin": {
+            "conf_high": 0.95,
+            "conf_med": 0.8,
+            "conf_low": 0.5,
+            "workers": 4
           }
         }
       },
       "langs": [],
-      "alias": [
-        "ovos-m2v-pipeline"
-      ],
+      "training_regime": "online",
+      "alias": [],
       "capabilities": [
         "clip"
       ],
-      "display_name": "Model2Vec",
-      "species": "Model2VecIntentPipeline",
-      "family": "Model2VecIntentPipeline",
+      "display_name": "M2V Prototype × Nebulento",
       "types": [
-        "embedding",
-        "neural-net"
+        "ensemble",
+        "embeddings",
+        "zero-shot",
+        "fuzzy-match"
       ],
-      "description": "Classifies utterances with a pretrained Model2Vec static-embedding intent classifier restricted to intents registered by loaded skills. The default model is multilingual, distilled from LaBSE.",
-      "model": "Jarbas/ovos-model2vec-intents-distiluse-base-multilingual-cased-v2",
-      "size": "medium",
+      "description": "Tests whether zero-shot embedding matching plus fuzzy template slots can replace padatious with no training step at all: Model2Vec's prototype-mode pipeline takes the first shot with class prototypes embedded straight from registered templates, and Nebulento's fuzzy template matching backs it up for slot extraction and runtime-registered templates.",
+      "size": "micro",
       "links": {
         "source": "https://github.com/OpenVoiceOS/ovos-m2v-pipeline"
       },
-      "notes": "Single-stage pipeline at the plugin's own medium-confidence gate; per-plugin config keeps the shipped defaults. Published predictions are migrated from the legacy ovos-intent-benchmark, where this engine was trained on the benchmark's own corpora; the pinned pretrained model targets real OVOS skill intents and cannot emit this benchmark's label space, so native re-sweeps require a dataset-trained variant.",
+      "notes": "HYPOTHESIS: m2v-prototype (see sibling fighter) shows that prototype-mode embedding similarity alone, with no trained head, can match runtime-registered intents. But it still lacks slot extraction. Nebulento fills that gap with template-based slot extraction and its own runtime-registered templates, so pairing it with the prototype pipeline's zero-shot front door tests a fully training-step-free replacement for padatious, not merely a front door for it. Comparators: padatious-stock (the trained baseline this fighter is trying to unseat), m2v-first/m2v-nebulento (the classifier-mode embedding fighters this pipeline is a zero-shot sibling to), and m2v-prototype (isolates whether adding Nebulento's fuzzy backstop helps over the pure prototype fighter alone). conf_high/conf_medium/conf_low on the prototype block are the cosine-calibrated defaults from ovos-m2v-pipeline PR #91. REQUIRES ovos-m2v-pipeline>=0.9.0a1 — the calibrated thresholds land with ovos-m2v-pipeline#91; sweeps run before that PR merges and releases exercise the pipeline's code defaults instead, so this fighter's sweep must be sequenced after #91 merges. There is no plugin floor/pin field in this registry schema, so the floor must already be installed in the runner environment.",
       "has_predictions": true,
       "prediction_datasets": [
         {
@@ -9310,7 +8621,7 @@
     {
       "competitor_id": "markov-domain-medium",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-markov-domain-pipeline-plugin",
       "config": {
         "intents": {
@@ -9335,6 +8646,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-markov-domain-pipeline-plugin"
       ],
@@ -9432,7 +8744,7 @@
     {
       "competitor_id": "markov-medium",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-markov-pipeline-plugin",
       "config": {
         "intents": {
@@ -9457,6 +8769,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-markov-pipeline-plugin"
       ],
@@ -9548,9 +8861,414 @@
       ]
     },
     {
+      "competitor_id": "mycroft-classic",
+      "schema_version": 1,
+      "modality": "intent_online",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-adapt-pipeline-plugin-high",
+            "ovos-padatious-pipeline-plugin-medium"
+          ],
+          "ovos-adapt-pipeline-plugin": {
+            "conf_high": 0.65,
+            "conf_med": 0.45,
+            "conf_low": 0.25
+          },
+          "ovos-padatious-pipeline-plugin": {
+            "conf_high": 0.95,
+            "conf_med": 0.8,
+            "conf_low": 0.5,
+            "domain_engine": false,
+            "cast_to_ascii": false,
+            "stem": false,
+            "disable_padaos": false,
+            "instant_train": false
+          }
+        }
+      },
+      "langs": [],
+      "training_regime": "online",
+      "alias": [],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "Mycroft Classic",
+      "types": [
+        "ensemble",
+        "keyword-match",
+        "neural-net"
+      ],
+      "description": "The historical Mycroft-AI intent order, before OVOS restructured the pipeline into confidence-interleaved stages: Adapt is the primary keyword-rule parser, Padatious runs only as a fallback after Adapt fails to match anything.",
+      "size": "micro",
+      "links": {
+        "source": "https://github.com/MycroftAI/mycroft-core/pull/939"
+      },
+      "notes": "SOURCE: mycroft-core PR #939 ('Implement Padatious support (examples based intent parser)', MatthewScholefield) added Padatious to mycroft-core by making PadatiousService inherit from FallbackSkill (per forslund's review comment 'Make PadatiousService inherit from FallbackSkill to fix new fallback changes' on that PR) — i.e. Padatious was wired in as a fallback handler invoked only when Adapt's IntentBuilder grammar produced no match, not as a co-equal parallel matcher. Author confirmed back-compat ('Adapt will still work :)'). This is the inverse of the modern OVOS/mycroft-dev order (see ovos-stock.json and current MycroftAI/mycroft-core dev intent_service.py, which interleaves padatious-high ahead of adapt) — the point of this fighter is to test whether that later re-ordering (template-first) actually helped, by running the original adapt-first/padatious-fallback shape through the arena. Modeled as adapt-high -> padatious-medium: Adapt gets first shot at its own high gate; Padatious's medium tier (not high) reflects that classic Padatious ran as a general-purpose fallback rather than a first-look high-confidence matcher. Arena skips: fallback-skill priority tiers (90-99 catch-all range documented in Mycroft's Fallback Skill docs) don't exist as an arena stage — Padatious substitutes directly for 'the fallback', consistent with the historical mechanism. SHARED BASELINE ROLE: this exact pipeline (adapt-high -> padatious-medium) is also the natural 'keyword engine = adapt' / 'template engine = padatious' cell of both replacement-study grids below — rather than keep separate duplicate-config fighters (kw-slot-adapt, tmpl-slot-padatious) alongside this one (1 fighter per config, no exceptions), mycroft-classic itself now serves as that shared baseline for both families: kw-slot family compares mycroft-classic against kw-slot-palavreado (keyword-engine A/B, Padatious backup+shape fixed); tmpl-slot family compares mycroft-classic against tmpl-slot-{nebulento,linhafina,jurebes} (template-engine 4-way, Adapt front+shape fixed). Its historical framing and its role as the shared adapt/padatious baseline are not in tension — the config is the same regardless of which question is being asked of it.",
+      "has_predictions": true,
+      "prediction_datasets": [
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "ca-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "da-DK"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "de-DE"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "en-US"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "es-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "eu-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "fr-FR"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "gl-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "it-IT"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "nl-NL"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "pt-BR"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "pt-PT"
+        }
+      ]
+    },
+    {
+      "competitor_id": "nebulacioso",
+      "schema_version": 1,
+      "modality": "intent_online",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-padacioso-pipeline-plugin-high",
+            "ovos-nebulento-pipeline-plugin-low"
+          ],
+          "ovos-padacioso-pipeline-plugin": {
+            "conf_high": 0.95,
+            "conf_med": 0.8,
+            "conf_low": 0.5,
+            "workers": 4,
+            "fuzz": false
+          },
+          "ovos-nebulento-pipeline-plugin": {
+            "conf_high": 0.95,
+            "conf_med": 0.8,
+            "conf_low": 0.5,
+            "workers": 4
+          }
+        }
+      },
+      "langs": [],
+      "training_regime": "online",
+      "alias": [],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "Nebulacioso",
+      "types": [
+        "ensemble",
+        "template-match",
+        "fuzzy-match"
+      ],
+      "description": "Padacioso's deterministic, regex-based template matcher takes the first shot and extracts slots from an exact match; Nebulento's fuzzy string matching mops up anything the strict templates miss. Both engines are training-free and dependency-light, making this the lightweight padatious replacement candidate for installs where model2vec is not available.",
+      "size": "micro",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/padacioso"
+      },
+      "notes": "HYPOTHESIS: Padacioso's high-confidence exact template gate plus Nebulento's fuzzy fallback should catch both exact and near-miss phrasings without any training step, unlike padatious or m2v-based fighters which need a trained model. Nebulento runs at its own low-confidence gate (conf_low) rather than medium so it actually fires as a fallback instead of sitting nearly silent behind Padacioso's high gate; conf_high/conf_med/conf_low values are copied verbatim from the single-engine nebulento-medium template fighter, only the pipeline tier differs.",
+      "has_predictions": true,
+      "prediction_datasets": [
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "ca-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "da-DK"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "de-DE"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "en-US"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "es-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "eu-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "fr-FR"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "gl-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "it-IT"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "nl-NL"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "pt-BR"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "pt-PT"
+        }
+      ]
+    },
+    {
+      "competitor_id": "nebulapt",
+      "schema_version": 1,
+      "modality": "intent_online",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-adapt-pipeline-plugin-high",
+            "ovos-nebulento-pipeline-plugin-medium",
+            "ovos-adapt-pipeline-plugin-medium"
+          ],
+          "ovos-adapt-pipeline-plugin": {
+            "conf_high": 0.65,
+            "conf_med": 0.45,
+            "conf_low": 0.25
+          },
+          "ovos-nebulento-pipeline-plugin": {
+            "conf_high": 0.95,
+            "conf_med": 0.8,
+            "conf_low": 0.5,
+            "workers": 4
+          }
+        }
+      },
+      "langs": [],
+      "training_regime": "online",
+      "alias": [],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "Nebulapt",
+      "types": [
+        "ensemble",
+        "fuzzy-match",
+        "keyword-match"
+      ],
+      "description": "Nebulento × Adapt fusion — precise keyword rules take the first shot, fuzzy matching mops up typos and ASR noise, and Adapt medium catches the remainder.",
+      "size": "micro",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-adapt-pipeline-plugin"
+      },
+      "notes": "HYPOTHESIS: does a strict keyword-rule engine (Adapt, low false-positive but brittle to phrasing/typos) at high confidence, backstopped by a fuzzy keyword matcher (Nebulento, tolerant of ASR noise and near-misses) at medium, and a lower-bar Adapt retry, beat either engine alone? Adapt and Nebulento are different matching strategies (strict rule vs fuzzy), so this tests real precision/recall complementarity, not a duplicate.",
+      "has_predictions": true,
+      "prediction_datasets": [
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "ca-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "da-DK"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "de-DE"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "en-US"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "es-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "eu-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "fr-FR"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "gl-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "it-IT"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "nl-NL"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "pt-BR"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "pt-PT"
+        }
+      ]
+    },
+    {
+      "competitor_id": "nebulatious",
+      "schema_version": 1,
+      "modality": "intent_online",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-padatious-pipeline-plugin-high",
+            "ovos-nebulento-pipeline-plugin-medium",
+            "ovos-padatious-pipeline-plugin-medium"
+          ],
+          "ovos-padatious-pipeline-plugin": {
+            "conf_high": 0.95,
+            "conf_med": 0.8,
+            "conf_low": 0.5,
+            "domain_engine": false,
+            "cast_to_ascii": false,
+            "stem": false,
+            "disable_padaos": false,
+            "instant_train": false
+          },
+          "ovos-nebulento-pipeline-plugin": {
+            "conf_high": 0.95,
+            "conf_med": 0.8,
+            "conf_low": 0.5,
+            "workers": 4
+          }
+        }
+      },
+      "langs": [],
+      "training_regime": "online",
+      "alias": [],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "Nebulatious",
+      "types": [
+        "ensemble",
+        "neural-net",
+        "fuzzy-match"
+      ],
+      "description": "Padatious × Nebulento fusion — the neural parser leads at high confidence, fuzzy string matching mops up typos and ASR noise, neural medium catches the rest.",
+      "size": "micro",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-padatious-pipeline-plugin"
+      },
+      "notes": "HYPOTHESIS: does a neural template classifier (Padatious) at high confidence, backed by a fuzzy template matcher (Nebulento) tuned for typos/ASR noise, beat either alone — and does retrying Padatious at a looser gate afterward recover cases the fuzzy stage still missed? Padatious's internal padaos exact-match gate already covers regex-perfect input (verified in ovos_padatious/intent_container.py), so this pair specifically probes the neural-vs-fuzzy paraphrase gap, not exact-match duplication.",
+      "has_predictions": true,
+      "prediction_datasets": [
+        {
+          "dataset_id": "banking77",
+          "lang": "en-US"
+        },
+        {
+          "dataset_id": "clinc150",
+          "lang": "en-US"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "ca-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "da-DK"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "de-DE"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "en-US"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "es-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "eu-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "fr-FR"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "gl-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "it-IT"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "nl-NL"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "pt-BR"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "pt-PT"
+        },
+        {
+          "dataset_id": "mtop-de-DE",
+          "lang": "de-DE"
+        },
+        {
+          "dataset_id": "mtop-en-US",
+          "lang": "en-US"
+        },
+        {
+          "dataset_id": "snips",
+          "lang": "en-US"
+        }
+      ]
+    },
+    {
       "competitor_id": "nebulento-hierarchical-medium",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-nebulento-hierarchical-pipeline-plugin",
       "config": {
         "intents": {
@@ -9567,6 +9285,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-nebulento-hierarchical-pipeline-plugin"
       ],
@@ -9665,7 +9384,7 @@
     {
       "competitor_id": "nebulento-medium",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-nebulento-pipeline-plugin",
       "config": {
         "intents": {
@@ -9681,6 +9400,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-nebulento-pipeline-plugin"
       ],
@@ -9979,7 +9699,7 @@
     {
       "competitor_id": "padacioso-medium",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-padacioso-pipeline-plugin",
       "config": {
         "intents": {
@@ -9996,6 +9716,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-padacioso-pipeline-plugin"
       ],
@@ -10294,7 +10015,7 @@
     {
       "competitor_id": "padatious-domain-medium",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-padatious-pipeline-plugin",
       "config": {
         "intents": {
@@ -10314,6 +10035,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-padatious-pipeline-plugin"
       ],
@@ -10412,7 +10134,7 @@
     {
       "competitor_id": "padatious-medium",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-padatious-pipeline-plugin",
       "config": {
         "intents": {
@@ -10432,6 +10154,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-padatious-pipeline-plugin"
       ],
@@ -10526,7 +10249,7 @@
     {
       "competitor_id": "padatious-no-padaos-medium",
       "schema_version": 1,
-      "modality": "intent_template",
+      "modality": "intent_online",
       "plugin": "ovos-padatious-pipeline-plugin",
       "config": {
         "intents": {
@@ -10546,6 +10269,7 @@
         }
       },
       "langs": [],
+      "training_regime": "online",
       "alias": [
         "ovos-padatious-pipeline-plugin"
       ],
@@ -10565,6 +10289,498 @@
         "source": "https://github.com/OpenVoiceOS/ovos-padatious-pipeline-plugin"
       },
       "notes": "Same plugin id and medium-confidence gate as padatious-medium; the only config change is flipping 'disable_padaos' from false to true. padaos is the exact-match regex layer inside padatious (IntentContainer(disable_padaos=...)); this fighter exists to quantify how much accuracy it actually buys, particularly on exact-template-match utterances, versus the training/boot-time cost of maintaining it. Padatious itself is not changing: disable_padaos stays a permanent, opt-in option in the plugin regardless of what these numbers show.",
+      "has_predictions": true,
+      "prediction_datasets": [
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "ca-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "da-DK"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "de-DE"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "en-US"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "es-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "eu-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "fr-FR"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "gl-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "it-IT"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "nl-NL"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "pt-BR"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "pt-PT"
+        },
+        {
+          "dataset_id": "mtop-de-DE",
+          "lang": "de-DE"
+        },
+        {
+          "dataset_id": "mtop-en-US",
+          "lang": "en-US"
+        }
+      ]
+    },
+    {
+      "competitor_id": "tmpl-slot-jurebes",
+      "schema_version": 1,
+      "modality": "intent_online",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-adapt-pipeline-plugin-high",
+            "ovos-jurebes-pipeline-plugin-medium"
+          ],
+          "ovos-adapt-pipeline-plugin": {
+            "conf_high": 0.65,
+            "conf_med": 0.45,
+            "conf_low": 0.25
+          },
+          "ovos-jurebes-pipeline-plugin": {
+            "conf_high": 0.8,
+            "conf_med": 0.6,
+            "conf_low": 0.4,
+            "baseline": "mlp_shallow",
+            "enable_slots": true,
+            "exact_match": false
+          }
+        }
+      },
+      "langs": [],
+      "training_regime": "online",
+      "alias": [],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "Template Slot: Jurebes",
+      "types": [
+        "ensemble",
+        "keyword-match",
+        "neural-net"
+      ],
+      "description": "Replacement-family member: Adapt fixed at keyword-high, Jurebes (sklearn MLP classifier, the top-accuracy baseline on the intents-for-eval en-US template board) fills the template-medium slot.",
+      "size": "micro",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/jurebes"
+      },
+      "notes": "FAMILY: tmpl-slot 4-way — mycroft-classic (adapt-high -> padatious-medium) is the shared baseline; siblings are tmpl-slot-nebulento, tmpl-slot-linhafina, tmpl-slot-jurebes (this file), each swapping only the template-medium engine with adapt-high held fixed. There is no separate tmpl-slot-padatious fighter: that config is identical to mycroft-classic, and per the 1-fighter-per-config rule mycroft-classic itself serves as the 'template engine = padatious' cell of this grid rather than duplicating the same pipeline under a second competitor_id. This sibling swaps in Jurebes using the same top-accuracy 'mlp_shallow' baseline selected for trident.json (accuracy 0.8154 on frontend-static/public/data/benchmark-intent_template-intents-for-eval-en-US.json among all jurebes-* entries), with exact_match forced to false so the fighter tests the trained classifier itself rather than jurebes's own internal exact-template short-circuit — consistent with the exact_match:false convention used everywhere jurebes appears in this pass. adapt-high held fixed as the front door, matching the other tmpl-slot siblings.",
+      "has_predictions": true,
+      "prediction_datasets": [
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "ca-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "da-DK"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "de-DE"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "en-US"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "es-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "eu-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "fr-FR"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "gl-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "it-IT"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "nl-NL"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "pt-BR"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "pt-PT"
+        }
+      ]
+    },
+    {
+      "competitor_id": "tmpl-slot-linhafina",
+      "schema_version": 1,
+      "modality": "intent_online",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-adapt-pipeline-plugin-high",
+            "ovos-linha-fina-pipeline-plugin-medium"
+          ],
+          "ovos-adapt-pipeline-plugin": {
+            "conf_high": 0.65,
+            "conf_med": 0.45,
+            "conf_low": 0.25
+          },
+          "ovos-linha-fina-pipeline-plugin": {
+            "conf_high": 0.8,
+            "conf_med": 0.6,
+            "conf_low": 0.4
+          }
+        }
+      },
+      "langs": [],
+      "training_regime": "online",
+      "alias": [],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "Template Slot: Linha-Fina",
+      "types": [
+        "ensemble",
+        "keyword-match",
+        "neural-net"
+      ],
+      "description": "Replacement-family member: Adapt fixed at keyword-high, Linha-Fina (trained statistical template classifier) fills the template-medium slot.",
+      "size": "micro",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/linha-fina"
+      },
+      "notes": "FAMILY: tmpl-slot 4-way — mycroft-classic (adapt-high -> padatious-medium) is the shared baseline; siblings are tmpl-slot-nebulento, tmpl-slot-linhafina (this file), tmpl-slot-jurebes, each swapping only the template-medium engine with adapt-high held fixed. There is no separate tmpl-slot-padatious fighter: that config is identical to mycroft-classic, and per the 1-fighter-per-config rule mycroft-classic itself serves as the 'template engine = padatious' cell of this grid rather than duplicating the same pipeline under a second competitor_id. This sibling swaps in Linha-Fina, a distinct trained-classifier engine from Padatious and Jurebes (see ENGINE_REGISTRY import path 'linha_fina.opm:LinhaFinaPipeline'), with adapt-high held fixed as the front door. Never previously paired with plain Adapt in the registry (linha-fina does not appear in frankenparse/padapt/nebulatious/nebulapt/palavadapt), so this is the first head-to-head data point for Linha-Fina against the keyword-rule paradigm specifically.",
+      "has_predictions": true,
+      "prediction_datasets": [
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "ca-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "da-DK"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "de-DE"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "en-US"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "es-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "eu-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "fr-FR"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "gl-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "it-IT"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "nl-NL"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "pt-BR"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "pt-PT"
+        }
+      ]
+    },
+    {
+      "competitor_id": "tmpl-slot-nebulento",
+      "schema_version": 1,
+      "modality": "intent_online",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-adapt-pipeline-plugin-high",
+            "ovos-nebulento-pipeline-plugin-medium"
+          ],
+          "ovos-adapt-pipeline-plugin": {
+            "conf_high": 0.65,
+            "conf_med": 0.45,
+            "conf_low": 0.25
+          },
+          "ovos-nebulento-pipeline-plugin": {
+            "conf_high": 0.95,
+            "conf_med": 0.8,
+            "conf_low": 0.5,
+            "workers": 4
+          }
+        }
+      },
+      "langs": [],
+      "training_regime": "online",
+      "alias": [],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "Template Slot: Nebulento",
+      "types": [
+        "ensemble",
+        "keyword-match",
+        "fuzzy-match"
+      ],
+      "description": "Replacement-family member: Adapt fixed at keyword-high, Nebulento (fuzzy string matching over templates) fills the template-medium slot.",
+      "size": "micro",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/nebulento"
+      },
+      "notes": "FAMILY: tmpl-slot 4-way — mycroft-classic (adapt-high -> padatious-medium) is the shared baseline; siblings are tmpl-slot-nebulento (this file), tmpl-slot-linhafina, tmpl-slot-jurebes, each swapping only the template-medium engine with adapt-high held fixed. There is no separate tmpl-slot-padatious fighter: that config is identical to mycroft-classic, and per the 1-fighter-per-config rule mycroft-classic itself serves as the 'template engine = padatious' cell of this grid rather than duplicating the same pipeline under a second competitor_id. This sibling swaps in Nebulento (fuzzy edit-distance-style template matching, tolerant of typos/ASR noise) as the backup, with adapt-high held fixed. Note this pipeline shape (adapt-high -> nebulento-medium -> [no third stage]) is a strict 2-stage subset of nebulapt.json's 3-stage adapt-high -> nebulento-medium -> adapt-medium; kept as a separate, deliberately shorter fighter because the family's isolation question is 'first successful replacement per engine' with no retry stage, whereas nebulapt additionally tests whether an adapt-medium retry recovers more on top of the pair — a different, additive hypothesis.",
+      "has_predictions": true,
+      "prediction_datasets": [
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "ca-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "da-DK"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "de-DE"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "en-US"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "es-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "eu-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "fr-FR"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "gl-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "it-IT"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "nl-NL"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "pt-BR"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "pt-PT"
+        }
+      ]
+    },
+    {
+      "competitor_id": "trident",
+      "schema_version": 1,
+      "modality": "intent_online",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-padatious-pipeline-plugin-high",
+            "ovos-jurebes-pipeline-plugin-medium",
+            "ovos-nebulento-pipeline-plugin-low"
+          ],
+          "ovos-padatious-pipeline-plugin": {
+            "conf_high": 0.95,
+            "conf_med": 0.8,
+            "conf_low": 0.5,
+            "domain_engine": false,
+            "cast_to_ascii": false,
+            "stem": false,
+            "disable_padaos": false,
+            "instant_train": false
+          },
+          "ovos-jurebes-pipeline-plugin": {
+            "conf_high": 0.8,
+            "conf_med": 0.6,
+            "conf_low": 0.4,
+            "baseline": "mlp_shallow",
+            "enable_slots": true,
+            "exact_match": false
+          },
+          "ovos-nebulento-pipeline-plugin": {
+            "conf_high": 0.95,
+            "conf_med": 0.8,
+            "conf_low": 0.5,
+            "workers": 4
+          }
+        }
+      },
+      "langs": [],
+      "training_regime": "online",
+      "alias": [],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "Trident",
+      "types": [
+        "ensemble",
+        "neural-net",
+        "fuzzy-match"
+      ],
+      "description": "A three-tier confidence mixer across three genuinely distinct template paradigms: Padatious (learned template similarity + internal exact-match gate) at high, Jurebes (sklearn MLP classifier over TF-IDF features, the top-accuracy baseline on the intents-for-eval en-US template board) at medium, Nebulento (fuzzy string matching) as the loosest low-confidence catch-all.",
+      "size": "micro",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/jurebes"
+      },
+      "notes": "HYPOTHESIS: does mixing three architecturally distinct classifiers by descending confidence tier — neural-template-with-exact-gate (Padatious) high, statistical-ML classifier (Jurebes) medium, fuzzy-string (Nebulento) low — beat any two-engine fusion in the league? Unlike frankenparse (which mixes paradigms but stays single-tier-per-engine at similar confidence bands), trident deliberately spans the full high/medium/low ladder with one engine per rung, so it also probes whether a strict confidence-descending cascade (not just paradigm diversity) is itself a useful shape. BASELINE SELECTION: 'mlp_shallow' is the top-accuracy entry on frontend-static/public/data/benchmark-intent_template-intents-for-eval-en-US.json among all jurebes-* competitor_ids (accuracy 0.8154, beating jurebes-sgd-modified-huber at 0.8143 and every other of the ~55 published jurebes sklearn baselines on that board). Config key verified in jurebes/opm.py (self.baseline = self.config.get('baseline', 'linear_svc')) and jurebes/baselines.py ('mlp_shallow': lambda: _p(tfidf_word(), MLPClassifier(hidden_layer_sizes=(64,), max_iter=500))). exact_match set to false per spec (jurebes/opm.py: self.exact_match = bool(self.config.get('exact_match', True)) — forced off here so this fighter tests the trained MLP classifier itself, not jurebes's own internal exact-template short-circuit, which would otherwise duplicate what Padatious's high-tier stage already does one step earlier in the cascade).",
+      "has_predictions": true,
+      "prediction_datasets": [
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "ca-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "da-DK"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "de-DE"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "en-US"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "es-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "eu-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "fr-FR"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "gl-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "it-IT"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "nl-NL"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "pt-BR"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "pt-PT"
+        },
+        {
+          "dataset_id": "mtop-de-DE",
+          "lang": "de-DE"
+        },
+        {
+          "dataset_id": "mtop-en-US",
+          "lang": "en-US"
+        }
+      ]
+    },
+    {
+      "competitor_id": "m2v-prototype",
+      "schema_version": 1,
+      "modality": "intent_zero_shot",
+      "plugin": "ovos-m2v-prototype-pipeline",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-m2v-prototype-pipeline-high",
+            "ovos-m2v-prototype-pipeline-medium"
+          ],
+          "ovos-m2v-prototype-pipeline": {
+            "conf_high": 0.6,
+            "conf_medium": 0.45,
+            "conf_low": 0.3
+          }
+        }
+      },
+      "langs": [],
+      "training_regime": "zero_shot",
+      "alias": [
+        "ovos-m2v-prototype-pipeline"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "M2V Prototype",
+      "types": [
+        "embeddings",
+        "zero-shot"
+      ],
+      "description": "A pure zero-shot fighter: Model2Vec's prototype-mode pipeline embeds each intent's templates into a class prototype at registration time and matches utterances against those prototypes by cosine similarity, with no trained classification head at all.",
+      "size": "micro",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-m2v-pipeline"
+      },
+      "notes": "HYPOTHESIS: every other fighter in the league, including the m2v-first/m2v-nebulento embedding-fronted ensembles, ultimately relies on a classifier (Padatious, Nebulento, or Model2Vec's own trained label set) that must see an intent's templates at a training step before it can match against them. Prototype mode instead embeds a class prototype directly from the templates handed to it at registration, so intents registered at runtime — after the pipeline is already live, with no retrain — are immediately matchable. This isolates the open-world/zero-shot axis: can embedding-prototype similarity alone, with no trained head, replace a trained classifier's raw matching accuracy. conf_high/conf_medium/conf_low are the cosine-calibrated defaults from ovos-m2v-pipeline PR #91, not the classifier-mode thresholds used by m2v-first/m2v-nebulento. REQUIRES ovos-m2v-pipeline>=0.9.0a1 — the calibrated thresholds land with ovos-m2v-pipeline#91; sweeps run before that PR merges and releases exercise the pipeline's code defaults instead, so this fighter's sweep must be sequenced after #91 merges. There is no plugin floor/pin field in this registry schema, so the floor must already be installed in the runner environment.",
       "has_predictions": true,
       "prediction_datasets": [
         {
@@ -117133,11 +117349,11 @@
     "ovos-adapt-pipeline-plugin": "AdaptPipeline",
     "ovos-palavreado-hierarchical-pipeline": "PalavreadoPipeline",
     "ovos-palavreado-pipeline-plugin": "PalavreadoPipeline",
+    "ovos-m2v-pipeline": "Model2VecIntentPipeline",
     "ovos-jurebes-pipeline-plugin": "JurebesPipeline",
     "ovos-linha-fina-domain-pipeline-plugin": "LinhaFinaPipeline",
     "ovos-linha-fina-hierarchical-pipeline-plugin": "LinhaFinaPipeline",
     "ovos-linha-fina-pipeline-plugin": "LinhaFinaPipeline",
-    "ovos-m2v-pipeline": "Model2VecIntentPipeline",
     "ovos-markov-domain-pipeline-plugin": "MarkovPipeline",
     "ovos-markov-pipeline-plugin": "MarkovPipeline",
     "ovos-nebulento-hierarchical-pipeline-plugin": "NebulentoPipeline",

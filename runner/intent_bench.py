@@ -25,6 +25,7 @@ import json
 import logging
 import multiprocessing as mp
 import random
+import re
 import time
 from collections import defaultdict
 from datetime import datetime, timezone
@@ -33,12 +34,14 @@ from pathlib import Path
 from arena.metrics import domain_of, is_pinned_revision
 from arena.version import __version__ as ARENA_VERSION
 from registry.loaders import load_all_competitors, load_dataset
-from runner.audio_io import resolve_sample_cap, stream_audio_dataset, stream_manifest_audio
-from runner.intent_pipeline import (
-    ENGINE_REGISTRY,
-    IntentPipeline,
-    plugin_version,
+from registry.schemas import (
+    ENGINE_TRAITS,
+    TrainingRegime,
+    engine_paradigm,
+    expected_league,
 )
+from runner.audio_io import resolve_sample_cap, stream_audio_dataset, stream_manifest_audio
+from runner.intent_pipeline import IntentPipeline, plugin_version
 from runner.perf import hw_fingerprint, measure_call
 
 log = logging.getLogger("intent-bench")
@@ -103,9 +106,47 @@ def fetch_rows(dataset_def, lang: str, revision: str) -> list:
             repo_type="dataset",
             revision=revision,
         )
-        return [json.loads(line) for line in Path(path).read_text().splitlines()
+        rows = [json.loads(line) for line in Path(path).read_text().splitlines()
                 if line.strip()]
-    return fetch_hf_classification_rows(dataset_def, lang, revision)
+    else:
+        rows = fetch_hf_classification_rows(dataset_def, lang, revision)
+    if dataset_def.role == "eval":
+        reject_unexpanded_utterances(dataset_def, lang, rows)
+    return rows
+
+
+#: Template markup an OVOS intent file may carry: alternation ``(a|b)``,
+#: optional ``[word]``, and ``{slot}`` placeholders. A *training* row is
+#: expected to contain these — expanding them is what
+#: ``runner.intent_pipeline.expand_template`` is for. An *eval* row must not:
+#: it stands for something a person said, and an engine scored against
+#: ``(create|add) list [items]`` is being asked to match a string no user
+#: would ever utter.
+_TEMPLATE_MARKUP = re.compile(r"\([^()]*\|[^()]*\)|\[[^\[\]]+\]|\{[^{}]+\}")
+
+
+class UnexpandedUtterances(ValueError):
+    """An eval corpus ships template markup where utterances belong."""
+
+
+def reject_unexpanded_utterances(dataset_def, lang: str, rows: list) -> None:
+    """Refuse an eval corpus whose utterances were never expanded.
+
+    Feeding raw templates to an engine measures nothing: every fighter is
+    scored on a string no speaker produces, and a template-parsing engine is
+    handed its own training syntax as input. Fail on the corpus rather than
+    publish rows that look like results.
+    """
+    field = dataset_def.reference_fields.get("utterance", "utterance")
+    for index, row in enumerate(rows):
+        text = row.get(field)
+        if isinstance(text, str) and _TEMPLATE_MARKUP.search(text):
+            raise UnexpandedUtterances(
+                f"{dataset_def.dataset_id} ({dataset_def.source.hf_id}, "
+                f"{lang}) row {index} carries unexpanded template markup "
+                f"where an utterance belongs: {text!r}. Republish the corpus "
+                "with the templates expanded."
+            )
 
 
 def stt_plugin_version(plugin_id: str) -> str:
@@ -314,37 +355,72 @@ def fetch_hf_classification_rows(dataset_def, lang: str, revision: str) -> list:
 
 
 def needed_paradigms(competitor) -> set:
-    return {ENGINE_REGISTRY[p].paradigm for p in competitor.pipeline_plugins}
+    return {engine_paradigm(p) for p in competitor.pipeline_plugins}
+
+
+def predictions_store(competitor) -> str:
+    """Which predictions repo a fighter's rows are published to.
+
+    Prediction repos are keyed by the *datashape* a sweep consumed, not by
+    the league: ``ovos-intent-template-bench-<dataset>`` for template-only
+    fighters, ``ovos-intent-keyword-bench-<dataset>`` for keyword-only ones,
+    and the eval corpus's own ``ovos-intent-bench-<dataset>`` for fighters
+    that mix both. A row's league is read from the registry at assemble time
+    (``arena.predictions.group_rows``), so a fighter that changes league
+    keeps its published rows.
+    """
+    paradigms = needed_paradigms(competitor)
+    if paradigms == {"keyword"}:
+        return "intent_keyword"
+    if paradigms == {"template"}:
+        return "intent_template"
+    return "intent"
 
 
 def check_league(competitor) -> None:
-    """Paradigm leagues are pure: every stage engine must match the league.
+    """A fighter's league must follow from its stages.
 
-    The open ``intent`` league accepts any mix.
+    Leagues are pure: an ``intent_online`` fighter may not carry a stage that
+    needs a pretrained artefact, an ``intent_zero_shot`` fighter may not
+    carry a stage that trains, and a keyword fighter never shares a board
+    with template supervision.
     """
-    league = competitor.modality.value
-    if league == "intent":
-        return
-    expected = league.removeprefix("intent_")
-    for plugin_id in competitor.pipeline_plugins:
-        paradigm = ENGINE_REGISTRY[plugin_id].paradigm
-        if paradigm != expected:
-            raise ValueError(
-                f"{competitor.competitor_id}: {plugin_id} is a "
-                f"{paradigm}-paradigm engine but the fighter is in the "
-                f"{league} league"
-            )
+    intents = competitor.config.get("intents") or {}
+    league = expected_league(competitor.pipeline_plugins, intents)
+    if competitor.modality != league:
+        raise ValueError(
+            f"{competitor.competitor_id}: stages put this fighter in the "
+            f"{league.value} league, but it is filed under "
+            f"{competitor.modality.value}"
+        )
 
 
-def eligible_competitors(train_paradigms: set) -> list:
+def trained_on(competitor, dataset_id: str) -> bool:
+    """Whether an offline fighter's artefact can emit *dataset_id*'s labels.
+
+    Only offline fighters are restricted: their pretrained head has a fixed
+    label set, so on any other corpus every answer is wrong for a reason
+    that says nothing about the engine. Zero-shot and online fighters learn
+    the corpus's labels from its training rows and always compete.
+    """
+    if competitor.training_regime is not TrainingRegime.OFFLINE:
+        return True
+    return dataset_id in (competitor.label_set or [])
+
+
+def eligible_competitors(train_paradigms: set, dataset_id: str = "") -> list:
     """Runnable intent fighters: known engines, pure leagues, trainable here."""
     eligible = []
     for comp in load_all_competitors():
         if not comp.modality.value.startswith("intent"):
             continue
-        if not all(p in ENGINE_REGISTRY for p in comp.pipeline_plugins):
+        if not all(p in ENGINE_TRAITS for p in comp.pipeline_plugins):
             continue
         check_league(comp)
+        if dataset_id and not trained_on(comp, dataset_id):
+            log.info("Skipping %s — not trained on this label set (%s)",
+                     comp.competitor_id, dataset_id)
+            continue
         if needed_paradigms(comp) - train_paradigms:
             log.info("Skipping %s — needs %s training data this benchmark "
                      "does not provide", comp.competitor_id,
@@ -374,6 +450,8 @@ def make_row(
     granularity: str = "intent",
     peak_rss_mb: float | None = None,
     stt_provenance: dict | None = None,
+    model_revision: str | None = None,
+    label_overlap: int | None = None,
 ) -> dict:
     """Build one §3.2 prediction row.
 
@@ -397,6 +475,11 @@ def make_row(
     versions = ";".join(
         plugin_version(p) for p in competitor.pipeline_plugins
     )
+    if model_revision:
+        # A pretrained fighter's weights are half its identity: a row that
+        # names only the plugin version cannot be reproduced. The sha here is
+        # the one the snapshot resolved to, never the declared one.
+        versions = f"{versions};{competitor.model}@{model_revision}"
     row = {
         "competitor_id": competitor.competitor_id,
         "sample_id": f"{lang}/{sample_index:05d}",
@@ -416,6 +499,7 @@ def make_row(
         "exact_match": exact,
         "confidence": confidence,
         "bucket": test_row.get("split"),
+        "model_revision": model_revision,
         "latency_ms": round(latency_ms, 3),
         # performance-metrics campaign M1 (runner.perf) — additive, optional;
         # no audio_secs here, intent rows are text-in/text-out.
@@ -427,6 +511,8 @@ def make_row(
     }
     if stt_provenance:
         row.update(stt_provenance)
+    if label_overlap is not None:
+        row["extras"] = {"label_overlap": label_overlap}
     return row
 
 
@@ -604,6 +690,8 @@ def _train_and_predict(
     revision: str,
     granularity: str,
     stt_provenance: dict | None,
+    model_revision: str | None = None,
+    reference_labels: set | None = None,
 ) -> int:
     """Train one fighter and predict its eval rows, appending them to ``out_path``.
 
@@ -615,6 +703,23 @@ def _train_and_predict(
     log.info("  training %s for %s (stages: %s)",
              competitor.competitor_id, lang, ", ".join(pipeline.stage_names))
     pipeline.train(train_data)
+
+    # A pretrained head either shares labels with this corpus or it does not,
+    # and only the loaded model can say. Without this check a zero-overlap
+    # fighter publishes a whole board of nulls that reads as a terrible
+    # engine rather than as an ineligible one.
+    label_overlap = None
+    if reference_labels:
+        label_overlap = model_label_overlap(pipeline, reference_labels)
+        if label_overlap == 0:
+            log.error(
+                "  %s/%s: the loaded model emits none of %s's %d labels — "
+                "its label_set claims a corpus its artefact was not trained "
+                "on; no rows written",
+                competitor.competitor_id, lang, dataset_id,
+                len(reference_labels),
+            )
+            return 0
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     written = 0
@@ -638,6 +743,8 @@ def _train_and_predict(
                 granularity=granularity,
                 peak_rss_mb=peak_rss_mb,
                 stt_provenance=stt_provenance,
+                model_revision=model_revision,
+                label_overlap=label_overlap,
             )
             fh.write(json.dumps(row, ensure_ascii=False) + "\n")
             written += 1
@@ -655,6 +762,69 @@ def _train_and_predict_child(result_queue, *args) -> None:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s  %(message)s")
     written = _train_and_predict(*args)
     result_queue.put(written)
+
+
+class UnresolvableModelPin(RuntimeError):
+    """A fighter declares a model revision that cannot be fetched."""
+
+
+def resolve_model_pin(competitor, intents_config: dict) -> str | None:
+    """Download the exact model commit a fighter declares and point the
+    plugin at it.
+
+    Neither the OVOS pipeline plugins nor model2vec take a revision, so a
+    declared pin would resolve to whatever ``main`` holds today while the row
+    claimed the pinned sha — provenance that is worse than none. The arena
+    resolves the snapshot itself and hands the plugin a local path, which
+    every one of these plugins accepts in place of a repo id. ``revision``
+    stays in the config for plugins that grow support for it.
+
+    Returns the sha the snapshot actually resolved to, or None for a fighter
+    that declares no pin.
+    """
+    if not competitor.model_revision:
+        return None
+    if not competitor.model:
+        raise UnresolvableModelPin(
+            f"{competitor.competitor_id}: model_revision is set but no model "
+            "repo is named"
+        )
+    from huggingface_hub import snapshot_download
+
+    try:
+        path = snapshot_download(
+            repo_id=competitor.model, revision=competitor.model_revision,
+        )
+    except Exception as exc:
+        raise UnresolvableModelPin(
+            f"{competitor.competitor_id}: cannot resolve "
+            f"{competitor.model}@{competitor.model_revision} — {exc}"
+        ) from exc
+    resolved = Path(path).name
+    for key, block in intents_config.items():
+        if key != "pipeline" and isinstance(block, dict) and block.get("model"):
+            block["model"] = path
+    log.info("  %s: pinned %s @ %s", competitor.competitor_id,
+             competitor.model, resolved[:12])
+    return resolved
+
+
+def model_label_overlap(pipeline, reference_labels: set) -> int | None:
+    """How many of a corpus's labels the loaded model can actually emit.
+
+    A pretrained head has a fixed class list. ``label_set`` is the registry's
+    *claim* that it matches a corpus; this is the measurement. Returns None
+    when no stage exposes a class list (nothing to check).
+    """
+    classes: set = set()
+    for plugin in pipeline.plugins.values():
+        model = getattr(plugin, "model", None)
+        model_classes = getattr(model, "classes_", None)
+        if model_classes is not None:
+            classes.update(str(c) for c in model_classes)
+    if not classes:
+        return None
+    return len(classes & reference_labels)
 
 
 def run_competitor_lang(
@@ -713,16 +883,29 @@ def run_competitor_lang(
         if paradigm in needed
     }
 
-    intents_config = dict(competitor.config["intents"])
+    intents_config = {
+        key: dict(value) if isinstance(value, dict) else value
+        for key, value in competitor.config["intents"].items()
+    }
+    model_revision = resolve_model_pin(competitor, intents_config)
     if "intent_transformers" in competitor.config:
         # Fighter-declared, config-gated exactly like production's
         # mycroft.conf ``intent_transformers`` section — carried alongside
         # (not inside) ``intents`` since it is not a pipeline stage.
         intents_config["intent_transformers"] = competitor.config["intent_transformers"]
     out_path.parent.mkdir(parents=True, exist_ok=True)
+    # Only a pretrained fighter's label set is in question: an engine that
+    # learns this corpus's labels from its training rows always shares them.
+    reference_labels = None
+    if competitor.training_regime is TrainingRegime.OFFLINE:
+        reference_labels = {
+            row["expected_intent"] for _, row in indexed
+            if row.get("expected_intent")
+        }
     cell_args = (
         competitor, train_data, intents_config, lang, todo, out_path,
         dataset_id, revision, eval_def.reference_granularity, stt_provenance,
+        model_revision, reference_labels,
     )
 
     if not train_timeout_secs and not train_max_rss_mb:
@@ -788,9 +971,9 @@ def _dataset_card(modality: str, dataset_id: str, eval_def, langs: list[str]) ->
         for lang in sorted(langs)
     )
     league = {
-        "intent": "open intent league (mixed-paradigm pipeline fusions)",
-        "intent_template": "template-paradigm intent league",
-        "intent_keyword": "keyword-paradigm intent league",
+        "intent": "mixed-supervision",
+        "intent_template": "template-supervised",
+        "intent_keyword": "keyword-supervised",
     }.get(modality, modality)
     return f"""---
 license: apache-2.0
@@ -808,7 +991,7 @@ configs:
 
 # OVOS `{modality}` bench — `{dataset_id}`
 
-Per-sample predictions of the {league} fighters of the
+Per-sample predictions of the {league} intent fighters of the
 [OVOS Plugin Arena](https://github.com/OpenVoiceOS/ovos-plugin-arena) over
 [`{eval_def.source.hf_id}`](https://huggingface.co/datasets/{eval_def.source.hf_id}).
 
@@ -923,7 +1106,7 @@ def run_benchmark(dataset_id: str, description: str, argv=None) -> int:
              eval_def.source.hf_id, revision[:12],
              ", ".join(train_defs) or "none")
 
-    competitors = eligible_competitors(set(train_defs))
+    competitors = eligible_competitors(set(train_defs), dataset_id)
     if args.competitors:
         wanted = {c.strip() for c in args.competitors.split(",") if c.strip()}
         competitors = [c for c in competitors if c.competitor_id in wanted]
@@ -939,12 +1122,13 @@ def run_benchmark(dataset_id: str, description: str, argv=None) -> int:
 
     bench_dir = Path(args.output_dir) / dataset_id
     for competitor in competitors:
-        modality = competitor.modality.value
-        log.info("Fighter %s [%s]", competitor.competitor_id, modality)
+        store = predictions_store(competitor)
+        log.info("Fighter %s [%s]", competitor.competitor_id,
+                 competitor.modality.value)
         for lang in langs:
             if competitor.langs and lang not in competitor.langs:
                 continue
-            out_path = (bench_dir / modality / lang
+            out_path = (bench_dir / store / lang
                         / f"{competitor.competitor_id}.jsonl")
             try:
                 run_competitor_lang(
@@ -954,6 +1138,10 @@ def run_benchmark(dataset_id: str, description: str, argv=None) -> int:
                     train_timeout_secs=args.train_timeout_secs,
                     train_max_rss_mb=args.train_max_rss_mb,
                 )
+            except UnresolvableModelPin as exc:
+                # A refusal, not a crash: the fighter cannot be run as
+                # declared and says so in one line, with no rows written.
+                log.error("  %s", exc)
             except Exception:
                 log.exception("  %s/%s failed", competitor.competitor_id, lang)
 

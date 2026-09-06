@@ -82,7 +82,7 @@ class TestPrimaryMetricCi:
         rows = [_row(reference_intent="a", prediction="a")] * 8 + [
             _row(reference_intent="a", prediction="b")
         ] * 2
-        ci = primary_metric_ci("intent", rows)
+        ci = primary_metric_ci("intent_online", rows)
         assert ci is not None
         lo, hi = ci
         assert lo <= 0.8 <= hi
@@ -135,9 +135,10 @@ class TestBuildBenchmarkBoardCi:
         bad_rows = [_row(competitor_id="bad", reference_intent="a", prediction="b")] * 20
 
         board = build_benchmark_board(
-            "intent", "d", "en-US",
+            "intent_online", "d", "en-US",
             {"good": good_rows, "ok": ok_rows, "bad": bad_rows},
             "t",
+            min_samples=1,
         )
         by_id = {e.competitor_id: e for e in board.entries}
 
@@ -153,7 +154,7 @@ class TestBuildBenchmarkBoardCi:
 
     def test_tts_board_carries_utmos_ci(self):
         rows = [_row(competitor_id="voice_a", extras={"utmos": 4.0})] * 10
-        board = build_benchmark_board("tts", "d", "en-US", {"voice_a": rows}, "t")
+        board = build_benchmark_board("tts", "d", "en-US", {"voice_a": rows}, "t", min_samples=1)
         assert board.primary_metric == "utmos"
         assert board.entries[0].primary_metric_ci_lower is not None
         assert board.entries[0].primary_metric_ci_upper is not None

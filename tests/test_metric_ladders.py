@@ -101,16 +101,16 @@ class TestRowMetricValue:
     def test_intent_accuracy_row_value(self):
         correct = _intent_row("x", "media:play_song", "s1")
         wrong = _intent_row("x", "media:stop", "s1")
-        assert row_metric_value(correct, "intent", "accuracy") == 1.0
-        assert row_metric_value(wrong, "intent", "accuracy") == 0.0
+        assert row_metric_value(correct, "intent_online", "accuracy") == 1.0
+        assert row_metric_value(wrong, "intent_online", "accuracy") == 0.0
 
     def test_slot_exact_match_none_when_no_gold_slots(self):
         row = _intent_row("x", "media:play_song", "s1")
-        assert row_metric_value(row, "intent", "slot_exact_match") is None
+        assert row_metric_value(row, "intent_online", "slot_exact_match") is None
 
     def test_unknown_metric_returns_none(self):
         row = _intent_row("x", "media:play_song", "s1")
-        assert row_metric_value(row, "intent", "not_a_real_metric") is None
+        assert row_metric_value(row, "intent_online", "not_a_real_metric") is None
 
 
 class TestSeedSecondaryMetricsDeterminism:
@@ -180,9 +180,9 @@ class TestMetricLaddersOnBoard:
                 ),
             ],
         )
-        seed = seed_elo("intent", "en-US", samples_by_dataset, "2026-08-13T00:00:00Z")
-        seed.secondary_metrics = seed_secondary_metrics("intent", samples_by_dataset)
-        board = build_elo_board("intent", "en-US", seed, [])
+        seed = seed_elo("intent_online", "en-US", samples_by_dataset, "2026-08-13T00:00:00Z")
+        seed.secondary_metrics = seed_secondary_metrics("intent_online", samples_by_dataset)
+        board = build_elo_board("intent_online", "en-US", seed, [])
 
         assert board.metric_ladders["generalization_accuracy"].auto_only is False
         assert board.metric_ladders["accuracy"].auto_only is True

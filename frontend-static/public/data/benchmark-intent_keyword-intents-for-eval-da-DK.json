@@ -2,17 +2,16 @@
   "modality": "intent_keyword",
   "dataset_id": "intents-for-eval",
   "lang": "da-DK",
-  "generated_at": "2026-09-06T19:37:28.687709+00:00",
+  "generated_at": "2026-09-06T18:55:59.115088+00:00",
   "primary_metric": "generalization_accuracy",
   "dataset_info": {
-    "display_name": "OVOS intents for eval (12 languages)",
-    "summary": "The arena's own paradigm-neutral intent benchmark: 50 assistant intents with slot annotations, between 1,354 and 1,384 test rows per language across 12 languages. One row is an utterance, its intent and its slots, tagged with the kind of challenge it poses — a held-out template, a free paraphrase, a typo, transcription noise, or an out-of-scope request that expects silence. Templates are split before expansion, so a test row is never an expansion of a template a fighter trained on.",
     "url": "https://huggingface.co/datasets/OpenVoiceOS/intents-for-eval",
     "license": "apache-2.0",
     "notes": "OVOS canonical paradigm-neutral intent benchmark: 50 intents, between 1,354 and 1,384 test rows per language (rows failing the train/test separation rule are dropped, not replaced) across template / paraphrase / in_distribution / far_ood / asr_noise / typos buckets, with slot annotations. far_ood rows carry expected_intent=null — the correct behaviour is no match. Train and test are separated at the template level: train_templates.jsonl holds an 80% per-intent sample of phrase templates, and the template bucket here is built only from the held-out 20%.",
     "predictions": [
       "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-bench-intents-for-eval",
-      "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-keyword-bench-intents-for-eval"
+      "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-keyword-bench-intents-for-eval",
+      "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-template-bench-intents-for-eval"
     ],
     "train_datasets": {
       "template": {
@@ -27,7 +26,9 @@
   },
   "dataset_revision": "d6f497f21c844c400d74bfda13773ccbaf902645",
   "predictions_revisions": {
-    "OpenVoiceOS/ovos-intent-keyword-bench-intents-for-eval": "e139cdecc03665cba5ffca01acbe63920d381c74"
+    "OpenVoiceOS/ovos-intent-bench-intents-for-eval": "dd11b3a8a7fb53ebd4d817f58513cd33545a3441",
+    "OpenVoiceOS/ovos-intent-keyword-bench-intents-for-eval": "e139cdecc03665cba5ffca01acbe63920d381c74",
+    "OpenVoiceOS/ovos-intent-template-bench-intents-for-eval": "dba1e142c82f7a15f38dc68c95c8ba056f66ae69"
   },
   "wer_normalizer_version": null,
   "entries": [
@@ -209,7 +210,7 @@
     }
   ],
   "entries_hash": "47f1d5dd0bde3136d1f34f2579935f6f40194bd60cf4a5a82b7c58c0dadb98d8",
-  "input_hash": "51e6b3b1e9810f73593a8124f945085d1c3f5dfd5f2a96467726b2da0c59940d",
+  "input_hash": "bb6a43bc31d403376391c85e79ac21f52abe49e52606237363287f84095d90df",
   "judge_agreement": null,
   "intelligibility_judges": [],
   "intelligibility_judge_mismatched_pairs": 0,

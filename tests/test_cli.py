@@ -22,8 +22,9 @@ from arena.models import EloSeed, Modality
 
 
 class _StubCompetitor:
-    def __init__(self, competitor_id):
+    def __init__(self, competitor_id, label_set=None):
         self.competitor_id = competitor_id
+        self.label_set = label_set
 
 
 # Fictional competitor ids used by this file's fixtures (e.g. "good"/"bad"
@@ -34,8 +35,7 @@ class _StubCompetitor:
 # Stub the registry here so this file's end-to-end fixtures keep exercising
 # the assemble pipeline without being coupled to the real registry contents.
 _LEGACY_TEST_COMPETITOR_IDS = {
-    "intent": {"good", "bad"},
-    "intent_template": {"padatious-medium"},
+    "intent_online": {"good", "bad", "padatious-medium"},
     "intent_keyword": {"adapt-medium"},
     "stt": {"base-pt", "small-pt", "comp-a", "comp-b", "whisper-tiny"},
     "tts": {"piper-a"},
@@ -205,9 +205,10 @@ def _write_predictions(tmp_path: Path) -> Path:
     preds.mkdir()
     for competitor, correct in (("good", True), ("bad", False)):
         rows = []
-        for i in range(6):
+        for i in range(40):
             rows.append({
                 "competitor_id": competitor,
+                "modality": "intent_online",
                 "sample_id": f"en-US/{i:05d}",
                 "dataset_id": "intents-for-eval",
                 "dataset_revision": _pinned_revision(),
@@ -265,7 +266,7 @@ class TestAssembleAlarms:
 
         summary = json.loads((out / "assemble-summary.json").read_text())
         assert summary["boards_without_ranked_fighters"] == [
-            "benchmark-intent-intents-for-eval-en-US.json"
+            "benchmark-intent_online-intents-for-eval-en-US.json"
         ]
         assert summary["rows_dropped_off_revision"] == 12
 
@@ -298,7 +299,7 @@ class TestAssembleAlarms:
         assert not (out / "assemble-summary.json").exists()
         summary = json.loads((out / "assemble-summary-intent.json").read_text())
         assert summary["boards_without_ranked_fighters"] == [
-            "benchmark-intent-intents-for-eval-en-US.json"
+            "benchmark-intent_online-intents-for-eval-en-US.json"
         ]
         assert summary["rows_dropped_off_revision"] == 12
 
@@ -377,21 +378,23 @@ class TestAssemblePipeline:
         rc = main_args_assemble(preds, out)
         assert rc == 0
         assert (out / "battles-intent-intents-for-eval-en-US.json").exists()
-        assert (out / "benchmark-intent-intents-for-eval-en-US.json").exists()
+        assert (out / "benchmark-intent_online-intents-for-eval-en-US.json").exists()
         assert (out / "elo-seed-intent-en-US.json").exists()
         assert (out / "leaderboard-intent-en-US.json").exists()
 
-        benchmark = json.loads((out / "benchmark-intent-intents-for-eval-en-US.json").read_text())
+        benchmark = json.loads(
+            (out / "benchmark-intent_online-intents-for-eval-en-US.json").read_text())
         assert benchmark["entries"][0]["competitor_id"] == "good"
         assert benchmark["entries"][0]["metrics"]["accuracy"] == 1.0
 
         seeds = load_elo_seeds(out)
         assert seeds[("intent", "en-US")].ratings["good"] > INITIAL_ELO
 
-        # 6 blind battles (every sample disagrees) + the free-form pool
+        # one blind battle per sample (every sample disagrees) + the
+        # free-form pool
         assert (out / "battles-intent-freeform-en-US.json").exists()
         battles = load_battles_pools(out)
-        assert len(battles) == 7  # 6 blind + 1 free-form pair (good vs bad)
+        assert len(battles) == 41  # 40 blind + 1 free-form pair (good vs bad)
         freeform = json.loads(
             (out / "battles-intent-freeform-en-US.json").read_text())
         assert freeform["dataset_id"] == "freeform"
@@ -424,22 +427,18 @@ class TestAssemblePipeline:
         assert len(index["leaderboards"]) == 1
         assert len(index["benchmarks"]) == 1
         assert len(index["battles_pools"]) == 1
-        assert index["battles_pools"][0]["count"] == 6
+        assert index["battles_pools"][0]["count"] == 40
 
         # §leagues — single source of truth for the frontend's league tabs
+        # Only leagues with a ranked board are offered as tabs.
         league_ids = [entry["id"] for entry in index["leagues"]]
-        assert league_ids == [
-            "intent_template", "intent_keyword", "intent",
-            "stt", "tts", "wake_word", "vad",
-        ]
+        assert league_ids == ["intent_online"]
         for entry in index["leagues"]:
             assert set(entry) == {"id", "label", "battle_group", "order", "voteless"}
         intent_entries = {e["id"]: e for e in index["leagues"]}
         # each intent league is its own battle group — no shared pool
-        assert intent_entries["intent_template"]["battle_group"] == "intent_template"
-        assert intent_entries["intent_keyword"]["battle_group"] == "intent_keyword"
-        assert intent_entries["intent"]["battle_group"] == "intent"
-        assert intent_entries["stt"]["battle_group"] == "stt"
+        # every intent league votes in the one pooled battle group
+        assert intent_entries["intent_online"]["battle_group"] == "intent"
 
     def test_export_index_carries_vote_provenance(self, tmp_path):
         """§provenance — each leaderboard entry in index.json carries its
@@ -496,12 +495,12 @@ def _write_cross_league_predictions(tmp_path: Path) -> Path:
     preds = tmp_path / "predictions"
     preds.mkdir()
     fighters = [
-        ("padatious-medium", "intent_template", True),
+        ("padatious-medium", "intent_online", True),
         ("adapt-medium", "intent_keyword", False),
     ]
     for competitor, modality, correct in fighters:
         rows = []
-        for i in range(5):
+        for i in range(40):
             rows.append({
                 "competitor_id": competitor,
                 "sample_id": f"en-US/{i:05d}",
@@ -522,63 +521,79 @@ def _write_cross_league_predictions(tmp_path: Path) -> Path:
 
 
 class TestBattleMerge:
-    def test_intent_leagues_never_pool_battles_or_elo(self, tmp_path):
-        """§R# — each intent league (keyword/template/open) is fully separate:
-        its own battles pool and its own ELO seed. A template engine is
-        never paired against a keyword engine."""
+    def test_intent_leagues_share_one_battle_pool_and_elo(self, tmp_path):
+        """A blind vote judges two outputs on one stimulus, and how a fighter
+        was prepared is invisible in that judgement — so every intent league
+        pools into the one ``intent`` battle group. Benchmark boards, where
+        the training regime does change what the number means, stay per
+        league."""
         preds = _write_cross_league_predictions(tmp_path)
         out = tmp_path / "data"
         assert main_args_assemble(preds, out) == 0
 
-        # no merged "intent" battle/ELO pool is produced — the fixture only
-        # has template + keyword fighters, no open-league ones
-        assert not (out / "battles-intent-intents-for-eval-en-US.json").exists()
-        assert not (out / "elo-seed-intent-en-US.json").exists()
+        assert (out / "battles-intent-intents-for-eval-en-US.json").exists()
+        assert (out / "elo-seed-intent-en-US.json").exists()
+        assert not (out / "battles-intent_online-intents-for-eval-en-US.json").exists()
+        assert not (out / "elo-seed-intent_keyword-en-US.json").exists()
 
-        # each paradigm gets its own battles pool and ELO seed
-        assert (out / "battles-intent_template-intents-for-eval-en-US.json").exists()
-        assert (out / "battles-intent_keyword-intents-for-eval-en-US.json").exists()
-        assert (out / "elo-seed-intent_template-en-US.json").exists()
-        assert (out / "elo-seed-intent_keyword-en-US.json").exists()
-
-        # a template-league battle only ever pairs template fighters (here,
-        # just the one, so no battles are assembled) — the keyword and
-        # template engines are never paired against each other
-        template_pool = json.loads(
-            (out / "battles-intent_template-intents-for-eval-en-US.json").read_text())
-        keyword_pool = json.loads(
-            (out / "battles-intent_keyword-intents-for-eval-en-US.json").read_text())
-        all_pairs = {
+        pool = json.loads(
+            (out / "battles-intent-intents-for-eval-en-US.json").read_text())
+        pairs = {
             tuple(sorted((b["competitor_a"], b["competitor_b"])))
-            for pool in (template_pool, keyword_pool) for b in pool["battles"]
+            for b in pool["battles"]
         }
-        assert ("adapt-medium", "padatious-medium") not in all_pairs
+        assert ("adapt-medium", "padatious-medium") in pairs
 
-        # benchmark boards stay per paradigm league (unchanged)
-        assert (out / "benchmark-intent_template-intents-for-eval-en-US.json").exists()
+        seed = json.loads((out / "elo-seed-intent-en-US.json").read_text())
+        assert set(seed["ratings"]) == {"padatious-medium", "adapt-medium"}
+
+        assert (out / "benchmark-intent_online-intents-for-eval-en-US.json").exists()
         assert (out / "benchmark-intent_keyword-intents-for-eval-en-US.json").exists()
 
-        # each ELO seed only rates its own league's fighter
-        template_seed = json.loads(
-            (out / "elo-seed-intent_template-en-US.json").read_text())
-        keyword_seed = json.loads(
-            (out / "elo-seed-intent_keyword-en-US.json").read_text())
-        assert set(template_seed["ratings"]) == {"padatious-medium"}
-        assert set(keyword_seed["ratings"]) == {"adapt-medium"}
-
-    def test_no_stale_subleague_cleanup_needed(self, tmp_path):
-        """§R# — battle_group is now identity for every modality, so
-        ``_clean_merged_artifacts`` never removes a live league's own
-        files; a pre-existing file for a still-active league survives."""
+    def test_stale_per_league_battle_files_are_cleaned_up(self, tmp_path):
+        """A battle/ELO file left over from a league that now pools into a
+        group is superseded, and is removed rather than left to rot beside
+        the pooled one. Benchmark boards are never touched."""
         preds = _write_cross_league_predictions(tmp_path)
         out = tmp_path / "data"
         out.mkdir()
-        (out / "battles-intent_template-intents-for-eval-en-US.json").write_text("{}")
+        (out / "battles-intent_online-intents-for-eval-en-US.json").write_text("{}")
+        (out / "elo-seed-intent_online-en-US.json").write_text("{}")
         assert main_args_assemble(preds, out) == 0
-        # overwritten with real content by this run, not deleted
-        pool = json.loads(
-            (out / "battles-intent_template-intents-for-eval-en-US.json").read_text())
-        assert pool.get("modality") == "intent_template"
+        assert not (out / "battles-intent_online-intents-for-eval-en-US.json").exists()
+        assert not (out / "elo-seed-intent_online-en-US.json").exists()
+        assert (out / "battles-intent-intents-for-eval-en-US.json").exists()
+
+
+@pytest.mark.parametrize("modality", [
+    "intent", "intent_online", "intent_zero_shot", "intent_offline",
+    "intent_keyword",
+])
+def test_any_intent_scope_assembles_the_whole_group(tmp_path, modality):
+    """Battles and ELO are per battle group, so naming one intent league has
+    to pull in the others: a run scoped to a single league would publish a
+    pooled artifact built from that league's rows alone."""
+    preds = _write_cross_league_predictions(tmp_path)
+    out = tmp_path / "data"
+    with pytest.raises(SystemExit) as exc:
+        main([
+            "assemble", "--predictions", str(preds), "--output", str(out),
+            "--modality", modality, "--max-battles", "10",
+        ])
+    assert exc.value.code == 0
+
+    pool = json.loads(
+        (out / "battles-intent-intents-for-eval-en-US.json").read_text())
+    pairs = {
+        tuple(sorted((b["competitor_a"], b["competitor_b"])))
+        for b in pool["battles"]
+    }
+    assert ("adapt-medium", "padatious-medium") in pairs
+    seed = json.loads((out / "elo-seed-intent-en-US.json").read_text())
+    assert set(seed["ratings"]) == {"padatious-medium", "adapt-medium"}
+    # boards stay per league whichever league was named
+    assert (out / "benchmark-intent_online-intents-for-eval-en-US.json").exists()
+    assert (out / "benchmark-intent_keyword-intents-for-eval-en-US.json").exists()
 
 
 def main_args_assemble(preds: Path, out: Path) -> int:
@@ -632,7 +647,7 @@ class TestTimestampStability:
         preds = _write_predictions(tmp_path)
         out = tmp_path / "data"
         assert main_args_assemble(preds, out) == 0
-        board_path = out / "benchmark-intent-intents-for-eval-en-US.json"
+        board_path = out / "benchmark-intent_online-intents-for-eval-en-US.json"
         board = json.loads(board_path.read_text())
         board["entries"] = []
         board_path.write_text(json.dumps(board))
@@ -698,23 +713,31 @@ class TestTimestampStability:
 
 
 def _write_stt_predictions(tmp_path: Path, competitors: dict[str, float]) -> Path:
-    """*competitors*: {competitor_id: wer} — one row per competitor, same
-    sample, so the assembler can discriminate on WER."""
+    """*competitors*: {competitor_id: wer} — every competitor answers the same
+    samples, so the assembler can discriminate on WER. Enough samples for a
+    board to be rankable (arena.metrics.MIN_BOARD_SAMPLES)."""
     preds = tmp_path / "stt_predictions"
     preds.mkdir(parents=True, exist_ok=True)
     for competitor, wer in competitors.items():
-        row = {
-            "competitor_id": competitor,
-            "sample_id": "pt-PT/00000",
-            "dataset_id": "minds14-pt-PT",
-            "lang": "pt-PT",
-            "plugin_id": f"plugin-{competitor}",
-            "audio_url": "https://example.com/a.wav",
-            "reference_text": "ligar o alarme",
-            "prediction": "ligar o alarme" if wer == 0.0 else "ligar alarme errado",
-            "wer": wer,
-        }
-        (preds / f"{competitor}.jsonl").write_text(json.dumps(row) + "\n")
+        rows = [
+            {
+                "competitor_id": competitor,
+                "sample_id": f"pt-PT/{i:05d}",
+                "dataset_id": "minds14-pt-PT",
+                "lang": "pt-PT",
+                "plugin_id": f"plugin-{competitor}",
+                "audio_url": "https://example.com/a.wav",
+                "reference_text": "ligar o alarme",
+                "prediction": (
+                    "ligar o alarme" if wer == 0.0 else "ligar alarme errado"
+                ),
+                "wer": wer,
+            }
+            for i in range(40)
+        ]
+        (preds / f"{competitor}.jsonl").write_text(
+            "\n".join(json.dumps(r) for r in rows) + "\n"
+        )
     return preds
 
 
@@ -1327,9 +1350,10 @@ def _write_predictions_for(tmp_path: Path, name: str, dataset_id: str) -> Path:
     preds.mkdir()
     for competitor, correct in (("good", True), ("bad", False)):
         rows = []
-        for i in range(6):
+        for i in range(40):
             rows.append({
                 "competitor_id": competitor,
+                "modality": "intent_online",
                 "sample_id": f"en-US/{i:05d}",
                 "dataset_id": dataset_id,
                 "lang": "en-US",
@@ -1383,7 +1407,7 @@ class TestAssemblePerSourceMemoryBound:
             rc = exc.code
         assert rc == 0
 
-        assert call_row_counts == [12, 12], (
+        assert call_row_counts == [80, 80], (
             f"group_rows must be called once per source with that source's "
             f"own rows only, never on the sources' rows concatenated: "
             f"{call_row_counts}"
@@ -1391,12 +1415,12 @@ class TestAssemblePerSourceMemoryBound:
 
         # Functional correctness: both sources' datasets still made it into
         # the merged output, per-source grouping didn't drop or shadow data.
-        assert (out / "benchmark-intent-dataset-a-en-US.json").exists()
-        assert (out / "benchmark-intent-dataset-b-en-US.json").exists()
+        assert (out / "benchmark-intent_online-dataset-a-en-US.json").exists()
+        assert (out / "benchmark-intent_online-dataset-b-en-US.json").exists()
         board_a = json.loads(
-            (out / "benchmark-intent-dataset-a-en-US.json").read_text())
+            (out / "benchmark-intent_online-dataset-a-en-US.json").read_text())
         board_b = json.loads(
-            (out / "benchmark-intent-dataset-b-en-US.json").read_text())
+            (out / "benchmark-intent_online-dataset-b-en-US.json").read_text())
         assert board_a["entries"][0]["competitor_id"] == "good"
         assert board_b["entries"][0]["competitor_id"] == "good"
 
@@ -1415,6 +1439,10 @@ def _write_multilang_stt_predictions(
         lang_dir = preds / lang
         lang_dir.mkdir(exist_ok=True)
         for competitor, wers in competitors.items():
+            # Repeat the caller's WER pattern up to a rankable board
+            # (arena.metrics.MIN_BOARD_SAMPLES) without changing its mean.
+            while len(wers) < 40:
+                wers = list(wers) * 2
             lines = []
             for i, wer in enumerate(wers):
                 lines.append(json.dumps({
@@ -1479,7 +1507,7 @@ class TestAssembleRefusesPartialInput:
         assert (out / "leaderboard-stt-pt-PT.json").read_text() == pt_board_before
 
         en_seed = json.loads((out / "elo-seed-stt-en-US.json").read_text())
-        assert en_seed["battles"]["comp-b"] == 8, (
+        assert en_seed["battles"]["comp-b"] == 64, (
             "the healthy lang must still be assembled from its own sources"
         )
 
@@ -1586,7 +1614,7 @@ class TestAssembleMissingPredictionRepo:
         )
         assert not any("Refusing to publish" in r.getMessage() for r in caplog.records)
         seed = json.loads((out / "elo-seed-stt-en-US.json").read_text())
-        assert seed["battles"]["comp-b"] == 5, (
+        assert seed["battles"]["comp-b"] == 40, (
             "the sources that do exist must still be assembled"
         )
 
@@ -1682,7 +1710,7 @@ class TestAssembleRepoWithoutPredictionsTree:
         assert not any("Skipping OpenVoiceOS/empty-bench" in r.getMessage()
                        for r in caplog.records)
         seed = json.loads((out / "elo-seed-stt-en-US.json").read_text())
-        assert seed["battles"]["comp-b"] == 5
+        assert seed["battles"]["comp-b"] == 40
 
 
 class TestAssembleStalePredictionsRevisionPin:

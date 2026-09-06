@@ -90,14 +90,15 @@ uses, just capped to 5 samples for one fighter.
 **Expected output shape:**
 
 ```
-INFO  Fighter padacioso-medium [intent_template]
+INFO  Fighter padacioso-medium [intent_online]
 INFO    training padacioso-medium for en-US (stages: ovos-padacioso-pipeline-plugin-medium)
 INFO    padacioso-medium/en-US: wrote 5 rows
 ```
 
 No `--upload` flag was passed, so nothing is published to HuggingFace, the
-rows land locally at `predictions/<dataset>/<modality>/<lang>/<competitor>.jsonl`
-(here: `predictions/snips/intent_template/en-US/padacioso-medium.jsonl`).
+rows land locally at `predictions/<dataset>/<paradigm>/<lang>/<competitor>.jsonl`
+(here: `predictions/snips/intent_template/en-US/padacioso-medium.jsonl` — the
+directory names the training datashape the sweep consumed, not the league).
 `predictions/` is gitignored. Re-running the same command skips any
 `sample_id` already present in that file (resumable runs, per
 [`benchmarks.md`](benchmarks.md)).
@@ -114,7 +115,7 @@ modality like STT:
 ```bash
 python -m arena.cli assemble \
     --predictions predictions/snips/intent_template \
-    --modality intent_template \
+    --modality intent_online \
     --output /tmp/arena-assemble-test
 ```
 
@@ -137,12 +138,12 @@ benchmark script's output shape before publishing anything.
 
 ```
 INFO  Loaded 5 rows from intent_template/en-US/padacioso-medium.jsonl
-INFO  Wrote /tmp/arena-assemble-test/benchmark-intent_template-snips-en-US.json
-INFO  Assembled 0 battles for intent_template/snips/en-US (0 pairs, 0 reference mismatches skipped)
-INFO  Wrote /tmp/arena-assemble-test/battles-intent_template-snips-en-US.json
-INFO  Wrote /tmp/arena-assemble-test/elo-seed-intent_template-en-US.json
-INFO  Wrote /tmp/arena-assemble-test/battles-intent_template-freeform-en-US.json
-INFO  Wrote /tmp/arena-assemble-test/leaderboard-intent_template-en-US.json
+INFO  Wrote /tmp/arena-assemble-test/benchmark-intent_online-snips-en-US.json
+INFO  Assembled 0 battles for intent_online/snips/en-US (0 pairs, 0 reference mismatches skipped)
+INFO  Wrote /tmp/arena-assemble-test/battles-intent_online-snips-en-US.json
+INFO  Wrote /tmp/arena-assemble-test/elo-seed-intent_online-en-US.json
+INFO  Wrote /tmp/arena-assemble-test/battles-intent_online-freeform-en-US.json
+INFO  Wrote /tmp/arena-assemble-test/leaderboard-intent_online-en-US.json
 ```
 
 `0 battles` here is expected, not a bug: a battle is an A/B pair between two

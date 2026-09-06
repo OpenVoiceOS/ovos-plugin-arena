@@ -163,7 +163,7 @@ shape in its own right rather than a paradigm-diversity side effect.
 descending strictness: neural-template-with-exact-gate (Padatious), statistical ML
 classifier (Jurebes, using `mlp_shallow`, the top-accuracy baseline on the published
 `intents-for-eval` en-US template board, see `frontend-static/public/data/
-benchmark-intent_template-intents-for-eval-en-US.json`, accuracy 0.8154 vs. 0.8143 for
+benchmark-intent_online-intents-for-eval-en-US.json`, accuracy 0.8154 vs. 0.8143 for
 the runner-up), and fuzzy string matching (Nebulento). `cascade-soft` mixes by a
 different axis, matching *looseness* rather than architecture class: trained classifier
 (Linha-Fina) then order-independent keyword bag (Palavreado) then fuzzy matcher

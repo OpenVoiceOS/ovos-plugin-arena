@@ -257,17 +257,27 @@ def _stt_predictions(tmp_path: Path, competitors: dict[str, float]) -> Path:
     preds = tmp_path / "stt_predictions"
     preds.mkdir(parents=True, exist_ok=True)
     for competitor, wer in competitors.items():
-        (preds / f"{competitor}.jsonl").write_text(json.dumps({
-            "competitor_id": competitor,
-            "sample_id": "pt-PT/00000",
-            "dataset_id": "minds14-pt-PT",
-            "lang": "pt-PT",
-            "plugin_id": f"plugin-{competitor}",
-            "audio_url": "https://example.com/a.wav",
-            "reference_text": "ligar o alarme",
-            "prediction": "ligar o alarme" if wer == 0.0 else "ligar alarme errado",
-            "wer": wer,
-        }) + "\n")
+        # Enough samples for a rankable board (arena.metrics.MIN_BOARD_SAMPLES);
+        # sample_id "pt-PT/00000" is the one the recorded votes reference.
+        rows = [
+            {
+                "competitor_id": competitor,
+                "sample_id": f"pt-PT/{i:05d}",
+                "dataset_id": "minds14-pt-PT",
+                "lang": "pt-PT",
+                "plugin_id": f"plugin-{competitor}",
+                "audio_url": "https://example.com/a.wav",
+                "reference_text": "ligar o alarme",
+                "prediction": (
+                    "ligar o alarme" if wer == 0.0 else "ligar alarme errado"
+                ),
+                "wer": wer,
+            }
+            for i in range(40)
+        ]
+        (preds / f"{competitor}.jsonl").write_text(
+            "\n".join(json.dumps(r) for r in rows) + "\n"
+        )
     return preds
 
 

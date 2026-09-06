@@ -154,7 +154,7 @@ class TestBenchmarkBoardSampleSetFiltering:
         rows = [_row(competitor_id="full", sample_id=sid, wer=0.1)
                 for sid in manifest_ids]
         board = build_benchmark_board(
-            "stt", "d", "en-US", {"full": rows}, "t", sample_set_ids=manifest_ids)
+            "stt", "d", "en-US", {"full": rows}, "t", sample_set_ids=manifest_ids, min_samples=1)
         entry = board.entries[0]
         assert entry.sample_set == "manifest"
         assert entry.sample_set_coverage == 1.0
@@ -167,7 +167,7 @@ class TestBenchmarkBoardSampleSetFiltering:
         rows = [_row(competitor_id="partial", sample_id=sid, wer=0.1)
                 for sid in ("s0", "s1", "s2")]
         board = build_benchmark_board(
-            "stt", "d", "en-US", {"partial": rows}, "t", sample_set_ids=manifest_ids)
+            "stt", "d", "en-US", {"partial": rows}, "t", sample_set_ids=manifest_ids, min_samples=1)
         entry = board.entries[0]
         assert entry.sample_set == "manifest"
         assert abs(entry.sample_set_coverage - 0.3) < 1e-9
@@ -184,14 +184,14 @@ class TestBenchmarkBoardSampleSetFiltering:
             _row(competitor_id="c", sample_id="not-in-manifest", wer=1.0),
         ]
         board = build_benchmark_board(
-            "stt", "d", "en-US", {"c": rows}, "t", sample_set_ids=manifest_ids)
+            "stt", "d", "en-US", {"c": rows}, "t", sample_set_ids=manifest_ids, min_samples=1)
         entry = board.entries[0]
         assert entry.samples == 2
         assert entry.metrics["wer_mean"] == 0.0  # the outlier row was excluded
 
     def test_no_sample_set_ids_is_unmanaged(self):
         rows = [_row(competitor_id="c", sample_id="s0", wer=0.1)]
-        board = build_benchmark_board("stt", "d", "en-US", {"c": rows}, "t")
+        board = build_benchmark_board("stt", "d", "en-US", {"c": rows}, "t", min_samples=1)
         entry = board.entries[0]
         assert entry.sample_set == "unmanaged"
         assert entry.sample_set_coverage is None
@@ -214,6 +214,7 @@ class TestBenchmarkBoardSampleSetFiltering:
             "stt", "d", "en-US",
             {"full": full_corpus_fighter, "subset": subset_fighter}, "t",
             sample_set_ids=manifest_ids,
+            min_samples=1,
         )
         by_id = {e.competitor_id: e for e in board.entries}
         assert by_id["full"].samples == 2

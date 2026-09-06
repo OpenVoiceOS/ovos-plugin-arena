@@ -24,28 +24,33 @@ class Modality(str, enum.Enum):
     """Supported arena modalities — each is an independent league with its
     own benchmarks, battles and ELO standings.
 
-    Leagues are keyed by *training-data format*, never by strategy: keyword-
-    paradigm and template-paradigm intent engines consume different
-    supervision (hand-written vocabulary rules vs phrase-template corpora),
-    so they compete in separate leagues; the open ``intent`` league hosts
-    mixed-paradigm pipeline fusions. A single-stage embedding classifier is
-    not a league of its own — it is a *strategy* trained from one of these
-    two data formats (see ``runner/intent_pipeline.py`` ``EngineSpec.paradigm``)
-    and competes within that format's league.
+    Intent fighters are split by *training regime*: what a fighter needs
+    before it can answer at all. A zero-shot fighter answers straight from
+    the templates a skill registers, an online fighter trains on them when
+    the device boots, an offline fighter ships a pretrained artefact and
+    never sees them. Comparing those against each other compares different
+    things. Keyword-supervised engines keep their own league on top of that
+    — hand-written vocabulary rules are a different kind of supervision and
+    need their own corpora.
 
-    §R# — each of the three intent leagues now runs its own ELO pool (own
-    battles, own ``elo-seed``/``leaderboard`` files) instead of collapsing
-    into a shared ``intent`` battle group; see ``battle_group()`` below and
-    docs/methodology.md.
+    A strategy is never a league: an embedding classifier competes in the
+    regime its artefact implies, not in a league of its own.
+
+    ``intent`` and ``intent_template`` name registry dataset namespaces (the
+    shared eval corpora, and the template-paradigm training corpora); no
+    fighter is filed under either.
     """
 
     TTS = "tts"
     STT = "stt"
     WAKE_WORD = "wake_word"
     VAD = "vad"
-    INTENT = "intent"  # open league — mixed-paradigm pipeline fusions
-    INTENT_TEMPLATE = "intent_template"  # template-paradigm engines
-    INTENT_KEYWORD = "intent_keyword"  # keyword-paradigm engines
+    INTENT = "intent"  # eval-corpus namespace
+    INTENT_TEMPLATE = "intent_template"  # template training-corpus namespace
+    INTENT_ZERO_SHOT = "intent_zero_shot"  # answers from registered templates
+    INTENT_ONLINE = "intent_online"  # trains at boot from those templates
+    INTENT_OFFLINE = "intent_offline"  # ships a pretrained artefact
+    INTENT_KEYWORD = "intent_keyword"  # keyword-supervised engines
     # Streaming wake-word league (§A3.2 / R15): same fighters as WAKE_WORD,
     # a separate benchmark board scored from continuous-audio detection
     # events rather than isolated clips (arena.metrics.score_ww_stream).
@@ -54,7 +59,8 @@ class Modality(str, enum.Enum):
 
 INTENT_MODALITIES = frozenset(
     {Modality.INTENT.value, Modality.INTENT_TEMPLATE.value,
-     Modality.INTENT_KEYWORD.value}
+     Modality.INTENT_ZERO_SHOT.value, Modality.INTENT_ONLINE.value,
+     Modality.INTENT_OFFLINE.value, Modality.INTENT_KEYWORD.value}
 )
 
 
@@ -74,22 +80,21 @@ def is_intent_modality(modality: str) -> bool:
 VOTELESS_MODALITIES: frozenset[str] = frozenset()
 
 
+# R18 intent battle-group pooling
 def battle_group(modality: str) -> str:
     """The blind-battle / ELO group a modality competes in.
 
-    R18 — each league is its own battle group (identity mapping): the three
-    intent leagues (``intent``, ``intent_template``, ``intent_keyword``) each
-    get a fully separate battles pool, ELO seed and leaderboard — a template
-    engine is never paired against a keyword engine, and the open ``intent``
-    fusion league never pools with either paradigm-pure league. Benchmark
-    *boards* were already per-modality (paradigm-pure) and stay that way.
+    Every intent league shares the one ``intent`` group. A blind vote judges
+    two outputs on the same stimulus, and how a fighter was prepared is
+    invisible in that judgement — every engine that answered the same
+    utterance in a language competes. Benchmark *boards* stay per league,
+    where the training regime does change what the number means.
 
-    ``ww_stream`` keeps its existing (unchanged) identity mapping: it is a
-    benchmark-only modality (see ``arena.metrics.score_ww_stream``) that
-    never produces its own battles/ELO artifacts, so ``battle_group`` maps
-    it to itself exactly as before this change.
+    Every other modality is its own group (identity mapping), ``ww_stream``
+    included: it is benchmark-only (see ``arena.metrics.score_ww_stream``)
+    and never produces battles or ELO artifacts at all.
     """
-    return modality
+    return "intent" if is_intent_modality(modality) else modality
 
 
 # ---------------------------------------------------------------------------
@@ -100,9 +105,10 @@ def battle_group(modality: str) -> str:
 # them in. This is the ONE place these are defined — the frontend derives its
 # tabs from ``LEAGUES`` (via data/index.json) instead of hardcoding them.
 LEAGUE_LABELS: dict[str, str] = {
-    Modality.INTENT_TEMPLATE.value: "Intent · Template",
+    Modality.INTENT_ZERO_SHOT.value: "Intent · Zero-shot",
+    Modality.INTENT_ONLINE.value: "Intent · Trains at boot",
+    Modality.INTENT_OFFLINE.value: "Intent · Pretrained",
     Modality.INTENT_KEYWORD.value: "Intent · Keyword",
-    Modality.INTENT.value: "Intent · Fusions",
     Modality.STT.value: "STT",
     Modality.TTS.value: "TTS",
     Modality.WAKE_WORD.value: "Wake Word",
@@ -110,9 +116,10 @@ LEAGUE_LABELS: dict[str, str] = {
 }
 
 LEAGUE_ORDER: tuple[str, ...] = (
-    Modality.INTENT_TEMPLATE.value,
+    Modality.INTENT_ONLINE.value,
+    Modality.INTENT_ZERO_SHOT.value,
+    Modality.INTENT_OFFLINE.value,
     Modality.INTENT_KEYWORD.value,
-    Modality.INTENT.value,
     Modality.STT.value,
     Modality.TTS.value,
     Modality.WAKE_WORD.value,
@@ -120,13 +127,21 @@ LEAGUE_ORDER: tuple[str, ...] = (
 )
 
 
-def leagues() -> list[dict[str, Any]]:
-    """League descriptors for ``data/index.json``: ``{id, label, battle_group,
-    order, voteless}`` in tab order, one per :class:`Modality`. §R# — each of
-    the three intent leagues is now its own battle_group (identity mapping);
-    they no longer collapse into a shared ``"intent"`` pool. ``voteless``
-    tells the frontend to skip the ladder section entirely rather than
-    render an always-empty one, for leagues with benchmark boards only."""
+def leagues(ranked: set[str] | None = None) -> list[dict[str, Any]]:
+    """League descriptors for ``data/index.json``: ``{id, label,
+    battle_group, order, voteless}`` in tab order.
+
+    Intent leagues share the ``intent`` battle group; every other league is
+    its own. ``voteless`` tells the frontend to skip the ladder section
+    entirely rather than render an always-empty one, for leagues with
+    benchmark boards only.
+
+    *ranked* limits the result to the leagues that actually have a ranked
+    board — a league nobody has swept yet is not offered as a tab, so the
+    site never shows an empty one. ``None`` returns every league, which is
+    what the registry-side completeness report wants.
+    """
+    shown = [m for m in LEAGUE_ORDER if ranked is None or m in ranked]
     return [
         {
             "id": modality,
@@ -135,7 +150,7 @@ def leagues() -> list[dict[str, Any]]:
             "order": i,
             "voteless": modality in VOTELESS_MODALITIES,
         }
-        for i, modality in enumerate(LEAGUE_ORDER)
+        for i, modality in enumerate(shown)
     ]
 
 
@@ -186,6 +201,10 @@ class PredictionRow(BaseModel):
     # reproducibility column. Already-published rows predate this field and
     # stay valid with it unset.
     dataset_revision: str | None = None
+    # Commit sha of the model the fighter ran, for fighters whose weights
+    # come from a model repo (CompetitorDef.model_revision). Rows produced
+    # before a fighter declared one leave it unset.
+    model_revision: str | None = None
     # intent modality
     utterance: str | None = None
     reference_intent: str | None = None

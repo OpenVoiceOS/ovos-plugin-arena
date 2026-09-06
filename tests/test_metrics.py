@@ -100,7 +100,9 @@ class TestGeneralizationAccuracy:
                 for i in range(4)
             ],
         }
-        board = build_benchmark_board("intent", "d", "en-US", by_competitor, "t")
+        board = build_benchmark_board("intent_online", "d", "en-US", by_competitor, "t",
+            min_samples=1,
+        )
         memorizer = next(e for e in board.entries
                          if e.competitor_id == "memorizer")
         assert memorizer.metrics["accuracy"] == 1.0
@@ -115,7 +117,9 @@ class TestGeneralizationAccuracy:
             _row(competitor_id="ok", bucket="paraphrase",
                  reference_intent="a", prediction="a"),
         ]}
-        board = build_benchmark_board("intent", "d", "en-US", by_competitor, "t")
+        board = build_benchmark_board("intent_online", "d", "en-US", by_competitor, "t",
+            min_samples=1,
+        )
         crashed = next(e for e in board.entries
                        if e.competitor_id == "crashed")
         assert crashed.metrics["n_scored"] == 0.0
@@ -127,7 +131,7 @@ class TestGeneralizationAccuracy:
         by_competitor = {"crashed": [
             _row(competitor_id="crashed", dataset_id="d", lang="en-US"),
         ]}
-        board = build_benchmark_board("stt", "d", "en-US", by_competitor, "t")
+        board = build_benchmark_board("stt", "d", "en-US", by_competitor, "t", min_samples=1)
         crashed = next(e for e in board.entries
                        if e.competitor_id == "crashed")
         assert crashed.metrics == {}
@@ -152,7 +156,9 @@ class TestGeneralizationAccuracy:
             "memorizer": rows("memorizer", memorized=True, generalized=False),
             "generalizer": rows("generalizer", memorized=False, generalized=True),
         }
-        board = build_benchmark_board("intent", "d", "en-US", by_competitor, "t")
+        board = build_benchmark_board("intent_online", "d", "en-US", by_competitor, "t",
+            min_samples=1,
+        )
         assert board.primary_metric == "generalization_accuracy"
         ranked = [e.competitor_id for e in board.entries]
         assert ranked == ["generalizer", "memorizer"]
@@ -449,7 +455,7 @@ class TestIntelligibilityJudgeAudit:
             "a": [self._tts_row("a", "s1", "gigaam-v2-rnnt")],
             "b": [self._tts_row("b", "s1", "gigaam-v2-rnnt")],
         }
-        board = build_benchmark_board("tts", "d", "ru-RU", by_competitor, "t")
+        board = build_benchmark_board("tts", "d", "ru-RU", by_competitor, "t", min_samples=1)
         assert board.intelligibility_judges == ["gigaam-v2-rnnt"]
         assert board.intelligibility_judge_mismatched_pairs == 0
         assert board.warnings == []
@@ -459,7 +465,7 @@ class TestIntelligibilityJudgeAudit:
             "a": [self._tts_row("a", "s1", "gigaam-v2-rnnt")],
             "b": [self._tts_row("b", "s1", "whisper-base")],
         }
-        board = build_benchmark_board("tts", "d", "ru-RU", by_competitor, "t")
+        board = build_benchmark_board("tts", "d", "ru-RU", by_competitor, "t", min_samples=1)
         assert board.intelligibility_judges == ["gigaam-v2-rnnt", "whisper-base"]
         assert board.intelligibility_judge_mismatched_pairs == 1
         assert len(board.warnings) == 1
@@ -473,14 +479,16 @@ class TestIntelligibilityJudgeAudit:
             "a": [self._tts_row("a", "s1", "none")],
             "b": [self._tts_row("b", "s1", "none")],
         }
-        board = build_benchmark_board("tts", "d", "jv-ID", by_competitor, "t")
+        board = build_benchmark_board("tts", "d", "jv-ID", by_competitor, "t", min_samples=1)
         assert board.intelligibility_judges == []
         assert board.warnings == []
 
     def test_non_tts_board_records_nothing(self):
         by_competitor = {"a": [_row(competitor_id="a", reference_intent="x",
                                     prediction="x")]}
-        board = build_benchmark_board("intent", "d", "en-US", by_competitor, "t")
+        board = build_benchmark_board("intent_online", "d", "en-US", by_competitor, "t",
+            min_samples=1,
+        )
         assert board.intelligibility_judges == []
         assert board.warnings == []
 
@@ -701,7 +709,9 @@ class TestBenchmarkBoard:
             "strong": [_row(competitor_id="strong", reference_intent="a",
                             prediction="a")],
         }
-        board = build_benchmark_board("intent", "d", "en-US", by_competitor, "t")
+        board = build_benchmark_board("intent_online", "d", "en-US", by_competitor, "t",
+            min_samples=1,
+        )
         assert board.primary_metric == "generalization_accuracy"
         assert [e.competitor_id for e in board.entries] == ["strong", "weak"]
         assert [e.rank for e in board.entries] == [1, 2]
@@ -711,7 +721,7 @@ class TestBenchmarkBoard:
             "bad": [_row(competitor_id="bad", wer=0.9)],
             "good": [_row(competitor_id="good", wer=0.1)],
         }
-        board = build_benchmark_board("stt", "d", "pt-PT", by_competitor, "t")
+        board = build_benchmark_board("stt", "d", "pt-PT", by_competitor, "t", min_samples=1)
         assert [e.competitor_id for e in board.entries] == ["good", "bad"]
 
     def test_wake_word_ranked_by_error_rate_asc(self):
@@ -721,12 +731,12 @@ class TestBenchmarkBoard:
             "clean": [_row(competitor_id="clean", label="negative",
                            prediction="not_detected")],
         }
-        board = build_benchmark_board("wake_word", "d", "en", by_competitor, "t")
+        board = build_benchmark_board("wake_word", "d", "en", by_competitor, "t", min_samples=1)
         assert board.primary_metric == "error_rate"
         assert [e.competitor_id for e in board.entries] == ["clean", "noisy"]
 
     def test_no_competitors_yields_empty_board(self):
-        board = build_benchmark_board("tts", "d", "en-US", {}, "t")
+        board = build_benchmark_board("tts", "d", "en-US", {}, "t", min_samples=1)
         assert board.entries == []
 
     def test_tts_ranked_by_utmos_desc(self):
@@ -734,7 +744,7 @@ class TestBenchmarkBoard:
             "bad": [_row(competitor_id="bad", extras={"utmos": 2.0})],
             "good": [_row(competitor_id="good", extras={"utmos": 4.0})],
         }
-        board = build_benchmark_board("tts", "d", "en-US", by_competitor, "t")
+        board = build_benchmark_board("tts", "d", "en-US", by_competitor, "t", min_samples=1)
         assert board.primary_metric == "utmos"
         assert [e.competitor_id for e in board.entries] == ["good", "bad"]
 
@@ -747,7 +757,7 @@ class TestBenchmarkBoard:
                 _row(competitor_id="phoonnx-dii-es-es", extras={}),
             ],
         }
-        board = build_benchmark_board("tts", "d", "es-ES", by_competitor, "t")
+        board = build_benchmark_board("tts", "d", "es-ES", by_competitor, "t", min_samples=1)
         entry = board.entries[0]
         assert entry.metrics.get("n_scored") == 0.0
         assert "utmos" not in entry.metrics
@@ -760,7 +770,7 @@ class TestBenchmarkBoard:
             "failed": [_row(competitor_id="failed", extras={})],
             "good": [_row(competitor_id="good", extras={"utmos": 4.0})],
         }
-        board = build_benchmark_board("tts", "d", "en-US", by_competitor, "t")
+        board = build_benchmark_board("tts", "d", "en-US", by_competitor, "t", min_samples=1)
         good = next(e for e in board.entries if e.competitor_id == "good")
         failed = next(e for e in board.entries if e.competitor_id == "failed")
         assert good.rank == 1
