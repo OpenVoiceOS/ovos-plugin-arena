@@ -1,5 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
+const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
 ---
 <Base title="Battle" description="Blind A/B battle — pick the better OVOS plugin output and vote.">
   <div style="text-align:center;margin-bottom:1rem">
@@ -8,8 +9,17 @@ import Base from '../../layouts/Base.astro';
     </h1>
     <p style="max-width:560px;margin:0.25rem auto 0">
       Two masked fighters interpret the same input. Pick the better output —
-      your vote opens a GitHub issue, no arena account needed.
+      voting posts a GitHub issue from your account, a free GitHub account, not an arena login.
     </p>
+    <details style="max-width:560px;margin:0.4rem auto 0;font-size:0.85rem;color:var(--muted);text-align:left">
+      <summary style="cursor:pointer;text-align:center">Why GitHub?</summary>
+      <p style="margin:0.4rem 0 0">
+        Every vote is a public, timestamped issue instead of a hidden database row, so anyone can
+        audit who voted and catch ballot-stuffing — the vote log is the whole arena's provenance
+        trail. See <a href={`${base}methodology/`}>methodology</a> for how the
+        hourly tally turns issues into ratings.
+      </p>
+    </details>
     <p id="battle-vote-invite" style="display:none;max-width:560px;margin:0.5rem auto 0;font-size:0.85rem;color:var(--muted)"></p>
   </div>
 
@@ -19,15 +29,16 @@ import Base from '../../layouts/Base.astro';
   </div>
 
   <section id="battle-ui" style="display:none" aria-label="Current battle">
+    <a href="#vote-panel" class="skip-link">Skip to the battle</a>
     <div class="card" style="margin-bottom:1rem;padding:0.7rem 1.1rem">
       <div style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center">
         <span id="battle-badge" class="badge"></span>
-        <span style="color:var(--muted);font-size:0.8rem">Languages you speak:</span>
-        <div id="lang-chips" role="group" aria-label="Languages you speak — only these battles are shown"
-             style="display:flex;gap:0.35rem;flex-wrap:wrap"></div>
-        <span style="color:var(--muted);font-size:0.8rem">Modalities:</span>
-        <div id="modality-chips" role="group" aria-label="Modalities to battle — only these are loaded"
-             style="display:flex;gap:0.35rem;flex-wrap:wrap"></div>
+        <span style="color:var(--muted);font-size:0.8rem" id="lang-chips-label">Languages you speak:</span>
+        <div id="lang-chips" role="toolbar" aria-label="Languages you speak — only these battles are shown"
+             aria-orientation="horizontal" style="display:flex;gap:0.35rem;flex-wrap:wrap"></div>
+        <span style="color:var(--muted);font-size:0.8rem" id="modality-chips-label">Modalities:</span>
+        <div id="modality-chips" role="toolbar" aria-label="Modalities to battle — only these are loaded"
+             aria-orientation="horizontal" style="display:flex;gap:0.35rem;flex-wrap:wrap"></div>
         <span id="battle-count" style="color:var(--muted);font-size:0.8rem;margin-left:auto"></span>
         <span id="battle-id" style="color:var(--muted);font-size:0.72rem;font-family:var(--mono)"></span>
         <button id="btn-skip" class="btn" style="padding:0.3rem 0.8rem">Skip ↻</button>
@@ -82,7 +93,7 @@ import Base from '../../layouts/Base.astro';
     </div>
 
     <!-- Vote bar -->
-    <div id="vote-panel" class="card" style="margin-top:1.25rem;text-align:center">
+    <div id="vote-panel" class="card" style="margin-top:1.25rem;text-align:center" tabindex="-1">
       <div style="display:flex;gap:0.75rem;flex-wrap:wrap;justify-content:center" role="group" aria-label="Vote options">
         <button class="btn btn-primary vote-btn" id="vote-a">🅰 A is better</button>
         <button class="btn btn-primary vote-btn" id="vote-b">🅱 B is better</button>
@@ -90,8 +101,35 @@ import Base from '../../layouts/Base.astro';
         <button class="btn vote-btn" id="vote-both-wrong">💀 Both wrong</button>
       </div>
       <p id="vote-hint" style="margin:0.9rem 0 0;font-size:0.85rem">
-        Voting reveals the fighters and opens a prefilled GitHub issue — submit it to record your vote.
+        Voting opens a prefilled GitHub issue — submit it there to record your vote.
       </p>
+    </div>
+
+    <!-- Waiting for the voter to actually submit the GitHub issue -->
+    <div id="vote-waiting" class="card" style="display:none;margin-top:1.25rem;text-align:center"
+         role="group" aria-label="Confirm your GitHub vote" tabindex="-1">
+      <p role="status" aria-live="polite">
+        A prefilled GitHub issue opened in a new tab — submit it there to record your vote.
+      </p>
+      <p id="popup-blocked-note" style="display:none;font-size:0.85rem;color:var(--muted)">
+        Your browser blocked the pop-up.
+        <a id="popup-link" target="_blank" rel="noopener noreferrer">Open the vote issue on GitHub</a>.
+      </p>
+      <div style="display:flex;gap:0.75rem;flex-wrap:wrap;justify-content:center;margin-top:0.75rem">
+        <button class="btn btn-primary" id="btn-submitted">I submitted it</button>
+        <button class="btn" id="btn-skip-wait">Skip this battle</button>
+      </div>
+    </div>
+
+    <!-- Reveal, after the voter confirms the issue was submitted -->
+    <div id="vote-reveal" class="card" style="display:none;margin-top:1.25rem;text-align:center"
+         role="status" aria-live="polite" tabindex="-1">
+      <p id="reveal-h2h-human" style="margin:0 0 0.2rem"></p>
+      <p id="reveal-h2h-bench" style="margin:0 0 0.4rem;color:var(--muted);font-size:0.85rem"></p>
+      <p style="margin:0;color:var(--muted);font-size:0.85rem">
+        Your vote is counted at the next hourly tally.
+      </p>
+      <button class="btn btn-primary" id="btn-continue" style="margin-top:0.9rem">Next battle →</button>
     </div>
   </section>
 
@@ -151,11 +189,15 @@ import Base from '../../layouts/Base.astro';
     }
     .vote-btn { font-size: 1rem; padding: 0.65rem 1.3rem; }
     .slot-table td { padding: 0.2rem 0.6rem 0.2rem 0; border: none; background: none !important; }
+    #vote-panel:focus-visible, #vote-waiting:focus-visible, #vote-reveal:focus-visible {
+      outline: 2px solid var(--accent); outline-offset: 2px;
+    }
   </style>
 
   <script>
     import { spriteSvg } from '../../lib/sprite.js';
-    import { totalVoteProvenance } from '../../lib/provenance.js';
+    import { pairRecord, humanPairRecord, humanVoteCount } from '../../lib/headToHead.js';
+    import { storageGet, storageSet } from '../../lib/storage.js';
 
     const BASE = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
     const GITHUB_REPO = import.meta.env.VITE_GITHUB_REPO || 'OpenVoiceOS/ovos-plugin-arena';
@@ -181,10 +223,23 @@ import Base from '../../layouts/Base.astro';
     let fightersById = {};
     let currentIdx = 0;
     let currentBattle = null;
+    let siteIndex = null;
 
     // guards against a slow lazy-fetch resolving after the voter has since
     // changed their lang/modality selection again
     let loadSeq = 0;
+
+    // Battle ids the voter confirmed submitting on GitHub, kept only in this
+    // browser so a completed battle is never offered again here; a skipped
+    // battle is not recorded and may come back around.
+    function votedSet() {
+      return new Set(JSON.parse(storageGet('arena-battle-voted') || '[]'));
+    }
+    function markVoted(battleId) {
+      const s = votedSet();
+      s.add(battleId);
+      storageSet('arena-battle-voted', JSON.stringify([...s]));
+    }
 
     function shuffle(arr) {
       for (let i = arr.length - 1; i > 0; i--) {
@@ -208,7 +263,7 @@ import Base from '../../layouts/Base.astro';
         const valid = urlLang.split(',').filter(l => langs.includes(l));
         if (valid.length) return new Set(valid);
       }
-      const saved = JSON.parse(localStorage.getItem('arena-battle-langs') || 'null');
+      const saved = JSON.parse(storageGet('arena-battle-langs') || 'null');
       if (Array.isArray(saved) && saved.length) {
         const valid = saved.filter(l => langs.includes(l));
         if (valid.length) return new Set(valid);
@@ -234,7 +289,7 @@ import Base from '../../layouts/Base.astro';
         const valid = urlModality.split(',').filter(m => modalities.includes(m));
         if (valid.length) return new Set(valid);
       }
-      const saved = JSON.parse(localStorage.getItem('arena-battle-modalities') || 'null');
+      const saved = JSON.parse(storageGet('arena-battle-modalities') || 'null');
       if (Array.isArray(saved) && saved.length) {
         const valid = saved.filter(m => modalities.includes(m));
         if (valid.length) return new Set(valid);
@@ -273,14 +328,15 @@ import Base from '../../layouts/Base.astro';
     }
 
     function applySelection() {
-      localStorage.setItem('arena-battle-langs', JSON.stringify([...spokenLangs]));
-      localStorage.setItem('arena-battle-modalities', JSON.stringify([...spokenModalities]));
+      storageSet('arena-battle-langs', JSON.stringify([...spokenLangs]));
+      storageSet('arena-battle-modalities', JSON.stringify([...spokenModalities]));
       document.querySelectorAll('.lang-chip').forEach(c =>
         c.setAttribute('aria-pressed', spokenLangs.has(c.dataset.lang) ? 'true' : 'false'));
       document.querySelectorAll('.modality-chip').forEach(c =>
         c.setAttribute('aria-pressed', spokenModalities.has(c.dataset.modality) ? 'true' : 'false'));
       syncBattleUrl();
-      battles = shuffle([...allBattles]);
+      const voted = votedSet();
+      battles = shuffle(allBattles.filter(b => !voted.has(b.battle_id)));
       currentIdx = 0;
       if (battles.length) {
         document.getElementById('battle-empty').style.display = 'none';
@@ -289,8 +345,9 @@ import Base from '../../layouts/Base.astro';
       } else {
         document.getElementById('battle-ui').style.display = 'none';
         document.getElementById('battle-empty').style.display = '';
-        document.getElementById('battle-empty').textContent =
-          'No battles for this language/modality combination. Pick another option above.';
+        document.getElementById('battle-empty').textContent = allBattles.length
+          ? "You've voted on every battle available for this language/modality combination. Pick another option above."
+          : 'No battles for this language/modality combination. Pick another option above.';
       }
     }
 
@@ -312,6 +369,31 @@ import Base from '../../layouts/Base.astro';
       loadPools();
     }
 
+    // WAI-ARIA toolbar pattern: the group is one Tab stop and arrow keys move
+    // focus between chips. Without this, 71 language chips + 7 modality
+    // chips are each an individual Tab stop between page load and the vote
+    // buttons — a keyboard voter would need ~88 Tabs to reach the battle on
+    // every single load.
+    function initRovingToolbar(box) {
+      const items = () => [...box.querySelectorAll('button')];
+      items().forEach((b, i) => { b.tabIndex = i === 0 ? 0 : -1; });
+      box.addEventListener('keydown', e => {
+        const btns = items();
+        const i = btns.indexOf(document.activeElement);
+        if (i === -1) return;
+        let next = null;
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = btns[(i + 1) % btns.length];
+        else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') next = btns[(i - 1 + btns.length) % btns.length];
+        else if (e.key === 'Home') next = btns[0];
+        else if (e.key === 'End') next = btns[btns.length - 1];
+        if (!next) return;
+        e.preventDefault();
+        btns.forEach(b => { b.tabIndex = -1; });
+        next.tabIndex = 0;
+        next.focus();
+      });
+    }
+
     function renderLangChips(langs) {
       const box = document.getElementById('lang-chips');
       box.innerHTML = langs.map(l =>
@@ -319,6 +401,7 @@ import Base from '../../layouts/Base.astro';
       ).join('');
       box.querySelectorAll('.lang-chip').forEach(c =>
         c.addEventListener('click', () => toggleLang(c.dataset.lang)));
+      initRovingToolbar(box);
     }
 
     function renderModalityChips(modalities) {
@@ -328,6 +411,7 @@ import Base from '../../layouts/Base.astro';
       ).join('');
       box.querySelectorAll('.modality-chip').forEach(c =>
         c.addEventListener('click', () => toggleModality(c.dataset.modality)));
+      initRovingToolbar(box);
     }
 
     const esc = s => String(s).replace(/[&<>"']/g, c =>
@@ -437,9 +521,12 @@ import Base from '../../layouts/Base.astro';
       ['vote-a','vote-b','vote-tie','vote-both-wrong'].forEach(id => {
         document.getElementById(id).disabled = false;
       });
-      document.getElementById('vote-hint').textContent =
-        'Voting reveals the fighters and opens a prefilled GitHub issue — submit it to record your vote.';
+      document.getElementById('vote-panel').style.display = '';
+      document.getElementById('vote-waiting').style.display = 'none';
+      document.getElementById('vote-reveal').style.display = 'none';
+      document.getElementById('popup-blocked-note').style.display = 'none';
 
+      updateLeagueVotes(b.modality);
       document.getElementById('battle-ui').style.display = '';
     }
 
@@ -451,22 +538,80 @@ import Base from '../../layouts/Base.astro';
       document.getElementById(`reveal-${side}`).textContent = name;
     }
 
+    // Guards against a slow vote-count fetch resolving after the voter has
+    // since moved to a different battle in a different league.
+    let voteCountToken = 0;
+    async function updateLeagueVotes(modality) {
+      const token = ++voteCountToken;
+      const human = await humanVoteCount(BASE, { modality });
+      if (token !== voteCountToken) return;
+      const invite = document.getElementById('battle-vote-invite');
+      invite.textContent = `${human.toLocaleString('en-US')} human vote${human === 1 ? '' : 's'} in this league so far.`;
+      invite.style.display = '';
+    }
+
+    let pendingChoice = null;
+
+    // A vote is only complete once the voter says the GitHub issue went
+    // through — clicking a vote button never reveals or advances by itself,
+    // and there is no timed auto-advance.
     function castVote(choice) {
       if (!currentBattle) return;
+      pendingChoice = choice;
+      const url = buildIssueUrl(currentBattle.battle_id, choice);
+      let popup = null;
+      try { popup = window.open(url, '_blank', 'noopener,noreferrer'); } catch (e) { popup = null; }
+      const blocked = !popup || popup.closed;
 
-      reveal('a', currentBattle.competitor_a);
-      reveal('b', currentBattle.competitor_b);
-      if (choice === 'a') document.getElementById('cand-a').classList.add('winner');
-      if (choice === 'b') document.getElementById('cand-b').classList.add('winner');
+      document.getElementById('vote-panel').style.display = 'none';
+      const waiting = document.getElementById('vote-waiting');
+      waiting.style.display = '';
+      const note = document.getElementById('popup-blocked-note');
+      if (blocked) {
+        document.getElementById('popup-link').href = url;
+        note.style.display = '';
+      } else {
+        note.style.display = 'none';
+      }
+      waiting.focus();
+    }
 
-      ['vote-a','vote-b','vote-tie','vote-both-wrong'].forEach(id => {
-        document.getElementById(id).disabled = true;
-      });
-      document.getElementById('vote-hint').textContent =
-        'Opening the GitHub issue… submit it there to confirm. Next battle in a few seconds.';
+    async function confirmSubmitted() {
+      if (!currentBattle || pendingChoice == null) return;
+      const battle = currentBattle;
+      markVoted(battle.battle_id);
+      reveal('a', battle.competitor_a);
+      reveal('b', battle.competitor_b);
+      if (pendingChoice === 'a') document.getElementById('cand-a').classList.add('winner');
+      if (pendingChoice === 'b') document.getElementById('cand-b').classList.add('winner');
 
-      window.open(buildIssueUrl(currentBattle.battle_id, choice), '_blank', 'noopener,noreferrer');
-      setTimeout(() => nextBattle(), 4500);
+      const nameA = fightersById[battle.competitor_a]?.display_name || battle.competitor_a;
+      const nameB = fightersById[battle.competitor_b]?.display_name || battle.competitor_b;
+      const bench = pairRecord(allBattles, battle.competitor_a, battle.competitor_b);
+      document.getElementById('reveal-h2h-bench').textContent = bench.total
+        ? `Benchmark auto-battles: ${nameA} ${bench.wins}W ${bench.losses}L ${bench.ties}T ${nameB}, over ${bench.total} battle${bench.total === 1 ? '' : 's'}.`
+        : 'Benchmark auto-battles: no record yet.';
+
+      document.getElementById('vote-waiting').style.display = 'none';
+      const revealPanel = document.getElementById('vote-reveal');
+      revealPanel.style.display = '';
+      revealPanel.focus();
+
+      const human = await humanPairRecord(BASE, battle.competitor_a, battle.competitor_b, { lang: battle.lang });
+      if (currentBattle !== battle) return; // voter already moved on
+      document.getElementById('reveal-h2h-human').textContent = human.total
+        ? `Human votes: ${nameA} ${human.wins}W ${human.losses}L ${human.ties}T ${nameB}, over ${human.total} vote${human.total === 1 ? '' : 's'}.`
+        : 'Human votes: none cast on this pair yet.';
+    }
+
+    function skipWaiting() {
+      pendingChoice = null;
+      nextBattle();
+    }
+
+    function continueAfterReveal() {
+      pendingChoice = null;
+      nextBattle();
     }
 
     function nextBattle() {
@@ -477,16 +622,10 @@ import Base from '../../layouts/Base.astro';
 
     async function init() {
       const index = await fetchJson_(`${BASE}data/index.json`);
+      siteIndex = index;
       // cache-bust per-pool fetches with the index build stamp so CDN staleness can't mask fresh data
       cacheV = index?.generated_at ? `?v=${encodeURIComponent(index.generated_at)}` : '';
       poolsMeta = index?.battles_pools || [];
-      const provenance = totalVoteProvenance(index);
-      if (provenance) {
-        const { human } = provenance;
-        const invite = document.getElementById('battle-vote-invite');
-        invite.textContent = `${human.toLocaleString('en-US')} human vote${human === 1 ? '' : 's'} cast so far — every board gets more accurate the more people weigh in. Yours is next.`;
-        invite.style.display = '';
-      }
       const bestiary = await fetchJson_(`${BASE}data/competitors.json${cacheV}`);
       for (const f of bestiary?.competitors || []) fightersById[f.competitor_id] = f;
 
@@ -510,6 +649,9 @@ import Base from '../../layouts/Base.astro';
       document.getElementById('vote-tie').addEventListener('click', () => castVote('tie'));
       document.getElementById('vote-both-wrong').addEventListener('click', () => castVote('both_wrong'));
       document.getElementById('btn-skip').addEventListener('click', () => nextBattle());
+      document.getElementById('btn-submitted').addEventListener('click', confirmSubmitted);
+      document.getElementById('btn-skip-wait').addEventListener('click', skipWaiting);
+      document.getElementById('btn-continue').addEventListener('click', continueAfterReveal);
     }
 
     init();

@@ -1,5 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
+const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
 ---
 <Base title="Free Vote" description="Pick any two OVOS plugins you've tried and say which you prefer — a direct subjective vote into the ELO ladder.">
   <p class="eyebrow" style="margin-bottom:0.4rem">OVOS Plugin Arena · Free Vote</p>
@@ -8,8 +9,17 @@ import Base from '../../layouts/Base.astro';
     Tried two plugins yourself? Choose any pair and say which you prefer. Unlike a
     <a href="../battle/">blind battle</a>, you see who's who — this is a direct
     subjective preference that feeds the same ELO ladder. <strong>One vote per
-    matchup</strong> (your first vote on a pair counts).
+    matchup</strong> (your first vote on a pair counts). Voting posts a GitHub issue
+    from your account — a free GitHub account, not an arena login.
   </p>
+  <details style="max-width:64ch;font-size:0.85rem;color:var(--muted);margin-bottom:0.75rem">
+    <summary style="cursor:pointer">Why GitHub?</summary>
+    <p style="margin:0.4rem 0 0">
+      Every vote is a public, timestamped issue instead of a hidden database row, so anyone can
+      audit who voted and catch ballot-stuffing. See <a href={`${base}methodology/`}>methodology</a>
+      for how the hourly tally turns issues into ratings.
+    </p>
+  </details>
 
   <div id="fv-loading" class="card" aria-live="polite">Loading fighters…</div>
   <div id="fv-empty" class="card" style="display:none">
@@ -23,6 +33,7 @@ import Base from '../../layouts/Base.astro';
       <label class="fv-field"><span>Language</span>
         <select id="fv-lang"></select></label>
     </div>
+    <p id="fv-votes" style="font-size:0.82rem;color:var(--muted);margin:0.5rem 0 0"></p>
 
     <div class="vs-grid">
       <div class="card cand" id="fv-card-a">
@@ -73,10 +84,15 @@ import Base from '../../layouts/Base.astro';
 
   <script>
     import { spriteSvg } from '../../lib/sprite.js';
+    import { humanVoteCount } from '../../lib/headToHead.js';
 
     const BASE = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
     const GITHUB_REPO = import.meta.env.VITE_GITHUB_REPO || 'OpenVoiceOS/ovos-plugin-arena';
-    const LEAGUE_LABELS = { intent: 'Intent', stt: 'STT', tts: 'TTS', wake_word: 'Wake Word', vad: 'VAD' };
+    // League ids/names/order come from index.json's `leagues` array (the same
+    // one the leaderboard/matchups pages read) — never hardcoded, so a new
+    // league shows up and sorts correctly without a source change here.
+    let LEAGUE_LABELS = {};
+    let LEAGUE_ORDER = {};
 
     let pools = [];        // {modality, lang, battles:[...]}
     let fighters = {};
@@ -191,21 +207,49 @@ import Base from '../../layouts/Base.astro';
       const ids = competitorsOf(pool);
       fillSelect(document.getElementById('fv-a'), ids, ids[0]);
       side('a'); refreshB();
+      updateBoardVotes(league, lang);
     }
 
-    function refreshLangs() {
+    // Guards against a slow vote-count fetch resolving after the voter has
+    // since switched to a different league/language.
+    let voteCountToken = 0;
+    async function updateBoardVotes(league, lang) {
+      const token = ++voteCountToken;
+      const n = await humanVoteCount(BASE, { modality: league, lang });
+      if (token !== voteCountToken) return;
+      const el = document.getElementById('fv-votes');
+      el.textContent = `${n.toLocaleString('en-US')} human vote${n === 1 ? '' : 's'} on this board so far.`;
+    }
+
+    function refreshLangs(preferredLang) {
       const league = document.getElementById('fv-league').value;
       const langs = [...new Set(pools.filter(p => p.modality === league).map(p => p.lang))].sort();
       const sel = document.getElementById('fv-lang');
       sel.innerHTML = langs.map(l => `<option value="${esc(l)}">${esc(l)}</option>`).join('');
-      sel.value = langs.includes('en-US') ? 'en-US' : langs[0];
+      sel.value = preferredLang && langs.includes(preferredLang) ? preferredLang
+        : langs.includes('en-US') ? 'en-US' : langs[0];
       setLeagueLang();
+    }
+
+    // The board with the most real cast votes, not just the first league
+    // alphabetically/positionally — a first-time voter lands where the
+    // community has already been active.
+    async function busiestBoard(candidates) {
+      const counts = await Promise.all(
+        candidates.map(p => humanVoteCount(BASE, { modality: p.modality, lang: p.lang })));
+      let best = candidates[0], bestCount = counts[0] ?? -1;
+      candidates.forEach((p, i) => { if (counts[i] > bestCount) { best = p; bestCount = counts[i]; } });
+      return best;
     }
 
     async function init() {
       const index = await fetchJson(`${BASE}data/index.json`);
       // cache-bust per-pool fetches with the index build stamp so CDN staleness can't mask fresh data
       const v = index?.generated_at ? `?v=${encodeURIComponent(index.generated_at)}` : '';
+      for (const l of index?.leagues || []) {
+        LEAGUE_LABELS[l.id] = l.label;
+        LEAGUE_ORDER[l.id] = l.order;
+      }
       pools = (await Promise.all((index?.freeform_pools || []).map(r => fetchJson(`${BASE}data/${r.file}${v}`)))).filter(Boolean);
       const bestiary = await fetchJson(`${BASE}data/competitors.json${v}`);
       for (const f of bestiary?.competitors || []) fighters[f.competitor_id] = f;
@@ -216,11 +260,11 @@ import Base from '../../layouts/Base.astro';
       if (!pools.length) { document.getElementById('fv-empty').style.display = ''; return; }
 
       const leagues = [...new Set(pools.map(p => p.modality))]
-        .sort((a, b) => Object.keys(LEAGUE_LABELS).indexOf(a) - Object.keys(LEAGUE_LABELS).indexOf(b));
+        .sort((a, b) => (LEAGUE_ORDER[a] ?? Infinity) - (LEAGUE_ORDER[b] ?? Infinity));
       const lsel = document.getElementById('fv-league');
       lsel.innerHTML = leagues.map(m => `<option value="${esc(m)}">${esc(LEAGUE_LABELS[m] || m)}</option>`).join('');
 
-      lsel.addEventListener('change', refreshLangs);
+      lsel.addEventListener('change', () => refreshLangs());
       document.getElementById('fv-lang').addEventListener('change', setLeagueLang);
       document.getElementById('fv-a').addEventListener('change', () => { side('a'); refreshB(); });
       document.getElementById('fv-b').addEventListener('change', () => side('b'));
@@ -231,7 +275,9 @@ import Base from '../../layouts/Base.astro';
       document.getElementById('fv-share').addEventListener('click', shareMatchup);
 
       document.getElementById('fv-app').style.display = '';
-      refreshLangs();
+      const defaultBoard = await busiestBoard(pools);
+      lsel.value = defaultBoard.modality;
+      refreshLangs(defaultBoard.lang);
       applyShareLink();
     }
 
