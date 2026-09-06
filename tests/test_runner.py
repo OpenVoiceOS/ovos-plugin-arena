@@ -89,6 +89,60 @@ class TestJobManifest:
         m2 = JobManifest.load(tmp_path, key)
         assert m2.is_done("x.wav")
 
+    def test_load_self_heals_truncated_manifest(self, tmp_path):
+        """A kill mid-write must not stall the job forever: a corrupt
+        manifest is moved aside and the job restarts from scratch instead
+        of ``load()`` raising on every future call."""
+        from runner.schema import JobManifest
+        path = JobManifest._manifest_path(tmp_path, "p|m|d")
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text('{"job_key": "p|m|d", "done_ids": ["a.wav"')  # truncated
+
+        m = JobManifest.load(tmp_path, "p|m|d")
+
+        assert m.done_ids == set(), "corrupt manifest must restart the job, not raise"
+        assert not path.exists(), "the corrupt file must be moved aside"
+        assert path.with_suffix(path.suffix + ".corrupt").exists()
+
+    def test_load_self_heals_manifest_with_missing_keys(self, tmp_path):
+        """Valid JSON missing ``job_key`` (e.g. ``{}``) must self-heal the
+        same as truncated JSON — a bare ``KeyError`` escaping ``load()``
+        would make ``plugin_runner`` re-raise on that job every cycle
+        instead of moving the file aside."""
+        from runner.schema import JobManifest
+        path = JobManifest._manifest_path(tmp_path, "p|m|d")
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("{}")
+
+        m = JobManifest.load(tmp_path, "p|m|d")
+
+        assert m.job_key == "p|m|d"
+        assert m.done_ids == set()
+        assert not path.exists(), "the file missing required keys must be moved aside"
+        assert path.with_suffix(path.suffix + ".corrupt").exists()
+
+    def test_save_leaves_no_partial_file_on_replace_failure(self, tmp_path, monkeypatch):
+        """``save()`` must write through a temp file and ``os.replace`` it
+        into place atomically — a kill/crash between the temp write and the
+        rename must never leave a truncated target manifest."""
+        from runner import schema as schema_mod
+        from runner.schema import JobManifest
+
+        m = JobManifest.load(tmp_path, "p|m|d")
+        m.done_ids.add("a.wav")
+        target = JobManifest._manifest_path(tmp_path, "p|m|d")
+
+        def boom(*a, **kw):
+            raise OSError("simulated crash between write and rename")
+
+        monkeypatch.setattr(schema_mod.os, "replace", boom)
+        try:
+            m.save(tmp_path)
+        except OSError:
+            pass
+
+        assert not target.exists(), "target manifest must be untouched by a failed replace"
+
 
 # ---------------------------------------------------------------------------
 # queue_config.load_queue

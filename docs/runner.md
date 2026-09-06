@@ -478,7 +478,7 @@ GitHub Actions job — no long-lived process, one bounded run per invocation —
 
 ```bash
 python -m runner.autorun --one-shot --light \
-    --max-samples 1000 --time-budget-secs 1500 --max-attempts 3
+    --max-samples 1000 --time-budget-secs 1200 --max-attempts 10
 ```
 
 Each run:

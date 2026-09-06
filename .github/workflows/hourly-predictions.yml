@@ -24,7 +24,7 @@ on:
       time_budget_secs:
         description: 'Wall-clock budget in seconds (includes model load)'
         required: false
-        default: '1500'
+        default: '1200'
       max_samples:
         description: 'New-sample cap per pair drawn'
         required: false
@@ -40,7 +40,7 @@ concurrency:
 jobs:
   predict:
     runs-on: ubuntu-latest
-    timeout-minutes: 55
+    timeout-minutes: 58
     steps:
       - uses: actions/checkout@v7
         with:
@@ -113,7 +113,7 @@ jobs:
             --one-shot
             --light
             --max-samples "${{ github.event.inputs.max_samples || '1000' }}"
-            --time-budget-secs "${{ github.event.inputs.time_budget_secs || '1500' }}"
+            --time-budget-secs "${{ github.event.inputs.time_budget_secs || '1200' }}"
             --max-attempts 10
             --output-dir predictions
           )
@@ -131,3 +131,28 @@ jobs:
             grep '^one-shot:' /tmp/one-shot.log || echo "(no one-shot: lines captured)"
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
+
+  notify-on-failure:
+    needs: predict
+    if: failure()
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Open an issue if one isn't already open
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          existing=$(gh issue list --repo "$REPO" --search 'in:title "CI: hourly predictions failing"' \
+            --state open --json title --jq 'length')
+          if [ "$existing" -gt 0 ]; then
+            echo "an open issue already tracks this failure, skipping"
+            exit 0
+          fi
+          gh issue create --repo "$REPO" \
+            --title "CI: hourly predictions failing" \
+            --label ci-failure \
+            --body "The hourly random-pair predictions workflow failed: $RUN_URL"

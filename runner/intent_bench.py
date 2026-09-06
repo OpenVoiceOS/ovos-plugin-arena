@@ -641,11 +641,18 @@ def run_competitor_lang(
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     written = 0
+    errored = 0
     with out_path.open("a", encoding="utf-8") as fh:
         for i, test_row in todo:
-            (prediction, slots, confidence, latency_ms, stage), _, peak_rss_mb = (
-                measure_call(lambda: pipeline.predict(test_row["utterance"]))
-            )
+            try:
+                (prediction, slots, confidence, latency_ms, stage), _, peak_rss_mb = (
+                    measure_call(lambda: pipeline.predict(test_row["utterance"]))
+                )
+            except Exception as exc:
+                log.warning("    %s/%s sample %s failed: %s",
+                            competitor.competitor_id, lang, i, exc)
+                errored += 1
+                continue
             row = make_row(
                 competitor, dataset_id, lang, i, test_row,
                 prediction, slots, confidence, latency_ms, stage, revision,
@@ -659,7 +666,8 @@ def run_competitor_lang(
                 fh.flush()
                 log.info("    %s/%s: %d/%d", competitor.competitor_id, lang,
                          written, len(todo))
-    log.info("  %s/%s: wrote %d rows", competitor.competitor_id, lang, written)
+    log.info("  %s/%s: wrote %d rows (%d errored)", competitor.competitor_id,
+              lang, written, errored)
     return written
 
 

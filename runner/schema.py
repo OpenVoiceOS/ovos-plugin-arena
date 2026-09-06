@@ -10,9 +10,13 @@ converts via ``to_prediction_row_dict``) — new runs never construct one; see
 from __future__ import annotations
 
 import json
+import logging
+import os
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
+
+log = logging.getLogger(__name__)
 
 
 @dataclass
@@ -125,18 +129,27 @@ class JobManifest:
     def load(cls, base_dir: Path, job_key: str) -> JobManifest:
         path = cls._manifest_path(base_dir, job_key)
         if path.exists():
-            data = json.loads(path.read_text())
-            return cls(
-                job_key=data["job_key"],
-                done_ids=set(data.get("done_ids", [])),
-                output_file=data.get("output_file", ""),
-            )
+            try:
+                data = json.loads(path.read_text())
+                manifest = cls(
+                    job_key=data["job_key"],
+                    done_ids=set(data.get("done_ids", [])),
+                    output_file=data.get("output_file", ""),
+                )
+            except (json.JSONDecodeError, OSError, KeyError, TypeError,
+                     ValueError) as exc:
+                log.error("corrupt manifest %s (%s), moving aside and "
+                          "starting the job from scratch", path, exc)
+                path.rename(path.with_suffix(path.suffix + ".corrupt"))
+                return cls(job_key=job_key)
+            return manifest
         return cls(job_key=job_key)
 
     def save(self, base_dir: Path) -> None:
         path = self._manifest_path(base_dir, self.job_key)
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(
+        tmp_path = path.with_suffix(path.suffix + ".tmp")
+        tmp_path.write_text(
             json.dumps(
                 {
                     "job_key": self.job_key,
@@ -146,6 +159,7 @@ class JobManifest:
                 indent=2,
             )
         )
+        os.replace(tmp_path, path)
 
     def mark_done(self, sample_id: str, base_dir: Path) -> None:
         self.done_ids.add(sample_id)
