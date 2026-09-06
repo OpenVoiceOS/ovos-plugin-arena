@@ -31,6 +31,8 @@ import time
 from dataclasses import dataclass
 from typing import Any
 
+from ovos_spec_tools.expansion import strip_type_prefixes
+
 from registry.schemas import split_pipeline_stage
 
 logger = logging.getLogger(__name__)
@@ -281,7 +283,12 @@ class IntentPipeline:
             # engines without template support concrete utterances.
             samples: list[str] = []
             for row in intent_rows:
-                template = row.get("template", "")
+                # OVOS-INTENT-1 §3.4/§4.1: ``.intent`` templates may carry
+                # ``{type:name}`` slots; every loader (workshop included)
+                # reads them as bare ``{name}`` before an engine ever sees
+                # them, so strip here — the single choke point — before the
+                # raw or expanded form reaches any engine.
+                template = strip_type_prefixes(row.get("template", ""))
                 samples.append(template)
                 samples.extend(expand_template(template, row.get("slots")))
             samples = list(dict.fromkeys(s for s in samples if s))

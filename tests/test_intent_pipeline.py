@@ -121,6 +121,57 @@ class TestExtractSlots:
         assert IntentPipeline._extract_slots({}) == {}
 
 
+class _RecordingBus:
+    def __init__(self):
+        self.emitted = []
+
+    def emit(self, message):
+        self.emitted.append(message)
+
+
+class TestRegisterTemplatesTypedSlots:
+    """OVOS-INTENT-1 §3.4/§4.1: {type:name} slots must reach engines as
+    bare {name}, exactly like ovos-workshop's own loader strips them
+    before registration."""
+
+    def _register(self, rows):
+        bus = _RecordingBus()
+        pipeline = object.__new__(IntentPipeline)
+        pipeline.lang = "en-us"
+        IntentPipeline._register_templates(pipeline, bus, rows)
+        [msg] = [m for m in bus.emitted if m.msg_type == "padatious:register_intent"]
+        return msg.data["samples"]
+
+    def test_typed_slot_stripped(self):
+        samples = self._register([{
+            "intent_id": "lights",
+            "template": "turn the lights {color:shade}",
+            "slots": [{"name": "shade", "examples": ["red"]}],
+        }])
+        assert "turn the lights {shade}" in samples
+        assert not any("{color:shade}" in s for s in samples)
+
+    def test_untyped_template_byte_identical(self):
+        samples = self._register([{
+            "intent_id": "lights",
+            "template": "turn the lights {shade}",
+            "slots": [{"name": "shade", "examples": ["red"]}],
+        }])
+        assert "turn the lights {shade}" in samples
+
+    def test_unregistered_type_degrades_to_untyped(self):
+        # strip_type_prefixes strips ANY {type:name} slot, registered or
+        # not, degrading unregistered types to the bare slot rather than
+        # forwarding the typed syntax to an engine.
+        samples = self._register([{
+            "intent_id": "lights",
+            "template": "turn the lights {foo:bar}",
+            "slots": [{"name": "bar", "examples": ["red"]}],
+        }])
+        assert "turn the lights {bar}" in samples
+        assert not any("{foo:bar}" in s for s in samples)
+
+
 class TestNormalise:
     def test_skill_prefix_stripped(self):
         assert IntentPipeline._normalise("arena:media:play_song") == "media:play_song"
