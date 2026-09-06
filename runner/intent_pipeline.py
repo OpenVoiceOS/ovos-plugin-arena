@@ -84,10 +84,6 @@ ENGINE_REGISTRY: dict[str, EngineSpec] = {
     "ovos-m2v-prototype-pipeline": EngineSpec(
         "ovos_m2v_pipeline:Model2VecPrototypePipeline", "template",
         "mycroft.ready", "ovos-m2v-pipeline", "m2v_prototype"),
-    "ovos-hierarchical-knn-pipeline": EngineSpec(
-        "ovos_hierarchical_knn_pipeline:HierarchicalKNNIntentPipeline",
-        "template",
-        "mycroft.ready", "ovos-hierarchical-knn-pipeline", "hknn"),
     # Domain/hierarchical two-stage variants — separate OPM entry points
     # (opm.pipeline) from the same distributions as their flat siblings
     # above; wired in here so the arena can dispatch to them.

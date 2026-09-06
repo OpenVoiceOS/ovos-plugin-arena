@@ -77,8 +77,8 @@ def validate_lang_tag(tag: str) -> str:
 # engine, not one per wrapper. This table folds each wrapper's species onto
 # its base engine's species; anything not listed here (including engines
 # that are genuinely distinct products, e.g. PadatiousPipeline vs
-# PadaciosoPipeline, or HierarchicalKNNIntentPipeline — "hierarchical" is
-# part of that engine's own name, not a variant qualifier on some other
+# PadaciosoPipeline, where "hierarchical"-style qualifiers would be part of
+# that engine's own name rather than a variant qualifier on some other
 # engine) is left alone: `family` just falls back to `species`.
 FAMILY_ALIASES: dict[str, str] = {
     "DomainAdaptPipeline": "AdaptPipeline",

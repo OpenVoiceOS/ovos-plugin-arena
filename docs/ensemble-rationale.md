@@ -175,10 +175,9 @@ across tiers help" from "does a strictness gradient across tiers help."
 otherwise duplicate whatever exact/near-exact matching the stage ahead of it (Padatious,
 Adapt) already provides, the same subset-duplication trap padatioso fell into below.
 
-### m2v-first & knn-first, KEEP (new family: embedding-fronted)
+### m2v-first, KEEP (new family: embedding-fronted)
 
-**Compositions:** `m2v-first` = `m2v-high → padatious-medium`; `knn-first` =
-`hierarchical-knn-high → linha-fina-medium`.
+**Composition:** `m2v-first` = `m2v-high → padatious-medium`.
 
 **Why this family is interesting:** the owner's directive was explicit. "None uses
 embeddings" was true of every fighter in the registry before this pass. Every existing
@@ -187,12 +186,8 @@ template classifier (Padatious, Nebulento, Jurebes, Linha-Fina); none leads with
 general-purpose sentence-embedding similarity, which generalizes across paraphrases via
 vector distance rather than exact template/keyword structure.
 
-**What it measures:** `m2v-first` leads with Model2Vec dense sentence embeddings (single
-learned similarity boundary); `knn-first` leads with Hierarchical-KNN (nearest-neighbor
-retrieval over a domain-then-intent embedding index). These are two structurally
-different embedding mechanisms, deliberately paired with *different* backup engines
-(Padatious vs. Linha-Fina respectively) so a head-to-head between the pair isolates the
-embedding-front difference rather than being confounded by a shared backup.
+**What it measures:** `m2v-first` leads with Model2Vec dense sentence embeddings, a
+single learned similarity boundary, ahead of the Padatious backup.
 
 ### kw-slot-palavreado & tmpl-slot-{nebulento,linhafina,jurebes}, KEEP (new family: replacement studies)
 
@@ -260,7 +255,6 @@ names. **Removed** (`git rm registry/competitors/intent/padatioso.json`).
 | trident | padatious-high, jurebes(mlp_shallow)-medium, nebulento-low | KEEP | does an architecture-diverse 3-tier confidence cascade beat 2-engine fusions |
 | cascade-soft | linha-fina-high, palavreado-medium, nebulento-low | KEEP | does a strictness-descending (not architecture-diverse) 3-tier cascade help |
 | m2v-first | m2v-high, padatious-medium | KEEP | does a dense-embedding front door beat a template-first front door |
-| knn-first | hierarchical-knn-high, linha-fina-medium | KEEP | does a KNN-retrieval embedding front door differ from a dense-embedding one |
 | kw-slot-palavreado | palavreado-high, padatious-medium | KEEP | keyword-engine A/B: mycroft-classic (Adapt) vs Palavreado, backup+shape fixed |
 | tmpl-slot-nebulento | adapt-high, nebulento-medium | KEEP | template-engine 4-way: which backup engine recovers most, front+shape fixed |
 | tmpl-slot-linhafina | adapt-high, linha-fina-medium | KEEP | template-engine 4-way: which backup engine recovers most, front+shape fixed |
