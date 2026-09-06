@@ -3,6 +3,9 @@ from __future__ import annotations
 
 import json
 
+import pytest
+from pydantic import ValidationError
+
 from arena.models import (
     Battle,
     BattlesPool,
@@ -119,6 +122,18 @@ class TestArtifactRoundtrip:
         )
         again = EloSeed(**json.loads(json.dumps(seed.model_dump(mode="json"))))
         assert again == seed
+
+    def test_elo_seed_rejects_pairwise_fighter_absent_from_ratings(self):
+        # pairwise_wins names "ghost", who has no entry in ratings — the
+        # seed's roster and its pairwise totals have drifted apart.
+        with pytest.raises(ValidationError, match="ghost"):
+            EloSeed(
+                modality=Modality.INTENT, lang="en-US",
+                generated_at="2026-01-01T00:00:00+00:00",
+                ratings={"x": 1200.0},
+                pairwise_wins={"x": {"ghost": 1.0}},
+                pairwise_games={"x": {"ghost": 1.0}},
+            )
 
     def test_boards_serialise(self):
         bench = BenchmarkBoard(

@@ -80,6 +80,18 @@ class TestFitBradleyTerry:
         strengths = fit_bradley_terry({}, {}, ["solo"])
         assert strengths == {"solo": 1.0}
 
+    def test_pairwise_fighter_missing_from_competitors_does_not_raise(self):
+        # A pairwise matrix naming "ghost" (absent from `competitors`, e.g.
+        # a seed whose roster drifted from its pairwise totals) must not
+        # KeyError on `prev[j]` — the ghost is held at the prior and left
+        # out of the returned ratings.
+        results = [PairResult("a", "ghost", 1.0)] * 5 + [PairResult("a", "b", 1.0)] * 5
+        wins, games = pairwise_from_results(results)
+        strengths = fit_bradley_terry(wins, games, ["a", "b"])
+        assert set(strengths) == {"a", "b"}
+        ratings = to_rating_scale(strengths)
+        assert ratings["a"] > ratings["b"]
+
 
 class TestBootstrapConfidenceIntervals:
     def test_deterministic_for_fixed_seed(self):
@@ -109,6 +121,33 @@ class TestBootstrapConfidenceIntervals:
 
     def test_no_competitors_returns_empty(self):
         assert bootstrap_confidence_intervals([], {}, {}, []) == {}
+
+    def test_order_independent_for_same_vote_multiset(self):
+        # §P5 "ratings are replayable": the same votes in a different order
+        # (e.g. re-fetched issues, a different sort) must produce a
+        # byte-identical bootstrap CI, not just a numerically close one.
+        results = (
+            [PairResult("a", "b", 1.0)] * 12
+            + [PairResult("a", "b", 0.0)] * 5
+            + [PairResult("b", "c", 1.0)] * 8
+            + [PairResult("a", "c", 0.5)] * 3
+        )
+        shuffled = list(results)
+        random.Random(1234).shuffle(shuffled)
+        assert shuffled != results  # sanity: the shuffle actually reordered
+        ci1 = bootstrap_confidence_intervals(results, {}, {}, ["a", "b", "c"], seed=11)
+        ci2 = bootstrap_confidence_intervals(shuffled, {}, {}, ["a", "b", "c"], seed=11)
+        assert ci1 == ci2
+
+    def test_fixture_pairing_missing_from_ratings_gets_prior_no_exception(self):
+        # A pairwise matrix naming a fighter absent from `competitors` (a
+        # roster drift EloSeed should never allow, but the rating function
+        # must tolerate defensively) must not raise, and the missing
+        # fighter is rated at the prior rather than crashing the fit.
+        wins, games = pairwise_from_results([PairResult("a", "ghost", 1.0)] * 5)
+        cis = bootstrap_confidence_intervals([], wins, games, ["a"], seed=0)
+        assert "ghost" not in cis
+        assert "a" in cis
 
 
 class TestPairwiseHelpers:
