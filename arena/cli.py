@@ -546,6 +546,37 @@ def _board_disk_input_hash(path: Path) -> str | None:
     return value
 
 
+def _board_alarm_signals(path: Path, modality: str) -> tuple[bool, bool, int]:
+    """§alarms — ``(all_unranked, no_negatives, rows_dropped_off_revision)``
+    for one benchmark board, read straight off the published JSON's
+    ``entries`` rather than the in-memory ``BenchmarkBoard`` this run may or
+    may not have just built. A board's alarm state must reflect what's
+    actually on disk on EVERY run, including one that reused the
+    ``_board_disk_input_hash`` cache hit and never touched ``build_
+    benchmark_board`` at all — a wake-word board's rows don't grow
+    negatives just because assemble skipped recomputing it.
+
+    ``no_negatives`` mirrors ``score_wake_word``'s own condition for
+    leaving ``false_accept_rate`` out of an entry's ``metrics`` (no row's
+    ground truth was negative) rather than re-deriving it from raw
+    prediction rows, since only wake_word's per-entry metrics are cheap and
+    unambiguous to read back from the published board file.
+    """
+    try:
+        payload = json.loads(path.read_text())
+    except (OSError, json.JSONDecodeError):
+        return False, False, 0
+    entries = payload.get("entries")
+    if not isinstance(entries, list) or not entries:
+        return False, False, 0
+    all_unranked = all(bool(e.get("unranked")) for e in entries)
+    rows_dropped = sum(int(e.get("rows_other_revision") or 0) for e in entries)
+    no_negatives = modality == "wake_word" and not any(
+        "false_accept_rate" in (e.get("metrics") or {}) for e in entries
+    )
+    return all_unranked, no_negatives, rows_dropped
+
+
 def _write_json_payload(path: Path, payload: dict[str, Any]) -> None:
     if _unchanged(path, payload):
         log.info("Unchanged %s", path)
@@ -948,12 +979,15 @@ def cmd_assemble(args: argparse.Namespace) -> int:
     all_seen_modalities: set[str] = set()
     any_data = False
     # §alarms — surfaced in assemble-summary.json (docs/operations.md
-    # "Alarms") so a board that quietly went to zero signal, or a source
-    # whose rows all fell off the dataset's pinned revision, is visible
-    # instead of hiding under a green run. Populated only for boards this
-    # run actually (re)built — a cache-hit board's state was already
-    # surfaced (or not) the run it was last built.
+    # "Alarms") so a board that quietly went to zero signal, a wake-word
+    # board that can never measure a false accept, or a source whose rows
+    # all fell off the dataset's pinned revision, is visible instead of
+    # hiding under a green run. Populated from every board this run OWNS
+    # (see _board_alarm_signals) — read straight off the published JSON,
+    # so a condition already on disk keeps alarming on every run, not just
+    # the run a board happens to be rebuilt.
     boards_without_ranked_fighters: list[str] = []
+    boards_without_negatives: list[str] = []
     rows_dropped_off_revision = 0
 
     degraded_langs: dict[str, list[str]] = {}
@@ -1083,31 +1117,43 @@ def cmd_assemble(args: argparse.Namespace) -> int:
             if _board_disk_input_hash(board_path) == input_hash:
                 written_files.add(board_file)
                 log.info("Unchanged %s (input identical — skipped bootstrap)", board_path)
-                continue
-            board = build_benchmark_board(
-                modality, dataset_id, lang, by_competitor, now, input_hash=input_hash,
-                sample_set_ids=sample_set_ids,
-                dataset_revision=registry_dataset_revisions.get(dataset_id),
-            )
-            _attach_model_sizes(board, modality)
-            rows_dropped_off_revision += sum(
-                e.rows_other_revision for e in board.entries)
-            if board.entries and all(e.unranked for e in board.entries):
+            else:
+                board = build_benchmark_board(
+                    modality, dataset_id, lang, by_competitor, now, input_hash=input_hash,
+                    sample_set_ids=sample_set_ids,
+                    dataset_revision=registry_dataset_revisions.get(dataset_id),
+                )
+                _attach_model_sizes(board, modality)
+                board.dataset_info = dataset_info.get(dataset_id)
+                own_revisions = {
+                    src: sha for src, sha in resolved_revisions.items()
+                    if src.endswith(f"-bench-{dataset_id}")
+                }
+                board.predictions_revisions = own_revisions or None
+                board.entries_hash = hashlib.sha256(
+                    json.dumps(
+                        [e.model_dump(mode="json") for e in board.entries],
+                        sort_keys=True, default=str,
+                    ).encode("utf-8")
+                ).hexdigest()
+                _write_json(board_path, board)
+                written_files.add(board_file)
+
+            # §alarms — read the board this run OWNS straight off disk,
+            # whether it was just rebuilt above or reused via the
+            # ``_board_disk_input_hash`` cache hit, so a board sitting on a
+            # stale/frozen sweep keeps alarming on every later run instead
+            # of only the run it happens to be rebuilt (a cache hit used to
+            # ``continue`` past this bookkeeping entirely — see the
+            # boards_without_negatives docstring above for why that made
+            # the alarm disappear the day after it fired).
+            unranked, no_negatives, rows_dropped = _board_alarm_signals(
+                board_path, modality)
+            rows_dropped_off_revision += rows_dropped
+            if unranked:
                 boards_without_ranked_fighters.append(board_file)
-            board.dataset_info = dataset_info.get(dataset_id)
-            own_revisions = {
-                src: sha for src, sha in resolved_revisions.items()
-                if src.endswith(f"-bench-{dataset_id}")
-            }
-            board.predictions_revisions = own_revisions or None
-            board.entries_hash = hashlib.sha256(
-                json.dumps(
-                    [e.model_dump(mode="json") for e in board.entries],
-                    sort_keys=True, default=str,
-                ).encode("utf-8")
-            ).hexdigest()
-            _write_json(board_path, board)
-            written_files.add(board_file)
+            if no_negatives:
+                boards_without_negatives.append(board_file)
 
         # Battles + ELO pool by battle group: every plugin that answered the same
         # stimulus in a language competes, so the intent paradigm leagues merge into
@@ -1250,7 +1296,8 @@ def cmd_assemble(args: argparse.Namespace) -> int:
                  "leaving existing data untouched", scope)
         return 0
 
-    if unregistered_competitors or boards_without_ranked_fighters or rows_dropped_off_revision:
+    if (unregistered_competitors or boards_without_ranked_fighters
+            or boards_without_negatives or rows_dropped_off_revision):
         # Named per modality, like every other artifact this run writes
         # (§assemble scalability — see the matrix-sharding comment on the
         # assemble.yml job), when this run is scoped to one: a sharded
@@ -1273,6 +1320,7 @@ def cmd_assemble(args: argparse.Namespace) -> int:
                     sorted(unregistered_competitors.items())
                 ),
                 "boards_without_ranked_fighters": sorted(boards_without_ranked_fighters),
+                "boards_without_negatives": sorted(boards_without_negatives),
                 "rows_dropped_off_revision": rows_dropped_off_revision,
             },
         )
@@ -1565,17 +1613,20 @@ def merge_assemble_summaries(payloads: list[dict[str, Any]]) -> dict[str, Any]:
     """
     unregistered: dict[str, int] = {}
     boards: set[str] = set()
+    boards_no_negatives: set[str] = set()
     rows_dropped = 0
     for payload in payloads:
         excluded = payload.get("unregistered_competitors_excluded") or {}
         for competitor_id, count in excluded.items():
             unregistered[competitor_id] = unregistered.get(competitor_id, 0) + count
         boards.update(payload.get("boards_without_ranked_fighters") or [])
+        boards_no_negatives.update(payload.get("boards_without_negatives") or [])
         rows_dropped += payload.get("rows_dropped_off_revision") or 0
     return {
         "generated_at": _now_iso(),
         "unregistered_competitors_excluded": dict(sorted(unregistered.items())),
         "boards_without_ranked_fighters": sorted(boards),
+        "boards_without_negatives": sorted(boards_no_negatives),
         "rows_dropped_off_revision": rows_dropped,
     }
 

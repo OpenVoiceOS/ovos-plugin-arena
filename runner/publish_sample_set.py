@@ -41,6 +41,7 @@ from __future__ import annotations
 
 import argparse
 import concurrent.futures
+import fnmatch
 import json
 import logging
 import os
@@ -258,8 +259,8 @@ def main(argv=None) -> int:
     parser.add_argument("--modality", default="",
                         help="Only this modality (default: every modality)")
     parser.add_argument("--dataset", default="",
-                        help="Only this dataset_id (default: every dataset "
-                             "with a sample_policy)")
+                        help="Only dataset_ids matching this glob (default: "
+                             "every dataset with a sample_policy)")
     parser.add_argument("--upload", action="store_true",
                         help="Publish to HF (default: --dry-run, counts only)")
     parser.add_argument("--dry-run", action="store_true",
@@ -287,11 +288,12 @@ def main(argv=None) -> int:
     targets = [
         d for d in list_datasets(modality=args.modality or None)
         if d.sample_policy is not None
-        and (not args.dataset or d.dataset_id == args.dataset)
+        and d.role == "eval"
+        and (not args.dataset or fnmatch.fnmatch(d.dataset_id, args.dataset))
     ]
 
     if not targets:
-        log.warning("No datasets with a sample_policy matched the given filters")
+        log.warning("No eval datasets with a sample_policy matched the given filters")
         return 0
 
     log.info("Publishing sample sets for %d dataset(s)%s", len(targets),

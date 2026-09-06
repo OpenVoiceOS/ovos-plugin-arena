@@ -368,3 +368,51 @@ class TestPredictContext:
         assert url == ("https://huggingface.co/datasets/"
                        "OpenVoiceOS/ovos-tts-bench-d/resolve/main/"
                        "audio/en-US/edge/abc.wav")
+
+
+class _StubCompetitor:
+    def __init__(self, competitor_id, plugin=None, langs=None):
+        self.competitor_id = competitor_id
+        self.plugin = plugin
+        self.langs = langs or []
+
+
+class TestRunBenchmarkPluginPreflight:
+    """run_benchmark (§ direct bench scripts) must skip a fighter whose
+    plugin isn't installed with one logged error, count it, and keep
+    scoring the remaining fighters — matching runner.autorun's
+    _probe_new_fighters quarantine instead of letting load_plugin_class's
+    RuntimeError escape from run_competitor_lang uncaught."""
+
+    def test_missing_plugin_fighter_skipped_others_scored(
+            self, monkeypatch, tmp_path, caplog):
+        good = _StubCompetitor("good", plugin="ovos-stt-plugin-installed")
+        bad = _StubCompetitor("bad", plugin="ovos-stt-plugin-missing")
+        eval_def = SimpleNamespace(
+            source=SimpleNamespace(hf_id="PolyAI/minds14", revision="main"),
+            langs=["en-US"], lang="en-US",
+        )
+        monkeypatch.setattr(mb, "load_dataset",
+                            lambda modality, did: eval_def)
+        monkeypatch.setattr(mb, "resolve_revision",
+                            lambda hf_id, revision, timeout=None: "deadbeef")
+        monkeypatch.setattr(mb, "competitors_for",
+                            lambda modality, wanted=None: [good, bad])
+        monkeypatch.setattr(
+            mb, "plugin_is_installed",
+            lambda modality, plugin: plugin == "ovos-stt-plugin-installed",
+        )
+
+        adapter = StubAdapter(n=2)
+        with caplog.at_level("ERROR"):
+            rc = mb.run_benchmark(
+                adapter, "some-dataset", "test",
+                argv=["--output-dir", str(tmp_path)],
+            )
+        assert rc == 0
+        errors = [r for r in caplog.records if r.levelname == "ERROR"]
+        assert len(errors) == 1
+        assert "bad" in errors[0].message
+        assert "ovos-stt-plugin-missing" in errors[0].message
+        # only the installed fighter's engine was ever loaded (one lang)
+        assert adapter.loaded == 1

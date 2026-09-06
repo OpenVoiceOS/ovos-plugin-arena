@@ -77,9 +77,14 @@ dataset's predictions repo, right next to `predictions/<lang>/*.jsonl`.
 python -m runner.publish_sample_set --upload
 ```
 
-runs every dataset that declares a `sample_policy`; scope it with
-`--modality` or `--dataset` for a single one, or drop `--upload` (the
-default) to print row counts without touching HF. `arena.cli assemble`
+runs every `role: eval` dataset that declares a `sample_policy`; scope it
+with `--modality` or a `--dataset` glob for a subset, or drop `--upload`
+(the default) to print row counts without touching HF.
+`.github/workflows/publish-sample-sets.yml` runs this weekly (with
+`--upload --skip-existing`) and also on demand via `workflow_dispatch`,
+which accepts the same dataset glob as an input — a run's step summary
+lists the per-dataset row counts it published.
+`arena.cli assemble`
 downloads each dataset's manifest automatically when one exists and
 restricts every fighter's rows — and battle/ELO assembly — to it before
 scoring, so board rankings are always over a comparable sample set. A
