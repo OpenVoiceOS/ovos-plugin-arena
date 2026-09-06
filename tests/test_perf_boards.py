@@ -290,7 +290,9 @@ class TestBuildBenchmarkBoardAttachesPerf:
                  elapsed_ms=500.0, audio_secs=1.0, peak_rss_mb=320.0, hw=hw),
         ]
         by_competitor = {"a": rows}
-        board = build_benchmark_board("intent", "d", "en-US", by_competitor, "t")
+        board = build_benchmark_board("intent_online", "d", "en-US", by_competitor, "t",
+            min_samples=1,
+        )
         entry = board.entries[0]
         assert entry.perf is not None
         assert entry.perf["cpu-x86"]["rtf"] == 0.5
@@ -300,5 +302,7 @@ class TestBuildBenchmarkBoardAttachesPerf:
         from arena.metrics import build_benchmark_board
 
         rows = [_row(competitor_id="a", reference_intent="x", prediction="x")]
-        board = build_benchmark_board("intent", "d", "en-US", {"a": rows}, "t")
+        board = build_benchmark_board("intent_online", "d", "en-US", {"a": rows}, "t",
+            min_samples=1,
+        )
         assert board.entries[0].perf is None

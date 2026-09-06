@@ -30,8 +30,9 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 # BCP-47 language tag validation
 # ---------------------------------------------------------------------------
 
-# Full lang-REGION tags only — a bare primary subtag (e.g. "en") is a defect,
-# not a shorthand. Accepts:
+# Full lang-REGION tags, plus the handful of bare ISO 639-3 primary subtags in
+# BARE_PRIMARY_SUBTAGS below. Any other bare subtag — two-letter ("en") or
+# three-letter ("eng") — is a defect, not a shorthand. Accepts:
 #   - a 2-3 letter primary subtag
 #   - an optional 4-letter script subtag (Title-case, e.g. "Cyrl", "Arab")
 #   - an optional region: ISO 3166 alpha-2 (upper-case) or UN M.49 3-digit
@@ -45,6 +46,12 @@ _BCP47_RE = re.compile(
 )
 
 
+#: Languages the corpora carry with no region, because none of the regions
+#: they are spoken in is a dialect the data distinguishes. An addition here is
+#: an owner ruling about a language, never a convenience.
+BARE_PRIMARY_SUBTAGS = frozenset({"arb", "kab"})
+
+
 def validate_lang_tag(tag: str) -> str:
     """Validate a single BCP-47 language tag (or the literal ``"multi"``).
 
@@ -56,10 +63,12 @@ def validate_lang_tag(tag: str) -> str:
         # "" is the resolved_dataset_lang() sentinel for "unset — fall back
         # to parsing the dataset id's trailing locale suffix instead".
         return tag
-    if "-" not in tag or not _BCP47_RE.match(tag):
+    if (tag not in BARE_PRIMARY_SUBTAGS and "-" not in tag) or not _BCP47_RE.match(tag):
         raise ValueError(
             f"{tag!r} is not a valid BCP-47 language tag — full lang-REGION "
-            "tags are required (e.g. 'en-US', not bare 'en')"
+            "tags are required (e.g. 'en-US', not bare 'en'). The only bare "
+            f"subtags allowed are {sorted(BARE_PRIMARY_SUBTAGS)}, languages "
+            "spoken across no country dialect the corpora distinguish."
         )
     return tag
 
@@ -96,16 +105,34 @@ FAMILY_ALIASES: dict[str, str] = {
 
 
 class Modality(str, Enum):
-    """Arena leagues. Keyword-paradigm and template-paradigm intent engines
-    consume different supervision, so they compete in separate leagues; the
-    open ``intent`` league hosts mixed-paradigm pipeline fusions."""
+    """Arena leagues, plus the two intent training-corpus namespaces.
+
+    Intent fighters are split by *training regime* — what a fighter has to be
+    given before it can answer at all. A zero-shot fighter is handed the
+    skill's templates and answers immediately, an online fighter trains on
+    them when the device boots, an offline fighter ships a pretrained
+    artefact and never sees them. Ranking those against each other compares
+    different things, so each is its own league.
+
+    Keyword-supervised engines stay in their own league: hand-written
+    vocabulary rules are a different kind of supervision from phrase
+    templates, and they need their own corpora.
+
+    ``intent`` names the shared eval-corpus namespace (``registry/datasets/
+    intent/``) rather than a fighter league; ``intent_template`` names the
+    template-paradigm training-corpus namespace. No competitor is filed
+    under either.
+    """
 
     STT = "stt"
     TTS = "tts"
     WAKE_WORD = "wake_word"
     VAD = "vad"
-    INTENT = "intent"  # open league — mixed-paradigm fusions
-    INTENT_TEMPLATE = "intent_template"
+    INTENT = "intent"  # eval-corpus namespace
+    INTENT_TEMPLATE = "intent_template"  # template-paradigm training corpora
+    INTENT_ZERO_SHOT = "intent_zero_shot"
+    INTENT_ONLINE = "intent_online"
+    INTENT_OFFLINE = "intent_offline"
     INTENT_KEYWORD = "intent_keyword"
     # Streaming wake-word league (§A3.2 / R15) — same fighters as WAKE_WORD,
     # a distinct board scored from continuous-audio detection events rather
@@ -114,8 +141,197 @@ class Modality(str, Enum):
 
 
 INTENT_MODALITIES = (
-    Modality.INTENT, Modality.INTENT_TEMPLATE, Modality.INTENT_KEYWORD,
+    Modality.INTENT, Modality.INTENT_TEMPLATE, Modality.INTENT_ZERO_SHOT,
+    Modality.INTENT_ONLINE, Modality.INTENT_OFFLINE, Modality.INTENT_KEYWORD,
 )
+
+#: The intent leagues fighters are filed under, in board order.
+INTENT_LEAGUES = (
+    Modality.INTENT_ZERO_SHOT, Modality.INTENT_ONLINE,
+    Modality.INTENT_OFFLINE, Modality.INTENT_KEYWORD,
+)
+
+
+def dataset_namespace(modality: str) -> str:
+    """Registry dataset directory a league's eval corpora live in.
+
+    Intent leagues share one set of eval corpora under
+    ``registry/datasets/intent/``: the corpus does not care which regime
+    answered it.
+    """
+    if modality in {league.value for league in INTENT_LEAGUES}:
+        return Modality.INTENT.value
+    return modality
+
+
+# ---------------------------------------------------------------------------
+# Training regimes and engine traits
+# ---------------------------------------------------------------------------
+
+
+class TrainingRegime(str, Enum):
+    """What an intent engine needs before it can answer.
+
+    ``zero_shot``  — nothing but the registered templates, consumed as they
+                     arrive (prototype embeddings, string matching).
+    ``online``     — a training pass over those templates when the device
+                     boots.
+    ``offline``    — a pretrained artefact, shipped as a model id, that never
+                     sees the device's own templates.
+    """
+
+    ZERO_SHOT = "zero_shot"
+    ONLINE = "online"
+    OFFLINE = "offline"
+
+
+#: Ascending "how much does this cost before it answers" order. A fusion's
+#: regime is its heaviest stage.
+REGIME_ORDER: dict[TrainingRegime, int] = {
+    TrainingRegime.ZERO_SHOT: 0,
+    TrainingRegime.ONLINE: 1,
+    TrainingRegime.OFFLINE: 2,
+}
+
+
+class EngineTraits(BaseModel):
+    """Supervision and training regime of one OPM intent pipeline plugin.
+
+    ``paradigm`` decides which training corpus an engine consumes (see
+    ``DatasetDef.paradigm``); ``regime`` decides which league a fighter built
+    on it competes in. ``runner.intent_pipeline`` reads both from here.
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    paradigm: Literal["template", "keyword"]
+    regime: TrainingRegime
+    #: Legacy mycroft.conf key an engine also accepts for its config block
+    #: (``"adapt"`` beside ``"ovos-adapt-pipeline-plugin"``), mirroring how
+    #: the plugins resolve their own config.
+    short_name: str = ""
+
+
+ENGINE_TRAITS: dict[str, EngineTraits] = {
+    "ovos-padatious-pipeline-plugin": EngineTraits(
+        paradigm="template", regime=TrainingRegime.ONLINE,
+        short_name="padatious"),
+    "ovos-padacioso-pipeline-plugin": EngineTraits(
+        paradigm="template", regime=TrainingRegime.ONLINE,
+        short_name="padacioso"),
+    "ovos-nebulento-pipeline-plugin": EngineTraits(
+        paradigm="template", regime=TrainingRegime.ONLINE,
+        short_name="nebulento"),
+    "ovos-jurebes-pipeline-plugin": EngineTraits(
+        paradigm="template", regime=TrainingRegime.ONLINE,
+        short_name="jurebes"),
+    "ovos-linha-fina-pipeline-plugin": EngineTraits(
+        paradigm="template", regime=TrainingRegime.ONLINE,
+        short_name="linha_fina"),
+    "ovos-markov-pipeline-plugin": EngineTraits(
+        paradigm="template", regime=TrainingRegime.ONLINE,
+        short_name="markov"),
+    "ovos-nebulento-hierarchical-pipeline-plugin": EngineTraits(
+        paradigm="template", regime=TrainingRegime.ONLINE,
+        short_name="nebulento_hierarchical"),
+    "ovos-linha-fina-domain-pipeline-plugin": EngineTraits(
+        paradigm="template", regime=TrainingRegime.ONLINE,
+        short_name="linha_fina_domain"),
+    "ovos-linha-fina-hierarchical-pipeline-plugin": EngineTraits(
+        paradigm="template", regime=TrainingRegime.ONLINE,
+        short_name="linha_fina_hierarchical"),
+    "ovos-markov-domain-pipeline-plugin": EngineTraits(
+        paradigm="template", regime=TrainingRegime.ONLINE,
+        short_name="markov_domain"),
+    "ovos-adapt-pipeline-plugin": EngineTraits(
+        paradigm="keyword", regime=TrainingRegime.ONLINE,
+        short_name="adapt"),
+    "ovos-adapt-domain-pipeline-plugin": EngineTraits(
+        paradigm="keyword", regime=TrainingRegime.ONLINE,
+        short_name="adapt_domain"),
+    "ovos-adapt-hierarchical-pipeline-plugin": EngineTraits(
+        paradigm="keyword", regime=TrainingRegime.ONLINE,
+        short_name="adapt_hierarchical"),
+    "ovos-palavreado-pipeline-plugin": EngineTraits(
+        paradigm="keyword", regime=TrainingRegime.ONLINE,
+        short_name="palavreado"),
+    "ovos-palavreado-hierarchical-pipeline": EngineTraits(
+        paradigm="keyword", regime=TrainingRegime.ONLINE,
+        short_name="palavreado_hierarchical"),
+    # The m2v pipeline is two engines behind one entry point: its default
+    # classifier mode loads a pretrained head, its prototype mode embeds the
+    # registered templates on the spot. ``stage_regime`` reads the mode.
+    "ovos-m2v-pipeline": EngineTraits(
+        paradigm="template", regime=TrainingRegime.OFFLINE,
+        short_name="m2v"),
+    "ovos-m2v-prototype-pipeline": EngineTraits(
+        paradigm="template", regime=TrainingRegime.ZERO_SHOT,
+        short_name="m2v_prototype"),
+}
+
+
+def engine_paradigm(plugin_id: str) -> str:
+    """Which training-corpus datashape *plugin_id* consumes."""
+    return ENGINE_TRAITS[plugin_id].paradigm
+
+
+def engine_short_name(plugin_id: str) -> str:
+    """Legacy mycroft.conf config key *plugin_id* also answers to."""
+    return ENGINE_TRAITS[plugin_id].short_name
+
+
+def stage_config(plugin_id: str, intents_config: dict[str, Any] | None = None) -> dict:
+    """One stage's config block, resolved the way the plugins resolve it:
+    under the full entry-point id, or under the legacy short key."""
+    intents = intents_config or {}
+    block = intents.get(plugin_id)
+    if block is None:
+        short = ENGINE_TRAITS[plugin_id].short_name if plugin_id in ENGINE_TRAITS else ""
+        block = intents.get(short) if short else None
+    return dict(block or {})
+
+
+def stage_regime(plugin_id: str, intents_config: dict[str, Any] | None = None) -> TrainingRegime:
+    """Training regime of one pipeline stage as configured.
+
+    *intents_config* is the fighter's whole ``intents`` section, so the mode a
+    dual-mode engine runs in is read from whichever key the fighter used —
+    the same resolution the runner does.
+    """
+    if plugin_id == "ovos-m2v-pipeline":
+        mode = stage_config(plugin_id, intents_config).get("mode", "classifier")
+        return (TrainingRegime.ZERO_SHOT if mode == "prototype"
+                else TrainingRegime.OFFLINE)
+    return ENGINE_TRAITS[plugin_id].regime
+
+
+def pipeline_regime(
+    plugins: list[str], intents_config: dict[str, Any] | None = None
+) -> TrainingRegime:
+    """Regime of a whole pipeline: its heaviest stage."""
+    return max(
+        (stage_regime(p, intents_config) for p in plugins if p in ENGINE_TRAITS),
+        key=lambda r: REGIME_ORDER[r],
+        default=TrainingRegime.ONLINE,
+    )
+
+
+def expected_league(
+    plugins: list[str], intents_config: dict[str, Any] | None = None
+) -> Modality:
+    """The league a fighter built from *plugins* belongs in.
+
+    Keyword supervision wins over the regime: an all-keyword fighter needs
+    hand-written vocabulary corpora nothing else consumes, so it competes in
+    the keyword league whatever its regime. Everything else is filed by
+    regime.
+    """
+    if plugins and all(
+        p in ENGINE_TRAITS and ENGINE_TRAITS[p].paradigm == "keyword"
+        for p in plugins
+    ):
+        return Modality.INTENT_KEYWORD
+    return Modality(f"intent_{pipeline_regime(plugins, intents_config).value}")
 
 
 # ---------------------------------------------------------------------------
@@ -425,6 +641,21 @@ class DatasetDef(BaseModel):
             "invoked with (e.g. a floating branch) instead of a fixed SHA."
         ),
     )
+    bucket_roles: dict[str, Literal["in_distribution", "generalization"]] | None = Field(
+        None,
+        description=(
+            "Intent eval corpora: what each value of the bucket column means "
+            "for the ranked metric. 'in_distribution' rows are phrasings the "
+            "fighter's training data already covers (held-out templates from "
+            "the same generator, in-domain paraphrase-adjacent utterances) "
+            "and are excluded from generalization_accuracy; 'generalization' "
+            "rows are the phrasings that metric is about. A corpus that "
+            "declares nothing falls back to arena.metrics's default bucket "
+            "names, so a corpus whose bucket names are its own "
+            "(ovos-intents-v5's id_test/ood) MUST declare them or its ranked "
+            "column would not mean the same thing as everyone else's."
+        ),
+    )
     oos_label: str | None = Field(
         None,
         description=(
@@ -613,6 +844,26 @@ class CompetitorDef(BaseModel):
         default_factory=list,
         description="BCP-47 language tags this competitor supports",
     )
+    training_regime: TrainingRegime | None = Field(
+        None,
+        description=(
+            "Intent fighters (required): what this fighter needs before it "
+            "can answer — the league it competes in. A fusion carries the "
+            "regime of its heaviest stage; declaring a lighter one is a "
+            "validation error."
+        ),
+    )
+    label_set: list[str] | None = Field(
+        None,
+        description=(
+            "Offline intent fighters (required): the dataset_ids whose label "
+            "set this fighter's pretrained artefact was trained on. It is "
+            "only benchmarked on those datasets — anywhere else it cannot "
+            "emit the corpus's labels at all. An empty list means no "
+            "registered corpus matches, so the fighter is unranked until one "
+            "does."
+        ),
+    )
 
     @field_validator("langs")
     @classmethod
@@ -677,6 +928,21 @@ class CompetitorDef(BaseModel):
     model: str | None = Field(
         None, description="Underlying model identifier, when one exists"
     )
+    model_revision: str | None = Field(
+        None,
+        description=(
+            "Immutable commit sha of the model this fighter runs, for "
+            "fighters whose weights come from a model repo. The runner "
+            "downloads exactly this commit and hands the plugin the local "
+            "path (runner.intent_bench.resolve_model_pin), because no OVOS "
+            "pipeline plugin takes a revision today; the sha the snapshot "
+            "resolved to is stamped on every prediction row, so a published "
+            "row names the artefact that produced it — the same standard the "
+            "registry already holds datasets to. It is also written into the "
+            "plugin's config block under 'revision' for plugins that grow "
+            "support for it."
+        ),
+    )
     model_hf_repo: str | None = Field(
         None,
         description=(
@@ -729,6 +995,10 @@ class CompetitorDef(BaseModel):
                     plugins.append(plugin_id)
             if self.plugin is None and len(plugins) == 1:
                 self.plugin = plugins[0]
+            self._validate_league(plugins)
+
+        if self.model_revision:
+            self._pin_model_revision()
 
         aliases = list(self.alias or [])
         if self.plugin and self.plugin not in aliases:
@@ -752,6 +1022,62 @@ class CompetitorDef(BaseModel):
             else:
                 self.family = self.competitor_id
         return self
+
+    def _pin_model_revision(self) -> None:
+        """Carry ``model_revision`` into the plugin config the runner passes
+        through, so the pin reaches the code that downloads the weights
+        instead of only describing them."""
+        intents = self.config.get("intents")
+        if not isinstance(intents, dict):
+            return
+        for key, block in intents.items():
+            if key != "pipeline" and isinstance(block, dict) and block.get("model"):
+                block["revision"] = self.model_revision
+
+    def _validate_league(self, plugins: list[str]) -> None:
+        """League, regime and label set of an intent fighter must agree.
+
+        Every intent fighter declares ``training_regime``; it must match the
+        regime derived from its stages (a fusion's heaviest one), and the
+        league it is filed under must follow from that regime — except for
+        all-keyword fighters, which compete in the keyword league whatever
+        their regime. Offline fighters additionally declare the label sets
+        their pretrained artefact can emit.
+        """
+        if self.training_regime is None:
+            raise ValueError(
+                f"{self.competitor_id}: intent fighters must declare "
+                "training_regime (zero_shot | online | offline)"
+            )
+        known = [p for p in plugins if p in ENGINE_TRAITS]
+        if known:
+            intents = self.config.get("intents") or {}
+            derived = pipeline_regime(known, intents)
+            if derived != self.training_regime:
+                raise ValueError(
+                    f"{self.competitor_id}: declares "
+                    f"training_regime={self.training_regime.value!r} but its "
+                    f"stages need {derived.value!r}"
+                )
+            league = expected_league(plugins, intents)
+            if self.modality != league:
+                raise ValueError(
+                    f"{self.competitor_id}: belongs in the "
+                    f"{league.value!r} league, not {self.modality.value!r}"
+                )
+
+        if self.training_regime is TrainingRegime.OFFLINE:
+            if self.label_set is None:
+                raise ValueError(
+                    f"{self.competitor_id}: offline fighters must declare "
+                    "label_set — the dataset_ids their pretrained artefact "
+                    "was trained on"
+                )
+        elif self.label_set is not None:
+            raise ValueError(
+                f"{self.competitor_id}: label_set is only meaningful for "
+                "offline fighters"
+            )
 
     @property
     def pipeline(self) -> list[str]:

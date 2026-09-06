@@ -1,15 +1,15 @@
 # Registry audit
 
-Notes on conventions used across `registry/competitors/`, the seven
-modality leagues (`stt`, `tts`, `wake_word`, `vad`, `intent`,
-`intent_keyword`, `intent_template`), and a few schema quirks worth
-knowing before adding or diffing a fighter file.
+Notes on conventions used across `registry/competitors/`, the eight
+leagues (`stt`, `tts`, `wake_word`, `vad`, `intent_zero_shot`,
+`intent_online`, `intent_offline`, `intent_keyword`), and a few schema
+quirks worth knowing before adding or diffing a fighter file.
 
 Run `for d in registry/competitors/*; do echo "$d $(ls "$d" | wc -l)";
 done` for the current per-modality fighter count. The registry grows as
 fighters are added, so a number written here would go stale.
 
-## intent, intent_keyword, intent_template
+## The intent leagues
 
 Each of these leagues registers exactly one fighter per meaningfully
 different pipeline configuration, not one fighter per confidence tier of
@@ -20,7 +20,7 @@ A single-engine pipeline's confidence gate
 which of the plugin's own built-in gates OVOS routes through. It does not
 change the plugin's configuration, so only the tier that actually appears
 on a published board is kept. `docs/ensemble-rationale.md` covers why
-each multi-engine fusion fighter in `intent/` is composed the way it is.
+each multi-engine fusion fighter is composed the way it is.
 
 Jurebes-based fighters set `"exact_match": false` in their
 `ovos-jurebes-pipeline-plugin` config block. Jurebes 0.4.0 added an

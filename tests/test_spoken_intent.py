@@ -181,9 +181,10 @@ class TestTranscribeDataset:
 class _FakeCompetitor:
     competitor_id = "padacioso-medium"
     pipeline_plugins = ["ovos-padacioso-pipeline-plugin"]
+    model_revision = None
 
     class modality:
-        value = "intent_template"
+        value = "intent_online"
 
     plugin = "ovos-padacioso-pipeline-plugin"
     pipeline = ["ovos-padacioso-pipeline-plugin-medium"]

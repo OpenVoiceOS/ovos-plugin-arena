@@ -1,0 +1,78 @@
+{
+  "modality": "intent_zero_shot",
+  "dataset_id": "intents-for-eval",
+  "lang": "pt-PT",
+  "generated_at": "2026-09-06T18:55:59.115088+00:00",
+  "primary_metric": "generalization_accuracy",
+  "dataset_info": {
+    "url": "https://huggingface.co/datasets/OpenVoiceOS/intents-for-eval",
+    "license": "apache-2.0",
+    "notes": "OVOS canonical paradigm-neutral intent benchmark: 50 intents, between 1,354 and 1,384 test rows per language (rows failing the train/test separation rule are dropped, not replaced) across template / paraphrase / in_distribution / far_ood / asr_noise / typos buckets, with slot annotations. far_ood rows carry expected_intent=null — the correct behaviour is no match. Train and test are separated at the template level: train_templates.jsonl holds an 80% per-intent sample of phrase templates, and the template bucket here is built only from the held-out 20%.",
+    "predictions": [
+      "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-bench-intents-for-eval",
+      "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-keyword-bench-intents-for-eval",
+      "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-template-bench-intents-for-eval"
+    ],
+    "train_datasets": {
+      "template": {
+        "dataset_id": "intents-for-eval-templates",
+        "url": "https://huggingface.co/datasets/OpenVoiceOS/intents-for-eval"
+      },
+      "keyword": {
+        "dataset_id": "intents-for-eval-keywords",
+        "url": "https://huggingface.co/datasets/OpenVoiceOS/intents-for-eval"
+      }
+    }
+  },
+  "dataset_revision": "d6f497f21c844c400d74bfda13773ccbaf902645",
+  "predictions_revisions": {
+    "OpenVoiceOS/ovos-intent-bench-intents-for-eval": "dd11b3a8a7fb53ebd4d817f58513cd33545a3441",
+    "OpenVoiceOS/ovos-intent-keyword-bench-intents-for-eval": "e139cdecc03665cba5ffca01acbe63920d381c74",
+    "OpenVoiceOS/ovos-intent-template-bench-intents-for-eval": "dba1e142c82f7a15f38dc68c95c8ba056f66ae69"
+  },
+  "wer_normalizer_version": null,
+  "entries": [
+    {
+      "rank": 1,
+      "competitor_id": "m2v-prototype",
+      "plugin_id": "ovos-m2v-prototype-pipeline",
+      "samples": 1372,
+      "metrics": {
+        "n_scored": 1372.0,
+        "accuracy": 0.723,
+        "macro_f1": 0.7087,
+        "ood_fpr": 0.82,
+        "slot_exact_match": 0.0,
+        "latency_ms_median": 1.23,
+        "ece": 0.0892,
+        "generalization_accuracy": 0.6102,
+        "acc_asr_noise": 0.587,
+        "acc_far_ood": 0.18,
+        "acc_in_distribution": 0.9348,
+        "acc_paraphrase": 0.6657,
+        "acc_template": 0.89,
+        "acc_typos": 0.2917
+      },
+      "primary_metric_ci_lower": 0.5799031476997578,
+      "primary_metric_ci_upper": 0.6440677966101694,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-m2v-prototype-pipeline==0.9.0a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    }
+  ],
+  "entries_hash": "610ecb7810f12d9eadbcc28bb04aec6b39ac91bd518f3b80dc3e94f8fcbfc65d",
+  "input_hash": "58806b1ebb61a33299cd2a57c875f6fd5ae8ec806da15b27d1dfbf658ab4ca41",
+  "judge_agreement": null,
+  "intelligibility_judges": [],
+  "intelligibility_judge_mismatched_pairs": 0,
+  "warnings": []
+}

@@ -1,0 +1,71 @@
+{
+  "dataset_id": "ovos-intents-v5",
+  "display_name": "OVOS skill intents v5 (40 locales)",
+  "summary": "The OVOS skill fleet's own intent corpus, rebuilt from a pinned reproducible pipeline: 208 intents across 40 locales and 24,405 test rows, labelled with the canonical skill ids a real device registers. One row is an utterance and the intent it should fire. Rows are split by how far the phrasing sits from what a fighter trains on — 'id_test' utterances come from the same templates, 'ood' utterances are held-out paraphrases of the same intents, and the ranked metric is computed over the latter.",
+  "modality": "intent",
+  "source": {
+    "type": "huggingface",
+    "hf_id": "OpenVoiceOS/ovos-intents-v5-eval",
+    "revision": "70798090ab515a6d8c78d7c260decf9a6b3e72b4",
+    "file_pattern": "{lang}/test.jsonl"
+  },
+  "reference_fields": {
+    "utterance": "utterance",
+    "intent": "expected_intent",
+    "bucket": "split"
+  },
+  "lang": "multi",
+  "langs": [
+    "arb",
+    "bg-BG",
+    "ca-ES",
+    "cs-CZ",
+    "da-DK",
+    "de-DE",
+    "el-GR",
+    "en-US",
+    "es-419",
+    "es-ES",
+    "eu-ES",
+    "fa-IR",
+    "fi-FI",
+    "fr-FR",
+    "gl-ES",
+    "he-IL",
+    "hr-HR",
+    "hu-HU",
+    "id-ID",
+    "is-IS",
+    "it-IT",
+    "ja-JP",
+    "kab",
+    "lt-LT",
+    "ms-MY",
+    "nb-NO",
+    "nl-NL",
+    "nn-NO",
+    "pl-PL",
+    "pt-BR",
+    "pt-PT",
+    "ro-RO",
+    "ru-RU",
+    "sk-SK",
+    "sl-SI",
+    "sv-FI",
+    "sv-SE",
+    "th-TH",
+    "tr-TR",
+    "zh-CN"
+  ],
+  "license": "apache-2.0",
+  "role": "eval",
+  "bucket_roles": {
+    "id_test": "in_distribution",
+    "ood": "generalization"
+  },
+  "train_datasets": {
+    "template": "ovos-intents-v5-templates-train"
+  },
+  "predictions_hf": "OpenVoiceOS/ovos-intent-bench-ovos-intents-v5",
+  "notes": "The OVOS skill fleet's own intent corpus: 208 intents over 40 locales, 24,405 test rows (16,624 id_test, 7,781 ood), rebuilt from a pinned reproducible pipeline. Labels are canonical registered skill ids ('<skill-id>.<author>:<IntentName>'). Rows fall in two buckets: 'id_test' holds surface phrasings generated from the same templates the fighters train on, so it is scored as in-distribution; 'ood' holds held-out paraphrases of the same intents and is what generalization_accuracy is computed over. Both carry a real expected_intent — an 'ood' row is an unseen way of asking for a known intent, not an out-of-scope utterance the engine should refuse. The matching template training corpus is ovos-intents-v5-templates-train; no keyword-paradigm corpus exists for it yet."
+}

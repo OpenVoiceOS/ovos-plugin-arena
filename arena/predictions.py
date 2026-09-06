@@ -433,10 +433,13 @@ def group_rows(
     given, so callers can surface it in the assemble output.
     """
     from registry.loaders import list_competitors
+    from registry.schemas import INTENT_MODALITIES
 
     registered_by_modality: dict[str, set[str]] = {}
+    intent_leagues: dict[str, str] = {}
+    label_sets: dict[str, list[str]] = {}
 
-    def _is_registered(modality: str, competitor_id: str) -> bool:
+    def _registered(modality: str) -> set[str]:
         if modality not in registered_by_modality:
             try:
                 registered_by_modality[modality] = {
@@ -447,25 +450,60 @@ def group_rows(
                     "Could not load registry for modality %s: %s", modality, exc
                 )
                 registered_by_modality[modality] = set()
-        return competitor_id in registered_by_modality[modality]
+        return registered_by_modality[modality]
+
+    def _intent_league(competitor_id: str) -> str | None:
+        """The intent league a fighter competes in *today*.
+
+        A published row carries the league its sweep ran under. Leagues are a
+        registry decision, so the registry wins: a fighter moved to another
+        league takes its already-published rows with it instead of vanishing
+        from the boards until every sweep is redone.
+        """
+        if not intent_leagues:
+            for league in INTENT_MODALITIES:
+                for comp in list_competitors(league.value):
+                    intent_leagues[comp.competitor_id] = league.value
+                    if comp.label_set is not None:
+                        label_sets[comp.competitor_id] = comp.label_set
+        return intent_leagues.get(competitor_id)
 
     grouped: dict[tuple[str, str, str], dict[str, dict[str, PredictionRow]]] = (
         defaultdict(lambda: defaultdict(dict))
     )
     dropped = 0
     unregistered_counts: dict[str, int] = defaultdict(int)
+    off_label_set: dict[str, int] = defaultdict(int)
     for row in rows:
         modality = infer_modality(row.model_dump(exclude_none=True))
         if modality == "unknown":
             dropped += 1
             continue
-        if not _is_registered(modality, row.competitor_id):
+        if modality in {m.value for m in INTENT_MODALITIES}:
+            league = _intent_league(row.competitor_id)
+            if league is None:
+                unregistered_counts[row.competitor_id] += 1
+                continue
+            label_set = label_sets.get(row.competitor_id)
+            if label_set is not None and row.dataset_id not in label_set:
+                # A pretrained fighter cannot emit a corpus's labels unless it
+                # was trained on them; scoring it there measures the label-space
+                # mismatch, not the engine.
+                off_label_set[row.competitor_id] += 1
+                continue
+            modality = league
+        elif row.competitor_id not in _registered(modality):
             unregistered_counts[row.competitor_id] += 1
             continue
         key = (modality, row.dataset_id, row.lang)
         grouped[key][row.sample_id][row.competitor_id] = row
     if dropped:
         logger.warning("Dropped %d rows with undetectable modality", dropped)
+    for competitor_id, count in sorted(off_label_set.items()):
+        logger.info(
+            "Excluded %d prediction row(s) for %r — not trained on this "
+            "label set", count, competitor_id,
+        )
     for competitor_id, count in sorted(unregistered_counts.items()):
         logger.warning(
             "Excluded %d prediction row(s) for unregistered competitor_id "

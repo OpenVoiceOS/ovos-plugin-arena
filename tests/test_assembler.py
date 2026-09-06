@@ -344,7 +344,7 @@ class TestSeedElo:
             [_row("good", "media:play_song"), _row("bad", "wrong")]
             for _ in range(10)
         ])
-        seed = seed_elo("intent", "en-US", {"d": samples}, "t")
+        seed = seed_elo("intent_online", "en-US", {"d": samples}, "t")
         assert seed.ratings["good"] > INITIAL_ELO > seed.ratings["bad"]
         assert seed.auto_vote_count == 10
         assert seed.wins["good"] == 10
@@ -359,7 +359,7 @@ class TestSeedElo:
     def test_no_signal_pairs_not_counted(self):
         samples = _samples([_row("x", "media:play_song"),
                             _row("y", "media:play_song")])
-        seed = seed_elo("intent", "en-US", {"d": samples}, "t")
+        seed = seed_elo("intent_online", "en-US", {"d": samples}, "t")
         assert seed.auto_vote_count == 0
         # competitors still listed (known to the board)
         assert set(seed.competitor_plugin) == {"x", "y"}
@@ -419,7 +419,7 @@ class TestSeedElo:
              _row("y", "w2" if i % 3 else "media:play_song")]
             for i in range(9)
         ])
-        seeds = [seed_elo("intent", "en-US", {"d": samples}, "t") for _ in range(2)]
+        seeds = [seed_elo("intent_online", "en-US", {"d": samples}, "t") for _ in range(2)]
         assert seeds[0].ratings == seeds[1].ratings
 
 
@@ -451,7 +451,7 @@ class TestSeedEloInDistribution:
         return samples
 
     def test_template_rows_seed_no_battles(self):
-        seed = seed_elo("intent", "en-US", {"d": self._mem_vs_gen()}, "t")
+        seed = seed_elo("intent_online", "en-US", {"d": self._mem_vs_gen()}, "t")
         assert seed.auto_vote_count == 10
         assert seed.wins["gen"] == 10
         assert seed.wins["mem"] == 0
@@ -463,7 +463,7 @@ class TestSeedEloInDistribution:
              _row("gen", "wrong", bucket="in_distribution")]
             for _ in range(10)
         ])
-        seed = seed_elo("intent", "en-US", {"d": samples}, "t")
+        seed = seed_elo("intent_online", "en-US", {"d": samples}, "t")
         assert seed.auto_vote_count == 0
         assert seed.ratings == {"mem": INITIAL_ELO, "gen": INITIAL_ELO}
 
@@ -489,7 +489,7 @@ class TestSeedEloInDistribution:
                 c: r.model_copy(update={"sample_id": sample_id})
                 for c, r in rows.items()
             }
-        seed = seed_elo("intent", "en-US", {"d": samples}, "t")
+        seed = seed_elo("intent_online", "en-US", {"d": samples}, "t")
         assert seed.auto_vote_count == 0
         assert seed.pairwise_games == {}
 
@@ -529,7 +529,7 @@ class TestSeedEloBiasAudit:
              _row("y", "media:play_song" if i % 2 == 1 else "wrong")]
             for i in range(20)
         ])
-        seed = seed_elo("intent", "en-US", {"d": samples}, "t")
+        seed = seed_elo("intent_online", "en-US", {"d": samples}, "t")
         assert seed.auto_vote_count == 0
         assert seed.pairwise_games == {}
         # still listed on the board at baseline
@@ -542,7 +542,7 @@ class TestSeedEloBiasAudit:
             [_row("x", "media:play_song"), _row("y", "wrong")]
             for _ in range(20)
         ])
-        seed = seed_elo("intent", "en-US", {"d": samples}, "t")
+        seed = seed_elo("intent_online", "en-US", {"d": samples}, "t")
         assert seed.auto_vote_count == 20
         assert seed.ratings["x"] > INITIAL_ELO > seed.ratings["y"]
 
@@ -553,7 +553,7 @@ class TestSeedEloBiasAudit:
             [_row("x", "media:play_song"), _row("y", "wrong")]
             for _ in range(200)
         ])
-        seed = seed_elo("intent", "en-US", {"d": samples}, "t")
+        seed = seed_elo("intent_online", "en-US", {"d": samples}, "t")
         assert seed.auto_vote_count == 200  # legacy sequential-ELO count is uncapped
         assert seed.pairwise_games["x"]["y"] == pytest.approx(5.0)  # BT weight is capped
         assert seed.pairwise_games["y"]["x"] == pytest.approx(5.0)
@@ -566,6 +566,6 @@ class TestSeedEloBiasAudit:
             [_row("x", "media:play_song"), _row("y", "wrong")]
             for _ in range(4)
         ])
-        seed = seed_elo("intent", "en-US", {"d": samples}, "t")
+        seed = seed_elo("intent_online", "en-US", {"d": samples}, "t")
         # 4 auto votes * BT_AUTO_WEIGHT (0.25) = 1.0, well under the 5.0 cap
         assert seed.pairwise_games["x"]["y"] == pytest.approx(1.0)

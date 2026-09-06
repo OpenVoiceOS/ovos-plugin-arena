@@ -167,8 +167,9 @@ class TestReadJsonl:
 
 
 class _FakeCompetitor:
-    def __init__(self, competitor_id):
+    def __init__(self, competitor_id, label_set=None):
         self.competitor_id = competitor_id
+        self.label_set = label_set
 
 
 def _stub_registry(monkeypatch, registered_by_modality):

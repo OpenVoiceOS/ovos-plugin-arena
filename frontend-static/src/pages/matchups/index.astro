@@ -121,15 +121,10 @@ import Base from '../../layouts/Base.astro';
 
     // Same stale-index fallback contract as leaderboard/index.astro — mirrors
     // arena/models.py::leagues() exactly (kept in lockstep by test_league_parity).
-    const DEFAULT_LEAGUES = [
-      { id: 'intent_template', label: 'Intent · Template', battle_group: 'intent_template', order: 0 },
-      { id: 'intent_keyword', label: 'Intent · Keyword', battle_group: 'intent_keyword', order: 1 },
-      { id: 'intent', label: 'Intent · Fusions', battle_group: 'intent', order: 2 },
-      { id: 'stt', label: 'STT', battle_group: 'stt', order: 3 },
-      { id: 'tts', label: 'TTS', battle_group: 'tts', order: 4 },
-      { id: 'wake_word', label: 'Wake Word', battle_group: 'wake_word', order: 5 },
-      { id: 'vad', label: 'VAD', battle_group: 'vad', order: 6 },
-    ];
+    // No hardcoded fallback: the league list is data. A stale or missing
+    // index.json shows no tabs rather than tabs for leagues this deploy may
+    // not have boards for.
+    const DEFAULT_LEAGUES = [];
 
     // Metrics where a HIGHER value is better; everything else in the benchmark
     // boards is lower-is-better (WER, error/false-accept/false-reject rate,

@@ -175,10 +175,13 @@ def validate_registry(registry_root: Path | None = None) -> list[str]:
     errors: list[str] = []
 
     competitors_dir = root / "competitors"
+    competitors: dict[Path, CompetitorDef] = {}
     if competitors_dir.exists():
         for path in sorted(competitors_dir.glob("**/*.json")):
             try:
-                CompetitorDef.model_validate(json.loads(path.read_text()))
+                competitors[path] = CompetitorDef.model_validate(
+                    json.loads(path.read_text())
+                )
             except Exception as exc:
                 errors.append(f"{path}: {exc}")
 
@@ -204,6 +207,17 @@ def validate_registry(registry_root: Path | None = None) -> list[str]:
             errors.append(f"{path}: display_name is required")
         if dataset.role == "eval" and not (dataset.summary or "").strip():
             errors.append(f"{path}: summary is required on a role=eval corpus")
+    # An offline fighter's label_set names the corpora whose labels its
+    # pretrained artefact can emit; it is what makes the fighter eligible on
+    # a board at all (runner.intent_bench.trained_on), so a typo'd id would
+    # silently drop it from every sweep.
+    for path, competitor in competitors.items():
+        for dataset_id in competitor.label_set or []:
+            if dataset_id not in all_datasets:
+                errors.append(
+                    f"{path}: label_set references unknown dataset_id "
+                    f"{dataset_id!r}"
+                )
 
     # negatives_dataset_ids must resolve to a registered wake_word dataset —
     # _pooled_dataset_negatives (runner/audio_io.py) loads each id via
@@ -241,7 +255,7 @@ def validate_registry(registry_root: Path | None = None) -> list[str]:
 
 
 def paradigm_league_repo(dataset: DatasetDef, paradigm: str) -> str:
-    """The real HF repo backing *dataset*'s ``<paradigm>`` sub-league
+    """The real HF repo backing *dataset*'s ``<paradigm>``-supervised
     predictions: ``<owner>/ovos-intent-<paradigm>-bench-<dataset_id>`` (the
     ``runner.intent_bench.results_repo_for`` convention).
 
@@ -271,34 +285,30 @@ def list_prediction_repos(modality: str | None = None) -> list[str]:
     Each eval dataset names its predictions repo via ``predictions_hf`` —
     one dedicated repo per benchmark modality, following the runner
     convention ``<owner>/ovos-<modality>-bench-<dataset_id>``.  Intent eval
-    corpora additionally feed the paradigm sub-leagues, whose fighters
-    publish to their own ``ovos-intent-<paradigm>-bench-<dataset_id>``
-    repos — one per paradigm the corpus provides training data for.
+    corpora additionally carry one repo per training datashape,
+    ``ovos-intent-<paradigm>-bench-<dataset_id>``, holding the rows of the
+    fighters that consume it.
 
     *modality* scopes the result to only the repos an ``assemble
     --modality <modality>`` run actually reads (§assemble scalability: an
     unscoped ``assemble`` was resolving+downloading every one of the ~120
     registry prediction repos across every modality even when the caller
     only wanted one board type — see arena.cli.cmd_assemble). ``None``
-    keeps the full unscoped set (the registry default). A base intent
-    league modality (``intent``) matches only a dataset's own
-    ``predictions_hf`` repo; a paradigm sub-league modality (e.g.
-    ``intent_template``) matches only the paradigm repo whose name encodes
-    that paradigm (``ovos-intent-template-bench-*``), from ANY intent-
-    family eval dataset — the sub-repo's paradigm, not the eval dataset's
-    own base modality, is what the caller cares about. Any other modality
-    matches a dataset's own ``predictions_hf`` when
-    ``dataset.modality == modality``.
+    keeps the full unscoped set (the registry default). Any intent league
+    matches every intent prediction repo: repos are keyed by the training
+    datashape a sweep consumed, not by league, and one repo carries rows
+    from fighters of several leagues (a row's league is resolved from the
+    registry at assemble time). Any other modality matches a dataset's own
+    ``predictions_hf`` when ``dataset.modality == modality``.
     """
     repos: set = set()
     for dataset in list_datasets():
         if dataset.role != "eval" or not dataset.predictions_hf:
             continue
         if dataset.modality in INTENT_MODALITIES:
-            if modality is None or modality == dataset.modality:
+            if modality is None or modality in INTENT_MODALITIES:
                 repos.add(dataset.predictions_hf)
-            for paradigm in dataset.train_datasets or {}:
-                if modality is None or modality == f"intent_{paradigm}":
+                for paradigm in dataset.train_datasets or {}:
                     repos.add(paradigm_league_repo(dataset, paradigm))
         elif modality is None or modality == dataset.modality:
             repos.add(dataset.predictions_hf)

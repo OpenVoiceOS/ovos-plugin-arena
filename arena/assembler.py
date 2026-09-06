@@ -25,7 +25,7 @@ import logging
 
 from arena.elo import EloLedger
 from arena.metrics import (
-    IN_DISTRIBUTION_BUCKETS,
+    is_in_distribution,
     metric_higher_is_better,
     primary_metric_ci,
     row_intelligibility_cer,
@@ -83,14 +83,14 @@ def seeds_elo(row: PredictionRow, modality: str) -> bool:
 
     The seeded ladder has to be built from the same population as the board's
     primary metric, or a rating labelled "generalization" would still reflect
-    in-distribution phrasing. Intent rows in an ``IN_DISTRIBUTION_BUCKETS``
+    in-distribution phrasing. Intent rows in an in-distribution
     bucket are phrased close to the training templates and are excluded from
     ``generalization_accuracy``; they are excluded here too. Every other
     modality battles on all of its rows.
     """
     return not (
         is_intent_modality(modality)
-        and (row.bucket or "test") in IN_DISTRIBUTION_BUCKETS
+        and is_in_distribution(row)
     )
 
 

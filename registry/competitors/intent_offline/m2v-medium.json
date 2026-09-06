@@ -1,0 +1,38 @@
+{
+  "competitor_id": "m2v-medium",
+  "modality": "intent_offline",
+  "config": {
+    "intents": {
+      "pipeline": [
+        "ovos-m2v-pipeline-medium"
+      ],
+      "ovos-m2v-pipeline": {
+        "model": "Jarbas/ovos-model2vec-intents-distiluse-base-multilingual-cased-v2",
+        "mode": "classifier",
+        "ignore_intents": [],
+        "timeout": 1,
+        "renormalize": false,
+        "conf_high": 0.7,
+        "conf_medium": 0.5,
+        "conf_low": 0.15
+      }
+    }
+  },
+  "langs": [],
+  "training_regime": "offline",
+  "label_set": [],
+  "display_name": "Model2Vec",
+  "species": "Model2VecIntentPipeline",
+  "types": [
+    "embedding",
+    "neural-net"
+  ],
+  "description": "Classifies utterances with a pretrained Model2Vec static-embedding intent classifier restricted to intents registered by loaded skills. The default model is multilingual, distilled from LaBSE.",
+  "model": "Jarbas/ovos-model2vec-intents-distiluse-base-multilingual-cased-v2",
+  "model_revision": "9f23a5ce1622ccec8122a9cd5359618d0cda53fd",
+  "size": "medium",
+  "links": {
+    "source": "https://github.com/OpenVoiceOS/ovos-m2v-pipeline"
+  },
+  "notes": "Single-stage pipeline at the plugin's own medium-confidence gate; per-plugin config keeps the shipped defaults. The pinned model's classifier head carries 161 labels aimed at an older OVOS skill fleet: 20 of them appear in ovos-intents-v5, 15 in golden-utterances, none in intents-for-eval, and 141 in no registered corpus at all. It can therefore emit no registered corpus's label set, so label_set is empty and the fighter is unranked until a corpus it was trained on is registered. Published predictions are migrated from the legacy ovos-intent-benchmark, where this engine was trained on the benchmark's own corpora."
+}

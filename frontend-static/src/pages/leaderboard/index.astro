@@ -293,15 +293,10 @@ import Base from '../../layouts/Base.astro';
     // all. DEFAULT_LEAGUES mirrors arena/models.py::leagues() exactly, so a
     // stale index degrades to the old pre-PR behavior instead of crashing
     // on an empty tab list.
-    const DEFAULT_LEAGUES = [
-      { id: 'intent_template', label: 'Intent · Template', battle_group: 'intent_template', order: 0 },
-      { id: 'intent_keyword', label: 'Intent · Keyword', battle_group: 'intent_keyword', order: 1 },
-      { id: 'intent', label: 'Intent · Fusions', battle_group: 'intent', order: 2 },
-      { id: 'stt', label: 'STT', battle_group: 'stt', order: 3 },
-      { id: 'tts', label: 'TTS', battle_group: 'tts', order: 4 },
-      { id: 'wake_word', label: 'Wake Word', battle_group: 'wake_word', order: 5 },
-      { id: 'vad', label: 'VAD', battle_group: 'vad', order: 6 },
-    ];
+    // No hardcoded fallback: the league list is data. A stale or missing
+    // index.json shows no tabs rather than tabs for leagues this deploy may
+    // not have boards for.
+    const DEFAULT_LEAGUES = [];
     // ---- subspecies grouping (mirrors ../fighters/index.astro) --------
     const GROUP_STORAGE_KEY = 'arena.leaderboard.groupVariants';
     let groupVariants = true;
@@ -631,7 +626,7 @@ import Base from '../../layouts/Base.astro';
         : league === 'vad'
           ? 'Voice Activity Detection — fighters are language-agnostic; boards are grouped by the dataset’s language.'
         : (league && league.startsWith('intent')
-            ? 'One ladder for every intent engine — template, keyword and fusions compete together.' : '');
+            ? 'One ladder for every intent engine — a blind vote judges the answer, not how the engine was prepared. The benchmark boards below stay per league.' : '');
       const autoOnlyNote = autoOnly
         ? '<p class="lb-note">Auto-battles only — this metric never carries human votes.</p>' : '';
       const head = `<div class="lb-section-head">

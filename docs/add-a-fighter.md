@@ -47,6 +47,14 @@ stages. A single-stage pipeline benchmarks one engine; a multi-stage pipeline
 is an ensemble fighter. `plugin` is derived automatically for single-engine
 pipelines, so you can omit it.
 
+An intent fighter also declares its `training_regime`, and the league in
+`modality` follows from it: `zero_shot` for a fighter that answers straight
+from the templates a skill registers, `online` for one that trains on them at
+boot, `offline` for one shipping a pretrained artefact. A fusion takes the
+regime of its heaviest stage, and a fighter built only from keyword engines
+goes in `intent_keyword` whatever its regime. The registry rejects a fighter
+filed anywhere else, so you never have to guess.
+
 Each stage name is an OPM `opm.pipeline` entry point plus a confidence
 tier, not a package name: `ovos-adapt-parser` provides the
 `ovos-adapt-pipeline-plugin` entry point, `padacioso` provides
@@ -57,7 +65,7 @@ tier, not a package name: `ovos-adapt-parser` provides the
 ```json
 {
   "competitor_id": "example-padatious-medium",
-  "modality": "intent",
+  "modality": "intent_online",
   "config": {
     "intents": {
       "pipeline": ["ovos-padatious-pipeline-plugin-medium"],
@@ -67,6 +75,7 @@ tier, not a package name: `ovos-adapt-parser` provides the
     }
   },
   "langs": ["en-US"],
+  "training_regime": "online",
   "display_name": "Padatious (medium)",
   "species": "PadatiousPipeline",
   "types": ["neural-net", "template-match"],
@@ -100,10 +109,12 @@ VAD fighter. Do not deduplicate them.
 | Field | Required | Notes |
 |-------|----------|-------|
 | `competitor_id` | yes | Stable unique id. Becomes the filename and badge path. |
-| `modality` | yes | `stt` / `tts` / `ww` / `vad` / `intent`. |
+| `modality` | yes | `stt` / `tts` / `ww` / `vad`, or an intent league: `intent_zero_shot` / `intent_online` / `intent_offline` / `intent_keyword`. |
 | `config` | yes | A valid `mycroft.conf` fragment. Intent fighters need `config.intents.pipeline`. |
 | `plugin` | for non-intent | OPM entry-point name. Derived from the pipeline for single-engine intent fighters. |
 | `langs` | recommended | BCP-47 tags the fighter supports. |
+| `training_regime` | for intent | `zero_shot` / `online` / `offline`. Must match the fighter's stages. |
+| `label_set` | for offline intent | dataset_ids whose labels the pretrained artefact can emit. The fighter is benchmarked on those corpora only. |
 | `alias` | optional | Legacy `plugin_id` values from pre-registry prediction rows, re-keyed on ingest. |
 | `display_name`, `species`, `types`, `description`, `model`, `size`, `links`, `notes` | optional | Bestiary card shown in the fighter browser. |
 

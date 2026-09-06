@@ -44,7 +44,7 @@ def _row(index: int, bucket: str, correct: bool, *, revision: str,
         sample_id=f"en-US/{index:05d}",
         dataset_id="intents-for-eval",
         lang="en-US",
-        modality="intent",
+        modality="intent_online",
         plugin_id="ovos-padacioso-pipeline-plugin",
         plugin_version="1.0.0",
         dataset_revision=revision,
@@ -85,8 +85,9 @@ class TestRowsFromAnotherRevisionAreDropped:
         """A fighter swept only on the old revision has not been measured
         against the pinned corpus at all."""
         board = build_benchmark_board(
-            "intent", "intents-for-eval", "en-US",
+            "intent_online", "intents-for-eval", "en-US",
             {"padacioso-medium": _shard(OLD)}, "t", dataset_revision=PIN,
+            min_samples=1,
         )
         entry = board.entries[0]
         assert entry.samples == 0
@@ -108,8 +109,9 @@ class TestRowsFromAnotherRevisionAreDropped:
                               competitor="current"),
         }
         board = build_benchmark_board(
-            "intent", "intents-for-eval", "en-US", by_competitor, "t",
+            "intent_online", "intents-for-eval", "en-US", by_competitor, "t",
             dataset_revision=PIN,
+            min_samples=1,
         )
         ranked = [e for e in board.entries if not e.unranked]
         assert [e.competitor_id for e in ranked] == ["current"]
@@ -121,9 +123,10 @@ class TestRowsFromAnotherRevisionAreDropped:
         pinned_rows = _shard(PIN, correct_in={"paraphrase", "typos"})
         stale_rows = _shard(OLD, correct_in={b for b, _ in EN_US_BUCKETS})
         board = build_benchmark_board(
-            "intent", "intents-for-eval", "en-US",
+            "intent_online", "intents-for-eval", "en-US",
             {"padacioso-medium": pinned_rows + stale_rows}, "t",
             dataset_revision=PIN,
+            min_samples=1,
         )
         entry = board.entries[0]
         assert entry.samples == len(pinned_rows)
@@ -142,8 +145,9 @@ class TestRowsFromAnotherRevisionAreDropped:
     def test_a_branch_pinned_dataset_drops_nothing(self):
         rows = _shard(OLD, correct_in={"paraphrase"})
         board = build_benchmark_board(
-            "intent", "intents-for-eval", "en-US", {"padacioso-medium": rows},
+            "intent_online", "intents-for-eval", "en-US", {"padacioso-medium": rows},
             "t", dataset_revision="main",
+            min_samples=1,
         )
         entry = board.entries[0]
         assert entry.samples == len(rows)
@@ -198,9 +202,10 @@ class TestInDistributionStaysExcluded:
         """The exclusion is the scorer's, not the revision filter's: rows
         that survive on a branch-pinned dataset are excluded identically."""
         board = build_benchmark_board(
-            "intent", "intents-for-eval", "en-US",
+            "intent_online", "intents-for-eval", "en-US",
             {"padacioso-medium": self._legacy_shard()}, "t",
             dataset_revision="main",
+            min_samples=1,
         )
         entry = board.entries[0]
         assert entry.samples == 1750
@@ -677,8 +682,10 @@ class TestMaxSamplesWiring:
 
         competitor = SimpleNamespace(
             competitor_id="padacioso-medium",
-            modality=SimpleNamespace(value="intent_template"),
+            modality=SimpleNamespace(value="intent_online"),
             plugin="ovos-padacioso-pipeline-plugin",
+            model_revision=None,
+            training_regime=None,
             pipeline=["padacioso-medium"],
             pipeline_plugins=[],
             config={"intents": {"pipeline": ["padacioso-medium"]}},

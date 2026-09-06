@@ -1,8 +1,11 @@
 # Leagues, tasks & metrics
 
 A **league** is one `(modality)` competition with its own benchmark datasets,
-prediction rows, benchmark board, battle pool and ELO standings (separate per
-language). This page is the canonical definition of *what task each league
+prediction rows and benchmark board (separate per language). Battles and ELO
+are pooled per *battle group*, which is the league itself everywhere except
+the intent leagues: those share one `intent` pool, because a blind vote judges
+two outputs on the same stimulus and cannot see how either engine was
+prepared. This page is the canonical definition of *what task each league
 scores and how*, the metric formulas here are exactly what
 [`arena/metrics.py`](../arena/metrics.py) computes and what
 [`arena/assembler.py`](../arena/assembler.py) turns into the ELO seed.
@@ -16,26 +19,60 @@ and (b) decides the auto-vote outcome that seeds ELO (§4 R5).
 
 ## Intent leagues
 
-All three intent leagues share one **task**: map a written utterance to an
-intent id (and, where annotated, fill its slots), trained only from the
-dataset's own training corpus. The arena owns no confidence numbers, each
-engine fires through its own `match_high/medium/low` gate, first stage to fire
-wins (exactly as `ovos-core` dispatches its pipeline). A sample whose
-`reference_intent` is `null` is **out-of-scope (OOD)**: the correct behaviour
-is to predict nothing.
+Every intent league shares one **task**: map a written utterance to an intent
+id (and, where annotated, fill its slots). The arena owns no confidence
+numbers, each engine fires through its own `match_high/medium/low` gate, first
+stage to fire wins (exactly as `ovos-core` dispatches its pipeline). A sample
+whose `reference_intent` is `null` is **out-of-scope (OOD)**: the correct
+behaviour is to predict nothing.
 
-Leagues differ only in *who may compete*, because keyword- and template-paradigm
-engines consume different supervision and must not be ranked against each other:
+Leagues differ in what a fighter needs before it can answer at all. That is
+the axis that decides whether a comparison means anything: an engine handed
+the skill's phrasings and expected to answer immediately is doing a different
+job from one that trains on them at boot, which is doing a different job again
+from one shipping a model trained elsewhere. Keyword supervision is its own
+league on top of that, because hand-written vocabulary rules are a different
+kind of supervision and need their own corpora.
 
-| League | Eligible engines | Paradigm / supervision |
+| League | What the fighter needs | Eligible engines |
 |---|---|---|
-| `intent_template` | Padatious, Padacioso, Nebulento, Jurebes, Linha Fina, Markov, … | template, `{slot}` phrase templates + example values |
-| `intent_keyword` | Adapt, Palavreado, … | keyword, Adapt-style `required_vocab`/`optional_vocab` rules |
-| `intent` (open) | mixed-paradigm pipeline **fusions** (ensembles) | any mix. Multi-stage cascades (e.g. Padapt = Padatious × Adapt) |
+| `intent_zero_shot` | nothing but the templates a skill registers, consumed as they arrive | prototype-mode embedding matchers |
+| `intent_online` | a training pass over those templates when the device boots | Padatious, Padacioso, Nebulento, Jurebes, Linha Fina, Markov, and fusions of them |
+| `intent_offline` | a pretrained artefact, shipped as a model id, that never sees the device's templates | classifier-mode embedding models |
+| `intent_keyword` | Adapt-style `required_vocab` / `optional_vocab` rules | Adapt, Palavreado |
 
-Paradigm leagues are pure, `runner/intent_bench.py:check_league` rejects a
-fighter that carries a stage from the wrong paradigm. The open `intent` league
-accepts any mix and is where ensemble cascades compete.
+A fighter's league follows from its stages, and the registry rejects it
+anywhere else. A fusion is filed by its heaviest stage: a cascade whose first
+stage carries a pretrained head competes as `intent_offline`, however light
+its later stages. A fighter built only from keyword engines is a keyword
+fighter whatever its regime.
+
+Benchmark boards are per league, but every intent fighter votes in the same
+battle pool: `battles-intent-<dataset>-<lang>`, `elo-seed-intent-<lang>` and
+`leaderboard-intent-<lang>` are shared, while `benchmark-<league>-…` is not.
+
+A board needs at least 30 scored rows per fighter
+(`arena.metrics.MIN_BOARD_SAMPLES`) before anyone is ranked on it. Under that,
+every entry is unranked with the reason `too_few_samples`, and the language
+seeds no battles and no ELO: a handful of utterances cannot separate two
+engines, and a rank published from them reads as a result. A language with too
+little data is a gap to fill, not a contest to hold.
+
+A league appears on the site once it has at least one ranked board, and not
+before: the tab list in `data/index.json` is built from the boards on disk, so
+a league whose fighters nobody has swept yet is never offered as an empty
+page.
+
+An offline fighter carries a `label_set`: the corpora whose labels its
+artefact can emit. It is benchmarked on those and skipped everywhere else,
+where every answer would be wrong for a reason that says nothing about the
+engine. A fighter whose `label_set` matches no registered corpus is unranked
+until one exists. The claim is checked, not trusted: before scoring, the
+runner intersects the loaded model's own class list with the corpus's labels
+and refuses the sweep outright when nothing overlaps, so a mislabelled
+`label_set` cannot publish a board of zeros. An offline fighter also pins the
+exact model commit it runs (`model_revision`), which the runner downloads and
+stamps on every row.
 
 **Metrics** (`score_intent`), per `(league, dataset, lang)`:
 
@@ -64,9 +101,13 @@ per-bucket column, including `acc_template` and `acc_in_distribution`,
 stay published; see docs/methodology.md for the dataset's train/test
 separation.
 
-**Datasets**: `intents-for-eval` (12 langs, 50 intents, 6 buckets) and
-`massive-templates` (52 langs, template-only). Each eval corpus links its
-paradigm-specific `role: train` sets via `train_datasets`.
+**Datasets**: `ovos-intents-v5` (40 locales, 221 intents, the OVOS skill
+fleet's own corpus), `intents-for-eval` (12 langs, 50 intents, 6 buckets) and
+`massive-templates` (52 langs, template-only). Eval corpora live under
+`registry/datasets/intent/` and link their training sets by supervision
+paradigm via `train_datasets`; prediction repos are keyed by that paradigm
+too, since a repo holds the rows of every fighter that consumed the same
+training datashape whatever league it competes in.
 
 ## STT league (`stt`)
 

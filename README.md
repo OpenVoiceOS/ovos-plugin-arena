@@ -28,7 +28,7 @@ script and registry fighters:
 
 | League | Benchmark | Ranking signal |
 |---|---|---|
-| `intent_template` · `intent_keyword` · `intent` | `benchmarks/intent_*.py` over [`intents-for-eval`](https://huggingface.co/datasets/OpenVoiceOS/intents-for-eval) (12 langs) + `massive-templates` (52 langs) | accuracy / macro-F1 / OOD-FPR / slot-EM → ELO seed |
+| `intent_zero_shot` · `intent_online` · `intent_offline` · `intent_keyword` | `benchmarks/intent_*.py` over [`intents-for-eval`](https://huggingface.co/datasets/OpenVoiceOS/intents-for-eval) (12 langs) + `massive-templates` (52 langs) | accuracy / macro-F1 / OOD-FPR / slot-EM → ELO seed |
 | `stt` | `benchmarks/stt_minds14.py` over MInDS-14 | WER → ELO seed |
 | `wake_word` | `benchmarks/ww_hey_mycroft.py` over [`synthetic-wakewords`](https://huggingface.co/datasets/OpenVoiceOS/synthetic-wakewords) | detection error / false-accept / false-reject → ELO seed |
 | `tts` | `benchmarks/tts_intents_prompts.py` | human votes only (no objective metric, no ELO seed) |
@@ -85,8 +85,9 @@ deterministic, so the standings are reproducible from public data alone.
 Each fighter is a *shippable configuration*. Its `config` is a valid
 `mycroft.conf` fragment: an `intents` section with a tier-suffixed
 `pipeline` plus per-plugin config blocks. Single-stage pipelines benchmark
-one engine in its paradigm league. Multi-stage pipelines are **fusion**
-fighters that compete in the open intent league under portmanteau names:
+one engine in the league its training regime implies. Multi-stage pipelines
+are **fusion** fighters, filed by their heaviest stage, under portmanteau
+names:
 **Padapt** (Padatious × Adapt, the stock OVOS cascade) and **Nebulapt**
 (Nebulento × Adapt). Fighters carry a **species** (the plugin class they
 instantiate), architecture **types** (GOFAI, fuzzy-match, neural-net,

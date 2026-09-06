@@ -33,7 +33,11 @@ from typing import Any
 
 from ovos_spec_tools.expansion import strip_type_prefixes
 
-from registry.schemas import split_pipeline_stage
+from registry.schemas import (
+    engine_paradigm,
+    engine_short_name,
+    split_pipeline_stage,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -46,70 +50,72 @@ _META_KEYS = {
 
 @dataclass(frozen=True)
 class EngineSpec:
-    """How to load, train and version one OPM intent pipeline plugin."""
+    """How to load, train and version one OPM intent pipeline plugin.
+
+    Supervision paradigm and training regime live in
+    ``registry.schemas.ENGINE_TRAITS`` — the registry schema validates
+    fighters against them, so they have one home."""
 
     import_path: str  # "module:ClassName"
-    paradigm: str  # "template" | "keyword"
     train_message: str | None  # bus message that triggers training
     dist: str  # python distribution name, for plugin_version
-    short_name: str  # legacy mycroft.conf config key (e.g. "adapt")
 
 
 ENGINE_REGISTRY: dict[str, EngineSpec] = {
     "ovos-padatious-pipeline-plugin": EngineSpec(
-        "ovos_padatious.opm:PadatiousPipeline", "template",
-        "mycroft.skills.train", "ovos-padatious", "padatious"),
+        "ovos_padatious.opm:PadatiousPipeline",
+        "mycroft.skills.train", "ovos-padatious"),
     "ovos-padacioso-pipeline-plugin": EngineSpec(
-        "padacioso.opm:PadaciosoPipeline", "template",
-        None, "padacioso", "padacioso"),
+        "padacioso.opm:PadaciosoPipeline",
+        None, "padacioso"),
     "ovos-nebulento-pipeline-plugin": EngineSpec(
-        "nebulento.opm:NebulentoPipeline", "template",
-        "mycroft.skills.train", "nebulento", "nebulento"),
+        "nebulento.opm:NebulentoPipeline",
+        "mycroft.skills.train", "nebulento"),
     "ovos-adapt-pipeline-plugin": EngineSpec(
-        "ovos_adapt.opm:AdaptPipeline", "keyword",
-        None, "ovos-adapt-parser", "adapt"),
+        "ovos_adapt.opm:AdaptPipeline",
+        None, "ovos-adapt-parser"),
     "ovos-palavreado-pipeline-plugin": EngineSpec(
-        "palavreado.opm:PalavreadoPipeline", "keyword",
-        None, "palavreado", "palavreado"),
+        "palavreado.opm:PalavreadoPipeline",
+        None, "palavreado"),
     "ovos-jurebes-pipeline-plugin": EngineSpec(
-        "jurebes.opm:JurebesPipeline", "template",
-        "mycroft.ready", "jurebes", "jurebes"),
+        "jurebes.opm:JurebesPipeline",
+        "mycroft.ready", "jurebes"),
     "ovos-linha-fina-pipeline-plugin": EngineSpec(
-        "linha_fina.opm:LinhaFinaPipeline", "template",
-        "mycroft.ready", "linha-fina", "linha_fina"),
+        "linha_fina.opm:LinhaFinaPipeline",
+        "mycroft.ready", "linha-fina"),
     "ovos-markov-pipeline-plugin": EngineSpec(
-        "ovos_markov_pipeline:MarkovPipeline", "template",
-        "mycroft.skills.train", "ovos-markov-pipeline-plugin", "markov"),
+        "ovos_markov_pipeline:MarkovPipeline",
+        "mycroft.skills.train", "ovos-markov-pipeline-plugin"),
     "ovos-m2v-pipeline": EngineSpec(
-        "ovos_m2v_pipeline:Model2VecIntentPipeline", "template",
-        "mycroft.ready", "ovos-m2v-pipeline", "m2v"),
+        "ovos_m2v_pipeline:Model2VecIntentPipeline",
+        "mycroft.ready", "ovos-m2v-pipeline"),
     "ovos-m2v-prototype-pipeline": EngineSpec(
-        "ovos_m2v_pipeline:Model2VecPrototypePipeline", "template",
-        "mycroft.ready", "ovos-m2v-pipeline", "m2v_prototype"),
+        "ovos_m2v_pipeline:Model2VecPrototypePipeline",
+        "mycroft.ready", "ovos-m2v-pipeline"),
     # Domain/hierarchical two-stage variants — separate OPM entry points
     # (opm.pipeline) from the same distributions as their flat siblings
     # above; wired in here so the arena can dispatch to them.
     "ovos-nebulento-hierarchical-pipeline-plugin": EngineSpec(
-        "nebulento.opm:HierarchicalNebulentoPipeline", "template",
-        "mycroft.skills.train", "nebulento", "nebulento_hierarchical"),
+        "nebulento.opm:HierarchicalNebulentoPipeline",
+        "mycroft.skills.train", "nebulento"),
     "ovos-linha-fina-domain-pipeline-plugin": EngineSpec(
-        "linha_fina.opm:DomainLinhaFinaPipeline", "template",
-        "mycroft.ready", "linha-fina", "linha_fina_domain"),
+        "linha_fina.opm:DomainLinhaFinaPipeline",
+        "mycroft.ready", "linha-fina"),
     "ovos-linha-fina-hierarchical-pipeline-plugin": EngineSpec(
-        "linha_fina.hierarchical_opm:HierarchicalLinhaFinaPipeline", "template",
-        "mycroft.ready", "linha-fina", "linha_fina_hierarchical"),
+        "linha_fina.hierarchical_opm:HierarchicalLinhaFinaPipeline",
+        "mycroft.ready", "linha-fina"),
     "ovos-markov-domain-pipeline-plugin": EngineSpec(
-        "ovos_markov_pipeline:DomainMarkovPipeline", "template",
-        "mycroft.skills.train", "ovos-markov-pipeline-plugin", "markov_domain"),
+        "ovos_markov_pipeline:DomainMarkovPipeline",
+        "mycroft.skills.train", "ovos-markov-pipeline-plugin"),
     "ovos-adapt-domain-pipeline-plugin": EngineSpec(
-        "ovos_adapt.opm:DomainAdaptPipeline", "keyword",
-        None, "ovos-adapt-parser", "adapt_domain"),
+        "ovos_adapt.opm:DomainAdaptPipeline",
+        None, "ovos-adapt-parser"),
     "ovos-adapt-hierarchical-pipeline-plugin": EngineSpec(
-        "ovos_adapt.opm:HierarchicalAdaptPipeline", "keyword",
-        None, "ovos-adapt-parser", "adapt_hierarchical"),
+        "ovos_adapt.opm:HierarchicalAdaptPipeline",
+        None, "ovos-adapt-parser"),
     "ovos-palavreado-hierarchical-pipeline": EngineSpec(
-        "palavreado.opm:HierarchicalPalavreadoPipeline", "keyword",
-        None, "palavreado", "palavreado_hierarchical"),
+        "palavreado.opm:HierarchicalPalavreadoPipeline",
+        None, "palavreado"),
 }
 
 
@@ -194,7 +200,7 @@ class IntentPipeline:
             spec = ENGINE_REGISTRY[plugin_id]
             plugin_config = dict(
                 intents_config.get(plugin_id)
-                or intents_config.get(spec.short_name)
+                or intents_config.get(engine_short_name(plugin_id))
                 or {}
             )
             module_name, class_name = spec.import_path.split(":")
@@ -244,13 +250,14 @@ class IntentPipeline:
         for plugin_id, plugin in self.plugins.items():
             spec = ENGINE_REGISTRY[plugin_id]
             bus = self.buses[plugin_id]
-            rows = train_data.get(spec.paradigm) or []
+            paradigm = engine_paradigm(plugin_id)
+            rows = train_data.get(paradigm) or []
             if not rows:
                 raise ValueError(
-                    f"No {spec.paradigm!r}-paradigm training rows for "
+                    f"No {paradigm!r}-paradigm training rows for "
                     f"{plugin_id} — check the dataset's train_datasets links"
                 )
-            if spec.paradigm == "template":
+            if paradigm == "template":
                 self._register_templates(bus, rows, extra_bus=self.xformer_bus)
             else:
                 self._register_keywords(bus, rows)

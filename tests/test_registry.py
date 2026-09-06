@@ -93,6 +93,7 @@ class TestFamilyDerivation:
             "plugin": "ovos-adapt-pipeline-plugin",
             "config": {"intents": {"pipeline": ["ovos-adapt-pipeline-plugin-medium"]}},
             "langs": ["en-US"],
+            "training_regime": "online",
             "species": "DomainAdaptPipeline",
         }
         defaults.update(kw)
@@ -252,9 +253,9 @@ class TestLoaders:
         assert "GOFAI" in comp.types
 
     def test_load_competitor_fusion(self):
-        # fusions live in the open intent league with fusion names
-        comp = load_competitor("intent", "nebulapt")
-        assert comp.modality == Modality.INTENT
+        # a fusion of engines that all train at boot is an online fighter
+        comp = load_competitor("intent_online", "nebulapt")
+        assert comp.modality == Modality.INTENT_ONLINE
         assert comp.plugin is None  # multi-engine pipeline
         assert comp.pipeline_plugins == [
             "ovos-adapt-pipeline-plugin",
@@ -262,11 +263,15 @@ class TestLoaders:
         ]
         assert "ensemble" in comp.types
 
-    def test_leagues_are_paradigm_pure(self):
-        template = {c.competitor_id for c in list_competitors("intent_template")}
+    def test_leagues_follow_the_training_regime(self):
+        online = {c.competitor_id for c in list_competitors("intent_online")}
         keyword = {c.competitor_id for c in list_competitors("intent_keyword")}
-        assert {"padatious-medium", "padacioso-medium", "nebulento-medium"} <= template
+        offline = {c.competitor_id for c in list_competitors("intent_offline")}
+        zero_shot = {c.competitor_id for c in list_competitors("intent_zero_shot")}
+        assert {"padatious-medium", "padacioso-medium", "nebulento-medium"} <= online
         assert {"adapt-medium", "palavreado-medium"} <= keyword
+        assert "m2v-medium" in offline
+        assert "m2v-prototype" in zero_shot
 
     def test_intent_competitor_requires_pipeline(self):
         import pytest as _pytest
@@ -274,8 +279,8 @@ class TestLoaders:
         from registry.schemas import CompetitorDef
         with _pytest.raises(Exception):
             CompetitorDef(
-                competitor_id="bad", modality="intent",
-                config={"intents": {}},
+                competitor_id="bad", modality="intent_online",
+                config={"intents": {}}, training_regime="online",
             )
 
     def test_split_pipeline_stage(self):
@@ -319,7 +324,7 @@ class TestLoaders:
         all_comps = list_competitors()
         mods = {c.modality for c in all_comps}
         assert Modality.STT in mods
-        assert Modality.INTENT in mods
+        assert Modality.INTENT_ONLINE in mods
 
     def test_list_datasets(self):
         dsets = list_datasets()
@@ -415,23 +420,19 @@ class TestPredictionRepos:
 
     def test_modality_scoping_is_subset_of_unscoped(self):
         full = set(list_prediction_repos())
-        for modality in ("stt", "tts", "wake_word", "vad",
-                          "intent", "intent_template", "intent_keyword"):
+        for modality in ("stt", "tts", "wake_word", "vad", "intent_online",
+                          "intent_zero_shot", "intent_offline", "intent_keyword"):
             assert set(list_prediction_repos(modality=modality)) <= full
 
-    def test_intent_paradigm_modality_scoping(self):
-        """A paradigm sub-league modality (intent_template) pulls only the
-        paradigm repos, not the base intent repo or the other paradigm."""
-        repos = set(list_prediction_repos(modality="intent_template"))
+    def test_intent_scoping_pulls_every_intent_repo(self):
+        """Prediction repos are keyed by training datashape, not by league:
+        one repo carries rows from fighters of several leagues, so any intent
+        league reads them all and the registry sorts the rows out."""
+        repos = set(list_prediction_repos(modality="intent_online"))
         assert "OpenVoiceOS/ovos-intent-template-bench-intents-for-eval" in repos
-        assert "OpenVoiceOS/ovos-intent-keyword-bench-intents-for-eval" not in repos
-        assert "OpenVoiceOS/ovos-intent-bench-intents-for-eval" not in repos
-
-    def test_base_intent_modality_scoping(self):
-        repos = set(list_prediction_repos(modality="intent"))
+        assert "OpenVoiceOS/ovos-intent-keyword-bench-intents-for-eval" in repos
         assert "OpenVoiceOS/ovos-intent-bench-intents-for-eval" in repos
-        assert "OpenVoiceOS/ovos-intent-template-bench-intents-for-eval" not in repos
-        assert "OpenVoiceOS/ovos-intent-keyword-bench-intents-for-eval" not in repos
+        assert "OpenVoiceOS/ovos-stt-bench-minds14-en-US" not in repos
 
 
 # ---------------------------------------------------------------------------

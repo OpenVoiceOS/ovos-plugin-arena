@@ -58,17 +58,17 @@ class TestEligibility:
         assert needed_paradigms(comp) == {"keyword"}
 
     def test_fusion_needs_both(self):
-        comp = load_competitor("intent", "frankenparse")
+        comp = load_competitor("intent_online", "frankenparse")
         assert needed_paradigms(comp) == {"template", "keyword"}
 
     def test_template_pure_fusion(self):
-        comp = load_competitor("intent", "nebulatious")
+        comp = load_competitor("intent_online", "nebulatious")
         assert needed_paradigms(comp) == {"template"}
 
 
 class TestMakeRow:
     def _row(self, prediction, reference="media:play_song"):
-        comp = load_competitor("intent_template", "padacioso-medium")
+        comp = load_competitor("intent_online", "padacioso-medium")
         return make_row(
             comp, "intents-for-eval", "en-US", 7,
             {"utterance": "play a song", "expected_intent": reference,
@@ -80,7 +80,7 @@ class TestMakeRow:
     def test_row_contract(self):
         row = self._row("media:play_song")
         assert row["sample_id"] == "en-US/00007"
-        assert row["modality"] == "intent_template"
+        assert row["modality"] == "intent_online"
         assert row["dataset_revision"] == "rev123"
         assert row["stage"] == "ovos-padacioso-pipeline-plugin-medium"
         assert row["exact_match"] is True
@@ -101,7 +101,7 @@ class TestMakeRowDomainGranularity:
     unconstrained since these corpora carry no per-intent label."""
 
     def _row(self, prediction, reference="weather", granularity="domain"):
-        comp = load_competitor("intent_template", "padacioso-medium")
+        comp = load_competitor("intent_online", "padacioso-medium")
         return make_row(
             comp, "meteocat", "ca-ES", 3,
             {"utterance": "quin temps fara demà", "expected_intent": reference,
@@ -135,7 +135,7 @@ class TestMakeRowDomainGranularity:
         # comparison, so a same-domain-different-intent prediction that
         # would score 'correct' under domain granularity still scores
         # 'incorrect' under the (default) intent granularity.
-        comp = load_competitor("intent_template", "padacioso-medium")
+        comp = load_competitor("intent_online", "padacioso-medium")
         row = make_row(
             comp, "intents-for-eval", "en-US", 7,
             {"utterance": "play a song", "expected_intent": "media:play_song",
@@ -464,8 +464,9 @@ def test_run_competitor_lang_survives_one_crashing_utterance(tmp_path):
             return utterance, {}, 1.0, 1.0, "stub"
 
     competitor = SimpleNamespace(
-        competitor_id="x", config={"intents": {}},
-        pipeline_plugins=[], modality=SimpleNamespace(value="intent"),
+        competitor_id="x", config={"intents": {}}, model_revision=None,
+        training_regime=None,
+        pipeline_plugins=[], modality=SimpleNamespace(value="intent_online"),
         plugin="stub-plugin", pipeline="stub-pipeline",
     )
     out_path = tmp_path / "out.jsonl"
@@ -499,8 +500,9 @@ def _guard_fixture(tmp_path, pipeline_cls):
     )
     test_rows = [{"utterance": "quin temps fa", "expected_intent": "weather"}]
     competitor = SimpleNamespace(
-        competitor_id="x", config={"intents": {}},
-        pipeline_plugins=[], modality=SimpleNamespace(value="intent"),
+        competitor_id="x", config={"intents": {}}, model_revision=None,
+        training_regime=None,
+        pipeline_plugins=[], modality=SimpleNamespace(value="intent_online"),
         plugin="stub-plugin", pipeline="stub-pipeline",
     )
     out_path = tmp_path / "out.jsonl"

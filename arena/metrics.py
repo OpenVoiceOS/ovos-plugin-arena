@@ -30,6 +30,7 @@ import random
 import re
 import unicodedata
 from collections import defaultdict
+from functools import lru_cache
 from statistics import median
 from typing import Any
 
@@ -73,6 +74,49 @@ IN_DISTRIBUTION_BUCKETS = frozenset({"template", "in_distribution", "near_ood"})
 #: it is published as ``acc_in_distribution``, the name later revisions of the
 #: dataset use, and both spellings land in the same column.
 BUCKET_METRIC_NAMES: dict[str, str] = {"near_ood": "in_distribution"}
+
+
+@lru_cache(maxsize=1)
+def _declared_bucket_roles() -> dict[str, dict[str, str]]:
+    """``dataset_id -> {bucket: role}`` for every corpus that declares them.
+
+    A corpus names its own buckets, and a name alone does not say whether the
+    rows in it are phrasings the fighter was effectively trained on. The
+    registry entry is where that is declared (``DatasetDef.bucket_roles``);
+    the bucket names below are only the fallback for corpora that predate the
+    field. Cached: the registry is read-only for the life of a run.
+    """
+    try:
+        from registry.loaders import list_datasets
+    except Exception:  # registry not importable (standalone metric use)
+        return {}
+    return {
+        d.dataset_id: dict(d.bucket_roles)
+        for d in list_datasets() if d.bucket_roles
+    }
+
+
+def is_in_distribution(row: PredictionRow) -> bool:
+    """Whether a row's phrasing is one its dataset counts as in-distribution.
+
+    In-distribution rows are excluded from ``generalization_accuracy`` — the
+    ranked intent metric — so that the column means the same thing on every
+    corpus, whatever each one calls its buckets.
+    """
+    bucket = row.bucket or "test"
+    roles = _declared_bucket_roles().get(row.dataset_id or "")
+    if roles and bucket in roles:
+        return roles[bucket] == "in_distribution"
+    return bucket in IN_DISTRIBUTION_BUCKETS
+
+
+#: Fewest scored rows a benchmark board entry may be ranked on. A handful of
+#: utterances tells you nothing about an engine — a fighter that answers one
+#: row correctly would top a board — and a rank published from them reads as a
+#: result. Under this, the entry is unranked and the (dataset, lang) seeds no
+#: auto-battles: a language with too little data is a gap to fill, not a
+#: contest to hold.
+MIN_BOARD_SAMPLES = 30
 
 
 def is_pinned_revision(revision: str | None) -> bool:
@@ -136,8 +180,9 @@ def drop_rows_off_pinned_revision(
 
 
 PRIMARY_METRIC = {
-    "intent": "generalization_accuracy",
-    "intent_template": "generalization_accuracy",
+    "intent_zero_shot": "generalization_accuracy",
+    "intent_online": "generalization_accuracy",
+    "intent_offline": "generalization_accuracy",
     "intent_keyword": "generalization_accuracy",
     "stt": "wer_mean",
     "wake_word": "error_rate",
@@ -262,6 +307,7 @@ def score_intent(rows: list[PredictionRow]) -> dict[str, float]:
     per_bucket: dict[str, dict[str, int]] = defaultdict(
         lambda: {"correct": 0, "total": 0}
     )
+    generalization = {"correct": 0, "total": 0}
     correct = 0
     ood_fp = 0
     ood_n = 0
@@ -272,6 +318,8 @@ def score_intent(rows: list[PredictionRow]) -> dict[str, float]:
     for row in rows:
         bucket = row.bucket or "test"
         per_bucket[bucket]["total"] += 1
+        if not is_in_distribution(row):
+            generalization["total"] += 1
         if row.latency_ms is not None:
             latencies.append(row.latency_ms)
 
@@ -280,6 +328,8 @@ def score_intent(rows: list[PredictionRow]) -> dict[str, float]:
             if row.prediction is None:
                 per_bucket[bucket]["correct"] += 1
                 correct += 1
+                if not is_in_distribution(row):
+                    generalization["correct"] += 1
             else:
                 ood_fp += 1
                 per_intent[row.prediction]["fp"] += 1
@@ -289,6 +339,8 @@ def score_intent(rows: list[PredictionRow]) -> dict[str, float]:
             per_intent[row.reference_intent]["tp"] += 1
             per_bucket[bucket]["correct"] += 1
             correct += 1
+            if not is_in_distribution(row):
+                generalization["correct"] += 1
             gold_slots = row.reference_slots or {}
             if gold_slots:
                 slot_total += 1
@@ -320,15 +372,10 @@ def score_intent(rows: list[PredictionRow]) -> dict[str, float]:
     ece = expected_calibration_error(rows)
     if ece is not None:
         metrics["ece"] = ece
-    clean_total = sum(
-        v["total"] for b, v in per_bucket.items() if b not in IN_DISTRIBUTION_BUCKETS
-    )
-    if clean_total:
-        clean_correct = sum(
-            v["correct"] for b, v in per_bucket.items()
-            if b not in IN_DISTRIBUTION_BUCKETS
+    if generalization["total"]:
+        metrics["generalization_accuracy"] = round(
+            generalization["correct"] / generalization["total"], 4
         )
-        metrics["generalization_accuracy"] = round(clean_correct / clean_total, 4)
     for bucket, v in sorted(per_bucket.items()):
         if v["total"]:
             name = BUCKET_METRIC_NAMES.get(bucket, bucket)
@@ -1001,8 +1048,9 @@ def score_ww_stream(rows: list[PredictionRow]) -> dict[str, float]:
 
 
 _SCORERS = {
-    "intent": score_intent,
-    "intent_template": score_intent,
+    "intent_zero_shot": score_intent,
+    "intent_online": score_intent,
+    "intent_offline": score_intent,
     "intent_keyword": score_intent,
     "stt": score_stt,
     "wake_word": score_wake_word,
@@ -1038,7 +1086,7 @@ def _intent_generalization_indicators(rows: list[PredictionRow]) -> list[float]:
     return [
         1.0 if row_is_correct(r) else 0.0
         for r in rows
-        if (r.bucket or "test") not in IN_DISTRIBUTION_BUCKETS
+        if not is_in_distribution(r)
     ]
 
 
@@ -1064,8 +1112,9 @@ def _tts_utmos_values(rows: list[PredictionRow]) -> list[float]:
 # modality -> "mean" extractor (returns per-row 0/1 indicators, or raw values
 # for tts's UTMOS mean)
 _CI_MEAN_EXTRACTORS = {
-    "intent": _intent_generalization_indicators,
-    "intent_template": _intent_generalization_indicators,
+    "intent_zero_shot": _intent_generalization_indicators,
+    "intent_online": _intent_generalization_indicators,
+    "intent_offline": _intent_generalization_indicators,
     "intent_keyword": _intent_generalization_indicators,
     "wake_word": _ww_error_indicators,
     "vad": _ww_error_indicators,
@@ -1349,6 +1398,7 @@ def build_benchmark_board(
     input_hash: str | None = None,
     sample_set_ids: set[str] | None = None,
     dataset_revision: str | None = None,
+    min_samples: int = MIN_BOARD_SAMPLES,
 ) -> BenchmarkBoard:
     """Build one benchmark board from per-competitor row lists.
 
@@ -1464,6 +1514,9 @@ def build_benchmark_board(
     # reason so a frontend/operator can tell the two apart.
     _MIN_COVERAGE = 0.9
 
+    def _too_few(entry: BenchmarkEntry) -> bool:
+        return 0 < entry.samples < min_samples
+
     def _partial_coverage(entry: BenchmarkEntry) -> bool:
         return (entry.sample_set_coverage is not None
                 and entry.sample_set_coverage < _MIN_COVERAGE)
@@ -1477,6 +1530,8 @@ def build_benchmark_board(
 
     stale = [e for e in entries if _off_revision(e)]
     scoreable = [e for e in entries if not _off_revision(e)]
+    thin = [e for e in scoreable if _scored_any(e) and _too_few(e)]
+    scoreable = [e for e in scoreable if e not in thin]
     ranked = [e for e in scoreable if _has_signal(e) and not _partial_coverage(e)]
     partial = [e for e in scoreable if _has_signal(e) and _partial_coverage(e)]
     off_metric = [e for e in scoreable if not _has_signal(e) and _scored_any(e)]
@@ -1505,6 +1560,13 @@ def build_benchmark_board(
             f"no {primary} — the run scored samples, but none of them fall "
             "inside the ranked metric's population"
         )
+    for entry in thin:
+        entry.rank = 0
+        entry.unranked = True
+        entry.unranked_reason = (
+            f"too_few_samples — {entry.samples} scored row(s), under the "
+            f"{min_samples} a board needs to say anything"
+        )
     for entry in failed:
         entry.rank = 0
         entry.unranked = True
@@ -1517,7 +1579,7 @@ def build_benchmark_board(
             f"{entry.rows_other_revision} row(s) from another revision were "
             "dropped; the fighter needs a re-sweep"
         )
-    entries = ranked + partial + off_metric + failed + stale
+    entries = ranked + partial + thin + off_metric + failed + stale
 
     if ranked:
         leader_ci = cis.get(ranked[0].competitor_id)
@@ -1617,7 +1679,8 @@ ROW_METRIC_ACCESSORS: dict[str, dict[str, Any]] = {
         },
     },
 }
-for _intent_modality in ("intent", "intent_template", "intent_keyword"):
+for _intent_modality in ("intent_zero_shot", "intent_online",
+                          "intent_offline", "intent_keyword"):
     ROW_METRIC_ACCESSORS[_intent_modality] = {
         "accuracy": lambda row: 1.0 if row_is_correct(row) else 0.0,
         "slot_exact_match": row_slot_match,

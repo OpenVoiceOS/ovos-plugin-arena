@@ -20,29 +20,37 @@ Direction = Literal["higher", "lower", "neutral"]
 # One paragraph per league: the task, what the fighter is handed, what it
 # must produce, and what a human voter is asked to judge.
 LEAGUE_INTROS: dict[str, str] = {
-    "intent_template": (
-        "Template-paradigm intent engines compete here. A fighter is trained "
-        "only from phrase templates with {slot} placeholders and example slot "
-        "values, then handed one written utterance at a time and must answer "
-        "with the intent it belongs to — or with nothing at all, when the "
-        "utterance is out of scope. Voters are shown two engines' answers to "
-        "the same utterance and pick the one that understood it."
+    "intent_zero_shot": (
+        "Engines that answer with no training step compete here. A fighter is "
+        "handed the phrasings a skill registers and must answer immediately, "
+        "reading one written utterance at a time and naming the intent it "
+        "belongs to — or nothing at all, when the utterance is out of scope. "
+        "Voters are shown two engines' answers to the same utterance and pick "
+        "the one that understood it."
+    ),
+    "intent_online": (
+        "Engines that train on a device's own skills at boot compete here. A "
+        "fighter is trained from the phrase templates the skills register, "
+        "then handed one written utterance at a time and must answer with the "
+        "intent it belongs to, or with nothing when the utterance is out of "
+        "scope. Voters are shown two engines' answers to the same utterance "
+        "and pick the one that understood it."
+    ),
+    "intent_offline": (
+        "Engines carrying a pretrained model compete here. A fighter arrives "
+        "with a classifier already trained elsewhere and never sees the "
+        "device's own phrasings, so it is only benchmarked on corpora whose "
+        "labels it can actually emit. The task is the same — read an "
+        "utterance, name the intent, stay silent on out-of-scope input — and "
+        "voters judge the two answers side by side."
     ),
     "intent_keyword": (
-        "Keyword-paradigm intent engines compete here. A fighter is trained "
+        "Keyword-supervised intent engines compete here. A fighter is trained "
         "from Adapt-style required and optional vocabulary rules rather than "
         "phrase templates, then handed one written utterance at a time and "
         "must answer with the intent it belongs to, or with nothing when the "
         "utterance is out of scope. Voters are shown two engines' answers to "
         "the same utterance and pick the one that understood it."
-    ),
-    "intent": (
-        "The open intent league is for pipeline fusions: multi-stage cascades "
-        "that mix paradigms, such as a template matcher backed by a keyword "
-        "matcher. Supervision may come from any of the training corpora. The "
-        "task is the same one the pure leagues run — read an utterance, name "
-        "the intent, stay silent on out-of-scope input — and voters judge the "
-        "two answers side by side."
     ),
     "stt": (
         "Speech-to-text engines transcribe a spoken clip. A fighter receives "
