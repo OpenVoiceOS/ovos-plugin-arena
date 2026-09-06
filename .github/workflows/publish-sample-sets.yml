@@ -1,0 +1,93 @@
+name: Publish sample-set manifests
+
+# Wires runner/publish_sample_set.py into a schedule (see docs/operations.md
+# "Sample-set manifests") — without this, a dataset's sample_policy is
+# recorded in the registry but no sample_sets/<lang>.json manifest is ever
+# published, so every benchmark board scored against that dataset falls
+# back to sample_set: "unmanaged" / coverage: null.
+
+on:
+  schedule:
+    - cron: '30 4 * * 0' # weekly, Sunday 04:30 UTC
+  workflow_dispatch:
+    inputs:
+      dataset:
+        description: 'Dataset id glob (optional — default: every role=eval dataset with a sample_policy)'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-sample-sets
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: dev
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install arena + audio/HF extras
+        # audio (not just hf) is needed here: compute_sample_set walks the
+        # source parquet shards through runner.audio_io's row iterators to
+        # derive sample ids identically to a real sweep.
+        run: pip install --quiet ".[hf,audio]"
+
+      - name: Publish sample-set manifests
+        id: publish
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          set -o pipefail
+          args=(--upload --skip-existing)
+          [ -n "${{ github.event.inputs.dataset }}" ] && \
+            args+=(--dataset "${{ github.event.inputs.dataset }}")
+          python -m runner.publish_sample_set "${args[@]}" | tee /tmp/publish.log
+
+      - name: Write step summary
+        if: always()
+        run: |
+          {
+            echo "## Sample-set manifest publication"
+            echo
+            echo '```'
+            grep -E '^(INFO|WARNING|ERROR).*(rows selected|already published|failed|timed out)' \
+              /tmp/publish.log || echo "(no per-dataset lines captured)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  notify-on-failure:
+    needs: publish
+    if: always() && needs.publish.result == 'failure'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/notify-failure
+        with:
+          title: "CI: publish sample-set manifests failing"
+          mode: open
+
+  notify-on-success:
+    needs: publish
+    if: always() && needs.publish.result == 'success'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/notify-failure
+        with:
+          title: "CI: publish sample-set manifests failing"
+          mode: close

@@ -168,9 +168,9 @@ proof.
 
 ## Alarms
 
-Five workflows write or verify the committed data:
+Six workflows write or verify the committed data:
 `.github/workflows/assemble.yml`, `tally.yml`, `replay-proof.yml`,
-`pages.yml` and `hourly-predictions.yml`. Each opens a tracking issue the
+`pages.yml`, `hourly-predictions.yml` and `publish-sample-sets.yml`. Each opens a tracking issue the
 first time a run fails, and closes it again on the next run that succeeds
 (`.github/actions/notify-failure`, a composite action every one of them
 calls). The issue carries the `ci-failure` label and a title of the form
@@ -201,6 +201,41 @@ goes quietly wrong, rather than failing outright:
   still publishes the board rather than withholding it; the warning exists
   so a re-sweep that never actually happens does not go unnoticed for
   weeks.
+- **`assemble.yml` emits one `::warning::` per board named in
+  `assemble-summary.json`'s `boards_without_negatives`**. This applies to
+  wake-word boards only: a board whose rows are all labelled positive
+  carries no negative (silence/other-speech) clips at all, so
+  `false_accept_rate`/`fa_per_hour` cannot be computed for any fighter on
+  it. The board still publishes with whatever it can measure (error rate,
+  false rejects); the warning flags that a negatives corpus still needs to
+  be swept and pooled onto that board via the dataset's own
+  `negatives_dataset_ids` (see `runner/audio_io.py`'s pooling of negative
+  clips into a fighter's own prediction stream).
+
+## Sample-set manifests
+
+A dataset's registry `sample_policy` fixes how many rows (and which ones,
+deterministically) a sweep draws, but the sweep itself never records which
+rows those were. `.github/workflows/publish-sample-sets.yml` runs weekly
+(and on demand via `workflow_dispatch`, with an optional dataset id glob)
+and publishes a `sample_sets/<lang>.json` manifest — the exact set of
+sample ids a policy-capped dataset selects — to every `role: eval` dataset
+that declares a `sample_policy` and doesn't already have a manifest for
+the current policy (`runner/publish_sample_set.py --skip-existing`).
+
+`arena assemble` downloads this manifest alongside a dataset's predictions
+and filters every fighter's rows to it before scoring a board. A board
+whose dataset has no published manifest yet — either because the workflow
+hasn't run since the dataset gained a `sample_policy`, or because
+publication for that one dataset failed or timed out — falls back to
+scoring every row a fighter submitted, unfiltered, and reports
+`sample_set: "unmanaged"` with `coverage: null` on that board. This is a
+degrade path, not a build failure: the board is still comparable across
+fighters that were swept from the same unrestricted pool, it just cannot
+guarantee every fighter was scored over the identical sample subset. Seeing
+`"unmanaged"` on a board that has a `sample_policy` in the registry means
+the manifest hasn't landed yet — check the latest
+`publish-sample-sets.yml` run for that dataset's id in the step summary.
 
 ## Troubleshooting
 

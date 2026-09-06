@@ -167,11 +167,19 @@ def transcript_cache_path(cache_dir: Path, dataset_id: str, lang: str) -> Path:
 
 
 def load_stt_engine(dataset_def, lang: str):
-    """Instantiate the dataset's pinned STT plugin (§ audio-input intent)."""
+    """Instantiate the dataset's pinned STT plugin (§ audio-input intent).
+
+    Raises ``RuntimeError`` (not a bare ``None``) when the plugin isn't
+    installed — ``load_stt_plugin`` logs and returns ``None`` on a missing
+    entry point, which used to reach the caller as ``clazz({...})`` raising
+    an opaque ``TypeError: 'NoneType' object is not callable``.
+    """
     from ovos_plugin_manager.stt import load_stt_plugin
 
     module = dataset_def.stt_plugin
     clazz = load_stt_plugin(module)
+    if clazz is None:
+        raise RuntimeError(f"STT plugin {module} is not installed")
     return clazz({"lang": lang, "module": module, **dict(dataset_def.stt_config)})
 
 
@@ -1097,6 +1105,17 @@ def run_benchmark(dataset_id: str, description: str, argv=None) -> int:
     args = parser.parse_args(argv)
 
     eval_def = load_dataset("intent", dataset_id)
+    if eval_def.input == "audio":
+        from runner.media_bench import plugin_is_installed
+
+        if not plugin_is_installed("stt", eval_def.stt_plugin):
+            log.error(
+                "Dataset %s requires STT plugin %s, which is not installed "
+                "— skipping every fighter/lang cell",
+                dataset_id, eval_def.stt_plugin,
+            )
+            log.info("run summary: skipped_datasets_missing_stt=1")
+            return 0
     train_defs = {
         paradigm: load_dataset(f"intent_{paradigm}", train_id)
         for paradigm, train_id in (eval_def.train_datasets or {}).items()
@@ -1120,11 +1139,19 @@ def run_benchmark(dataset_id: str, description: str, argv=None) -> int:
         eval_def.langs or [eval_def.lang]
     )
 
+    from runner.media_bench import plugin_is_installed
+
     bench_dir = Path(args.output_dir) / dataset_id
+    skipped_missing_plugin = 0
     for competitor in competitors:
+        modality = competitor.modality.value
+        if competitor.plugin and not plugin_is_installed(modality, competitor.plugin):
+            log.error("Fighter %s [%s]: plugin %s is not installed — skipping",
+                      competitor.competitor_id, modality, competitor.plugin)
+            skipped_missing_plugin += 1
+            continue
         store = predictions_store(competitor)
-        log.info("Fighter %s [%s]", competitor.competitor_id,
-                 competitor.modality.value)
+        log.info("Fighter %s [%s]", competitor.competitor_id, modality)
         for lang in langs:
             if competitor.langs and lang not in competitor.langs:
                 continue
@@ -1144,6 +1171,9 @@ def run_benchmark(dataset_id: str, description: str, argv=None) -> int:
                 log.error("  %s", exc)
             except Exception:
                 log.exception("  %s/%s failed", competitor.competitor_id, lang)
+
+    if skipped_missing_plugin:
+        log.info("run summary: skipped_missing_plugin=%d", skipped_missing_plugin)
 
     if args.upload:
         upload_predictions(bench_dir, dataset_id, eval_def, owner=args.hf_owner)

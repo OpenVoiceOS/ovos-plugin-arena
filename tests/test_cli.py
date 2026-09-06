@@ -25,6 +25,7 @@ class _StubCompetitor:
     def __init__(self, competitor_id, label_set=None):
         self.competitor_id = competitor_id
         self.label_set = label_set
+        self.config = {}
 
 
 # Fictional competitor ids used by this file's fixtures (e.g. "good"/"bad"
@@ -39,6 +40,7 @@ _LEGACY_TEST_COMPETITOR_IDS = {
     "intent_keyword": {"adapt-medium"},
     "stt": {"base-pt", "small-pt", "comp-a", "comp-b", "whisper-tiny"},
     "tts": {"piper-a"},
+    "wake_word": {"good", "bad"},
 }
 
 
@@ -253,6 +255,33 @@ def _write_predictions_off_revision(tmp_path: Path) -> Path:
     return preds
 
 
+def _write_wake_word_predictions(tmp_path: Path, *, with_negatives: bool) -> Path:
+    """A wake-word board's predictions — all rows labelled positive when
+    ``with_negatives`` is False, so the board can never measure a false
+    accept (§alarms, ``boards_without_negatives``)."""
+    preds = tmp_path / "predictions"
+    preds.mkdir()
+    revision = _pinned_revision("synthetic-wakewords-hey_mycroft")
+    for competitor in ("good", "bad"):
+        rows = []
+        for i in range(6):
+            label = "negative" if with_negatives and i % 2 else "positive"
+            rows.append({
+                "competitor_id": competitor,
+                "sample_id": f"en-US/{i:05d}",
+                "dataset_id": "synthetic-wakewords-hey_mycroft",
+                "dataset_revision": revision,
+                "lang": "en-US",
+                "plugin_id": f"plugin-{competitor}",
+                "label": label,
+                "prediction": "positive" if competitor == "bad" else label,
+            })
+        (preds / f"{competitor}.jsonl").write_text(
+            "\n".join(json.dumps(r) for r in rows) + "\n"
+        )
+    return preds
+
+
 class TestAssembleAlarms:
     """assemble-summary.json's alarms (docs/operations.md "Alarms") — an
     empty board or an off-revision sweep must be visible in the summary
@@ -283,6 +312,54 @@ class TestAssembleAlarms:
             summary = json.loads(summary_path.read_text())
             assert summary.get("boards_without_ranked_fighters", []) == []
             assert summary.get("rows_dropped_off_revision", 0) == 0
+
+    def test_wake_word_board_without_negatives_is_listed(self, tmp_path):
+        preds = _write_wake_word_predictions(tmp_path, with_negatives=False)
+        out = tmp_path / "data"
+        assert main_args_assemble(preds, out) == 0
+
+        summary = json.loads((out / "assemble-summary.json").read_text())
+        assert summary["boards_without_negatives"] == [
+            "benchmark-wake_word-synthetic-wakewords-hey_mycroft-en-US.json"
+        ]
+
+    def test_wake_word_board_without_negatives_still_listed_when_cached(
+            self, tmp_path):
+        """A second assemble run over unchanged predictions hits the
+        ``_board_disk_input_hash`` cache path (§cli.py "Unchanged... skipped
+        bootstrap") instead of rebuilding the board — the alarm must still
+        fire, read straight off the board already on disk, not only the run
+        that first built it."""
+        preds = _write_wake_word_predictions(tmp_path, with_negatives=False)
+        out = tmp_path / "data"
+        assert main_args_assemble(preds, out) == 0
+        assert json.loads((out / "assemble-summary.json").read_text())[
+            "boards_without_negatives"
+        ] == ["benchmark-wake_word-synthetic-wakewords-hey_mycroft-en-US.json"]
+
+        # Second run: same predictions, same sample set — the board's
+        # input_hash is unchanged, so this run reuses the cache path.
+        # Delete the first run's summary first: a leftover copy on disk
+        # would let a stale value pass this assertion even if the cache-hit
+        # path never recomputed anything, since a run with no alarms to
+        # report never touches the file at all (see cmd_assemble's
+        # ``if ... or boards_without_negatives or ...`` guard).
+        (out / "assemble-summary.json").unlink()
+        assert main_args_assemble(preds, out) == 0
+        summary = json.loads((out / "assemble-summary.json").read_text())
+        assert summary["boards_without_negatives"] == [
+            "benchmark-wake_word-synthetic-wakewords-hey_mycroft-en-US.json"
+        ]
+
+    def test_wake_word_board_with_negatives_raises_no_alarm(self, tmp_path):
+        preds = _write_wake_word_predictions(tmp_path, with_negatives=True)
+        out = tmp_path / "data"
+        assert main_args_assemble(preds, out) == 0
+
+        summary_path = out / "assemble-summary.json"
+        if summary_path.exists():
+            summary = json.loads(summary_path.read_text())
+            assert summary.get("boards_without_negatives", []) == []
 
     def test_modality_scoped_run_names_summary_per_modality(self, tmp_path):
         """A sharded assemble.yml matrix leg passes --modality, and its

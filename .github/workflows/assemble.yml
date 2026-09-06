@@ -222,6 +222,12 @@ jobs:
               print(f"::warning::assemble: every fighter is unranked on {board} "
                     "— boards a re-sweep will fix, not a build failure")
 
+          no_negatives = summary.get("boards_without_negatives") or []
+          for board in no_negatives:
+              print(f"::warning::assemble: {board} has no negative (false-accept) "
+                    "rows — false_accept_rate/fa_per_hour cannot be measured "
+                    "until a negatives corpus is swept for this board")
+
           dropped = summary.get("rows_dropped_off_revision") or 0
           if dropped:
               print(f"::warning::assemble: {dropped} row(s) dropped for being "

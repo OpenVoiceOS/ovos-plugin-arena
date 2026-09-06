@@ -16,7 +16,8 @@ import pytest
 from registry.schemas import SamplePolicy
 
 
-def _dataset_def(dataset_id="ds", lang="en-US", max_samples=10, seed=5):
+def _dataset_def(dataset_id="ds", lang="en-US", max_samples=10, seed=5,
+                  role="eval"):
     return SimpleNamespace(
         dataset_id=dataset_id,
         lang=lang,
@@ -26,6 +27,7 @@ def _dataset_def(dataset_id="ds", lang="en-US", max_samples=10, seed=5):
                                revision="main"),
         sample_policy=SamplePolicy(max_samples=max_samples, seed=seed),
         predictions_hf=None,
+        role=role,
     )
 
 
@@ -247,3 +249,45 @@ class TestMainTimeoutPath:
         rc = pss.main(["--dry-run"])
         assert rc == 0
         assert exit_codes == []
+
+
+class TestTargetSelection:
+    """main()'s dataset target filter (§scheduled publication) — only
+    role=eval datasets with a sample_policy are ever published, and
+    ``--dataset`` accepts a glob (the workflow_dispatch input), not just
+    an exact dataset_id."""
+
+    def _run_and_capture_targets(self, monkeypatch, datasets, argv):
+        from runner import publish_sample_set as pss
+
+        monkeypatch.setattr("registry.loaders.list_datasets",
+                            lambda modality=None: datasets)
+        monkeypatch.setattr(pss, "run_with_timeout",
+                            lambda fn, timeout_secs: fn())
+        seen = []
+        monkeypatch.setattr(
+            pss, "_publish_one",
+            lambda dd, owner, dry_run, req_timeout: seen.append(dd.dataset_id),
+        )
+        rc = pss.main(argv)
+        assert rc == 0
+        return seen
+
+    def test_unrestricted_role_dataset_never_published(self, monkeypatch):
+        eval_ds = _dataset_def(dataset_id="eval-ds", role="eval")
+        unrestricted_ds = _dataset_def(dataset_id="negatives-ds", role="unrestricted")
+        seen = self._run_and_capture_targets(
+            monkeypatch, [eval_ds, unrestricted_ds], ["--dry-run"])
+        assert seen == ["eval-ds"]
+
+    def test_dataset_glob_selects_matching_ids_only(self, monkeypatch):
+        ds_a = _dataset_def(dataset_id="synthetic-wakewords-hey_mycroft")
+        ds_b = _dataset_def(dataset_id="synthetic-wakewords-hey_chatterbox")
+        ds_c = _dataset_def(dataset_id="minds14-en-US")
+        seen = self._run_and_capture_targets(
+            monkeypatch, [ds_a, ds_b, ds_c],
+            ["--dry-run", "--dataset", "synthetic-wakewords-*"],
+        )
+        assert sorted(seen) == [
+            "synthetic-wakewords-hey_chatterbox", "synthetic-wakewords-hey_mycroft",
+        ]

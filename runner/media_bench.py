@@ -573,7 +573,14 @@ def run_benchmark(
 
     bench_dir = Path(args.output_dir) / dataset_id
     results_repo = results_repo_for(adapter.modality, dataset_id, args.hf_owner)
+    skipped_missing_plugin = 0
     for competitor in competitors:
+        if competitor.plugin and not plugin_is_installed(
+                adapter.modality, competitor.plugin):
+            log.error("Fighter %s [%s]: plugin %s is not installed — skipping",
+                      competitor.competitor_id, adapter.modality, competitor.plugin)
+            skipped_missing_plugin += 1
+            continue
         log.info("Fighter %s [%s]", competitor.competitor_id, adapter.modality)
         for lang in adapter.competitor_langs(competitor, dataset_langs):
             out_path = (bench_dir / adapter.modality / "predictions" / lang
@@ -587,6 +594,9 @@ def run_benchmark(
                 )
             except Exception:
                 log.exception("  %s/%s failed", competitor.competitor_id, lang)
+
+    if skipped_missing_plugin:
+        log.info("run summary: skipped_missing_plugin=%d", skipped_missing_plugin)
 
     if args.upload:
         upload_predictions(adapter, bench_dir, dataset_id, eval_def,

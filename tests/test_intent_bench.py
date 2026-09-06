@@ -4,15 +4,21 @@ from __future__ import annotations
 import json
 from unittest.mock import patch
 
+import pytest
+
+import runner.intent_bench as intent_bench_mod
 from registry.loaders import load_competitor
 from registry.loaders import load_dataset as load_dataset_def
+from registry.schemas import DatasetDef
 from runner.intent_bench import (
     fetch_hf_classification_rows,
     fetch_rows,
+    load_stt_engine,
     make_row,
     needed_paradigms,
     normalize_hierarchical_label,
     results_repo_for,
+    run_benchmark,
     split_name,
 )
 
@@ -608,3 +614,101 @@ class TestTrainingGuard:
             )
         assert written == 1
         assert len(out_path.read_text().splitlines()) == 1
+
+
+class TestLoadSttEngine:
+    """load_stt_engine (§ audio-input intent) — a missing STT plugin entry
+    point must raise a clear RuntimeError, not fall through to a
+    ``clazz(...)`` call on ``None``."""
+
+    def _audio_dataset_def(self):
+        return DatasetDef(
+            dataset_id="speech-massive-en-US", modality="intent",
+            source={"type": "path", "path": "/x.jsonl"},
+            lang="en-US", input="audio",
+            stt_plugin="ovos-stt-plugin-does-not-exist",
+            stt_config={"lang": "en-US"},
+            reference_fields={"audio": "audio", "intent": "intent_str"},
+        )
+
+    def test_missing_plugin_raises_runtime_error(self, monkeypatch):
+        import ovos_plugin_manager.stt as opm_stt
+
+        monkeypatch.setattr(opm_stt, "load_stt_plugin", lambda module: None)
+        with pytest.raises(RuntimeError, match="ovos-stt-plugin-does-not-exist"):
+            load_stt_engine(self._audio_dataset_def(), "en-US")
+
+    def test_installed_plugin_still_instantiates(self, monkeypatch):
+        import ovos_plugin_manager.stt as opm_stt
+
+        calls = []
+
+        class FakeEngine:
+            def __init__(self, config):
+                calls.append(config)
+
+        monkeypatch.setattr(opm_stt, "load_stt_plugin", lambda module: FakeEngine)
+        engine = load_stt_engine(self._audio_dataset_def(), "en-US")
+        assert isinstance(engine, FakeEngine)
+        assert calls[0]["module"] == "ovos-stt-plugin-does-not-exist"
+
+
+class TestRunBenchmarkSttPreflight:
+    """run_benchmark refuses an audio-input dataset outright when its
+    pinned STT plugin isn't installed, instead of letting every fighter's
+    cell independently crash inside transcribe_dataset/load_stt_engine."""
+
+    def _audio_dataset_def(self, dataset_id):
+        return DatasetDef(
+            dataset_id=dataset_id, modality="intent",
+            source={"type": "huggingface", "hf_id": "org/corpus"},
+            lang="en-US", langs=["en-US"], input="audio",
+            stt_plugin="ovos-stt-plugin-does-not-exist",
+            stt_config={"lang": "en-US"},
+            reference_fields={"audio": "audio", "intent": "intent_str"},
+        )
+
+    def test_dataset_skipped_once_when_stt_plugin_missing(
+            self, monkeypatch, caplog, tmp_path):
+        dataset_id = "speech-massive-en-US"
+        eval_def = self._audio_dataset_def(dataset_id)
+        monkeypatch.setattr(intent_bench_mod, "load_dataset",
+                            lambda modality, did: eval_def)
+
+        def _boom(*a, **kw):
+            raise AssertionError(
+                "eligible_competitors must not run for a dataset whose STT "
+                "plugin preflight failed")
+
+        monkeypatch.setattr(intent_bench_mod, "eligible_competitors", _boom)
+        monkeypatch.setattr("runner.media_bench.plugin_is_installed",
+                            lambda modality, plugin: False)
+
+        with caplog.at_level("ERROR"):
+            rc = run_benchmark(
+                dataset_id, "test dataset",
+                argv=["--output-dir", str(tmp_path)],
+            )
+        assert rc == 0
+        errors = [r for r in caplog.records if r.levelname == "ERROR"]
+        assert len(errors) == 1
+        assert dataset_id in errors[0].message
+        assert "ovos-stt-plugin-does-not-exist" in errors[0].message
+
+    def test_dataset_runs_when_stt_plugin_installed(self, monkeypatch, tmp_path):
+        dataset_id = "speech-massive-en-US"
+        eval_def = self._audio_dataset_def(dataset_id)
+        monkeypatch.setattr(intent_bench_mod, "load_dataset",
+                            lambda modality, did: eval_def)
+        monkeypatch.setattr(intent_bench_mod, "eligible_competitors",
+                            lambda paradigms, dataset_id: [])
+        monkeypatch.setattr("runner.media_bench.plugin_is_installed",
+                            lambda modality, plugin: True)
+        monkeypatch.setattr(intent_bench_mod, "resolve_revision",
+                            lambda hf_id, revision, timeout=None: "deadbeef")
+
+        rc = run_benchmark(
+            dataset_id, "test dataset",
+            argv=["--output-dir", str(tmp_path)],
+        )
+        assert rc == 0
