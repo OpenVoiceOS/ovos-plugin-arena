@@ -86,9 +86,21 @@ jobs:
 
   # See docs/operations.md "Alarms" — a build or deploy failure here leaves
   # the public site stale under a green data-refresh badge.
+  #
+  # `deploy` skips itself on a private repo (see its own `if:` above), and
+  # a skipped need makes a bare `success()` false — the exact trap that
+  # left replay-proof.yml's notify jobs unreachable on every non-push
+  # trigger (run 34040895690). `deploy` skipping is the NORMAL, expected
+  # state on a private repo, so success only requires `build` to have
+  # actually succeeded and `deploy` to not have failed (success or skip
+  # both count); failure fires if either job genuinely failed. `always()`
+  # is required alongside the explicit `needs.<job>.result` checks:
+  # GitHub prepends an implicit `success()` to any `if:` that doesn't
+  # itself call a status-check function, which would silently reintroduce
+  # the same block.
   notify-on-failure:
     needs: [build, deploy]
-    if: failure()
+    if: always() && (needs.build.result == 'failure' || needs.deploy.result == 'failure')
     runs-on: ubuntu-latest
     permissions:
       issues: write
@@ -101,7 +113,9 @@ jobs:
 
   notify-on-success:
     needs: [build, deploy]
-    if: success()
+    if: >-
+      always() && needs.build.result == 'success' &&
+      (needs.deploy.result == 'success' || needs.deploy.result == 'skipped')
     runs-on: ubuntu-latest
     permissions:
       issues: write

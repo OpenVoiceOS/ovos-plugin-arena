@@ -66,9 +66,16 @@ jobs:
   # See docs/operations.md "Alarms" — the replay proof stayed green for
   # weeks against a tally run that never counted a vote; a red tally run
   # itself must be at least as visible.
+  #
+  # `tally` has no job-level `if:` so it can never skip, but the explicit
+  # `needs.tally.result` check plus `always()` is used anyway, matching
+  # every other workflow's notify jobs — see replay-proof.yml's notify
+  # jobs for the trap this avoids (a bare `success()`/`failure()` treats a
+  # skipped need as neither, which silently stranded both notify jobs
+  # there in run 34040895690).
   notify-on-failure:
     needs: tally
-    if: failure()
+    if: always() && needs.tally.result == 'failure'
     runs-on: ubuntu-latest
     permissions:
       issues: write
@@ -81,7 +88,7 @@ jobs:
 
   notify-on-success:
     needs: tally
-    if: success()
+    if: always() && needs.tally.result == 'success'
     runs-on: ubuntu-latest
     permissions:
       issues: write
