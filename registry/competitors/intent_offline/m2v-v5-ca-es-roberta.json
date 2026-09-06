@@ -1,0 +1,44 @@
+{
+  "competitor_id": "m2v-v5-ca-es-roberta",
+  "modality": "intent_offline",
+  "config": {
+    "intents": {
+      "pipeline": [
+        "ovos-m2v-pipeline-medium"
+      ],
+      "ovos-m2v-pipeline": {
+        "model": "OpenVoiceOS/ovos-m2v-intents-ca-ES-roberta-v5",
+        "mode": "classifier",
+        "ignore_intents": [],
+        "timeout": 1,
+        "renormalize": false,
+        "conf_high": 0.7,
+        "conf_medium": 0.5,
+        "conf_low": 0.15
+      }
+    }
+  },
+  "langs": [
+    "ca-ES"
+  ],
+  "training_regime": "offline",
+  "label_set": [
+    "ovos-intents-v5"
+  ],
+  "display_name": "Model2Vec v5 \u00b7 RoBERTa (ca-ES)",
+  "species": "Model2VecIntentPipeline",
+  "types": [
+    "embedding",
+    "neural-net"
+  ],
+  "description": "Classifies an utterance with a pretrained Model2Vec static-embedding classifier head trained on the OVOS v5 intent corpus. The head is frozen: it emits only labels it was trained on, and never learns from the templates a skill registers.",
+  "model": "OpenVoiceOS/ovos-m2v-intents-ca-ES-roberta-v5",
+  "model_hf_repo": "OpenVoiceOS/ovos-m2v-intents-ca-ES-roberta-v5",
+  "model_revision": "60b3a74ec5a607638196d2c397ad528f9c30ca7c",
+  "size": "small",
+  "links": {
+    "source": "https://github.com/OpenVoiceOS/ovos-m2v-pipeline",
+    "model": "https://huggingface.co/OpenVoiceOS/ovos-m2v-intents-ca-ES-roberta-v5"
+  },
+  "notes": "Head emitting 153 of the corpus's 208 labels, measured from the pinned commit; the rest are counted against it. Single-stage pipeline at the plugin's own medium-confidence gate, shipped plugin defaults elsewhere."
+}

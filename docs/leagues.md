@@ -74,6 +74,19 @@ and refuses the sweep outright when nothing overlaps, so a mislabelled
 exact model commit it runs (`model_revision`), which the runner downloads and
 stamps on every row.
 
+The `ovos-intents-v5` `label_set` carries a matrix of Model2Vec classifier
+heads trained on the same 208-intent corpus with different base encoders,
+registered as separate `intent_offline` fighters so the board answers
+"which encoder generalizes best on this corpus" rather than folding every
+model size and language into one entry. English-only heads range from a 2M
+tiny embedding up to a 32M base one; multilingual heads swap in e5-small,
+LaBSE, DistilUSE, MiniLM and Granite as the base encoder, each trained over
+every locale the corpus covers; and single-locale heads pair a
+language-specific encoder (RoBERTa, Bertinho, BNE RoBERTa, XLM-R, Albertina,
+Danish BERT) with the intents that locale's test rows exercise. Every entry's
+`notes` records how many of the corpus's 208 labels the pinned commit's head
+actually emits, measured the same way the runner checks it at sweep time.
+
 **Metrics** (`score_intent`), per `(league, dataset, lang)`:
 
 | Metric | Meaning | Direction |

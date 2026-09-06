@@ -1,0 +1,44 @@
+{
+  "competitor_id": "m2v-v5-da-dk-bert",
+  "modality": "intent_offline",
+  "config": {
+    "intents": {
+      "pipeline": [
+        "ovos-m2v-pipeline-medium"
+      ],
+      "ovos-m2v-pipeline": {
+        "model": "OpenVoiceOS/ovos-m2v-intents-da-DK-bert-v5",
+        "mode": "classifier",
+        "ignore_intents": [],
+        "timeout": 1,
+        "renormalize": false,
+        "conf_high": 0.7,
+        "conf_medium": 0.5,
+        "conf_low": 0.15
+      }
+    }
+  },
+  "langs": [
+    "da-DK"
+  ],
+  "training_regime": "offline",
+  "label_set": [
+    "ovos-intents-v5"
+  ],
+  "display_name": "Model2Vec v5 \u00b7 Danish BERT (da-DK)",
+  "species": "Model2VecIntentPipeline",
+  "types": [
+    "embedding",
+    "neural-net"
+  ],
+  "description": "Classifies an utterance with a pretrained Model2Vec static-embedding classifier head trained on the OVOS v5 intent corpus. The head is frozen: it emits only labels it was trained on, and never learns from the templates a skill registers.",
+  "model": "OpenVoiceOS/ovos-m2v-intents-da-DK-bert-v5",
+  "model_hf_repo": "OpenVoiceOS/ovos-m2v-intents-da-DK-bert-v5",
+  "model_revision": "8d8561ade4e7e24deed811055d1101079259fefc",
+  "size": "small",
+  "links": {
+    "source": "https://github.com/OpenVoiceOS/ovos-m2v-pipeline",
+    "model": "https://huggingface.co/OpenVoiceOS/ovos-m2v-intents-da-DK-bert-v5"
+  },
+  "notes": "Head emitting 158 of the corpus's 208 labels, measured from the pinned commit; the rest are counted against it. Single-stage pipeline at the plugin's own medium-confidence gate, shipped plugin defaults elsewhere."
+}
