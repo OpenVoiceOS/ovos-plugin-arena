@@ -187,6 +187,7 @@ import Base from '../../layouts/Base.astro';
 
   <script>
     import { spriteSvg } from '../../lib/sprite.js';
+    import { rarityOf } from '../../lib/dex.js';
     import { langDisplayName } from '../../lib/lang.js';
     import { pickBoardLang, rankIndex } from '../../lib/ranks.js';
 
@@ -276,7 +277,7 @@ import Base from '../../layouts/Base.astro';
             ${c.plugin ? `<dt>Plugin</dt><dd>${escHtml(c.plugin)}</dd>` : ''}
             ${pipeline.length > 1 ? `<dt>Pipeline</dt><dd style="font-size:0.76rem">${pipeline.map(escHtml).join('<br>')}</dd>` : ''}
             ${c.model ? `<dt>Model</dt><dd>${escHtml(c.model)}</dd>` : ''}
-            ${c.size ? `<dt>Size</dt><dd style="font-family:var(--font)">${escHtml(c.size)}</dd>` : ''}
+            ${c.size ? `<dt>Size</dt><dd style="font-family:var(--font)">${escHtml(c.size)} · ${escHtml(rarityOf(c.size))}</dd>` : ''}
             <dt>Languages</dt><dd style="font-family:var(--font)">${escHtml(langsLabelOf(langs))}</dd>
           </dl>
           <div class="fighter-foot">
