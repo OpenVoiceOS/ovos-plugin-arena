@@ -1,6 +1,7 @@
 """Unit tests for runner.intent_bench — pure helpers, no engines needed."""
 from __future__ import annotations
 
+import json
 from unittest.mock import patch
 
 from registry.loaders import load_competitor
@@ -427,3 +428,58 @@ def test_train_fetch_uses_train_repo_revision():
             pass
     assert seen.get("org/train-repo") == "TRAINSHA", \
         "train corpus must pin its own repo's sha"
+
+
+def test_run_competitor_lang_survives_one_crashing_utterance(tmp_path):
+    """One raising ``pipeline.predict`` call must not abort the cell — the
+    remaining rows are still written and the failure is counted, mirroring
+    ``runner.media_bench.run_competitor_lang``'s per-sample try/except."""
+    from types import SimpleNamespace
+
+    from runner import intent_bench
+
+    eval_def = SimpleNamespace(
+        source=SimpleNamespace(hf_id="org/eval-repo", revision="main",
+                               file_pattern=None, subset=None, split="test"),
+        train_datasets={}, input="text", reference_granularity="flat",
+    )
+    test_rows = [
+        {"utterance": "quin temps fa", "expected_intent": "weather"},
+        {"utterance": "atura la musica", "expected_intent": "stop"},
+        {"utterance": "posa una alarma", "expected_intent": "alarm"},
+    ]
+
+    class ExplodingPipeline:
+        stage_names = ["stub"]
+
+        def __init__(self, *a, **kw):
+            pass
+
+        def train(self, *a, **kw):
+            pass
+
+        def predict(self, utterance):
+            if utterance == "atura la musica":
+                raise RuntimeError("boom")
+            return utterance, {}, 1.0, 1.0, "stub"
+
+    competitor = SimpleNamespace(
+        competitor_id="x", config={"intents": {}},
+        pipeline_plugins=[], modality=SimpleNamespace(value="intent"),
+        plugin="stub-plugin", pipeline="stub-pipeline",
+    )
+    out_path = tmp_path / "out.jsonl"
+
+    with patch.object(intent_bench, "resolve_revision", return_value="EVALSHA"), \
+         patch.object(intent_bench, "fetch_rows", return_value=test_rows), \
+         patch.object(intent_bench, "needed_paradigms", return_value=set()), \
+         patch.object(intent_bench, "done_samples", return_value=set()), \
+         patch.object(intent_bench, "IntentPipeline", ExplodingPipeline):
+        written = intent_bench.run_competitor_lang(
+            competitor, "meteocat", "ca-ES", eval_def, {}, "EVALSHA", out_path)
+
+    assert written == 2, "the two non-crashing rows must still be written"
+    lines = out_path.read_text().splitlines()
+    assert len(lines) == 2
+    utterances = [json.loads(line)["utterance"] for line in lines]
+    assert "atura la musica" not in utterances
