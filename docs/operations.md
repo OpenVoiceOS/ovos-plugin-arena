@@ -166,6 +166,42 @@ reproducible, the fix is to delete the stale artifacts and regenerate
 them with `assemble` + `tally`, not to grandfather the old shape into the
 proof.
 
+## Alarms
+
+Five workflows write or verify the committed data:
+`.github/workflows/assemble.yml`, `tally.yml`, `replay-proof.yml`,
+`pages.yml` and `hourly-predictions.yml`. Each opens a tracking issue the
+first time a run fails, and closes it again on the next run that succeeds
+(`.github/actions/notify-failure`, a composite action every one of them
+calls). The issue carries the `ci-failure` label and a title of the form
+`CI: <workflow name> failing`, so exactly one open issue ever tracks a
+given workflow's red streak, whether it lasts one run or two days. Seeing
+one of these titles open means: check the linked run's log, fix whatever
+broke, and either re-run the workflow or wait for its next schedule — the
+issue closes itself once a run of that same workflow goes green again.
+
+Two more alarms catch a run that stays green while the data it produces
+goes quietly wrong, rather than failing outright:
+
+- **`replay-proof.yml` emits `::warning::` when the replay counted zero
+  human votes** across every board. `verify-replay` always reproduces the
+  published boards from a seed with zero human votes on it (there is
+  nothing to disagree with), so a pass under these conditions proves only
+  that the deterministic replay logic works, not that a real vote actually
+  reaches a leaderboard. Treat this warning as a sign to check
+  `tally.yml`'s recent runs and `vote-audit.json`'s `counted` count
+  directly, the replay proof alone cannot tell the two states apart.
+- **`assemble.yml` emits one `::warning::` per board named in
+  `assemble-summary.json`'s `boards_without_ranked_fighters`**, plus one
+  for `rows_dropped_off_revision` when it is non-zero. Every fighter on an
+  unranked board scored zero samples, board-wide, and a dataset revision
+  mismatch means rows were swept against a corpus version other than the
+  one the registry pins. Both are legitimate, temporary states
+  while a re-sweep against the right revision is in flight, so the run
+  still publishes the board rather than withholding it; the warning exists
+  so a re-sweep that never actually happens does not go unnoticed for
+  weeks.
+
 ## Troubleshooting
 
 - **A vote issue closes immediately with "does not match the vote title

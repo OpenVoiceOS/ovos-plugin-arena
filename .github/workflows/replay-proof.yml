@@ -109,5 +109,53 @@ jobs:
 
       - name: Replay the public vote record and verify published leaderboards
         run: |
+          set -o pipefail
           python -m arena.cli verify-replay \
-            --data-dir frontend-static/public/data
+            --data-dir frontend-static/public/data | tee /tmp/verify-replay.log
+
+      # A proof that reproduces boards seeded with zero counted human votes
+      # has only shown the RNG replays itself, not that a real vote
+      # round-trips end to end (docs/operations.md "Alarms") — the exact
+      # blind spot that let this workflow stay green for weeks while no
+      # vote was ever counted.
+      - name: Alarm on a zero-human-vote proof
+        if: always()
+        run: |
+          total=$(grep '^human-votes: total: ' /tmp/verify-replay.log | tail -1 | grep -o '[0-9]*$' || echo "")
+          if [ -z "$total" ]; then
+            echo "::warning::replay-proof: no counted human votes were reported by verify-replay"
+          elif [ "$total" -eq 0 ]; then
+            echo "::warning::replay-proof: 0 counted human votes across every board — this run only proves the seed replays, not that a real vote round-trips"
+          else
+            echo "::notice::replay-proof: $total counted human vote(s) across every board"
+            grep '^human-votes: ' /tmp/verify-replay.log | grep -v ': total: '
+          fi
+
+  # See docs/operations.md "Alarms" — the replay proof verifying zero
+  # votes for weeks under a green badge is exactly the failure mode a red
+  # run of THIS workflow must never repeat.
+  notify-on-failure:
+    needs: [detect, verify-replay]
+    if: failure()
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/notify-failure
+        with:
+          title: "CI: Replay proof failing"
+          mode: open
+
+  notify-on-success:
+    needs: [detect, verify-replay]
+    if: success()
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/notify-failure
+        with:
+          title: "CI: Replay proof failing"
+          mode: close

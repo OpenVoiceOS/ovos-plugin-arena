@@ -139,20 +139,21 @@ jobs:
     permissions:
       issues: write
     steps:
-      - name: Open an issue if one isn't already open
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: ${{ github.repository }}
-          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        run: |
-          set -euo pipefail
-          existing=$(gh issue list --repo "$REPO" --search 'in:title "CI: hourly predictions failing"' \
-            --state open --json title --jq 'length')
-          if [ "$existing" -gt 0 ]; then
-            echo "an open issue already tracks this failure, skipping"
-            exit 0
-          fi
-          gh issue create --repo "$REPO" \
-            --title "CI: hourly predictions failing" \
-            --label ci-failure \
-            --body "The hourly random-pair predictions workflow failed: $RUN_URL"
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/notify-failure
+        with:
+          title: "CI: hourly predictions failing"
+          mode: open
+
+  notify-on-success:
+    needs: predict
+    if: success()
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/notify-failure
+        with:
+          title: "CI: hourly predictions failing"
+          mode: close

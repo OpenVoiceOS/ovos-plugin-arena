@@ -14,6 +14,7 @@ from arena.cli import (
     load_battles_pools,
     load_elo_seeds,
     main,
+    merge_assemble_summaries,
     parse_vote_title,
 )
 from arena.elo import INITIAL_ELO
@@ -221,6 +222,152 @@ def _write_predictions(tmp_path: Path) -> Path:
             "\n".join(json.dumps(r) for r in rows) + "\n"
         )
     return preds
+
+
+def _write_predictions_off_revision(tmp_path: Path) -> Path:
+    """Same shape as ``_write_predictions``, but every row carries a
+    ``dataset_revision`` other than the one the registry pins — the whole
+    board is left with no rows on the pinned revision at all, so every
+    fighter comes back unranked (§alarms, docs/operations.md "Alarms")."""
+    preds = tmp_path / "predictions"
+    preds.mkdir()
+    for competitor, correct in (("good", True), ("bad", False)):
+        rows = []
+        for i in range(6):
+            rows.append({
+                "competitor_id": competitor,
+                "sample_id": f"en-US/{i:05d}",
+                "dataset_id": "intents-for-eval",
+                "dataset_revision": "0" * 40,
+                "lang": "en-US",
+                "plugin_id": f"plugin-{competitor}",
+                "utterance": f"utterance number {i}",
+                "reference_intent": "media:play_song",
+                "prediction": "media:play_song" if correct else f"wrong{i}",
+                "exact_match": correct,
+            })
+        (preds / f"{competitor}.jsonl").write_text(
+            "\n".join(json.dumps(r) for r in rows) + "\n"
+        )
+    return preds
+
+
+class TestAssembleAlarms:
+    """assemble-summary.json's alarms (docs/operations.md "Alarms") — an
+    empty board or an off-revision sweep must be visible in the summary
+    the workflow turns into ``::warning::`` annotations, never silently
+    absorbed into a green run."""
+
+    def test_off_revision_board_listed_and_counted(self, tmp_path):
+        preds = _write_predictions_off_revision(tmp_path)
+        out = tmp_path / "data"
+        assert main_args_assemble(preds, out) == 0
+
+        summary = json.loads((out / "assemble-summary.json").read_text())
+        assert summary["boards_without_ranked_fighters"] == [
+            "benchmark-intent-intents-for-eval-en-US.json"
+        ]
+        assert summary["rows_dropped_off_revision"] == 12
+
+    def test_on_revision_board_raises_no_alarm(self, tmp_path):
+        """Mutation guard: a normal, fully-ranked assemble run must not
+        write the alarm fields (or must write them empty/zero) — the
+        alarm is the exception, not the default state."""
+        preds = _write_predictions(tmp_path)
+        out = tmp_path / "data"
+        assert main_args_assemble(preds, out) == 0
+
+        summary_path = out / "assemble-summary.json"
+        if summary_path.exists():
+            summary = json.loads(summary_path.read_text())
+            assert summary.get("boards_without_ranked_fighters", []) == []
+            assert summary.get("rows_dropped_off_revision", 0) == 0
+
+    def test_modality_scoped_run_names_summary_per_modality(self, tmp_path):
+        """A sharded assemble.yml matrix leg passes --modality, and its
+        summary must carry that modality in the filename — an unscoped
+        assemble-summary.json here would collide with every other leg's
+        file under actions/download-artifact's merge-multiple (§alarms)."""
+        preds = _write_predictions_off_revision(tmp_path)
+        out = tmp_path / "data"
+        with pytest.raises(SystemExit) as exc:
+            main(["assemble", "--predictions", str(preds), "--output", str(out),
+                  "--modality", "intent"])
+        assert exc.value.code == 0
+
+        assert not (out / "assemble-summary.json").exists()
+        summary = json.loads((out / "assemble-summary-intent.json").read_text())
+        assert summary["boards_without_ranked_fighters"] == [
+            "benchmark-intent-intents-for-eval-en-US.json"
+        ]
+        assert summary["rows_dropped_off_revision"] == 12
+
+
+class TestMergeAssembleSummaries:
+    """``merge_assemble_summaries``/``merge-assemble-summaries`` — reduces
+    every matrix leg's own assemble-summary-<modality>.json into the one
+    file the assemble.yml alarm step reads (§alarms)."""
+
+    def test_unions_boards_and_sums_counters(self):
+        merged = merge_assemble_summaries([
+            {
+                "boards_without_ranked_fighters": ["benchmark-stt-a-en-US.json"],
+                "rows_dropped_off_revision": 5,
+                "unregistered_competitors_excluded": {"ghost-a": 2},
+            },
+            {
+                "boards_without_ranked_fighters": ["benchmark-tts-b-en-US.json"],
+                "rows_dropped_off_revision": 7,
+                "unregistered_competitors_excluded": {"ghost-a": 1, "ghost-b": 3},
+            },
+        ])
+        assert merged["boards_without_ranked_fighters"] == [
+            "benchmark-stt-a-en-US.json", "benchmark-tts-b-en-US.json",
+        ]
+        assert merged["rows_dropped_off_revision"] == 12
+        assert merged["unregistered_competitors_excluded"] == {
+            "ghost-a": 3, "ghost-b": 3,
+        }
+
+    def test_empty_list_yields_empty_merge(self):
+        merged = merge_assemble_summaries([])
+        assert merged["boards_without_ranked_fighters"] == []
+        assert merged["rows_dropped_off_revision"] == 0
+        assert merged["unregistered_competitors_excluded"] == {}
+
+    def test_cli_merges_and_removes_per_modality_files(self, tmp_path):
+        data_dir = tmp_path / "data"
+        data_dir.mkdir()
+        (data_dir / "assemble-summary-stt.json").write_text(json.dumps({
+            "boards_without_ranked_fighters": ["benchmark-stt-a-en-US.json"],
+            "rows_dropped_off_revision": 5,
+            "unregistered_competitors_excluded": {},
+        }))
+        (data_dir / "assemble-summary-tts.json").write_text(json.dumps({
+            "boards_without_ranked_fighters": ["benchmark-tts-b-en-US.json"],
+            "rows_dropped_off_revision": 7,
+            "unregistered_competitors_excluded": {},
+        }))
+
+        with pytest.raises(SystemExit) as exc:
+            main(["merge-assemble-summaries", "--data-dir", str(data_dir)])
+        assert exc.value.code == 0
+
+        assert not (data_dir / "assemble-summary-stt.json").exists()
+        assert not (data_dir / "assemble-summary-tts.json").exists()
+        merged = json.loads((data_dir / "assemble-summary.json").read_text())
+        assert merged["boards_without_ranked_fighters"] == [
+            "benchmark-stt-a-en-US.json", "benchmark-tts-b-en-US.json",
+        ]
+        assert merged["rows_dropped_off_revision"] == 12
+
+    def test_cli_no_op_when_nothing_to_merge(self, tmp_path):
+        data_dir = tmp_path / "data"
+        data_dir.mkdir()
+        with pytest.raises(SystemExit) as exc:
+            main(["merge-assemble-summaries", "--data-dir", str(data_dir)])
+        assert exc.value.code == 0
+        assert not (data_dir / "assemble-summary.json").exists()
 
 
 class TestAssemblePipeline:

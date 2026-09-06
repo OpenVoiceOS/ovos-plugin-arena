@@ -83,3 +83,31 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
+
+  # See docs/operations.md "Alarms" — a build or deploy failure here leaves
+  # the public site stale under a green data-refresh badge.
+  notify-on-failure:
+    needs: [build, deploy]
+    if: failure()
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/notify-failure
+        with:
+          title: "CI: Deploy to GitHub Pages failing"
+          mode: open
+
+  notify-on-success:
+    needs: [build, deploy]
+    if: success()
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/notify-failure
+        with:
+          title: "CI: Deploy to GitHub Pages failing"
+          mode: close

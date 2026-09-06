@@ -268,3 +268,68 @@ def test_missing_votes_file_errors_cleanly(tmp_path):
         main(["verify-replay", "--data-dir", str(data_dir),
               "--votes-file", str(tmp_path / "nope.jsonl")])
     assert exc.value.code != 0
+
+
+def test_reports_counted_human_votes_per_board(tmp_path, monkeypatch, capsys):
+    """§alarms (docs/operations.md "Alarms") — replay-proof.yml decides
+    whether the proof is only a seed reproduction by grepping this
+    per-board human-vote line, so it must appear for every board and count
+    each of the fixture's 3 votes exactly once — never doubled by summing
+    ``EloEntry.human_votes``, which increments per competitor (both sides
+    of a vote), not per vote."""
+    data_dir = _base_setup(tmp_path, monkeypatch)
+    capsys.readouterr()  # discard _base_setup's tally output
+
+    with pytest.raises(SystemExit) as exc:
+        main(["verify-replay", "--data-dir", str(data_dir)])
+    assert exc.value.code == 0
+
+    out = capsys.readouterr().out
+    assert "human-votes: intent-en-US: 3" in out
+    total_line = next(line for line in out.splitlines()
+                       if line.startswith("human-votes: total: "))
+    assert int(total_line.rsplit(": ", 1)[1]) == 3
+
+
+def test_committed_data_reports_one_vote_not_two(capsys):
+    """Regression for the doubled-count bug: the committed
+    ``frontend-static/public/data/votes.jsonl`` carries exactly 1 recorded
+    human vote (nebulapt vs. frankenparse, intent/en-US). Summing
+    ``EloEntry.human_votes`` across a board's entries reports 2 (once per
+    competitor); counting the replay's per-board vote list must report 1."""
+    data_dir = Path(__file__).resolve().parents[1] / "frontend-static" / "public" / "data"
+
+    with pytest.raises(SystemExit) as exc:
+        main(["verify-replay", "--data-dir", str(data_dir)])
+    assert exc.value.code == 0
+
+    out = capsys.readouterr().out
+    assert "human-votes: intent-en-US: 1" in out
+    total_line = next(line for line in out.splitlines()
+                       if line.startswith("human-votes: total: "))
+    assert int(total_line.rsplit(": ", 1)[1]) == 1
+
+
+def test_zero_human_votes_reported_when_seeded_only(tmp_path, monkeypatch, capsys):
+    """A board built entirely from an auto-vote elo-seed with no human
+    votes cast must report a total of 0 — the proof is then only a seed
+    reproduction, which replay-proof.yml warns on."""
+    data_dir = tmp_path / "data"
+    data_dir.mkdir(parents=True)
+    _write_elo_seed(data_dir, auto_battles=5)
+    (data_dir / "voter-age-cache.json").write_text("{}")
+
+    with pytest.raises(SystemExit) as exc:
+        main(["tally", "--data-dir", str(data_dir), "--output", str(data_dir),
+              "--repo", "OpenVoiceOS/ovos-plugin-arena", "--keep-issues-open"])
+    assert exc.value.code == 0
+    capsys.readouterr()
+
+    with pytest.raises(SystemExit) as exc:
+        main(["verify-replay", "--data-dir", str(data_dir)])
+    assert exc.value.code == 0
+
+    out = capsys.readouterr().out
+    total_line = next(line for line in out.splitlines()
+                       if line.startswith("human-votes: total: "))
+    assert int(total_line.rsplit(": ", 1)[1]) == 0
