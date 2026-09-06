@@ -2,11 +2,11 @@
 """
 Intent benchmark over ``OpenVoiceOS/intents-for-eval``.
 
-The OVOS canonical paradigm-neutral intent benchmark: 50 intents, 1750 test
-rows per language across template / paraphrase / near-OOD / far-OOD /
-ASR-noise / typo buckets, 12 languages, slot annotations.  Both training
-paradigms ship in-dataset, so every league competes — template engines,
-keyword engines, and the open-league fusions.
+The OVOS canonical paradigm-neutral intent benchmark: 50 intents, between
+1,354 and 1,384 test rows per language across template / in_distribution /
+paraphrase / far_ood / asr_noise / typos buckets, 12 languages, slot
+annotations.  Both training paradigms ship in-dataset, so every league
+competes — template engines, keyword engines, and the open-league fusions.
 
 Predictions publish to one HF repo per modality
 (``OpenVoiceOS/ovos-<modality>-bench-intents-for-eval``) with one dataset

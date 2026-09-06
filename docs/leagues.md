@@ -41,8 +41,8 @@ accepts any mix and is where ensemble cascades compete.
 
 | Metric | Meaning | Direction |
 |---|---|---|
-| **`generalization_accuracy`** *(primary → ELO seed)* | accuracy over the buckets an engine cannot have been trained on (`paraphrase` / `typos` / `asr_noise` / `far_ood`) | higher better |
-| `accuracy` | share of **all** samples answered correctly, **including correct OOD rejections** and the buckets that duplicate training data | higher better |
+| **`generalization_accuracy`** *(primary → ELO seed)* | accuracy averaged over the `paraphrase` / `far_ood` / `asr_noise` / `typos` buckets — phrasings unlike the training templates | higher better |
+| `accuracy` | share of **all** samples answered correctly, **including correct OOD rejections** and the `template` / `in_distribution` buckets | higher better |
 | `macro_f1` | unweighted mean per-intent F1 (OOD false-positives hurt the wrongly-fired intent's precision) | higher better |
 | `ood_fpr` | false-positive rate on OOD samples, how often the engine hallucinates an intent on out-of-scope input | lower better |
 | `slot_exact_match` | exact match over the whole gold slot dict, on rows where the intent was correct and gold slots exist | higher better |
@@ -52,15 +52,17 @@ accepts any mix and is where ensemble cascades compete.
 Per-row scoring lives in the §3.2 `exact_match` field (`reference_intent is
 None → prediction is None`). `accuracy` counts those correct rejections.
 
-Boards rank on `generalization_accuracy` because about half of
-`intents-for-eval`'s test set is also training data: the runner trains
-template engines on every phrase template and its slot-filled expansions,
-and the `template` and `in_distribution` (raw bucket name `near_ood`) rows
-are largely those expansions verbatim — 95% and 83% of those two buckets on
-en-US, 46% of the whole corpus. Plain `accuracy` there is roughly half
-memorization lookup and favours exact-string matchers. Both numbers, and
-every per-bucket column, stay published; see docs/methodology.md for the
-full measurement.
+`generalization_accuracy` averages the `paraphrase`, `far_ood`, `asr_noise`
+and `typos` buckets only. `intents-for-eval` separates train and test at
+the template level, so no test row is a training expansion, but `template`
+and `in_distribution` are still reported per bucket and enter overall
+`accuracy` only, not the ranked metric: `template` tests recall of a
+held-out template rather than free-form phrasing, and `in_distribution`
+holds in-domain paraphrase-adjacent utterances, both narrower kinds of
+generalization than the free-form buckets. Plain `accuracy` and every
+per-bucket column, including `acc_template` and `acc_in_distribution`,
+stay published; see docs/methodology.md for the dataset's train/test
+separation.
 
 **Datasets**: `intents-for-eval` (12 langs, 50 intents, 6 buckets) and
 `massive-templates` (52 langs, template-only). Each eval corpus links its

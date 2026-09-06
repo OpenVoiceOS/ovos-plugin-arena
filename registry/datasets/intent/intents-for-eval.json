@@ -4,7 +4,7 @@
   "source": {
     "type": "huggingface",
     "hf_id": "OpenVoiceOS/intents-for-eval",
-    "revision": "main",
+    "revision": "d6f497f21c844c400d74bfda13773ccbaf902645",
     "file_pattern": "{lang}/test.jsonl"
   },
   "reference_fields": {
@@ -25,5 +25,5 @@
     "keyword": "intents-for-eval-keywords"
   },
   "predictions_hf": "OpenVoiceOS/ovos-intent-bench-intents-for-eval",
-  "notes": "OVOS canonical paradigm-neutral intent benchmark: 50 intents, 1750 test rows per language across template / paraphrase / near_ood / far_ood / asr_noise / typos buckets, with slot annotations. far_ood rows carry expected_intent=null — the correct behaviour is no match."
+  "notes": "OVOS canonical paradigm-neutral intent benchmark: 50 intents, between 1,354 and 1,384 test rows per language (rows failing the train/test separation rule are dropped, not replaced) across template / paraphrase / in_distribution / far_ood / asr_noise / typos buckets, with slot annotations. far_ood rows carry expected_intent=null — the correct behaviour is no match. Train and test are separated at the template level: train_templates.jsonl holds an 80% per-intent sample of phrase templates, and the template bucket here is built only from the held-out 20%."
 }

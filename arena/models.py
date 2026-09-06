@@ -363,6 +363,13 @@ class BenchmarkEntry(BaseModel):
     # "unmanaged". A fighter swept before the manifest existed, or with a
     # smaller ad hoc --max-samples, can cover only part of it.
     sample_set_coverage: float | None = None
+    # Rows dropped before scoring because they were swept against a dataset
+    # revision other than the one the registry pins (see
+    # arena.metrics.drop_rows_off_pinned_revision). Always 0 for a dataset
+    # pinned to a branch rather than a commit sha. An entry with
+    # ``samples == 0`` and a non-zero count here has not been swept against
+    # the current corpus at all and is unranked for that reason.
+    rows_other_revision: int = 0
 
 
 class BenchmarkBoard(BaseModel):
@@ -378,6 +385,15 @@ class BenchmarkBoard(BaseModel):
         description=(
             "Registry metadata for the eval corpus: url, license, notes, "
             "and the HF predictions repo(s) the board was assembled from."
+        ),
+    )
+    dataset_revision: str | None = Field(
+        None,
+        description=(
+            "The eval dataset's registry ``source.revision`` when it pins an "
+            "immutable commit SHA — the only revision whose prediction rows "
+            "this board scored. None when the registry pins a branch, in "
+            "which case rows from any revision were scored."
         ),
     )
     predictions_revisions: dict[str, str] | None = Field(
