@@ -3,6 +3,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import Base from '../../layouts/Base.astro';
 import { spriteSvg } from '../../lib/sprite.js';
+import {
+  buildDexIndex, dexStats, dexBadges, dexRivals, dexMoves, dexEvolutions,
+  flavorText, hexSvg, preferredLang, rarityOf, speciesLine, esc,
+} from '../../lib/dex.js';
 
 export function getStaticPaths() {
   // Read the competitor registry at build time so every fighter gets a real,
@@ -18,10 +22,29 @@ export function getStaticPaths() {
       paths.push({ params: { id: c.competitor_id }, props: { fighter: c } });
     }
   }
+
+  // The dex layer reads the committed boards once for the whole build.
+  const data = path.join(process.cwd(), 'public', 'data');
+  const dex = buildDexIndex((file) => JSON.parse(fs.readFileSync(path.join(data, file), 'utf-8')));
+  for (const p of paths) {
+    const f = p.props.fighter;
+    const stats = dexStats(f, dex);
+    const lang = preferredLang(stats.langs, ['en-US']);
+    p.props.dex = {
+      number: dex.dexNumbers.get(f.competitor_id) || 0,
+      stats,
+      defaultLang: lang,
+      flavor: flavorText(f, lang ? stats.byLang[lang].axes : []),
+      badges: dexBadges(f, dex),
+      rivals: dexRivals(f, dex),
+      moves: dexMoves(f),
+      evolutions: dexEvolutions(f, dex),
+    };
+  }
   return paths;
 }
 
-const { fighter } = Astro.props;
+const { fighter, dex } = Astro.props;
 const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
 const name = fighter.display_name || fighter.competitor_id;
 const primaryType = (fighter.types || [])[0] || '';
@@ -34,6 +57,34 @@ const LEAGUE_LABELS = {
   intent: 'Intent · Open', intent_template: 'Intent · Template', intent_keyword: 'Intent · Keyword',
 };
 const leagueLabel = LEAGUE_LABELS[fighter.modality] || fighter.modality;
+
+const dexNumber = `#${String(dex.number).padStart(4, '0')}`;
+const species = speciesLine(fighter);
+const rarity = rarityOf(fighter.size);
+const habitat = (fighter.langs || []).length
+  ? fighter.langs.join(', ')
+  : (dex.stats.langs.join(', ') || 'unrecorded');
+const statLang = dex.defaultLang;
+const statBoard = statLang ? dex.stats.byLang[statLang] : null;
+const statAxes = statBoard ? statBoard.axes : [];
+const hexHtml = statAxes.length
+  ? hexSvg([{ label: name, color: '#ff4d4f', axes: statAxes }], 'stat-hex-caption')
+  : '';
+const statRowsHtml = statAxes.map((a) => `<tr>
+    <th scope="row">${esc(a.label)}<br><span class="dex-help">${esc(a.help)}</span></th>
+    <td>${a.score == null ? '<span class="dex-help">unmeasured</span>' : `${a.score} / 100`}</td>
+    <td>${esc(a.raw || '—')}</td>
+  </tr>`).join('');
+// Serialised for the client so a `?vs=` overlay can read another fighter's
+// stats straight off its own page.
+const statPayload = JSON.stringify({
+  id: fighter.competitor_id, name, modality: fighter.modality,
+  flavor: dex.flavor, defaultLang: statLang, byLang: dex.stats.byLang,
+}).replace(/</g, '\\u003c');
+const moves = dex.moves;
+const evolutions = dex.evolutions;
+const rivals = dex.rivals;
+const pct = (r) => `${Math.round((r.wins + r.ties * 0.5) / r.total * 100)}%`;
 ---
 <Base title={name} description={desc}>
   <p style="margin-bottom:1rem"><a id="back-link" href={`${base}fighters/?league=${fighter.modality}`}>← Back to {leagueLabel}</a></p>
@@ -42,13 +93,18 @@ const leagueLabel = LEAGUE_LABELS[fighter.modality] || fighter.modality;
     <div set:html={sprite} aria-hidden="true"></div>
     <div style="flex:1;min-width:15rem">
       <h1 style="margin-bottom:0.3rem">{name}</h1>
-      <p class="eyebrow" style="margin-bottom:0.6rem">{fighter.modality}{fighter.species ? ` · ${fighter.species}` : ''}</p>
+      <p class="eyebrow" style="margin-bottom:0.6rem">{dexNumber} · {leagueLabel}{species ? ` · ${species}` : ''}</p>
       <div style="display:flex;gap:0.35rem;flex-wrap:wrap;margin-bottom:0.75rem">
         {(fighter.types || []).map((t) => (
           <span class={`type-chip type-${t.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}>{t}</span>
         ))}
       </div>
-      <p style="color:var(--text)">{desc}</p>
+      <p class="dex-flavor">{dex.flavor}</p>
+      <dl class="dex-vitals">
+        <dt>Rarity</dt><dd>{rarity}</dd>
+        <dt>Habitat</dt><dd>{habitat}</dd>
+      </dl>
+      {fighter.description && <p class="dex-notes"><strong>Field notes.</strong> {fighter.description}</p>}
       <div id="fighter-stats" class="eyebrow" aria-live="polite" style="margin-top:0.5rem"></div>
     </div>
   </div>
@@ -63,9 +119,120 @@ const leagueLabel = LEAGUE_LABELS[fighter.modality] || fighter.modality;
     </p>
   </div>
 
+  {statAxes.length > 0 && (
+    <div class="card" id="dex-stats-card">
+      <h2>Stat spread</h2>
+      <p id="stat-hex-caption">
+        Six stats for {name}, each scored out of 100 against its own league, from the
+        <code>{statBoard.dataset_id}</code> board in {statLang} ({statBoard.samples} samples).
+        A hatched wedge means the stat has never been measured for this fighter; it is drawn at zero rather than guessed.
+      </p>
+      <p id="stat-lang-row" style="display:none">
+        <label for="stat-lang">Language board</label>
+        <select id="stat-lang" class="dex-select"></select>
+      </p>
+      <div class="dex-stat-wrap">
+        <div id="hex-holder" set:html={hexHtml}></div>
+        <div class="dex-stat-table">
+          <table>
+            <caption class="sr-only">Every stat as text: score out of 100 and the measurement behind it.</caption>
+            <thead><tr><th scope="col">Stat</th><th scope="col">Score</th><th scope="col">Measurement</th></tr></thead>
+            <tbody id="stat-rows" set:html={statRowsHtml}></tbody>
+          </table>
+        </div>
+      </div>
+      <div id="compare-panel" style="display:none">
+        <h3>Compared with <span id="compare-name"></span></h3>
+        <p id="compare-flavor"></p>
+        <p><a id="compare-clear" href="#">Drop the comparison</a></p>
+      </div>
+      <script type="application/json" id="dex-payload" set:html={statPayload} />
+      <form id="compare-form" style="margin-top:1rem">
+        <label for="compare-input">Compare with…</label>
+        <input id="compare-input" class="dex-select" list="league-fighters" placeholder="another fighter in this league" />
+        <datalist id="league-fighters"></datalist>
+        <button class="btn" type="submit">Overlay</button>
+      </form>
+    </div>
+  )}
+
+  {moves.length > 0 && (
+    <div class="card">
+      <h2>Moves</h2>
+      <p>The pipeline stages this fighter runs, in order. Each stage fires at its own confidence tier.</p>
+      <table>
+        <caption class="sr-only">Pipeline stages, the tier each runs at, and its confidence thresholds.</caption>
+        <thead><tr><th scope="col">#</th><th scope="col">Stage</th><th scope="col">Tier</th><th scope="col">Confidence</th></tr></thead>
+        <tbody>
+          {moves.map((m, i) => (
+            <tr>
+              <th scope="row">{i + 1}</th>
+              <td><code>{m.base}</code></td>
+              <td>{m.tier}</td>
+              <td>{m.thresholds || '—'}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )}
+
+  {evolutions.kind !== 'none' && (
+    <div class="card">
+      <h2>Evolutions</h2>
+      {evolutions.kind === 'fusion' ? (
+        <div>
+          <p>A fusion: it evolves from the single-engine fighters that run its stages.</p>
+          <ul>
+            {evolutions.parents.map((p) => (
+              <li>
+                <code>{p.base}</code>{p.fighters.length ? ' — ' : ''}
+                {p.fighters.map((f, i) => (
+                  <span>{i ? ', ' : ''}<a href={`${base}fighter/${encodeURIComponent(f.competitor_id)}/`}>{f.display_name}</a></span>
+                ))}
+                {p.more > 0 ? ` and ${p.more} more` : ''}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : (
+        <div>
+          <p>A single engine. It appears inside these fusions:</p>
+          {evolutions.into.length ? (
+            <ul>
+              {evolutions.into.map((f) => (
+                <li><a href={`${base}fighter/${encodeURIComponent(f.competitor_id)}/`}>{f.display_name}</a></li>
+              ))}
+            </ul>
+          ) : <p>No fusion runs this engine yet.</p>}
+        </div>
+      )}
+    </div>
+  )}
+
+  <div class="card">
+    <h2>Rivals</h2>
+    {rivals.nemesis || rivals.prey ? (
+      <ul>
+        {rivals.nemesis && (
+          <li>
+            Nemesis: <a href={`${base}fighter/${encodeURIComponent(rivals.nemesis.id)}/`}>{rivals.nemesis.name}</a>
+            {` — loses ${100 - Math.round((rivals.nemesis.wins + rivals.nemesis.ties * 0.5) / rivals.nemesis.total * 100)}% of ${rivals.nemesis.total} decided battles.`}
+          </li>
+        )}
+        {rivals.prey && (
+          <li>
+            Prey: <a href={`${base}fighter/${encodeURIComponent(rivals.prey.id)}/`}>{rivals.prey.name}</a>
+            {` — wins ${pct(rivals.prey)} of ${rivals.prey.total} decided battles.`}
+          </li>
+        )}
+      </ul>
+    ) : <p>No rival yet — fewer than five decided battles against any single opponent.</p>}
+  </div>
+
   <div class="card">
     <h2>Details</h2>
-    <table>
+    <table class="dex-details">
       <tbody>
         <tr><th scope="row">Competitor id</th><td><code>{fighter.competitor_id}</code></td></tr>
         {fighter.plugin && <tr><th scope="row">Plugin</th><td><code>{fighter.plugin}</code></td></tr>}
@@ -77,7 +244,14 @@ const leagueLabel = LEAGUE_LABELS[fighter.modality] || fighter.modality;
   </div>
 
   <div class="card">
-    <h2>Ranking</h2>
+    <h2>Records</h2>
+    {dex.badges.length > 0 && (
+      <ul class="dex-badges" role="list">
+        {dex.badges.map((b) => (
+          <li class="type-chip" title={b.why}>{b.title}<span class="sr-only"> — {b.why}</span></li>
+        ))}
+      </ul>
+    )}
     <p id="ranking-note" aria-live="polite">Looking this fighter up on the boards…</p>
     <table id="ranking-table" style="display:none">
       <caption class="sr-only">Rank and rating per language board this fighter competes on.</caption>
@@ -155,9 +329,11 @@ const leagueLabel = LEAGUE_LABELS[fighter.modality] || fighter.modality;
     // is it, and where" is answered without a trip to the leaderboard.
     (async () => {
       const index = await fetchJson(`${base}data/index.json`);
-      const langs = (fighter.langs && fighter.langs.length) ? fighter.langs : ['en-US'];
+      // An engine that declares no languages of its own competes wherever
+      // its league has a board, so every board in the league is checked.
+      const langs = (fighter.langs && fighter.langs.length) ? fighter.langs : null;
       const boards = (index?.leaderboards || [])
-        .filter((b) => b.modality === fighter.modality && langs.includes(b.lang));
+        .filter((b) => b.modality === fighter.modality && (!langs || langs.includes(b.lang)));
       const rows = (await Promise.all(boards.map(async (b) => {
         const board = await fetchJson(`${base}data/${b.file}`);
         const entry = (board?.entries || []).find((e) => e.competitor_id === fighter.competitor_id);
@@ -217,4 +393,144 @@ const leagueLabel = LEAGUE_LABELS[fighter.modality] || fighter.modality;
       document.getElementById('provenance-card').style.display = '';
     })();
   </script>
+  <script>
+    // Stat hexagon: rendered at build time for the default board, re-rendered
+    // here when the visitor's own language has a board of its own, and again
+    // when a second fighter is overlaid via ?vs=.
+    import { hexSvg } from '../../lib/dex.js';
+
+    const payloadEl = document.getElementById('dex-payload');
+    if (payloadEl) {
+      const BASE = import.meta.env.BASE_URL.endsWith('/')
+        ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
+      const esc = s => String(s).replace(/[&<>"']/g, c =>
+        ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c]);
+      const self = JSON.parse(payloadEl.textContent);
+      const langs = Object.keys(self.byLang);
+      const params = new URLSearchParams(location.search);
+      let lang = langs.includes(params.get('lang')) ? params.get('lang') : self.defaultLang;
+      let other = null;
+
+      const wanted = [...(navigator.languages || [navigator.language || 'en-US'])];
+      if (!params.get('lang')) {
+        const hit = wanted.find(w => langs.includes(w))
+          || wanted.map(w => langs.find(l => l.split('-')[0] === w.split('-')[0])).find(Boolean);
+        if (hit) lang = hit;
+      }
+
+      const caption = document.getElementById('stat-hex-caption');
+
+      function render() {
+        const board = self.byLang[lang];
+        const series = [{ label: self.name, color: '#ff4d4f', axes: board.axes }];
+        if (other) {
+          const oBoard = other.byLang[lang] || other.byLang[other.defaultLang];
+          if (oBoard) series.push({ label: other.name, color: '#58a6ff', axes: oBoard.axes });
+        }
+        document.getElementById('hex-holder').innerHTML = hexSvg(series, 'stat-hex-caption');
+        document.getElementById('stat-rows').innerHTML = board.axes.map((a, i) => {
+          const cmp = series[1] ? series[1].axes[i] : null;
+          return `<tr>
+            <th scope="row">${esc(a.label)}<br><span class="dex-help">${esc(a.help)}</span></th>
+            <td>${a.score == null ? '<span class="dex-help">unmeasured</span>' : `${a.score} / 100`}${
+              cmp ? ` <span class="dex-help">vs ${cmp.score == null ? 'unmeasured' : cmp.score}</span>` : ''}</td>
+            <td>${esc(a.raw || '\u2014')}</td>
+          </tr>`;
+        }).join('');
+        caption.textContent = `Six stats for ${self.name}, each scored out of 100 against its own league, `
+          + `from the ${board.dataset_id} board in ${lang} (${board.samples} samples). `
+          + 'A hatched wedge means the stat has never been measured for this fighter; '
+          + 'it is drawn at zero rather than guessed.'
+          + (series[1] ? ` The blue outline is ${series[1].label}.` : '');
+      }
+
+      // Language picker, once there is more than one board to pick from.
+      if (langs.length > 1) {
+        const sel = document.getElementById('stat-lang');
+        sel.innerHTML = langs.map(l => `<option value="${esc(l)}">${esc(l)}</option>`).join('');
+        sel.value = lang;
+        sel.addEventListener('change', () => { lang = sel.value; render(); });
+        document.getElementById('stat-lang-row').style.display = '';
+      }
+
+      // Compare mode. The other fighter's own page carries its stat payload,
+      // so an overlay needs nothing the site does not already ship. A fighter
+      // with no scored stats has no payload at all — it still gets a name, and
+      // the panel says there was nothing to plot.
+      async function loadOther(id) {
+        const res = await fetch(`${BASE}fighter/${encodeURIComponent(id)}/`);
+        if (!res.ok) return null;
+        const doc = new DOMParser().parseFromString(await res.text(), 'text/html');
+        const el = doc.getElementById('dex-payload');
+        if (el) return JSON.parse(el.textContent);
+        return { id, name: doc.querySelector('h1')?.textContent?.trim() || id, byLang: {} };
+      }
+
+      function showCompare() {
+        const panel = document.getElementById('compare-panel');
+        if (!other) { panel.style.display = 'none'; return; }
+        document.getElementById('compare-name').textContent = other.name;
+        // A fighter can be registered and ranked and still have no scored
+        // stats on any board; say so rather than leave the chart unchanged.
+        const plotted = Object.keys(other.byLang).length > 0;
+        document.getElementById('compare-flavor').innerHTML = plotted
+          ? `<strong>${esc(self.name)}.</strong> ${esc(self.flavor)}<br><strong>${esc(other.name)}.</strong> ${esc(other.flavor)}`
+          : `No measured stats for ${esc(other.name)} yet, so nothing was added to the chart.`;
+        document.getElementById('compare-clear').href = location.pathname;
+        panel.style.display = '';
+      }
+
+      const vs = params.get('vs');
+      if (vs && vs !== self.id) {
+        loadOther(vs).then((o) => {
+          if (!o) return;
+          other = o;
+          document.getElementById('compare-input').value = vs;
+          render();
+          showCompare();
+        });
+      }
+
+      document.getElementById('compare-form').addEventListener('submit', (ev) => {
+        ev.preventDefault();
+        const id = document.getElementById('compare-input').value.trim();
+        const url = new URL(location.href);
+        if (id) url.searchParams.set('vs', id); else url.searchParams.delete('vs');
+        location.href = url.toString();
+      });
+
+      // Datalist of the fighters this one can be compared against.
+      fetch(`${BASE}data/competitors.json`).then(r => r.ok ? r.json() : null).then((bestiary) => {
+        if (!bestiary) return;
+        document.getElementById('league-fighters').innerHTML = (bestiary.competitors || [])
+          .filter(c => c.modality === self.modality && c.competitor_id !== self.id)
+          .map(c => `<option value="${esc(c.competitor_id)}">${esc(c.display_name || c.competitor_id)}</option>`)
+          .join('');
+      });
+
+      if (lang !== self.defaultLang) render();
+    }
+  </script>
+
+  <style>
+    .dex-flavor { color: var(--text); font-size: 1.05rem; margin-bottom: 0.6rem; }
+    .dex-notes { font-size: 0.9rem; }
+    .dex-vitals { display: grid; grid-template-columns: auto 1fr; gap: 0.15rem 0.75rem; margin: 0 0 0.6rem; }
+    .dex-vitals dt { color: var(--muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    .dex-vitals dd { margin: 0; font-size: 0.9rem; }
+    .dex-stat-wrap { display: flex; gap: 1.5rem; flex-wrap: wrap; align-items: flex-start; }
+    .dex-stat-table { flex: 1 1 16rem; min-width: 0; overflow-x: auto; }
+    .dex-help { color: var(--muted); font-size: 0.76rem; font-weight: 400; }
+    .dex-details td { overflow-wrap: anywhere; }
+    .dex-badges { list-style: none; padding: 0; margin: 0 0 1rem; display: flex; gap: 0.35rem; flex-wrap: wrap; }
+    .dex-select { background: rgba(255,255,255,0.03); color: var(--text); border: 1px solid rgba(255,255,255,0.12);
+                  border-radius: 6px; padding: 0.35rem 0.5rem; margin: 0 0.5rem; max-width: 100%; }
+    #compare-form label, #stat-lang-row label { color: var(--muted); font-size: 0.85rem; }
+    @media (max-width: 480px) {
+      .dex-stat-wrap { gap: 1rem; }
+      .dex-stat-table table { font-size: 0.8rem; }
+      .dex-stat-table th, .dex-stat-table td { padding: 0.5rem 0.4rem; }
+      .dex-select { display: block; margin: 0.35rem 0; width: 100%; }
+    }
+  </style>
 </Base>
