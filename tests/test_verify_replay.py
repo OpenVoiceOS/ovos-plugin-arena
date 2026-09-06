@@ -2,8 +2,8 @@
 "Replay proof") — replaying the public vote log from scratch must
 reproduce the published leaderboards exactly.
 
-All tests are fully offline: votes are supplied via ``--votes-file``
-(a fixture, never a live GitHub fetch), matching the "no network in
+All tests are fully offline: the replay reads the committed vote record
+written at ingest, never a live GitHub fetch, matching the "no network in
 tests" rule everywhere else in this suite.
 """
 from __future__ import annotations
@@ -55,20 +55,13 @@ def _issue(number: int, author: str, battle_id: str, choice: str, created_at: st
     }
 
 
-def _votes_file(tmp_path: Path, issues: list[dict], name="votes.json") -> Path:
-    path = tmp_path / name
-    path.write_text(json.dumps(issues))
-    return path
-
-
-def _publish_from_tally(data_dir: Path, votes_file: Path, monkeypatch) -> None:
-    """Run `tally` once (offline, `--votes-file`-fed by monkeypatching
-    `fetch_vote_issues`) to produce a real, internally-consistent published
-    leaderboard + vote-audit.json — the ground truth `verify-replay` is
-    then checked against."""
+def _publish_from_tally(data_dir: Path, issues: list[dict], monkeypatch) -> None:
+    """Run `tally` once (offline, with `fetch_vote_issues` monkeypatched)
+    to ingest *issues* into the vote record and produce a real,
+    internally-consistent published leaderboard + vote-audit.json — the
+    ground truth `verify-replay` is then checked against."""
     import arena.cli as arena_cli
 
-    issues = json.loads(votes_file.read_text())
     monkeypatch.setattr(arena_cli, "fetch_vote_issues", lambda repo: issues)
     monkeypatch.setattr(arena_cli, "close_issue", lambda *a, **kw: None)
     monkeypatch.setattr(arena_cli, "_now_iso", lambda: "2026-02-01T12:00:00+00:00")
@@ -78,7 +71,7 @@ def _publish_from_tally(data_dir: Path, votes_file: Path, monkeypatch) -> None:
     assert exc.value.code == 0
 
 
-def _base_setup(tmp_path: Path, monkeypatch) -> tuple[Path, Path]:
+def _base_setup(tmp_path: Path, monkeypatch) -> Path:
     data_dir = tmp_path / "data"
     _write_battles_pool(data_dir, [_battle("b0"), _battle("b1"), _battle("b2")])
     (data_dir / "voter-age-cache.json").write_text(json.dumps({
@@ -90,9 +83,8 @@ def _base_setup(tmp_path: Path, monkeypatch) -> tuple[Path, Path]:
         _issue(2, "bob", "b1", "tie", "2026-02-01T01:00:00Z"),
         _issue(3, "alice", "b2", "b", "2026-02-01T02:00:00Z"),
     ]
-    votes_file = _votes_file(tmp_path, issues)
-    _publish_from_tally(data_dir, votes_file, monkeypatch)
-    return data_dir, votes_file
+    _publish_from_tally(data_dir, issues, monkeypatch)
+    return data_dir
 
 
 # ---------------------------------------------------------------------------
@@ -101,16 +93,15 @@ def _base_setup(tmp_path: Path, monkeypatch) -> tuple[Path, Path]:
 
 
 def test_replay_matches_published_board_exact_match(tmp_path, monkeypatch):
-    data_dir, votes_file = _base_setup(tmp_path, monkeypatch)
+    data_dir = _base_setup(tmp_path, monkeypatch)
 
     with pytest.raises(SystemExit) as exc:
-        main(["verify-replay", "--data-dir", str(data_dir),
-              "--votes-file", str(votes_file)])
+        main(["verify-replay", "--data-dir", str(data_dir)])
     assert exc.value.code == 0
 
 
 def test_tampered_leaderboard_rating_detected(tmp_path, monkeypatch):
-    data_dir, votes_file = _base_setup(tmp_path, monkeypatch)
+    data_dir = _base_setup(tmp_path, monkeypatch)
 
     board_path = data_dir / "leaderboard-intent-en-US.json"
     board = json.loads(board_path.read_text())
@@ -118,8 +109,7 @@ def test_tampered_leaderboard_rating_detected(tmp_path, monkeypatch):
     board_path.write_text(json.dumps(board))
 
     with pytest.raises(SystemExit) as exc:
-        main(["verify-replay", "--data-dir", str(data_dir),
-              "--votes-file", str(votes_file)])
+        main(["verify-replay", "--data-dir", str(data_dir)])
     assert exc.value.code != 0
 
 
@@ -128,20 +118,25 @@ def test_vote_added_after_publication_detected(tmp_path, monkeypatch):
     leaderboard was published diverges the replay from the committed
     board — proving verify-replay actually re-derives standings rather
     than trivially comparing a board to itself."""
-    data_dir, votes_file = _base_setup(tmp_path, monkeypatch)
+    data_dir = _base_setup(tmp_path, monkeypatch)
 
-    issues = json.loads(votes_file.read_text())
-    issues.append(_issue(4, "bob", "b0", "b", "2026-02-01T03:00:00Z"))
-    extra_votes_file = _votes_file(tmp_path, issues, name="votes-extra.json")
+    extra = tmp_path / "votes-extra.jsonl"
+    extra.write_text((data_dir / "votes.jsonl").read_text() + json.dumps({
+        "issue": 4, "author": "bob", "created_at": "2026-02-01T03:00:00Z",
+        "title_seen": "vote|b0|b", "battle_id": "b0", "choice": "b",
+        "modality": "intent", "dataset_id": "ds", "lang": "en-US",
+        "competitor_a": "alpha", "competitor_b": "beta", "sample_id": "b0",
+        "account_created_at": "2020-01-01T00:00:00Z",
+    }) + "\n")
 
     with pytest.raises(SystemExit) as exc:
         main(["verify-replay", "--data-dir", str(data_dir),
-              "--votes-file", str(extra_votes_file)])
+              "--votes-file", str(extra)])
     assert exc.value.code != 0
 
 
 def test_tampered_vote_audit_detected(tmp_path, monkeypatch):
-    data_dir, votes_file = _base_setup(tmp_path, monkeypatch)
+    data_dir = _base_setup(tmp_path, monkeypatch)
 
     audit_path = data_dir / "vote-audit.json"
     audit = json.loads(audit_path.read_text())
@@ -149,8 +144,7 @@ def test_tampered_vote_audit_detected(tmp_path, monkeypatch):
     audit_path.write_text(json.dumps(audit))
 
     with pytest.raises(SystemExit) as exc:
-        main(["verify-replay", "--data-dir", str(data_dir),
-              "--votes-file", str(votes_file)])
+        main(["verify-replay", "--data-dir", str(data_dir)])
     assert exc.value.code != 0
 
 
@@ -163,28 +157,31 @@ def test_missing_published_board_always_fails(tmp_path, monkeypatch):
                          modality="intent_template")
     (data_dir / "voter-age-cache.json").write_text(
         json.dumps({"alice": "2020-01-01T00:00:00Z"}))
-    issues = [_issue(1, "alice", "tmpl-b0", "a", "2026-02-01T00:00:00Z")]
-    votes_file = _votes_file(tmp_path, issues)
+    (data_dir / "votes.jsonl").write_text(json.dumps({
+        "issue": 1, "author": "alice", "created_at": "2026-02-01T00:00:00Z",
+        "title_seen": "vote|tmpl-b0|a", "battle_id": "tmpl-b0", "choice": "a",
+        "modality": "intent_template", "dataset_id": "ds", "lang": "en-US",
+        "competitor_a": "alpha", "competitor_b": "beta", "sample_id": "tmpl-b0",
+        "account_created_at": "2020-01-01T00:00:00Z",
+    }) + "\n")
 
     with pytest.raises(SystemExit) as exc:
-        main(["verify-replay", "--data-dir", str(data_dir),
-              "--votes-file", str(votes_file)])
+        main(["verify-replay", "--data-dir", str(data_dir)])
     assert exc.value.code != 0
 
 
 def test_no_network_touched(tmp_path, monkeypatch):
-    """verify-replay with --votes-file must never shell out — no gh CLI,
-    no subprocess at all."""
+    """verify-replay must never shell out — no gh CLI, no subprocess at
+    all: everything it reads is committed."""
     import subprocess
 
-    data_dir, votes_file = _base_setup(tmp_path, monkeypatch)
+    data_dir = _base_setup(tmp_path, monkeypatch)
     monkeypatch.setattr(subprocess, "run",
                          lambda *a, **kw: (_ for _ in ()).throw(
                              AssertionError("verify-replay must not touch the network")))
 
     with pytest.raises(SystemExit) as exc:
-        main(["verify-replay", "--data-dir", str(data_dir),
-              "--votes-file", str(votes_file)])
+        main(["verify-replay", "--data-dir", str(data_dir)])
     assert exc.value.code == 0
 
 
@@ -257,16 +254,17 @@ def test_tally_rebuilds_board_when_seed_changes_with_zero_votes(tmp_path, monkey
 
     # And verify-replay — the actual CI gate — must pass against this
     # freshly-rebuilt board with no votes at all.
-    empty_votes_file = _votes_file(tmp_path, [], name="votes-empty.json")
     with pytest.raises(SystemExit) as exc:
-        main(["verify-replay", "--data-dir", str(data_dir),
-              "--votes-file", str(empty_votes_file)])
+        main(["verify-replay", "--data-dir", str(data_dir)])
     assert exc.value.code == 0
 
 
-def test_missing_votes_source_errors_cleanly(tmp_path):
+def test_missing_votes_file_errors_cleanly(tmp_path):
+    """An explicit --votes-file that is not there is an error, never an
+    empty replay that trivially reproduces a vote-free board."""
     data_dir = tmp_path / "data"
     _write_battles_pool(data_dir, [_battle("b0")])
     with pytest.raises(SystemExit) as exc:
-        main(["verify-replay", "--data-dir", str(data_dir), "--repo", ""])
+        main(["verify-replay", "--data-dir", str(data_dir),
+              "--votes-file", str(tmp_path / "nope.jsonl")])
     assert exc.value.code != 0

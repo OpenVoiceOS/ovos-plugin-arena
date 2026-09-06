@@ -517,6 +517,15 @@ records a `discarded_reason` or a reduced `weight` rather than silently
 dropping a vote, and the full audit trail is written to `vote-audit.json`
 alongside the leaderboards on every tally run.
 
+- **Recorded at ingest, never re-read.** The first time a `vote`-labelled
+  issue is seen it is appended to `votes.jsonl`, together with the title as
+  seen and the battle it named, resolved against the pool at that moment
+  (§4 R12). Every rule below, and every rating, runs on that record. An
+  issue title stays editable by its author forever, so re-parsing it each
+  run let a voter flip a choice on a closed vote, or repoint an old issue
+  at another battle to inherit its low number and its creation date and so
+  slip past both the dedupe and the rules keyed on when the vote was cast.
+  A recorded issue is never looked at again.
 - **One vote per (voter, battle).** Handled upstream by
   `arena.cli.dedupe_votes`, keyed on `(author, battle_id)`, since
   `battle_id` already encodes `(dataset, sample, competitor pair)` (§4 R4),
@@ -536,7 +545,11 @@ alongside the leaderboards on every tally run.
   directory, every subsequent tally run reuses the cached value instead of
   re-fetching, so the pure `resolve_vote_weights` replay never touches the
   network (`tests/test_fraud.py::test_pure_no_network` enforces this
-  structurally, and `docs/SPECIFICATION.md` §4 requires it for §P5).
+  structurally, and `docs/SPECIFICATION.md` §4 requires it for §P5). An
+  issue whose author's creation date cannot be fetched is left open and
+  un-recorded for a later run, rather than recorded ungated: which side of
+  the gate a vote falls on must not depend on whether one API call
+  happened to succeed.
 - **One-sided voter down-weight** (`ONE_SIDED_MIN_VOTES = 20`,
   `ONE_SIDED_THRESHOLD = 0.95`, `apply_one_sided_downweight`). A voter whose
   surviving votes are more than 95% for the same literal **A** or **B**
@@ -559,13 +572,22 @@ only in the `vote-audit.json` record.
 
 **The full vote-issue history is refetched every run**
 (`fetch_vote_issues` lists both open and closed `vote`-labelled issues), so
-every tally run genuinely replays the complete log from scratch rather than
-only the issues opened since the last run, the earlier design fetched
-`--state open` only, which meant closing a processed issue silently
-dropped its vote from every future leaderboard rebuild. Already-closed
-issues are never re-commented-on or re-closed. `arena.cli.cmd_tally` only
-takes GitHub actions (comment + close) on issues that are still `OPEN` in
-the freshly-fetched list.
+every tally run sees the complete log rather than only the issues opened
+since the last run, and anything missing from the record is recorded then.
+Already-closed issues are never re-commented-on or re-closed:
+`arena.cli.cmd_tally` comments and closes only issues it recorded on that
+run and which are still `OPEN` in the freshly-fetched list.
+
+**Blinding is honest-participant blinding.** The battles pool is a static
+JSON file the voting page fetches, so the competitor pair and the
+reference for every battle are published in the clear: a voter who opens
+the network tab can see which plugin produced which candidate before
+voting. The pool cannot be anything else, the arena has no backend to
+withhold it. Blinding therefore removes brand pull for a voter acting in
+good faith, and the one-sided down-weight catches the naive bot that
+always clicks the same button, but neither stops someone who reads the
+pool and votes their preferred plugin's side. That is an accepted
+trade-off of a static, fully auditable arena, not an oversight.
 
 ## Objective TTS scoring: UTMOS (§4 R14)
 

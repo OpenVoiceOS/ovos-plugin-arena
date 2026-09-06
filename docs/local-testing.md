@@ -30,7 +30,7 @@ uv pip install --prerelease=allow -e ".[test,audio,hf]"
 |---|---|
 | `test` | running `pytest` at all (pulls in `ovoscope` for the wake-word adapter tests) |
 | `audio` | STT / wake-word / TTS benchmarks and their tests (`soundfile`, `onnx-asr`, `faster-whisper`, `speechonnxmetrics`) |
-| `hf` | anything that talks to HuggingFace: `assemble`, `verify-replay` against a live repo, `--upload` |
+| `hf` | anything that talks to HuggingFace: `assemble`, `--upload` |
 
 If you only need the intent leagues and the assembler, `.[test,hf]` is
 enough, you can skip `audio` and its heavier downloads.
@@ -153,41 +153,31 @@ dataset to see nonzero battle counts.
 
 ## 6. Verify replay
 
-`verify-replay` re-derives every published leaderboard from the vote log and
-diffs it against what's on disk, see
-[`operations.md`](operations.md#replay-proof) for the full explanation. Two
-ways to run it locally:
+`verify-replay` re-derives every published leaderboard from the committed
+vote record and diffs it against what's on disk, see
+[`operations.md`](operations.md#replay-proof) for the full explanation. It
+is offline either way — over a scratch data dir, or over the real one:
 
 ```bash
-# offline, against an empty/saved vote-issue snapshot — no GitHub calls
-echo '[]' > /tmp/votes.json
-python -m arena.cli verify-replay \
-    --data-dir /tmp/arena-assemble-test \
-    --votes-file /tmp/votes.json
+python -m arena.cli verify-replay --data-dir /tmp/arena-assemble-test
 
-# against the real committed data + a live vote log
-python -m arena.cli verify-replay \
-    --data-dir frontend-static/public/data \
-    --repo OpenVoiceOS/ovos-plugin-arena
+python -m arena.cli verify-replay --data-dir frontend-static/public/data
 ```
 
 **Proves:** the committed leaderboards are exactly reproducible from the
-public vote log, the same check `.github/workflows/replay-proof.yml` runs on
-every push to `dev`.
+public vote record, the same check `.github/workflows/replay-proof.yml`
+runs on every push to `dev`.
 
 **Expected output:**
 
 ```
-INFO  Loaded 0 battles, 1 ELO seeds
-INFO  Reading vote issues from /tmp/votes.json (offline)
-INFO    → 0 vote issue(s)
-INFO    → 0 deduped vote(s)
-INFO    → 0 counted vote(s), 0 discarded by fraud rules
+INFO  Loaded 1 ELO seeds, 0 recorded vote issue(s) from /tmp/arena-assemble-test/votes.jsonl
+INFO    → 0 counted vote(s), 0 discarded, 0 down-weighted
 INFO  verify-replay OK — 1 published board(s) reproduced exactly by replaying the vote log
 ```
 
-Any other exit code means a published board doesn't match what the vote log
-supports, see [`operations.md`](operations.md#troubleshooting) for how to
+Any other exit code means a published board doesn't match what the vote
+record supports, see [`operations.md`](operations.md#troubleshooting) for how to
 dig into a mismatch.
 
 ## 7. Preview the frontend

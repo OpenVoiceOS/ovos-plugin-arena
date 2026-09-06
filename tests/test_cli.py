@@ -125,17 +125,19 @@ def _seed(**over):
     return EloSeed(**base)
 
 
-BATTLE = {
-    "battle_id": "bid1", "modality": "intent", "lang": "en-US",
-    "dataset_id": "d", "sample_id": "s",
-    "competitor_a": "x", "competitor_b": "y",
-    "plugin_a": "plug-x", "plugin_b": "plug-y",
-}
+def _human_vote(issue_number: int, choice: str, author: str = "alice") -> dict:
+    """A vote as `replay_boards` hands it to `build_elo_board`: the
+    competitor pair travels with the vote, recorded at ingest."""
+    return {
+        "issue_number": issue_number, "battle_id": "bid1", "choice": choice,
+        "author": author, "created_at": "",
+        "competitor_a": "x", "competitor_b": "y",
+    }
 
 
 class TestBuildEloBoard:
     def test_seed_only(self):
-        board = build_elo_board("intent", "en-US", _seed(), [], {})
+        board = build_elo_board("intent", "en-US", _seed(), [])
         assert board.vote_count == 4
         assert board.human_vote_count == 0
         assert board.entries[0].competitor_id == "x"
@@ -143,32 +145,18 @@ class TestBuildEloBoard:
         assert board.entries[0].plugin_id == "plug-x"
 
     def test_human_votes_on_top_of_seed(self):
-        votes = [{"battle_id": "bid1", "choice": "b", "author": "alice",
-                  "issue_number": 1, "created_at": ""}]
-        board = build_elo_board(
-            "intent", "en-US", _seed(), votes, {"bid1": BATTLE}
-        )
+        board = build_elo_board("intent", "en-US", _seed(), [_human_vote(1, "b")])
         assert board.human_vote_count == 1
         y = next(e for e in board.entries if e.competitor_id == "y")
         assert y.human_votes == 1
         assert y.elo > 1180.0  # y won the human vote
 
-    def test_unknown_battle_ignored(self):
-        votes = [{"battle_id": "nope", "choice": "a", "author": "alice",
-                  "issue_number": 1, "created_at": ""}]
-        board = build_elo_board("intent", "en-US", _seed(), votes, {})
-        assert board.human_vote_count == 0
-
     def test_no_seed_starts_at_initial(self):
-        votes = [{"battle_id": "bid1", "choice": "tie", "author": "alice",
-                  "issue_number": 1, "created_at": ""}]
-        board = build_elo_board("intent", "en-US", None, votes, {"bid1": BATTLE})
+        board = build_elo_board("intent", "en-US", None, [_human_vote(1, "tie")])
         assert all(e.elo == pytest.approx(INITIAL_ELO) for e in board.entries)
 
     def test_bt_rating_ranks_and_bounds_by_ci(self):
-        votes = [{"battle_id": "bid1", "choice": "b", "author": "alice",
-                  "issue_number": 1, "created_at": ""}]
-        board = build_elo_board("intent", "en-US", _seed(), votes, {"bid1": BATTLE})
+        board = build_elo_board("intent", "en-US", _seed(), [_human_vote(1, "b")])
         x = next(e for e in board.entries if e.competitor_id == "x")
         y = next(e for e in board.entries if e.competitor_id == "y")
         assert x.bt_rating is not None and y.bt_rating is not None
@@ -181,29 +169,22 @@ class TestBuildEloBoard:
         )
 
     def test_bt_rating_deterministic_across_rebuilds(self):
-        votes = [
-            {"battle_id": "bid1", "choice": "b", "author": "alice",
-             "issue_number": 1, "created_at": ""},
-            {"battle_id": "bid1", "choice": "a", "author": "bob",
-             "issue_number": 2, "created_at": ""},
-        ]
-        board1 = build_elo_board("intent", "en-US", _seed(), votes, {"bid1": BATTLE})
-        board2 = build_elo_board("intent", "en-US", _seed(), votes, {"bid1": BATTLE})
-        ratings1 = {e.competitor_id: (e.bt_rating, e.ci_lower, e.ci_upper) for e in board1.entries}
-        ratings2 = {e.competitor_id: (e.bt_rating, e.ci_lower, e.ci_upper) for e in board2.entries}
+        votes = [_human_vote(1, "b"), _human_vote(2, "a", author="bob")]
+        board1 = build_elo_board("intent", "en-US", _seed(), votes)
+        board2 = build_elo_board("intent", "en-US", _seed(), votes)
+        ratings1 = {e.competitor_id: (e.bt_rating, e.ci_lower, e.ci_upper)
+                    for e in board1.entries}
+        ratings2 = {e.competitor_id: (e.bt_rating, e.ci_lower, e.ci_upper)
+                    for e in board2.entries}
         assert ratings1 == ratings2
 
     def test_provisional_flag_below_threshold(self):
-        board = build_elo_board("intent", "en-US", _seed(), [], {})
+        board = build_elo_board("intent", "en-US", _seed(), [])
         assert board.provisional is True
 
     def test_provisional_flag_clears_with_enough_human_votes(self):
-        votes = [
-            {"battle_id": "bid1", "choice": "b", "author": f"voter{i}",
-             "issue_number": i, "created_at": ""}
-            for i in range(10)
-        ]
-        board = build_elo_board("intent", "en-US", _seed(), votes, {"bid1": BATTLE})
+        votes = [_human_vote(i, "b", author=f"voter{i}") for i in range(10)]
+        board = build_elo_board("intent", "en-US", _seed(), votes)
         assert board.provisional is False
 
 
@@ -638,34 +619,6 @@ class TestAssembleLeaderboardSeedGap:
         # dropped off the board).
         assert small["elo"] == pytest.approx(seed.ratings["small-pt"], abs=0.01)
         assert base["elo"] == pytest.approx(seed.ratings["base-pt"], abs=0.01)
-
-    def test_missing_fighter_appended_without_disturbing_human_vote_state(self, tmp_path):
-        """When the on-disk board already carries real human-vote state,
-        assemble must not clobber it — it only appends the missing fighter."""
-        out = tmp_path / "data"
-        preds1 = _write_stt_predictions(tmp_path / "r1", {"base-pt": 0.5})
-        assert main_args_assemble(preds1, out) == 0
-
-        board_path = out / "leaderboard-stt-pt-PT.json"
-        board = json.loads(board_path.read_text())
-        # Simulate a prior `tally` run that replayed a real human vote.
-        board["human_vote_count"] = 3
-        board["entries"][0]["human_votes"] = 3
-        board["entries"][0]["elo"] = 1400.0
-        board["entries"][0]["bt_rating"] = 1400.0
-        board_path.write_text(json.dumps(board))
-
-        preds2 = _write_stt_predictions(
-            tmp_path / "r2", {"base-pt": 0.5, "small-pt": 0.1}
-        )
-        assert main_args_assemble(preds2, out) == 0
-
-        board = json.loads(board_path.read_text())
-        base = next(e for e in board["entries"] if e["competitor_id"] == "base-pt")
-        assert base["human_votes"] == 3
-        assert base["elo"] == 1400.0  # untouched, not recomputed from seed
-        ids = {e["competitor_id"] for e in board["entries"]}
-        assert "small-pt" in ids
 
 
 class TestExportBestiary:
@@ -1415,38 +1368,12 @@ class TestAssembleResyncsVoteFreeBoardOnSeedChange:
 
         # The published board must reproduce exactly from the committed
         # seed — this is what verify-replay checks in CI.
-        votes_file = tmp_path / "votes.json"
-        votes_file.write_text("[]")
         rc = 0
         try:
-            main(["verify-replay", "--data-dir", str(out),
-                  "--votes-file", str(votes_file)])
+            main(["verify-replay", "--data-dir", str(out)])
         except SystemExit as exc:
             rc = exc.code
         assert rc == 0, "published board does not replay from the committed seed"
-
-    def test_appended_fighter_carries_the_build_elo_board_shape(self, tmp_path):
-        """The human-vote branch appends rather than replays, but it must
-        still emit the field shape build_elo_board produces — null CIs made
-        the whole board unreplayable until the next tally."""
-        out = tmp_path / "data"
-        preds1 = _write_multilang_stt_predictions(
-            tmp_path / "r1", {"pt-PT": {"base-pt": [0.6] * 5}})
-        assert main_args_assemble(preds1, out) == 0
-
-        board_path = out / "leaderboard-stt-pt-PT.json"
-        board = json.loads(board_path.read_text())
-        board["human_vote_count"] = 3
-        board["entries"][0]["human_votes"] = 3
-        board_path.write_text(json.dumps(board))
-
-        preds2 = _write_multilang_stt_predictions(
-            tmp_path / "r2", {"pt-PT": {"base-pt": [0.6] * 5, "small-pt": [0.0] * 5}})
-        assert main_args_assemble(preds2, out) == 0
-
-        small = next(e for e in json.loads(board_path.read_text())["entries"]
-                     if e["competitor_id"] == "small-pt")
-        assert small["ci_lower"] is not None and small["ci_upper"] is not None
 
 
 class TestAssembleMissingPredictionRepo:

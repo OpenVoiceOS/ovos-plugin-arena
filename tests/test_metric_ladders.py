@@ -157,7 +157,7 @@ class TestMetricLaddersOnBoard:
         )
         seed = seed_elo("tts", "en-US", samples_by_dataset, "2026-08-13T00:00:00Z")
         seed.secondary_metrics = seed_secondary_metrics("tts", samples_by_dataset)
-        board = build_elo_board("tts", "en-US", seed, [], {})
+        board = build_elo_board("tts", "en-US", seed, [])
 
         assert "utmos" in board.metric_ladders
         assert board.metric_ladders["utmos"].auto_only is False
@@ -182,7 +182,7 @@ class TestMetricLaddersOnBoard:
         )
         seed = seed_elo("intent", "en-US", samples_by_dataset, "2026-08-13T00:00:00Z")
         seed.secondary_metrics = seed_secondary_metrics("intent", samples_by_dataset)
-        board = build_elo_board("intent", "en-US", seed, [], {})
+        board = build_elo_board("intent", "en-US", seed, [])
 
         assert board.metric_ladders["generalization_accuracy"].auto_only is False
         assert board.metric_ladders["accuracy"].auto_only is True
@@ -196,8 +196,8 @@ class TestMetricLaddersOnBoard:
         )
         seed = seed_elo("stt", "en-US", samples_by_dataset, "2026-08-13T00:00:00Z")
         seed.secondary_metrics = seed_secondary_metrics("stt", samples_by_dataset)
-        board_1 = build_elo_board("stt", "en-US", seed, [], {})
-        board_2 = build_elo_board("stt", "en-US", seed, [], {})
+        board_1 = build_elo_board("stt", "en-US", seed, [])
+        board_2 = build_elo_board("stt", "en-US", seed, [])
         d1 = board_1.model_dump(mode="json", exclude={"generated_at"})
         d2 = board_2.model_dump(mode="json", exclude={"generated_at"})
         assert d1["metric_ladders"] == d2["metric_ladders"]

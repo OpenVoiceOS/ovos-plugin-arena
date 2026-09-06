@@ -281,18 +281,32 @@ Voting options MUST include: candidate A, candidate B, tie, both-wrong.
   rating. `ovos-arena audit-seeds` reports every pair's weight and whether
   it sits at the cap.
 - **R12, Full-history replay.** `tally` MUST fetch every `vote`-labelled
-  issue (open and closed), not only issues opened since the previous run, the vote log is the complete issue history (§6), and every tally run
-  replays it from scratch. Already-closed issues MUST NOT be re-commented
-  on or re-closed.
+  issue (open and closed), not only issues opened since the previous run,
+  the vote log is the complete issue history (§6), and every tally run
+  replays it from scratch. An issue absent from the vote record is
+  recorded exactly once, with the battle context it was cast on; an issue
+  already in the record MUST NOT be re-parsed, so a later title edit
+  changes no rating. Already-closed issues MUST NOT be re-commented on or
+  re-closed. `assemble`, `tally` and `verify-replay` MUST build every
+  leaderboard through the same replay of that record, so what `assemble`
+  publishes is what `verify-replay` reproduces.
 - **R13, Vote fraud rules** (`arena/fraud.py`, pure functions of the vote
   log, see `docs/methodology.md` for the full rationale):
   - one vote per (voter, battle), R1's battle identity dedupe. - a per-voter, per-league, per-UTC-day cap (`DAILY_VOTE_CAP = 50`). - an account-age gate (`NEW_ACCOUNT_MIN_DAYS = 7`) using a creation-date
-    cache fetched once per author and persisted (`voter-age-cache.json`), the replay step itself MUST NOT touch the network. - a one-sided-voter down-weight (`ONE_SIDED_MIN_VOTES = 20`,
+    cache fetched once per author and persisted (`voter-age-cache.json`),
+    the replay step itself MUST NOT touch the network. An issue whose
+    author's creation date cannot be fetched MUST NOT be recorded or
+    actioned, so the next run retries it rather than counting it ungated. - a one-sided-voter down-weight (`ONE_SIDED_MIN_VOTES = 20`,
     `ONE_SIDED_THRESHOLD = 0.95`, weight `ONE_SIDED_WEIGHT = 0.5`), keyed on
     the literal A/B choice (blind, randomized per battle-id hash), not
     competitor identity.
   Discards and down-weights MUST be recorded (`vote-audit.json`), never
-  silently dropped. Weighting affects only the Bradley-Terry rating (R6-R10
+  silently dropped — including an issue discarded at ingest, a recorded
+  vote whose competitor has since left the seed roster
+  (`competitor_retired`), and a second record line for an issue number
+  already recorded (`duplicate_record`, one issue is one vote). Every
+  artifact R19 compares MUST come from that one replay, so `assemble` and
+  `tally` both publish the leaderboards and `vote-audit.json` together. Weighting affects only the Bradley-Terry rating (R6-R10
   above). The legacy sequential ELO column is unaffected.
 - **R14, Objective TTS scoring.** `runner/tts_bench.py` MUST score every
   synthesised clip with a reference-free naturalness metric (UTMOS) and
@@ -512,11 +526,11 @@ Voting options MUST include: candidate A, candidate B, tie, both-wrong.
   threshold-0.5 FRR alone. The `wake_word` board and `score_wake_word` are
   unchanged by this rule.
 - **R19, Published leaderboards must be provably reproducible from the
-  public vote log.** `arena/cli.py:cmd_verify_replay` (`verify-replay`
-  subcommand) re-runs the same pure replay path `tally` uses
-  (`dedupe_votes` → `resolve_vote_weights` → `build_elo_board`, never a
-  reimplementation) against the current vote log, either fetched live
-  (`--repo`) or from an offline snapshot (`--votes-file`, no network), and diffs the result field-by-field against the committed
+  public vote record.** `arena/cli.py:cmd_verify_replay` (`verify-replay`
+  subcommand) re-runs `replay_boards`, the same pure path `tally` and
+  `assemble` build their boards with, never a reimplementation, over the
+  committed record (or a snapshot of it given with `--votes-file`), and
+  diffs the result field-by-field against the committed
   `leaderboard-<league>-<lang>.json` and `vote-audit.json` (ratings,
   ranks, vote counts. `generated_at` ignored). A mismatch means the
   published data is not what the public log actually supports, and the
@@ -567,12 +581,29 @@ Voter opens battle page → picks A / B / Tie / Both wrong
     title: vote|<battle_id>|<choice>)
   → voter submits (free GitHub account, no arena account)
 Hourly tally Action:
-  parse + validate + dedupe → replay ELO (seed + votes, ordered)
+  record every issue not yet in votes.jsonl (title, author, moment,
+    battle context) → replay the record onto the ELO seed
   → write leaderboard-*.json → commit → Pages redeploys
-  → close issues with a thank-you comment (label `processed`)
+  → close newly recorded issues with a comment (label `processed`)
 ```
 
 The vote log **is** the issue history, public, auditable, replayable.
+`frontend-static/public/data/votes.jsonl` is that history as it was cast:
+one committed, append-only line per `vote`-labelled issue, written the
+first time the issue is seen and never rewritten. Each line carries the
+issue number, author, creation time, the title exactly as seen, and the
+battle context resolved from the pool at that moment — modality, dataset,
+lang, the competitor pair and the sample. An issue whose title does not
+parse is recorded as invalid, and one naming a battle absent from the
+pool is recorded as discarded; neither is examined again. The record is
+replaced atomically and read strictly: a line that does not parse stops
+the run rather than dropping the vote it holds.
+
+Recording the battle context is what makes the log replayable: the
+battles pool is regenerated and pruned on every assemble, and a title is
+editable by its author forever. Both are inputs to ingest only. Every
+published rating is a pure function of the committed record, the ELO
+seeds and `voter-age-cache.json`.
 
 ## 7. Modalities
 
