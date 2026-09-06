@@ -29,9 +29,14 @@ const sprite = spriteSvg(fighter.competitor_id, primaryType, 96);
 const configSnippet = JSON.stringify(fighter.config || {}, null, 2);
 const desc = fighter.description
   || `${name} — a ${fighter.modality} fighter in the OVOS Plugin Arena.`;
+const LEAGUE_LABELS = {
+  stt: 'STT', tts: 'TTS', wake_word: 'Wake Word', vad: 'VAD',
+  intent: 'Intent · Open', intent_template: 'Intent · Template', intent_keyword: 'Intent · Keyword',
+};
+const leagueLabel = LEAGUE_LABELS[fighter.modality] || fighter.modality;
 ---
 <Base title={name} description={desc}>
-  <p style="margin-bottom:1rem"><a href={`${base}fighters/`}>← All fighters</a></p>
+  <p style="margin-bottom:1rem"><a id="back-link" href={`${base}fighters/?league=${fighter.modality}`}>← Back to {leagueLabel}</a></p>
 
   <div class="card" style="display:flex;gap:1.5rem;align-items:flex-start;flex-wrap:wrap">
     <div set:html={sprite} aria-hidden="true"></div>
@@ -53,7 +58,7 @@ const desc = fighter.description
     <p>
       This fighter is registered but has not produced any predictions yet — it does not
       appear on any leaderboard, benchmark board, battle, or matchup picker. It shows up
-      here, and in the "Upcoming fighters" section of the <a href={`${base}fighters/`}>fighter list</a>,
+      here, and in the "Upcoming fighters" section of its <a href={`${base}fighters/?league=${fighter.modality}`}>league bestiary</a>,
       once its first benchmark or battle sweep runs.
     </p>
   </div>
@@ -68,6 +73,18 @@ const desc = fighter.description
         {fighter.size && <tr><th scope="row">Size</th><td>{fighter.size}</td></tr>}
         {(fighter.langs || []).length > 0 && <tr><th scope="row">Languages</th><td>{fighter.langs.join(', ')}</td></tr>}
       </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Ranking</h2>
+    <p id="ranking-note" aria-live="polite">Looking this fighter up on the boards…</p>
+    <table id="ranking-table" style="display:none">
+      <caption class="sr-only">Rank and rating per language board this fighter competes on.</caption>
+      <thead>
+        <tr><th scope="col">Language</th><th scope="col">Rank</th><th scope="col">Rating</th></tr>
+      </thead>
+      <tbody id="ranking-body"></tbody>
     </table>
   </div>
 
@@ -122,19 +139,45 @@ const desc = fighter.description
       }
     })();
 
-    // Live rank/rating: look this fighter up in its league leaderboards.
-    (async () => {
-      const langs = (fighter.langs && fighter.langs.length) ? fighter.langs : ['en-US'];
-      for (const lang of langs) {
-        const board = await fetchJson(`${base}data/leaderboard-${fighter.modality}-${lang}.json`);
-        const entry = board && (board.entries || []).find((e) => e.competitor_id === fighter.competitor_id);
-        if (entry) {
-          const rating = entry.bt_rating ?? entry.elo;
-          document.getElementById('fighter-stats').textContent =
-            `Rank #${entry.rank} · rating ${Math.round(rating)} · ${lang}`;
-          return;
+    // Back link keeps whatever league/filters the visitor was browsing, so
+    // returning to the bestiary doesn't mean re-picking them.
+    (() => {
+      const link = document.getElementById('back-link');
+      try {
+        const from = new URL(document.referrer);
+        if (from.origin === window.location.origin && from.pathname.endsWith('/fighters/') && from.search) {
+          link.href = from.pathname + from.search;
         }
+      } catch { /* no referrer, keep the league default */ }
+    })();
+
+    // Rank and rating on every board this fighter competes on, so "how good
+    // is it, and where" is answered without a trip to the leaderboard.
+    (async () => {
+      const index = await fetchJson(`${base}data/index.json`);
+      const langs = (fighter.langs && fighter.langs.length) ? fighter.langs : ['en-US'];
+      const boards = (index?.leaderboards || [])
+        .filter((b) => b.modality === fighter.modality && langs.includes(b.lang));
+      const rows = (await Promise.all(boards.map(async (b) => {
+        const board = await fetchJson(`${base}data/${b.file}`);
+        const entry = (board?.entries || []).find((e) => e.competitor_id === fighter.competitor_id);
+        return entry && { lang: b.lang, rank: entry.rank, rating: Math.round(entry.bt_rating ?? entry.elo) };
+      }))).filter(Boolean).sort((a, b) => a.rank - b.rank);
+
+      const note = document.getElementById('ranking-note');
+      const stats = document.getElementById('fighter-stats');
+      if (!rows.length) {
+        note.textContent = 'Not ranked on any board yet.';
+        stats.textContent = 'Not ranked on any board yet';
+        return;
       }
+      note.textContent = rows.length === 1
+        ? 'Ranked on one language board.'
+        : `Ranked on ${rows.length} language boards.`;
+      document.getElementById('ranking-body').innerHTML = rows.map((r) =>
+        `<tr><th scope="row">${esc(r.lang)}</th><td>#${r.rank}</td><td>${r.rating}</td></tr>`).join('');
+      document.getElementById('ranking-table').style.display = '';
+      stats.textContent = `Rank #${rows[0].rank} · rating ${rows[0].rating} · ${rows[0].lang}`;
     })();
 
     // Dataset provenance: reuse the same index.json metadata + benchmark
