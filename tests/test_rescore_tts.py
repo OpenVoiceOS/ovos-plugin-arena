@@ -444,6 +444,71 @@ class TestRescoreRepoLangs:
             "even though its shard also needed rescoring")
 
 
+class TestDownloadRepoTreeAllowPatterns:
+    """``--langs`` (#167) must actually narrow the HF download, not just the
+    local rewrite loop — this is the only guard against the sync accidentally
+    pulling every language's audio for a two-language rescore."""
+
+    def test_allow_patterns_limited_to_the_named_languages(self, monkeypatch, tmp_path):
+        seen = {}
+
+        def fake_snapshot_download(**kwargs):
+            seen.update(kwargs)
+            return str(tmp_path)
+
+        import huggingface_hub
+        monkeypatch.setattr(huggingface_hub, "snapshot_download",
+                             fake_snapshot_download)
+
+        rescore_tts._download_repo_tree(
+            "OpenVoiceOS/ovos-tts-bench-massive-prompts",
+            langs=["pt-PT", "ru-RU"],
+        )
+
+        allow_patterns = seen["allow_patterns"]
+        assert set(allow_patterns) == {
+            "predictions/pt-PT/*.jsonl", "audio/pt-PT/**",
+            "predictions/ru-RU/*.jsonl", "audio/ru-RU/**",
+        }
+        for pattern in allow_patterns:
+            assert "pt-PT" in pattern or "ru-RU" in pattern
+
+    def test_no_langs_falls_back_to_the_whole_repo(self, monkeypatch, tmp_path):
+        seen = {}
+
+        def fake_snapshot_download(**kwargs):
+            seen.update(kwargs)
+            return str(tmp_path)
+
+        import huggingface_hub
+        monkeypatch.setattr(huggingface_hub, "snapshot_download",
+                             fake_snapshot_download)
+
+        rescore_tts._download_repo_tree("OpenVoiceOS/ovos-tts-bench-massive-prompts")
+
+        assert seen["allow_patterns"] == ["predictions/**/*.jsonl", "audio/**"]
+
+    def test_file_loop_only_visits_the_named_languages(self, monkeypatch, tmp_path):
+        for lang in ("pt-PT", "ru-RU", "es-ES"):
+            _write_jsonl(tmp_path / "predictions" / lang / "voice_a.jsonl", [
+                {"sample_id": "s1", "competitor_id": "voice_a",
+                 "extras": {"utmos": 4.0}},
+            ])
+
+        monkeypatch.setattr(rescore_tts, "_download_repo_tree",
+                             lambda repo_id, revision, langs=None: tmp_path)
+        visited = []
+        monkeypatch.setattr(
+            rescore_tts, "rescore_file",
+            lambda jsonl_path, repo_dir, rejudge_intelligibility=False: (
+                visited.append(jsonl_path.parent.name) or (0, 0)))
+
+        rescore_tts.rescore_repo("OpenVoiceOS/ovos-tts-bench-massive-prompts",
+                                  langs=["pt-PT", "ru-RU"])
+
+        assert set(visited) == {"pt-PT", "ru-RU"}
+
+
 class TestUnjudgeableLanguageMigration:
     """``--rejudge-intelligibility`` marks rows whose language has no ASR
     judge, and must not touch a row that carries a real measurement."""

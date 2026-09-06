@@ -466,9 +466,9 @@ Voting options MUST include: candidate A, candidate B, tie, both-wrong.
   only if the registry lists it, a deliberate `whisper-base` entry
   included; a language that reaches `whisper-base` only through the
   plugin's blanket `DEFAULT_CPU_MODEL` fallback is NOT judged, since with
-  no model trained on it the panel transcribes noise and the round-trip
-  error rate measures the ASR fleet's coverage rather than the voice. Rows for such a language MUST NOT carry a round-trip number at
-  all. They MUST carry
+  no model trained on it the panel transcribes noise and the round-trip error
+  rate measures the ASR fleet's coverage rather than the voice. Rows for such
+  a language MUST NOT carry a round-trip number at all. They MUST carry
   `intelligibility: not_available` with null `intelligibility_wer` and
   `intelligibility_cer` and `intelligibility_judge: none`, including on a
   synthesis failure, so a reader can tell an unmeasurable metric from a bad

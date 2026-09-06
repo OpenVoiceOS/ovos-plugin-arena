@@ -23,7 +23,9 @@ import argparse
 import importlib.metadata
 import json
 import logging
+import multiprocessing as mp
 import random
+import time
 from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
@@ -574,6 +576,87 @@ def prune_other_revisions(out_path: Path, dataset_revision: str | None) -> int:
 # ---------------------------------------------------------------------------
 
 
+def _child_rss_mb(pid: int) -> float | None:
+    """Resident set size of another process, in MB, via ``/proc/<pid>/status``.
+
+    Linux-only, like the rest of this repo's process introspection
+    (``runner/perf.py``'s ``_cpu_model``). Returns ``None`` once the process
+    has exited or ``/proc`` has nothing for it, rather than raising.
+    """
+    try:
+        with open(f"/proc/{pid}/status", encoding="utf-8") as fh:
+            for line in fh:
+                if line.startswith("VmRSS:"):
+                    return int(line.split()[1]) / 1024
+    except (OSError, ValueError, IndexError):
+        return None
+    return None
+
+
+def _train_and_predict(
+    competitor,
+    train_data: dict,
+    intents_config: dict,
+    lang: str,
+    todo: list,
+    out_path: Path,
+    dataset_id: str,
+    revision: str,
+    granularity: str,
+    stt_provenance: dict | None,
+) -> int:
+    """Train one fighter and predict its eval rows, appending them to ``out_path``.
+
+    The body of one benchmark cell — split out so it can run either
+    in-process (guard disabled) or as the target of a child process the
+    parent's watchdog can kill outright (guard enabled).
+    """
+    pipeline = IntentPipeline(intents_config, lang=lang)
+    log.info("  training %s for %s (stages: %s)",
+             competitor.competitor_id, lang, ", ".join(pipeline.stage_names))
+    pipeline.train(train_data)
+
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    written = 0
+    errored = 0
+    with out_path.open("a", encoding="utf-8") as fh:
+        for i, test_row in todo:
+            try:
+                (prediction, slots, confidence, latency_ms, stage), _, peak_rss_mb = (
+                    measure_call(
+                        lambda test_row=test_row: pipeline.predict(test_row["utterance"])
+                    )
+                )
+            except Exception as exc:
+                log.warning("    %s/%s sample %s failed: %s",
+                            competitor.competitor_id, lang, i, exc)
+                errored += 1
+                continue
+            row = make_row(
+                competitor, dataset_id, lang, i, test_row,
+                prediction, slots, confidence, latency_ms, stage, revision,
+                granularity=granularity,
+                peak_rss_mb=peak_rss_mb,
+                stt_provenance=stt_provenance,
+            )
+            fh.write(json.dumps(row, ensure_ascii=False) + "\n")
+            written += 1
+            if written % 500 == 0:
+                fh.flush()
+                log.info("    %s/%s: %d/%d", competitor.competitor_id, lang,
+                         written, len(todo))
+    log.info("  %s/%s: wrote %d rows (%d errored)", competitor.competitor_id,
+              lang, written, errored)
+    return written
+
+
+def _train_and_predict_child(result_queue, *args) -> None:
+    """``multiprocessing`` target: run one cell, put the row count on the queue."""
+    logging.basicConfig(level=logging.INFO, format="%(levelname)s  %(message)s")
+    written = _train_and_predict(*args)
+    result_queue.put(written)
+
+
 def run_competitor_lang(
     competitor,
     dataset_id: str,
@@ -584,6 +667,8 @@ def run_competitor_lang(
     out_path: Path,
     max_samples: int = 0,
     transcript_cache_dir: Path | None = None,
+    train_timeout_secs: float = 0,
+    train_max_rss_mb: float = 0,
 ) -> int:
     """Train one fighter for one language and predict the eval split."""
     stt_provenance = None
@@ -634,43 +719,61 @@ def run_competitor_lang(
         # mycroft.conf ``intent_transformers`` section — carried alongside
         # (not inside) ``intents`` since it is not a pipeline stage.
         intents_config["intent_transformers"] = competitor.config["intent_transformers"]
-    pipeline = IntentPipeline(intents_config, lang=lang)
-    log.info("  training %s for %s (stages: %s)",
-             competitor.competitor_id, lang, ", ".join(pipeline.stage_names))
-    pipeline.train(train_data)
-
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    written = 0
-    errored = 0
-    with out_path.open("a", encoding="utf-8") as fh:
-        for i, test_row in todo:
-            try:
-                (prediction, slots, confidence, latency_ms, stage), _, peak_rss_mb = (
-                    measure_call(
-                        lambda test_row=test_row: pipeline.predict(test_row["utterance"])
-                    )
-                )
-            except Exception as exc:
-                log.warning("    %s/%s sample %s failed: %s",
-                            competitor.competitor_id, lang, i, exc)
-                errored += 1
-                continue
-            row = make_row(
-                competitor, dataset_id, lang, i, test_row,
-                prediction, slots, confidence, latency_ms, stage, revision,
-                granularity=eval_def.reference_granularity,
-                peak_rss_mb=peak_rss_mb,
-                stt_provenance=stt_provenance,
-            )
-            fh.write(json.dumps(row, ensure_ascii=False) + "\n")
-            written += 1
-            if written % 500 == 0:
-                fh.flush()
-                log.info("    %s/%s: %d/%d", competitor.competitor_id, lang,
-                         written, len(todo))
-    log.info("  %s/%s: wrote %d rows (%d errored)", competitor.competitor_id,
-              lang, written, errored)
-    return written
+    cell_args = (
+        competitor, train_data, intents_config, lang, todo, out_path,
+        dataset_id, revision, eval_def.reference_granularity, stt_provenance,
+    )
+
+    if not train_timeout_secs and not train_max_rss_mb:
+        # Guard disabled: exact previous in-process behaviour, no
+        # subprocess overhead.
+        return _train_and_predict(*cell_args)
+
+    # A runaway ``pipeline.train()`` (e.g. padatious/padaos compiling an
+    # entity-heavy corpus) can hold the GIL solid, so a watchdog *thread* in
+    # the same process could itself starve and never get to check anything.
+    # The only reliable stop is a separate process the parent can SIGKILL.
+    # ``fork`` (not ``spawn``) so tests can monkeypatch ``IntentPipeline``
+    # in the parent and have the child inherit the patched module state.
+    ctx = mp.get_context("fork")
+    result_queue: mp.Queue = ctx.Queue()
+    proc = ctx.Process(target=_train_and_predict_child, args=(result_queue, *cell_args))
+    proc.start()
+    start = time.monotonic()
+    reason = None
+    while proc.is_alive():
+        elapsed = time.monotonic() - start
+        if train_timeout_secs and elapsed > train_timeout_secs:
+            reason = "train_timeout"
+            break
+        if train_max_rss_mb:
+            rss = _child_rss_mb(proc.pid)
+            if rss is not None and rss > train_max_rss_mb:
+                reason = "train_memory"
+                break
+        proc.join(timeout=0.2)
+
+    if reason is not None:
+        proc.kill()
+        proc.join(timeout=5)
+        limit = (f"{train_timeout_secs}s" if reason == "train_timeout"
+                 else f"{train_max_rss_mb}MB")
+        log.error(
+            "  %s/%s: aborted training on dataset %s, limit %s exceeded "
+            "- trained=False reason=%s",
+            competitor.competitor_id, lang, dataset_id, limit, reason,
+        )
+    else:
+        proc.join()
+
+    try:
+        return result_queue.get_nowait()
+    except Exception:
+        # Killed (or crashed) before it could report a count; any rows it
+        # did write are already flushed on disk (``fh.flush()`` every 500
+        # rows) and will be skipped as ``done`` on the next run.
+        return 0
 
 
 # ---------------------------------------------------------------------------
@@ -785,6 +888,22 @@ def run_benchmark(dataset_id: str, description: str, argv=None) -> int:
                         help="Upload predictions to the per-modality HF repos")
     parser.add_argument("--hf-owner", default=HF_OWNER)
     parser.add_argument(
+        "--train-timeout-secs", type=float, default=1200,
+        help=(
+            "Kill a fighter's train+predict cell if it runs longer than "
+            "this many wall-clock seconds (default 20 minutes); 0 disables "
+            "the timeout guard."
+        ),
+    )
+    parser.add_argument(
+        "--train-max-rss-mb", type=float, default=8192,
+        help=(
+            "Kill a fighter's train+predict cell if its resident memory "
+            "exceeds this many MB (default 8 GB); 0 disables the memory "
+            "guard."
+        ),
+    )
+    parser.add_argument(
         "--transcript-cache-dir", default="transcript_cache",
         help=(
             "Audio-input datasets only: where cached per-(dataset,lang) "
@@ -832,6 +951,8 @@ def run_benchmark(dataset_id: str, description: str, argv=None) -> int:
                     competitor, dataset_id, lang, eval_def, train_defs,
                     revision, out_path, max_samples=args.max_samples,
                     transcript_cache_dir=Path(args.transcript_cache_dir),
+                    train_timeout_secs=args.train_timeout_secs,
+                    train_max_rss_mb=args.train_max_rss_mb,
                 )
             except Exception:
                 log.exception("  %s/%s failed", competitor.competitor_id, lang)

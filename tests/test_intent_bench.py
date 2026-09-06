@@ -483,3 +483,126 @@ def test_run_competitor_lang_survives_one_crashing_utterance(tmp_path):
     assert len(lines) == 2
     utterances = [json.loads(line)["utterance"] for line in lines]
     assert "atura la musica" not in utterances
+
+
+def _guard_fixture(tmp_path, pipeline_cls):
+    """Shared eval/competitor fixtures for the training-guard tests, with
+    ``IntentPipeline`` swapped for ``pipeline_cls``."""
+    from types import SimpleNamespace
+
+    from runner import intent_bench
+
+    eval_def = SimpleNamespace(
+        source=SimpleNamespace(hf_id="org/eval-repo", revision="main",
+                               file_pattern=None, subset=None, split="test"),
+        train_datasets={}, input="text", reference_granularity="flat",
+    )
+    test_rows = [{"utterance": "quin temps fa", "expected_intent": "weather"}]
+    competitor = SimpleNamespace(
+        competitor_id="x", config={"intents": {}},
+        pipeline_plugins=[], modality=SimpleNamespace(value="intent"),
+        plugin="stub-plugin", pipeline="stub-pipeline",
+    )
+    out_path = tmp_path / "out.jsonl"
+    patches = [
+        patch.object(intent_bench, "resolve_revision", return_value="EVALSHA"),
+        patch.object(intent_bench, "fetch_rows", return_value=test_rows),
+        patch.object(intent_bench, "needed_paradigms", return_value=set()),
+        patch.object(intent_bench, "done_samples", return_value=set()),
+        patch.object(intent_bench, "IntentPipeline", pipeline_cls),
+    ]
+    return intent_bench, competitor, eval_def, out_path, patches
+
+
+class TestTrainingGuard:
+    """Wall-clock timeout and RSS ceiling per benchmark cell (#trainguard):
+    a single runaway fighter must not OOM-kill or hang an entire sweep."""
+
+    def test_timeout_kills_a_slow_train_and_skips_the_cell(self, tmp_path, caplog):
+        import time
+
+        class SlowPipeline:
+            stage_names = ["stub"]
+
+            def __init__(self, *a, **kw):
+                pass
+
+            def train(self, *a, **kw):
+                time.sleep(5)
+
+            def predict(self, utterance):
+                return utterance, {}, 1.0, 1.0, "stub"
+
+        intent_bench, competitor, eval_def, out_path, patches = _guard_fixture(
+            tmp_path, SlowPipeline)
+        with patches[0], patches[1], patches[2], patches[3], patches[4]:
+            with caplog.at_level("ERROR"):
+                written = intent_bench.run_competitor_lang(
+                    competitor, "meteocat", "ca-ES", eval_def, {}, "EVALSHA",
+                    out_path, train_timeout_secs=1, train_max_rss_mb=0,
+                )
+        assert written == 0
+        assert not out_path.exists() or out_path.read_text() == ""
+        assert any(
+            "trained=False" in r.message and "reason=train_timeout" in r.message
+            for r in caplog.records
+        )
+
+    def test_rss_ceiling_kills_a_memory_hungry_train_and_skips_the_cell(
+        self, tmp_path, caplog
+    ):
+        class GreedyPipeline:
+            stage_names = ["stub"]
+
+            def __init__(self, *a, **kw):
+                pass
+
+            def train(self, *a, **kw):
+                # Allocate well past a tiny ceiling and touch every page so
+                # it actually lands in RSS, then hold it for the watchdog.
+                import time
+                self._hog = bytearray(200 * 1024 * 1024)
+                for i in range(0, len(self._hog), 4096):
+                    self._hog[i] = 1
+                time.sleep(5)
+
+            def predict(self, utterance):
+                return utterance, {}, 1.0, 1.0, "stub"
+
+        intent_bench, competitor, eval_def, out_path, patches = _guard_fixture(
+            tmp_path, GreedyPipeline)
+        with patches[0], patches[1], patches[2], patches[3], patches[4]:
+            with caplog.at_level("ERROR"):
+                written = intent_bench.run_competitor_lang(
+                    competitor, "meteocat", "ca-ES", eval_def, {}, "EVALSHA",
+                    out_path, train_timeout_secs=0, train_max_rss_mb=50,
+                )
+        assert written == 0
+        assert not out_path.exists() or out_path.read_text() == ""
+        assert any(
+            "trained=False" in r.message and "reason=train_memory" in r.message
+            for r in caplog.records
+        )
+
+    def test_guard_off_trains_normally(self, tmp_path):
+        class QuickPipeline:
+            stage_names = ["stub"]
+
+            def __init__(self, *a, **kw):
+                pass
+
+            def train(self, *a, **kw):
+                pass
+
+            def predict(self, utterance):
+                return utterance, {}, 1.0, 1.0, "stub"
+
+        intent_bench, competitor, eval_def, out_path, patches = _guard_fixture(
+            tmp_path, QuickPipeline)
+        with patches[0], patches[1], patches[2], patches[3], patches[4]:
+            written = intent_bench.run_competitor_lang(
+                competitor, "meteocat", "ca-ES", eval_def, {}, "EVALSHA",
+                out_path, train_timeout_secs=0, train_max_rss_mb=0,
+            )
+        assert written == 1
+        assert len(out_path.read_text().splitlines()) == 1
