@@ -1,0 +1,1969 @@
+{
+  "modality": "intent_template",
+  "dataset_id": "mtop-de-DE",
+  "lang": "de-DE",
+  "generated_at": "2026-09-06T07:38:39.140911+00:00",
+  "primary_metric": "generalization_accuracy",
+  "dataset_info": {
+    "url": "https://huggingface.co/datasets/tasksource/mtop",
+    "license": "cc-by-sa-4.0",
+    "notes": "MTOP (Li et al. 2020) — multilingual task-oriented semantic parsing benchmark, de-DE slice. Registered against tasksource/mtop (the public HF mirror; facebook/flores-style gated mirrors were avoided — this one is ungated). The source ships one 'mtop' config with every language's rows concatenated and a 'lang' column ('de_XX' here) instead of a per-language config/split, so this entry filters on source.lang_field='lang'/lang_value='de_XX'. MTOP's own 'intent' column is prefixed with a generic parser tag rather than the real domain (e.g. 'IN:SEND_MESSAGE'); the arena's label convention is 'domain:intent' (see intents-for-eval), so reference_fields maps a 'domain' column too and the runner normalizes both into 'messaging:send_message' via normalize_hierarchical_label() before scoring. mteb/mtop_intent was considered as a fallback but ships a deprecated loading script the datasets library can no longer execute, so it was not used. tasksource/mtop ships a legacy Python loading script under its default 'mtop' config name, which the current `datasets` library refuses to execute ('Dataset scripts are no longer supported') — registered against HF's auto-generated parquet conversion instead (revision='refs/convert/parquet', builder config 'default'), the same escape hatch used elsewhere in this registry for legacy-script sources.",
+    "predictions": [
+      "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-bench-mtop-de-DE",
+      "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-template-bench-mtop-de-DE"
+    ],
+    "train_datasets": {
+      "template": {
+        "dataset_id": "mtop-de-DE-train",
+        "url": "https://huggingface.co/datasets/tasksource/mtop"
+      }
+    }
+  },
+  "dataset_revision": null,
+  "predictions_revisions": {
+    "OpenVoiceOS/ovos-intent-template-bench-mtop-de-DE": "d39c18bd110cee18a0ed8f62f7d29b5674a9f87b"
+  },
+  "wer_normalizer_version": null,
+  "entries": [
+    {
+      "rank": 1,
+      "competitor_id": "jurebes-bm25-logreg",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.9,
+        "macro_f1": 0.7417,
+        "latency_ms_median": 1.17,
+        "generalization_accuracy": 0.9,
+        "acc_test": 0.9
+      },
+      "primary_metric_ci_lower": 0.75,
+      "primary_metric_ci_upper": 1.0,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 2,
+      "competitor_id": "jurebes-mlp-shallow",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.8,
+        "macro_f1": 0.641,
+        "latency_ms_median": 1.23,
+        "generalization_accuracy": 0.8,
+        "acc_test": 0.8
+      },
+      "primary_metric_ci_lower": 0.6,
+      "primary_metric_ci_upper": 0.95,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 3,
+      "competitor_id": "jurebes-decision-tree",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.75,
+        "macro_f1": 0.6296,
+        "latency_ms_median": 0.86,
+        "generalization_accuracy": 0.75,
+        "acc_test": 0.75
+      },
+      "primary_metric_ci_lower": 0.55,
+      "primary_metric_ci_upper": 0.9,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 4,
+      "competitor_id": "jurebes-gradient-boosting",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.75,
+        "macro_f1": 0.6071,
+        "latency_ms_median": 5.36,
+        "generalization_accuracy": 0.75,
+        "acc_test": 0.75
+      },
+      "primary_metric_ci_lower": 0.55,
+      "primary_metric_ci_upper": 0.95,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 5,
+      "competitor_id": "jurebes-rbf-svc",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.75,
+        "macro_f1": 0.5962,
+        "latency_ms_median": 7.98,
+        "generalization_accuracy": 0.75,
+        "acc_test": 0.75
+      },
+      "primary_metric_ci_lower": 0.55,
+      "primary_metric_ci_upper": 0.95,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 6,
+      "competitor_id": "jurebes-knn",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.7,
+        "macro_f1": 0.5833,
+        "latency_ms_median": 3.66,
+        "generalization_accuracy": 0.7,
+        "acc_test": 0.7
+      },
+      "primary_metric_ci_lower": 0.5,
+      "primary_metric_ci_upper": 0.9,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 7,
+      "competitor_id": "jurebes-sgd-modified-huber",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.7,
+        "macro_f1": 0.5833,
+        "latency_ms_median": 4.85,
+        "generalization_accuracy": 0.7,
+        "acc_test": 0.7
+      },
+      "primary_metric_ci_lower": 0.5,
+      "primary_metric_ci_upper": 0.85,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 8,
+      "competitor_id": "jurebes-label-guided-logreg",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.65,
+        "macro_f1": 0.5682,
+        "latency_ms_median": 3.2,
+        "generalization_accuracy": 0.65,
+        "acc_test": 0.65
+      },
+      "primary_metric_ci_lower": 0.45,
+      "primary_metric_ci_upper": 0.85,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 9,
+      "competitor_id": "jurebes-logreg-l1",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.65,
+        "macro_f1": 0.5303,
+        "latency_ms_median": 1.08,
+        "generalization_accuracy": 0.65,
+        "acc_test": 0.65
+      },
+      "primary_metric_ci_lower": 0.45,
+      "primary_metric_ci_upper": 0.85,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 10,
+      "competitor_id": "jurebes-union-logreg",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.65,
+        "macro_f1": 0.5128,
+        "latency_ms_median": 1.39,
+        "generalization_accuracy": 0.65,
+        "acc_test": 0.65
+      },
+      "primary_metric_ci_lower": 0.45,
+      "primary_metric_ci_upper": 0.85,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 11,
+      "competitor_id": "linha-fina-medium",
+      "plugin_id": "ovos-linha-fina-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.65,
+        "macro_f1": 0.353,
+        "latency_ms_median": 390.06,
+        "generalization_accuracy": 0.65,
+        "acc_test": 0.65
+      },
+      "primary_metric_ci_lower": 0.45,
+      "primary_metric_ci_upper": 0.85,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-linha-fina-pipeline-plugin==0.4.1a3"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 12,
+      "competitor_id": "markov-domain-medium",
+      "plugin_id": "ovos-markov-domain-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.65,
+        "macro_f1": 0.4929,
+        "latency_ms_median": 2.15,
+        "ece": 0.1902,
+        "generalization_accuracy": 0.65,
+        "acc_test": 0.65
+      },
+      "primary_metric_ci_lower": 0.45,
+      "primary_metric_ci_upper": 0.85,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-markov-domain-pipeline-plugin==0.5.0a2"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 13,
+      "competitor_id": "jurebes-extra-trees",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.6,
+        "macro_f1": 0.4432,
+        "latency_ms_median": 7.61,
+        "generalization_accuracy": 0.6,
+        "acc_test": 0.6
+      },
+      "primary_metric_ci_lower": 0.4,
+      "primary_metric_ci_upper": 0.8,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 14,
+      "competitor_id": "jurebes-logreg-elasticnet",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.6,
+        "macro_f1": 0.5,
+        "latency_ms_median": 1.56,
+        "generalization_accuracy": 0.6,
+        "acc_test": 0.6
+      },
+      "primary_metric_ci_lower": 0.4,
+      "primary_metric_ci_upper": 0.8,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 15,
+      "competitor_id": "jurebes-lsa-rbf-svc",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.55,
+        "macro_f1": 0.3628,
+        "latency_ms_median": 6.29,
+        "generalization_accuracy": 0.55,
+        "acc_test": 0.55
+      },
+      "primary_metric_ci_lower": 0.3,
+      "primary_metric_ci_upper": 0.75,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 16,
+      "competitor_id": "jurebes-union-skipgram-tfidf-logreg",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.55,
+        "macro_f1": 0.375,
+        "latency_ms_median": 1.49,
+        "generalization_accuracy": 0.55,
+        "acc_test": 0.55
+      },
+      "primary_metric_ci_lower": 0.35,
+      "primary_metric_ci_upper": 0.75,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 17,
+      "competitor_id": "linha-fina-hierarchical-medium",
+      "plugin_id": "ovos-linha-fina-hierarchical-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.55,
+        "macro_f1": 0.2675,
+        "latency_ms_median": 469.5,
+        "generalization_accuracy": 0.55,
+        "acc_test": 0.55
+      },
+      "primary_metric_ci_lower": 0.35,
+      "primary_metric_ci_upper": 0.75,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-linha-fina-hierarchical-pipeline-plugin==0.4.1a3"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 18,
+      "competitor_id": "markov-medium",
+      "plugin_id": "ovos-markov-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.55,
+        "macro_f1": 0.5265,
+        "latency_ms_median": 6.81,
+        "ece": 0.1649,
+        "generalization_accuracy": 0.55,
+        "acc_test": 0.55
+      },
+      "primary_metric_ci_lower": 0.34875000000000006,
+      "primary_metric_ci_upper": 0.75,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-markov-pipeline-plugin==0.5.0a2"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 19,
+      "competitor_id": "jurebes-autoencoder-rbf-svc",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.45,
+        "macro_f1": 0.2765,
+        "latency_ms_median": 5.32,
+        "generalization_accuracy": 0.45,
+        "acc_test": 0.45
+      },
+      "primary_metric_ci_lower": 0.25,
+      "primary_metric_ci_upper": 0.65,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 20,
+      "competitor_id": "jurebes-random-forest",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.45,
+        "macro_f1": 0.2765,
+        "latency_ms_median": 4.8,
+        "generalization_accuracy": 0.45,
+        "acc_test": 0.45
+      },
+      "primary_metric_ci_lower": 0.25,
+      "primary_metric_ci_upper": 0.65,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 21,
+      "competitor_id": "jurebes-logreg-char",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.4,
+        "macro_f1": 0.3194,
+        "latency_ms_median": 1.58,
+        "generalization_accuracy": 0.4,
+        "acc_test": 0.4
+      },
+      "primary_metric_ci_lower": 0.2,
+      "primary_metric_ci_upper": 0.6,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 22,
+      "competitor_id": "jurebes-logreg",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.4,
+        "macro_f1": 0.2583,
+        "latency_ms_median": 1.34,
+        "generalization_accuracy": 0.4,
+        "acc_test": 0.4
+      },
+      "primary_metric_ci_lower": 0.2,
+      "primary_metric_ci_upper": 0.6,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 23,
+      "competitor_id": "jurebes-autoencoder-logreg-deep",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.35,
+        "macro_f1": 0.2361,
+        "latency_ms_median": 2.61,
+        "generalization_accuracy": 0.35,
+        "acc_test": 0.35
+      },
+      "primary_metric_ci_lower": 0.15,
+      "primary_metric_ci_upper": 0.55,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 24,
+      "competitor_id": "jurebes-bagging-logreg",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.35,
+        "macro_f1": 0.2361,
+        "latency_ms_median": 3.55,
+        "generalization_accuracy": 0.35,
+        "acc_test": 0.35
+      },
+      "primary_metric_ci_lower": 0.15,
+      "primary_metric_ci_upper": 0.55,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 25,
+      "competitor_id": "jurebes-union-text-stats-logreg",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.35,
+        "macro_f1": 0.1793,
+        "latency_ms_median": 1.63,
+        "generalization_accuracy": 0.35,
+        "acc_test": 0.35
+      },
+      "primary_metric_ci_lower": 0.15,
+      "primary_metric_ci_upper": 0.55,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 26,
+      "competitor_id": "jurebes-nb-bernoulli",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.3,
+        "macro_f1": 0.1381,
+        "latency_ms_median": 12.35,
+        "generalization_accuracy": 0.3,
+        "acc_test": 0.3
+      },
+      "primary_metric_ci_lower": 0.1,
+      "primary_metric_ci_upper": 0.5,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 27,
+      "competitor_id": "jurebes-autoencoder-logreg-wide",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.25,
+        "macro_f1": 0.1136,
+        "latency_ms_median": 3.24,
+        "generalization_accuracy": 0.25,
+        "acc_test": 0.25
+      },
+      "primary_metric_ci_lower": 0.1,
+      "primary_metric_ci_upper": 0.45,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 28,
+      "competitor_id": "jurebes-nb-multinomial",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.25,
+        "macro_f1": 0.2222,
+        "latency_ms_median": 5.21,
+        "generalization_accuracy": 0.25,
+        "acc_test": 0.25
+      },
+      "primary_metric_ci_lower": 0.1,
+      "primary_metric_ci_upper": 0.45,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 29,
+      "competitor_id": "jurebes-autoencoder-logreg",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.2,
+        "macro_f1": 0.1111,
+        "latency_ms_median": 7.02,
+        "generalization_accuracy": 0.2,
+        "acc_test": 0.2
+      },
+      "primary_metric_ci_lower": 0.05,
+      "primary_metric_ci_upper": 0.4,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 30,
+      "competitor_id": "jurebes-lda-classifier",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.2,
+        "macro_f1": 0.06,
+        "latency_ms_median": 1.56,
+        "generalization_accuracy": 0.2,
+        "acc_test": 0.2
+      },
+      "primary_metric_ci_lower": 0.05,
+      "primary_metric_ci_upper": 0.4,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 31,
+      "competitor_id": "jurebes-lsa-logreg",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.2,
+        "macro_f1": 0.1111,
+        "latency_ms_median": 3.99,
+        "generalization_accuracy": 0.2,
+        "acc_test": 0.2
+      },
+      "primary_metric_ci_lower": 0.05,
+      "primary_metric_ci_upper": 0.4,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 32,
+      "competitor_id": "jurebes-skipgram-logreg",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.2,
+        "macro_f1": 0.127,
+        "latency_ms_median": 0.82,
+        "generalization_accuracy": 0.2,
+        "acc_test": 0.2
+      },
+      "primary_metric_ci_lower": 0.05,
+      "primary_metric_ci_upper": 0.4,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 33,
+      "competitor_id": "linha-fina-domain-medium",
+      "plugin_id": "ovos-linha-fina-domain-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.2,
+        "macro_f1": 0.1333,
+        "latency_ms_median": 345.33,
+        "generalization_accuracy": 0.2,
+        "acc_test": 0.2
+      },
+      "primary_metric_ci_lower": 0.05,
+      "primary_metric_ci_upper": 0.4,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-linha-fina-domain-pipeline-plugin==0.4.1a3"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 34,
+      "competitor_id": "jurebes-lda-logreg",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.15,
+        "macro_f1": 0.1071,
+        "latency_ms_median": 1.79,
+        "generalization_accuracy": 0.15,
+        "acc_test": 0.15
+      },
+      "primary_metric_ci_lower": 0.0,
+      "primary_metric_ci_upper": 0.3,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 35,
+      "competitor_id": "jurebes-random-projection-logreg",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.15,
+        "macro_f1": 0.1032,
+        "latency_ms_median": 1.33,
+        "generalization_accuracy": 0.15,
+        "acc_test": 0.15
+      },
+      "primary_metric_ci_lower": 0.0,
+      "primary_metric_ci_upper": 0.3,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 36,
+      "competitor_id": "nebulento-hierarchical-medium",
+      "plugin_id": "ovos-nebulento-hierarchical-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.15,
+        "macro_f1": 0.1746,
+        "latency_ms_median": 78.21,
+        "generalization_accuracy": 0.15,
+        "acc_test": 0.15
+      },
+      "primary_metric_ci_lower": 0.0,
+      "primary_metric_ci_upper": 0.3,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-nebulento-hierarchical-pipeline-plugin==0.10.3a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 37,
+      "competitor_id": "nebulento-medium",
+      "plugin_id": "ovos-nebulento-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.15,
+        "macro_f1": 0.1746,
+        "latency_ms_median": 71.53,
+        "generalization_accuracy": 0.15,
+        "acc_test": 0.15
+      },
+      "primary_metric_ci_lower": 0.0,
+      "primary_metric_ci_upper": 0.3,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-nebulento-pipeline-plugin==0.10.3a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 38,
+      "competitor_id": "jurebes-complement-nb-count",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.1,
+        "macro_f1": 0.0816,
+        "latency_ms_median": 4.62,
+        "generalization_accuracy": 0.1,
+        "acc_test": 0.1
+      },
+      "primary_metric_ci_lower": 0.0,
+      "primary_metric_ci_upper": 0.25,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 39,
+      "competitor_id": "jurebes-denoising-autoencoder-logreg",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.1,
+        "macro_f1": 0.0816,
+        "latency_ms_median": 1.62,
+        "generalization_accuracy": 0.1,
+        "acc_test": 0.1
+      },
+      "primary_metric_ci_lower": 0.0,
+      "primary_metric_ci_upper": 0.25,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 40,
+      "competitor_id": "jurebes-hashing-sgd-log",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.1,
+        "macro_f1": 0.0816,
+        "latency_ms_median": 257.69,
+        "generalization_accuracy": 0.1,
+        "acc_test": 0.1
+      },
+      "primary_metric_ci_lower": 0.0,
+      "primary_metric_ci_upper": 0.25,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 41,
+      "competitor_id": "jurebes-nmf-logreg",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.1,
+        "macro_f1": 0.0816,
+        "latency_ms_median": 7.83,
+        "generalization_accuracy": 0.1,
+        "acc_test": 0.1
+      },
+      "primary_metric_ci_lower": 0.0,
+      "primary_metric_ci_upper": 0.25,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 42,
+      "competitor_id": "jurebes-sgd-log",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.05,
+        "macro_f1": 0.0476,
+        "latency_ms_median": 4.8,
+        "generalization_accuracy": 0.05,
+        "acc_test": 0.05
+      },
+      "primary_metric_ci_lower": 0.0,
+      "primary_metric_ci_upper": 0.15,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 43,
+      "competitor_id": "padatious-medium",
+      "plugin_id": "ovos-padatious-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.05,
+        "macro_f1": 0.0952,
+        "latency_ms_median": 11.35,
+        "generalization_accuracy": 0.05,
+        "acc_test": 0.05
+      },
+      "primary_metric_ci_lower": 0.0,
+      "primary_metric_ci_upper": 0.15,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-padatious-pipeline-plugin==2.0.17a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 44,
+      "competitor_id": "hierarchical-knn-medium",
+      "plugin_id": "ovos-hierarchical-knn-pipeline",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.0,
+        "macro_f1": 0.0,
+        "latency_ms_median": 102.13,
+        "generalization_accuracy": 0.0,
+        "acc_test": 0.0
+      },
+      "primary_metric_ci_lower": 0.0,
+      "primary_metric_ci_upper": 0.0,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-hierarchical-knn-pipeline==0.0.1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 45,
+      "competitor_id": "jurebes-autoencoder-linear-svc",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.0,
+        "macro_f1": 0.0,
+        "latency_ms_median": 0.42,
+        "generalization_accuracy": 0.0,
+        "acc_test": 0.0
+      },
+      "primary_metric_ci_lower": 0.0,
+      "primary_metric_ci_upper": 0.0,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 46,
+      "competitor_id": "jurebes-bm25-linear-svc",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.0,
+        "macro_f1": 0.0,
+        "latency_ms_median": 0.39,
+        "generalization_accuracy": 0.0,
+        "acc_test": 0.0
+      },
+      "primary_metric_ci_lower": 0.0,
+      "primary_metric_ci_upper": 0.0,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 47,
+      "competitor_id": "jurebes-hashing-sgd-hinge",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.0,
+        "macro_f1": 0.0,
+        "latency_ms_median": 0.37,
+        "generalization_accuracy": 0.0,
+        "acc_test": 0.0
+      },
+      "primary_metric_ci_lower": 0.0,
+      "primary_metric_ci_upper": 0.0,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 48,
+      "competitor_id": "jurebes-hist-gbm",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.0,
+        "macro_f1": 0.0,
+        "latency_ms_median": 0.43,
+        "generalization_accuracy": 0.0,
+        "acc_test": 0.0
+      },
+      "primary_metric_ci_lower": 0.0,
+      "primary_metric_ci_upper": 0.0,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 49,
+      "competitor_id": "jurebes-label-guided-linear-svc",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.0,
+        "macro_f1": 0.0,
+        "latency_ms_median": 0.36,
+        "generalization_accuracy": 0.0,
+        "acc_test": 0.0
+      },
+      "primary_metric_ci_lower": 0.0,
+      "primary_metric_ci_upper": 0.0,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 50,
+      "competitor_id": "jurebes-linear-svc-char",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.0,
+        "macro_f1": 0.0,
+        "latency_ms_median": 0.54,
+        "generalization_accuracy": 0.0,
+        "acc_test": 0.0
+      },
+      "primary_metric_ci_lower": 0.0,
+      "primary_metric_ci_upper": 0.0,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 51,
+      "competitor_id": "jurebes-linear-svc-hinge",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.0,
+        "macro_f1": 0.0,
+        "latency_ms_median": 0.5,
+        "generalization_accuracy": 0.0,
+        "acc_test": 0.0
+      },
+      "primary_metric_ci_lower": 0.0,
+      "primary_metric_ci_upper": 0.0,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 52,
+      "competitor_id": "jurebes-linear-svc",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.0,
+        "macro_f1": 0.0,
+        "latency_ms_median": 0.46,
+        "generalization_accuracy": 0.0,
+        "acc_test": 0.0
+      },
+      "primary_metric_ci_lower": 0.0,
+      "primary_metric_ci_upper": 0.0,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 53,
+      "competitor_id": "jurebes-lsa-linear-svc",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.0,
+        "macro_f1": 0.0,
+        "latency_ms_median": 0.36,
+        "generalization_accuracy": 0.0,
+        "acc_test": 0.0
+      },
+      "primary_metric_ci_lower": 0.0,
+      "primary_metric_ci_upper": 0.0,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 54,
+      "competitor_id": "jurebes-nb-complement",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.0,
+        "macro_f1": 0.0,
+        "latency_ms_median": 5.17,
+        "generalization_accuracy": 0.0,
+        "acc_test": 0.0
+      },
+      "primary_metric_ci_lower": 0.0,
+      "primary_metric_ci_upper": 0.0,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 55,
+      "competitor_id": "jurebes-nusvc",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.0,
+        "macro_f1": 0.0,
+        "latency_ms_median": 0.44,
+        "generalization_accuracy": 0.0,
+        "acc_test": 0.0
+      },
+      "primary_metric_ci_lower": 0.0,
+      "primary_metric_ci_upper": 0.0,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 56,
+      "competitor_id": "jurebes-ovo-linear-svc",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.0,
+        "macro_f1": 0.0,
+        "latency_ms_median": 0.54,
+        "generalization_accuracy": 0.0,
+        "acc_test": 0.0
+      },
+      "primary_metric_ci_lower": 0.0,
+      "primary_metric_ci_upper": 0.0,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 57,
+      "competitor_id": "jurebes-ovr-linear-svc",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.0,
+        "macro_f1": 0.0,
+        "latency_ms_median": 0.43,
+        "generalization_accuracy": 0.0,
+        "acc_test": 0.0
+      },
+      "primary_metric_ci_lower": 0.0,
+      "primary_metric_ci_upper": 0.0,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 58,
+      "competitor_id": "jurebes-passive-aggressive",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.0,
+        "macro_f1": 0.0,
+        "latency_ms_median": 0.43,
+        "generalization_accuracy": 0.0,
+        "acc_test": 0.0
+      },
+      "primary_metric_ci_lower": 0.0,
+      "primary_metric_ci_upper": 0.0,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 59,
+      "competitor_id": "jurebes-perceptron",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.0,
+        "macro_f1": 0.0,
+        "latency_ms_median": 0.47,
+        "generalization_accuracy": 0.0,
+        "acc_test": 0.0
+      },
+      "primary_metric_ci_lower": 0.0,
+      "primary_metric_ci_upper": 0.0,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 60,
+      "competitor_id": "jurebes-qda-classifier",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.0,
+        "macro_f1": 0.0,
+        "latency_ms_median": 0.52,
+        "generalization_accuracy": 0.0,
+        "acc_test": 0.0
+      },
+      "primary_metric_ci_lower": 0.0,
+      "primary_metric_ci_upper": 0.0,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 61,
+      "competitor_id": "jurebes-ridge",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.0,
+        "macro_f1": 0.0,
+        "latency_ms_median": 0.38,
+        "generalization_accuracy": 0.0,
+        "acc_test": 0.0
+      },
+      "primary_metric_ci_lower": 0.0,
+      "primary_metric_ci_upper": 0.0,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 62,
+      "competitor_id": "jurebes-sgd-hinge",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.0,
+        "macro_f1": 0.0,
+        "latency_ms_median": 0.3,
+        "generalization_accuracy": 0.0,
+        "acc_test": 0.0
+      },
+      "primary_metric_ci_lower": 0.0,
+      "primary_metric_ci_upper": 0.0,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 63,
+      "competitor_id": "jurebes-stacking",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.0,
+        "macro_f1": 0.0,
+        "latency_ms_median": 0.55,
+        "generalization_accuracy": 0.0,
+        "acc_test": 0.0
+      },
+      "primary_metric_ci_lower": 0.0,
+      "primary_metric_ci_upper": 0.0,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 64,
+      "competitor_id": "jurebes-text-stats-logreg",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.0,
+        "macro_f1": 0.0,
+        "latency_ms_median": 0.88,
+        "generalization_accuracy": 0.0,
+        "acc_test": 0.0
+      },
+      "primary_metric_ci_lower": 0.0,
+      "primary_metric_ci_upper": 0.0,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 65,
+      "competitor_id": "jurebes-voting-soft",
+      "plugin_id": "ovos-jurebes-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.0,
+        "macro_f1": 0.0,
+        "latency_ms_median": 0.4,
+        "generalization_accuracy": 0.0,
+        "acc_test": 0.0
+      },
+      "primary_metric_ci_lower": 0.0,
+      "primary_metric_ci_upper": 0.0,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-jurebes-pipeline-plugin==0.4.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 66,
+      "competitor_id": "m2v-medium",
+      "plugin_id": "ovos-m2v-pipeline",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.0,
+        "macro_f1": 0.0,
+        "latency_ms_median": 0.0,
+        "generalization_accuracy": 0.0,
+        "acc_test": 0.0
+      },
+      "primary_metric_ci_lower": 0.0,
+      "primary_metric_ci_upper": 0.0,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-m2v-pipeline==0.9.0a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": 125.28,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 67,
+      "competitor_id": "padacioso-medium",
+      "plugin_id": "ovos-padacioso-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.0,
+        "macro_f1": 0.0,
+        "latency_ms_median": 12.03,
+        "generalization_accuracy": 0.0,
+        "acc_test": 0.0
+      },
+      "primary_metric_ci_lower": 0.0,
+      "primary_metric_ci_upper": 0.0,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-padacioso-pipeline-plugin==1.1.1a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 68,
+      "competitor_id": "padatious-domain-medium",
+      "plugin_id": "ovos-padatious-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.0,
+        "macro_f1": 0.0,
+        "latency_ms_median": 3008.05,
+        "generalization_accuracy": 0.0,
+        "acc_test": 0.0
+      },
+      "primary_metric_ci_lower": 0.0,
+      "primary_metric_ci_upper": 0.0,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-padatious-pipeline-plugin==2.0.17a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 69,
+      "competitor_id": "padatious-no-padaos-medium",
+      "plugin_id": "ovos-padatious-pipeline-plugin",
+      "samples": 20,
+      "metrics": {
+        "n_scored": 20.0,
+        "accuracy": 0.0,
+        "macro_f1": 0.0,
+        "latency_ms_median": 6.71,
+        "generalization_accuracy": 0.0,
+        "acc_test": 0.0
+      },
+      "primary_metric_ci_lower": 0.0,
+      "primary_metric_ci_upper": 0.0,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-padatious-pipeline-plugin==2.0.17a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    }
+  ],
+  "entries_hash": "0aebc6664d1297997dbaf17e607b8238511491d364740d9f1d4f74f3676b406f",
+  "input_hash": "9cf9eb82849149120c2566bce36d5896d66811225defdfcce19180d8a53b926e",
+  "judge_agreement": null,
+  "intelligibility_judges": [],
+  "intelligibility_judge_mismatched_pairs": 0,
+  "warnings": []
+}

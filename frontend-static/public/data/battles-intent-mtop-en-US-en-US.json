@@ -1,0 +1,4023 @@
+{
+  "modality": "intent",
+  "dataset_id": "mtop-en-US",
+  "lang": "en-US",
+  "generated_at": "2026-09-06T07:38:36.540643+00:00",
+  "dataset_info": {
+    "url": "https://huggingface.co/datasets/tasksource/mtop",
+    "license": "cc-by-sa-4.0",
+    "notes": "MTOP (Li et al. 2020) — multilingual task-oriented semantic parsing benchmark, en-US slice. Registered against tasksource/mtop (the public HF mirror; facebook/flores-style gated mirrors were avoided — this one is ungated). The source ships one 'mtop' config with every language's rows concatenated and a 'lang' column ('en_XX' here) instead of a per-language config/split, so this entry filters on source.lang_field='lang'/lang_value='en_XX'. MTOP's own 'intent' column is prefixed with a generic parser tag rather than the real domain (e.g. 'IN:SEND_MESSAGE'); the arena's label convention is 'domain:intent' (see intents-for-eval), so reference_fields maps a 'domain' column too and the runner normalizes both into 'messaging:send_message' via normalize_hierarchical_label() before scoring. mteb/mtop_intent was considered as a fallback but ships a deprecated loading script the datasets library can no longer execute, so it was not used. tasksource/mtop ships a legacy Python loading script under its default 'mtop' config name, which the current `datasets` library refuses to execute ('Dataset scripts are no longer supported') — registered against HF's auto-generated parquet conversion instead (revision='refs/convert/parquet', builder config 'default'), the same escape hatch used elsewhere in this registry for legacy-script sources.",
+    "predictions": [
+      "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-bench-mtop-en-US"
+    ],
+    "train_datasets": {
+      "template": {
+        "dataset_id": "mtop-en-US-train",
+        "url": "https://huggingface.co/datasets/tasksource/mtop"
+      }
+    }
+  },
+  "battles": [
+    {
+      "battle_id": "50d81930ecc28e2e",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00007",
+      "input_text": "reset the alarms",
+      "audio_url": null,
+      "reference": "alarm:silence_alarm",
+      "prediction_a": {
+        "intent": "alarm:create_alarm"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "66a1d2e9f6e50330",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00019",
+      "input_text": "When does the County fair open in Barren county",
+      "audio_url": null,
+      "reference": "event:get_event",
+      "prediction_a": {
+        "intent": "event:get_date_time_event"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "1cad1b1ed2c50cb2",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00016",
+      "input_text": "Tell my mom we made it to Gatlinburg.",
+      "audio_url": null,
+      "reference": "messaging:send_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "people:get_contact"
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "224fb81e52260101",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "0c768bef67bc4ef8",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00001",
+      "input_text": "have there been any tornados this week?",
+      "audio_url": null,
+      "reference": "weather:get_weather",
+      "prediction_a": {
+        "intent": "recipes:is_true_recipes"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "0500f4e830428647",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00019",
+      "input_text": "When does the County fair open in Barren county",
+      "audio_url": null,
+      "reference": "event:get_event",
+      "prediction_a": {
+        "intent": "weather:get_weather"
+      },
+      "prediction_b": {
+        "intent": "event:get_date_time_event"
+      },
+      "competitor_a": "trident",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "2a2ab5913ef6981f",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00007",
+      "input_text": "reset the alarms",
+      "audio_url": null,
+      "reference": "alarm:silence_alarm",
+      "prediction_a": {
+        "intent": "alarm:silence_alarm"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-nebulento",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "15fc579fda15932b",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00008",
+      "input_text": "Please call Eric Gonzalez Clark",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": "messaging:send_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "10fdb2a5b804063f",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00007",
+      "input_text": "reset the alarms",
+      "audio_url": null,
+      "reference": "alarm:silence_alarm",
+      "prediction_a": {
+        "intent": "alarm:get_alarm"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "e25f798227c1ce98",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00012",
+      "input_text": "Any breaking news today?",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:get_stories_news"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "118251d5cf59ce0e",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00001",
+      "input_text": "have there been any tornados this week?",
+      "audio_url": null,
+      "reference": "weather:get_weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "event:get_event"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "4ed76a781b44fefd",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00016",
+      "input_text": "Tell my mom we made it to Gatlinburg.",
+      "audio_url": null,
+      "reference": "messaging:send_message",
+      "prediction_a": {
+        "intent": "people:get_contact"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "0448632b239f49d7",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00011",
+      "input_text": "hold and receive new call",
+      "audio_url": null,
+      "reference": "calling:switch_call",
+      "prediction_a": {
+        "intent": "messaging:send_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "6caa1bf8233fafd3",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "trident",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "38200db46152624a",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "07278391868464ff",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00016",
+      "input_text": "Tell my mom we made it to Gatlinburg.",
+      "audio_url": null,
+      "reference": "messaging:send_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "people:get_contact"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "2bdaa5b2810a8e5f",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00016",
+      "input_text": "Tell my mom we made it to Gatlinburg.",
+      "audio_url": null,
+      "reference": "messaging:send_message",
+      "prediction_a": {
+        "intent": "messaging:send_message"
+      },
+      "prediction_b": {
+        "intent": "people:get_contact"
+      },
+      "competitor_a": "trident",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "0cd44735abe104cd",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00018",
+      "input_text": "Who that Mr. Simon Driggers know was born in September?",
+      "audio_url": null,
+      "reference": "people:get_contact",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:get_message"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "3f4fb136efa69566",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00001",
+      "input_text": "have there been any tornados this week?",
+      "audio_url": null,
+      "reference": "weather:get_weather",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": "event:get_event"
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "84bea3d130ff6ce6",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00001",
+      "input_text": "have there been any tornados this week?",
+      "audio_url": null,
+      "reference": "weather:get_weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "event:get_event"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "86f39deeabdb0b47",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "a873121101bd6052",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00001",
+      "input_text": "have there been any tornados this week?",
+      "audio_url": null,
+      "reference": "weather:get_weather",
+      "prediction_a": {
+        "intent": "recipes:is_true_recipes"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "9f81732c1689bf1b",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00001",
+      "input_text": "have there been any tornados this week?",
+      "audio_url": null,
+      "reference": "weather:get_weather",
+      "prediction_a": {
+        "intent": "event:get_event"
+      },
+      "prediction_b": {
+        "intent": "recipes:is_true_recipes"
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "knn-first",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "290657f9e3938f3d",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00001",
+      "input_text": "have there been any tornados this week?",
+      "audio_url": null,
+      "reference": "weather:get_weather",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": "recipes:is_true_recipes"
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "dcf96ac8248fd60e",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "82ecb686f12a39f0",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00001",
+      "input_text": "have there been any tornados this week?",
+      "audio_url": null,
+      "reference": "weather:get_weather",
+      "prediction_a": {
+        "intent": "recipes:is_true_recipes"
+      },
+      "prediction_b": {
+        "intent": "event:get_event"
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "7da21759f49fd23c",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00013",
+      "input_text": "Will it be sunny all weekend?",
+      "audio_url": null,
+      "reference": "weather:get_weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:get_weather"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "51ea184b2dbfba78",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "118df2ff4dfc45a1",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00012",
+      "input_text": "Any breaking news today?",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "e9b0de782c4ddbf5",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00007",
+      "input_text": "reset the alarms",
+      "audio_url": null,
+      "reference": "alarm:silence_alarm",
+      "prediction_a": {
+        "intent": "alarm:silence_alarm"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "b2b240c750a8b149",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00019",
+      "input_text": "When does the County fair open in Barren county",
+      "audio_url": null,
+      "reference": "event:get_event",
+      "prediction_a": {
+        "intent": "weather:get_weather"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "trident",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "73ac7c8a79432e98",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00008",
+      "input_text": "Please call Eric Gonzalez Clark",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:send_message"
+      },
+      "competitor_a": "m2v-nebulento",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "0631f2fdd7dc98b9",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00014",
+      "input_text": "Remind me to pay for my flower order tomorrow morning.",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": "reminder:delete_reminder"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "9605de90d98858e8",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00019",
+      "input_text": "When does the County fair open in Barren county",
+      "audio_url": null,
+      "reference": "event:get_event",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:get_weather"
+      },
+      "competitor_a": "m2v-nebulento",
+      "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "86bdc5ea75ceed84",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00008",
+      "input_text": "Please call Eric Gonzalez Clark",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": "messaging:send_message"
+      },
+      "prediction_b": {
+        "intent": "messaging:get_message"
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "0bded358857fd8cc",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "eda6232463daf6a5",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00008",
+      "input_text": "Please call Eric Gonzalez Clark",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": "messaging:send_message"
+      },
+      "competitor_a": "trident",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "13fecebe6e3598c6",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00015",
+      "input_text": "Is my timer almost finished?",
+      "audio_url": null,
+      "reference": "timer:get_timer",
+      "prediction_a": {
+        "intent": "alarm:get_alarm"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "649300150013160f",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00019",
+      "input_text": "When does the County fair open in Barren county",
+      "audio_url": null,
+      "reference": "event:get_event",
+      "prediction_a": {
+        "intent": "weather:get_weather"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "trident",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "b1fa071abd2d22b4",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "9659209a37141181",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00001",
+      "input_text": "have there been any tornados this week?",
+      "audio_url": null,
+      "reference": "weather:get_weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "recipes:is_true_recipes"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "cb355ecd9fbd28f1",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "m2v-nebulento",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "040d8cba9fbebad5",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00019",
+      "input_text": "When does the County fair open in Barren county",
+      "audio_url": null,
+      "reference": "event:get_event",
+      "prediction_a": {
+        "intent": "event:get_event"
+      },
+      "prediction_b": {
+        "intent": "event:get_date_time_event"
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "knn-first",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "33d231b42010ff32",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00011",
+      "input_text": "hold and receive new call",
+      "audio_url": null,
+      "reference": "calling:switch_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": "messaging:send_message"
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "de3e51535674afa1",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00011",
+      "input_text": "hold and receive new call",
+      "audio_url": null,
+      "reference": "calling:switch_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "4d04ea5ab5030972",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00011",
+      "input_text": "hold and receive new call",
+      "audio_url": null,
+      "reference": "calling:switch_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": "calling:switch_call"
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "d5323c2e991d49f2",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00012",
+      "input_text": "Any breaking news today?",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:get_stories_news"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "5d416269f2b91e36",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00016",
+      "input_text": "Tell my mom we made it to Gatlinburg.",
+      "audio_url": null,
+      "reference": "messaging:send_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "people:get_contact"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "1901594ce95d3376",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00004",
+      "input_text": "Remind me to change the cat litter at 3:00 PM.",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:get_weather"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "fc11152d0a5f0e9b",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00013",
+      "input_text": "Will it be sunny all weekend?",
+      "audio_url": null,
+      "reference": "weather:get_weather",
+      "prediction_a": {
+        "intent": "weather:get_weather"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "b903ffa64955363a",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "8154f15541f6d44b",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "2af193e7aa494ce7",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00008",
+      "input_text": "Please call Eric Gonzalez Clark",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "b5706717306456d9",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00001",
+      "input_text": "have there been any tornados this week?",
+      "audio_url": null,
+      "reference": "weather:get_weather",
+      "prediction_a": {
+        "intent": "event:get_event"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "trident",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "f9fc0ef95932eda9",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00001",
+      "input_text": "have there been any tornados this week?",
+      "audio_url": null,
+      "reference": "weather:get_weather",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": "event:get_event"
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "70d6826fb0f3ab39",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00008",
+      "input_text": "Please call Eric Gonzalez Clark",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:send_message"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "efe7144166ec0372",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00019",
+      "input_text": "When does the County fair open in Barren county",
+      "audio_url": null,
+      "reference": "event:get_event",
+      "prediction_a": {
+        "intent": "event:get_event"
+      },
+      "prediction_b": {
+        "intent": "weather:get_weather"
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "trident",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "145a41a5e10f786d",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00006",
+      "input_text": "What temp should i cook ham on",
+      "audio_url": null,
+      "reference": "recipes:get_info_recipes",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:get_weather"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "c4c33ee39e84b706",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "f67dacbe1df78642",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00019",
+      "input_text": "When does the County fair open in Barren county",
+      "audio_url": null,
+      "reference": "event:get_event",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:get_weather"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "c0b105f456bf6b86",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00011",
+      "input_text": "hold and receive new call",
+      "audio_url": null,
+      "reference": "calling:switch_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "fc1ed3327de3b7e4",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00011",
+      "input_text": "hold and receive new call",
+      "audio_url": null,
+      "reference": "calling:switch_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "1ab15cc70f461393",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00011",
+      "input_text": "hold and receive new call",
+      "audio_url": null,
+      "reference": "calling:switch_call",
+      "prediction_a": {
+        "intent": "calling:switch_call"
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "knn-first",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "916beb329f68c105",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00019",
+      "input_text": "When does the County fair open in Barren county",
+      "audio_url": null,
+      "reference": "event:get_event",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "event:get_date_time_event"
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "e4cf09d395945e4e",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00019",
+      "input_text": "When does the County fair open in Barren county",
+      "audio_url": null,
+      "reference": "event:get_event",
+      "prediction_a": {
+        "intent": "event:get_date_time_event"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "e429d7021cd248f2",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00016",
+      "input_text": "Tell my mom we made it to Gatlinburg.",
+      "audio_url": null,
+      "reference": "messaging:send_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:send_message"
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "64cc54d18185f64d",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00001",
+      "input_text": "have there been any tornados this week?",
+      "audio_url": null,
+      "reference": "weather:get_weather",
+      "prediction_a": {
+        "intent": "event:get_event"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "2b658b26a0293526",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00011",
+      "input_text": "hold and receive new call",
+      "audio_url": null,
+      "reference": "calling:switch_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:send_message"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "14a08ba38f147f93",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00016",
+      "input_text": "Tell my mom we made it to Gatlinburg.",
+      "audio_url": null,
+      "reference": "messaging:send_message",
+      "prediction_a": {
+        "intent": "messaging:send_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "trident",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "b514cf592ab540d1",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00001",
+      "input_text": "have there been any tornados this week?",
+      "audio_url": null,
+      "reference": "weather:get_weather",
+      "prediction_a": {
+        "intent": "event:get_event"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "3cd20361a1705ecd",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00004",
+      "input_text": "Remind me to change the cat litter at 3:00 PM.",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": "weather:get_weather"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "00445dc676f9890a",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00015",
+      "input_text": "Is my timer almost finished?",
+      "audio_url": null,
+      "reference": "timer:get_timer",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "timer:get_timer"
+      },
+      "competitor_a": "m2v-nebulento",
+      "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "02f68d4f9a8ac6db",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00018",
+      "input_text": "Who that Mr. Simon Driggers know was born in September?",
+      "audio_url": null,
+      "reference": "people:get_contact",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": "people:get_contact"
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "97884f7efc01b7c5",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00001",
+      "input_text": "have there been any tornados this week?",
+      "audio_url": null,
+      "reference": "weather:get_weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "event:get_event"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "33a3766f3a6b94ba",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00001",
+      "input_text": "have there been any tornados this week?",
+      "audio_url": null,
+      "reference": "weather:get_weather",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "243be5057a8b04a0",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00009",
+      "input_text": "What are the ingredients for pie crust",
+      "audio_url": null,
+      "reference": "recipes:get_info_recipes",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "recipes:get_info_recipes"
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "049b74e751c5949e",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00000",
+      "input_text": "Show me dates for music festivals in 2018",
+      "audio_url": null,
+      "reference": "event:get_event",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "event:get_event"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "fb68c092ac7b6415",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00019",
+      "input_text": "When does the County fair open in Barren county",
+      "audio_url": null,
+      "reference": "event:get_event",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "event:get_date_time_event"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "386c836643b246a5",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00008",
+      "input_text": "Please call Eric Gonzalez Clark",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "m2v-nebulento",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "34c0873043f9ca0e",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00008",
+      "input_text": "Please call Eric Gonzalez Clark",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": "messaging:send_message"
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "ee2491f2040d05bf",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00007",
+      "input_text": "reset the alarms",
+      "audio_url": null,
+      "reference": "alarm:silence_alarm",
+      "prediction_a": {
+        "intent": "alarm:get_alarm"
+      },
+      "prediction_b": {
+        "intent": "alarm:create_alarm"
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "0003ed8b8e3d8a77",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00003",
+      "input_text": "Remind me at 8pm to  watch Orange Is The New Black",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "reminder:create_reminder"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "eddf16c051adeae9",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00007",
+      "input_text": "reset the alarms",
+      "audio_url": null,
+      "reference": "alarm:silence_alarm",
+      "prediction_a": {
+        "intent": "alarm:silence_alarm"
+      },
+      "prediction_b": {
+        "intent": "alarm:create_alarm"
+      },
+      "competitor_a": "trident",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "0e40e557834ea9b2",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00011",
+      "input_text": "hold and receive new call",
+      "audio_url": null,
+      "reference": "calling:switch_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:switch_call"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "4394242945be8d54",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00008",
+      "input_text": "Please call Eric Gonzalez Clark",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:get_message"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "194ae7b5a96cc68f",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00008",
+      "input_text": "Please call Eric Gonzalez Clark",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "trident",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "059a30d9aa678999",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00003",
+      "input_text": "Remind me at 8pm to  watch Orange Is The New Black",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": "reminder:create_reminder"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "4b13c924e9135cb5",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00001",
+      "input_text": "have there been any tornados this week?",
+      "audio_url": null,
+      "reference": "weather:get_weather",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "04ad45c311d1b375",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00011",
+      "input_text": "hold and receive new call",
+      "audio_url": null,
+      "reference": "calling:switch_call",
+      "prediction_a": {
+        "intent": "calling:switch_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "trident",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "0aca6fc30486f4a0",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00012",
+      "input_text": "Any breaking news today?",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "news:get_stories_news"
+      },
+      "prediction_b": {
+        "intent": "messaging:get_message"
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "408dfc9f0d744b72",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00004",
+      "input_text": "Remind me to change the cat litter at 3:00 PM.",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": "reminder:create_reminder"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "383315e6279e42fc",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00003",
+      "input_text": "Remind me at 8pm to  watch Orange Is The New Black",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": "weather:get_weather"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "30d868e99f4a0466",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00004",
+      "input_text": "Remind me to change the cat litter at 3:00 PM.",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": "weather:get_weather"
+      },
+      "prediction_b": {
+        "intent": "reminder:create_reminder"
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "113f84ca06459cfb",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00009",
+      "input_text": "What are the ingredients for pie crust",
+      "audio_url": null,
+      "reference": "recipes:get_info_recipes",
+      "prediction_a": {
+        "intent": "recipes:get_info_recipes"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "trident",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "0608206f6d24be22",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00014",
+      "input_text": "Remind me to pay for my flower order tomorrow morning.",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": "reminder:create_reminder"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "5bda8fb0b8feb060",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00004",
+      "input_text": "Remind me to change the cat litter at 3:00 PM.",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": "reminder:create_reminder"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "496a69589e03bc64",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00007",
+      "input_text": "reset the alarms",
+      "audio_url": null,
+      "reference": "alarm:silence_alarm",
+      "prediction_a": {
+        "intent": "alarm:create_alarm"
+      },
+      "prediction_b": {
+        "intent": "alarm:silence_alarm"
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "4d85a9d73dd571bd",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00018",
+      "input_text": "Who that Mr. Simon Driggers know was born in September?",
+      "audio_url": null,
+      "reference": "people:get_contact",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": "people:get_contact"
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "2a8fd5123ad1bdaf",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00014",
+      "input_text": "Remind me to pay for my flower order tomorrow morning.",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "reminder:create_reminder"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "2e5fdb037b8313bd",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00003",
+      "input_text": "Remind me at 8pm to  watch Orange Is The New Black",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": "reminder:create_reminder"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "505a95aa8f3d5057",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00017",
+      "input_text": "Remind me to create a Facebook event for back to school party.",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": "reminder:delete_reminder"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "3a0e190b0d1d5a52",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00003",
+      "input_text": "Remind me at 8pm to  watch Orange Is The New Black",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "reminder:create_reminder"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "1366d68a1de92d2a",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00004",
+      "input_text": "Remind me to change the cat litter at 3:00 PM.",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "reminder:create_reminder"
+      },
+      "competitor_a": "m2v-nebulento",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "509964ed9f01c259",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00003",
+      "input_text": "Remind me at 8pm to  watch Orange Is The New Black",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": "weather:get_weather"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "0ebf1fe8906d7e67",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00006",
+      "input_text": "What temp should i cook ham on",
+      "audio_url": null,
+      "reference": "recipes:get_info_recipes",
+      "prediction_a": {
+        "intent": "recipes:get_info_recipes"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "trident",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "21f3f31d5632acb8",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00000",
+      "input_text": "Show me dates for music festivals in 2018",
+      "audio_url": null,
+      "reference": "event:get_event",
+      "prediction_a": {
+        "intent": "event:get_event"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "53f204f8d358197a",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00000",
+      "input_text": "Show me dates for music festivals in 2018",
+      "audio_url": null,
+      "reference": "event:get_event",
+      "prediction_a": {
+        "intent": "event:get_event"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "581248de770fa144",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00014",
+      "input_text": "Remind me to pay for my flower order tomorrow morning.",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": "reminder:delete_reminder"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "3ad847ad4188dece",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00017",
+      "input_text": "Remind me to create a Facebook event for back to school party.",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": "reminder:delete_reminder"
+      },
+      "prediction_b": {
+        "intent": "reminder:create_reminder"
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "34809f437e568d71",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00002",
+      "input_text": "Set a different alarm",
+      "audio_url": null,
+      "reference": "alarm:create_alarm",
+      "prediction_a": {
+        "intent": "alarm:create_alarm"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "trident",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "1662600cce6adf22",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00003",
+      "input_text": "Remind me at 8pm to  watch Orange Is The New Black",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": "reminder:create_reminder"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "67013fbbe907961a",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00006",
+      "input_text": "What temp should i cook ham on",
+      "audio_url": null,
+      "reference": "recipes:get_info_recipes",
+      "prediction_a": {
+        "intent": "recipes:get_info_recipes"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "790789c98f456adc",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00002",
+      "input_text": "Set a different alarm",
+      "audio_url": null,
+      "reference": "alarm:create_alarm",
+      "prediction_a": {
+        "intent": "alarm:create_alarm"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "2de3c9f538c7ac3b",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00009",
+      "input_text": "What are the ingredients for pie crust",
+      "audio_url": null,
+      "reference": "recipes:get_info_recipes",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "recipes:get_info_recipes"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "339f53752bc9edce",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00006",
+      "input_text": "What temp should i cook ham on",
+      "audio_url": null,
+      "reference": "recipes:get_info_recipes",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "recipes:get_info_recipes"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "6cf3242fe4628c76",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00006",
+      "input_text": "What temp should i cook ham on",
+      "audio_url": null,
+      "reference": "recipes:get_info_recipes",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:get_weather"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "5021894bf17e72fc",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00002",
+      "input_text": "Set a different alarm",
+      "audio_url": null,
+      "reference": "alarm:create_alarm",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "alarm:create_alarm"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "3e65344dcd1e8b50",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00017",
+      "input_text": "Remind me to create a Facebook event for back to school party.",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "reminder:create_reminder"
+      },
+      "competitor_a": "m2v-nebulento",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "ac4368d704de449a",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00015",
+      "input_text": "Is my timer almost finished?",
+      "audio_url": null,
+      "reference": "timer:get_timer",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "alarm:get_alarm"
+      },
+      "competitor_a": "m2v-nebulento",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "312793c579ea941d",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00008",
+      "input_text": "Please call Eric Gonzalez Clark",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "trident",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "25bd3f369a2c916a",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00003",
+      "input_text": "Remind me at 8pm to  watch Orange Is The New Black",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": "reminder:create_reminder"
+      },
+      "prediction_b": {
+        "intent": "weather:get_weather"
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "56a9d6a5c0485a37",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00017",
+      "input_text": "Remind me to create a Facebook event for back to school party.",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "reminder:create_reminder"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "69b0cf6e21403860",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00004",
+      "input_text": "Remind me to change the cat litter at 3:00 PM.",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": "weather:get_weather"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "41fcca8c72f6988f",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00015",
+      "input_text": "Is my timer almost finished?",
+      "audio_url": null,
+      "reference": "timer:get_timer",
+      "prediction_a": {
+        "intent": "timer:get_timer"
+      },
+      "prediction_b": {
+        "intent": "alarm:get_alarm"
+      },
+      "competitor_a": "trident",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "37bebb8749c4bff0",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00017",
+      "input_text": "Remind me to create a Facebook event for back to school party.",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "reminder:create_reminder"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "1fbf0ed33f8b0c4d",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00018",
+      "input_text": "Who that Mr. Simon Driggers know was born in September?",
+      "audio_url": null,
+      "reference": "people:get_contact",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "people:get_contact"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "7402c8ccb88767cb",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00002",
+      "input_text": "Set a different alarm",
+      "audio_url": null,
+      "reference": "alarm:create_alarm",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "alarm:create_alarm"
+      },
+      "competitor_a": "m2v-nebulento",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "8887cae259f7f314",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00004",
+      "input_text": "Remind me to change the cat litter at 3:00 PM.",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": "reminder:create_reminder"
+      },
+      "prediction_b": {
+        "intent": "weather:get_weather"
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "304cc3908efec476",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00008",
+      "input_text": "Please call Eric Gonzalez Clark",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "3ce94dfc13262b39",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00009",
+      "input_text": "What are the ingredients for pie crust",
+      "audio_url": null,
+      "reference": "recipes:get_info_recipes",
+      "prediction_a": {
+        "intent": "recipes:get_info_recipes"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "8762669b736f7bc3",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00015",
+      "input_text": "Is my timer almost finished?",
+      "audio_url": null,
+      "reference": "timer:get_timer",
+      "prediction_a": {
+        "intent": "alarm:get_alarm"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "6619547b1f2213be",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00005",
+      "input_text": "What does the forecast look like for the week",
+      "audio_url": null,
+      "reference": "weather:get_weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:get_weather"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "448fbb923e0cc4e2",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00005",
+      "input_text": "What does the forecast look like for the week",
+      "audio_url": null,
+      "reference": "weather:get_weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:get_weather"
+      },
+      "competitor_a": "m2v-nebulento",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "b81e70b1edef45de",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00017",
+      "input_text": "Remind me to create a Facebook event for back to school party.",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "reminder:delete_reminder"
+      },
+      "competitor_a": "m2v-nebulento",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "3b041a61d5f5d0b7",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00000",
+      "input_text": "Show me dates for music festivals in 2018",
+      "audio_url": null,
+      "reference": "event:get_event",
+      "prediction_a": {
+        "intent": "event:get_event"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "trident",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "2a56a65a478c071c",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00009",
+      "input_text": "What are the ingredients for pie crust",
+      "audio_url": null,
+      "reference": "recipes:get_info_recipes",
+      "prediction_a": {
+        "intent": "recipes:get_info_recipes"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "61c8b2196390a2c0",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00003",
+      "input_text": "Remind me at 8pm to  watch Orange Is The New Black",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": "reminder:create_reminder"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "6c46662dc4e71333",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00011",
+      "input_text": "hold and receive new call",
+      "audio_url": null,
+      "reference": "calling:switch_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:send_message"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "454ead43949326a7",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00014",
+      "input_text": "Remind me to pay for my flower order tomorrow morning.",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": "reminder:create_reminder"
+      },
+      "prediction_b": {
+        "intent": "reminder:delete_reminder"
+      },
+      "competitor_a": "trident",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "3fc32df89c9508d1",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00018",
+      "input_text": "Who that Mr. Simon Driggers know was born in September?",
+      "audio_url": null,
+      "reference": "people:get_contact",
+      "prediction_a": {
+        "intent": "people:get_contact"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "trident",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "48d47be2491ea259",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00002",
+      "input_text": "Set a different alarm",
+      "audio_url": null,
+      "reference": "alarm:create_alarm",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "alarm:create_alarm"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "7e9ee2cfc5fdf7e3",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00007",
+      "input_text": "reset the alarms",
+      "audio_url": null,
+      "reference": "alarm:silence_alarm",
+      "prediction_a": {
+        "intent": "alarm:silence_alarm"
+      },
+      "prediction_b": {
+        "intent": "alarm:create_alarm"
+      },
+      "competitor_a": "m2v-nebulento",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "93ba8765b73e28e9",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00012",
+      "input_text": "Any breaking news today?",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": "news:get_stories_news"
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "41b958d2b409f70c",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00000",
+      "input_text": "Show me dates for music festivals in 2018",
+      "audio_url": null,
+      "reference": "event:get_event",
+      "prediction_a": {
+        "intent": "event:get_event"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "44e81807bf8568d7",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00005",
+      "input_text": "What does the forecast look like for the week",
+      "audio_url": null,
+      "reference": "weather:get_weather",
+      "prediction_a": {
+        "intent": "weather:get_weather"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "89b95a9c682c1c13",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00001",
+      "input_text": "have there been any tornados this week?",
+      "audio_url": null,
+      "reference": "weather:get_weather",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "69ea4f8e161caab4",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00000",
+      "input_text": "Show me dates for music festivals in 2018",
+      "audio_url": null,
+      "reference": "event:get_event",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "event:get_event"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "60094caa946404b2",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00018",
+      "input_text": "Who that Mr. Simon Driggers know was born in September?",
+      "audio_url": null,
+      "reference": "people:get_contact",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "people:get_contact"
+      },
+      "competitor_a": "m2v-nebulento",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "cbc49565d7c58c79",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00018",
+      "input_text": "Who that Mr. Simon Driggers know was born in September?",
+      "audio_url": null,
+      "reference": "people:get_contact",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "3b71ad322ad1b063",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00002",
+      "input_text": "Set a different alarm",
+      "audio_url": null,
+      "reference": "alarm:create_alarm",
+      "prediction_a": {
+        "intent": "alarm:create_alarm"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "trident",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "2abe4268b50849e8",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00002",
+      "input_text": "Set a different alarm",
+      "audio_url": null,
+      "reference": "alarm:create_alarm",
+      "prediction_a": {
+        "intent": "alarm:create_alarm"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "63f941940c577741",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00019",
+      "input_text": "When does the County fair open in Barren county",
+      "audio_url": null,
+      "reference": "event:get_event",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "event:get_event"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "8498eafe112f2b6d",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00017",
+      "input_text": "Remind me to create a Facebook event for back to school party.",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "reminder:delete_reminder"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "640160cc937512e6",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00007",
+      "input_text": "reset the alarms",
+      "audio_url": null,
+      "reference": "alarm:silence_alarm",
+      "prediction_a": {
+        "intent": "alarm:get_alarm"
+      },
+      "prediction_b": {
+        "intent": "alarm:silence_alarm"
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "550baf1b7ffadb97",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00005",
+      "input_text": "What does the forecast look like for the week",
+      "audio_url": null,
+      "reference": "weather:get_weather",
+      "prediction_a": {
+        "intent": "weather:get_weather"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "trident",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "7c886c54029e1ac0",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00009",
+      "input_text": "What are the ingredients for pie crust",
+      "audio_url": null,
+      "reference": "recipes:get_info_recipes",
+      "prediction_a": {
+        "intent": "recipes:get_info_recipes"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "b2d349eb35c10291",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00005",
+      "input_text": "What does the forecast look like for the week",
+      "audio_url": null,
+      "reference": "weather:get_weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:get_weather"
+      },
+      "competitor_a": "m2v-nebulento",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "945f2e69ca66c227",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00008",
+      "input_text": "Please call Eric Gonzalez Clark",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "4873aa6e99b90ccc",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00002",
+      "input_text": "Set a different alarm",
+      "audio_url": null,
+      "reference": "alarm:create_alarm",
+      "prediction_a": {
+        "intent": "alarm:create_alarm"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "47c0edef7a866cab",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00013",
+      "input_text": "Will it be sunny all weekend?",
+      "audio_url": null,
+      "reference": "weather:get_weather",
+      "prediction_a": {
+        "intent": "weather:get_weather"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "c18331a2e601ea05",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00018",
+      "input_text": "Who that Mr. Simon Driggers know was born in September?",
+      "audio_url": null,
+      "reference": "people:get_contact",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "6c09a1c6d2e64e3f",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00018",
+      "input_text": "Who that Mr. Simon Driggers know was born in September?",
+      "audio_url": null,
+      "reference": "people:get_contact",
+      "prediction_a": {
+        "intent": "people:get_contact"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "trident",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "64bca023fc57d5e3",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00014",
+      "input_text": "Remind me to pay for my flower order tomorrow morning.",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": "reminder:create_reminder"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "e34a824eb98a7141",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00006",
+      "input_text": "What temp should i cook ham on",
+      "audio_url": null,
+      "reference": "recipes:get_info_recipes",
+      "prediction_a": {
+        "intent": "weather:get_weather"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "4776db9c6dade975",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00003",
+      "input_text": "Remind me at 8pm to  watch Orange Is The New Black",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": "reminder:create_reminder"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "trident",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "368f8d90d4af0b37",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00016",
+      "input_text": "Tell my mom we made it to Gatlinburg.",
+      "audio_url": null,
+      "reference": "messaging:send_message",
+      "prediction_a": {
+        "intent": "messaging:send_message"
+      },
+      "prediction_b": {
+        "intent": "people:get_contact"
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "685b90cdc35336ab",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00014",
+      "input_text": "Remind me to pay for my flower order tomorrow morning.",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "reminder:create_reminder"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "c86f515cd35ad8db",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00008",
+      "input_text": "Please call Eric Gonzalez Clark",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:get_message"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "6f9a797d36ba210e",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00003",
+      "input_text": "Remind me at 8pm to  watch Orange Is The New Black",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": "weather:get_weather"
+      },
+      "prediction_b": {
+        "intent": "reminder:create_reminder"
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "6e956d4ea2929529",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00003",
+      "input_text": "Remind me at 8pm to  watch Orange Is The New Black",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": "reminder:create_reminder"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "trident",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "8356d88b400a1b85",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00008",
+      "input_text": "Please call Eric Gonzalez Clark",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "be3de23537fc297a",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00014",
+      "input_text": "Remind me to pay for my flower order tomorrow morning.",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": "reminder:create_reminder"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "a0b01b6a45399543",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00016",
+      "input_text": "Tell my mom we made it to Gatlinburg.",
+      "audio_url": null,
+      "reference": "messaging:send_message",
+      "prediction_a": {
+        "intent": "messaging:send_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "6b38b8a4d50c8a48",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00005",
+      "input_text": "What does the forecast look like for the week",
+      "audio_url": null,
+      "reference": "weather:get_weather",
+      "prediction_a": {
+        "intent": "weather:get_weather"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "510fc6cf01c7cb3d",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00000",
+      "input_text": "Show me dates for music festivals in 2018",
+      "audio_url": null,
+      "reference": "event:get_event",
+      "prediction_a": {
+        "intent": "event:get_event"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "c6cf2cc1f184fc60",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00014",
+      "input_text": "Remind me to pay for my flower order tomorrow morning.",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "reminder:delete_reminder"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "749a880dcb916aff",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00011",
+      "input_text": "hold and receive new call",
+      "audio_url": null,
+      "reference": "calling:switch_call",
+      "prediction_a": {
+        "intent": "calling:switch_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "trident",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "6f6b00de12f88e73",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00006",
+      "input_text": "What temp should i cook ham on",
+      "audio_url": null,
+      "reference": "recipes:get_info_recipes",
+      "prediction_a": {
+        "intent": "recipes:get_info_recipes"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "00371bb2be2aed6c",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00016",
+      "input_text": "Tell my mom we made it to Gatlinburg.",
+      "audio_url": null,
+      "reference": "messaging:send_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:send_message"
+      },
+      "competitor_a": "m2v-nebulento",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "690a068f360ff1ba",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00005",
+      "input_text": "What does the forecast look like for the week",
+      "audio_url": null,
+      "reference": "weather:get_weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:get_weather"
+      },
+      "competitor_a": "m2v-nebulento",
+      "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "50e6c13c512d555c",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00014",
+      "input_text": "Remind me to pay for my flower order tomorrow morning.",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": "reminder:create_reminder"
+      },
+      "prediction_b": {
+        "intent": "reminder:delete_reminder"
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "79c581ba052aeabe",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00006",
+      "input_text": "What temp should i cook ham on",
+      "audio_url": null,
+      "reference": "recipes:get_info_recipes",
+      "prediction_a": {
+        "intent": "recipes:get_info_recipes"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "2121a83b68d3ccb0",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00016",
+      "input_text": "Tell my mom we made it to Gatlinburg.",
+      "audio_url": null,
+      "reference": "messaging:send_message",
+      "prediction_a": {
+        "intent": "messaging:send_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "715c74afbd301c0c",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00002",
+      "input_text": "Set a different alarm",
+      "audio_url": null,
+      "reference": "alarm:create_alarm",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "alarm:create_alarm"
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "857678e1a5a42c2e",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00008",
+      "input_text": "Please call Eric Gonzalez Clark",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "9c5caf086dcfa24a",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00017",
+      "input_text": "Remind me to create a Facebook event for back to school party.",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": "reminder:create_reminder"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "cc9793f6a2c0e55d",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00000",
+      "input_text": "Show me dates for music festivals in 2018",
+      "audio_url": null,
+      "reference": "event:get_event",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "event:get_event"
+      },
+      "competitor_a": "m2v-nebulento",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "addca0645ef82b01",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00006",
+      "input_text": "What temp should i cook ham on",
+      "audio_url": null,
+      "reference": "recipes:get_info_recipes",
+      "prediction_a": {
+        "intent": "weather:get_weather"
+      },
+      "prediction_b": {
+        "intent": "recipes:get_info_recipes"
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "7b7d97dad9f13803",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00006",
+      "input_text": "What temp should i cook ham on",
+      "audio_url": null,
+      "reference": "recipes:get_info_recipes",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "recipes:get_info_recipes"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "6a8c556dbabe416c",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00007",
+      "input_text": "reset the alarms",
+      "audio_url": null,
+      "reference": "alarm:silence_alarm",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "alarm:silence_alarm"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "e3439b5250ef684d",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00003",
+      "input_text": "Remind me at 8pm to  watch Orange Is The New Black",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": "weather:get_weather"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "81b6c4eea3c70864",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00012",
+      "input_text": "Any breaking news today?",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:get_stories_news"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "777b5197ad516f37",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00000",
+      "input_text": "Show me dates for music festivals in 2018",
+      "audio_url": null,
+      "reference": "event:get_event",
+      "prediction_a": {
+        "intent": "event:get_event"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "28be85d96ab6e8ac",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00012",
+      "input_text": "Any breaking news today?",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "news:get_stories_news"
+      },
+      "prediction_b": {
+        "intent": "messaging:get_message"
+      },
+      "competitor_a": "m2v-nebulento",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "85b2f8b97d5813cb",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00014",
+      "input_text": "Remind me to pay for my flower order tomorrow morning.",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": "reminder:create_reminder"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "trident",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "7111e6720b755938",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00004",
+      "input_text": "Remind me to change the cat litter at 3:00 PM.",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": "reminder:create_reminder"
+      },
+      "prediction_b": {
+        "intent": "weather:get_weather"
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "7c3b8b6671eb418b",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00005",
+      "input_text": "What does the forecast look like for the week",
+      "audio_url": null,
+      "reference": "weather:get_weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:get_weather"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "2d0c26e9f4c2f03d",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00007",
+      "input_text": "reset the alarms",
+      "audio_url": null,
+      "reference": "alarm:silence_alarm",
+      "prediction_a": {
+        "intent": "alarm:silence_alarm"
+      },
+      "prediction_b": {
+        "intent": "alarm:get_alarm"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "7d6d6ef21570e8dd",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00006",
+      "input_text": "What temp should i cook ham on",
+      "audio_url": null,
+      "reference": "recipes:get_info_recipes",
+      "prediction_a": {
+        "intent": "recipes:get_info_recipes"
+      },
+      "prediction_b": {
+        "intent": "weather:get_weather"
+      },
+      "competitor_a": "trident",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "9a7724ab7b2bd58e",
+      "modality": "intent",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00015",
+      "input_text": "Is my timer almost finished?",
+      "audio_url": null,
+      "reference": "timer:get_timer",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "timer:get_timer"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    }
+  ],
+  "skipped_reference_mismatches": 0
+}

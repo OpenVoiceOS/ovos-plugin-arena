@@ -1,0 +1,4023 @@
+{
+  "modality": "intent",
+  "dataset_id": "mtop-de-DE",
+  "lang": "de-DE",
+  "generated_at": "2026-09-06T07:38:36.540643+00:00",
+  "dataset_info": {
+    "url": "https://huggingface.co/datasets/tasksource/mtop",
+    "license": "cc-by-sa-4.0",
+    "notes": "MTOP (Li et al. 2020) — multilingual task-oriented semantic parsing benchmark, de-DE slice. Registered against tasksource/mtop (the public HF mirror; facebook/flores-style gated mirrors were avoided — this one is ungated). The source ships one 'mtop' config with every language's rows concatenated and a 'lang' column ('de_XX' here) instead of a per-language config/split, so this entry filters on source.lang_field='lang'/lang_value='de_XX'. MTOP's own 'intent' column is prefixed with a generic parser tag rather than the real domain (e.g. 'IN:SEND_MESSAGE'); the arena's label convention is 'domain:intent' (see intents-for-eval), so reference_fields maps a 'domain' column too and the runner normalizes both into 'messaging:send_message' via normalize_hierarchical_label() before scoring. mteb/mtop_intent was considered as a fallback but ships a deprecated loading script the datasets library can no longer execute, so it was not used. tasksource/mtop ships a legacy Python loading script under its default 'mtop' config name, which the current `datasets` library refuses to execute ('Dataset scripts are no longer supported') — registered against HF's auto-generated parquet conversion instead (revision='refs/convert/parquet', builder config 'default'), the same escape hatch used elsewhere in this registry for legacy-script sources.",
+    "predictions": [
+      "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-bench-mtop-de-DE"
+    ],
+    "train_datasets": {
+      "template": {
+        "dataset_id": "mtop-de-DE-train",
+        "url": "https://huggingface.co/datasets/tasksource/mtop"
+      }
+    }
+  },
+  "battles": [
+    {
+      "battle_id": "14d630d9e9179144",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00001",
+      "input_text": "Schicke an den Motorrad-Chat eine Videonachricht",
+      "audio_url": null,
+      "reference": "messaging:send_message",
+      "prediction_a": {
+        "intent": "timer:create_timer"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "5ea6eb7918f9696d",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00001",
+      "input_text": "Schicke an den Motorrad-Chat eine Videonachricht",
+      "audio_url": null,
+      "reference": "messaging:send_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "timer:create_timer"
+      },
+      "competitor_a": "m2v-nebulento",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "1c1f2ddfad156422",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00016",
+      "input_text": "Hat Macie mir geschrieben?",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": "messaging:get_message_contact"
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "7afca2c364f85286",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "music:play_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "2109c3afb7ca6b85",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00006",
+      "input_text": "Check meine Nachrichten in WhatsApp",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "alarm:get_alarm"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "09b4a488b08348cc",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00006",
+      "input_text": "Check meine Nachrichten in WhatsApp",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "alarm:get_alarm"
+      },
+      "prediction_b": {
+        "intent": "messaging:get_message"
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "60a2f547160bc2fc",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00003",
+      "input_text": "Lass mich die Nachrichten von meiner Oma Marilyn sehen",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:get_message"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "06f8df825a38ad8d",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "music:play_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "5ec98925de3982cd",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00004",
+      "input_text": "Greife auf meine Texte von Aleah zu",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:send_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "ca5a4d610f24f870",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00018",
+      "input_text": "Bitte verlängere diesen Timer um drei Stunden",
+      "audio_url": null,
+      "reference": "timer:add_time_timer",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "timer:add_time_timer"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "538522c2fb1b8cb1",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "music:play_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "trident",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "0ff58b4cdb7b7802",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "m2v-nebulento",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "970bc2053b9b1ea3",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00016",
+      "input_text": "Hat Macie mir geschrieben?",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message_contact"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "03f4878dc7b1098f",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "music:play_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "trident",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "9e87afad0676355b",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "64b8bdb6bad0afa2",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00016",
+      "input_text": "Hat Macie mir geschrieben?",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message_contact"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "e35b895c55088e4b",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00004",
+      "input_text": "Greife auf meine Texte von Aleah zu",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": "event:set_rsvp_no"
+      },
+      "competitor_a": "trident",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "429e8d39a95b8935",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00017",
+      "input_text": "Würdest du den Anruf auf Vollbild stellen",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "2ae18198864c9aa4",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "6caa518935f55c60",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00016",
+      "input_text": "Hat Macie mir geschrieben?",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:get_message_contact"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "348ac01e7c8ff43a",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00003",
+      "input_text": "Lass mich die Nachrichten von meiner Oma Marilyn sehen",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "people:get_contact"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "68ed35dafb9d7fde",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00013",
+      "input_text": "Ich würde gerne einen Videoanruf mit Kennedy Gardner und Alejandro Potts auf Whatsapp starten",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": "timer:create_timer"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "25540181517ef9f1",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00017",
+      "input_text": "Würdest du den Anruf auf Vollbild stellen",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:update_method_call"
+      },
+      "prediction_b": {
+        "intent": "alarm:create_alarm"
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "knn-first",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "a7f57cc1b1d8bb37",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00017",
+      "input_text": "Würdest du den Anruf auf Vollbild stellen",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": "alarm:create_alarm"
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "3feadf8c6910a0bc",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00013",
+      "input_text": "Ich würde gerne einen Videoanruf mit Kennedy Gardner und Alejandro Potts auf Whatsapp starten",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": "timer:create_timer"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "0a4d391902d40915",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00017",
+      "input_text": "Würdest du den Anruf auf Vollbild stellen",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:update_method_call"
+      },
+      "prediction_b": {
+        "intent": "alarm:create_alarm"
+      },
+      "competitor_a": "trident",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "ba202a2cd845688a",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00018",
+      "input_text": "Bitte verlängere diesen Timer um drei Stunden",
+      "audio_url": null,
+      "reference": "timer:add_time_timer",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "timer:add_time_timer"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "b72ff7976940230f",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00004",
+      "input_text": "Greife auf meine Texte von Aleah zu",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "event:set_rsvp_no"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "8d13fc1388ac31d1",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00016",
+      "input_text": "Hat Macie mir geschrieben?",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message_contact"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "cffaeac352a95b0f",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00003",
+      "input_text": "Lass mich die Nachrichten von meiner Oma Marilyn sehen",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "85f78389d3561c1e",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00016",
+      "input_text": "Hat Macie mir geschrieben?",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:get_message_contact"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "13c0c7caaae8c8c0",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00002",
+      "input_text": "Zeige mir die Nachrichten von meinem Cousin",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:get_stories_news"
+      },
+      "competitor_a": "m2v-nebulento",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "a39330ea7441e641",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00014",
+      "input_text": "Stelle meinen Status als vielleicht ein für das zweite Event",
+      "audio_url": null,
+      "reference": "event:set_rsvp_interested",
+      "prediction_a": {
+        "intent": "messaging:send_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "9e4f2528603c9b65",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00016",
+      "input_text": "Hat Macie mir geschrieben?",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message_contact"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "trident",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "fa4311a21dc09f49",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00004",
+      "input_text": "Greife auf meine Texte von Aleah zu",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:send_message"
+      },
+      "prediction_b": {
+        "intent": "event:set_rsvp_no"
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "73070eb0dc58add8",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "music:play_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "feda7fe3abded554",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00002",
+      "input_text": "Zeige mir die Nachrichten von meinem Cousin",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "news:get_stories_news"
+      },
+      "prediction_b": {
+        "intent": "messaging:get_message"
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "trident",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "94050bed14f20df7",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00014",
+      "input_text": "Stelle meinen Status als vielleicht ein für das zweite Event",
+      "audio_url": null,
+      "reference": "event:set_rsvp_interested",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:send_message"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "40f20a62c082cb54",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00014",
+      "input_text": "Stelle meinen Status als vielleicht ein für das zweite Event",
+      "audio_url": null,
+      "reference": "event:set_rsvp_interested",
+      "prediction_a": {
+        "intent": "messaging:send_message"
+      },
+      "prediction_b": {
+        "intent": "event:set_rsvp_interested"
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "a5c1ea360dd298e9",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "music:play_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "trident",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "3f0b24917a7f9b0c",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00017",
+      "input_text": "Würdest du den Anruf auf Vollbild stellen",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "alarm:create_alarm"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "a07760db17f3600f",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "m2v-nebulento",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "3bee84f0bff6b131",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00007",
+      "input_text": "Ruf meine Textnachrichten in Messenger ab",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "knn-first",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "1af05b842c61f2ed",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00006",
+      "input_text": "Check meine Nachrichten in WhatsApp",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": "alarm:get_alarm"
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "419b71d54a4f7e3b",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00017",
+      "input_text": "Würdest du den Anruf auf Vollbild stellen",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "alarm:create_alarm"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "2f4bf5b360aa5967",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00016",
+      "input_text": "Hat Macie mir geschrieben?",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message_contact"
+      },
+      "prediction_b": {
+        "intent": "messaging:get_message"
+      },
+      "competitor_a": "trident",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "be7f805419a793b7",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00016",
+      "input_text": "Hat Macie mir geschrieben?",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message_contact"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "9ae6887d91cfda49",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00014",
+      "input_text": "Stelle meinen Status als vielleicht ein für das zweite Event",
+      "audio_url": null,
+      "reference": "event:set_rsvp_interested",
+      "prediction_a": {
+        "intent": "messaging:send_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "0adf01f5d432ecfb",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00003",
+      "input_text": "Lass mich die Nachrichten von meiner Oma Marilyn sehen",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "trident",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "44e3d878bd30dc0e",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00016",
+      "input_text": "Hat Macie mir geschrieben?",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:get_message_contact"
+      },
+      "competitor_a": "m2v-nebulento",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "d541d6727997c7ac",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00004",
+      "input_text": "Greife auf meine Texte von Aleah zu",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:send_message"
+      },
+      "competitor_a": "m2v-nebulento",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "095a95a7587b1f2c",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00002",
+      "input_text": "Zeige mir die Nachrichten von meinem Cousin",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:get_message"
+      },
+      "competitor_a": "m2v-nebulento",
+      "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "a6d3aa49171cfb67",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00002",
+      "input_text": "Zeige mir die Nachrichten von meinem Cousin",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": "news:get_stories_news"
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "9c9f7a769b38d1c8",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00004",
+      "input_text": "Greife auf meine Texte von Aleah zu",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "event:set_rsvp_no"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "c18934517f8288c0",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00016",
+      "input_text": "Hat Macie mir geschrieben?",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message_contact"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "541e5b11249834f1",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00004",
+      "input_text": "Greife auf meine Texte von Aleah zu",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": "messaging:send_message"
+      },
+      "competitor_a": "trident",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "01536a3afc625fec",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00005",
+      "input_text": "Hat mir Bill Murray irgendwas per Messenger geschickt",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:get_message"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "58500d663d73f00d",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00006",
+      "input_text": "Check meine Nachrichten in WhatsApp",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "alarm:get_alarm"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "b188de21fb0b32f0",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00007",
+      "input_text": "Ruf meine Textnachrichten in Messenger ab",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "64ed071747a86e1f",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00001",
+      "input_text": "Schicke an den Motorrad-Chat eine Videonachricht",
+      "audio_url": null,
+      "reference": "messaging:send_message",
+      "prediction_a": {
+        "intent": "messaging:send_message"
+      },
+      "prediction_b": {
+        "intent": "timer:create_timer"
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "knn-first",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "2abb0e191873ed5f",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00014",
+      "input_text": "Stelle meinen Status als vielleicht ein für das zweite Event",
+      "audio_url": null,
+      "reference": "event:set_rsvp_interested",
+      "prediction_a": {
+        "intent": "messaging:send_message"
+      },
+      "prediction_b": {
+        "intent": "event:set_rsvp_interested"
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "45f7a96ef54d5665",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "8f073946eec3d936",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00003",
+      "input_text": "Lass mich die Nachrichten von meiner Oma Marilyn sehen",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "people:get_contact"
+      },
+      "prediction_b": {
+        "intent": "messaging:get_message"
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "d316076b0b1533c6",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00002",
+      "input_text": "Zeige mir die Nachrichten von meinem Cousin",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:get_stories_news"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "e0541a4c44c30486",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00017",
+      "input_text": "Würdest du den Anruf auf Vollbild stellen",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "29b3705f51b51774",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00011",
+      "input_text": "Ich würde gerne meine Cousins Terry, Edwin, Paige und Erik über Hangouts anrufen",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "b687430712f8c930",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00004",
+      "input_text": "Greife auf meine Texte von Aleah zu",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "event:set_rsvp_no"
+      },
+      "competitor_a": "m2v-nebulento",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "e46b2d4cbd9558cd",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00017",
+      "input_text": "Würdest du den Anruf auf Vollbild stellen",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "0aa4de5a2f0bba50",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00006",
+      "input_text": "Check meine Nachrichten in WhatsApp",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:get_message"
+      },
+      "competitor_a": "m2v-nebulento",
+      "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "e15d9b52581a0ae8",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00017",
+      "input_text": "Würdest du den Anruf auf Vollbild stellen",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:update_method_call"
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "dfa3ff65db12c1fe",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00002",
+      "input_text": "Zeige mir die Nachrichten von meinem Cousin",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "news:get_stories_news"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "f904054a82e9573a",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00004",
+      "input_text": "Greife auf meine Texte von Aleah zu",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:send_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "7e551ddf234d0e77",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00017",
+      "input_text": "Würdest du den Anruf auf Vollbild stellen",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:update_method_call"
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "trident",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "18b4fcaacc93e303",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00004",
+      "input_text": "Greife auf meine Texte von Aleah zu",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "trident",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "81a7e839a8683182",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00013",
+      "input_text": "Ich würde gerne einen Videoanruf mit Kennedy Gardner und Alejandro Potts auf Whatsapp starten",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": "timer:create_timer"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "baae06e79d3cd278",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00017",
+      "input_text": "Würdest du den Anruf auf Vollbild stellen",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "alarm:create_alarm"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "81c346cecf6a5676",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00006",
+      "input_text": "Check meine Nachrichten in WhatsApp",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "alarm:get_alarm"
+      },
+      "prediction_b": {
+        "intent": "messaging:get_message"
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "3c561149e3959935",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00003",
+      "input_text": "Lass mich die Nachrichten von meiner Oma Marilyn sehen",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": "people:get_contact"
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "5bc586907da815e1",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00007",
+      "input_text": "Ruf meine Textnachrichten in Messenger ab",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "92b1414721b3cdad",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00001",
+      "input_text": "Schicke an den Motorrad-Chat eine Videonachricht",
+      "audio_url": null,
+      "reference": "messaging:send_message",
+      "prediction_a": {
+        "intent": "messaging:send_message"
+      },
+      "prediction_b": {
+        "intent": "timer:create_timer"
+      },
+      "competitor_a": "trident",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "07bb36c860050618",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00018",
+      "input_text": "Bitte verlängere diesen Timer um drei Stunden",
+      "audio_url": null,
+      "reference": "timer:add_time_timer",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "timer:add_time_timer"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "1ed91e8c3db7e2dd",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00005",
+      "input_text": "Hat mir Bill Murray irgendwas per Messenger geschickt",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "3c7eec763c5211ae",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00009",
+      "input_text": "Rufe Dora an",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "0d69fda5702df78b",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00017",
+      "input_text": "Würdest du den Anruf auf Vollbild stellen",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:update_method_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "1a4630b66db109e3",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00013",
+      "input_text": "Ich würde gerne einen Videoanruf mit Kennedy Gardner und Alejandro Potts auf Whatsapp starten",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "36a7f78f049ba4ff",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00005",
+      "input_text": "Hat mir Bill Murray irgendwas per Messenger geschickt",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "trident",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "f29507e8dee678e8",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00000",
+      "input_text": "Antworte im Thread Trauzeugen-Party mit Text",
+      "audio_url": null,
+      "reference": "messaging:send_message",
+      "prediction_a": {
+        "intent": "messaging:send_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "1ac84198f612e1c0",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00017",
+      "input_text": "Würdest du den Anruf auf Vollbild stellen",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:update_method_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "366c15bfae4fb720",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00015",
+      "input_text": "Hat mir Arturo Malika Haydal irgendwas geschickt?",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "91a62d0c51ebb4ef",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00009",
+      "input_text": "Rufe Dora an",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "trident",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "1dcb5ba6b61b49d9",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00010",
+      "input_text": "Rufe Loren an",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "trident",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "b886e6c05eae3813",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00007",
+      "input_text": "Ruf meine Textnachrichten in Messenger ab",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "fc792506918127e1",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00006",
+      "input_text": "Check meine Nachrichten in WhatsApp",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "alarm:get_alarm"
+      },
+      "competitor_a": "m2v-nebulento",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "b319b98ae93a8aa1",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00002",
+      "input_text": "Zeige mir die Nachrichten von meinem Cousin",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "news:get_stories_news"
+      },
+      "prediction_b": {
+        "intent": "messaging:get_message"
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "knn-first",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "3ef61d318dd8a769",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00001",
+      "input_text": "Schicke an den Motorrad-Chat eine Videonachricht",
+      "audio_url": null,
+      "reference": "messaging:send_message",
+      "prediction_a": {
+        "intent": "messaging:send_message"
+      },
+      "prediction_b": {
+        "intent": "timer:create_timer"
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "f8a16eb6f223bed0",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00001",
+      "input_text": "Schicke an den Motorrad-Chat eine Videonachricht",
+      "audio_url": null,
+      "reference": "messaging:send_message",
+      "prediction_a": {
+        "intent": "timer:create_timer"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "9cf768093e669e74",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00007",
+      "input_text": "Ruf meine Textnachrichten in Messenger ab",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": "messaging:get_message"
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "61ee01ef8ac2e157",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00009",
+      "input_text": "Rufe Dora an",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "431e4b6df89439da",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00007",
+      "input_text": "Ruf meine Textnachrichten in Messenger ab",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:get_message"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "3d2ceaee293adc93",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00014",
+      "input_text": "Stelle meinen Status als vielleicht ein für das zweite Event",
+      "audio_url": null,
+      "reference": "event:set_rsvp_interested",
+      "prediction_a": {
+        "intent": "event:set_rsvp_interested"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "trident",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "0fd38ac746e17b67",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00001",
+      "input_text": "Schicke an den Motorrad-Chat eine Videonachricht",
+      "audio_url": null,
+      "reference": "messaging:send_message",
+      "prediction_a": {
+        "intent": "messaging:send_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "20fe9ce758ea2ff4",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00010",
+      "input_text": "Rufe Loren an",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "m2v-nebulento",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "371a3d2ecf763747",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00014",
+      "input_text": "Stelle meinen Status als vielleicht ein für das zweite Event",
+      "audio_url": null,
+      "reference": "event:set_rsvp_interested",
+      "prediction_a": {
+        "intent": "event:set_rsvp_interested"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "trident",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "f3f3654f9adcf99f",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00009",
+      "input_text": "Rufe Dora an",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "301618fc7eb15ee9",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00005",
+      "input_text": "Hat mir Bill Murray irgendwas per Messenger geschickt",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:get_message"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "50f64c767adadb40",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00011",
+      "input_text": "Ich würde gerne meine Cousins Terry, Edwin, Paige und Erik über Hangouts anrufen",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "93540440090a4f40",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00000",
+      "input_text": "Antworte im Thread Trauzeugen-Party mit Text",
+      "audio_url": null,
+      "reference": "messaging:send_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:send_message"
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "2051598345e6af7b",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00006",
+      "input_text": "Check meine Nachrichten in WhatsApp",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "trident",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "f7cf07e69c5a4eb0",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "music:play_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "05cd91ecaecdae23",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00012",
+      "input_text": "Starte einen Anruf mit Baylee Wilkinson und Mohamed Mckay",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "m2v-nebulento",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "bbdaae2a6719a5e8",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00003",
+      "input_text": "Lass mich die Nachrichten von meiner Oma Marilyn sehen",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "people:get_contact"
+      },
+      "prediction_b": {
+        "intent": "messaging:get_message"
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "5c4b8638b9da35a4",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00000",
+      "input_text": "Antworte im Thread Trauzeugen-Party mit Text",
+      "audio_url": null,
+      "reference": "messaging:send_message",
+      "prediction_a": {
+        "intent": "messaging:send_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "0e860bb19f0a9f4b",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00016",
+      "input_text": "Hat Macie mir geschrieben?",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:get_message"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "aecdf6912dfe9f05",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00013",
+      "input_text": "Ich würde gerne einen Videoanruf mit Kennedy Gardner und Alejandro Potts auf Whatsapp starten",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": "timer:create_timer"
+      },
+      "competitor_a": "trident",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "637eebedd4e66d68",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00005",
+      "input_text": "Hat mir Bill Murray irgendwas per Messenger geschickt",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:get_message"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "597ba16995e84f50",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00010",
+      "input_text": "Rufe Loren an",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "4eaf946f20f454f3",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00018",
+      "input_text": "Bitte verlängere diesen Timer um drei Stunden",
+      "audio_url": null,
+      "reference": "timer:add_time_timer",
+      "prediction_a": {
+        "intent": "timer:add_time_timer"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "trident",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "2565c83a004c49b9",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00006",
+      "input_text": "Check meine Nachrichten in WhatsApp",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "5b51005767aba6e4",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00007",
+      "input_text": "Ruf meine Textnachrichten in Messenger ab",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:get_message"
+      },
+      "competitor_a": "m2v-nebulento",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "4c67e6f774535bb2",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00009",
+      "input_text": "Rufe Dora an",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "m2v-nebulento",
+      "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "ff31c448fd0945ef",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00014",
+      "input_text": "Stelle meinen Status als vielleicht ein für das zweite Event",
+      "audio_url": null,
+      "reference": "event:set_rsvp_interested",
+      "prediction_a": {
+        "intent": "messaging:send_message"
+      },
+      "prediction_b": {
+        "intent": "event:set_rsvp_interested"
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "3e2349b3d54f5747",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00001",
+      "input_text": "Schicke an den Motorrad-Chat eine Videonachricht",
+      "audio_url": null,
+      "reference": "messaging:send_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:send_message"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "56a8965ce839ac10",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00010",
+      "input_text": "Rufe Loren an",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "252a64d4a4fe2d13",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00012",
+      "input_text": "Starte einen Anruf mit Baylee Wilkinson und Mohamed Mckay",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "trident",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "01539347bc69df0d",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00018",
+      "input_text": "Bitte verlängere diesen Timer um drei Stunden",
+      "audio_url": null,
+      "reference": "timer:add_time_timer",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "timer:add_time_timer"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "10d0d24daa43001e",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00016",
+      "input_text": "Hat Macie mir geschrieben?",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "c240dcf9df7860de",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00004",
+      "input_text": "Greife auf meine Texte von Aleah zu",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": "event:set_rsvp_no"
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "6cce92442090437b",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00007",
+      "input_text": "Ruf meine Textnachrichten in Messenger ab",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "174b260f7828aecb",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00012",
+      "input_text": "Starte einen Anruf mit Baylee Wilkinson und Mohamed Mckay",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "72c872d6185ffcfe",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00006",
+      "input_text": "Check meine Nachrichten in WhatsApp",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:get_message"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "8414eaec8a7e7009",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00018",
+      "input_text": "Bitte verlängere diesen Timer um drei Stunden",
+      "audio_url": null,
+      "reference": "timer:add_time_timer",
+      "prediction_a": {
+        "intent": "timer:add_time_timer"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "516b33dd51a2d76c",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00017",
+      "input_text": "Würdest du den Anruf auf Vollbild stellen",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:update_method_call"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "273284fcb8270507",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00005",
+      "input_text": "Hat mir Bill Murray irgendwas per Messenger geschickt",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "62a5823571008c33",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00006",
+      "input_text": "Check meine Nachrichten in WhatsApp",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "770d4a43dec53889",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00015",
+      "input_text": "Hat mir Arturo Malika Haydal irgendwas geschickt?",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "trident",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "3f97a3428b1e9664",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00015",
+      "input_text": "Hat mir Arturo Malika Haydal irgendwas geschickt?",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "6db9375426b08c2c",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00005",
+      "input_text": "Hat mir Bill Murray irgendwas per Messenger geschickt",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "31c144e104470207",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00002",
+      "input_text": "Zeige mir die Nachrichten von meinem Cousin",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "trident",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "2bfcbfda4ff46892",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00010",
+      "input_text": "Rufe Loren an",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "59b6efec088ba005",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00000",
+      "input_text": "Antworte im Thread Trauzeugen-Party mit Text",
+      "audio_url": null,
+      "reference": "messaging:send_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:send_message"
+      },
+      "competitor_a": "m2v-nebulento",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "ca8ba394da842b2e",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00013",
+      "input_text": "Ich würde gerne einen Videoanruf mit Kennedy Gardner und Alejandro Potts auf Whatsapp starten",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": "timer:create_timer"
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "8131cb18b09b3cdf",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00016",
+      "input_text": "Hat Macie mir geschrieben?",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message_contact"
+      },
+      "prediction_b": {
+        "intent": "messaging:get_message"
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "7a67217e81aaaedd",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00014",
+      "input_text": "Stelle meinen Status als vielleicht ein für das zweite Event",
+      "audio_url": null,
+      "reference": "event:set_rsvp_interested",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "event:set_rsvp_interested"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "7f46c340c2afb6d4",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00000",
+      "input_text": "Antworte im Thread Trauzeugen-Party mit Text",
+      "audio_url": null,
+      "reference": "messaging:send_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:send_message"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "946fccc9fdfa8b20",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00013",
+      "input_text": "Ich würde gerne einen Videoanruf mit Kennedy Gardner und Alejandro Potts auf Whatsapp starten",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "521541b158f3ad7c",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00007",
+      "input_text": "Ruf meine Textnachrichten in Messenger ab",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:get_message"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "618491aeda6178ef",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00013",
+      "input_text": "Ich würde gerne einen Videoanruf mit Kennedy Gardner und Alejandro Potts auf Whatsapp starten",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "6ff2e03b0555e2ef",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00011",
+      "input_text": "Ich würde gerne meine Cousins Terry, Edwin, Paige und Erik über Hangouts anrufen",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "86c028dab475bfe0",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00001",
+      "input_text": "Schicke an den Motorrad-Chat eine Videonachricht",
+      "audio_url": null,
+      "reference": "messaging:send_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:send_message"
+      },
+      "competitor_a": "m2v-nebulento",
+      "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "42f960a4b47a1839",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00013",
+      "input_text": "Ich würde gerne einen Videoanruf mit Kennedy Gardner und Alejandro Potts auf Whatsapp starten",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "761bd89036fc258e",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00012",
+      "input_text": "Starte einen Anruf mit Baylee Wilkinson und Mohamed Mckay",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "348005c6434e8813",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00007",
+      "input_text": "Ruf meine Textnachrichten in Messenger ab",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "trident",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "2df9b3e0a3751c62",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00014",
+      "input_text": "Stelle meinen Status als vielleicht ein für das zweite Event",
+      "audio_url": null,
+      "reference": "event:set_rsvp_interested",
+      "prediction_a": {
+        "intent": "event:set_rsvp_interested"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "5c8115654e507a8e",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00010",
+      "input_text": "Rufe Loren an",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "95566b3dba0901a8",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00013",
+      "input_text": "Ich würde gerne einen Videoanruf mit Kennedy Gardner und Alejandro Potts auf Whatsapp starten",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": "timer:create_timer"
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "7d6715999043e02d",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00011",
+      "input_text": "Ich würde gerne meine Cousins Terry, Edwin, Paige und Erik über Hangouts anrufen",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "a465da6dd609013b",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00007",
+      "input_text": "Ruf meine Textnachrichten in Messenger ab",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "9e69346a7c3ee99f",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00011",
+      "input_text": "Ich würde gerne meine Cousins Terry, Edwin, Paige und Erik über Hangouts anrufen",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "524378e9a5ed64f3",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00005",
+      "input_text": "Hat mir Bill Murray irgendwas per Messenger geschickt",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "trident",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "6fbadd803c56aa27",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00010",
+      "input_text": "Rufe Loren an",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "926dc044db5cd5fd",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00015",
+      "input_text": "Hat mir Arturo Malika Haydal irgendwas geschickt?",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "884e6ebd45cbfdb8",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00004",
+      "input_text": "Greife auf meine Texte von Aleah zu",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:get_message"
+      },
+      "competitor_a": "m2v-nebulento",
+      "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "5d50f72868d1657f",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00006",
+      "input_text": "Check meine Nachrichten in WhatsApp",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:get_message"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "7b7fe9fde88f6f7e",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00001",
+      "input_text": "Schicke an den Motorrad-Chat eine Videonachricht",
+      "audio_url": null,
+      "reference": "messaging:send_message",
+      "prediction_a": {
+        "intent": "messaging:send_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "7324e15d2cbe0aac",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00001",
+      "input_text": "Schicke an den Motorrad-Chat eine Videonachricht",
+      "audio_url": null,
+      "reference": "messaging:send_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:send_message"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "5427b237dec0af12",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00004",
+      "input_text": "Greife auf meine Texte von Aleah zu",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "6a9793e51b8d4712",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00015",
+      "input_text": "Hat mir Arturo Malika Haydal irgendwas geschickt?",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "cf351d0409ca66e4",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00004",
+      "input_text": "Greife auf meine Texte von Aleah zu",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": "messaging:send_message"
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "8e71d9159a72c20a",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00004",
+      "input_text": "Greife auf meine Texte von Aleah zu",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "aa867b23f8a17911",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00010",
+      "input_text": "Rufe Loren an",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "c77385d43c0973f4",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00002",
+      "input_text": "Zeige mir die Nachrichten von meinem Cousin",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:get_message"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "56169e417f2d19c3",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00002",
+      "input_text": "Zeige mir die Nachrichten von meinem Cousin",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "trident",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "86f81bdb79765ea4",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00012",
+      "input_text": "Starte einen Anruf mit Baylee Wilkinson und Mohamed Mckay",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "m2v-nebulento",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "a2fb2dde59261783",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00012",
+      "input_text": "Starte einen Anruf mit Baylee Wilkinson und Mohamed Mckay",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "88a5ff2eb4dd64b6",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00007",
+      "input_text": "Ruf meine Textnachrichten in Messenger ab",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:get_message"
+      },
+      "competitor_a": "m2v-nebulento",
+      "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "9ca52bc2f4b64915",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00011",
+      "input_text": "Ich würde gerne meine Cousins Terry, Edwin, Paige und Erik über Hangouts anrufen",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "976b77ec1d26021d",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00002",
+      "input_text": "Zeige mir die Nachrichten von meinem Cousin",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:get_message"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "8e3aac4cffbdfd9c",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00011",
+      "input_text": "Ich würde gerne meine Cousins Terry, Edwin, Paige und Erik über Hangouts anrufen",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "56cc180d497007bb",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00000",
+      "input_text": "Antworte im Thread Trauzeugen-Party mit Text",
+      "audio_url": null,
+      "reference": "messaging:send_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:send_message"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "6eac465ffcebde97",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00014",
+      "input_text": "Stelle meinen Status als vielleicht ein für das zweite Event",
+      "audio_url": null,
+      "reference": "event:set_rsvp_interested",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "event:set_rsvp_interested"
+      },
+      "competitor_a": "m2v-nebulento",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "f87883e378cfe5b3",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00009",
+      "input_text": "Rufe Dora an",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "913dd0f9de5b05fa",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00010",
+      "input_text": "Rufe Loren an",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "afe08fb6f668ee34",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00017",
+      "input_text": "Würdest du den Anruf auf Vollbild stellen",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:update_method_call"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "de2d142392e69cc9",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00012",
+      "input_text": "Starte einen Anruf mit Baylee Wilkinson und Mohamed Mckay",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "5e2b79f75e80e911",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00015",
+      "input_text": "Hat mir Arturo Malika Haydal irgendwas geschickt?",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "trident",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "9460af9b0a39cd50",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00007",
+      "input_text": "Ruf meine Textnachrichten in Messenger ab",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:get_message"
+      },
+      "competitor_a": "m2v-nebulento",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "c96103bcc9ad2aa9",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00002",
+      "input_text": "Zeige mir die Nachrichten von meinem Cousin",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "93c7b28e060e8091",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00012",
+      "input_text": "Starte einen Anruf mit Baylee Wilkinson und Mohamed Mckay",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "trident",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "9df0c52bd62af1d1",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00000",
+      "input_text": "Antworte im Thread Trauzeugen-Party mit Text",
+      "audio_url": null,
+      "reference": "messaging:send_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:send_message"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "a5cac3d9a5321c6d",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00007",
+      "input_text": "Ruf meine Textnachrichten in Messenger ab",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:get_message"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "aa30c5c47dfb14a4",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00017",
+      "input_text": "Würdest du den Anruf auf Vollbild stellen",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:update_method_call"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "65f58fdd5da601f3",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00005",
+      "input_text": "Hat mir Bill Murray irgendwas per Messenger geschickt",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:get_message"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "7e6a9633101a254f",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00004",
+      "input_text": "Greife auf meine Texte von Aleah zu",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:get_message"
+      },
+      "competitor_a": "m2v-nebulento",
+      "competitor_b": "knn-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "923253c42a44497c",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00002",
+      "input_text": "Zeige mir die Nachrichten von meinem Cousin",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "knn-first",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "bf3dc6836b4da8c8",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00015",
+      "input_text": "Hat mir Arturo Malika Haydal irgendwas geschickt?",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:get_message"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "de5df222906145e2",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00001",
+      "input_text": "Schicke an den Motorrad-Chat eine Videonachricht",
+      "audio_url": null,
+      "reference": "messaging:send_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:send_message"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "61188d6830c68e5a",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00001",
+      "input_text": "Schicke an den Motorrad-Chat eine Videonachricht",
+      "audio_url": null,
+      "reference": "messaging:send_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:send_message"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "a7e8ad4929807e38",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00009",
+      "input_text": "Rufe Dora an",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "m2v-nebulento",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "cc8b3d1371bb0a2d",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00001",
+      "input_text": "Schicke an den Motorrad-Chat eine Videonachricht",
+      "audio_url": null,
+      "reference": "messaging:send_message",
+      "prediction_a": {
+        "intent": "messaging:send_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "9bfd867d3669e859",
+      "modality": "intent",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00011",
+      "input_text": "Ich würde gerne meine Cousins Terry, Edwin, Paige und Erik über Hangouts anrufen",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "trident",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    }
+  ],
+  "skipped_reference_mismatches": 0
+}

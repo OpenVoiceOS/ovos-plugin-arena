@@ -1,0 +1,4024 @@
+{
+  "modality": "intent_template",
+  "dataset_id": "mtop-de-DE",
+  "lang": "de-DE",
+  "generated_at": "2026-09-06T07:38:39.140911+00:00",
+  "dataset_info": {
+    "url": "https://huggingface.co/datasets/tasksource/mtop",
+    "license": "cc-by-sa-4.0",
+    "notes": "MTOP (Li et al. 2020) — multilingual task-oriented semantic parsing benchmark, de-DE slice. Registered against tasksource/mtop (the public HF mirror; facebook/flores-style gated mirrors were avoided — this one is ungated). The source ships one 'mtop' config with every language's rows concatenated and a 'lang' column ('de_XX' here) instead of a per-language config/split, so this entry filters on source.lang_field='lang'/lang_value='de_XX'. MTOP's own 'intent' column is prefixed with a generic parser tag rather than the real domain (e.g. 'IN:SEND_MESSAGE'); the arena's label convention is 'domain:intent' (see intents-for-eval), so reference_fields maps a 'domain' column too and the runner normalizes both into 'messaging:send_message' via normalize_hierarchical_label() before scoring. mteb/mtop_intent was considered as a fallback but ships a deprecated loading script the datasets library can no longer execute, so it was not used. tasksource/mtop ships a legacy Python loading script under its default 'mtop' config name, which the current `datasets` library refuses to execute ('Dataset scripts are no longer supported') — registered against HF's auto-generated parquet conversion instead (revision='refs/convert/parquet', builder config 'default'), the same escape hatch used elsewhere in this registry for legacy-script sources.",
+    "predictions": [
+      "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-bench-mtop-de-DE",
+      "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-template-bench-mtop-de-DE"
+    ],
+    "train_datasets": {
+      "template": {
+        "dataset_id": "mtop-de-DE-train",
+        "url": "https://huggingface.co/datasets/tasksource/mtop"
+      }
+    }
+  },
+  "battles": [
+    {
+      "battle_id": "e4cf6dd01288693d",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "music:play_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "hierarchical-knn-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-hierarchical-knn-pipeline"
+    },
+    {
+      "battle_id": "a95c349a8f065751",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "music:play_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-deep",
+      "competitor_b": "hierarchical-knn-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-hierarchical-knn-pipeline"
+    },
+    {
+      "battle_id": "8622dba01e838d42",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00007",
+      "input_text": "Ruf meine Textnachrichten in Messenger ab",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-autoencoder-logreg-wide",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "7b6daa5eee8a25aa",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-autoencoder-rbf-svc",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "a12f73a58513624c",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-bagging-logreg",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "92f4dc1d816089c0",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-bm25-logreg",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "3cbc0153e70d32b9",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00013",
+      "input_text": "Ich würde gerne einen Videoanruf mit Kennedy Gardner und Alejandro Potts auf Whatsapp starten",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-complement-nb-count",
+      "competitor_b": "hierarchical-knn-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-hierarchical-knn-pipeline"
+    },
+    {
+      "battle_id": "2d2e5ed8d24251cf",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00007",
+      "input_text": "Ruf meine Textnachrichten in Messenger ab",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "event:get_event"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-decision-tree",
+      "competitor_b": "hierarchical-knn-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-hierarchical-knn-pipeline"
+    },
+    {
+      "battle_id": "3f350a5e100409b4",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00002",
+      "input_text": "Zeige mir die Nachrichten von meinem Cousin",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:get_stories_news"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-denoising-autoencoder-logreg",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "57f5e21fc7a64426",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-extra-trees",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "35bd5555277b5dda",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-gradient-boosting",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "8ef1600a3416da2b",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00010",
+      "input_text": "Rufe Loren an",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-hashing-sgd-log",
+      "competitor_b": "hierarchical-knn-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-hierarchical-knn-pipeline"
+    },
+    {
+      "battle_id": "aa6c39b1a31bbbd5",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00016",
+      "input_text": "Hat Macie mir geschrieben?",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message_contact"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-knn",
+      "competitor_b": "hierarchical-knn-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-hierarchical-knn-pipeline"
+    },
+    {
+      "battle_id": "33e887b1c4867095",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "music:play_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-label-guided-logreg",
+      "competitor_b": "hierarchical-knn-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-hierarchical-knn-pipeline"
+    },
+    {
+      "battle_id": "066e2a1d4fb2d04c",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00000",
+      "input_text": "Antworte im Thread Trauzeugen-Party mit Text",
+      "audio_url": null,
+      "reference": "messaging:send_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:start_shuffle_music"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-lda-classifier",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "391e0ebb7684e1b7",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00009",
+      "input_text": "Rufe Dora an",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-lda-logreg",
+      "competitor_b": "hierarchical-knn-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-hierarchical-knn-pipeline"
+    },
+    {
+      "battle_id": "c4ce48ab972e0477",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "music:play_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-logreg",
+      "competitor_b": "hierarchical-knn-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-hierarchical-knn-pipeline"
+    },
+    {
+      "battle_id": "2a8cb4f679ad54e9",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "music:play_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-logreg-char",
+      "competitor_b": "hierarchical-knn-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-hierarchical-knn-pipeline"
+    },
+    {
+      "battle_id": "f512b66cf75e9723",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "music:play_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-logreg-elasticnet",
+      "competitor_b": "hierarchical-knn-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-hierarchical-knn-pipeline"
+    },
+    {
+      "battle_id": "56da38ab074c174c",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00007",
+      "input_text": "Ruf meine Textnachrichten in Messenger ab",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-logreg-l1",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "075e246290a44361",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "music:play_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-lsa-logreg",
+      "competitor_b": "hierarchical-knn-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-hierarchical-knn-pipeline"
+    },
+    {
+      "battle_id": "21916b3cf9047de8",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-lsa-rbf-svc",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "7cfdc00818766f26",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-mlp-shallow",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "1740a2d298a6a9b2",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00016",
+      "input_text": "Hat Macie mir geschrieben?",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:get_weather"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-nb-bernoulli",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "1bafbbea71852440",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00012",
+      "input_text": "Starte einen Anruf mit Baylee Wilkinson und Mohamed Mckay",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-nb-multinomial",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "42bdd1ff2ae66785",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00010",
+      "input_text": "Rufe Loren an",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-nmf-logreg",
+      "competitor_b": "hierarchical-knn-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-hierarchical-knn-pipeline"
+    },
+    {
+      "battle_id": "84e0f632eccd43fb",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "music:play_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-random-forest",
+      "competitor_b": "hierarchical-knn-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-hierarchical-knn-pipeline"
+    },
+    {
+      "battle_id": "35de5fcfb5824975",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00006",
+      "input_text": "Check meine Nachrichten in WhatsApp",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "news:get_stories_news"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-random-projection-logreg",
+      "competitor_b": "hierarchical-knn-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-hierarchical-knn-pipeline"
+    },
+    {
+      "battle_id": "01a88c03917236a3",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "music:play_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-rbf-svc",
+      "competitor_b": "hierarchical-knn-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-hierarchical-knn-pipeline"
+    },
+    {
+      "battle_id": "4a2dde81a7cbe3ed",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00010",
+      "input_text": "Rufe Loren an",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-sgd-log",
+      "competitor_b": "hierarchical-knn-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-hierarchical-knn-pipeline"
+    },
+    {
+      "battle_id": "cf70c856ba1342e6",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-sgd-modified-huber",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "3b08e4337efc6273",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00009",
+      "input_text": "Rufe Dora an",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-skipgram-logreg",
+      "competitor_b": "hierarchical-knn-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-hierarchical-knn-pipeline"
+    },
+    {
+      "battle_id": "88e706e4d1a1d808",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-union-logreg",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "44e1aa62a677ca40",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-union-skipgram-tfidf-logreg",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "1db5052adfef9ded",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "music:play_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-union-text-stats-logreg",
+      "competitor_b": "hierarchical-knn-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-hierarchical-knn-pipeline"
+    },
+    {
+      "battle_id": "0036e47628f297ba",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00018",
+      "input_text": "Bitte verlängere diesen Timer um drei Stunden",
+      "audio_url": null,
+      "reference": "timer:add_time_timer",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:get_weather"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "linha-fina-domain-medium",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "0fe6c0d955cfd782",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00016",
+      "input_text": "Hat Macie mir geschrieben?",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:get_message_contact"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "linha-fina-hierarchical-medium",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-linha-fina-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "1bb46bdf0acf1b98",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00006",
+      "input_text": "Check meine Nachrichten in WhatsApp",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:start_shuffle_music"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "linha-fina-medium",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-linha-fina-pipeline-plugin"
+    },
+    {
+      "battle_id": "411cfbd45f3b252f",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00007",
+      "input_text": "Ruf meine Textnachrichten in Messenger ab",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "calling:get_availability"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "hierarchical-knn-medium",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-hierarchical-knn-pipeline"
+    },
+    {
+      "battle_id": "c92216b192a267cf",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00016",
+      "input_text": "Hat Macie mir geschrieben?",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message_contact"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "markov-medium",
+      "competitor_b": "hierarchical-knn-medium",
+      "plugin_a": "ovos-markov-pipeline-plugin",
+      "plugin_b": "ovos-hierarchical-knn-pipeline"
+    },
+    {
+      "battle_id": "03e055bc8f722af2",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00019",
+      "input_text": "Verlängere meinen Timer um 14 Minuten",
+      "audio_url": null,
+      "reference": "timer:add_time_timer",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "timer:add_time_timer"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "nebulento-hierarchical-medium",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-nebulento-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "3e2e2c28ebb0e601",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00018",
+      "input_text": "Bitte verlängere diesen Timer um drei Stunden",
+      "audio_url": null,
+      "reference": "timer:add_time_timer",
+      "prediction_a": {
+        "intent": "timer:add_time_timer"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "hierarchical-knn-medium",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-hierarchical-knn-pipeline"
+    },
+    {
+      "battle_id": "6f86d2340b94d2d6",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00019",
+      "input_text": "Verlängere meinen Timer um 14 Minuten",
+      "audio_url": null,
+      "reference": "timer:add_time_timer",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "timer:add_time_timer"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "padatious-medium",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "fa7c31b4c811dbeb",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "music:play_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "91560b7f63d5979e",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "177ee6c86899adaa",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00007",
+      "input_text": "Ruf meine Textnachrichten in Messenger ab",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-autoencoder-logreg-wide",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "a79e0ce1704deb71",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "music:play_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-rbf-svc",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "07b64cbe6845819d",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "music:play_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-bagging-logreg",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "ab405177ea08b020",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-bm25-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "4d776d5455c3bef7",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00011",
+      "input_text": "Ich würde gerne meine Cousins Terry, Edwin, Paige und Erik über Hangouts anrufen",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-complement-nb-count",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "840facf6fccaea78",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00002",
+      "input_text": "Zeige mir die Nachrichten von meinem Cousin",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:get_stories_news"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-decision-tree",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "38e1ab60e1923c44",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00002",
+      "input_text": "Zeige mir die Nachrichten von meinem Cousin",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:get_stories_news"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-denoising-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "45e631c2366da4fe",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-extra-trees",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "341d7bfebd9b4a86",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-gradient-boosting",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "c9ba576f31bdc6d4",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00010",
+      "input_text": "Rufe Loren an",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-hashing-sgd-log",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "9749ba044a35eb1e",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00016",
+      "input_text": "Hat Macie mir geschrieben?",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:get_message_contact"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-knn",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "31b02eda70cc1567",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "music:play_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-label-guided-logreg",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "129db7625daa9589",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00006",
+      "input_text": "Check meine Nachrichten in WhatsApp",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "event:get_event"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-lda-classifier",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "a938f5c8cbd32410",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00010",
+      "input_text": "Rufe Loren an",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-lda-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "4ed217978c1c843e",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "e2b0cd661826e30f",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "music:play_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-logreg-char",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "25a4da20efbd6c4f",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "music:play_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-logreg-elasticnet",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "693ae84352c83f0a",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-logreg-l1",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "34c5704815fe6c2d",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "music:play_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-lsa-logreg",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "9f24246bbec95ab0",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-lsa-rbf-svc",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "2aef19c380d2e53f",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00016",
+      "input_text": "Hat Macie mir geschrieben?",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message_contact"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-mlp-shallow",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "0058f9d69af4045e",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00005",
+      "input_text": "Hat mir Bill Murray irgendwas per Messenger geschickt",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-nb-bernoulli",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "53274f09b7afe797",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00013",
+      "input_text": "Ich würde gerne einen Videoanruf mit Kennedy Gardner und Alejandro Potts auf Whatsapp starten",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-nb-multinomial",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "10f3373cdfb0df28",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00010",
+      "input_text": "Rufe Loren an",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-nmf-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "5e48823ad9e33c42",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-random-forest",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "20ac38cc317a4f2a",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00006",
+      "input_text": "Check meine Nachrichten in WhatsApp",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:get_stories_news"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-random-projection-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "f364e85610d1c582",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-rbf-svc",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "bd7946c6667e7ed0",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00010",
+      "input_text": "Rufe Loren an",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-sgd-log",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "8ecce54b2e55b408",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-sgd-modified-huber",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "0653790184a33171",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00010",
+      "input_text": "Rufe Loren an",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-skipgram-logreg",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "d0b11c7dd78aaec8",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-union-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "8b6835d8892f031c",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-union-skipgram-tfidf-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "63320dd71d4c6180",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-union-text-stats-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "2a5d6c9586ba3bcd",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00017",
+      "input_text": "Würdest du den Anruf auf Vollbild stellen",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "people:get_contact"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-domain-medium",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "plugin_a": "ovos-linha-fina-domain-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "38e65dbb909ca8ae",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00016",
+      "input_text": "Hat Macie mir geschrieben?",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:get_message_contact"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "linha-fina-hierarchical-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "477b75d8187d2790",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00007",
+      "input_text": "Ruf meine Textnachrichten in Messenger ab",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "linha-fina-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-pipeline-plugin"
+    },
+    {
+      "battle_id": "159d4c957044b65a",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00007",
+      "input_text": "Ruf meine Textnachrichten in Messenger ab",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:get_availability"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "markov-domain-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-markov-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "3bb6763529c563b5",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00016",
+      "input_text": "Hat Macie mir geschrieben?",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message_contact"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "markov-medium",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "plugin_a": "ovos-markov-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "c012144fb72f7c2e",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00018",
+      "input_text": "Bitte verlängere diesen Timer um drei Stunden",
+      "audio_url": null,
+      "reference": "timer:add_time_timer",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "timer:add_time_timer"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "nebulento-hierarchical-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "33d4310b28bff587",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00019",
+      "input_text": "Verlängere meinen Timer um 14 Minuten",
+      "audio_url": null,
+      "reference": "timer:add_time_timer",
+      "prediction_a": {
+        "intent": "timer:add_time_timer"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "0e092f83a291887e",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00019",
+      "input_text": "Verlängere meinen Timer um 14 Minuten",
+      "audio_url": null,
+      "reference": "timer:add_time_timer",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "timer:add_time_timer"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "padatious-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "6d793f4203717138",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00001",
+      "input_text": "Schicke an den Motorrad-Chat eine Videonachricht",
+      "audio_url": null,
+      "reference": "messaging:send_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:send_message"
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "f05999442b48ef5b",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00007",
+      "input_text": "Ruf meine Textnachrichten in Messenger ab",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-wide",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "62821a274ec43467",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00001",
+      "input_text": "Schicke an den Motorrad-Chat eine Videonachricht",
+      "audio_url": null,
+      "reference": "messaging:send_message",
+      "prediction_a": {
+        "intent": "messaging:send_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-rbf-svc",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "0378c7eedb3f17ef",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00011",
+      "input_text": "Ich würde gerne meine Cousins Terry, Edwin, Paige und Erik über Hangouts anrufen",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-bagging-logreg",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "28ed21ce53f2807b",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "jurebes-bm25-linear-svc",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "0bb0cd5d2f7277a9",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00000",
+      "input_text": "Antworte im Thread Trauzeugen-Party mit Text",
+      "audio_url": null,
+      "reference": "messaging:send_message",
+      "prediction_a": {
+        "intent": "messaging:send_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-bm25-logreg",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "bf4fb94993432938",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "music:play_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-complement-nb-count",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "04f358f7b362e1e4",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00004",
+      "input_text": "Greife auf meine Texte von Aleah zu",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-decision-tree",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "0db31f1ebd53a074",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "music:play_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-denoising-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "13b1e0465f932f1f",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00015",
+      "input_text": "Hat mir Arturo Malika Haydal irgendwas geschickt?",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-extra-trees",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "b536aeb0460666dc",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00002",
+      "input_text": "Zeige mir die Nachrichten von meinem Cousin",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:get_stories_news"
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-gradient-boosting",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "5a87445acf499d18",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "music:play_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-hashing-sgd-hinge",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "6449dbec2901a0f5",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "jurebes-hashing-sgd-log",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "28605fbea29bf8f1",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "jurebes-hist-gbm",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "3611e6b5c6de3ae3",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "jurebes-knn",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "6fbe84f5754fd2ed",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "jurebes-label-guided-linear-svc",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "1382f90161027a2b",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00005",
+      "input_text": "Hat mir Bill Murray irgendwas per Messenger geschickt",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-label-guided-logreg",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "16c30bb5f42f5c88",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00006",
+      "input_text": "Check meine Nachrichten in WhatsApp",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "event:get_event"
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-lda-classifier",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "db512b12e13d3801",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "jurebes-lda-logreg",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "e15f127b22c01be6",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "music:play_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-linear-svc",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "373f1e89f6b16393",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "jurebes-linear-svc-char",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "c2a85e23b07b06c9",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "jurebes-linear-svc-hinge",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "10671342115ba49a",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00016",
+      "input_text": "Hat Macie mir geschrieben?",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:get_message"
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "071b70849b0e0b57",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00019",
+      "input_text": "Verlängere meinen Timer um 14 Minuten",
+      "audio_url": null,
+      "reference": "timer:add_time_timer",
+      "prediction_a": {
+        "intent": "timer:add_time_timer"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-logreg-char",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "0ea92d18ce982bd5",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00011",
+      "input_text": "Ich würde gerne meine Cousins Terry, Edwin, Paige und Erik über Hangouts anrufen",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-logreg-elasticnet",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "40b6d46b16341d31",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00007",
+      "input_text": "Ruf meine Textnachrichten in Messenger ab",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-logreg-l1",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "c9a1d25452da4173",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "jurebes-lsa-linear-svc",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "089d9f9e6ac81aca",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00002",
+      "input_text": "Zeige mir die Nachrichten von meinem Cousin",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:get_stories_news"
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-lsa-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "b47a395e4fd27447",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00000",
+      "input_text": "Antworte im Thread Trauzeugen-Party mit Text",
+      "audio_url": null,
+      "reference": "messaging:send_message",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-lsa-rbf-svc",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "3ae14f125e437e7d",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00016",
+      "input_text": "Hat Macie mir geschrieben?",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message_contact"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-mlp-shallow",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "038131a941cd6495",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00004",
+      "input_text": "Greife auf meine Texte von Aleah zu",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "music:play_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-nb-bernoulli",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "d38998c3899900e1",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "jurebes-nb-complement",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "2742a4a973ab90a7",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "jurebes-nb-multinomial",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "633af941a00eb99f",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "jurebes-nmf-logreg",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "6dcedd5dc03c6c07",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "jurebes-nusvc",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "59dd357be817732c",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "music:play_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-ovo-linear-svc",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "d94375fccea5a9df",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "jurebes-ovr-linear-svc",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "00a41bd7fa0a2b5c",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "music:play_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-passive-aggressive",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "7f9eeddea7f72ad6",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "music:play_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-perceptron",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "41e905ae8b0604d8",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "music:play_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-qda-classifier",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "28410ea03b690132",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00019",
+      "input_text": "Verlängere meinen Timer um 14 Minuten",
+      "audio_url": null,
+      "reference": "timer:add_time_timer",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "timer:add_time_timer"
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-random-forest",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "4757a1870cd340bd",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00002",
+      "input_text": "Zeige mir die Nachrichten von meinem Cousin",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "news:get_stories_news"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-random-projection-logreg",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "1149ff792827d23c",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00018",
+      "input_text": "Bitte verlängere diesen Timer um drei Stunden",
+      "audio_url": null,
+      "reference": "timer:add_time_timer",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "timer:add_time_timer"
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-rbf-svc",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "697c90b837fe4f74",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "music:play_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-ridge",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "5ba90d92263a9499",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "jurebes-sgd-hinge",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "8834a410a257753f",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "jurebes-sgd-log",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "18d176ba70f45e3b",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00003",
+      "input_text": "Lass mich die Nachrichten von meiner Oma Marilyn sehen",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-sgd-modified-huber",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "a054bf30a62b3342",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "music:play_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-skipgram-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "719f1d9dc6d73b12",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "music:play_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-stacking",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "0a376e99672cbaf2",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "music:play_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-text-stats-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "09c6fb5c64042fc3",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00003",
+      "input_text": "Lass mich die Nachrichten von meiner Oma Marilyn sehen",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-union-logreg",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "421e8b562a9ae4d2",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00016",
+      "input_text": "Hat Macie mir geschrieben?",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:get_message"
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-union-skipgram-tfidf-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "2b70cd892ad7f8f0",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00003",
+      "input_text": "Lass mich die Nachrichten von meiner Oma Marilyn sehen",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:get_message"
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-union-text-stats-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "241abbdf39a9e580",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "music:play_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-voting-soft",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "02c7a409a7c519ce",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00019",
+      "input_text": "Verlängere meinen Timer um 14 Minuten",
+      "audio_url": null,
+      "reference": "timer:add_time_timer",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:get_weather"
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "linha-fina-domain-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "110683577afc5f3f",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00006",
+      "input_text": "Check meine Nachrichten in WhatsApp",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "music:start_shuffle_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-hierarchical-medium",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-linha-fina-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "09a4542921d0859d",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00007",
+      "input_text": "Ruf meine Textnachrichten in Messenger ab",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-medium",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-linha-fina-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "b6a747301916d0a0",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "music:play_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "m2v-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-m2v-pipeline"
+    },
+    {
+      "battle_id": "04b5ca18575f54df",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00007",
+      "input_text": "Ruf meine Textnachrichten in Messenger ab",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "calling:get_availability"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "059d056621d4b2f8",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00016",
+      "input_text": "Hat Macie mir geschrieben?",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:get_message_contact"
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "markov-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-markov-pipeline-plugin"
+    },
+    {
+      "battle_id": "ecba0647a67fb3a1",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "nebulento-hierarchical-medium",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-nebulento-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "38f3df647e94c916",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "music:play_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "fc2871573900edcf",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "dbaef0c545798852",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "music:play_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "padatious-domain-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-padatious-pipeline-plugin"
+    },
+    {
+      "battle_id": "2647e46abd652cfd",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "padatious-medium",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "c87512ae00ce42fd",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "padatious-no-padaos-medium",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "99c4cadb335604b7",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00007",
+      "input_text": "Ruf meine Textnachrichten in Messenger ab",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-wide",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "04992d930f89cee8",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00002",
+      "input_text": "Zeige mir die Nachrichten von meinem Cousin",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-deep",
+      "competitor_b": "jurebes-autoencoder-rbf-svc",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "56db5f60b8acf209",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00002",
+      "input_text": "Zeige mir die Nachrichten von meinem Cousin",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:get_message"
+      },
+      "competitor_a": "jurebes-bagging-logreg",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "d5a5e7211bd9da01",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "jurebes-bm25-linear-svc",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "215ea14466353d87",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00016",
+      "input_text": "Hat Macie mir geschrieben?",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-bm25-logreg",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "52dbac2afd29a7f3",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "jurebes-complement-nb-count",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "252ab2d7f2255393",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00007",
+      "input_text": "Ruf meine Textnachrichten in Messenger ab",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "event:get_event"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-decision-tree",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "83e2cbf6bb96cf2f",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "jurebes-denoising-autoencoder-logreg",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "1a97c52b62515843",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00000",
+      "input_text": "Antworte im Thread Trauzeugen-Party mit Text",
+      "audio_url": null,
+      "reference": "messaging:send_message",
+      "prediction_a": {
+        "intent": "messaging:send_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-extra-trees",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "0bc928d6bb896351",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00019",
+      "input_text": "Verlängere meinen Timer um 14 Minuten",
+      "audio_url": null,
+      "reference": "timer:add_time_timer",
+      "prediction_a": {
+        "intent": "timer:add_time_timer"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-gradient-boosting",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "067d0b915d3b8802",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "music:play_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-deep",
+      "competitor_b": "jurebes-hashing-sgd-hinge",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "74b2b72df8e64817",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "jurebes-hashing-sgd-log",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "13e3ef3138e94b6c",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "music:play_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-deep",
+      "competitor_b": "jurebes-hist-gbm",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "7365831d35399fef",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00016",
+      "input_text": "Hat Macie mir geschrieben?",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message_contact"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-knn",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "80e7d6d5b87098be",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "music:play_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-deep",
+      "competitor_b": "jurebes-label-guided-linear-svc",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "0bcd0bd03a65b292",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00002",
+      "input_text": "Zeige mir die Nachrichten von meinem Cousin",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-deep",
+      "competitor_b": "jurebes-label-guided-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "0a71eb53ed55c696",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00006",
+      "input_text": "Check meine Nachrichten in WhatsApp",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "event:get_event"
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-deep",
+      "competitor_b": "jurebes-lda-classifier",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "0aa0c56b038b9239",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "jurebes-lda-logreg",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "fe96b2f3ec23b4d1",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "jurebes-linear-svc",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "9ef7ccc0c51fb16d",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "jurebes-linear-svc-char",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "90261e8f9010d1db",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "jurebes-linear-svc-hinge",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "362f0eebee7c5793",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00016",
+      "input_text": "Hat Macie mir geschrieben?",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-logreg",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "1ec2e8c08c8c9e51",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00019",
+      "input_text": "Verlängere meinen Timer um 14 Minuten",
+      "audio_url": null,
+      "reference": "timer:add_time_timer",
+      "prediction_a": {
+        "intent": "timer:add_time_timer"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-logreg-char",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "2c1472e55c1a4287",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00003",
+      "input_text": "Lass mich die Nachrichten von meiner Oma Marilyn sehen",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-logreg-elasticnet",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "fccdcb38ad432d07",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00007",
+      "input_text": "Ruf meine Textnachrichten in Messenger ab",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-logreg-l1",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "e9e49fd5ed8c227a",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "music:play_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-deep",
+      "competitor_b": "jurebes-lsa-linear-svc",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "024ffaedc3f20ba0",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00002",
+      "input_text": "Zeige mir die Nachrichten von meinem Cousin",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message"
+      },
+      "prediction_b": {
+        "intent": "news:get_stories_news"
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-deep",
+      "competitor_b": "jurebes-lsa-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "3f59d6e5c58fff46",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00000",
+      "input_text": "Antworte im Thread Trauzeugen-Party mit Text",
+      "audio_url": null,
+      "reference": "messaging:send_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-deep",
+      "competitor_b": "jurebes-lsa-rbf-svc",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "7f7e90095c3576a9",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00016",
+      "input_text": "Hat Macie mir geschrieben?",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": "messaging:get_message_contact"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-mlp-shallow",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "0fe23a4809e6f68e",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00014",
+      "input_text": "Stelle meinen Status als vielleicht ein für das zweite Event",
+      "audio_url": null,
+      "reference": "event:set_rsvp_interested",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "alarm:create_alarm"
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-deep",
+      "competitor_b": "jurebes-nb-bernoulli",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "c00802906b57ad42",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "music:play_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-deep",
+      "competitor_b": "jurebes-nb-complement",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "694580f7ea0e1324",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "music:play_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-deep",
+      "competitor_b": "jurebes-nb-multinomial",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "346508683f18fdee",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "music:play_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-deep",
+      "competitor_b": "jurebes-nmf-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "6a0255417aa4f351",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "jurebes-nusvc",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "26aae9e8aaba960b",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "jurebes-ovo-linear-svc",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "5929efee5e300a39",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "jurebes-ovr-linear-svc",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "be8d6ac58e0d8e16",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "music:play_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-deep",
+      "competitor_b": "jurebes-passive-aggressive",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "f9c167d4579caea1",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "jurebes-perceptron",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "a92894be6796b5b4",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "music:play_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-deep",
+      "competitor_b": "jurebes-qda-classifier",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "0e25e380261bd147",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00001",
+      "input_text": "Schicke an den Motorrad-Chat eine Videonachricht",
+      "audio_url": null,
+      "reference": "messaging:send_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:send_message"
+      },
+      "competitor_a": "jurebes-random-forest",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "06f873fabec9171e",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00006",
+      "input_text": "Check meine Nachrichten in WhatsApp",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:get_stories_news"
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-deep",
+      "competitor_b": "jurebes-random-projection-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "0648edf121d5c180",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00015",
+      "input_text": "Hat mir Arturo Malika Haydal irgendwas geschickt?",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:get_message"
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-deep",
+      "competitor_b": "jurebes-rbf-svc",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "4ecb77ab090bd721",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "jurebes-ridge",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "64d312e5935f3563",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "jurebes-sgd-hinge",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "9f335c034c19b0ed",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "jurebes-sgd-log",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "311ddd82f4d49634",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00003",
+      "input_text": "Lass mich die Nachrichten von meiner Oma Marilyn sehen",
+      "audio_url": null,
+      "reference": "messaging:get_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:get_message"
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-deep",
+      "competitor_b": "jurebes-sgd-modified-huber",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "e31d9ba4622ed64a",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "music:play_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-deep",
+      "competitor_b": "jurebes-skipgram-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "36a5d234c2fc8307",
+      "modality": "intent_template",
+      "dataset_id": "mtop-de-DE",
+      "lang": "de-DE",
+      "sample_id": "de-DE/00008",
+      "input_text": "Spiele Programm 13 Live",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "music:play_music"
+      },
+      "competitor_a": "jurebes-stacking",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    }
+  ],
+  "skipped_reference_mismatches": 0
+}

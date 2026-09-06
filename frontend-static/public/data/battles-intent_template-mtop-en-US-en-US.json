@@ -1,0 +1,4024 @@
+{
+  "modality": "intent_template",
+  "dataset_id": "mtop-en-US",
+  "lang": "en-US",
+  "generated_at": "2026-09-06T07:38:39.140911+00:00",
+  "dataset_info": {
+    "url": "https://huggingface.co/datasets/tasksource/mtop",
+    "license": "cc-by-sa-4.0",
+    "notes": "MTOP (Li et al. 2020) — multilingual task-oriented semantic parsing benchmark, en-US slice. Registered against tasksource/mtop (the public HF mirror; facebook/flores-style gated mirrors were avoided — this one is ungated). The source ships one 'mtop' config with every language's rows concatenated and a 'lang' column ('en_XX' here) instead of a per-language config/split, so this entry filters on source.lang_field='lang'/lang_value='en_XX'. MTOP's own 'intent' column is prefixed with a generic parser tag rather than the real domain (e.g. 'IN:SEND_MESSAGE'); the arena's label convention is 'domain:intent' (see intents-for-eval), so reference_fields maps a 'domain' column too and the runner normalizes both into 'messaging:send_message' via normalize_hierarchical_label() before scoring. mteb/mtop_intent was considered as a fallback but ships a deprecated loading script the datasets library can no longer execute, so it was not used. tasksource/mtop ships a legacy Python loading script under its default 'mtop' config name, which the current `datasets` library refuses to execute ('Dataset scripts are no longer supported') — registered against HF's auto-generated parquet conversion instead (revision='refs/convert/parquet', builder config 'default'), the same escape hatch used elsewhere in this registry for legacy-script sources.",
+    "predictions": [
+      "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-bench-mtop-en-US",
+      "https://huggingface.co/datasets/OpenVoiceOS/ovos-intent-template-bench-mtop-en-US"
+    ],
+    "train_datasets": {
+      "template": {
+        "dataset_id": "mtop-en-US-train",
+        "url": "https://huggingface.co/datasets/tasksource/mtop"
+      }
+    }
+  },
+  "battles": [
+    {
+      "battle_id": "0be68fb13ac4ee2c",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00017",
+      "input_text": "Remind me to create a Facebook event for back to school party.",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "reminder:create_reminder"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "fc6799652c2c78d0",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "f4e31f3f74629582",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-autoencoder-logreg-wide",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "1708e6c526720cf6",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00004",
+      "input_text": "Remind me to change the cat litter at 3:00 PM.",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "reminder:create_reminder"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-autoencoder-rbf-svc",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "ed4e0515f171fbc1",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-bagging-logreg",
+      "competitor_b": "hierarchical-knn-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-hierarchical-knn-pipeline"
+    },
+    {
+      "battle_id": "2ea3e7dd8b5040bb",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-bm25-logreg",
+      "competitor_b": "hierarchical-knn-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-hierarchical-knn-pipeline"
+    },
+    {
+      "battle_id": "136fa4fb8bb2667f",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00005",
+      "input_text": "What does the forecast look like for the week",
+      "audio_url": null,
+      "reference": "weather:get_weather",
+      "prediction_a": {
+        "intent": "weather:get_weather"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-complement-nb-count",
+      "competitor_b": "hierarchical-knn-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-hierarchical-knn-pipeline"
+    },
+    {
+      "battle_id": "020668ab3aaa4eec",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-decision-tree",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "a6ce46f7b24db1e1",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00001",
+      "input_text": "have there been any tornados this week?",
+      "audio_url": null,
+      "reference": "weather:get_weather",
+      "prediction_a": {
+        "intent": "event:get_event"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-denoising-autoencoder-logreg",
+      "competitor_b": "hierarchical-knn-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-hierarchical-knn-pipeline"
+    },
+    {
+      "battle_id": "a92053cbe94f17d6",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-extra-trees",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "11c4862d179f3ae9",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00011",
+      "input_text": "hold and receive new call",
+      "audio_url": null,
+      "reference": "calling:switch_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-gradient-boosting",
+      "competitor_b": "hierarchical-knn-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-hierarchical-knn-pipeline"
+    },
+    {
+      "battle_id": "3d54d34640fa23f8",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00017",
+      "input_text": "Remind me to create a Facebook event for back to school party.",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "reminder:create_reminder"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-hashing-sgd-log",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "0f07167ea5688ed8",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00016",
+      "input_text": "Tell my mom we made it to Gatlinburg.",
+      "audio_url": null,
+      "reference": "messaging:send_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-knn",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "3b76fb372ed02d72",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-label-guided-logreg",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "0c1edf50486d5cd2",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00013",
+      "input_text": "Will it be sunny all weekend?",
+      "audio_url": null,
+      "reference": "weather:get_weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "alarm:delete_alarm"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-lda-classifier",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "8ee511232f1d1c50",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00008",
+      "input_text": "Please call Eric Gonzalez Clark",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:send_message"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-lda-logreg",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "40ad2c1dcdb37249",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-logreg",
+      "competitor_b": "hierarchical-knn-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-hierarchical-knn-pipeline"
+    },
+    {
+      "battle_id": "b44cf746ee347df6",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-logreg-char",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "b33a01f0975e11a5",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-logreg-elasticnet",
+      "competitor_b": "hierarchical-knn-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-hierarchical-knn-pipeline"
+    },
+    {
+      "battle_id": "1974a68a9f85c1a5",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-logreg-l1",
+      "competitor_b": "hierarchical-knn-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-hierarchical-knn-pipeline"
+    },
+    {
+      "battle_id": "5875cf153fe1cc8d",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-lsa-logreg",
+      "competitor_b": "hierarchical-knn-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-hierarchical-knn-pipeline"
+    },
+    {
+      "battle_id": "0493eaad5d8b8b06",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00015",
+      "input_text": "Is my timer almost finished?",
+      "audio_url": null,
+      "reference": "timer:get_timer",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "timer:get_timer"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-lsa-rbf-svc",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "0b1094ec077cc216",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-mlp-shallow",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "22b54bea3231a8cc",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00015",
+      "input_text": "Is my timer almost finished?",
+      "audio_url": null,
+      "reference": "timer:get_timer",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:get_weather"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-nb-bernoulli",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "cfcc951d66cbe533",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-nb-multinomial",
+      "competitor_b": "hierarchical-knn-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-hierarchical-knn-pipeline"
+    },
+    {
+      "battle_id": "0f676f2bd0e2f0d7",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00018",
+      "input_text": "Who that Mr. Simon Driggers know was born in September?",
+      "audio_url": null,
+      "reference": "people:get_contact",
+      "prediction_a": {
+        "intent": "people:get_contact"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-random-forest",
+      "competitor_b": "hierarchical-knn-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-hierarchical-knn-pipeline"
+    },
+    {
+      "battle_id": "85efad0717137d5d",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-random-projection-logreg",
+      "competitor_b": "hierarchical-knn-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-hierarchical-knn-pipeline"
+    },
+    {
+      "battle_id": "a20b8a15239b0f3f",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-rbf-svc",
+      "competitor_b": "hierarchical-knn-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-hierarchical-knn-pipeline"
+    },
+    {
+      "battle_id": "0824589223d27462",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00017",
+      "input_text": "Remind me to create a Facebook event for back to school party.",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "reminder:create_reminder"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-sgd-log",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "1913921b6cab8849",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00014",
+      "input_text": "Remind me to pay for my flower order tomorrow morning.",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": "reminder:create_reminder"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-sgd-modified-huber",
+      "competitor_b": "hierarchical-knn-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-hierarchical-knn-pipeline"
+    },
+    {
+      "battle_id": "ef3680768d3197bc",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-skipgram-logreg",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "6a08e9cce9a7023c",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-union-logreg",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "d18b0b7534bf4cbf",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-union-skipgram-tfidf-logreg",
+      "competitor_b": "hierarchical-knn-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-hierarchical-knn-pipeline"
+    },
+    {
+      "battle_id": "4111f980bc20941c",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "jurebes-union-text-stats-logreg",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "00670c8c0d1f89bd",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00006",
+      "input_text": "What temp should i cook ham on",
+      "audio_url": null,
+      "reference": "recipes:get_info_recipes",
+      "prediction_a": {
+        "intent": "weather:get_weather"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-domain-medium",
+      "competitor_b": "hierarchical-knn-medium",
+      "plugin_a": "ovos-linha-fina-domain-pipeline-plugin",
+      "plugin_b": "ovos-hierarchical-knn-pipeline"
+    },
+    {
+      "battle_id": "08061c652de11476",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00011",
+      "input_text": "hold and receive new call",
+      "audio_url": null,
+      "reference": "calling:switch_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:hold_call"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "linha-fina-hierarchical-medium",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-linha-fina-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "38a754414622461c",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "linha-fina-medium",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-linha-fina-pipeline-plugin"
+    },
+    {
+      "battle_id": "267edd33a43c9063",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00008",
+      "input_text": "Please call Eric Gonzalez Clark",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": "messaging:send_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "hierarchical-knn-medium",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-hierarchical-knn-pipeline"
+    },
+    {
+      "battle_id": "06a5c6697818fd96",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00008",
+      "input_text": "Please call Eric Gonzalez Clark",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:send_message"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "markov-medium",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-markov-pipeline-plugin"
+    },
+    {
+      "battle_id": "168f6d2e086206a0",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00013",
+      "input_text": "Will it be sunny all weekend?",
+      "audio_url": null,
+      "reference": "weather:get_weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:get_weather"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "nebulento-hierarchical-medium",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-nebulento-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "158651b03ab97d3e",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00012",
+      "input_text": "Any breaking news today?",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:get_stories_news"
+      },
+      "competitor_a": "hierarchical-knn-medium",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-hierarchical-knn-pipeline",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "0bf63a88ffa8f674",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00017",
+      "input_text": "Remind me to create a Facebook event for back to school party.",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "reminder:create_reminder"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "ba84a5a01a1696ab",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-deep",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "6b419d87a515f5e9",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-wide",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "098600406c913fad",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00009",
+      "input_text": "What are the ingredients for pie crust",
+      "audio_url": null,
+      "reference": "recipes:get_info_recipes",
+      "prediction_a": {
+        "intent": "recipes:get_info_recipes"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-rbf-svc",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "8c662eb6965c4c3c",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-bagging-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "58a88654896afb96",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-bm25-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "240f0c9d9cf8be4f",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00004",
+      "input_text": "Remind me to change the cat litter at 3:00 PM.",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": "reminder:create_reminder"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-complement-nb-count",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "1eab538aaab7b0a4",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-decision-tree",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "77b67c11602d256a",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00001",
+      "input_text": "have there been any tornados this week?",
+      "audio_url": null,
+      "reference": "weather:get_weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "event:get_event"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-denoising-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "c5959735667daf1c",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-extra-trees",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "5fecc4fdd9fdccaf",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00001",
+      "input_text": "have there been any tornados this week?",
+      "audio_url": null,
+      "reference": "weather:get_weather",
+      "prediction_a": {
+        "intent": "timer:get_timer"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-gradient-boosting",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "1c418932ec975c5c",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00014",
+      "input_text": "Remind me to pay for my flower order tomorrow morning.",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "reminder:create_reminder"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-hashing-sgd-log",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "3eb8d671a78fe9ca",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00016",
+      "input_text": "Tell my mom we made it to Gatlinburg.",
+      "audio_url": null,
+      "reference": "messaging:send_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-knn",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "30196329046c85db",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-label-guided-logreg",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "1ac2b1b7ff592a84",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00019",
+      "input_text": "When does the County fair open in Barren county",
+      "audio_url": null,
+      "reference": "event:get_event",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:get_weather"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-lda-classifier",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "e5198786df1b0b7f",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00008",
+      "input_text": "Please call Eric Gonzalez Clark",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": "messaging:send_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-lda-logreg",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "2e362199cccc1d90",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "9779db0f8d47dbed",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-logreg-char",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "7954d482c272a65e",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-logreg-elasticnet",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "66397d8cb9142014",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-logreg-l1",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "414ed7b368d4df01",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-lsa-logreg",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "06748d185af7608e",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00006",
+      "input_text": "What temp should i cook ham on",
+      "audio_url": null,
+      "reference": "recipes:get_info_recipes",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "recipes:get_info_recipes"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-lsa-rbf-svc",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "a710c6d2a58ddd3e",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00011",
+      "input_text": "hold and receive new call",
+      "audio_url": null,
+      "reference": "calling:switch_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:hold_call"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-mlp-shallow",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "291a9911047e0383",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00019",
+      "input_text": "When does the County fair open in Barren county",
+      "audio_url": null,
+      "reference": "event:get_event",
+      "prediction_a": {
+        "intent": "weather:get_weather"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-nb-bernoulli",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "711e543380e9d52f",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-nb-multinomial",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "37495a5bf272ad68",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00017",
+      "input_text": "Remind me to create a Facebook event for back to school party.",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "reminder:create_reminder"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-random-forest",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "bc3ecdd01d92028d",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00004",
+      "input_text": "Remind me to change the cat litter at 3:00 PM.",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": "alarm:create_alarm"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-random-projection-logreg",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "130c0c074c818155",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-rbf-svc",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "2f2fcecf7abcbb2d",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00017",
+      "input_text": "Remind me to create a Facebook event for back to school party.",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": "reminder:create_reminder"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-sgd-log",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "040e9cafacd5c998",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00013",
+      "input_text": "Will it be sunny all weekend?",
+      "audio_url": null,
+      "reference": "weather:get_weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:get_weather"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-sgd-modified-huber",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "8eeaa629e40e9293",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-skipgram-logreg",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "986582a1fbe53c57",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-union-logreg",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "7670730627902edc",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-union-skipgram-tfidf-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "3f42c14b656be062",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "jurebes-union-text-stats-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "106b2cc5125168fd",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00018",
+      "input_text": "Who that Mr. Simon Driggers know was born in September?",
+      "audio_url": null,
+      "reference": "people:get_contact",
+      "prediction_a": {
+        "intent": "music:get_track_info_music"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-domain-medium",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "plugin_a": "ovos-linha-fina-domain-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "44dbcb90d3b337b0",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:answer_call"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "linha-fina-hierarchical-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "062d1186c93b18b6",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00016",
+      "input_text": "Tell my mom we made it to Gatlinburg.",
+      "audio_url": null,
+      "reference": "messaging:send_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:get_call"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "linha-fina-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-pipeline-plugin"
+    },
+    {
+      "battle_id": "056f3d0ef4477f15",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00001",
+      "input_text": "have there been any tornados this week?",
+      "audio_url": null,
+      "reference": "weather:get_weather",
+      "prediction_a": {
+        "intent": "news:get_stories_news"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "jurebes-autoencoder-linear-svc",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "371c50398b36b44e",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00001",
+      "input_text": "have there been any tornados this week?",
+      "audio_url": null,
+      "reference": "weather:get_weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:get_stories_news"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "markov-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-markov-pipeline-plugin"
+    },
+    {
+      "battle_id": "0a0675cce3386544",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00007",
+      "input_text": "reset the alarms",
+      "audio_url": null,
+      "reference": "alarm:silence_alarm",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "alarm:silence_alarm"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "nebulento-hierarchical-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "1ff720c2349549e2",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00007",
+      "input_text": "reset the alarms",
+      "audio_url": null,
+      "reference": "alarm:silence_alarm",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "alarm:silence_alarm"
+      },
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "nebulento-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-pipeline-plugin"
+    },
+    {
+      "battle_id": "c02fe02d7456c59f",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-deep",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "9616f5df572e4d23",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-wide",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "1c1c636a70ee7eab",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00011",
+      "input_text": "hold and receive new call",
+      "audio_url": null,
+      "reference": "calling:switch_call",
+      "prediction_a": {
+        "intent": "calling:switch_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-rbf-svc",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "dcb60104c0c1a4f1",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-bagging-logreg",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "1e0b30e3bb3614f9",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00013",
+      "input_text": "Will it be sunny all weekend?",
+      "audio_url": null,
+      "reference": "weather:get_weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:get_weather"
+      },
+      "competitor_a": "jurebes-bm25-linear-svc",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "8b5bb9ef26239531",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-bm25-logreg",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "0d279aeea687959f",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00006",
+      "input_text": "What temp should i cook ham on",
+      "audio_url": null,
+      "reference": "recipes:get_info_recipes",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "recipes:get_info_recipes"
+      },
+      "competitor_a": "jurebes-complement-nb-count",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "1af26e371618d2e6",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00019",
+      "input_text": "When does the County fair open in Barren county",
+      "audio_url": null,
+      "reference": "event:get_event",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:get_weather"
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-decision-tree",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "78f93cbc7bde2bcf",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00001",
+      "input_text": "have there been any tornados this week?",
+      "audio_url": null,
+      "reference": "weather:get_weather",
+      "prediction_a": {
+        "intent": "event:get_event"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-denoising-autoencoder-logreg",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "95c715546731592a",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-extra-trees",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "042496897d67d4fb",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00011",
+      "input_text": "hold and receive new call",
+      "audio_url": null,
+      "reference": "calling:switch_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-gradient-boosting",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "07a84771e950527f",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00009",
+      "input_text": "What are the ingredients for pie crust",
+      "audio_url": null,
+      "reference": "recipes:get_info_recipes",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "recipes:get_info_recipes"
+      },
+      "competitor_a": "jurebes-hashing-sgd-hinge",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "05cffe0ced41427d",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00002",
+      "input_text": "Set a different alarm",
+      "audio_url": null,
+      "reference": "alarm:create_alarm",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "alarm:create_alarm"
+      },
+      "competitor_a": "jurebes-hashing-sgd-log",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "1676045a6d641200",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00012",
+      "input_text": "Any breaking news today?",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "news:get_stories_news"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-hist-gbm",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "e568545e8e836a08",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00016",
+      "input_text": "Tell my mom we made it to Gatlinburg.",
+      "audio_url": null,
+      "reference": "messaging:send_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-knn",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "66401cc4fd111345",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00017",
+      "input_text": "Remind me to create a Facebook event for back to school party.",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "reminder:create_reminder"
+      },
+      "competitor_a": "jurebes-label-guided-linear-svc",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "b76cbdfdbd22a3f5",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-label-guided-logreg",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "1cccd4cf2a16fb8b",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00019",
+      "input_text": "When does the County fair open in Barren county",
+      "audio_url": null,
+      "reference": "event:get_event",
+      "prediction_a": {
+        "intent": "weather:get_weather"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-lda-classifier",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "ae42af1bdbf6314e",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00008",
+      "input_text": "Please call Eric Gonzalez Clark",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:send_message"
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-lda-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "00698f2dfa325502",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00003",
+      "input_text": "Remind me at 8pm to  watch Orange Is The New Black",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": "reminder:create_reminder"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-linear-svc",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "31dd39cea191a5e5",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00005",
+      "input_text": "What does the forecast look like for the week",
+      "audio_url": null,
+      "reference": "weather:get_weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:get_weather"
+      },
+      "competitor_a": "jurebes-linear-svc-char",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "166d9f7d68fbf133",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00012",
+      "input_text": "Any breaking news today?",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:get_stories_news"
+      },
+      "competitor_a": "jurebes-linear-svc-hinge",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "86c4a627b520dc1b",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-logreg",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "198014f41d5ac011",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-logreg-char",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "0ecf86f7895ccf63",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-logreg-elasticnet",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "27f3d9a7a63d62e7",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-logreg-l1",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "07feb7e3a90d012c",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00012",
+      "input_text": "Any breaking news today?",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": "news:get_stories_news"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-lsa-linear-svc",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "46e7ddfd6a004659",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00001",
+      "input_text": "have there been any tornados this week?",
+      "audio_url": null,
+      "reference": "weather:get_weather",
+      "prediction_a": {
+        "intent": "event:get_event"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-lsa-logreg",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "22c78870d349a175",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00011",
+      "input_text": "hold and receive new call",
+      "audio_url": null,
+      "reference": "calling:switch_call",
+      "prediction_a": {
+        "intent": "calling:switch_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-lsa-rbf-svc",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "7747c7c6f6f1eb69",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00011",
+      "input_text": "hold and receive new call",
+      "audio_url": null,
+      "reference": "calling:switch_call",
+      "prediction_a": {
+        "intent": "calling:hold_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-mlp-shallow",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "1bc64182f312172f",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00015",
+      "input_text": "Is my timer almost finished?",
+      "audio_url": null,
+      "reference": "timer:get_timer",
+      "prediction_a": {
+        "intent": "weather:get_weather"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-nb-bernoulli",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "10ec8eb6c571ff55",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00012",
+      "input_text": "Any breaking news today?",
+      "audio_url": null,
+      "reference": "news:get_stories_news",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:get_stories_news"
+      },
+      "competitor_a": "jurebes-nb-complement",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "dae3476d1f663d7c",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-nb-multinomial",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "0dbd56f3ce3c3069",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00013",
+      "input_text": "Will it be sunny all weekend?",
+      "audio_url": null,
+      "reference": "weather:get_weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:get_weather"
+      },
+      "competitor_a": "jurebes-nmf-logreg",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "3e771bacbc3c9a56",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00003",
+      "input_text": "Remind me at 8pm to  watch Orange Is The New Black",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": "reminder:create_reminder"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-nusvc",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "017f529384cc25c6",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00004",
+      "input_text": "Remind me to change the cat litter at 3:00 PM.",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": "reminder:create_reminder"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-ovo-linear-svc",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "1342ae40b5b6fba4",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00009",
+      "input_text": "What are the ingredients for pie crust",
+      "audio_url": null,
+      "reference": "recipes:get_info_recipes",
+      "prediction_a": {
+        "intent": "recipes:get_info_recipes"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-ovr-linear-svc",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "0d1e5cb307ed0fbd",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00013",
+      "input_text": "Will it be sunny all weekend?",
+      "audio_url": null,
+      "reference": "weather:get_weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:get_weather"
+      },
+      "competitor_a": "jurebes-passive-aggressive",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "0cc4e8725a0c4201",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00017",
+      "input_text": "Remind me to create a Facebook event for back to school party.",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "reminder:create_reminder"
+      },
+      "competitor_a": "jurebes-perceptron",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "24f1c814924d6adf",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00014",
+      "input_text": "Remind me to pay for my flower order tomorrow morning.",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "reminder:create_reminder"
+      },
+      "competitor_a": "jurebes-qda-classifier",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "6fc1571be0bd7800",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00006",
+      "input_text": "What temp should i cook ham on",
+      "audio_url": null,
+      "reference": "recipes:get_info_recipes",
+      "prediction_a": {
+        "intent": "recipes:get_info_recipes"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-random-forest",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "92e459b9edf99fa2",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-random-projection-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "655c5235959cf5fe",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-rbf-svc",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "02c80589cf49b846",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00003",
+      "input_text": "Remind me at 8pm to  watch Orange Is The New Black",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": "reminder:create_reminder"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-ridge",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "0717f15c44322d8c",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00005",
+      "input_text": "What does the forecast look like for the week",
+      "audio_url": null,
+      "reference": "weather:get_weather",
+      "prediction_a": {
+        "intent": "weather:get_weather"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-sgd-hinge",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "14cafc9469901f96",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00009",
+      "input_text": "What are the ingredients for pie crust",
+      "audio_url": null,
+      "reference": "recipes:get_info_recipes",
+      "prediction_a": {
+        "intent": "recipes:get_info_recipes"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-sgd-log",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "028e04c89c1e3544",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00008",
+      "input_text": "Please call Eric Gonzalez Clark",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-sgd-modified-huber",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "9397ee623a540e68",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-skipgram-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "296856e333ffe569",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00009",
+      "input_text": "What are the ingredients for pie crust",
+      "audio_url": null,
+      "reference": "recipes:get_info_recipes",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "recipes:get_info_recipes"
+      },
+      "competitor_a": "jurebes-stacking",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "0a2f01d17876a32c",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00014",
+      "input_text": "Remind me to pay for my flower order tomorrow morning.",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": "reminder:create_reminder"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-text-stats-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "fd8ed09c1d9b08c1",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-union-logreg",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "05d42df719ee8ab8",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-union-skipgram-tfidf-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "19b618aff2b6c384",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-union-text-stats-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "0078e04883f7e294",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00017",
+      "input_text": "Remind me to create a Facebook event for back to school party.",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": "reminder:create_reminder"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "jurebes-voting-soft",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "04d10839b6e5c39e",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00019",
+      "input_text": "When does the County fair open in Barren county",
+      "audio_url": null,
+      "reference": "event:get_event",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:question_news"
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "linha-fina-domain-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "1b671fc98a0499ef",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:answer_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-hierarchical-medium",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-linha-fina-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "265bb0e7ddcbcd26",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00016",
+      "input_text": "Tell my mom we made it to Gatlinburg.",
+      "audio_url": null,
+      "reference": "messaging:send_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:get_call"
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "linha-fina-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-pipeline-plugin"
+    },
+    {
+      "battle_id": "0a0d2b040c4439ad",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00005",
+      "input_text": "What does the forecast look like for the week",
+      "audio_url": null,
+      "reference": "weather:get_weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:get_weather"
+      },
+      "competitor_a": "m2v-medium",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-m2v-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "156c9d5e38821fc6",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00008",
+      "input_text": "Please call Eric Gonzalez Clark",
+      "audio_url": null,
+      "reference": "calling:create_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:send_message"
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "markov-domain-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-markov-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "1172e2e28012a19e",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00001",
+      "input_text": "have there been any tornados this week?",
+      "audio_url": null,
+      "reference": "weather:get_weather",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:get_stories_news"
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "markov-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-markov-pipeline-plugin"
+    },
+    {
+      "battle_id": "1417ad26ac0f35a6",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00006",
+      "input_text": "What temp should i cook ham on",
+      "audio_url": null,
+      "reference": "recipes:get_info_recipes",
+      "prediction_a": {
+        "intent": "recipes:get_info_recipes"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg",
+      "competitor_b": "nebulento-hierarchical-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-nebulento-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "235a5fef8cf6011b",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00006",
+      "input_text": "What temp should i cook ham on",
+      "audio_url": null,
+      "reference": "recipes:get_info_recipes",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "recipes:get_info_recipes"
+      },
+      "competitor_a": "nebulento-medium",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-nebulento-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "13788bb6ee762b31",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00017",
+      "input_text": "Remind me to create a Facebook event for back to school party.",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "reminder:create_reminder"
+      },
+      "competitor_a": "padacioso-medium",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-padacioso-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "06fdeb1d05ae789f",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00017",
+      "input_text": "Remind me to create a Facebook event for back to school party.",
+      "audio_url": null,
+      "reference": "reminder:create_reminder",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "reminder:create_reminder"
+      },
+      "competitor_a": "padatious-domain-medium",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "2d25c87922302b93",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00006",
+      "input_text": "What temp should i cook ham on",
+      "audio_url": null,
+      "reference": "recipes:get_info_recipes",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "recipes:get_info_recipes"
+      },
+      "competitor_a": "padatious-medium",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "1b8c4192dbf35097",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00002",
+      "input_text": "Set a different alarm",
+      "audio_url": null,
+      "reference": "alarm:create_alarm",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "alarm:create_alarm"
+      },
+      "competitor_a": "padatious-no-padaos-medium",
+      "competitor_b": "jurebes-autoencoder-logreg",
+      "plugin_a": "ovos-padatious-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "151565b284a78094",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00018",
+      "input_text": "Who that Mr. Simon Driggers know was born in September?",
+      "audio_url": null,
+      "reference": "people:get_contact",
+      "prediction_a": {
+        "intent": "people:get_contact"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-deep",
+      "competitor_b": "jurebes-autoencoder-logreg-wide",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "33e220441486feb6",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-deep",
+      "competitor_b": "jurebes-autoencoder-rbf-svc",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "47d62bcab1da1d2b",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "jurebes-bm25-linear-svc",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "63f3514fdd00dac3",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00011",
+      "input_text": "hold and receive new call",
+      "audio_url": null,
+      "reference": "calling:switch_call",
+      "prediction_a": {
+        "intent": "calling:switch_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-bm25-logreg",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "d80110953edbbd12",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-deep",
+      "competitor_b": "jurebes-complement-nb-count",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "acc2ac2ee72ea20f",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00016",
+      "input_text": "Tell my mom we made it to Gatlinburg.",
+      "audio_url": null,
+      "reference": "messaging:send_message",
+      "prediction_a": {
+        "intent": "weather:get_weather"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-decision-tree",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "55aea158a2e135e1",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00001",
+      "input_text": "have there been any tornados this week?",
+      "audio_url": null,
+      "reference": "weather:get_weather",
+      "prediction_a": {
+        "intent": "event:get_event"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-denoising-autoencoder-logreg",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "068e91ef57c934d2",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00011",
+      "input_text": "hold and receive new call",
+      "audio_url": null,
+      "reference": "calling:switch_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-deep",
+      "competitor_b": "jurebes-gradient-boosting",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "0ea7bbbc91ea7004",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-deep",
+      "competitor_b": "jurebes-hashing-sgd-hinge",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "d51f351b96410644",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-deep",
+      "competitor_b": "jurebes-hashing-sgd-log",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "7fd363cca6b67877",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "jurebes-hist-gbm",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "73b89b6db914cd47",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "jurebes-knn",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "7598c36b22b9d8f4",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-deep",
+      "competitor_b": "jurebes-label-guided-linear-svc",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "5cbbb7edaac2adbf",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00015",
+      "input_text": "Is my timer almost finished?",
+      "audio_url": null,
+      "reference": "timer:get_timer",
+      "prediction_a": {
+        "intent": "timer:get_timer"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-label-guided-logreg",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "3dd933335d776c4c",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": "music:repeat_all_off_music"
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-deep",
+      "competitor_b": "jurebes-lda-classifier",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "cc18fe2a983d6589",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "jurebes-lda-logreg",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "2f89b7a3a3f3fcda",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-deep",
+      "competitor_b": "jurebes-linear-svc",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "cb47ddb29c5ddf7a",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-deep",
+      "competitor_b": "jurebes-linear-svc-char",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "db4ffbcf54a532db",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "jurebes-linear-svc-hinge",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "bba184642452fe22",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00018",
+      "input_text": "Who that Mr. Simon Driggers know was born in September?",
+      "audio_url": null,
+      "reference": "people:get_contact",
+      "prediction_a": {
+        "intent": "people:get_contact"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-deep",
+      "competitor_b": "jurebes-logreg-char",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "226827323b0477de",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00016",
+      "input_text": "Tell my mom we made it to Gatlinburg.",
+      "audio_url": null,
+      "reference": "messaging:send_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:send_message"
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-deep",
+      "competitor_b": "jurebes-logreg-l1",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "63bb9861abe5a63c",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-deep",
+      "competitor_b": "jurebes-lsa-linear-svc",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "04aa22f9ccc04edf",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00001",
+      "input_text": "have there been any tornados this week?",
+      "audio_url": null,
+      "reference": "weather:get_weather",
+      "prediction_a": {
+        "intent": "event:get_event"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-lsa-logreg",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "d42ce934df452288",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-deep",
+      "competitor_b": "jurebes-lsa-rbf-svc",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "cdc88a630ec3457c",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00011",
+      "input_text": "hold and receive new call",
+      "audio_url": null,
+      "reference": "calling:switch_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:hold_call"
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-deep",
+      "competitor_b": "jurebes-mlp-shallow",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "aadee0dc65ff8caf",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00019",
+      "input_text": "When does the County fair open in Barren county",
+      "audio_url": null,
+      "reference": "event:get_event",
+      "prediction_a": {
+        "intent": "weather:get_weather"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-nb-bernoulli",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "3ed24802017e2186",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-deep",
+      "competitor_b": "jurebes-nb-complement",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "286e7debe597d3c3",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00018",
+      "input_text": "Who that Mr. Simon Driggers know was born in September?",
+      "audio_url": null,
+      "reference": "people:get_contact",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "people:get_contact"
+      },
+      "competitor_a": "jurebes-nb-multinomial",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "6dde393d877e3fc0",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-deep",
+      "competitor_b": "jurebes-nmf-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "3cb24112073acc6a",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-deep",
+      "competitor_b": "jurebes-nusvc",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "d4fed3c5b2ba6557",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "jurebes-ovo-linear-svc",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "90ec9c56b0b74071",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "jurebes-ovr-linear-svc",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "d600c6eb666b32bb",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "jurebes-passive-aggressive",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "4246c434ecafbc1a",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-deep",
+      "competitor_b": "jurebes-perceptron",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "e9322db222fd202b",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "jurebes-qda-classifier",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "7b279f20cf5f8e34",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-deep",
+      "competitor_b": "jurebes-random-forest",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "490ebbc411a03317",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00002",
+      "input_text": "Set a different alarm",
+      "audio_url": null,
+      "reference": "alarm:create_alarm",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "alarm:create_alarm"
+      },
+      "competitor_a": "jurebes-random-projection-logreg",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "11e1c4634d0ab088",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00016",
+      "input_text": "Tell my mom we made it to Gatlinburg.",
+      "audio_url": null,
+      "reference": "messaging:send_message",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "messaging:send_message"
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-deep",
+      "competitor_b": "jurebes-rbf-svc",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "32356fe2e1e85533",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "jurebes-ridge",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "1529f5cdbb2e0f77",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "jurebes-sgd-hinge",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "92df509369eda9ac",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-deep",
+      "competitor_b": "jurebes-sgd-log",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "6134c17d15d2af54",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-deep",
+      "competitor_b": "jurebes-sgd-modified-huber",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "9ee11122857b4617",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00006",
+      "input_text": "What temp should i cook ham on",
+      "audio_url": null,
+      "reference": "recipes:get_info_recipes",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "recipes:get_info_recipes"
+      },
+      "competitor_a": "jurebes-skipgram-logreg",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "9bc2590ab92996ba",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-deep",
+      "competitor_b": "jurebes-stacking",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "642403618ae5fccf",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "jurebes-text-stats-logreg",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "7a3d341f7d84d352",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00000",
+      "input_text": "Show me dates for music festivals in 2018",
+      "audio_url": null,
+      "reference": "event:get_event",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "event:get_event"
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-deep",
+      "competitor_b": "jurebes-union-logreg",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "a927044b2e0e439c",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": "calling:create_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-deep",
+      "competitor_b": "jurebes-voting-soft",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "2ffb98d86e57885f",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00019",
+      "input_text": "When does the County fair open in Barren county",
+      "audio_url": null,
+      "reference": "event:get_event",
+      "prediction_a": {
+        "intent": "news:question_news"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-domain-medium",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-linha-fina-domain-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "2c9191beb71407b4",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00011",
+      "input_text": "hold and receive new call",
+      "audio_url": null,
+      "reference": "calling:switch_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:hold_call"
+      },
+      "competitor_a": "jurebes-autoencoder-logreg-deep",
+      "competitor_b": "linha-fina-hierarchical-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-linha-fina-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "0a125a9202b3bb19",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00016",
+      "input_text": "Tell my mom we made it to Gatlinburg.",
+      "audio_url": null,
+      "reference": "messaging:send_message",
+      "prediction_a": {
+        "intent": "calling:get_call"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "linha-fina-medium",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-linha-fina-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "baae0fb47e4a9bbf",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "m2v-medium",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-m2v-pipeline",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    },
+    {
+      "battle_id": "8ac169f83118e4f5",
+      "modality": "intent_template",
+      "dataset_id": "mtop-en-US",
+      "lang": "en-US",
+      "sample_id": "en-US/00010",
+      "input_text": "can you  enable  video call",
+      "audio_url": null,
+      "reference": "calling:update_method_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calling:create_call"
+      },
+      "competitor_a": "markov-domain-medium",
+      "competitor_b": "jurebes-autoencoder-logreg-deep",
+      "plugin_a": "ovos-markov-domain-pipeline-plugin",
+      "plugin_b": "ovos-jurebes-pipeline-plugin"
+    }
+  ],
+  "skipped_reference_mismatches": 0
+}
