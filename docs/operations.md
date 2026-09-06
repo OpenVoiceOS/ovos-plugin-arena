@@ -41,7 +41,7 @@ See [`methodology.md`](methodology.md) for *why* the rules exist and
    today.
 4. **Pages deploy.** `.github/workflows/pages.yml` is triggered by
    `workflow_run` once `assemble` or `tally` finishes (not on a schedule of
-   its own). It builds the Astro site over whatever is currently committed
+   its own). It builds the Astro site over whatever is committed
    under `frontend-static/public/data/` and publishes it to GitHub Pages.
 5. **Rating moves.** The commit tally pushes to `dev` is the rating change, there is no separate "publish" step. Once the Pages deploy after that
    commit finishes, the live site reflects the new standings.
@@ -219,7 +219,7 @@ goes quietly wrong, rather than failing outright:
   vote was cast, and this particular battle didn't survive into the new
   pool (e.g. the source dataset entry rotated out of the sampled subset).
   This is not itself a bug, the voter's browser tab was open against a
-  now-superseded pool. Ask them to reload the site and vote again.
+  superseded pool. Ask them to reload the site and vote again.
 - **`tally.yml` runs green but the leaderboard didn't change.** Check
   `vote-audit.json`'s `discarded` list first, every open vote issue may
   have been legitimately discarded (new account, over the daily cap). If
