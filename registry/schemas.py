@@ -237,6 +237,24 @@ class DatasetDef(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     dataset_id: str = Field(..., description="Stable unique identifier for this dataset")
+    display_name: str | None = Field(
+        None,
+        description=(
+            "Human-readable corpus name for the leaderboard, e.g. "
+            "'MTOP (English)' — what a visitor reads instead of the "
+            "dataset_id code name."
+        ),
+    )
+    summary: str | None = Field(
+        None,
+        description=(
+            "Two to four plain sentences a non-expert understands: where "
+            "the utterances or clips come from, what one row is, how big "
+            "the corpus is, what a fighter has to do with it, and any "
+            "caveat that changes how to read the score. Required on every "
+            "role=eval corpus; ``notes`` stays the technical footnote."
+        ),
+    )
     # Schema revision of this registry entry's shape — 1 is the only shape
     # defined so far; bump when the DatasetDef contract changes.
     schema_version: int = 1

@@ -90,6 +90,25 @@ import Base from '../../layouts/Base.astro';
       border:1px solid var(--border); border-radius:999px; background:var(--surface); }
     .lb-chip code { background:none; border:none; padding:0; font-size:0.82em; color:var(--text); }
     .lb-notes { flex-basis:100%; font-size:0.8rem; color:var(--muted); }
+    /* ---- dataset intro card + metric legend ---- */
+    .league-intro { max-width:70ch; margin:0 0 1.4rem; color:var(--muted); font-size:0.92rem; }
+    .ds-intro { border:1px solid var(--border); border-radius:10px; background:var(--surface);
+      padding:0.9rem 1.1rem; margin-bottom:1.1rem; }
+    .ds-title { margin:0; font-size:1.05rem; display:flex; flex-wrap:wrap; align-items:baseline; gap:0.5rem; }
+    .ds-id { font-family:var(--mono); font-size:0.78rem; color:var(--muted); background:none;
+      border:none; padding:0; }
+    .ds-summary { margin:0.5rem 0 0; max-width:70ch; font-size:0.9rem; }
+    .ds-facts { margin:0.5rem 0 0; font-size:0.8rem; color:var(--muted); }
+    .ds-intro .lb-notes { margin-top:0.6rem; }
+    .bench-caption { caption-side:top; text-align:left; font-size:0.8rem; color:var(--muted);
+      padding-bottom:0.4rem; }
+    .metric-legend { margin-top:0.7rem; font-size:0.8rem; color:var(--muted); }
+    .metric-legend summary { cursor:pointer; color:var(--text); }
+    .metric-legend dl { margin:0.5rem 0 0; display:grid; gap:0.45rem; }
+    .metric-legend dt { font-weight:600; color:var(--text); }
+    .metric-legend dd { margin:0.1rem 0 0; max-width:80ch; }
+    .ml-dir { color:var(--accent); }
+    .ml-caveat { display:block; font-style:italic; }
     .lb-notes summary { cursor:pointer; color:var(--text); }
     .lb-notes p { margin:0.35rem 0 0; }
 
@@ -201,7 +220,7 @@ import Base from '../../layouts/Base.astro';
 
   <script>
     import { spriteSvg } from '../../lib/sprite.js';
-    import { groupedLangOptionsHtml } from '../../lib/lang.js';
+    import { groupedLangOptionsHtml, langDisplayName } from '../../lib/lang.js';
     import { boardVoteProvenance, provenanceHtml } from '../../lib/provenance.js';
 
     const BASE = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
@@ -385,11 +404,34 @@ import Base from '../../layouts/Base.astro';
     // singleton keyed on its own dead id. See groupKeyOf.
     let pluginFamilies = {};
     let league = '', lang = '', dataset = '', cacheV = '', metric = '';
-    // Display label for a metric key — reuses METRIC_COLUMNS when the key
-    // is a known benchmark column, else falls back to a lightly-prettied
-    // version of the raw key (e.g. "sigmos.noise" -> "sigmos.noise", the
-    // dotted quality-dimension keys already read fine as-is).
-    const metricLabel = key => METRIC_COLUMN_BY_KEY[key]?.[1] || key;
+    // data/metrics-legend.json (arena/metrics_legend.py) — plain-language
+    // names, meanings and caveats for every metric a board can carry, plus
+    // one intro paragraph per league. Absent on a stale CDN edge, in which
+    // case the board falls back to the short column labels above.
+    let legend = { metrics: {}, leagues: {} };
+    // Display label for a metric key: the legend's human name first, then
+    // the short column label, then the raw key.
+    const metricLabel = key =>
+      legend.metrics[key]?.label || METRIC_COLUMN_BY_KEY[key]?.[1] || key;
+    // Short form for a table header, where horizontal room is scarce: the
+    // hand-tuned column label wins and the full name lives in the tooltip
+    // and the legend below the table.
+    const metricHeader = key =>
+      METRIC_COLUMN_BY_KEY[key]?.[1] || legend.metrics[key]?.label || key;
+    const DIRECTION_TEXT = { higher: 'higher is better', lower: 'lower is better' };
+    // One sentence a reader can hover or read below the table: what the
+    // number means, which way is better, and the caveat that changes how to
+    // read it.
+    function metricExplainer(key) {
+      const m = legend.metrics[key];
+      if (!m) return '';
+      const bits = [m.label + ' — ' + m.meaning, DIRECTION_TEXT[m.direction], m.unit, m.caveat];
+      return bits.filter(Boolean).join(' · ');
+    }
+    const metricTitle = key => {
+      const text = metricExplainer(key);
+      return text ? ` title="${esc(text)}"` : '';
+    };
     // lazily fetched board bodies, keyed by file name — a selection change
     // only ever fetches the files that match it, never the full corpus.
     const fileCache = new Map();
@@ -816,8 +858,9 @@ import Base from '../../layouts/Base.astro';
       const benchEntries = allBoardEntries.filter(e => !e.unranked);
       const benchAwaitingCount = allBoardEntries.length - benchEntries.length;
       if (!benchEntries.length) {
-        return `<div class="bench">No entries with prediction data yet.${
-          benchAwaitingCount ? ` <p class="lb-note">${benchAwaitingCount} fighter${benchAwaitingCount === 1 ? '' : 's'} unranked — no comparable score</p>` : ''}</div>`;
+        return `<div class="bench">${datasetIntroHtml(board, [])}
+          <p>No entries with prediction data yet.</p>${
+          benchAwaitingCount ? `<p class="lb-note">${benchAwaitingCount} fighter${benchAwaitingCount === 1 ? '' : 's'} unranked — no comparable score</p>` : ''}</div>`;
       }
       board = { ...board, entries: benchEntries };
       // The ladder metric picker also re-sorts this benchmark board: when
@@ -849,11 +892,12 @@ import Base from '../../layouts/Base.astro';
         Object.keys(e.metrics || {}).filter(k => k.startsWith('acc_'))))].sort();
       const medal = r => r <= 3 ? `m${r}` : '';
       const rowOpts = { primary, secondary, buckets, score, medal };
-      const head = `<tr><th></th><th></th><th>Fighter</th><th>${esc(metricLabel(primary))}</th>
-        ${secondary.map(([, l]) => `<th>${l}</th>`).join('')}
-        ${buckets.map(b => `<th class="bucket-col">${esc(b.slice(4))}</th>`).join('')}
-        <th>RTF</th><th>Peak MB</th><th>Model MB</th>
-        <th>Samples</th></tr>`;
+      const head = `<tr><th></th><th></th><th scope="col">Fighter</th>
+        <th scope="col"${metricTitle(primary)}>${esc(metricHeader(primary))}</th>
+        ${secondary.map(([k]) => `<th scope="col"${metricTitle(k)}>${esc(metricHeader(k))}</th>`).join('')}
+        ${buckets.map(b => `<th scope="col" class="bucket-col"${metricTitle(b)}>${esc(metricHeader(b))}</th>`).join('')}
+        <th scope="col">RTF</th><th scope="col">Peak MB</th><th scope="col">Model MB</th>
+        <th scope="col">Samples</th></tr>`;
       const rows = groupBenchEntries(sortedEntries).map(node => {
         if (!node.group) return benchRowHtml(node.entry, rowOpts);
         const best = node.members[0];
@@ -876,17 +920,61 @@ import Base from '../../layouts/Base.astro';
       }).join('');
       const pareto = paretoSectionHtml(board, primary, higher);
       const judgeAgreement = league === 'tts' ? judgeAgreementHtml(board) : '';
+      const shownMetrics = [primary, ...secondary.map(([k]) => k), ...buckets];
+      const caption = `${esc(datasetTitle(board))}, ranked by ${esc(metricLabel(primary))}`;
       return `<div class="bench">
+        ${datasetIntroHtml(board, sortedEntries)}
         <div class="lb-section-head" style="margin-bottom:0.8rem">
-          <h2 style="font-size:1rem">📊 ${esc(board.dataset_id || '')}</h2>
-          <span class="tag">${wantsMetric ? 'sorted by' : 'primary metric'} · ${esc(metricLabel(primary))}</span>
+          <h3 style="font-size:1rem">📊 Board</h3>
+          <span class="tag">${wantsMetric ? 'sorted by' : 'ranked by'} · ${esc(metricLabel(primary))}, ${DIRECTION_TEXT[legend.metrics[primary]?.direction] || (higher ? 'higher is better' : 'lower is better')}</span>
           ${buckets.length ? '<button class="btn toggle-buckets" style="padding:0.1rem 0.6rem;font-size:0.72rem;margin-left:auto">show buckets</button>' : ''}
         </div>
         ${benchAwaitingCount ? `<p class="lb-note">${benchAwaitingCount} fighter${benchAwaitingCount === 1 ? '' : 's'} unranked — no comparable score</p>` : ''}
-        <div style="overflow-x:auto"><table class="bench-tbl"><thead>${head}</thead><tbody>${rows}</tbody></table></div>
+        <div style="overflow-x:auto"><table class="bench-tbl"><caption class="bench-caption">${caption}</caption><thead>${head}</thead><tbody>${rows}</tbody></table></div>
+        ${metricLegendHtml(shownMetrics)}
         ${pareto}
         ${judgeAgreement}
       </div>`;
+    }
+
+    const datasetTitle = board =>
+      board.dataset_info?.display_name || board.dataset_id || '';
+
+    // The card a visitor reads before the numbers: what this corpus is, in
+    // whose language, how much of it was scored, and the technical footnote
+    // kept where it has always been.
+    function datasetIntroHtml(board, entries) {
+      const info = board.dataset_info || {};
+      const rows = Math.max(0, ...entries.map(e => e.samples || 0));
+      const facts = [];
+      if (board.lang) facts.push(`${esc(langDisplayName(board.lang))} (${esc(board.lang)})`);
+      if (rows) facts.push(`${rows.toLocaleString()} rows scored per fighter`);
+      facts.push(`${entries.length} fighter${entries.length === 1 ? '' : 's'} ranked`);
+      return `<div class="ds-intro">
+        <h2 class="ds-title">${esc(datasetTitle(board))}
+          <code class="ds-id">${esc(board.dataset_id || '')}</code></h2>
+        ${info.summary ? `<p class="ds-summary">${esc(info.summary)}</p>` : ''}
+        <p class="ds-facts">${facts.join(' · ')}</p>
+        ${info.notes ? `<details class="lb-notes"><summary>Technical notes</summary>
+          <p>${esc(info.notes)}</p></details>` : ''}
+      </div>`;
+    }
+
+    // Every column the table just rendered, spelled out in words underneath
+    // it — the tooltip is a convenience, this is the accessible copy.
+    function metricLegendHtml(keys) {
+      const rows = [...new Set(keys)]
+        .filter(k => legend.metrics[k])
+        .map(k => {
+          const m = legend.metrics[k];
+          const tail = [DIRECTION_TEXT[m.direction], m.unit].filter(Boolean).join(', ');
+          return `<div class="ml-row"><dt>${esc(metricHeader(k))}</dt>
+            <dd>${esc(m.meaning)} ${tail ? `<span class="ml-dir">(${esc(tail)})</span>` : ''}
+            ${m.caveat ? `<span class="ml-caveat">${esc(m.caveat)}</span>` : ''}</dd></div>`;
+        }).join('');
+      if (!rows) return '';
+      return `<details class="metric-legend"><summary>What these columns mean</summary>
+        <dl>${rows}</dl></details>`;
     }
 
     function datasetInfoHtml(board) {
@@ -901,15 +989,7 @@ import Base from '../../layouts/Base.astro';
       if ((info.predictions || []).length)
         parts.push(chip(`<a href="${esc(info.predictions[0])}" target="_blank" rel="noopener noreferrer">predictions ↗</a>`));
       if (board.generated_at) parts.push(`<span style="opacity:0.7">updated ${new Date(board.generated_at).toLocaleDateString()}</span>`);
-      let html = parts.join('');
-      // caveats (e.g. "recall-only benchmark") must reach users, not just
-      // maintainers reading the registry JSON — collapsed by default so it
-      // doesn't crowd the chip row, but never dropped.
-      if (info.notes) html += `<details class="lb-notes">
-        <summary>Dataset notes</summary>
-        <p>${esc(info.notes)}</p>
-      </details>`;
-      return html;
+      return parts.join('');
     }
 
     // fetch (with in-memory caching) just the board files a metadata list
@@ -962,9 +1042,11 @@ import Base from '../../layouts/Base.astro';
 
       document.getElementById('dataset-info').innerHTML = datasetInfoHtml(benches[0]);
       const panels = document.getElementById('lb-panels');
+      const leagueIntro = legend.leagues[league];
       panels.innerHTML = (isVoteless ? '' : eloSection(elo, league, metric)) + `<section class="lb-section">
         <div class="lb-section-head"><p class="eyebrow" style="color:var(--accent)">The Data</p>
           <h2>📊 Benchmark boards</h2></div>
+        ${leagueIntro ? `<p class="league-intro">${esc(leagueIntro)}</p>` : ''}
         ${isVoteless ? '<p class="lb-note">Vote-less league — ranked by phoneme error rate against provenance-tiered gold, no battles/ELO.</p>' : ''}
         ${benches.length ? benches.map(b => benchBoard(b, league, metric, ladders)).join('') : benchBoard(null, league, metric, ladders)}
       </section>`;
@@ -1052,6 +1134,9 @@ import Base from '../../layouts/Base.astro';
       indexData = index;
       leagues = (index?.leagues && index.leagues.length) ? index.leagues : DEFAULT_LEAGUES;
       leagueById = Object.fromEntries(leagues.map(l => [l.id, l]));
+      const legendData = await fetchJson(`${BASE}data/metrics-legend.json${cacheV}`);
+      if (legendData) legend = {
+        metrics: legendData.metrics || {}, leagues: legendData.leagues || {} };
       const bestiary = await fetchJson(`${BASE}data/competitors.json${cacheV}`);
       for (const f of bestiary?.competitors || []) fighters[f.competitor_id] = f;
       pluginFamilies = bestiary?.plugin_families || {};

@@ -123,7 +123,11 @@ plugin class it instantiates), `types` (architecture tags: `GOFAI`,
 **Datasets** (`registry/datasets/<modality>/<id>.json`): one corpus per
 entry, source (HF id + revision + split or per-lang `file_pattern`),
 `reference_fields` (the datashape contract), license, `lang` (or
-`lang: multi` plus a `langs` list), and a `role`. **Keyword-paradigm and
+`lang: multi` plus a `langs` list), and a `role`. `display_name` is the
+human-readable corpus name the leaderboard shows in place of the code-name
+`dataset_id`, and `summary` is the plain-language paragraph that tells a
+visitor where the data comes from, what one row is and what changes how to
+read the score; every `role: eval` corpus MUST carry both. **Keyword-paradigm and
 template-paradigm training corpora are different datasets with different
 datashapes**: each gets its own `role: train` entry tagged with `paradigm`
 (`template` rows carry `{slot}` phrase templates with example values. `keyword` rows carry complete Adapt-style `required_vocab`/`optional_vocab`

@@ -61,6 +61,7 @@ from arena.metrics import (
     metric_higher_is_better,
     row_on_pinned_revision,
 )
+from arena.metrics_legend import metrics_legend
 from arena.models import (
     VOTELESS_MODALITIES,
     BattlesPool,
@@ -645,6 +646,10 @@ def _dataset_info_lookup(prediction_sources: list[str]) -> dict[str, dict[str, A
     by_id = {d.dataset_id: d for d in datasets}
     for dataset in datasets:
         entry: dict[str, Any] = {}
+        if dataset.display_name:
+            entry["display_name"] = dataset.display_name
+        if dataset.summary:
+            entry["summary"] = dataset.summary
         hf_id = getattr(dataset.source, "hf_id", None)
         if hf_id:
             entry["url"] = f"https://huggingface.co/datasets/{hf_id}"
@@ -1980,6 +1985,18 @@ def cmd_export_index(args: argparse.Namespace) -> int:
     # relative to a human vote (arena/elo.py BT_AUTO_WEIGHT), so the site
     # can state it without hardcoding a copy of the constant.
     index["auto_vote_weight"] = BT_AUTO_WEIGHT
+
+    # The plain-language legend for league tasks and metric columns rides
+    # along with the index — the site fetches it once and uses it on every
+    # board, so a metric never reaches a visitor as a bare code name.
+    legend_file = Path(args.output).with_name("metrics-legend.json")
+    legend = metrics_legend()
+    if _unchanged(legend_file, legend):
+        log.info("Unchanged %s", legend_file)
+    else:
+        legend_file.write_text(json.dumps(legend, indent=2) + "\n")
+        log.info("Wrote %s (%d metrics, %d leagues)", legend_file,
+                 len(legend["metrics"]), len(legend["leagues"]))
 
     out_file = Path(args.output)
     if _unchanged(out_file, index):

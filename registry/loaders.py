@@ -194,6 +194,17 @@ def validate_registry(registry_root: Path | None = None) -> list[str]:
             except Exception as exc:
                 errors.append(f"{path}: {exc}")
 
+    # Every corpus needs a human name, and every eval corpus also needs the
+    # plain-language summary the leaderboard prints above its board — a
+    # dataset that reaches the site as a bare code name with no explanation
+    # is a defect, not a cosmetic gap.
+    for dataset_id, dataset in all_datasets.items():
+        path = dataset_paths[dataset_id]
+        if not (dataset.display_name or "").strip():
+            errors.append(f"{path}: display_name is required")
+        if dataset.role == "eval" and not (dataset.summary or "").strip():
+            errors.append(f"{path}: summary is required on a role=eval corpus")
+
     # negatives_dataset_ids must resolve to a registered wake_word dataset —
     # _pooled_dataset_negatives (runner/audio_io.py) loads each id via
     # load_dataset("wake_word", did), so a missing or wrong-modality id only
