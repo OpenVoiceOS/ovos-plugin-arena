@@ -1,0 +1,38 @@
+{
+  "competitor_id": "nebulacioso",
+  "modality": "intent",
+  "config": {
+    "intents": {
+      "pipeline": [
+        "ovos-padacioso-pipeline-plugin-high",
+        "ovos-nebulento-pipeline-plugin-low"
+      ],
+      "ovos-padacioso-pipeline-plugin": {
+        "conf_high": 0.95,
+        "conf_med": 0.8,
+        "conf_low": 0.5,
+        "workers": 4,
+        "fuzz": false
+      },
+      "ovos-nebulento-pipeline-plugin": {
+        "conf_high": 0.95,
+        "conf_med": 0.8,
+        "conf_low": 0.5,
+        "workers": 4
+      }
+    }
+  },
+  "langs": [],
+  "display_name": "Nebulacioso",
+  "types": [
+    "ensemble",
+    "template-match",
+    "fuzzy-match"
+  ],
+  "description": "Padacioso's deterministic, regex-based template matcher takes the first shot and extracts slots from an exact match; Nebulento's fuzzy string matching mops up anything the strict templates miss. Both engines are training-free and dependency-light, making this the lightweight padatious replacement candidate for installs where model2vec is not available.",
+  "links": {
+    "source": "https://github.com/OpenVoiceOS/padacioso"
+  },
+  "size": "micro",
+  "notes": "HYPOTHESIS: Padacioso's high-confidence exact template gate plus Nebulento's fuzzy fallback should catch both exact and near-miss phrasings without any training step, unlike padatious or m2v-based fighters which need a trained model. Nebulento runs at its own low-confidence gate (conf_low) rather than medium so it actually fires as a fallback instead of sitting nearly silent behind Padacioso's high gate; conf_high/conf_med/conf_low values are copied verbatim from the single-engine nebulento-medium template fighter, only the pipeline tier differs."
+}
