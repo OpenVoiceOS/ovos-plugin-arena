@@ -1,0 +1,509 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="Cost vs. Quality" description="Which fighter gives the most quality per megabyte or millisecond — the Pareto frontier for every league's benchmark boards.">
+  <p class="eyebrow" style="margin-bottom:0.4rem">OVOS Plugin Arena · Efficiency</p>
+  <h1 style="font-size:clamp(1.8rem,5vw,2.6rem);margin-bottom:0.35rem">Cost vs. Quality</h1>
+  <p style="max-width:62ch">
+    On a small board, a fighter that scores a little lower but needs a tenth of the memory
+    usually wins. This page plots every benchmarked fighter's quality against its measured
+    cost and marks the ones nobody beats on both — the <strong>Pareto frontier</strong>.
+    Pick a league and a language, then use the slider to find
+    <strong id="para-goal">the cheapest fighter that still scores within a chosen margin of the best</strong> —
+    within X% of the best score, or X% of the board's own spread when the best score is exactly zero, so the
+    slider stays meaningful even for a metric whose leader has no error at all.
+    See the <a href="../leaderboard/">full leaderboards</a> for every quality metric and vote counts.
+  </p>
+
+  <div id="pt-loading" class="card" aria-live="polite">Loading the arena…</div>
+  <div id="pt-empty" class="card" style="display:none">
+    No performance measurements yet for this selection — RTF and peak-memory columns are only
+    populated once a benchmark run captures the optional performance fields described in the
+    <a href="https://github.com/OpenVoiceOS/ovos-plugin-arena/blob/dev/docs/methodology.md#performance-data-on-prediction-rows-32-m1">methodology</a>.
+  </div>
+
+  <div id="pt-app" style="display:none">
+    <div id="league-tabs" class="lb-tabs" role="tablist" aria-label="Leagues"></div>
+
+    <div class="lb-control">
+      <label for="sel-lang" class="lb-lang">
+        <span>Language</span>
+        <select id="sel-lang"></select>
+      </label>
+      <label for="sel-dataset" class="lb-lang">
+        <span>Dataset</span>
+        <select id="sel-dataset"></select>
+      </label>
+      <label for="sel-cost" class="lb-lang">
+        <span>Cost axis</span>
+        <select id="sel-cost">
+          <option value="peak_rss_mb">Peak memory (MB, log scale)</option>
+          <option value="rtf">Real-time factor</option>
+        </select>
+      </label>
+      <label for="sel-tier" class="lb-lang">
+        <span>Hardware tier</span>
+        <select id="sel-tier">
+          <option value="">All tiers (charted separately)</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="lb-control">
+      <label for="rng-tolerance" class="lb-lang" style="flex:1;min-width:260px">
+        <span>Within</span>
+        <input type="range" id="rng-tolerance" min="0" max="30" step="1" value="5" style="flex:1" />
+        <span id="rng-tolerance-val">5%</span>
+        <span>of the best</span>
+      </label>
+    </div>
+
+    <p id="pt-hw-note" class="lb-note" style="display:none"></p>
+    <p class="lb-note pt-shape-legend">
+      Shape key: <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" style="vertical-align:middle">
+        <circle cx="7" cy="7" r="5" fill="var(--muted)" opacity="0.65"/></svg> dominated ·
+      <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" style="vertical-align:middle">
+        <path d="M7 1 L13 7 L7 13 L1 7 Z" fill="var(--accent)"/></svg> on the frontier ·
+      <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true" style="vertical-align:middle">
+        <path d="M7 1 L13 7 L7 13 L1 7 Z" fill="var(--accent)" stroke="var(--gold)" stroke-width="2"/></svg> chosen (within tolerance)
+    </p>
+
+    <div id="pt-panels"></div>
+  </div>
+
+  <style is:global>
+    .pt-chart-wrap { border:1px solid var(--border); border-radius:14px; padding:1rem 1.1rem 0.6rem;
+      margin-bottom:1rem; background:linear-gradient(180deg, var(--surface-2), var(--surface)); overflow-x:auto; }
+    .pt-chart-wrap svg { display:block; min-width:520px; }
+    .pt-axis-label { font-size:0.68rem; fill: var(--muted); font-family: var(--mono); }
+    .pt-grid line { stroke: var(--border); stroke-width: 1; }
+    .pt-frontier-line { fill:none; stroke: var(--accent); stroke-width: 2; stroke-dasharray: 4 3; }
+    .pt-dot { cursor: pointer; }
+    .pt-dot circle, .pt-dot path { stroke: var(--bg); stroke-width: 1.5; }
+    .pt-dot.frontier path { fill: var(--accent); }
+    .pt-dot.dominated circle { fill: var(--muted); opacity: 0.65; }
+    .pt-dot.chosen path { stroke: var(--gold); stroke-width: 2.5; }
+    .pt-dot:hover circle, .pt-dot:focus circle,
+    .pt-dot:hover path, .pt-dot:focus path { stroke: var(--text); }
+    .pt-shape-legend svg { margin: 0 0.15rem; }
+    .pt-dot text { font-family: var(--mono); font-size: 10px; fill: var(--text); pointer-events: none; opacity: 0; }
+    .pt-dot:hover text, .pt-dot:focus text { opacity: 1; }
+    .pt-table-wrap { overflow-x: auto; }
+    .frontier-badge { font-family: var(--mono); font-size: 0.68rem; color: #fff; background: var(--gradient);
+      border-radius: 999px; padding: 0.05rem 0.5rem; margin-left: 0.4rem; }
+    .chosen-badge { font-family: var(--mono); font-size: 0.68rem; color: var(--gold);
+      border: 1px solid var(--gold); border-radius: 999px; padding: 0.05rem 0.5rem; margin-left: 0.4rem; }
+    .pt-sortable { cursor: pointer; user-select: none; }
+    .pt-sortable:hover { color: var(--text); }
+    .pt-unmeasured { margin-top: 1.5rem; }
+  </style>
+
+  <script>
+    import { spriteSvg } from '../../lib/sprite.js';
+    import { groupedLangOptionsHtml, langDisplayName } from '../../lib/lang.js';
+    import { costQualityPoints, pointsByTier, paretoFrontier, cheapestWithinTolerance } from '../../lib/pareto.js';
+
+    const BASE = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
+
+    const DEFAULT_LEAGUES = [
+      { id: 'intent_template', label: 'Intent · Template', order: 0 },
+      { id: 'intent_keyword', label: 'Intent · Keyword', order: 1 },
+      { id: 'intent', label: 'Intent · Fusions', order: 2 },
+      { id: 'stt', label: 'STT', order: 3 },
+      { id: 'tts', label: 'TTS', order: 4 },
+      { id: 'wake_word', label: 'Wake Word', order: 5 },
+      { id: 'vad', label: 'VAD', order: 6 },
+    ];
+    // Metrics whose raw scale is already "higher is better" when the
+    // legend (data/metrics-legend.json) doesn't say so explicitly —
+    // mirrors leaderboard/index.astro's own fallback set.
+    const HIGHER_IS_BETTER = new Set(['accuracy', 'generalization_accuracy', 'utmos',
+      'sigmos.noise', 'sigmos.col', 'sigmos.disc', 'dnsmos.bak']);
+
+    const esc = s => String(s).replace(/[&<>"']/g, c =>
+      ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c]);
+    const fetchJson = p => fetch(p).then(r => r.ok ? r.json() : null).catch(() => null);
+
+    let leagues = [], leagueById = {};
+    let benchmarksMeta = [], indexData = null;
+    let fighters = {};
+    let legend = { metrics: {}, leagues: {} };
+    let league = '', lang = '', dataset = '', costKey = 'peak_rss_mb', cacheV = '', tolerance = 5, tierFilter = '';
+    // table sort state, shared by every board section on the page: 'frontier'
+    // (default — frontier first, then increasing cost), 'quality', 'cost' or
+    // 'tier', each toggling ascending/descending on repeat clicks of the
+    // same header.
+    let sortKey = 'frontier', sortDir = 1;
+    const fileCache = new Map();
+
+    const nameOf = id => fighters[id]?.display_name || id;
+    const typeOf = id => (fighters[id]?.types || [])[0] || '';
+    const sprite = (id, size) => spriteSvg(id, typeOf(id), size, false);
+    const fighterHref = id => `${BASE}fighter/${encodeURIComponent(id)}/`;
+    const fighterLink = id => fighters[id]
+      ? `<a href="${fighterHref(id)}">${esc(nameOf(id))}</a>`
+      : `<span>${esc(nameOf(id))}</span>`;
+
+    function metricLabel(key) {
+      return legend.metrics[key]?.label || key;
+    }
+    function higherIsBetter(key) {
+      const dir = legend.metrics[key]?.direction;
+      if (dir === 'higher') return true;
+      if (dir === 'lower') return false;
+      return HIGHER_IS_BETTER.has(key);
+    }
+    function fmtQuality(key, v) {
+      if (v == null) return '—';
+      const unit = legend.metrics[key]?.unit || '';
+      if (unit.includes('%')) return (v * 100).toFixed(1) + '%';
+      return (Math.round(v * 100) / 100).toFixed(2);
+    }
+    function fmtCost(v) {
+      return costKey === 'peak_rss_mb' ? `${Math.round(v)} MB` : v.toFixed(3);
+    }
+
+    async function fetchBoards(metaList) {
+      await Promise.all(metaList.map(async m => {
+        if (!fileCache.has(m.file)) {
+          const body = await fetchJson(`${BASE}data/${m.file}${cacheV}`);
+          if (body != null) fileCache.set(m.file, body);
+        }
+      }));
+      return metaList.map(m => fileCache.get(m.file)).filter(Boolean);
+    }
+
+    // ---------------------------------------------------------------
+    // Inline SVG scatter — no chart library. x = cost (optionally log),
+    // y = quality (normalized to the plotted range, direction-aware so
+    // "up" always means "better"). The frontier is drawn as a step line
+    // through the cost-sorted frontier points.
+    function scatterSvg(points, frontier, chosen, higher, primary, tierLabel) {
+      const W = 640, H = 340, M = { l: 46, r: 20, t: 16, b: 40 };
+      const plotW = W - M.l - M.r, plotH = H - M.t - M.b;
+      const costs = points.map(p => p.cost);
+      const useLog = costKey === 'peak_rss_mb';
+      const cMin = Math.min(...costs), cMax = Math.max(...costs);
+      const cLo = useLog ? Math.log10(Math.max(cMin, 0.01)) : cMin;
+      const cHi = useLog ? Math.log10(Math.max(cMax, 0.01)) : cMax;
+      const cSpan = cHi - cLo || 1;
+      const xOf = c => M.l + ((useLog ? Math.log10(Math.max(c, 0.01)) : c) - cLo) / cSpan * plotW;
+
+      const quals = points.map(p => p.quality);
+      const qMin = Math.min(...quals), qMax = Math.max(...quals);
+      const qSpan = (qMax - qMin) || 1;
+      // Always plot so that "up" is better, regardless of the metric's
+      // own raw direction.
+      const yOf = q => {
+        const norm = (q - qMin) / qSpan; // 0..1, raw-scale position
+        const better = higher ? norm : 1 - norm;
+        return M.t + (1 - better) * plotH;
+      };
+
+      const frontierIds = new Set(frontier.map(p => p.id));
+      const chosenId = chosen?.id;
+
+      const gridLines = [0, 0.25, 0.5, 0.75, 1].map(t => {
+        const y = M.t + t * plotH;
+        return `<line class="pt-grid" x1="${M.l}" y1="${y}" x2="${W - M.r}" y2="${y}"/>`;
+      }).join('');
+
+      const frontierPath = frontier.length > 1
+        ? `<path class="pt-frontier-line" d="${frontier.map((p, i) =>
+            `${i === 0 ? 'M' : 'L'}${xOf(p.cost).toFixed(1)},${yOf(p.quality).toFixed(1)}`).join(' ')}"/>`
+        : '';
+
+      // Frontier/chosen points are diamonds, dominated points are plain
+      // circles — colour alone (accent vs. muted fill) is never the only
+      // signal, per WCAG 1.4.1. The aria-label spells the same status out
+      // in words for anyone not seeing the shape either.
+      const dots = points.map(p => {
+        const x = xOf(p.cost).toFixed(1), y = yOf(p.quality).toFixed(1);
+        const isFrontier = frontierIds.has(p.id);
+        const isChosen = p.id === chosenId;
+        const cls = ['pt-dot', isFrontier ? 'frontier' : 'dominated', isChosen ? 'chosen' : '']
+          .filter(Boolean).join(' ');
+        const status = isChosen ? ', chosen: cheapest within tolerance'
+          : isFrontier ? ', on the cost/quality frontier' : ', dominated by a cheaper-or-better fighter';
+        const shape = isFrontier
+          ? `<path d="M${x} ${(Number(y) - 7).toFixed(1)} L${(Number(x) + 7).toFixed(1)} ${y} L${x} ${(Number(y) + 7).toFixed(1)} L${(Number(x) - 7).toFixed(1)} ${y} Z"/>`
+          : `<circle cx="${x}" cy="${y}" r="6"/>`;
+        return `<g class="${cls}" tabindex="0" role="img"
+            aria-label="${esc(nameOf(p.id))}: ${esc(fmtQuality(primary, p.quality))} quality, ${esc(fmtCost(p.cost))}${tierLabel ? ` (${esc(tierLabel)} tier)` : ''}${status}">
+          ${shape}
+          <text x="${(Number(x) + 9).toFixed(1)}" y="${(Number(y) + 3).toFixed(1)}">${esc(nameOf(p.id))}</text>
+        </g>`;
+      }).join('');
+
+      return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(tierLabel ? `Cost versus quality scatter plot, ${tierLabel} tier` : 'Cost versus quality scatter plot')}">
+        ${gridLines}
+        <line x1="${M.l}" y1="${M.t}" x2="${M.l}" y2="${H - M.b}" stroke="var(--border)"/>
+        <line x1="${M.l}" y1="${H - M.b}" x2="${W - M.r}" y2="${H - M.b}" stroke="var(--border)"/>
+        <text class="pt-axis-label" x="${M.l}" y="${M.t - 4}">better ↑</text>
+        <text class="pt-axis-label" x="${W - M.r}" y="${H - 10}" text-anchor="end">more expensive →</text>
+        <text class="pt-axis-label" x="${M.l}" y="${H - 10}">cheaper ←</text>
+        ${frontierPath}
+        ${dots}
+      </svg>`;
+    }
+
+    // ---------------------------------------------------------------
+    // One row of the board-wide table — `tierStatus` is this row's own
+    // tier's {frontierIds, chosenId}, since frontier/chosen status is only
+    // meaningful WITHIN a tier, never across the tiers stacked in the table.
+    function tableRow(p, tierStatus, primary) {
+      const badges = (tierStatus.frontierIds.has(p.id) ? '<span class="frontier-badge">frontier</span>' : '')
+        + (p.id === tierStatus.chosenId ? '<span class="chosen-badge">within tolerance</span>' : '');
+      return `<tr data-tier="${esc(p.tier)}">
+        <td class="sprite-cell">${sprite(p.id, 30)}</td>
+        <td><div class="nm">${fighterLink(p.id)}${badges}</div></td>
+        <td class="metric-chip">${esc(fmtQuality(primary, p.quality))}</td>
+        <td class="metric-chip">${esc(fmtCost(p.cost))}</td>
+        <td class="metric-chip">${esc(p.tier)}</td>
+      </tr>`;
+    }
+
+    // Every hardware tier a board's performance figures were captured on
+    // gets its OWN chart, its own frontier and its own "cheapest within
+    // tolerance" answer — a cpu-x86 RSS number and a gpu one are never
+    // pooled into one dominance computation (docs/methodology.md,
+    // "Hardware tiers are never blended"). The table stays a single list
+    // for the whole board (tier column, sortable/filterable by it) so a
+    // reader can still scan everything at once, but every badge on a row
+    // reflects only that row's own tier's computation.
+    function boardSectionHtml(board) {
+      const primary = board.primary_metric;
+      const higher = higherIsBetter(primary);
+      const entries = board.entries || [];
+      const points = costQualityPoints(entries, costKey, primary);
+      const measuredIds = new Set(points.map(p => p.id));
+      const unmeasured = entries.filter(e => !measuredIds.has(e.competitor_id));
+
+      const title = board.dataset_info?.display_name || board.dataset_id || '';
+      const head = `<div class="lb-section-head">
+        <h2 style="font-size:1.05rem">📊 ${esc(title)} <code class="ds-id">${esc(board.dataset_id || '')}</code></h2>
+        <span class="tag">ranked by ${esc(metricLabel(primary))} (${higher ? 'higher' : 'lower'} is better)</span>
+      </div>`;
+
+      if (points.length < 1) {
+        return `<div class="bench">${head}<p class="lb-note">No fighter on this board has both
+          a quality score and a performance measurement yet.</p></div>`;
+      }
+
+      const allTiers = pointsByTier(points).map(g => g.tier);
+      const tierGroups = pointsByTier(points).filter(g => !tierFilter || g.tier === tierFilter);
+
+      // Per-tier frontier + tolerance answer, keyed by tier name — the
+      // table below looks these up per row instead of recomputing them
+      // pooled across tiers.
+      const perTier = new Map(tierGroups.map(({ tier, points: tierPoints }) => {
+        const frontier = paretoFrontier(tierPoints, higher);
+        const qualities = tierPoints.map(p => p.quality);
+        const qualityRange = Math.max(...qualities) - Math.min(...qualities);
+        const chosen = cheapestWithinTolerance(frontier, higher, tolerance, qualityRange);
+        return [tier, { tierPoints, frontier, frontierIds: new Set(frontier.map(p => p.id)), chosen }];
+      }));
+
+      const chartsHtml = tierGroups.map(({ tier }) => {
+        const { tierPoints, frontier, chosen } = perTier.get(tier);
+        const toleranceNote = chosen
+          ? `<p class="lb-note">Within ${tolerance}% of the best ${esc(metricLabel(primary))} (${esc(tier)} tier),
+              the cheapest fighter is <strong>${esc(nameOf(chosen.id))}</strong> at ${esc(fmtCost(chosen.cost))}.</p>`
+          : `<p class="lb-note">No fighter on the ${esc(tier)} tier falls within ${tolerance}% of its best score.</p>`;
+        return `<div class="pt-chart-wrap">
+          <h3 style="margin:0 0 0.5rem;font-size:0.9rem;color:var(--muted)">Hardware tier: <code>${esc(tier)}</code>
+            <span class="tag">${tierPoints.length} fighter${tierPoints.length === 1 ? '' : 's'} measured here</span></h3>
+          ${scatterSvg(tierPoints, frontier, chosen, higher, primary, tier)}
+        </div>
+        ${toleranceNote}`;
+      }).join('');
+
+      const sorters = {
+        frontier: (a, b) => (perTier.get(a.tier)?.frontierIds.has(a.id) ? 0 : 1)
+          - (perTier.get(b.tier)?.frontierIds.has(b.id) ? 0 : 1) || a.tier.localeCompare(b.tier) || a.cost - b.cost,
+        quality: (a, b) => sortDir * (higher ? b.quality - a.quality : a.quality - b.quality),
+        cost: (a, b) => sortDir * (a.cost - b.cost),
+        tier: (a, b) => sortDir * a.tier.localeCompare(b.tier),
+      };
+      const tableRows = tierGroups.flatMap(g => g.points);
+      const sorted = [...tableRows].sort(sorters[sortKey] || sorters.frontier);
+      const rows = sorted.map(p => tableRow(p, perTier.get(p.tier), primary)).join('');
+      const sortArrow = key => key !== sortKey ? '' : (sortDir > 0 ? ' ▲' : ' ▼');
+
+      const unmeasuredHtml = unmeasured.length ? `<div class="pt-unmeasured">
+        <p class="lb-note">${unmeasured.length} fighter${unmeasured.length === 1 ? '' : 's'} scored but not
+          benched for performance yet — not plotted, not assumed free:</p>
+        <ul style="padding-left:1.2rem;color:var(--muted);font-size:0.85rem">
+          ${unmeasured.map(e => `<li>${fighterLink(e.competitor_id)}</li>`).join('')}
+        </ul>
+      </div>` : '';
+
+      return `<div class="bench" data-tiers="${esc(allTiers.join(','))}">
+        ${head}
+        ${chartsHtml}
+        <div class="pt-table-wrap"><table class="bench-tbl">
+          <caption class="bench-caption">Frontier fighters first per tier, then the rest by increasing cost — click a column to sort.</caption>
+          <thead><tr><th></th><th>Fighter</th>
+            <th class="pt-sortable" tabindex="0" role="button" data-sort="quality">${esc(metricLabel(primary))}${sortArrow('quality')}</th>
+            <th class="pt-sortable" tabindex="0" role="button" data-sort="cost">${costKey === 'peak_rss_mb' ? 'Peak memory' : 'RTF'}${sortArrow('cost')}</th>
+            <th class="pt-sortable" tabindex="0" role="button" data-sort="tier">Tier${sortArrow('tier')}</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table></div>
+        ${unmeasuredHtml}
+      </div>`;
+    }
+
+    let renderSeq = 0;
+    async function render() {
+      const seq = ++renderSeq;
+      const benchMeta = benchmarksMeta.filter(b => b.modality === league && b.lang === lang &&
+        (!dataset || b.dataset_id === dataset));
+      const benches = await fetchBoards(benchMeta);
+      if (seq !== renderSeq) return;
+      benches.sort((a, b) => (a.dataset_id || '').localeCompare(b.dataset_id || ''));
+
+      const allTiers = [...new Set(benches.flatMap(b =>
+        (b.entries || []).flatMap(e => Object.keys(e.perf || {}))))].sort();
+      const tierSel = document.getElementById('sel-tier');
+      const prevTier = tierFilter;
+      tierSel.innerHTML = `<option value="">All tiers (charted separately)</option>` +
+        allTiers.map(t => `<option value="${esc(t)}">${esc(t)} only</option>`).join('');
+      tierFilter = allTiers.includes(prevTier) ? prevTier : '';
+      tierSel.value = tierFilter;
+      tierSel.closest('label').style.display = allTiers.length > 1 ? '' : 'none';
+
+      const hwNote = document.getElementById('pt-hw-note');
+      if (allTiers.length) {
+        hwNote.textContent = `Every chart and frontier is computed within ONE hardware tier at a time (${allTiers.join(', ')}) — a gpu number and a cpu-x86 number are never pooled into the same comparison, even though the table below lists every tier together.`;
+        hwNote.style.display = '';
+      } else {
+        hwNote.textContent = 'Performance measurements on this board carry no hardware fingerprint — treat every figure as measured on the maintainer sweep box.';
+        hwNote.style.display = benches.length ? '' : 'none';
+      }
+
+      const panels = document.getElementById('pt-panels');
+      const empty = document.getElementById('pt-empty');
+      if (!benches.length) {
+        panels.innerHTML = '';
+        empty.style.display = '';
+        return;
+      }
+      empty.style.display = 'none';
+      panels.innerHTML = benches.map(boardSectionHtml).join('');
+      panels.querySelectorAll('.pt-sortable').forEach(th => {
+        const activate = () => {
+          const key = th.dataset.sort;
+          sortDir = (sortKey === key) ? -sortDir : 1;
+          sortKey = key;
+          render();
+        };
+        th.addEventListener('click', activate);
+        th.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); activate(); } });
+      });
+    }
+
+    function syncUrl() {
+      const params = new URLSearchParams(window.location.search);
+      league ? params.set('league', league) : params.delete('league');
+      lang ? params.set('lang', lang) : params.delete('lang');
+      dataset ? params.set('dataset', dataset) : params.delete('dataset');
+      const qs = params.toString();
+      window.history.replaceState(null, '', `${window.location.pathname}${qs ? '?' + qs : ''}`);
+    }
+
+    function populateDatasets() {
+      const datasets = [...new Set(benchmarksMeta
+        .filter(b => b.modality === league && b.lang === lang)
+        .map(b => b.dataset_id))].sort();
+      const sel = document.getElementById('sel-dataset');
+      sel.innerHTML = `<option value="">All datasets</option>` +
+        datasets.map(d => `<option value="${esc(d)}">${esc(d)}</option>`).join('');
+      dataset = datasets.includes(dataset) ? dataset : '';
+      sel.value = dataset;
+      sel.closest('label').style.display = datasets.length > 1 ? '' : 'none';
+    }
+
+    function setLeague(next) {
+      league = next;
+      document.querySelectorAll('.lb-tab').forEach(t =>
+        t.setAttribute('aria-selected', t.dataset.league === league ? 'true' : 'false'));
+      const langs = [...new Set(benchmarksMeta.filter(b => b.modality === league).map(b => b.lang))].sort();
+      const sel = document.getElementById('sel-lang');
+      sel.innerHTML = groupedLangOptionsHtml(langs);
+      lang = langs.includes(lang) ? lang : (langs.includes('en-US') ? 'en-US' : langs[0] || '');
+      sel.value = lang;
+      populateDatasets();
+      syncUrl();
+      render();
+    }
+
+    async function init() {
+      const index = await fetchJson(`${BASE}data/index.json`);
+      cacheV = index?.generated_at ? `?v=${encodeURIComponent(index.generated_at)}` : '';
+      benchmarksMeta = index?.benchmarks || [];
+      indexData = index;
+      // leagues/names come from data/index.json (arena/models.py::leagues()),
+      // never hardcoded — DEFAULT_LEAGUES only covers a stale-CDN edge that
+      // predates the `leagues` array.
+      leagues = (index?.leagues && index.leagues.length) ? index.leagues : DEFAULT_LEAGUES;
+      leagueById = Object.fromEntries(leagues.map(l => [l.id, l]));
+      const legendData = await fetchJson(`${BASE}data/metrics-legend.json${cacheV}`);
+      if (legendData) legend = { metrics: legendData.metrics || {}, leagues: legendData.leagues || {} };
+      const bestiary = await fetchJson(`${BASE}data/competitors.json${cacheV}`);
+      for (const f of bestiary?.competitors || []) fighters[f.competitor_id] = f;
+
+      document.getElementById('pt-loading').style.display = 'none';
+      if (!benchmarksMeta.length) {
+        document.getElementById('pt-empty').style.display = '';
+        return;
+      }
+
+      const activeLeagues = leagues
+        .filter(l => benchmarksMeta.some(b => b.modality === l.id))
+        .sort((a, b) => a.order - b.order);
+      if (!activeLeagues.length) {
+        document.getElementById('pt-empty').style.display = '';
+        return;
+      }
+      const tabs = document.getElementById('league-tabs');
+      tabs.innerHTML = activeLeagues.map(l =>
+        `<button class="lb-tab" role="tab" data-league="${l.id}" aria-selected="false">${esc(l.label)}</button>`).join('');
+      tabs.querySelectorAll('.lb-tab').forEach(t =>
+        t.addEventListener('click', () => setLeague(t.dataset.league)));
+
+      document.getElementById('sel-lang').addEventListener('change', e => {
+        lang = e.target.value; dataset = ''; populateDatasets(); syncUrl(); render();
+      });
+      document.getElementById('sel-dataset').addEventListener('change', e => {
+        dataset = e.target.value; syncUrl(); render();
+      });
+      document.getElementById('sel-cost').addEventListener('change', e => {
+        costKey = e.target.value; render();
+      });
+      document.getElementById('sel-tier').addEventListener('change', e => {
+        tierFilter = e.target.value; render();
+      });
+      const rng = document.getElementById('rng-tolerance');
+      const rngVal = document.getElementById('rng-tolerance-val');
+      rng.addEventListener('input', () => {
+        tolerance = Number(rng.value);
+        rngVal.textContent = `${tolerance}%`;
+        render();
+      });
+
+      document.getElementById('pt-app').style.display = '';
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const wantLeague = urlParams.get('league');
+      const wantLang = urlParams.get('lang');
+      const wantDataset = urlParams.get('dataset');
+      const startLeague = activeLeagues.some(l => l.id === wantLeague) ? wantLeague : activeLeagues[0].id;
+      if (wantLang) lang = wantLang;
+      if (wantDataset) dataset = wantDataset;
+      setLeague(startLeague);
+    }
+
+    init();
+  </script>
+</Base>

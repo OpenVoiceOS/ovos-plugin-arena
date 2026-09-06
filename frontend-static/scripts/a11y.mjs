@@ -63,6 +63,7 @@ function startServer() {
 const PAGES = [
   ['/', 'home'],
   ['/leaderboard/', 'leaderboard'],
+  ['/pareto/', 'cost vs. quality'],
   ['/matchups/', 'matchup heatmap'],
   ['/battle/', 'battle (blind vote flow)'],
   ['/fighter/chromium-stt-en/', 'fighter detail'],
