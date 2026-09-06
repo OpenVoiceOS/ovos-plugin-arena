@@ -102,7 +102,9 @@ predictions** notice instead of empty rank/provenance sections.
 
 ## Evidence
 
-The Evidence page is a self-check the site runs on its own data: how many
+Linked from the footer rather than the main nav, since it is written for grant
+reviewers and auditors rather than for someone browsing leaderboards. The
+Evidence page is a self-check the site runs on its own data: how many
 fighters are registered per league, how many of their datasets have
 published predictions, and how many benchmark boards and ELO leaderboards
 actually exist as a result. Where a league has fighters but no published
