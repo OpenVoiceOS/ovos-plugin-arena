@@ -77,16 +77,20 @@ jobs:
       # (battle_group() is an identity mapping, so a leg's own modality is
       # never any other leg's group — see arena/models.py battle_group),
       # so legs never collide and a plain glob is enough to shrink the
-      # artifact to just what this leg touched. assemble-summary.json
-      # (unregistered-competitor report) has no modality in its name and
-      # is uploaded unscoped alongside it.
+      # artifact to just what this leg touched. assemble-summary-<modality>.json
+      # (§alarms — unregistered-competitor report plus the unranked-board/
+      # off-revision alarms) is named per modality the same way, since
+      # download-artifact's merge-multiple below overwrites same-named
+      # files across artifacts: an unscoped assemble-summary.json here
+      # would keep only one leg's alarms. The commit job below merges
+      # every leg's file back into one.
       - name: Upload data delta
         uses: actions/upload-artifact@v7
         with:
           name: arena-data-${{ matrix.modality }}
           path: |
             frontend-static/public/data/*-${{ matrix.modality }}-*.json
-            frontend-static/public/data/assemble-summary.json
+            frontend-static/public/data/assemble-summary-${{ matrix.modality }}.json
           if-no-files-found: ignore
           retention-days: 1
 
@@ -188,6 +192,45 @@ jobs:
             --spec docs/SPECIFICATION.md \
             --output frontend-static/public/data/evidence.json
 
+      # Each leg uploaded its own assemble-summary-<modality>.json (see the
+      # "Upload data delta" step above) — reduce them to the single
+      # assemble-summary.json the alarm step below reads, unioning boards
+      # and summing counters instead of letting merge-multiple pick one
+      # leg's file arbitrarily.
+      - name: Merge per-modality assemble summaries
+        run: |
+          python -m arena.cli merge-assemble-summaries \
+            --data-dir frontend-static/public/data
+
+      # arena.cli.cmd_assemble only writes an assemble-summary file when it
+      # has something to report (docs/operations.md "Alarms") — a board
+      # every fighter came back unranked on, or rows dropped for being
+      # swept against the wrong dataset revision. Both are legitimate
+      # states while a re-sweep is in flight, so the run still publishes;
+      # the annotation is the whole point of running this step.
+      - name: Alarm on assemble-summary.json (unranked boards, off-revision rows)
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path("frontend-static/public/data/assemble-summary.json")
+          if not path.exists():
+              raise SystemExit(0)
+          summary = json.loads(path.read_text())
+
+          boards = summary.get("boards_without_ranked_fighters") or []
+          for board in boards:
+              print(f"::warning::assemble: every fighter is unranked on {board} "
+                    "— boards a re-sweep will fix, not a build failure")
+
+          dropped = summary.get("rows_dropped_off_revision") or 0
+          if dropped:
+              print(f"::warning::assemble: {dropped} row(s) dropped for being "
+                    "swept against a dataset revision other than the one the "
+                    "registry pins")
+          PY
+
       - name: Commit updated data
         run: |
           git config user.name "JarbasAi"
@@ -212,3 +255,32 @@ jobs:
               attempt=$(( attempt + 1 ))
             done
           fi
+
+  # See docs/operations.md "Alarms" — a red assemble run silently absorbed
+  # under a green badge is exactly what left the daily boards frozen before
+  # anyone noticed (see the matrix-sharding note on the assemble job above).
+  notify-on-failure:
+    needs: [assemble, commit]
+    if: failure()
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/notify-failure
+        with:
+          title: "CI: Assemble battles failing"
+          mode: open
+
+  notify-on-success:
+    needs: [assemble, commit]
+    if: success()
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/notify-failure
+        with:
+          title: "CI: Assemble battles failing"
+          mode: close

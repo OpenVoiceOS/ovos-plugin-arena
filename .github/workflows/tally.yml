@@ -62,3 +62,32 @@ jobs:
               git pull --rebase origin dev
             done
           fi
+
+  # See docs/operations.md "Alarms" — the replay proof stayed green for
+  # weeks against a tally run that never counted a vote; a red tally run
+  # itself must be at least as visible.
+  notify-on-failure:
+    needs: tally
+    if: failure()
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/notify-failure
+        with:
+          title: "CI: Tally votes failing"
+          mode: open
+
+  notify-on-success:
+    needs: tally
+    if: success()
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/notify-failure
+        with:
+          title: "CI: Tally votes failing"
+          mode: close

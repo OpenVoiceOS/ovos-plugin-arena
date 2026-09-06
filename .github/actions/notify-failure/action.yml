@@ -1,0 +1,59 @@
+name: Notify on workflow failure
+description: >-
+  Open one tracking issue when a data workflow run fails, and close it again
+  once a later run of the same workflow succeeds. Shared by every workflow
+  that writes committed data (assemble, tally, replay-proof, pages,
+  hourly-predictions) so a red run is never silent under a green badge —
+  see docs/operations.md "Alarms".
+
+inputs:
+  title:
+    description: 'Issue title, e.g. "CI: tally votes failing"'
+    required: true
+  mode:
+    description: '"open" on failure, "close" on the next success'
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Open or close the tracking issue
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        REPO: ${{ github.repository }}
+        RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        TITLE: ${{ inputs.title }}
+        MODE: ${{ inputs.mode }}
+      run: |
+        set -euo pipefail
+        # label:ci-failure is load-bearing, not cosmetic: without it, a
+        # human-opened issue that happens to share one of these fixed
+        # titles would be silently adopted as the failure tracker (open
+        # mode skips creating the real alarm) or closed as "resolved" by
+        # an unrelated green run (close mode) — see docs/operations.md
+        # "Alarms".
+        existing=$(gh issue list --repo "$REPO" --search "in:title \"$TITLE\"" \
+          --label ci-failure --state open --json number --jq '.[0].number // empty')
+
+        if [ "$MODE" = "open" ]; then
+          if [ -n "$existing" ]; then
+            echo "an open issue (#$existing) already tracks this failure, skipping"
+            exit 0
+          fi
+          gh label create ci-failure \
+            --description "An automated workflow is failing" \
+            --color B60205 --repo "$REPO" 2>/dev/null || true
+          gh issue create --repo "$REPO" \
+            --title "$TITLE" \
+            --label ci-failure \
+            --body "$TITLE: $RUN_URL"
+        else
+          if [ -z "$existing" ]; then
+            echo "no open issue titled '$TITLE' to close"
+            exit 0
+          fi
+          gh issue comment --repo "$REPO" "$existing" \
+            --body "Resolved by a green run: $RUN_URL"
+          gh issue close --repo "$REPO" "$existing"
+        fi

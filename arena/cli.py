@@ -389,6 +389,12 @@ class ReplayResult:
     counted_issues: set[int]
     discarded: list[dict[str, Any]]
     downweighted: list[dict[str, Any]]
+    # (modality, lang) -> the counted votes that board was built from — one
+    # entry per vote, never per competitor. ``EloEntry.human_votes`` (on
+    # ``boards``) increments for BOTH sides of a vote (arena/elo.py
+    # EloLedger.apply), so summing it double-counts; this is the source of
+    # truth for "how many human votes actually landed on this board".
+    votes_by_board: dict[tuple[str, str], list[dict[str, Any]]]
 
     def audit_payload(self) -> dict[str, Any]:
         return {
@@ -482,7 +488,7 @@ def replay_boards(
     }
     discarded.sort(key=lambda e: e["issue_number"])
     downweighted.sort(key=lambda e: e["issue_number"])
-    return ReplayResult(boards, counted_issues, discarded, downweighted)
+    return ReplayResult(boards, counted_issues, discarded, downweighted, votes_by_board)
 
 
 def _unchanged(path: Path, payload: dict[str, Any]) -> bool:
@@ -917,6 +923,14 @@ def cmd_assemble(args: argparse.Namespace) -> int:
     unregistered_competitors: dict[str, int] = {}
     all_seen_modalities: set[str] = set()
     any_data = False
+    # §alarms — surfaced in assemble-summary.json (docs/operations.md
+    # "Alarms") so a board that quietly went to zero signal, or a source
+    # whose rows all fell off the dataset's pinned revision, is visible
+    # instead of hiding under a green run. Populated only for boards this
+    # run actually (re)built — a cache-hit board's state was already
+    # surfaced (or not) the run it was last built.
+    boards_without_ranked_fighters: list[str] = []
+    rows_dropped_off_revision = 0
 
     degraded_langs: dict[str, list[str]] = {}
 
@@ -1052,6 +1066,10 @@ def cmd_assemble(args: argparse.Namespace) -> int:
                 dataset_revision=registry_dataset_revisions.get(dataset_id),
             )
             _attach_model_sizes(board, modality)
+            rows_dropped_off_revision += sum(
+                e.rows_other_revision for e in board.entries)
+            if board.entries and all(e.unranked for e in board.entries):
+                boards_without_ranked_fighters.append(board_file)
             board.dataset_info = dataset_info.get(dataset_id)
             own_revisions = {
                 src: sha for src, sha in resolved_revisions.items()
@@ -1197,14 +1215,30 @@ def cmd_assemble(args: argparse.Namespace) -> int:
                  "leaving existing data untouched", scope)
         return 0
 
-    if unregistered_competitors:
+    if unregistered_competitors or boards_without_ranked_fighters or rows_dropped_off_revision:
+        # Named per modality, like every other artifact this run writes
+        # (§assemble scalability — see the matrix-sharding comment on the
+        # assemble.yml job), when this run is scoped to one: a sharded
+        # workflow leg's own assemble-summary.json would otherwise collide
+        # under the same name as every other leg's, and
+        # actions/download-artifact's merge-multiple keeps only one of
+        # them (§alarms, docs/operations.md "Alarms"). The commit job
+        # merges every leg's file back into one assemble-summary.json via
+        # `arena.cli merge-assemble-summaries` before the alarm step reads
+        # it.
+        summary_name = (
+            f"assemble-summary-{args.modality}.json" if args.modality
+            else "assemble-summary.json"
+        )
         _write_json_payload(
-            data_dir / "assemble-summary.json",
+            data_dir / summary_name,
             {
                 "generated_at": _now_iso(),
                 "unregistered_competitors_excluded": dict(
                     sorted(unregistered_competitors.items())
                 ),
+                "boards_without_ranked_fighters": sorted(boards_without_ranked_fighters),
+                "rows_dropped_off_revision": rows_dropped_off_revision,
             },
         )
 
@@ -1479,6 +1513,65 @@ def cmd_prune_data(args: argparse.Namespace) -> int:
         log.info("Pruned %d stale artifact(s): %s", len(pruned), ", ".join(pruned))
     else:
         log.info("prune-data: nothing to prune")
+    return 0
+
+
+def merge_assemble_summaries(payloads: list[dict[str, Any]]) -> dict[str, Any]:
+    """Reduce one ``assemble-summary-<modality>.json`` payload per matrix
+    leg into the single merged payload the "Alarm on assemble-summary.json"
+    step reads (§alarms, docs/operations.md "Alarms").
+
+    Every field is combined, never overwritten: ``unregistered_competitors_
+    excluded`` counts are summed per competitor id, ``boards_without_
+    ranked_fighters`` is a union, and ``rows_dropped_off_revision`` is a
+    total across every leg. A leg with nothing to report never uploads a
+    summary at all (``cmd_assemble`` only writes one when it has something
+    to say), so an empty *payloads* list is the normal all-clear case, not
+    an error.
+    """
+    unregistered: dict[str, int] = {}
+    boards: set[str] = set()
+    rows_dropped = 0
+    for payload in payloads:
+        excluded = payload.get("unregistered_competitors_excluded") or {}
+        for competitor_id, count in excluded.items():
+            unregistered[competitor_id] = unregistered.get(competitor_id, 0) + count
+        boards.update(payload.get("boards_without_ranked_fighters") or [])
+        rows_dropped += payload.get("rows_dropped_off_revision") or 0
+    return {
+        "generated_at": _now_iso(),
+        "unregistered_competitors_excluded": dict(sorted(unregistered.items())),
+        "boards_without_ranked_fighters": sorted(boards),
+        "rows_dropped_off_revision": rows_dropped,
+    }
+
+
+def cmd_merge_assemble_summaries(args: argparse.Namespace) -> int:
+    """Standalone entry point for ``merge_assemble_summaries`` — the
+    sharded assemble workflow's commit job (§alarms).
+
+    Each matrix leg uploads its own ``assemble-summary-<modality>.json``
+    (named like every other artifact ``cmd_assemble`` writes, one per
+    modality) rather than the single unscoped ``assemble-summary.json`` a
+    non-sharded run writes: ``actions/download-artifact``'s
+    ``merge-multiple`` overwrites same-named files across artifacts, so an
+    unscoped name would silently keep only one leg's alarms. Run once in
+    the commit job, over the merged data dir, before the alarm step reads
+    ``assemble-summary.json``.
+    """
+    data_dir = Path(args.data_dir)
+    paths = sorted(data_dir.glob("assemble-summary-*.json"))
+    if not paths:
+        log.info("merge-assemble-summaries: no per-modality summaries found "
+                  "— nothing to merge")
+        return 0
+    payloads = [json.loads(p.read_text()) for p in paths]
+    merged = merge_assemble_summaries(payloads)
+    _write_json_payload(data_dir / "assemble-summary.json", merged)
+    for path in paths:
+        path.unlink()
+    log.info("merged %d per-modality assemble-summary file(s) into "
+              "assemble-summary.json", len(paths))
     return 0
 
 
@@ -1865,7 +1958,18 @@ def cmd_verify_replay(args: argparse.Namespace) -> int:
     mismatches: list[tuple[str, dict]] = []
     missing_published: list[str] = []
     checked = 0
+    # §alarms — a proof that reproduces boards seeded with zero counted
+    # human votes has only shown the RNG replays itself, not that a real
+    # vote round-trips end to end (docs/operations.md "Alarms"). Reported
+    # per board here so replay-proof.yml can flag a silent human-vote
+    # drought under an otherwise-green run.
+    board_human_votes: dict[str, int] = {}
     for (modality, lang), replayed in sorted(result.boards.items()):
+        # One vote counted once — never ``EloEntry.human_votes`` summed
+        # across entries, which increments for BOTH sides of a vote
+        # (arena/elo.py EloLedger.apply) and would double the real total.
+        board_human_votes[f"{modality}-{lang}"] = len(
+            result.votes_by_board.get((modality, lang), []))
         published_path = data_dir / f"leaderboard-{modality}-{lang}.json"
         if not published_path.exists():
             missing_published.append(published_path.name)
@@ -1875,6 +1979,20 @@ def cmd_verify_replay(args: argparse.Namespace) -> int:
         checked += 1
         if diff:
             mismatches.append((published_path.name, diff))
+
+    total_human_votes = sum(board_human_votes.values())
+    print("counted human votes per board:")
+    for board, votes in sorted(board_human_votes.items()):
+        print(f"human-votes: {board}: {votes}")
+    print(f"human-votes: total: {total_human_votes}")
+    summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+    if summary_path:
+        with open(summary_path, "a") as f:
+            f.write("## Counted human votes per board\n\n")
+            f.write("| board | human votes |\n| --- | --- |\n")
+            for board, votes in sorted(board_human_votes.items()):
+                f.write(f"| {board} | {votes} |\n")
+            f.write(f"\n**Total: {total_human_votes}**\n")
 
     if missing_published:
         mismatches.append((
@@ -2400,6 +2518,14 @@ def main(argv=None):
     p.add_argument("--registry", default="registry")
     p.add_argument("--data-dir", default="frontend-static/public/data")
 
+    p = sub.add_parser(
+        "merge-assemble-summaries",
+        help="Merge every matrix leg's assemble-summary-<modality>.json "
+             "into one assemble-summary.json (§alarms — for the sharded "
+             "workflow's commit job, before the alarm step runs)",
+    )
+    p.add_argument("--data-dir", default="frontend-static/public/data")
+
     args = parser.parse_args(argv)
     commands = {
         "assemble": cmd_assemble,
@@ -2411,6 +2537,7 @@ def main(argv=None):
         "validate-registry": cmd_validate_registry,
         "audit-seeds": cmd_audit_seeds,
         "prune-data": cmd_prune_data,
+        "merge-assemble-summaries": cmd_merge_assemble_summaries,
     }
     if args.command not in commands:
         parser.print_help()
