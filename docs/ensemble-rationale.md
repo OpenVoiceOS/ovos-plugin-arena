@@ -36,7 +36,7 @@ strengths. Two patterns are nonsense by construction and get dropped on sight:
 
 ### frankenparse, KEEP (slimmed)
 
-**Composition (after this pass):** `padatious-high → adapt-high → palavreado-medium →
+**Composition:** `padatious-high → adapt-high → palavreado-medium →
 nebulento-medium → adapt-low`, one engine per stage, four distinct paradigms
 (neural+exact template, keyword-rule, keyword-bag, fuzzy-template), no paradigm repeated.
 
@@ -130,9 +130,9 @@ by default.
 
 **Composition:** `adapt-high → padatious-medium`.
 
-**Why this family is interesting:** ovos-stock answers "does fusion beat today's
-default." mycroft-classic answers a different historical question, the owner's
-observation that "the classic mycroft pipeline isn't there" either. Early mycroft-core
+**Why this family is interesting:** ovos-stock answers "does fusion beat the shipped
+default." mycroft-classic answers a different historical question: the classic mycroft
+pipeline has no reproduction in the league either. Early mycroft-core
 ran Adapt as the sole primary intent parser and wired Padatious in as a `FallbackSkill`
 (mycroft-core PR #939), the *opposite* stage order from both ovos-stock and padapt (both
 padatious-before-adapt). Nothing in the league tested whether that later re-ordering,
@@ -170,7 +170,7 @@ different axis, matching *looseness* rather than architecture class: trained cla
 (Nebulento). Comparing the two head-to-head separates "does architecture diversity
 across tiers help" from "does a strictness gradient across tiers help."
 
-**exact_match convention:** every Jurebes stage added in this pass sets
+**exact_match convention:** every Jurebes stage in `trident` sets
 `exact_match: false`. Jurebes's own internal exact-template short-circuit would
 otherwise duplicate whatever exact/near-exact matching the stage ahead of it (Padatious,
 Adapt) already provides, the same subset-duplication trap padatioso fell into below.
@@ -179,9 +179,8 @@ Adapt) already provides, the same subset-duplication trap padatioso fell into be
 
 **Composition:** `m2v-first` = `m2v-high → padatious-medium`.
 
-**Why this family is interesting:** the owner's directive was explicit. "None uses
-embeddings" was true of every fighter in the registry before this pass. Every existing
-fighter is either keyword-rule matching (Adapt, Palavreado) or a per-intent trained
+**Why this family is interesting:** none of the other fusion fighters uses embeddings.
+Every fighter besides `m2v-first` is either keyword-rule matching (Adapt, Palavreado) or a per-intent trained
 template classifier (Padatious, Nebulento, Jurebes, Linha-Fina); none leads with
 general-purpose sentence-embedding similarity, which generalizes across paraphrases via
 vector distance rather than exact template/keyword structure.
@@ -197,9 +196,8 @@ template/statistical engines. **`mycroft-classic`** (`adapt-high → padatious-m
 see above) is the shared baseline both grids compare against, see "1 fighter per
 config" below.
 
-**Why this family is interesting:** the owner's directive named specific unmeasured
-replacements: "none measures replacing adapt/palavreado padatious/nebulento/linha-fina/
-jurebes." Every prior fusion bundles a *specific pairing choice* with a *specific shape
+**Why this family is interesting:** no fighter measured what replacing one engine of a
+pair with another, holding pairing shape fixed, does to accuracy. Every prior fusion bundles a *specific pairing choice* with a *specific shape
 choice* at once, so a win or loss cannot be attributed to either variable alone. This
 family holds shape and one engine fixed per grid, varying only the other engine: a
 controlled A/B (`kw-slot`) and 4-way (`tmpl-slot`) isolation study.
@@ -229,7 +227,7 @@ duplicate. Each fighter's `notes` cross-reference this explicitly.
 
 **Composition (removed):** `padacioso-high → padatious-medium`.
 
-**Why it fails justification:** this is exactly the owner's example of engine-subset
+**Why it fails justification:** this is engine-subset
 duplication. Padatious already runs `padaos`, the same regex/exact-match template engine
 Padacioso wraps, as a built-in matcher (`IntentContainer.padaos`, enabled by default),
 and any perfect match there is assigned `conf=1.0`, the ceiling score, ahead of or

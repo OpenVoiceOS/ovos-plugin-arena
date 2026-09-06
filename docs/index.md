@@ -16,8 +16,8 @@ README doesn't have room for.
 | [`leagues.md`](leagues.md) | Canonical definition of what each league scores and how — the metric formulas, in one place. |
 | [`methodology.md`](methodology.md) | Why the rating system works the way it does: Bradley-Terry vs. sequential ELO, confidence intervals, vote-fraud resistance, UTMOS/intelligibility scoring. |
 | [`operations.md`](operations.md) | Maintainer runbook for the vote loop: verifying a vote landed, auditing discards, replaying from public logs, troubleshooting. |
-| [`registry-audit.md`](registry-audit.md) | Audit notes on registry data quality and modality-specific conventions. |
+| [`registry-audit.md`](registry-audit.md) | Conventions used across the registry's modality leagues: one fighter per configuration, the VAD dual-key schema, per-language STT registration. |
 | [`dataset-review.md`](dataset-review.md) | Review notes on the eval datasets themselves. |
-| [`dataset-gapfill.md`](dataset-gapfill.md) | Notes on filling coverage gaps in the eval datasets. |
+| [`dataset-gapfill.md`](dataset-gapfill.md) | How a new STT eval dataset gets registered, and which languages still have no eval set. |
 | [`site-tour.md`](site-tour.md) | Guided walkthrough of the live site with a screenshot of every page and state: leaderboards, battle voting, matchups, the fighter bestiary, and the evidence rollup. |
 | [`ensemble-rationale.md`](ensemble-rationale.md) | Why the fusion/ensemble fighters (Padapt, Nebulapt, ...) are built the way they are. |

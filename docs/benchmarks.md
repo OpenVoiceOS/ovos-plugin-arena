@@ -73,7 +73,7 @@ python benchmarks/ww_hey_mycroft.py
 python benchmarks/ww_hey_mycroft.py --competitors openwakeword-hey-mycroft --max-samples 50
 ```
 
-The eval set is the held-out [ww-bench](https://github.com/TigreGotico/ww-benchmarks)
+The eval set is the held-out [`synthetic-wakewords`](https://huggingface.co/datasets/OpenVoiceOS/synthetic-wakewords)
 manifest for one wake phrase (eval-only donor voices). Each clip is fed to the
 hotword engine frame by frame (80 ms chunks) exactly as the listening loop
 does. The binary decision is recorded against the ground-truth label
