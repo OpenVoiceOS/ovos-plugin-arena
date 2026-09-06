@@ -30,6 +30,7 @@ def permissive_registry(monkeypatch):
 
     class _Stub:
         config: dict = {}
+        trained_on: list = []
 
         def __init__(self, cid):
             self.competitor_id = cid

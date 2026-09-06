@@ -712,3 +712,51 @@ class TestRunBenchmarkSttPreflight:
             argv=["--output-dir", str(tmp_path)],
         )
         assert rc == 0
+
+
+class TestRunBenchmarkTrainedOnSkip:
+    """A fighter never runs against an intent dataset it lists in
+    ``trained_on`` (owner ruling: never scored on a corpus containing its
+    own training recordings) — enforced in ``run_benchmark``'s
+    per-competitor loop, the same way ``runner.media_bench`` does it."""
+
+    def _competitor(self, competitor_id, trained_on=None):
+        from types import SimpleNamespace
+        return SimpleNamespace(
+            competitor_id=competitor_id, modality=SimpleNamespace(value="intent"),
+            langs=[], trained_on=trained_on or [], pipeline_plugins=[], plugin=None,
+        )
+
+    def test_trained_on_pair_is_skipped(self, tmp_path, monkeypatch):
+        from types import SimpleNamespace
+
+        import runner.intent_bench as intent_bench
+
+        trained_comp = self._competitor("trained-fighter", trained_on=["ds-a"])
+        clean_comp = self._competitor("clean-fighter")
+
+        monkeypatch.setattr(
+            intent_bench, "load_dataset",
+            lambda modality, dataset_id: SimpleNamespace(
+                dataset_id=dataset_id, input=None,
+                source=SimpleNamespace(hf_id="org/ds", revision="main"),
+                langs=["en-US"], lang="en-US", train_datasets={},
+            ),
+        )
+        monkeypatch.setattr(intent_bench, "resolve_revision", lambda hf_id, rev: "abc123")
+        monkeypatch.setattr(intent_bench, "eligible_competitors",
+                             lambda paradigms, dataset_id="": [trained_comp, clean_comp])
+
+        run_calls: list[str] = []
+
+        def fake_run_competitor_lang(competitor, dataset_id, lang, *a, **kw):
+            run_calls.append(competitor.competitor_id)
+            return 0
+
+        monkeypatch.setattr(intent_bench, "run_competitor_lang", fake_run_competitor_lang)
+
+        rc = intent_bench.run_benchmark(
+            "ds-a", "test", argv=["--output-dir", str(tmp_path)],
+        )
+        assert rc == 0
+        assert run_calls == ["clean-fighter"]

@@ -66,6 +66,7 @@ from runner.queue_tools import (
     engine_weight,
     find_missing_pairs,
     is_compatible,
+    is_trained_on,
 )
 
 log = logging.getLogger("autorun")
@@ -225,6 +226,8 @@ def enumerate_all_pairs(
             langs = dataset_langs(dataset)
             for competitor in competitors:
                 if not is_compatible(competitor, dataset):
+                    continue
+                if is_trained_on(competitor, dataset):
                     continue
                 for lang in adapter.competitor_langs(competitor, langs):
                     out.append((modality, competitor, dataset, lang))

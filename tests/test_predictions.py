@@ -167,23 +167,28 @@ class TestReadJsonl:
 
 
 class _FakeCompetitor:
-    def __init__(self, competitor_id, label_set=None):
+    def __init__(self, competitor_id, label_set=None, trained_on=None):
         self.competitor_id = competitor_id
         self.label_set = label_set
+        self.trained_on = trained_on or []
 
 
-def _stub_registry(monkeypatch, registered_by_modality):
+def _stub_registry(monkeypatch, registered_by_modality, trained_on=None):
     """Make ``registry.loaders.list_competitors`` return only the given ids.
 
     ``group_rows`` imports ``list_competitors`` locally (inside the
     function) from ``registry.loaders``, so patching the attribute on that
     module is sufficient — no need to touch ``arena.predictions``.
+
+    *trained_on* optionally maps ``competitor_id`` -> list of dataset ids
+    that competitor was trained on.
     """
     import registry.loaders as loaders_mod
+    trained_on = trained_on or {}
 
     def fake_list_competitors(modality=None):
         return [
-            _FakeCompetitor(cid)
+            _FakeCompetitor(cid, trained_on=trained_on.get(cid))
             for cid in registered_by_modality.get(modality, [])
         ]
 
@@ -239,6 +244,29 @@ class TestGroupRows:
         assert set(en) == {"padatious-medium"}
         assert "jurebes-medium" not in en
         assert unregistered == {"jurebes-medium": 1}
+
+    def test_trained_on_pair_dropped_and_counted(self, monkeypatch):
+        # Owner ruling: every fighter stays registered, but must never be
+        # scored on a corpus containing its own training recordings —
+        # rows for such a pair are dropped even if a stale HF shard still
+        # publishes them.
+        _stub_registry(
+            monkeypatch, {"intent": ["padatious-medium", "clean-fighter"]},
+            trained_on={"padatious-medium": ["intents-for-eval"]},
+        )
+        rows = [
+            parse_row(_intent_row(competitor_id="padatious-medium"),
+                     "padatious-medium"),
+            parse_row(_intent_row(competitor_id="clean-fighter"),
+                     "clean-fighter"),
+        ]
+        trained_on_dropped: dict[str, int] = {}
+        grouped = group_rows(rows, trained_on_dropped=trained_on_dropped)
+
+        en = grouped[("intent", "intents-for-eval", "en-US")]["en-US/00001"]
+        assert set(en) == {"clean-fighter"}
+        assert "padatious-medium" not in en
+        assert trained_on_dropped == {"padatious-medium/intents-for-eval": 1}
 
 
 def _legacy_stt_row(**over):

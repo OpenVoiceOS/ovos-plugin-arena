@@ -375,6 +375,7 @@ class _StubCompetitor:
         self.competitor_id = competitor_id
         self.plugin = plugin
         self.langs = langs or []
+        self.trained_on: list[str] = []
 
 
 class TestRunBenchmarkPluginPreflight:
@@ -389,6 +390,7 @@ class TestRunBenchmarkPluginPreflight:
         good = _StubCompetitor("good", plugin="ovos-stt-plugin-installed")
         bad = _StubCompetitor("bad", plugin="ovos-stt-plugin-missing")
         eval_def = SimpleNamespace(
+            dataset_id="some-dataset",
             source=SimpleNamespace(hf_id="PolyAI/minds14", revision="main"),
             langs=["en-US"], lang="en-US",
         )
@@ -416,3 +418,43 @@ class TestRunBenchmarkPluginPreflight:
         assert "ovos-stt-plugin-missing" in errors[0].message
         # only the installed fighter's engine was ever loaded (one lang)
         assert adapter.loaded == 1
+
+
+class TestRunBenchmarkTrainedOnSkip:
+    """A fighter never runs against a dataset it lists in ``trained_on``
+    (owner ruling: never scored on a corpus containing its own training
+    recordings) — enforced in ``run_benchmark``'s per-competitor loop."""
+
+    def _competitor(self, competitor_id, trained_on=None):
+        return SimpleNamespace(
+            competitor_id=competitor_id, langs=[], trained_on=trained_on or [],
+            plugin=None,
+        )
+
+    def test_trained_on_pair_is_skipped(self, tmp_path, monkeypatch):
+        trained_comp = self._competitor("trained-fighter", trained_on=["ds-a"])
+        clean_comp = self._competitor("clean-fighter")
+
+        monkeypatch.setattr(mb, "competitors_for",
+                             lambda modality, wanted=None: [trained_comp, clean_comp])
+        monkeypatch.setattr(mb, "load_dataset", lambda modality, dataset_id: SimpleNamespace(
+            dataset_id=dataset_id,
+            source=SimpleNamespace(hf_id="org/ds", revision="main"),
+            langs=["en-US"], lang="en-US",
+        ))
+        monkeypatch.setattr(mb, "resolve_revision", lambda hf_id, rev: "abc123")
+
+        run_calls: list[str] = []
+
+        def fake_run_competitor_lang(adapter, competitor, dataset_id, lang, *a, **kw):
+            run_calls.append(competitor.competitor_id)
+            return mb.BatchResult(written=0)
+
+        monkeypatch.setattr(mb, "run_competitor_lang", fake_run_competitor_lang)
+
+        rc = mb.run_benchmark(
+            StubAdapter(n=0), "ds-a", "test",
+            argv=["--output-dir", str(tmp_path)],
+        )
+        assert rc == 0
+        assert run_calls == ["clean-fighter"]

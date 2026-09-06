@@ -877,6 +877,21 @@ class CompetitorDef(BaseModel):
             "Enables backward-compat without re-running old prediction jobs."
         ),
     )
+    trained_on: list[str] = Field(
+        default_factory=list,
+        description=(
+            "dataset_id values whose recordings were in this fighter's "
+            "training data. A fighter is never scored on a dataset it "
+            "lists here — every scoring point (media/wake-word bench, the "
+            "assembler, the autorun scheduler) skips the (fighter, "
+            "dataset) pair instead. The deny-list mirror of the offline "
+            "intent league's training-regime keying: that one narrows "
+            "which corpora a fighter IS eligible for, this one excludes "
+            "the ones it must never be graded on. Registry-validated: "
+            "every id must resolve to a registered dataset for this "
+            "competitor's modality."
+        ),
+    )
     capabilities: list[Capability] = Field(
         default_factory=_default_capabilities,
         description=(

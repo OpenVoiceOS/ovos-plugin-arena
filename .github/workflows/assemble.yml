@@ -241,6 +241,11 @@ jobs:
               print(f"::warning::assemble: {dropped} row(s) dropped for being "
                     "swept against a dataset revision other than the one the "
                     "registry pins")
+
+          trained_on = summary.get("trained_on_rows_excluded") or {}
+          for pair, count in sorted(trained_on.items()):
+              print(f"::notice::assemble: {count} row(s) for {pair} excluded — "
+                    "fighter trained on this corpus, not scored")
           PY
 
       - name: Commit updated data

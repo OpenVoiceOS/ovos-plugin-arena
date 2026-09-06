@@ -26,6 +26,7 @@ class _StubCompetitor:
         self.competitor_id = competitor_id
         self.label_set = label_set
         self.config = {}
+        self.trained_on = []
 
 
 # Fictional competitor ids used by this file's fixtures (e.g. "good"/"bad"
@@ -1466,13 +1467,15 @@ class TestAssemblePerSourceMemoryBound:
         real_group_rows = predictions_mod.group_rows
         call_row_counts: list[int] = []
 
-        def counting_group_rows(rows, unregistered=None):
+        def counting_group_rows(rows, unregistered=None, trained_on_dropped=None):
             # Each call must see only ONE source's rows (12 = 2 competitors
             # x 6 samples) — never the two sources' rows concatenated (24),
             # which is what the pre-fix single accumulate-then-group call
             # would have passed.
             call_row_counts.append(len(rows))
-            return real_group_rows(rows, unregistered=unregistered)
+            return real_group_rows(
+                rows, unregistered=unregistered, trained_on_dropped=trained_on_dropped,
+            )
 
         monkeypatch.setattr(predictions_mod, "group_rows", counting_group_rows)
 

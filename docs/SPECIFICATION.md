@@ -131,6 +131,14 @@ plugin class it instantiates), `types` (architecture tags: `GOFAI`,
 `fuzzy-match`, `neural-net`, `template-match`, `keyword-match`, `embedding`,
 `LLM`, `ensemble`), `description`, `model`, `links`.
 
+`trained_on` lists dataset ids whose recordings were in this competitor's
+training data — the deny-list mirror of `train_datasets` below: a fighter
+stays registered and competes normally everywhere else, but every scoring
+point (the media/wake-word bench, `arena.predictions.group_rows`, the
+autorun scheduler) skips the `(fighter, dataset)` pair instead of grading
+it. `validate_registry` rejects a `trained_on` id that does not resolve to
+a registered dataset for the competitor's own modality.
+
 **Datasets** (`registry/datasets/<modality>/<id>.json`): one corpus per
 entry, source (HF id + revision + split or per-lang `file_pattern`),
 `reference_fields` (the datashape contract), license, `lang` (or

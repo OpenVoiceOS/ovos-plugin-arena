@@ -45,6 +45,7 @@ from runner.intent_bench import (
     split_name,
 )
 from runner.perf import hw_fingerprint, measure_call
+from runner.queue_tools import is_trained_on
 
 log = logging.getLogger("media-bench")
 
@@ -582,6 +583,10 @@ def run_benchmark(
             skipped_missing_plugin += 1
             continue
         log.info("Fighter %s [%s]", competitor.competitor_id, adapter.modality)
+        if is_trained_on(competitor, eval_def):
+            log.info("  %s: trained on this corpus, not scored",
+                     competitor.competitor_id)
+            continue
         for lang in adapter.competitor_langs(competitor, dataset_langs):
             out_path = (bench_dir / adapter.modality / "predictions" / lang
                         / f"{competitor.competitor_id}.jsonl")

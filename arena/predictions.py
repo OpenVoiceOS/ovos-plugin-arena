@@ -417,6 +417,7 @@ def iter_predictions(
 def group_rows(
     rows: list[PredictionRow],
     unregistered: dict[str, int] | None = None,
+    trained_on_dropped: dict[str, int] | None = None,
 ) -> dict[tuple[str, str, str], dict[str, dict[str, PredictionRow]]]:
     """Group rows as (modality, dataset_id, lang) → sample_id → competitor → row.
 
@@ -431,6 +432,14 @@ def group_rows(
     because its orphaned HF prediction shards are still fetched. Dropped
     (competitor_id → row count) is aggregated into *unregistered* when
     given, so callers can surface it in the assemble output.
+
+    Rows for a (competitor, dataset) pair the competitor's registry entry
+    lists in ``trained_on`` are dropped the same way: a stale HF shard
+    published before the exclusion was added, or one a benchmark run wrote
+    before the registry gained the ``trained_on`` entry, must not leak a
+    training-contaminated score onto a published board. Dropped counts
+    are aggregated into *trained_on_dropped* (keyed ``"<competitor_id>
+    /<dataset_id>"``) when given.
     """
     from registry.loaders import list_competitors
     from registry.schemas import INTENT_MODALITIES
@@ -438,18 +447,22 @@ def group_rows(
     registered_by_modality: dict[str, set[str]] = {}
     intent_leagues: dict[str, str] = {}
     label_sets: dict[str, list[str]] = {}
+    trained_on_by_modality: dict[str, dict[str, set[str]]] = {}
+
+    def _competitors(modality: str) -> list:
+        try:
+            return list_competitors(modality)
+        except Exception as exc:
+            logger.warning(
+                "Could not load registry for modality %s: %s", modality, exc
+            )
+            return []
 
     def _registered(modality: str) -> set[str]:
         if modality not in registered_by_modality:
-            try:
-                registered_by_modality[modality] = {
-                    c.competitor_id for c in list_competitors(modality)
-                }
-            except Exception as exc:
-                logger.warning(
-                    "Could not load registry for modality %s: %s", modality, exc
-                )
-                registered_by_modality[modality] = set()
+            registered_by_modality[modality] = {
+                c.competitor_id for c in _competitors(modality)
+            }
         return registered_by_modality[modality]
 
     def _intent_league(competitor_id: str) -> str | None:
@@ -468,12 +481,21 @@ def group_rows(
                         label_sets[comp.competitor_id] = comp.label_set
         return intent_leagues.get(competitor_id)
 
+    def _trained_on(modality: str, competitor_id: str) -> set[str]:
+        if modality not in trained_on_by_modality:
+            trained_on_by_modality[modality] = {
+                c.competitor_id: set(c.trained_on) for c in _competitors(modality)
+                if c.trained_on
+            }
+        return trained_on_by_modality[modality].get(competitor_id, set())
+
     grouped: dict[tuple[str, str, str], dict[str, dict[str, PredictionRow]]] = (
         defaultdict(lambda: defaultdict(dict))
     )
     dropped = 0
     unregistered_counts: dict[str, int] = defaultdict(int)
     off_label_set: dict[str, int] = defaultdict(int)
+    trained_on_counts: dict[str, int] = defaultdict(int)
     for row in rows:
         modality = infer_modality(row.model_dump(exclude_none=True))
         if modality == "unknown":
@@ -495,6 +517,9 @@ def group_rows(
         elif row.competitor_id not in _registered(modality):
             unregistered_counts[row.competitor_id] += 1
             continue
+        if row.dataset_id in _trained_on(modality, row.competitor_id):
+            trained_on_counts[f"{row.competitor_id}/{row.dataset_id}"] += 1
+            continue
         key = (modality, row.dataset_id, row.lang)
         grouped[key][row.sample_id][row.competitor_id] = row
     if dropped:
@@ -510,7 +535,15 @@ def group_rows(
             "%r (not in the current registry — orphaned shard?)",
             count, competitor_id,
         )
+    for pair, count in sorted(trained_on_counts.items()):
+        logger.warning(
+            "Excluded %d prediction row(s) for %s — fighter trained on this "
+            "corpus, not scored", count, pair,
+        )
     if unregistered is not None:
         for competitor_id, count in unregistered_counts.items():
             unregistered[competitor_id] = unregistered.get(competitor_id, 0) + count
+    if trained_on_dropped is not None:
+        for pair, count in trained_on_counts.items():
+            trained_on_dropped[pair] = trained_on_dropped.get(pair, 0) + count
     return {k: dict(v) for k, v in grouped.items()}

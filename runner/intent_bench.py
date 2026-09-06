@@ -43,6 +43,7 @@ from registry.schemas import (
 from runner.audio_io import resolve_sample_cap, stream_audio_dataset, stream_manifest_audio
 from runner.intent_pipeline import IntentPipeline, plugin_version
 from runner.perf import hw_fingerprint, measure_call
+from runner.queue_tools import is_trained_on
 
 # HF_OWNER / results_repo_for live in registry.loaders (they're a naming
 # convention over the registry, not runner-specific) and are re-exported
@@ -1150,6 +1151,10 @@ def run_benchmark(dataset_id: str, description: str, argv=None) -> int:
             continue
         store = predictions_store(competitor)
         log.info("Fighter %s [%s]", competitor.competitor_id, modality)
+        if is_trained_on(competitor, eval_def):
+            log.info("  %s: trained on this corpus, not scored",
+                     competitor.competitor_id)
+            continue
         for lang in langs:
             if competitor.langs and lang not in competitor.langs:
                 continue

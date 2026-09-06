@@ -1007,6 +1007,7 @@ def cmd_assemble(args: argparse.Namespace) -> int:
     registry_dataset_revisions = _registry_dataset_revisions()
     ww_phrases = _wakeword_phrases()
     unregistered_competitors: dict[str, int] = {}
+    trained_on_dropped: dict[str, int] = {}
     all_seen_modalities: set[str] = set()
     any_data = False
     # §alarms — surfaced in assemble-summary.json (docs/operations.md
@@ -1046,7 +1047,10 @@ def cmd_assemble(args: argparse.Namespace) -> int:
                 for chunk in chunks:
                     if not chunk:
                         continue
-                    chunk_grouped = group_rows(chunk, unregistered=unregistered_competitors)
+                    chunk_grouped = group_rows(
+                        chunk, unregistered=unregistered_competitors,
+                        trained_on_dropped=trained_on_dropped,
+                    )
                     del chunk
                     for key, samples in chunk_grouped.items():
                         dest = grouped.setdefault(key, {})
@@ -1332,7 +1336,7 @@ def cmd_assemble(args: argparse.Namespace) -> int:
 
     if (unregistered_competitors or boards_without_ranked_fighters
             or boards_without_negatives or boards_unmanaged_on_error
-            or rows_dropped_off_revision):
+            or rows_dropped_off_revision or trained_on_dropped):
         # Named per modality, like every other artifact this run writes
         # (§assemble scalability — see the matrix-sharding comment on the
         # assemble.yml job), when this run is scoped to one: a sharded
@@ -1358,6 +1362,7 @@ def cmd_assemble(args: argparse.Namespace) -> int:
                 "boards_without_negatives": sorted(boards_without_negatives),
                 "boards_unmanaged_on_error": sorted(boards_unmanaged_on_error),
                 "rows_dropped_off_revision": rows_dropped_off_revision,
+                "trained_on_rows_excluded": dict(sorted(trained_on_dropped.items())),
             },
         )
 
@@ -1514,6 +1519,103 @@ def _registry_battle_groups() -> set[str]:
     return {battle_group(comp.modality) for comp in load_all_competitors()}
 
 
+def _registry_dataset_modalities() -> dict[str, str]:
+    """``dataset_id -> modality`` across the whole registry."""
+    from registry.loaders import list_datasets
+
+    return {d.dataset_id: d.modality.value for d in list_datasets()}
+
+
+def _registry_trained_on_by_modality() -> dict[str, dict[str, set[str]]]:
+    """``modality -> {competitor_id: {trained_on dataset ids}}``, competitors
+    with no ``trained_on`` entry omitted."""
+    from registry.loaders import load_all_competitors
+
+    out: dict[str, dict[str, set[str]]] = {}
+    for comp in load_all_competitors():
+        if comp.trained_on:
+            out.setdefault(comp.modality.value, {})[comp.competitor_id] = set(comp.trained_on)
+    return out
+
+
+def _dataset_scoped_trained_on_drops(
+    dataset_id: str, modality: str, trained_on_by_modality: dict[str, dict[str, set[str]]],
+) -> set[str]:
+    """competitor_ids excluded from *dataset_id* by their registry entry."""
+    return {
+        cid for cid, trained in trained_on_by_modality.get(modality, {}).items()
+        if dataset_id in trained
+    }
+
+
+def _group_scoped_trained_on_drops(
+    group: str, lang: str, dataset_langs: dict[str, set[str]],
+    dataset_modalities: dict[str, str], trained_on_by_modality: dict[str, dict[str, set[str]]],
+) -> set[str]:
+    """competitor_ids that must be dropped from a group+lang board.
+
+    A group-scoped board (leaderboard/elo-seed/freeform battles) aggregates
+    every dataset in its battle group — a competitor is only fully excluded
+    from it when EVERY live dataset that could seed the board for this lang
+    is one the competitor trained on (a partial overlap leaves some
+    legitimate battles behind, already reflected upstream at the row level
+    by ``arena.predictions.group_rows`` for any board actually rebuilt this
+    run; a full-recompute of a stale, untouched aggregate board's rating
+    from its surviving battles alone is out of scope here).
+    """
+    live_datasets = {
+        did for did, langs in dataset_langs.items()
+        if lang in langs and dataset_modalities.get(did) == group
+    }
+    if not live_datasets:
+        return set()
+    return {
+        cid for cid, trained in trained_on_by_modality.get(group, {}).items()
+        if live_datasets <= trained
+    }
+
+
+def _prune_trained_on_entries(path: Path, prefix: str, drop_ids: set[str]) -> str | None:
+    """Strip entries/battles for now-excluded competitors from a board this
+    run otherwise left untouched (§ trained_on — a board whose sole
+    historical entrant later gained a ``trained_on`` entry must not keep
+    serving a training-contaminated score forever just because the
+    dataset/lang key itself is still live in the registry).
+
+    Returns ``"deleted"`` when every entry was dropped, ``"rewritten"`` when
+    some but not all were, or ``None`` when nothing needed to change.
+    """
+    if not drop_ids:
+        return None
+    try:
+        payload = json.loads(path.read_text())
+    except Exception:
+        return None
+
+    if prefix == "battles-":
+        rows = payload.get("battles")
+        if rows is None:
+            return None
+        kept = [r for r in rows
+                if r.get("competitor_a") not in drop_ids and r.get("competitor_b") not in drop_ids]
+        payload_key = "battles"
+    else:
+        rows = payload.get("entries")
+        if rows is None:
+            return None
+        kept = [r for r in rows if r.get("competitor_id") not in drop_ids]
+        payload_key = "entries"
+
+    if len(kept) == len(rows):
+        return None
+    if not kept:
+        path.unlink()
+        return "deleted"
+    payload[payload_key] = kept
+    _write_json_payload(path, payload)
+    return "rewritten"
+
+
 def _prune_stale_artifacts(
     data_dir: Path,
     written_files: set[str],
@@ -1536,6 +1638,8 @@ def _prune_stale_artifacts(
     pools, empty dead pools from a since-renamed dataset id) get pruned.
     """
     dataset_langs = _registry_dataset_langs()
+    dataset_modalities = _registry_dataset_modalities()
+    trained_on_by_modality = _registry_trained_on_by_modality()
     pruned: list[str] = []
     for path in sorted(data_dir.iterdir()):
         if not path.is_file() or path.suffix != ".json":
@@ -1554,6 +1658,8 @@ def _prune_stale_artifacts(
         if modality_scope is not None and modality not in modality_scope:
             continue  # out of this run's --modality scope — leave it alone
         rest = parts[1:]
+        kept = False
+        drop_ids: set[str] = set()
         if prefix == "battles-" and rest and rest[0] == "freeform":
             # Group-scoped freeform matchup pool: key is <group>-<lang>,
             # not dataset-scoped — same liveness check as leaderboard/
@@ -1563,24 +1669,21 @@ def _prune_stale_artifacts(
             live_groups = _registry_battle_groups()
             lang = "-".join(rest[1:])
             if modality in live_groups and lang in live_langs:
-                continue
-        elif prefix == "battles-" and rest:
-            # Dataset-scoped battle pool: try every dataset_id/lang split
-            # point: kept if the registry still produces that pair.
-            kept = any(
-                "-".join(rest[i:]) in dataset_langs.get("-".join(rest[:i]), ())
-                for i in range(1, len(rest))
-            )
-            if kept:
-                continue
-        if prefix == "benchmark-" and rest:
-            kept = any(
-                "-".join(rest[i:]) in dataset_langs.get("-".join(rest[:i]), ())
-                for i in range(1, len(rest))
-            )
-            if kept:
-                continue
-        if prefix in ("leaderboard-", "elo-seed-"):
+                kept = True
+                drop_ids = _group_scoped_trained_on_drops(
+                    modality, lang, dataset_langs, dataset_modalities, trained_on_by_modality)
+        elif prefix in ("battles-", "benchmark-") and rest:
+            # Dataset-scoped pool: try every dataset_id/lang split point;
+            # kept if the registry still produces that pair.
+            for i in range(1, len(rest)):
+                dataset_id = "-".join(rest[:i])
+                lang = "-".join(rest[i:])
+                if lang in dataset_langs.get(dataset_id, ()):
+                    kept = True
+                    drop_ids = _dataset_scoped_trained_on_drops(
+                        dataset_id, modality, trained_on_by_modality)
+                    break
+        elif prefix in ("leaderboard-", "elo-seed-"):
             # Board key is <group>-<lang>. Same transient-failure safeguard
             # as the dataset-scoped pools above: keep the file when both the
             # battle group and the lang are still live in the registry —
@@ -1589,13 +1692,23 @@ def _prune_stale_artifacts(
             live_langs = {lang for langs in dataset_langs.values() for lang in langs}
             live_groups = _registry_battle_groups()
             full = [modality, *rest]
-            kept = any(
-                "-".join(full[:i]) in live_groups
-                and "-".join(full[i:]) in live_langs
-                for i in range(1, len(full))
-            )
-            if kept:
-                continue
+            for i in range(1, len(full)):
+                group = "-".join(full[:i])
+                lang = "-".join(full[i:])
+                if group in live_groups and lang in live_langs:
+                    kept = True
+                    drop_ids = _group_scoped_trained_on_drops(
+                        group, lang, dataset_langs, dataset_modalities, trained_on_by_modality)
+                    break
+        if kept:
+            result = _prune_trained_on_entries(path, prefix, drop_ids)
+            if result == "deleted":
+                pruned.append(name)
+                log.info("Pruned stale artifact %s (every entry trained on "
+                         "its own dataset)", name)
+            elif result == "rewritten":
+                log.info("Stripped trained_on-excluded entries from %s", name)
+            continue
         path.unlink()
         pruned.append(name)
         log.info("Pruned stale artifact %s (registry no longer produces this key)",
@@ -1640,14 +1753,15 @@ def merge_assemble_summaries(payloads: list[dict[str, Any]]) -> dict[str, Any]:
     step reads (§alarms, docs/operations.md "Alarms").
 
     Every field is combined, never overwritten: ``unregistered_competitors_
-    excluded`` counts are summed per competitor id, ``boards_without_
-    ranked_fighters``/``boards_unmanaged_on_error`` are unions, and
-    ``rows_dropped_off_revision`` is a total across every leg. A leg with
-    nothing to report never uploads a summary at all (``cmd_assemble`` only
-    writes one when it has something to say), so an empty *payloads* list
-    is the normal all-clear case, not an error.
+    excluded`` and ``trained_on_rows_excluded`` counts are summed per key,
+    ``boards_without_ranked_fighters``/``boards_unmanaged_on_error`` are
+    unions, and ``rows_dropped_off_revision`` is a total across every leg.
+    A leg with nothing to report never uploads a summary at all
+    (``cmd_assemble`` only writes one when it has something to say), so an
+    empty *payloads* list is the normal all-clear case, not an error.
     """
     unregistered: dict[str, int] = {}
+    trained_on: dict[str, int] = {}
     boards: set[str] = set()
     boards_no_negatives: set[str] = set()
     boards_error: set[str] = set()
@@ -1656,6 +1770,8 @@ def merge_assemble_summaries(payloads: list[dict[str, Any]]) -> dict[str, Any]:
         excluded = payload.get("unregistered_competitors_excluded") or {}
         for competitor_id, count in excluded.items():
             unregistered[competitor_id] = unregistered.get(competitor_id, 0) + count
+        for pair, count in (payload.get("trained_on_rows_excluded") or {}).items():
+            trained_on[pair] = trained_on.get(pair, 0) + count
         boards.update(payload.get("boards_without_ranked_fighters") or [])
         boards_no_negatives.update(payload.get("boards_without_negatives") or [])
         boards_error.update(payload.get("boards_unmanaged_on_error") or [])
@@ -1667,6 +1783,7 @@ def merge_assemble_summaries(payloads: list[dict[str, Any]]) -> dict[str, Any]:
         "boards_without_negatives": sorted(boards_no_negatives),
         "boards_unmanaged_on_error": sorted(boards_error),
         "rows_dropped_off_revision": rows_dropped,
+        "trained_on_rows_excluded": dict(sorted(trained_on.items())),
     }
 
 

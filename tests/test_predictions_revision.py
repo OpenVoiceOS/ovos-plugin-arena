@@ -28,6 +28,7 @@ def _response(status: int):
 class _StubCompetitor:
     def __init__(self, competitor_id):
         self.competitor_id = competitor_id
+        self.trained_on = []
 
 
 @pytest.fixture(autouse=True)

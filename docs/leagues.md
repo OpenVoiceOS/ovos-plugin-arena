@@ -169,6 +169,18 @@ community recordings), each drawing negatives from a shared not-wake-word pool
 (speech, ESC-50, FMA music, ambient noise, public-domain sounds) so the
 false-accept rate spans realistic scenarios.
 
+**A fighter is never scored on the corpus it was trained on.** A registry
+competitor's `trained_on` field lists the dataset ids whose recordings were
+in its training data. The bench skips a `(fighter, dataset)` pair on that
+list instead of running it, the assembler drops any already-published rows
+for the pair, and the autorun scheduler never picks it — a fighter that
+never registers `trained_on` for a corpus still competes on it normally.
+The community precise-lite models (`precise-onnx-athena`, `-computer`,
+`-ey-ordenador`, `-hey-chatterbox`, `-hey-k9`, `-hey-scout`) each list the
+matching `community-*` dataset; `hey_mycroft`, `hey_robin` and `marvin`
+carry no exclusion because their training data is not one of the arena's
+registered eval corpora.
+
 **Stacked fighters.** A wake-word competitor is not only a bare engine, it is
 the engine *as the listener actually stacks it*. A fighter config MAY add a
 **pre-wake VAD** gate (`config.VAD`: the detector only runs on clips the VAD

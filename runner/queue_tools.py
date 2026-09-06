@@ -175,6 +175,18 @@ def is_compatible(competitor: CompetitorDef, dataset: DatasetDef) -> bool:
     )
 
 
+def is_trained_on(competitor: CompetitorDef, dataset: DatasetDef) -> bool:
+    """*dataset*'s recordings were in *competitor*'s training data.
+
+    A fighter is never scored on a dataset it was trained on (owner ruling:
+    every fighter stays registered, but must never be graded on a corpus
+    containing its own training recordings). Checked at every scoring
+    point — the media/wake-word bench, the assembler, and the autorun
+    scheduler — against the fighter's registry-declared ``trained_on``.
+    """
+    return dataset.dataset_id in competitor.trained_on
+
+
 def enumerate_pairs(
     modality: str,
     registry_root: Path | None = None,
@@ -191,7 +203,7 @@ def enumerate_pairs(
     pairs: list[tuple[CompetitorDef, DatasetDef]] = []
     for dataset in datasets:
         for competitor in competitors:
-            if is_compatible(competitor, dataset):
+            if is_compatible(competitor, dataset) and not is_trained_on(competitor, dataset):
                 pairs.append((competitor, dataset))
     return pairs
 
