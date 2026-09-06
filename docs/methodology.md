@@ -400,14 +400,13 @@ fusion league. This mirrors the leagues already being paradigm-pure on the
 benchmark side (§2.1), battles and ELO were the one place paradigms used
 to mix, and now don't.
 
-A single-stage embedding classifier (Model2Vec, Hierarchical KNN) is not a
-fourth league. It is a *strategy*, trained from one of the two intent
-training-data formats, both shipped competitors here train from
-template-paradigm corpora (`runner/intent_pipeline.py`'s `EngineSpec.paradigm
-== "template"` for both `ovos-m2v-pipeline` and
-`ovos-hierarchical-knn-pipeline`), so both live in `registry/competitors/
-intent_template/` and compete in the `intent_template` league, same as any
-other template engine.
+A single-stage embedding classifier (Model2Vec) is not a fourth league. It is
+a *strategy*, trained from one of the two intent training-data formats, and
+this shipped competitor trains from template-paradigm corpora
+(`runner/intent_pipeline.py`'s `EngineSpec.paradigm == "template"` for
+`ovos-m2v-pipeline`), so it lives in `registry/competitors/intent_template/`
+and competes in the `intent_template` league, same as any other template
+engine.
 
 **Historical votes and the league split.** Before this split, all three
 intent leagues shared one `intent` battle pool and one ELO ladder, a

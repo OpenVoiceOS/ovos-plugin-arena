@@ -23,7 +23,6 @@ class TestEngineRegistry:
             "ovos-markov-pipeline-plugin",
             "ovos-m2v-pipeline",
             "ovos-m2v-prototype-pipeline",
-            "ovos-hierarchical-knn-pipeline",
             "ovos-nebulento-hierarchical-pipeline-plugin",
             "ovos-linha-fina-domain-pipeline-plugin",
             "ovos-linha-fina-hierarchical-pipeline-plugin",
