@@ -25,7 +25,6 @@ class _FakeParquetCorpus:
 
     def __init__(self, monkeypatch, n=50):
         self.n = n
-        import numpy as np
 
         from runner import audio_io
 

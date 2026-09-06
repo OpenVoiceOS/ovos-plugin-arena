@@ -47,7 +47,9 @@ _utmos_judge = None  # module-cached lazy singleton, one ONNX session per proces
 _sigmos_judge = None
 _dnsmos_judge = None
 _nisqa_judge = None
-_intelligibility_judges: dict[str, tuple[object, str]] = {}  # model_id -> (onnx-asr model, revision), cached per model — several langs share one model
+# model_id -> (onnx-asr model, revision), cached per model — several langs
+# share one model
+_intelligibility_judges: dict[str, tuple[object, str]] = {}
 
 
 def _get_utmos_judge():
@@ -258,9 +260,9 @@ def _score_intelligibility(wav_path, prompt_text: str, lang: str) -> dict:
     future reweighted ROVER be recomputed purely from stored data, with no
     ASR re-run.
     """
-    from runner.audio_io import decode_audio_bytes
     from arena.metrics import intelligibility_scores
     from arena.rover import rover_consensus_and_agreement_from_judges
+    from runner.audio_io import decode_audio_bytes
 
     with open(wav_path, "rb") as fh:
         array, _sr = decode_audio_bytes(fh.read())  # always 16k mono here

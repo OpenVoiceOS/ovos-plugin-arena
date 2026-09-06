@@ -35,7 +35,6 @@ from pathlib import Path
 
 from arena.version import __version__ as ARENA_VERSION
 from registry.loaders import list_competitors, load_dataset
-from runner.perf import hw_fingerprint, measure_call
 from runner.intent_bench import (
     HF_OWNER,
     _now_iso,
@@ -45,6 +44,7 @@ from runner.intent_bench import (
     results_repo_for,
     split_name,
 )
+from runner.perf import hw_fingerprint, measure_call
 
 log = logging.getLogger("media-bench")
 
@@ -407,7 +407,7 @@ def run_competitor_lang(
                 break
             try:
                 fields, elapsed_ms, peak_rss_mb = measure_call(
-                    lambda: adapter.predict(engine, sample, ctx)
+                    lambda engine=engine, sample=sample: adapter.predict(engine, sample, ctx)
                 )
             except Exception as exc:
                 log.warning("    %s/%s sample %s failed: %s",

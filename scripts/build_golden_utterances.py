@@ -286,18 +286,25 @@ One JSONL file per language at `<lang>/test.jsonl`. Columns:
 | Column | Type | Description |
 |---|---|---|
 | `utterance` | string | The natural-language phrase a user would say. |
-| `expected_intent` | string | `<skill_id>:<intent_label>`, the intent the utterance must resolve to. |
+| `expected_intent` | string | `<skill_id>:<intent_label>`, the intent the utterance must \
+resolve to. |
 | `lang` | string | BCP-47 locale of the utterance (e.g. `en-US`, `pt-PT`). |
 | `skill_id` | string | The OVOS skill id that owns the intent. |
 | `source_repo` | string | The `ovos-skill-*` GitHub repository the row was extracted from. |
 | `source_file` | string | Path to the source golden-utterances file within that repo. |
-| `intent_label_original` | string | The intent label exactly as it appears in the source suite, before normalization. |
-| `intent_type` | string or null | The intent engine the utterance targets (e.g. `padatious`, `adapt`). |
+| `intent_label_original` | string | The intent label exactly as it appears in the source \
+suite, before normalization. |
+| `intent_type` | string or null | The intent engine the utterance targets (e.g. `padatious`, \
+`adapt`). |
 | `intent_method` | string or null | The skill's handler method for the intent, when recorded. |
-| `needs_manual` | bool | Whether the row is flagged as requiring manual review rather than automated scoring. |
-| `machine_generated` | bool or null | Whether the utterance was machine-generated. `null` when the source row did not record this. |
-| `required_vocab` | list or null | Vocabulary terms the utterance is expected to require, when recorded. |
-| `expected_messages` | list or null | Bus message types the skill is expected to emit in response, when recorded. |
+| `needs_manual` | bool | Whether the row is flagged as requiring manual review rather than \
+automated scoring. |
+| `machine_generated` | bool or null | Whether the utterance was machine-generated. `null` \
+when the source row did not record this. |
+| `required_vocab` | list or null | Vocabulary terms the utterance is expected to require, \
+when recorded. |
+| `expected_messages` | list or null | Bus message types the skill is expected to emit in \
+response, when recorded. |
 
 ### Intent label normalization
 
@@ -378,7 +385,8 @@ def publish_dataset(out_dir: str, repo_id: str):
         repo_id=repo_id,
         repo_type="dataset",
         folder_path=out_dir,
-        commit_message="Build OVOS golden-utterances evaluation dataset from skill-fleet end2end suites",
+        commit_message="Build OVOS golden-utterances evaluation dataset from skill-fleet \
+end2end suites",
     )
     print("UPLOAD SUCCESS")
     print(f"https://huggingface.co/datasets/{repo_id}")
@@ -391,11 +399,16 @@ def publish_dataset(out_dir: str, repo_id: str):
 def parse_args(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out", default="./golden-utterances-build", help="build output directory")
-    parser.add_argument("--publish", action="store_true", help="upload the built dataset to the HF hub")
-    parser.add_argument("--org", default=DEFAULT_ORG, help="GitHub org to enumerate skill repos from")
-    parser.add_argument("--repo-filter", default=DEFAULT_REPO_FILTER, help="repo name prefix to include")
-    parser.add_argument("--hf-repo-id", default=DEFAULT_HF_REPO_ID, help="HF dataset repo id to publish to")
-    parser.add_argument("--force", action="store_true", help="publish even if row count dropped >20%%")
+    parser.add_argument("--publish", action="store_true", help="upload the built dataset to \
+the HF hub")
+    parser.add_argument("--org", default=DEFAULT_ORG, help="GitHub org to enumerate skill \
+repos from")
+    parser.add_argument("--repo-filter", default=DEFAULT_REPO_FILTER, help="repo name prefix \
+to include")
+    parser.add_argument("--hf-repo-id", default=DEFAULT_HF_REPO_ID, help="HF dataset repo id \
+to publish to")
+    parser.add_argument("--force", action="store_true", help="publish even if row count \
+dropped >20%%")
     return parser.parse_args(argv)
 
 

@@ -28,15 +28,15 @@ from arena.metrics import (
     IN_DISTRIBUTION_BUCKETS,
     metric_higher_is_better,
     primary_metric_ci,
-    row_is_correct,
-    row_metric_value,
     row_intelligibility_cer,
     row_intelligibility_judge,
+    row_is_correct,
+    row_metric_value,
     row_utmos,
     row_wer,
-    tts_seed_score,
     secondary_ladder_metrics_for,
     significant_from_cis,
+    tts_seed_score,
     ww_row_correct,
 )
 from arena.models import (
@@ -445,7 +445,11 @@ def seed_elo(
         # lists into the dominant cost of assemble otherwise.
         ci_cache: dict[str, tuple[float, float] | None] = {}
 
-        def _ci(competitor: str) -> tuple[float, float] | None:
+        def _ci(
+            competitor: str,
+            ci_cache=ci_cache,
+            rows_by_competitor=rows_by_competitor,
+        ) -> tuple[float, float] | None:
             if competitor not in ci_cache:
                 ci_cache[competitor] = primary_metric_ci(
                     modality, rows_by_competitor[competitor]

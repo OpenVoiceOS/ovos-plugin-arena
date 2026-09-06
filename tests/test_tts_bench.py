@@ -654,7 +654,8 @@ class TestIntelligibility:
             constructed["model"] = model
             return object()
 
-        import sys, types
+        import sys
+        import types
         fake_mod = types.ModuleType("onnx_asr")
         fake_mod.load_model = fake_load_model
         monkeypatch.setitem(sys.modules, "onnx_asr", fake_mod)
@@ -693,6 +694,7 @@ class TestJudgeResolution:
         # Greek, Polish or Malayalam — the plugin registry names a real
         # model for each, and that is what judges them.
         from ovos_stt_plugin_onnxasr.defaults import LANG_DEFAULTS
+
         from runner.asr_judges import resolve_judge_model
 
         for lang in ("ru-RU", "el-GR", "pl-PL", "ml-IN"):
@@ -711,6 +713,7 @@ class TestJudgeResolution:
         # The registry deliberately assigns Norwegian to its "no" entry,
         # which is whisper-base — a real entry, so the language is judged.
         from ovos_stt_plugin_onnxasr.defaults import LANG_DEFAULTS
+
         from runner.asr_judges import resolve_judge_model
 
         model_id, revision = resolve_judge_model("nb-NO")
@@ -766,7 +769,8 @@ class TestJudgeResolution:
             loads["n"] += 1
             return object()
 
-        import sys, types
+        import sys
+        import types
         fake_mod = types.ModuleType("onnx_asr")
         fake_mod.load_model = fake_load_model
         monkeypatch.setitem(sys.modules, "onnx_asr", fake_mod)
@@ -993,6 +997,7 @@ class TestNoAsrJudgeLanguages:
 
     def test_languages_the_plugin_claims_are_judged(self):
         from ovos_stt_plugin_onnxasr.defaults import LANG_DEFAULTS
+
         from runner.asr_judges import judge_available
 
         # Each of these is a plugin registry entry the repo's own pinned

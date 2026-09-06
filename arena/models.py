@@ -493,7 +493,7 @@ class EloBoard(BaseModel):
     # above so the frontend can treat metric selection uniformly instead of
     # special-casing the default). Empty for leagues with no ladderable
     # secondary metric (e.g. wake_word/vad today).
-    metric_ladders: dict[str, "MetricLadder"] = Field(default_factory=dict)
+    metric_ladders: dict[str, MetricLadder] = Field(default_factory=dict)
 
 
 class EloSeed(BaseModel):
@@ -524,7 +524,7 @@ class EloSeed(BaseModel):
     # ``build_elo_board`` fits a fresh BT rating from these pairwise totals
     # on every rebuild, same machinery as the primary ladder minus the
     # bootstrap CI (no human resampling to bootstrap over).
-    secondary_metrics: dict[str, "SecondaryMetricSeed"] = Field(default_factory=dict)
+    secondary_metrics: dict[str, SecondaryMetricSeed] = Field(default_factory=dict)
 
     @model_validator(mode="after")
     def _pairwise_roster_subset_of_ratings(self) -> EloSeed:

@@ -1446,8 +1446,9 @@ class TestAssembleMissingPredictionRepo:
     def test_rate_limited_repo_still_retries_and_refuses_to_publish(
         self, tmp_path, monkeypatch, caplog
     ):
-        import arena.predictions as predictions_mod
         from huggingface_hub.utils import HfHubHTTPError
+
+        import arena.predictions as predictions_mod
 
         out = tmp_path / "data"
         preds = _write_multilang_stt_predictions(tmp_path / "r1", {
@@ -1549,10 +1550,10 @@ class TestAssembleStalePredictionsRevisionPin:
         import sys
         import types
 
-        import registry.loaders as loaders
         from huggingface_hub.utils import RevisionNotFoundError
 
         import arena.predictions as predictions_mod
+        import registry.loaders as loaders
 
         predictions_mod.reset_revision_cache()
         out = tmp_path / "data"
@@ -1831,10 +1832,10 @@ class TestPreLoadFailureScopedToConcreteLang:
         import sys
         import types
 
-        import registry.loaders as loaders
         from huggingface_hub.utils import RevisionNotFoundError
 
         import arena.predictions as predictions_mod
+        import registry.loaders as loaders
 
         predictions_mod.reset_revision_cache()
         real = loaders.list_datasets()
@@ -1920,10 +1921,10 @@ class TestPreLoadFailureScopedToConcreteLang:
         import sys
         import types
 
-        import registry.loaders as loaders
         from huggingface_hub.utils import GatedRepoError
 
         import arena.predictions as predictions_mod
+        import registry.loaders as loaders
 
         predictions_mod.reset_revision_cache()
         real = loaders.list_datasets()

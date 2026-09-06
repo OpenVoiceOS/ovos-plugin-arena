@@ -42,7 +42,9 @@ import logging
 from pathlib import Path
 
 from runner.asr_judges import (
-    _UNIVERSAL_FALLBACK, judge_available, resolve_judge_model,
+    _UNIVERSAL_FALLBACK,
+    judge_available,
+    resolve_judge_model,
 )
 from runner.intent_bench import HF_OWNER, results_repo_for
 from runner.tts_bench import (  # noqa: F401 (patchable at module level; optional-dep imports are inside tts_bench's own lazy judge getters)

@@ -118,7 +118,8 @@ def test_build_dataset_skips_malformed_and_dialog_shaped_rows():
             "test/end2end/golden_utterances.jsonl",
             "\n".join(
                 [
-                    '{"skill_id": "skill-fallback-unknown", "utterance": "asdkjh", "dialog": "sorry"}',
+                    '{"skill_id": "skill-fallback-unknown", "utterance": "asdkjh", '
+                    '"dialog": "sorry"}',
                     '{"skill_id": "skill-x", "utterance": "hi", "intent_label": "greet.intent"}',
                     "not json at all",
                 ]

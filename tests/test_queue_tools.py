@@ -231,7 +231,8 @@ class TestFindMissingPairs:
     def test_no_file_is_missing(self, mini_registry):
         lister = FakeLister(files={})
         missing = find_missing_pairs("stt", registry_root=mini_registry, lister=lister)
-        reasons = {(mp.competitor.competitor_id, mp.dataset.dataset_id): mp.reason for mp in missing}
+        reasons = {(mp.competitor.competitor_id, mp.dataset.dataset_id): mp.reason
+                   for mp in missing}
         assert reasons[("vosk-en", "minds14-en-US")] == "no_file"
 
     def test_zero_byte_file_is_missing(self, mini_registry):
@@ -248,13 +249,23 @@ class TestFindMissingPairs:
                 },
             },
             rows={
-                ("OpenVoiceOS/ovos-stt-bench-minds14-en-US", "predictions/fasterwhisper-multi.jsonl"): 200,
-                ("OpenVoiceOS/ovos-stt-bench-minds14-pt-PT", "predictions/vosk-pt.jsonl"): 200,
-                ("OpenVoiceOS/ovos-stt-bench-minds14-pt-PT", "predictions/fasterwhisper-multi.jsonl"): 200,
+                (
+                    "OpenVoiceOS/ovos-stt-bench-minds14-en-US",
+                    "predictions/fasterwhisper-multi.jsonl",
+                ): 200,
+                (
+                    "OpenVoiceOS/ovos-stt-bench-minds14-pt-PT",
+                    "predictions/vosk-pt.jsonl",
+                ): 200,
+                (
+                    "OpenVoiceOS/ovos-stt-bench-minds14-pt-PT",
+                    "predictions/fasterwhisper-multi.jsonl",
+                ): 200,
             },
         )
         missing = find_missing_pairs("stt", registry_root=mini_registry, lister=lister)
-        by_key = {(mp.competitor.competitor_id, mp.dataset.dataset_id): mp for mp in missing}
+        by_key = {(mp.competitor.competitor_id, mp.dataset.dataset_id): mp
+                  for mp in missing}
         assert by_key[("vosk-en", "minds14-en-US")].reason == "empty_file"
         assert ("fasterwhisper-multi", "minds14-en-US") not in by_key
         assert ("vosk-pt", "minds14-pt-PT") not in by_key
@@ -273,9 +284,18 @@ class TestFindMissingPairs:
             },
             rows={
                 ("OpenVoiceOS/ovos-stt-bench-minds14-en-US", "predictions/vosk-en.jsonl"): 3,
-                ("OpenVoiceOS/ovos-stt-bench-minds14-en-US", "predictions/fasterwhisper-multi.jsonl"): 200,
-                ("OpenVoiceOS/ovos-stt-bench-minds14-pt-PT", "predictions/vosk-pt.jsonl"): 200,
-                ("OpenVoiceOS/ovos-stt-bench-minds14-pt-PT", "predictions/fasterwhisper-multi.jsonl"): 200,
+                (
+                    "OpenVoiceOS/ovos-stt-bench-minds14-en-US",
+                    "predictions/fasterwhisper-multi.jsonl",
+                ): 200,
+                (
+                    "OpenVoiceOS/ovos-stt-bench-minds14-pt-PT",
+                    "predictions/vosk-pt.jsonl",
+                ): 200,
+                (
+                    "OpenVoiceOS/ovos-stt-bench-minds14-pt-PT",
+                    "predictions/fasterwhisper-multi.jsonl",
+                ): 200,
             },
         )
         missing = find_missing_pairs(
@@ -330,11 +350,14 @@ class TestFindMissingPairs:
         lister = FakeLister(files={})
         r1 = find_missing_pairs("stt", registry_root=mini_registry, lister=lister)
         r2 = find_missing_pairs("stt", registry_root=mini_registry, lister=lister)
-        key = lambda mps: [(mp.competitor.competitor_id, mp.dataset.dataset_id) for mp in mps]
+        def key(mps):
+            return [(mp.competitor.competitor_id, mp.dataset.dataset_id) for mp in mps]
         assert key(r1) == key(r2)
 
     def test_empty_modality_returns_empty(self, mini_registry):
-        missing = find_missing_pairs("tts", registry_root=mini_registry, lister=FakeLister(files={}))
+        missing = find_missing_pairs(
+            "tts", registry_root=mini_registry, lister=FakeLister(files={})
+        )
         assert missing == []
 
     def test_transient_hf_failure_aborts_instead_of_emitting_jobs(self, mini_registry):
@@ -449,7 +472,8 @@ class TestEngineWeight:
     def test_sort_places_cheap_engines_first(self, mini_registry):
         lister = FakeLister(files={})
         missing = find_missing_pairs("stt", registry_root=mini_registry, lister=lister)
-        weights = [engine_weight(mp.competitor.competitor_id, mp.competitor.plugin) for mp in missing]
+        weights = [engine_weight(mp.competitor.competitor_id, mp.competitor.plugin)
+                   for mp in missing]
         assert weights == sorted(weights)
 
 
@@ -538,7 +562,8 @@ class TestBreadthFirstOrder:
         ]
         r1 = breadth_first_order(list(missing), {}, {})
         r2 = breadth_first_order(list(missing), {}, {})
-        key = lambda ms: [(m.competitor.competitor_id, m.dataset.dataset_id) for m in ms]
+        def key(ms):
+            return [(m.competitor.competitor_id, m.dataset.dataset_id) for m in ms]
         assert key(r1) == key(r2)
 
     def test_find_missing_pairs_is_breadth_first_on_real_diff(self, mini_registry):
@@ -628,8 +653,9 @@ class TestHubListerErrorHandling:
     HubLister entirely and can't catch a regression there."""
 
     def test_repository_not_found_yields_empty_files(self, monkeypatch):
-        import runner.queue_tools as qt
         from huggingface_hub.utils import RepositoryNotFoundError
+
+        import runner.queue_tools as qt
 
         class FakeApi:
             def list_repo_tree(self, *a, **kw):
@@ -664,7 +690,9 @@ class TestHubListerErrorHandling:
 
 
 class TestCLIAbortsOnHFFailure:
-    def test_main_exits_nonzero_and_prints_error_on_hf_failure(self, mini_registry, monkeypatch, capsys):
+    def test_main_exits_nonzero_and_prints_error_on_hf_failure(
+        self, mini_registry, monkeypatch, capsys
+    ):
         import runner.queue_tools as qt
 
         class RaisingLister:
@@ -892,8 +920,9 @@ class TestHubListerEmptyRepo:
         folder; list_repo_tree raises EntryNotFoundError, which must mean
         'nothing published yet', not a crash (live failure: queue regen died
         on ovos-stt-bench-fleurs-gl, 2026-08-11)."""
-        import runner.queue_tools as qt
         from huggingface_hub.utils import EntryNotFoundError
+
+        import runner.queue_tools as qt
 
         class FakeApi:
             def list_repo_tree(self, *a, **kw):

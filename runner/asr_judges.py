@@ -110,31 +110,46 @@ _UNIVERSAL_FALLBACK = "whisper-base"
 _REVISIONS: dict[str, str] = {
     "nemo-parakeet-tdt-0.6b-v3": "8f23f0c03c8761650bdb5b40aaf3e40d2c15f1ce",
     "whisper-base": "998334d3bfe2deba3c8e6821f05388dbf2b706d2",
-    "OpenVoiceOS/stt_ar_fastconformer_hybrid_large_pcd_v1.0_onnx": "c5f78db4d5a8da706ab74cad73481c18b8d736b9",
-    "OpenVoiceOS/stt-ca-es-conformer-transducer-large-onnx": "c43ddeda9f8bb739deb26162a6727cd47d52484a",
-    "OpenVoiceOS/parakeet-rnnt-1.1b-cv17-es-ep18-1270h-onnx": "74c76d8c69e54472f2cd2a3507bd2c61d9874cf3",
-    "OpenVoiceOS/stt-eu-conformer-transducer-large-onnx": "ee5f59fe21c70416988d24102a7a5fe22e128242",
-    "OpenVoiceOS/carlosdanielhernandezmena-stt_fo_quartznet15x5_sp_ep163_100h_onnx": "e797c7df6602ae73b15e78cea32a40ba2ab6851b",
+    "OpenVoiceOS/stt_ar_fastconformer_hybrid_large_pcd_v1.0_onnx":
+        "c5f78db4d5a8da706ab74cad73481c18b8d736b9",
+    "OpenVoiceOS/stt-ca-es-conformer-transducer-large-onnx":
+        "c43ddeda9f8bb739deb26162a6727cd47d52484a",
+    "OpenVoiceOS/parakeet-rnnt-1.1b-cv17-es-ep18-1270h-onnx":
+        "74c76d8c69e54472f2cd2a3507bd2c61d9874cf3",
+    "OpenVoiceOS/stt-eu-conformer-transducer-large-onnx":
+        "ee5f59fe21c70416988d24102a7a5fe22e128242",
+    "OpenVoiceOS/carlosdanielhernandezmena-stt_fo_quartznet15x5_sp_ep163_100h_onnx":
+        "e797c7df6602ae73b15e78cea32a40ba2ab6851b",
     "onnx-community/whisper-large-v3-turbo": "360ebcde2559d60bb474678be3c1de9ef347d01a",
-    "OpenVoiceOS/stt_hy_fastconformer_hybrid_large_pc_onnx": "f7db1fad9af6bd8a7a9e08fca02068c403b35468",
-    "OpenVoiceOS/carlosdanielhernandezmena-stt_is_quartznet15x5_ft_ep56_875h_onnx": "8c04e8b54f82c699e7457f18f71db74cd2bcdd1b",
-    "OpenVoiceOS/stt_ka_fastconformer_hybrid_large_pc_onnx": "fa19e061165a0238fe6477c65cdc3357d56f5788",
-    "OpenVoiceOS/stt_kk_ru_fastconformer_hybrid_large_onnx": "489c2d5b5671509737c64b44ee6b2a2b7d619558",
-    "OpenVoiceOS/stt_kr_citrinet1024_PublicCallCenter_1000H_onnx": "74230b92a06ce3e7e6f8214492793a94c91bc59f",
-    "OpenVoiceOS/carlosdanielhernandezmena-stt_mt_quartznet15x5_sp_ep255_64h_onnx": "cff51ea8349448abf5c8bcbd383a3ec29fd8fb75",
+    "OpenVoiceOS/stt_hy_fastconformer_hybrid_large_pc_onnx":
+        "f7db1fad9af6bd8a7a9e08fca02068c403b35468",
+    "OpenVoiceOS/carlosdanielhernandezmena-stt_is_quartznet15x5_ft_ep56_875h_onnx":
+        "8c04e8b54f82c699e7457f18f71db74cd2bcdd1b",
+    "OpenVoiceOS/stt_ka_fastconformer_hybrid_large_pc_onnx":
+        "fa19e061165a0238fe6477c65cdc3357d56f5788",
+    "OpenVoiceOS/stt_kk_ru_fastconformer_hybrid_large_onnx":
+        "489c2d5b5671509737c64b44ee6b2a2b7d619558",
+    "OpenVoiceOS/stt_kr_citrinet1024_PublicCallCenter_1000H_onnx":
+        "74230b92a06ce3e7e6f8214492793a94c91bc59f",
+    "OpenVoiceOS/carlosdanielhernandezmena-stt_mt_quartznet15x5_sp_ep255_64h_onnx":
+        "cff51ea8349448abf5c8bcbd383a3ec29fd8fb75",
     "OpenVoiceOS/whisper-medium-pt-onnx": "7db38a22790ba3f831702db12cb19dd684642bf5",
-    "OpenVoiceOS/stt_ua_fastconformer_hybrid_large_pc_onnx": "d7ffacec32e95786d22f3c7417348fa6f5a02c98",
+    "OpenVoiceOS/stt_ua_fastconformer_hybrid_large_pc_onnx":
+        "d7ffacec32e95786d22f3c7417348fa6f5a02c98",
     "OpenVoiceOS/stt_zh_citrinet_1024_gamma_0_25_onnx": "94147e6e63f09b133c4366f38892dca83d7cb30a",
     "OpenVoiceOS/ai4bharat-indicconformer-bn-onnx": "46053d8f1c1b1ed12eb1b34f3f7ccf8512fb08b1",
-    "OpenVoiceOS/nvidia-fa-fastconformer-hybrid-large-onnx": "d84de4ccefe28598d006d5827210352aa9053a0d",
+    "OpenVoiceOS/nvidia-fa-fastconformer-hybrid-large-onnx":
+        "d84de4ccefe28598d006d5827210352aa9053a0d",
     "OpenVoiceOS/ai4bharat-indicconformer-hi-onnx": "8960b8611af5b8c375d442d52907360176410c8b",
     "OpenVoiceOS/ai4bharat-indicconformer-kn-onnx": "55b6f618ade2fc7cf8127f1c6778ea069961fb8c",
     "OpenVoiceOS/yuriyvnv-parakeet-tdt-0.6b-sl-onnx": "29eaa10f01e70113d436b3460865db1779821c52",
     "OpenVoiceOS/ai4bharat-indicconformer-ta-onnx": "10e43940d12106763c3aebe1922b70d37fc0c6fd",
     "OpenVoiceOS/ai4bharat-indicconformer-te-onnx": "d952dec2a1d256a1569cdfc9a9615cba05a1a2e3",
-    "OpenVoiceOS/stt-tl-fastconformer-hybrid-large-onnx": "e7eb84062e138d2f531ef349f0c5a164846c019b",
+    "OpenVoiceOS/stt-tl-fastconformer-hybrid-large-onnx":
+        "e7eb84062e138d2f531ef349f0c5a164846c019b",
     "OpenVoiceOS/ai4bharat-indicconformer-ur-onnx": "c93610bb4c08642b1e48b6f17b2141d5446898fc",
-    "OpenVoiceOS/nvidia-parakeet-ctc-0.6b-vietnamese-onnx": "ed9f55ba980eb1c9eeba02a5733eba7cba02f6e7",
+    "OpenVoiceOS/nvidia-parakeet-ctc-0.6b-vietnamese-onnx":
+        "ed9f55ba980eb1c9eeba02a5733eba7cba02f6e7",
     "OpenVoiceOS/nvidia-parakeet-tdt_ctc-0.6b-ja-onnx": "4353e7b9e2e9ebdd35e85b8140c7351d03c2219c",
 }
 
@@ -247,7 +262,10 @@ def _plugin_provenance() -> str:
     change (§4 R16 provenance).
     """
     from ovos_stt_plugin_onnxasr.version import (
-        VERSION_ALPHA, VERSION_BUILD, VERSION_MAJOR, VERSION_MINOR,
+        VERSION_ALPHA,
+        VERSION_BUILD,
+        VERSION_MAJOR,
+        VERSION_MINOR,
     )
 
     version = f"{VERSION_MAJOR}.{VERSION_MINOR}.{VERSION_BUILD}"
