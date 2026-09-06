@@ -2,8 +2,10 @@
   "modality": "intent",
   "dataset_id": "intents-for-eval",
   "lang": "en-US",
-  "generated_at": "2026-09-06T13:23:17.026046+00:00",
+  "generated_at": "2026-09-06T19:37:32.003436+00:00",
   "dataset_info": {
+    "display_name": "OVOS intents for eval (12 languages)",
+    "summary": "The arena's own paradigm-neutral intent benchmark: 50 assistant intents with slot annotations, between 1,354 and 1,384 test rows per language across 12 languages. One row is an utterance, its intent and its slots, tagged with the kind of challenge it poses — a held-out template, a free paraphrase, a typo, transcription noise, or an out-of-scope request that expects silence. Templates are split before expansion, so a test row is never an expansion of a template a fighter trained on.",
     "url": "https://huggingface.co/datasets/OpenVoiceOS/intents-for-eval",
     "license": "apache-2.0",
     "notes": "OVOS canonical paradigm-neutral intent benchmark: 50 intents, between 1,354 and 1,384 test rows per language (rows failing the train/test separation rule are dropped, not replaced) across template / paraphrase / in_distribution / far_ood / asr_noise / typos buckets, with slot annotations. far_ood rows carry expected_intent=null — the correct behaviour is no match. Train and test are separated at the template level: train_templates.jsonl holds an 80% per-intent sample of phrase templates, and the template bucket here is built only from the held-out 20%.",
@@ -175,6 +177,26 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "00aa43ae835a6303",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00047",
+      "input_text": "weather forecast for london",
+      "audio_url": null,
+      "reference": "weather:weather_location",
+      "prediction_a": {
+        "intent": "weather:weather_today"
+      },
+      "prediction_b": {
+        "intent": "weather:weather_forecast"
+      },
+      "competitor_a": "nebulacioso",
+      "competitor_b": "cascade-soft",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "00dbc303bd0eb4cb",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
@@ -304,25 +326,22 @@
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "00ffd2dc4220350f",
+      "battle_id": "0444f936368d0d94",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
-      "sample_id": "en-US/00737",
-      "input_text": "turn the air down to 18 in the bedroom",
+      "sample_id": "en-US/01299",
+      "input_text": "i mean make it bright",
       "audio_url": null,
-      "reference": "smarthome:set_thermostat",
+      "reference": "smarthome:lights_on",
       "prediction_a": {
-        "intent": "smarthome:lights_off",
-        "slots": {
-          "room": "bedroom"
-        }
+        "intent": null
       },
       "prediction_b": {
-        "intent": "system_control:shutdown"
+        "intent": "media:set_volume"
       },
-      "competitor_a": "trident",
-      "competitor_b": "cascade-soft",
+      "competitor_a": "cascade-soft",
+      "competitor_b": "trident",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
     },
@@ -449,6 +468,26 @@
       },
       "competitor_a": "frankenparse",
       "competitor_b": "mycroft-classic",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "00b601ae8e26750b",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00679",
+      "input_text": "alarm again in 12",
+      "audio_url": null,
+      "reference": "timers_alarms:snooze_alarm",
+      "prediction_a": {
+        "intent": "timers_alarms:set_alarm"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulacioso",
+      "competitor_b": "frankenparse",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
     },
@@ -582,22 +621,22 @@
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "04b776b413baa4cd",
+      "battle_id": "03b72728e8071600",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
-      "sample_id": "en-US/00623",
-      "input_text": "how about a 25 minute timer",
+      "sample_id": "en-US/00857",
+      "input_text": "ballpark time to the airport",
       "audio_url": null,
-      "reference": "timers_alarms:set_timer",
+      "reference": "navigation:eta_query",
       "prediction_a": {
-        "intent": "smarthome:set_thermostat"
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "trident",
-      "competitor_b": "frankenparse",
+      "prediction_b": {
+        "intent": "navigation:navigate_to"
+      },
+      "competitor_a": "frankenparse",
+      "competitor_b": "trident",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
     },
@@ -703,6 +742,26 @@
         "intent": null
       },
       "competitor_a": "mycroft-classic",
+      "competitor_b": "kw-slot-palavreado",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "006f2397fb013d61",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00563",
+      "input_text": "kill the sound for now",
+      "audio_url": null,
+      "reference": "media:pause_playback",
+      "prediction_a": {
+        "intent": "system_control:mute_system"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulacioso",
       "competitor_b": "kw-slot-palavreado",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
@@ -954,6 +1013,26 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "0036efecd5733f35",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00531",
+      "input_text": "stop the song",
+      "audio_url": null,
+      "reference": "media:pause_playback",
+      "prediction_a": {
+        "intent": "communication:hang_up"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulacioso",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "00aea44f23703e7d",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
@@ -1166,6 +1245,29 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "004492398c6449e6",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00767",
+      "input_text": "tell sarah to pick up",
+      "audio_url": null,
+      "reference": "communication:call_contact",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "communication:video_call",
+        "slots": {
+          "contact": "sarah"
+        }
+      },
+      "competitor_a": "m2v-nebulento",
+      "competitor_b": "nebulacioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "03b830e91e59f108",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
@@ -1349,6 +1451,29 @@
       "plugin_b": "ovos-m2v-prototype-pipeline"
     },
     {
+      "battle_id": "057ce85dc8071f8c",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00451",
+      "input_text": "can you tell me the eta to the office",
+      "audio_url": null,
+      "reference": "navigation:eta_query",
+      "prediction_a": {
+        "intent": "navigation:navigate_to"
+      },
+      "prediction_b": {
+        "intent": "navigation:navigate_to",
+        "slots": {
+          "destination": "the office"
+        }
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "nebulacioso",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "0004c535f5dca499",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
@@ -1516,6 +1641,26 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "00debf952a40bb46",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01124",
+      "input_text": "i want a clean boot",
+      "audio_url": null,
+      "reference": "system_control:restart",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:play_song"
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "nebulacioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "02445bcba5e5df0c",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
@@ -1539,19 +1684,22 @@
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "0228cb963301e492",
+      "battle_id": "006911d4a980e9ea",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
-      "sample_id": "en-US/00701",
-      "input_text": "make it dark please",
+      "sample_id": "en-US/00020",
+      "input_text": "switch to bbc",
       "audio_url": null,
-      "reference": "smarthome:lights_off",
+      "reference": "news:news_source",
       "prediction_a": {
-        "intent": "smarthome:set_thermostat"
+        "intent": null
       },
       "prediction_b": {
-        "intent": null
+        "intent": "system_control:change_language",
+        "slots": {
+          "target_language": "bbc"
+        }
       },
       "competitor_a": "m2v-prototype-nebulento",
       "competitor_b": "nebulatious",
@@ -1622,22 +1770,22 @@
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "03ef7c3788c1c744",
+      "battle_id": "00c7bc55eeefae41",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
-      "sample_id": "en-US/00818",
-      "input_text": "zoom sarah",
+      "sample_id": "en-US/00039",
+      "input_text": "switch off the system",
       "audio_url": null,
-      "reference": "communication:video_call",
+      "reference": "system_control:shutdown",
       "prediction_a": {
-        "intent": "communication:call_contact"
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "m2v-prototype-nebulento",
-      "competitor_b": "tmpl-slot-nebulento",
+      "prediction_b": {
+        "intent": "smarthome:lights_off"
+      },
+      "competitor_a": "tmpl-slot-nebulento",
+      "competitor_b": "m2v-prototype-nebulento",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
     },
@@ -1658,6 +1806,26 @@
       },
       "competitor_a": "m2v-prototype-nebulento",
       "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "001e12f1324ae7c8",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00099",
+      "input_text": "wind check",
+      "audio_url": null,
+      "reference": "weather:weather_wind",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:weather_today"
+      },
+      "competitor_a": "mycroft-classic",
+      "competitor_b": "nebulacioso",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
     },
@@ -1798,25 +1966,165 @@
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "01f2dac7a8bdbbd7",
+      "battle_id": "003fa1e235c2d478",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
-      "sample_id": "en-US/01199",
-      "input_text": "i'm done with this one move on",
+      "sample_id": "en-US/01331",
+      "input_text": "ditch like nav",
       "audio_url": null,
-      "reference": "news:next_story",
+      "reference": "navigation:cancel_route",
       "prediction_a": {
-        "intent": "media:skip_track",
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:weather_forecast"
+      },
+      "competitor_a": "mycroft-classic",
+      "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "003329d89e93e1df",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01181",
+      "input_text": "fill me in on current events",
+      "audio_url": null,
+      "reference": "news:read_headlines",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:next_event"
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "nebulacioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "00f380de0340b01d",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00015",
+      "input_text": "kill the route",
+      "audio_url": null,
+      "reference": "navigation:cancel_route",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "system_control:mute_system"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "nebulacioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "00d3427777bb42f0",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00563",
+      "input_text": "kill the sound for now",
+      "audio_url": null,
+      "reference": "media:pause_playback",
+      "prediction_a": {
+        "intent": "system_control:mute_system"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulacioso",
+      "competitor_b": "ovos-stock",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "00f3c33e742e1ea7",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00865",
+      "input_text": "are the roads moving",
+      "audio_url": null,
+      "reference": "navigation:traffic_status",
+      "prediction_a": {
+        "intent": "search_qa:translate_phrase"
+      },
+      "prediction_b": {
+        "intent": "calendar:reschedule_event"
+      },
+      "competitor_a": "tmpl-slot-jurebes",
+      "competitor_b": "nebulacioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "01221f5d176b0b3c",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00687",
+      "input_text": "make it bright please",
+      "audio_url": null,
+      "reference": "smarthome:lights_on",
+      "prediction_a": {
+        "intent": "calendar:next_event"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulacioso",
+      "competitor_b": "tmpl-slot-linhafina",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "00091ccedd6ec9b3",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00690",
+      "input_text": "don't leave the bedroom dark",
+      "audio_url": null,
+      "reference": "smarthome:lights_on",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_thermostat",
         "slots": {
-          "date": "this"
+          "room": "bedroom"
         }
+      },
+      "competitor_a": "tmpl-slot-nebulento",
+      "competitor_b": "nebulacioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "001defca2d89a0ed",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01222",
+      "input_text": "the prior story please",
+      "audio_url": null,
+      "reference": "news:previous_story",
+      "prediction_a": {
+        "intent": "news:next_story"
       },
       "prediction_b": {
         "intent": null
       },
       "competitor_a": "trident",
-      "competitor_b": "mycroft-classic",
+      "competitor_b": "nebulacioso",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
     },
@@ -1867,22 +2175,25 @@
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "032bad03e75d8a24",
+      "battle_id": "0568a3584e26edfb",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
-      "sample_id": "en-US/00600",
-      "input_text": "pull it back to 30",
+      "sample_id": "en-US/00899",
+      "input_text": "ubiquitous in plain english",
       "audio_url": null,
-      "reference": "media:set_volume",
+      "reference": "search_qa:define_word",
       "prediction_a": {
-        "intent": null
+        "intent": "system_control:change_language",
+        "slots": {
+          "target_language": "english"
+        }
       },
       "prediction_b": {
-        "intent": "news:previous_story"
+        "intent": null
       },
-      "competitor_a": "nebulapt",
-      "competitor_b": "tmpl-slot-jurebes",
+      "competitor_a": "tmpl-slot-jurebes",
+      "competitor_b": "nebulapt",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
     },
@@ -1970,22 +2281,25 @@
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "003347ec97d67de3",
+      "battle_id": "003d0eacdbde7bc6",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
-      "sample_id": "en-US/00797",
-      "input_text": "i'm getting off",
+      "sample_id": "en-US/00871",
+      "input_text": "rough going to the airport",
       "audio_url": null,
-      "reference": "communication:hang_up",
+      "reference": "navigation:traffic_status",
       "prediction_a": {
-        "intent": "smarthome:lights_off"
+        "intent": "navigation:eta_query",
+        "slots": {
+          "destination": "the airport"
+        }
       },
       "prediction_b": {
-        "intent": null
+        "intent": "navigation:navigate_to"
       },
-      "competitor_a": "tmpl-slot-jurebes",
-      "competitor_b": "nebulatious",
+      "competitor_a": "nebulatious",
+      "competitor_b": "tmpl-slot-jurebes",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
     },
@@ -2033,22 +2347,22 @@
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "010d13162e22e616",
+      "battle_id": "000c51fb56a2e527",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
-      "sample_id": "en-US/01103",
-      "input_text": "put the system to bed",
+      "sample_id": "en-US/00593",
+      "input_text": "a touch quieter like 35",
       "audio_url": null,
-      "reference": "system_control:shutdown",
+      "reference": "media:set_volume",
       "prediction_a": {
-        "intent": null
+        "intent": "weather:weather_forecast"
       },
       "prediction_b": {
-        "intent": "system_control:mute_system"
+        "intent": null
       },
-      "competitor_a": "nebulatious",
-      "competitor_b": "trident",
+      "competitor_a": "trident",
+      "competitor_b": "nebulatious",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
     },
@@ -2116,22 +2430,22 @@
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "0028d6f9a54e9858",
+      "battle_id": "00f52bf4bb55943b",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
-      "sample_id": "en-US/01193",
-      "input_text": "what's hot in sports",
+      "sample_id": "en-US/00877",
+      "input_text": "anything jamming up on the way to the office",
       "audio_url": null,
-      "reference": "news:read_topic",
+      "reference": "navigation:traffic_status",
       "prediction_a": {
-        "intent": null
+        "intent": "navigation:navigate_to"
       },
       "prediction_b": {
-        "intent": "weather:weather_location"
+        "intent": null
       },
-      "competitor_a": "ovos-stock",
-      "competitor_b": "trident",
+      "competitor_a": "trident",
+      "competitor_b": "ovos-stock",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
     },
@@ -2156,22 +2470,19 @@
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "014bdd5b09e4bb11",
+      "battle_id": "0106f601f2e849e9",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
-      "sample_id": "en-US/01093",
-      "input_text": "bump dinner with sarah out",
+      "sample_id": "en-US/00865",
+      "input_text": "are the roads moving",
       "audio_url": null,
-      "reference": "calendar:reschedule_event",
+      "reference": "navigation:traffic_status",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "calendar:cancel_event",
-        "slots": {
-          "title": "dinner with sarah"
-        }
+        "intent": "search_qa:translate_phrase"
       },
       "competitor_a": "tmpl-slot-nebulento",
       "competitor_b": "tmpl-slot-jurebes",
@@ -2191,7 +2502,7 @@
         "intent": null
       },
       "prediction_b": {
-        "intent": "smarthome:lights_on",
+        "intent": "communication:read_messages",
         "slots": {
           "contact": "mom"
         }
@@ -2222,22 +2533,19 @@
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "00496d8fb6357a17",
+      "battle_id": "055c11849c53c56b",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
-      "sample_id": "en-US/00618",
-      "input_text": "wake me up in 45 minutes",
+      "sample_id": "en-US/01016",
+      "input_text": "moisture levels",
       "audio_url": null,
-      "reference": "timers_alarms:set_timer",
+      "reference": "weather:weather_humidity",
       "prediction_a": {
-        "intent": "timers_alarms:set_alarm",
-        "slots": {
-          "duration": "minutes"
-        }
+        "intent": "media:set_volume"
       },
       "prediction_b": {
-        "intent": "timers_alarms:set_alarm"
+        "intent": null
       },
       "competitor_a": "trident",
       "competitor_b": "tmpl-slot-linhafina",
@@ -2408,6 +2716,26 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "029e836828d1bbce",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01373",
+      "input_text": "the paasta itmer an stop",
+      "audio_url": null,
+      "reference": "timers_alarms:cancel_timer",
+      "prediction_a": {
+        "intent": "media:pause_playback"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "cascade-soft",
+      "competitor_b": "nebulacioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "01aa09843ff977ee",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
@@ -2537,19 +2865,22 @@
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "0444f936368d0d94",
+      "battle_id": "093fe39a6aadc374",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
-      "sample_id": "en-US/01299",
-      "input_text": "i mean make it bright",
+      "sample_id": "en-US/01256",
+      "input_text": "how old are you",
       "audio_url": null,
-      "reference": "smarthome:lights_on",
+      "reference": null,
       "prediction_a": {
-        "intent": null
+        "intent": "weather:weather_wind"
       },
       "prediction_b": {
-        "intent": "media:set_volume"
+        "intent": "search_qa:translate_phrase",
+        "slots": {
+          "phrase": "are you"
+        }
       },
       "competitor_a": "cascade-soft",
       "competitor_b": "trident",
@@ -2678,6 +3009,29 @@
         "intent": null
       },
       "competitor_a": "mycroft-classic",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "017ca9c576e6baaf",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00214",
+      "input_text": "read out the letters of serendipity",
+      "audio_url": null,
+      "reference": "search_qa:spell_word",
+      "prediction_a": {
+        "intent": "search_qa:define_word",
+        "slots": {
+          "word": "serendipity"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulacioso",
       "competitor_b": "frankenparse",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
@@ -2892,25 +3246,25 @@
       "plugin_b": "ovos-m2v-prototype-pipeline"
     },
     {
-      "battle_id": "0366060110c5a39e",
+      "battle_id": "03464d1c451f2857",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
-      "sample_id": "en-US/01117",
-      "input_text": "send the machine for a reset",
+      "sample_id": "en-US/00020",
+      "input_text": "switch to bbc",
       "audio_url": null,
-      "reference": "system_control:restart",
+      "reference": "news:news_source",
       "prediction_a": {
-        "intent": "communication:send_message",
-        "slots": {
-          "contact": "the machine for a reset"
-        }
+        "intent": null
       },
       "prediction_b": {
-        "intent": "communication:send_message"
+        "intent": "system_control:change_language",
+        "slots": {
+          "target_language": "bbc"
+        }
       },
-      "competitor_a": "kw-slot-palavreado",
-      "competitor_b": "m2v-prototype-nebulento",
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "kw-slot-palavreado",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
     },
@@ -2933,6 +3287,29 @@
         }
       },
       "competitor_a": "mycroft-classic",
+      "competitor_b": "kw-slot-palavreado",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "0104bc8acf099695",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00019",
+      "input_text": "road conditions to home",
+      "audio_url": null,
+      "reference": "navigation:traffic_status",
+      "prediction_a": {
+        "intent": "navigation:navigate_to",
+        "slots": {
+          "destination": "home"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulacioso",
       "competitor_b": "kw-slot-palavreado",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
@@ -3173,6 +3550,32 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "008c15c3f0e2b237",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00027",
+      "input_text": "read out the letters of ephemeral",
+      "audio_url": null,
+      "reference": "search_qa:spell_word",
+      "prediction_a": {
+        "intent": "search_qa:define_word",
+        "slots": {
+          "word": "ephemeral"
+        }
+      },
+      "prediction_b": {
+        "intent": "communication:read_messages",
+        "slots": {
+          "contact": "out the letters of ephemeral"
+        }
+      },
+      "competitor_a": "nebulacioso",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "0199c582b7172c09",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
@@ -3296,16 +3699,16 @@
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "0383f04dcd2a5cbd",
+      "battle_id": "01ce50ee0b17c36f",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
-      "sample_id": "en-US/00872",
-      "input_text": "highway packed toward home",
+      "sample_id": "en-US/01331",
+      "input_text": "ditch like nav",
       "audio_url": null,
-      "reference": "navigation:traffic_status",
+      "reference": "navigation:cancel_route",
       "prediction_a": {
-        "intent": "navigation:navigate_to"
+        "intent": "weather:weather_forecast"
       },
       "prediction_b": {
         "intent": null
@@ -3374,6 +3777,29 @@
         "intent": null
       },
       "competitor_a": "mycroft-classic",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "0086c74030b754bb",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/01310",
+      "input_text": "kite i mean weather",
+      "audio_url": null,
+      "reference": "weather:weather_wind",
+      "prediction_a": {
+        "intent": "news:read_topic",
+        "slots": {
+          "topic": "weather"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulacioso",
       "competitor_b": "m2v-nebulento",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
@@ -3562,6 +3988,29 @@
       "plugin_b": "ovos-m2v-prototype-pipeline"
     },
     {
+      "battle_id": "062dda487a16784f",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00794",
+      "input_text": "scroll through john's chat",
+      "audio_url": null,
+      "reference": "communication:read_messages",
+      "prediction_a": {
+        "intent": "communication:call_contact",
+        "slots": {
+          "contact": "john"
+        }
+      },
+      "prediction_b": {
+        "intent": "communication:send_message"
+      },
+      "competitor_a": "nebulacioso",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
       "battle_id": "013d2ff91266c99e",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
@@ -3634,7 +4083,7 @@
         "intent": "communication:video_call"
       },
       "prediction_b": {
-        "intent": "media:play_song"
+        "intent": null
       },
       "competitor_a": "m2v-prototype",
       "competitor_b": "tmpl-slot-jurebes",
@@ -3725,6 +4174,29 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "010687dcb4d0e7bb",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "en-US",
+      "sample_id": "en-US/00001",
+      "input_text": "new event doctor visit",
+      "audio_url": null,
+      "reference": "calendar:create_event",
+      "prediction_a": {
+        "intent": "calendar:cancel_event",
+        "slots": {
+          "title": "doctor visit"
+        }
+      },
+      "prediction_b": {
+        "intent": "calendar:cancel_event"
+      },
+      "competitor_a": "nebulacioso",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "04e9423f10ac312b",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
@@ -3745,16 +4217,16 @@
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "063b90b5cf4c5b8e",
+      "battle_id": "0228cb963301e492",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
-      "sample_id": "en-US/00886",
-      "input_text": "wipe the route",
+      "sample_id": "en-US/00701",
+      "input_text": "make it dark please",
       "audio_url": null,
-      "reference": "navigation:cancel_route",
+      "reference": "smarthome:lights_off",
       "prediction_a": {
-        "intent": "navigation:navigate_to"
+        "intent": "smarthome:set_thermostat"
       },
       "prediction_b": {
         "intent": null
@@ -3781,478 +4253,6 @@
       },
       "competitor_a": "ovos-stock",
       "competitor_b": "m2v-prototype-nebulento",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "04576ca0deb79c80",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01023",
-      "input_text": "still air today",
-      "audio_url": null,
-      "reference": "weather:weather_wind",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "weather:weather_humidity",
-        "slots": {
-          "date": "today"
-        }
-      },
-      "competitor_a": "m2v-prototype-nebulento",
-      "competitor_b": "tmpl-slot-jurebes",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "03b3f6cb7f0dc048",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01055",
-      "input_text": "how's today looking calendar-wise",
-      "audio_url": null,
-      "reference": "calendar:list_events",
-      "prediction_a": {
-        "intent": "calendar:cancel_event"
-      },
-      "prediction_b": {
-        "intent": "weather:weather_wind"
-      },
-      "competitor_a": "m2v-prototype-nebulento",
-      "competitor_b": "tmpl-slot-linhafina",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "0453ba2a0b0860d1",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00451",
-      "input_text": "can you tell me the eta to the office",
-      "audio_url": null,
-      "reference": "navigation:eta_query",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "navigation:navigate_to"
-      },
-      "competitor_a": "tmpl-slot-nebulento",
-      "competitor_b": "m2v-prototype-nebulento",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "015d90ae661cd970",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00635",
-      "input_text": "the timer can go now",
-      "audio_url": null,
-      "reference": "timers_alarms:cancel_timer",
-      "prediction_a": {
-        "intent": "timers_alarms:set_timer"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "m2v-prototype-nebulento",
-      "competitor_b": "trident",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "021a9900407423c5",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01053",
-      "input_text": "what's penciled in next monday",
-      "audio_url": null,
-      "reference": "calendar:list_events",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "search_qa:translate_phrase",
-        "slots": {
-          "phrase": "penciled",
-          "target_language": "next monday"
-        }
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "mycroft-classic",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "0456b03d8b3518c0",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00562",
-      "input_text": "silence please",
-      "audio_url": null,
-      "reference": "media:pause_playback",
-      "prediction_a": {
-        "intent": "system_control:mute_system"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "mycroft-classic",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "006e3010be4c7186",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01176",
-      "input_text": "read out today's stories",
-      "audio_url": null,
-      "reference": "news:read_headlines",
-      "prediction_a": {
-        "intent": "communication:read_messages",
-        "slots": {
-          "contact": "out today's stories"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "mycroft-classic",
-      "competitor_b": "ovos-stock",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "0091efb219a48a52",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00563",
-      "input_text": "kill the sound for now",
-      "audio_url": null,
-      "reference": "media:pause_playback",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "system_control:mute_system"
-      },
-      "competitor_a": "mycroft-classic",
-      "competitor_b": "tmpl-slot-jurebes",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "022d79f6ea992348",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00369",
-      "input_text": "what's the temperature in new york",
-      "audio_url": null,
-      "reference": "weather:weather_location",
-      "prediction_a": {
-        "intent": "search_qa:translate_phrase",
-        "slots": {
-          "phrase": "the temperature",
-          "target_language": "new york"
-        }
-      },
-      "prediction_b": {
-        "intent": "news:next_story"
-      },
-      "competitor_a": "mycroft-classic",
-      "competitor_b": "tmpl-slot-linhafina",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "02173469c0f54c7e",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00280",
-      "input_text": "switch to reuters",
-      "audio_url": null,
-      "reference": "news:news_source",
-      "prediction_a": {
-        "intent": "system_control:change_language",
-        "slots": {
-          "target_language": "reuters"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "mycroft-classic",
-      "competitor_b": "tmpl-slot-nebulento",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "027b6dbd833f2558",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01048",
-      "input_text": "my agenda please",
-      "audio_url": null,
-      "reference": "calendar:list_events",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "navigation:eta_query"
-      },
-      "competitor_a": "mycroft-classic",
-      "competitor_b": "trident",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "04c92fefcdbc2030",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01212",
-      "input_text": "show me another news item",
-      "audio_url": null,
-      "reference": "news:next_story",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "news:read_topic",
-        "slots": {
-          "topic": "item"
-        }
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "037c66e7aafa735a",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01319",
-      "input_text": "what'sthe next thing uh i have do",
-      "audio_url": null,
-      "reference": "calendar:next_event",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "ovos.common_play.play_search"
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "ovos-stock",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "0568a3584e26edfb",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00899",
-      "input_text": "ubiquitous in plain english",
-      "audio_url": null,
-      "reference": "search_qa:define_word",
-      "prediction_a": {
-        "intent": "system_control:change_language",
-        "slots": {
-          "target_language": "english"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "tmpl-slot-jurebes",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "012606a93da3f0eb",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00614",
-      "input_text": "punch past the next three",
-      "audio_url": null,
-      "reference": "media:skip_track",
-      "prediction_a": {
-        "intent": "news:next_story"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "tmpl-slot-linhafina",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "308fa454633727e6",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00489",
-      "input_text": "read reuters headlines",
-      "audio_url": null,
-      "reference": "news:news_source",
-      "prediction_a": {
-        "intent": "news:read_headlines"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "tmpl-slot-nebulento",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "0037346dd02e8bfd",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00701",
-      "input_text": "make it dark please",
-      "audio_url": null,
-      "reference": "smarthome:lights_off",
-      "prediction_a": {
-        "intent": "system_control:restart"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "trident",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "0189076cfae5feb1",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/01102",
-      "input_text": "send it to sleep permanently",
-      "audio_url": null,
-      "reference": "system_control:shutdown",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "communication:send_message",
-        "slots": {
-          "contact": "it to sleep permanently"
-        }
-      },
-      "competitor_a": "ovos-stock",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "003d0eacdbde7bc6",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00871",
-      "input_text": "rough going to the airport",
-      "audio_url": null,
-      "reference": "navigation:traffic_status",
-      "prediction_a": {
-        "intent": "navigation:eta_query",
-        "slots": {
-          "destination": "the airport"
-        }
-      },
-      "prediction_b": {
-        "intent": "navigation:navigate_to"
-      },
-      "competitor_a": "nebulatious",
-      "competitor_b": "tmpl-slot-jurebes",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "019c3d831ba02144",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00285",
-      "input_text": "translation for thank you",
-      "audio_url": null,
-      "reference": "search_qa:translate_phrase",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "media:pause_playback"
-      },
-      "competitor_a": "nebulatious",
-      "competitor_b": "tmpl-slot-linhafina",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "008b4e5a6d9ab249",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00782",
-      "input_text": "anything new in my inbox",
-      "audio_url": null,
-      "reference": "communication:read_messages",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "news:read_topic",
-        "slots": {
-          "topic": "my inbox"
-        }
-      },
-      "competitor_a": "tmpl-slot-nebulento",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "019a257f890e0099",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "en-US",
-      "sample_id": "en-US/00822",
-      "input_text": "camera call to sarah please",
-      "audio_url": null,
-      "reference": "communication:video_call",
-      "prediction_a": {
-        "intent": "communication:call_contact"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "trident",
-      "competitor_b": "nebulatious",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
     }

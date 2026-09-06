@@ -2,8 +2,10 @@
   "modality": "intent",
   "dataset_id": "intents-for-eval",
   "lang": "eu-ES",
-  "generated_at": "2026-09-06T13:23:17.026046+00:00",
+  "generated_at": "2026-09-06T19:37:32.003436+00:00",
   "dataset_info": {
+    "display_name": "OVOS intents for eval (12 languages)",
+    "summary": "The arena's own paradigm-neutral intent benchmark: 50 assistant intents with slot annotations, between 1,354 and 1,384 test rows per language across 12 languages. One row is an utterance, its intent and its slots, tagged with the kind of challenge it poses — a held-out template, a free paraphrase, a typo, transcription noise, or an out-of-scope request that expects silence. Templates are split before expansion, so a test row is never an expansion of a template a fighter trained on.",
     "url": "https://huggingface.co/datasets/OpenVoiceOS/intents-for-eval",
     "license": "apache-2.0",
     "notes": "OVOS canonical paradigm-neutral intent benchmark: 50 intents, between 1,354 and 1,384 test rows per language (rows failing the train/test separation rule are dropped, not replaced) across template / paraphrase / in_distribution / far_ood / asr_noise / typos buckets, with slot annotations. far_ood rows carry expected_intent=null — the correct behaviour is no match. Train and test are separated at the template level: train_templates.jsonl holds an 80% per-intent sample of phrase templates, and the template bucket here is built only from the held-out 20%.",
@@ -174,6 +176,29 @@
       },
       "competitor_a": "cascade-soft",
       "competitor_b": "mycroft-classic",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "00ccb7ae1e3800f3",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "eu-ES",
+      "sample_id": "eu-ES/00765",
+      "input_text": "jon-ekin hitz egin behar dut",
+      "audio_url": null,
+      "reference": "communication:call_contact",
+      "prediction_a": {
+        "intent": "communication:read_messages",
+        "slots": {
+          "contact": "jon"
+        }
+      },
+      "prediction_b": {
+        "intent": "weather:weather_today"
+      },
+      "competitor_a": "nebulacioso",
+      "competitor_b": "cascade-soft",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
     },
@@ -444,6 +469,29 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "02843497c2a678dd",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "eu-ES",
+      "sample_id": "eu-ES/00198",
+      "input_text": "konektatu bideoz jon-ekin",
+      "audio_url": null,
+      "reference": "communication:video_call",
+      "prediction_a": {
+        "intent": "communication:call_contact",
+        "slots": {
+          "contact": "jon"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulacioso",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "0047de47c21e15cd",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
@@ -699,6 +747,26 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "015de4d2212878c3",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "eu-ES",
+      "sample_id": "eu-ES/00410",
+      "input_text": "kokatu hurbileneko jatetxea",
+      "audio_url": null,
+      "reference": "navigation:find_nearby",
+      "prediction_a": {
+        "intent": "smarthome:lock_door"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulacioso",
+      "competitor_b": "kw-slot-palavreado",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "00351a85b8a42918",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
@@ -942,6 +1010,29 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "006568895c7c2cf9",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "eu-ES",
+      "sample_id": "eu-ES/01232",
+      "input_text": "zein da bizitzaren zentzua",
+      "audio_url": null,
+      "reference": null,
+      "prediction_a": {
+        "intent": "search_qa:factual_query"
+      },
+      "prediction_b": {
+        "intent": "search_qa:factual_query",
+        "slots": {
+          "query": "bizitzaren zentzua"
+        }
+      },
+      "competitor_a": "nebulacioso",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "002b74bc3662edaa",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
@@ -1020,7 +1111,7 @@
       "audio_url": null,
       "reference": "navigation:cancel_route",
       "prediction_a": {
-        "intent": "calendar:cancel_event"
+        "intent": null
       },
       "prediction_b": {
         "intent": "calendar:cancel_event",
@@ -1077,19 +1168,22 @@
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "0066f39df26f9fe8",
+      "battle_id": "0101a3009d1f274a",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "eu-ES",
-      "sample_id": "eu-ES/01201",
-      "input_text": "hau entzun dut emaidazu hurrengoa",
+      "sample_id": "eu-ES/00690",
+      "input_text": "eman iezadazu 8 minutu",
       "audio_url": null,
-      "reference": "news:next_story",
+      "reference": "timers_alarms:snooze_alarm",
       "prediction_a": {
-        "intent": null
+        "intent": "communication:call_contact",
+        "slots": {
+          "contact": "8 minutu"
+        }
       },
       "prediction_b": {
-        "intent": "media:skip_track"
+        "intent": "communication:call_contact"
       },
       "competitor_a": "m2v-first",
       "competitor_b": "trident",
@@ -1156,6 +1250,26 @@
       },
       "competitor_a": "m2v-nebulento",
       "competitor_b": "mycroft-classic",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "0195a6567df28015",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "eu-ES",
+      "sample_id": "eu-ES/01077",
+      "input_text": "emaidazu egutegiko hurrengo elementua",
+      "audio_url": null,
+      "reference": "calendar:next_event",
+      "prediction_a": {
+        "intent": "search_qa:define_word"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulacioso",
+      "competitor_b": "m2v-nebulento",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
     },
@@ -1343,6 +1457,29 @@
       "plugin_b": "ovos-m2v-prototype-pipeline"
     },
     {
+      "battle_id": "00db7bf303983926",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "eu-ES",
+      "sample_id": "eu-ES/00227",
+      "input_text": "erreserbatu dentistaren hitzordua",
+      "audio_url": null,
+      "reference": "calendar:create_event",
+      "prediction_a": {
+        "intent": "calendar:cancel_event"
+      },
+      "prediction_b": {
+        "intent": "calendar:cancel_event",
+        "slots": {
+          "title": "dentistaren hitzordua"
+        }
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "nebulacioso",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "0115e36569deb412",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
@@ -1506,6 +1643,29 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "009eceabd5124003",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "eu-ES",
+      "sample_id": "eu-ES/00797",
+      "input_text": "ezer ama-rengandik dagoeneko",
+      "audio_url": null,
+      "reference": "communication:read_messages",
+      "prediction_a": {
+        "intent": "communication:call_contact",
+        "slots": {
+          "contact": "ama"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulacioso",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "0084a466a3d98a71",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
@@ -1578,11 +1738,7 @@
         "intent": "calendar:cancel_event"
       },
       "prediction_b": {
-        "intent": "calendar:cancel_event",
-        "slots": {
-          "title": "taldearen bilera",
-          "time": "10 : 30"
-        }
+        "intent": null
       },
       "competitor_a": "m2v-prototype-nebulento",
       "competitor_b": "tmpl-slot-jurebes",
@@ -1646,6 +1802,29 @@
       },
       "competitor_a": "trident",
       "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "0020a82befe8c3b4",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "eu-ES",
+      "sample_id": "eu-ES/00401",
+      "input_text": "mesedez mugitu afaria maria-rekin",
+      "audio_url": null,
+      "reference": "calendar:reschedule_event",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:cancel_event",
+        "slots": {
+          "title": "afaria maria-rekin"
+        }
+      },
+      "competitor_a": "mycroft-classic",
+      "competitor_b": "nebulacioso",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
     },
@@ -1811,6 +1990,155 @@
       },
       "competitor_a": "trident",
       "competitor_b": "mycroft-classic",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "004e566bd74cc6b4",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "eu-ES",
+      "sample_id": "eu-ES/00073",
+      "input_text": "zer dago albisteetan",
+      "audio_url": null,
+      "reference": "news:read_headlines",
+      "prediction_a": {
+        "intent": "news:next_story"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulacioso",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "0127692a27e2b94e",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "eu-ES",
+      "sample_id": "eu-ES/01169",
+      "input_text": "emaidazu gaurko albisteen laburpena",
+      "audio_url": null,
+      "reference": "news:read_headlines",
+      "prediction_a": {
+        "intent": "weather:weather_forecast",
+        "slots": {
+          "date": "gaur"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulacioso",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "01028056aaeaff38",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "eu-ES",
+      "sample_id": "eu-ES/01014",
+      "input_text": "arropa azkar lehortzen ari da",
+      "audio_url": null,
+      "reference": "weather:weather_humidity",
+      "prediction_a": {
+        "intent": "timers_alarms:set_timer",
+        "slots": {
+          "label": "arropa"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulacioso",
+      "competitor_b": "ovos-stock",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "02b30d49ead338ae",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "eu-ES",
+      "sample_id": "eu-ES/00544",
+      "input_text": "zenbat altu da everest mendia",
+      "audio_url": null,
+      "reference": "search_qa:factual_query",
+      "prediction_a": {
+        "intent": "navigation:eta_query"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulacioso",
+      "competitor_b": "tmpl-slot-jurebes",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "00710c9052ad2d3f",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "eu-ES",
+      "sample_id": "eu-ES/00495",
+      "input_text": "aldatu dentistaren hitzordua",
+      "audio_url": null,
+      "reference": "calendar:reschedule_event",
+      "prediction_a": {
+        "intent": "system_control:change_language"
+      },
+      "prediction_b": {
+        "intent": "calendar:cancel_event",
+        "slots": {
+          "title": "dentistaren hitzordua"
+        }
+      },
+      "competitor_a": "tmpl-slot-linhafina",
+      "competitor_b": "nebulacioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "00012e6e24758654",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "eu-ES",
+      "sample_id": "eu-ES/00702",
+      "input_text": "igo sukaldeko argiak",
+      "audio_url": null,
+      "reference": "smarthome:lights_on",
+      "prediction_a": {
+        "intent": "smarthome:lights_off"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulacioso",
+      "competitor_b": "tmpl-slot-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "010c13dbd3e69550",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "eu-ES",
+      "sample_id": "eu-ES/01083",
+      "input_text": "zertara nago datorrena",
+      "audio_url": null,
+      "reference": "calendar:next_event",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "communication:send_message"
+      },
+      "competitor_a": "nebulacioso",
+      "competitor_b": "trident",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
     },
@@ -2030,25 +2358,29 @@
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "025b1e5a2223d5bc",
+      "battle_id": "00a62182a69b81b3",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "eu-ES",
-      "sample_id": "eu-ES/00403",
-      "input_text": "ezer jon-rengandik",
+      "sample_id": "eu-ES/01033",
+      "input_text": "idatzi dentistaren hitzordua biharko",
       "audio_url": null,
-      "reference": "communication:read_messages",
+      "reference": "calendar:create_event",
       "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "communication:call_contact",
+        "intent": "calendar:cancel_event",
         "slots": {
-          "contact": "jon"
+          "title": "dentistaren hitzordua"
         }
       },
-      "competitor_a": "nebulatious",
-      "competitor_b": "trident",
+      "prediction_b": {
+        "intent": "calendar:reschedule_event",
+        "slots": {
+          "title": "dentistaren hitzordua",
+          "date": "bihar"
+        }
+      },
+      "competitor_a": "trident",
+      "competitor_b": "nebulatious",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
     },
@@ -2136,19 +2468,19 @@
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "03eef7636b0cdd28",
+      "battle_id": "0200ca2182207642",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "eu-ES",
-      "sample_id": "eu-ES/01282",
-      "input_text": "jon-en aurpegia badakizu ikusi nahi dot",
+      "sample_id": "eu-ES/01189",
+      "input_text": "zer dago bero kirolean",
       "audio_url": null,
-      "reference": "communication:video_call",
+      "reference": "news:read_topic",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "communication:call_contact"
+        "intent": "weather:weather_today"
       },
       "competitor_a": "tmpl-slot-jurebes",
       "competitor_b": "tmpl-slot-linhafina",
@@ -2410,6 +2742,26 @@
       },
       "competitor_a": "cascade-soft",
       "competitor_b": "mycroft-classic",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "08eee8f6f5d8d32b",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "eu-ES",
+      "sample_id": "eu-ES/01070",
+      "input_text": "zertarako prestatu behar dut",
+      "audio_url": null,
+      "reference": "calendar:next_event",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:weather_today"
+      },
+      "competitor_a": "nebulacioso",
+      "competitor_b": "cascade-soft",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
     },
@@ -2693,6 +3045,29 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "03729a9290382f67",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "eu-ES",
+      "sample_id": "eu-ES/00812",
+      "input_text": "amaitu solasaldia mesedez",
+      "audio_url": null,
+      "reference": "communication:hang_up",
+      "prediction_a": {
+        "intent": "communication:call_contact",
+        "slots": {
+          "contact": "ama"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulacioso",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "0593e7fb1426f786",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
@@ -2956,6 +3331,26 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "01fce61802b86b9d",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "eu-ES",
+      "sample_id": "eu-ES/00575",
+      "input_text": "egin pausa abestiari",
+      "audio_url": null,
+      "reference": "media:pause_playback",
+      "prediction_a": {
+        "intent": "media:resume_playback"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulacioso",
+      "competitor_b": "kw-slot-palavreado",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "0197509b3ae76b30",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
@@ -3091,22 +3486,19 @@
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "03124e1dc2633553",
+      "battle_id": "02c323e1a56940bf",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "eu-ES",
-      "sample_id": "eu-ES/01163",
-      "input_text": "dena alemanez mesedez",
+      "sample_id": "eu-ES/00732",
+      "input_text": "leundu komuneko argiak 25-era",
       "audio_url": null,
-      "reference": "system_control:change_language",
+      "reference": "smarthome:set_brightness_light",
       "prediction_a": {
-        "intent": "communication:call_contact"
+        "intent": "smarthome:lights_off"
       },
       "prediction_b": {
-        "intent": "communication:call_contact",
-        "slots": {
-          "contact-ri": "dena alemanez"
-        }
+        "intent": null
       },
       "competitor_a": "trident",
       "competitor_b": "kw-slot-palavreado",
@@ -3193,6 +3585,29 @@
       },
       "competitor_a": "m2v-first",
       "competitor_b": "mycroft-classic",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "01035d7e2f578f8e",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "eu-ES",
+      "sample_id": "eu-ES/00822",
+      "input_text": "piztu kamera ama-rentzat",
+      "audio_url": null,
+      "reference": "communication:video_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "communication:read_messages",
+        "slots": {
+          "contact": "ama"
+        }
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "nebulacioso",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
     },
@@ -3335,22 +3750,19 @@
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "0101a3009d1f274a",
+      "battle_id": "0199b8c557595314",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "eu-ES",
-      "sample_id": "eu-ES/00690",
-      "input_text": "eman iezadazu 8 minutu",
+      "sample_id": "eu-ES/00735",
+      "input_text": "argiak ehunekoaren 60-ean jarri",
       "audio_url": null,
-      "reference": "timers_alarms:snooze_alarm",
+      "reference": "smarthome:set_brightness_light",
       "prediction_a": {
-        "intent": "communication:call_contact",
-        "slots": {
-          "contact": "8 minutu"
-        }
+        "intent": null
       },
       "prediction_b": {
-        "intent": "communication:call_contact"
+        "intent": "media:set_volume"
       },
       "competitor_a": "m2v-first",
       "competitor_b": "trident",
@@ -3420,6 +3832,29 @@
       },
       "competitor_a": "m2v-nebulento",
       "competitor_b": "mycroft-classic",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "03b4f6360f1c9991",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "eu-ES",
+      "sample_id": "eu-ES/00872",
+      "input_text": "ordu puntua latz gaur",
+      "audio_url": null,
+      "reference": "navigation:traffic_status",
+      "prediction_a": {
+        "intent": "calendar:list_events",
+        "slots": {
+          "date": "gaur"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulacioso",
+      "competitor_b": "m2v-nebulento",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
     },
@@ -3613,6 +4048,29 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "0217422b03e5bc6c",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "eu-ES",
+      "sample_id": "eu-ES/00415",
+      "input_text": "iragankor defini zenezake",
+      "audio_url": null,
+      "reference": "search_qa:define_word",
+      "prediction_a": {
+        "intent": "search_qa:spell_word"
+      },
+      "prediction_b": {
+        "intent": "search_qa:spell_word",
+        "slots": {
+          "word": "iragankor"
+        }
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "nebulacioso",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "030bf008ec6dfdbc",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
@@ -3785,6 +4243,29 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "03422f27ec613a9b",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "eu-ES",
+      "sample_id": "eu-ES/00365",
+      "input_text": "programatu taldearen bilera",
+      "audio_url": null,
+      "reference": "calendar:create_event",
+      "prediction_a": {
+        "intent": "calendar:reschedule_event",
+        "slots": {
+          "title": "taldearen bilera"
+        }
+      },
+      "prediction_b": {
+        "intent": "calendar:reschedule_event"
+      },
+      "competitor_a": "nebulacioso",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "01320036fd201b43",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
@@ -3805,21 +4286,21 @@
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "0017d0f9168eaf08",
+      "battle_id": "02259ce97e5b1702",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "eu-ES",
-      "sample_id": "eu-ES/00020",
-      "input_text": "bbc-ren albisteak mesedez",
+      "sample_id": "eu-ES/00989",
+      "input_text": "esan zer espero bihar",
       "audio_url": null,
-      "reference": "news:news_source",
+      "reference": "weather:weather_forecast",
       "prediction_a": {
-        "intent": null
+        "intent": "search_qa:define_word"
       },
       "prediction_b": {
-        "intent": "communication:call_contact",
+        "intent": "search_qa:factual_query",
         "slots": {
-          "contact-ri": "bbc-ren albisteak"
+          "query": "zer espero bihar"
         }
       },
       "competitor_a": "m2v-prototype-nebulento",
@@ -3847,487 +4328,6 @@
       },
       "competitor_a": "ovos-stock",
       "competitor_b": "m2v-prototype-nebulento",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "068e15863c0c96f5",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "eu-ES",
-      "sample_id": "eu-ES/01157",
-      "input_text": "gaztelania nahiago dut",
-      "audio_url": null,
-      "reference": "system_control:change_language",
-      "prediction_a": {
-        "intent": "calendar:list_events"
-      },
-      "prediction_b": {
-        "intent": "search_qa:translate_phrase"
-      },
-      "competitor_a": "tmpl-slot-jurebes",
-      "competitor_b": "m2v-prototype-nebulento",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "0472e7faa95cb653",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "eu-ES",
-      "sample_id": "eu-ES/01152",
-      "input_text": "ezabatu soinua",
-      "audio_url": null,
-      "reference": "system_control:mute_system",
-      "prediction_a": {
-        "intent": "calendar:cancel_event"
-      },
-      "prediction_b": {
-        "intent": "media:set_volume"
-      },
-      "competitor_a": "tmpl-slot-linhafina",
-      "competitor_b": "m2v-prototype-nebulento",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "0096cd99e81822fb",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "eu-ES",
-      "sample_id": "eu-ES/01179",
-      "input_text": "emaidazu eguneraketa azkar bat",
-      "audio_url": null,
-      "reference": "news:read_headlines",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "weather:weather_today"
-      },
-      "competitor_a": "tmpl-slot-nebulento",
-      "competitor_b": "m2v-prototype-nebulento",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "0235bcbcdbe4fe8f",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "eu-ES",
-      "sample_id": "eu-ES/00110",
-      "input_text": "hau gelditu zenezake",
-      "audio_url": null,
-      "reference": "media:pause_playback",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "calendar:cancel_event"
-      },
-      "competitor_a": "trident",
-      "competitor_b": "m2v-prototype-nebulento",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "0294fef2a839680c",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "eu-ES",
-      "sample_id": "eu-ES/00613",
-      "input_text": "itzuli 30-ra",
-      "audio_url": null,
-      "reference": "media:set_volume",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "search_qa:translate_phrase"
-      },
-      "competitor_a": "mycroft-classic",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "1af20a18f5888b9b",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "eu-ES",
-      "sample_id": "eu-ES/00767",
-      "input_text": "sartu deian patxi-rekin",
-      "audio_url": null,
-      "reference": "communication:call_contact",
-      "prediction_a": {
-        "intent": "communication:video_call",
-        "slots": {
-          "contact": "patxi"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulatious",
-      "competitor_b": "mycroft-classic",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "043d0606c09c23bc",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "eu-ES",
-      "sample_id": "eu-ES/00613",
-      "input_text": "itzuli 30-ra",
-      "audio_url": null,
-      "reference": "media:set_volume",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "search_qa:translate_phrase"
-      },
-      "competitor_a": "mycroft-classic",
-      "competitor_b": "ovos-stock",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "03d5a0e10bd3275b",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "eu-ES",
-      "sample_id": "eu-ES/01150",
-      "input_text": "hil soinu guztia",
-      "audio_url": null,
-      "reference": "system_control:mute_system",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "calendar:cancel_event",
-        "slots": {
-          "title": "soinu guztia"
-        }
-      },
-      "competitor_a": "tmpl-slot-jurebes",
-      "competitor_b": "mycroft-classic",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "01dbe7ed4a007751",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "eu-ES",
-      "sample_id": "eu-ES/00070",
-      "input_text": "eitb-ren albisteak mesedez",
-      "audio_url": null,
-      "reference": "news:news_source",
-      "prediction_a": {
-        "intent": "news:read_headlines"
-      },
-      "prediction_b": {
-        "intent": "communication:call_contact",
-        "slots": {
-          "contact-ri": "eitb-ren albisteak"
-        }
-      },
-      "competitor_a": "tmpl-slot-linhafina",
-      "competitor_b": "mycroft-classic",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "005167c7522c7979",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "eu-ES",
-      "sample_id": "eu-ES/00106",
-      "input_text": "gelditu deia",
-      "audio_url": null,
-      "reference": "communication:hang_up",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "communication:call_contact",
-        "slots": {
-          "contact-ri": "gelditu"
-        }
-      },
-      "competitor_a": "tmpl-slot-nebulento",
-      "competitor_b": "mycroft-classic",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "039d4904f47da8bf",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "eu-ES",
-      "sample_id": "eu-ES/00514",
-      "input_text": "irakurri bbc-ren albisteak",
-      "audio_url": null,
-      "reference": "news:news_source",
-      "prediction_a": {
-        "intent": "news:read_topic",
-        "slots": {
-          "topic-ko": "bbc-ren"
-        }
-      },
-      "prediction_b": {
-        "intent": "news:read_headlines"
-      },
-      "competitor_a": "trident",
-      "competitor_b": "mycroft-classic",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "04018b39240f9aab",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "eu-ES",
-      "sample_id": "eu-ES/01055",
-      "input_text": "irakurri bihar-rako gertaerak",
-      "audio_url": null,
-      "reference": "calendar:list_events",
-      "prediction_a": {
-        "intent": "news:news_source",
-        "slots": {
-          "source": "bihar-rako gertaerak"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulatious",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "0444f990d93d48cf",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "eu-ES",
-      "sample_id": "eu-ES/01126",
-      "input_text": "jaitsi display-a 40-era",
-      "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
-      "prediction_a": {
-        "intent": "smarthome:set_brightness_light",
-        "slots": {
-          "level-era": "display-a 40 -era"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "ovos-stock",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "048b90aeac3653ac",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "eu-ES",
-      "sample_id": "eu-ES/00720",
-      "input_text": "ilunpetan egon gintezke",
-      "audio_url": null,
-      "reference": "smarthome:lights_off",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "system_control:mute_system"
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "tmpl-slot-jurebes",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "01682bc4e700d64a",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "eu-ES",
-      "sample_id": "eu-ES/01048",
-      "input_text": "zer dator",
-      "audio_url": null,
-      "reference": "calendar:list_events",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "calendar:next_event"
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "tmpl-slot-linhafina",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "0f9865ed980cd378",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "eu-ES",
-      "sample_id": "eu-ES/00086",
-      "input_text": "mututu soinua",
-      "audio_url": null,
-      "reference": "system_control:mute_system",
-      "prediction_a": {
-        "intent": "media:set_volume"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "tmpl-slot-nebulento",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "0305cb5b689d1efe",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "eu-ES",
-      "sample_id": "eu-ES/01056",
-      "input_text": "nolakoa dago gaur egutegian",
-      "audio_url": null,
-      "reference": "calendar:list_events",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "weather:weather_today"
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "trident",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "005812f3fceaa466",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "eu-ES",
-      "sample_id": "eu-ES/01116",
-      "input_text": "boot fresko bat mesedez",
-      "audio_url": null,
-      "reference": "system_control:restart",
-      "prediction_a": {
-        "intent": "communication:call_contact",
-        "slots": {
-          "contact-ri": "boot fresko bat"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulatious",
-      "competitor_b": "ovos-stock",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "020c3082c8f8bc6f",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "eu-ES",
-      "sample_id": "eu-ES/00547",
-      "input_text": "argiak itzalita logelan",
-      "audio_url": null,
-      "reference": "smarthome:lights_off",
-      "prediction_a": {
-        "intent": "system_control:mute_system"
-      },
-      "prediction_b": {
-        "intent": "smarthome:lights_on",
-        "slots": {
-          "room": "logela"
-        }
-      },
-      "competitor_a": "tmpl-slot-jurebes",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "00c76371e8c20bf5",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "eu-ES",
-      "sample_id": "eu-ES/01122",
-      "input_text": "berrabiarazpen leuna mesedez",
-      "audio_url": null,
-      "reference": "system_control:restart",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "communication:call_contact",
-        "slots": {
-          "contact-ri": "berrabiarazpen leuna"
-        }
-      },
-      "competitor_a": "tmpl-slot-linhafina",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "074516975656f71c",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "eu-ES",
-      "sample_id": "eu-ES/00671",
-      "input_text": "nire alarmen laburpena mesedez",
-      "audio_url": null,
-      "reference": "timers_alarms:list_alarms",
-      "prediction_a": {
-        "intent": "communication:call_contact",
-        "slots": {
-          "contact-ri": "nire alarmen laburpena"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulatious",
-      "competitor_b": "tmpl-slot-nebulento",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "046830d54aacc6b0",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "eu-ES",
-      "sample_id": "eu-ES/01040",
-      "input_text": "idatzi medikuaren bisita eguerdian",
-      "audio_url": null,
-      "reference": "calendar:create_event",
-      "prediction_a": {
-        "intent": "communication:send_message",
-        "slots": {
-          "message": "bisita eguerdian",
-          "contact-ri": "medikuaren"
-        }
-      },
-      "prediction_b": {
-        "intent": "calendar:reschedule_event",
-        "slots": {
-          "title": "medikuaren bisita",
-          "time": "eguerdian"
-        }
-      },
-      "competitor_a": "nebulatious",
-      "competitor_b": "trident",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
     }

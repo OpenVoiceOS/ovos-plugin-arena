@@ -2,8 +2,10 @@
   "modality": "intent_keyword",
   "dataset_id": "intents-for-eval",
   "lang": "nl-NL",
-  "generated_at": "2026-09-06T14:04:19.197660+00:00",
+  "generated_at": "2026-09-06T19:37:28.687709+00:00",
   "dataset_info": {
+    "display_name": "OVOS intents for eval (12 languages)",
+    "summary": "The arena's own paradigm-neutral intent benchmark: 50 assistant intents with slot annotations, between 1,354 and 1,384 test rows per language across 12 languages. One row is an utterance, its intent and its slots, tagged with the kind of challenge it poses — a held-out template, a free paraphrase, a typo, transcription noise, or an out-of-scope request that expects silence. Templates are split before expansion, so a test row is never an expansion of a template a fighter trained on.",
     "url": "https://huggingface.co/datasets/OpenVoiceOS/intents-for-eval",
     "license": "apache-2.0",
     "notes": "OVOS canonical paradigm-neutral intent benchmark: 50 intents, between 1,354 and 1,384 test rows per language (rows failing the train/test separation rule are dropped, not replaced) across template / paraphrase / in_distribution / far_ood / asr_noise / typos buckets, with slot annotations. far_ood rows carry expected_intent=null — the correct behaviour is no match. Train and test are separated at the template level: train_templates.jsonl holds an 80% per-intent sample of phrase templates, and the template bucket here is built only from the held-out 20%.",
@@ -64,44 +66,44 @@
       "plugin_b": "ovos-adapt-pipeline-plugin"
     },
     {
-      "battle_id": "12643f3f555990f2",
+      "battle_id": "07105c1ea299f053",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00776",
-      "input_text": "wachten er berichten",
+      "sample_id": "nl-NL/01117",
+      "input_text": "zet het laptopscherm op 70",
+      "audio_url": null,
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": "media:play_song"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "palavreado-hierarchical-medium",
+      "competitor_b": "adapt-domain-medium",
+      "plugin_a": "ovos-palavreado-hierarchical-pipeline",
+      "plugin_b": "ovos-adapt-domain-pipeline-plugin"
+    },
+    {
+      "battle_id": "002aede5aee004e6",
+      "modality": "intent_keyword",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01330",
+      "input_text": "wat heb k gemist in berichten",
       "audio_url": null,
       "reference": "communication:read_messages",
       "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
         "intent": "news:read_topic"
       },
-      "prediction_b": {
-        "intent": null
-      },
       "competitor_a": "adapt-domain-medium",
-      "competitor_b": "palavreado-hierarchical-medium",
+      "competitor_b": "palavreado-medium",
       "plugin_a": "ovos-adapt-domain-pipeline-plugin",
-      "plugin_b": "ovos-palavreado-hierarchical-pipeline"
-    },
-    {
-      "battle_id": "11db7563d64a0571",
-      "modality": "intent_keyword",
-      "dataset_id": "intents-for-eval",
-      "lang": "nl-NL",
-      "sample_id": "nl-NL/01130",
-      "input_text": "zet het volume op nul",
-      "audio_url": null,
-      "reference": "system_control:mute_system",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "media:set_volume"
-      },
-      "competitor_a": "palavreado-medium",
-      "competitor_b": "adapt-domain-medium",
-      "plugin_a": "ovos-palavreado-pipeline-plugin",
-      "plugin_b": "ovos-adapt-domain-pipeline-plugin"
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
     },
     {
       "battle_id": "1020d02c712a346a",
@@ -124,39 +126,39 @@
       "plugin_b": "ovos-adapt-pipeline-plugin"
     },
     {
-      "battle_id": "4860cf6c49a5d4d2",
+      "battle_id": "01015bdf6c4488eb",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00563",
-      "input_text": "stilte alsjeblieft",
+      "sample_id": "nl-NL/00160",
+      "input_text": "zet het harder op 50",
       "audio_url": null,
-      "reference": "media:pause_playback",
+      "reference": "media:set_volume",
       "prediction_a": {
-        "intent": "system_control:mute_system"
+        "intent": "media:play_song"
       },
       "prediction_b": {
         "intent": null
       },
-      "competitor_a": "adapt-hierarchical-medium",
-      "competitor_b": "palavreado-hierarchical-medium",
-      "plugin_a": "ovos-adapt-hierarchical-pipeline-plugin",
-      "plugin_b": "ovos-palavreado-hierarchical-pipeline"
+      "competitor_a": "palavreado-hierarchical-medium",
+      "competitor_b": "adapt-hierarchical-medium",
+      "plugin_a": "ovos-palavreado-hierarchical-pipeline",
+      "plugin_b": "ovos-adapt-hierarchical-pipeline-plugin"
     },
     {
-      "battle_id": "023ea86b93341489",
+      "battle_id": "0024ef4a1b604b29",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01208",
-      "input_text": "koppen reuters",
+      "sample_id": "nl-NL/00359",
+      "input_text": "zet het scherm op 20 procent",
       "audio_url": null,
-      "reference": "news:news_source",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": null
+        "intent": "media:play_song"
       },
       "prediction_b": {
-        "intent": "news:read_topic"
+        "intent": null
       },
       "competitor_a": "palavreado-medium",
       "competitor_b": "adapt-hierarchical-medium",
@@ -164,44 +166,64 @@
       "plugin_b": "ovos-adapt-hierarchical-pipeline-plugin"
     },
     {
-      "battle_id": "01882978e70929ac",
+      "battle_id": "01498c4d391029bb",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00776",
-      "input_text": "wachten er berichten",
+      "sample_id": "nl-NL/01026",
+      "input_text": "doktersbezoek volgende maandag in mijn agenda",
       "audio_url": null,
-      "reference": "communication:read_messages",
+      "reference": "calendar:create_event",
       "prediction_a": {
-        "intent": "news:read_topic"
+        "intent": "calendar:next_event"
       },
       "prediction_b": {
         "intent": null
       },
-      "competitor_a": "adapt-medium",
-      "competitor_b": "palavreado-hierarchical-medium",
-      "plugin_a": "ovos-adapt-pipeline-plugin",
-      "plugin_b": "ovos-palavreado-hierarchical-pipeline"
+      "competitor_a": "palavreado-hierarchical-medium",
+      "competitor_b": "adapt-medium",
+      "plugin_a": "ovos-palavreado-hierarchical-pipeline",
+      "plugin_b": "ovos-adapt-pipeline-plugin"
     },
     {
-      "battle_id": "006246d52757a373",
+      "battle_id": "01b52f607b09f865",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01033",
-      "input_text": "agenda van vandaag alsjeblieft",
+      "sample_id": "nl-NL/00112",
+      "input_text": "speel opnieuw",
       "audio_url": null,
-      "reference": "calendar:list_events",
+      "reference": "media:resume_playback",
       "prediction_a": {
-        "intent": null
+        "intent": "system_control:restart"
       },
       "prediction_b": {
-        "intent": "news:news_source"
+        "intent": "media:play_song"
       },
       "competitor_a": "palavreado-medium",
       "competitor_b": "adapt-medium",
       "plugin_a": "ovos-palavreado-pipeline-plugin",
       "plugin_b": "ovos-adapt-pipeline-plugin"
+    },
+    {
+      "battle_id": "00ce88330d85468f",
+      "modality": "intent_keyword",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00722",
+      "input_text": "zet de keuken op 50",
+      "audio_url": null,
+      "reference": "smarthome:set_brightness_light",
+      "prediction_a": {
+        "intent": "media:play_song"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "palavreado-hierarchical-medium",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-hierarchical-pipeline"
     },
     {
       "battle_id": "55b31a0a000b04af",
@@ -244,44 +266,44 @@
       "plugin_b": "ovos-adapt-pipeline-plugin"
     },
     {
-      "battle_id": "164e2d3c3d4e5ab5",
+      "battle_id": "12643f3f555990f2",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00779",
-      "input_text": "open mijn berichten",
+      "sample_id": "nl-NL/00776",
+      "input_text": "wachten er berichten",
       "audio_url": null,
       "reference": "communication:read_messages",
       "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
         "intent": "news:read_topic"
-      },
-      "competitor_a": "palavreado-hierarchical-medium",
-      "competitor_b": "adapt-domain-medium",
-      "plugin_a": "ovos-palavreado-hierarchical-pipeline",
-      "plugin_b": "ovos-adapt-domain-pipeline-plugin"
-    },
-    {
-      "battle_id": "20cdb44362e4002e",
-      "modality": "intent_keyword",
-      "dataset_id": "intents-for-eval",
-      "lang": "nl-NL",
-      "sample_id": "nl-NL/00112",
-      "input_text": "speel opnieuw",
-      "audio_url": null,
-      "reference": "media:resume_playback",
-      "prediction_a": {
-        "intent": "system_control:restart"
       },
       "prediction_b": {
         "intent": null
       },
       "competitor_a": "adapt-domain-medium",
-      "competitor_b": "palavreado-medium",
+      "competitor_b": "palavreado-hierarchical-medium",
       "plugin_a": "ovos-adapt-domain-pipeline-plugin",
-      "plugin_b": "ovos-palavreado-pipeline-plugin"
+      "plugin_b": "ovos-palavreado-hierarchical-pipeline"
+    },
+    {
+      "battle_id": "006a421ebb7023ab",
+      "modality": "intent_keyword",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00131",
+      "input_text": "zet de grendel op de achterdeur",
+      "audio_url": null,
+      "reference": "smarthome:lock_door",
+      "prediction_a": {
+        "intent": "media:play_song"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "adapt-domain-medium",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ovos-adapt-domain-pipeline-plugin"
     },
     {
       "battle_id": "50ce0ef45c531455",
@@ -304,19 +326,19 @@
       "plugin_b": "ovos-adapt-hierarchical-pipeline-plugin"
     },
     {
-      "battle_id": "4b5cf1fe9b758f59",
+      "battle_id": "0442222a06544b3d",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01181",
-      "input_text": "saai volgende",
+      "sample_id": "nl-NL/00417",
+      "input_text": "wat is nieuw in sport",
       "audio_url": null,
-      "reference": "news:next_story",
+      "reference": "news:read_topic",
       "prediction_a": {
-        "intent": null
+        "intent": "search_qa:factual_query"
       },
       "prediction_b": {
-        "intent": "media:skip_track"
+        "intent": null
       },
       "competitor_a": "palavreado-hierarchical-medium",
       "competitor_b": "adapt-hierarchical-medium",
@@ -324,36 +346,36 @@
       "plugin_b": "ovos-adapt-hierarchical-pipeline-plugin"
     },
     {
-      "battle_id": "8818fbdd92363099",
+      "battle_id": "01cfa386d03b4b08",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00956",
-      "input_text": "vochtigheid hoog vandaag",
+      "sample_id": "nl-NL/00052",
+      "input_text": "wat is gepland voor volgende maandag",
       "audio_url": null,
-      "reference": "weather:weather_today",
+      "reference": "calendar:list_events",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "weather:weather_humidity"
+        "intent": "search_qa:factual_query"
       },
-      "competitor_a": "palavreado-medium",
-      "competitor_b": "adapt-hierarchical-medium",
-      "plugin_a": "ovos-palavreado-pipeline-plugin",
-      "plugin_b": "ovos-adapt-hierarchical-pipeline-plugin"
+      "competitor_a": "adapt-hierarchical-medium",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ovos-adapt-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
     },
     {
-      "battle_id": "0366e3ea77ec94de",
+      "battle_id": "01882978e70929ac",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01033",
-      "input_text": "agenda van vandaag alsjeblieft",
+      "sample_id": "nl-NL/00776",
+      "input_text": "wachten er berichten",
       "audio_url": null,
-      "reference": "calendar:list_events",
+      "reference": "communication:read_messages",
       "prediction_a": {
-        "intent": "news:news_source"
+        "intent": "news:read_topic"
       },
       "prediction_b": {
         "intent": null
@@ -364,24 +386,44 @@
       "plugin_b": "ovos-palavreado-hierarchical-pipeline"
     },
     {
-      "battle_id": "01b52f607b09f865",
+      "battle_id": "02bf3c88f186fa95",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00112",
-      "input_text": "speel opnieuw",
+      "sample_id": "nl-NL/00802",
+      "input_text": "zet anneke op video",
       "audio_url": null,
-      "reference": "media:resume_playback",
+      "reference": "communication:video_call",
       "prediction_a": {
-        "intent": null
+        "intent": "media:play_song"
       },
       "prediction_b": {
-        "intent": "media:play_song"
+        "intent": null
       },
       "competitor_a": "palavreado-medium",
       "competitor_b": "adapt-medium",
       "plugin_a": "ovos-palavreado-pipeline-plugin",
       "plugin_b": "ovos-adapt-pipeline-plugin"
+    },
+    {
+      "battle_id": "02a0bd016cba14cd",
+      "modality": "intent_keyword",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00681",
+      "input_text": "zet hem 20 minuten uit",
+      "audio_url": null,
+      "reference": "timers_alarms:snooze_alarm",
+      "prediction_a": {
+        "intent": "media:play_song"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "palavreado-hierarchical-medium",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-hierarchical-pipeline"
     },
     {
       "battle_id": "69b748c65093155a",
@@ -424,44 +466,44 @@
       "plugin_b": "ovos-adapt-pipeline-plugin"
     },
     {
-      "battle_id": "166b26099e8e014e",
+      "battle_id": "1466eeb0122d82d9",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00135",
-      "input_text": "zet het geluid uit",
+      "sample_id": "nl-NL/01323",
+      "input_text": "ii il netts horen",
       "audio_url": null,
       "reference": "system_control:mute_system",
       "prediction_a": {
-        "intent": "media:set_volume"
+        "intent": "media:play_song"
       },
       "prediction_b": {
         "intent": null
       },
-      "competitor_a": "adapt-domain-medium",
-      "competitor_b": "palavreado-hierarchical-medium",
-      "plugin_a": "ovos-adapt-domain-pipeline-plugin",
-      "plugin_b": "ovos-palavreado-hierarchical-pipeline"
+      "competitor_a": "palavreado-hierarchical-medium",
+      "competitor_b": "adapt-domain-medium",
+      "plugin_a": "ovos-palavreado-hierarchical-pipeline",
+      "plugin_b": "ovos-adapt-domain-pipeline-plugin"
     },
     {
-      "battle_id": "29e772536f4123ad",
+      "battle_id": "00b161ea52ab707a",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01033",
-      "input_text": "agenda van vandaag alsjeblieft",
+      "sample_id": "nl-NL/00575",
+      "input_text": "zet de muziek weer keihard aan",
       "audio_url": null,
-      "reference": "calendar:list_events",
+      "reference": "media:resume_playback",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "news:news_source"
+        "intent": "media:play_song"
       },
-      "competitor_a": "palavreado-medium",
-      "competitor_b": "adapt-domain-medium",
-      "plugin_a": "ovos-palavreado-pipeline-plugin",
-      "plugin_b": "ovos-adapt-domain-pipeline-plugin"
+      "competitor_a": "adapt-domain-medium",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ovos-adapt-domain-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
     },
     {
       "battle_id": "625c1620bb13e517",
@@ -484,19 +526,19 @@
       "plugin_b": "ovos-adapt-hierarchical-pipeline-plugin"
     },
     {
-      "battle_id": "66af0b3e0a2db2dd",
+      "battle_id": "0c60b684c0ee6c67",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01208",
-      "input_text": "koppen reuters",
+      "sample_id": "nl-NL/01117",
+      "input_text": "zet het laptopscherm op 70",
       "audio_url": null,
-      "reference": "news:news_source",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": null
+        "intent": "media:play_song"
       },
       "prediction_b": {
-        "intent": "news:read_topic"
+        "intent": null
       },
       "competitor_a": "palavreado-hierarchical-medium",
       "competitor_b": "adapt-hierarchical-medium",
@@ -504,39 +546,39 @@
       "plugin_b": "ovos-adapt-hierarchical-pipeline-plugin"
     },
     {
-      "battle_id": "8e327289cb761a79",
+      "battle_id": "01d04a482533f328",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01130",
-      "input_text": "zet het volume op nul",
-      "audio_url": null,
-      "reference": "system_control:mute_system",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "media:set_volume"
-      },
-      "competitor_a": "palavreado-medium",
-      "competitor_b": "adapt-hierarchical-medium",
-      "plugin_a": "ovos-palavreado-pipeline-plugin",
-      "plugin_b": "ovos-adapt-hierarchical-pipeline-plugin"
-    },
-    {
-      "battle_id": "13e494a312e0354f",
-      "modality": "intent_keyword",
-      "dataset_id": "intents-for-eval",
-      "lang": "nl-NL",
-      "sample_id": "nl-NL/00112",
-      "input_text": "speel opnieuw",
+      "sample_id": "nl-NL/00584",
+      "input_text": "muziek weer aan alsjeblieft",
       "audio_url": null,
       "reference": "media:resume_playback",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "media:play_song"
+        "intent": "weather:weather_forecast"
+      },
+      "competitor_a": "adapt-hierarchical-medium",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ovos-adapt-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
+    },
+    {
+      "battle_id": "02d336861408b487",
+      "modality": "intent_keyword",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00417",
+      "input_text": "wat is nieuw in sport",
+      "audio_url": null,
+      "reference": "news:read_topic",
+      "prediction_a": {
+        "intent": "search_qa:factual_query"
+      },
+      "prediction_b": {
+        "intent": null
       },
       "competitor_a": "palavreado-hierarchical-medium",
       "competitor_b": "adapt-medium",
@@ -544,24 +586,44 @@
       "plugin_b": "ovos-adapt-pipeline-plugin"
     },
     {
-      "battle_id": "07d350c068ee5fad",
+      "battle_id": "0406888a8357eb2c",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01095",
-      "input_text": "ik ga zet uit",
+      "sample_id": "nl-NL/01032",
+      "input_text": "overzicht van afspraken",
       "audio_url": null,
-      "reference": "system_control:shutdown",
+      "reference": "calendar:list_events",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "media:play_song"
+        "intent": "news:news_source"
       },
-      "competitor_a": "palavreado-medium",
-      "competitor_b": "adapt-medium",
-      "plugin_a": "ovos-palavreado-pipeline-plugin",
-      "plugin_b": "ovos-adapt-pipeline-plugin"
+      "competitor_a": "adapt-medium",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ovos-adapt-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
+    },
+    {
+      "battle_id": "06f682c729b4eef0",
+      "modality": "intent_keyword",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00279",
+      "input_text": "zoek uit de hoofdstad van frankrijk",
+      "audio_url": null,
+      "reference": "search_qa:factual_query",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:news_source"
+      },
+      "competitor_a": "palavreado-hierarchical-medium",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ovos-palavreado-hierarchical-pipeline",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
     },
     {
       "battle_id": "8eb7877b71e96ef5",
@@ -604,39 +666,39 @@
       "plugin_b": "ovos-adapt-domain-pipeline-plugin"
     },
     {
-      "battle_id": "1ff7b20f4cc2c1a4",
+      "battle_id": "14cd69bfae3bee87",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00584",
-      "input_text": "muziek weer aan alsjeblieft",
+      "sample_id": "nl-NL/00911",
+      "input_text": "geef me de samenvatting van shakespeare",
       "audio_url": null,
-      "reference": "media:resume_playback",
+      "reference": "search_qa:who_is",
       "prediction_a": {
-        "intent": "weather:weather_forecast"
+        "intent": "news:news_source"
       },
       "prediction_b": {
         "intent": null
       },
-      "competitor_a": "adapt-domain-medium",
-      "competitor_b": "palavreado-hierarchical-medium",
-      "plugin_a": "ovos-adapt-domain-pipeline-plugin",
-      "plugin_b": "ovos-palavreado-hierarchical-pipeline"
+      "competitor_a": "palavreado-hierarchical-medium",
+      "competitor_b": "adapt-domain-medium",
+      "plugin_a": "ovos-palavreado-hierarchical-pipeline",
+      "plugin_b": "ovos-adapt-domain-pipeline-plugin"
     },
     {
-      "battle_id": "31c9af0d78523ed2",
+      "battle_id": "00caef0e9a29c7e6",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00563",
-      "input_text": "stilte alsjeblieft",
+      "sample_id": "nl-NL/00438",
+      "input_text": "wat is gepland voor vandaag",
       "audio_url": null,
-      "reference": "media:pause_playback",
+      "reference": "calendar:list_events",
       "prediction_a": {
-        "intent": "system_control:mute_system"
+        "intent": null
       },
       "prediction_b": {
-        "intent": null
+        "intent": "search_qa:factual_query"
       },
       "competitor_a": "adapt-domain-medium",
       "competitor_b": "palavreado-medium",
@@ -664,47 +726,30 @@
       "plugin_b": "ovos-adapt-pipeline-plugin"
     },
     {
-      "battle_id": "8a52483c7fa6525c",
+      "battle_id": "116e9cc6578aca8b",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01130",
-      "input_text": "zet het volume op nul",
+      "sample_id": "nl-NL/00805",
+      "input_text": "bel jan met camera",
       "audio_url": null,
-      "reference": "system_control:mute_system",
+      "reference": "communication:video_call",
       "prediction_a": {
-        "intent": "media:set_volume"
+        "intent": "communication:call_contact",
+        "slots": {
+          "contact": "jan"
+        }
       },
       "prediction_b": {
         "intent": null
       },
-      "competitor_a": "adapt-hierarchical-medium",
-      "competitor_b": "palavreado-hierarchical-medium",
-      "plugin_a": "ovos-adapt-hierarchical-pipeline-plugin",
-      "plugin_b": "ovos-palavreado-hierarchical-pipeline"
-    },
-    {
-      "battle_id": "b4a480f9f03c9ff5",
-      "modality": "intent_keyword",
-      "dataset_id": "intents-for-eval",
-      "lang": "nl-NL",
-      "sample_id": "nl-NL/01181",
-      "input_text": "saai volgende",
-      "audio_url": null,
-      "reference": "news:next_story",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "media:skip_track"
-      },
-      "competitor_a": "palavreado-medium",
+      "competitor_a": "palavreado-hierarchical-medium",
       "competitor_b": "adapt-hierarchical-medium",
-      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_a": "ovos-palavreado-hierarchical-pipeline",
       "plugin_b": "ovos-adapt-hierarchical-pipeline-plugin"
     },
     {
-      "battle_id": "1fe75e27690eee83",
+      "battle_id": "023ea86b93341489",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
@@ -713,35 +758,75 @@
       "audio_url": null,
       "reference": "news:news_source",
       "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
         "intent": "news:read_headlines"
       },
-      "competitor_a": "palavreado-hierarchical-medium",
-      "competitor_b": "adapt-medium",
-      "plugin_a": "ovos-palavreado-hierarchical-pipeline",
-      "plugin_b": "ovos-adapt-pipeline-plugin"
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "adapt-hierarchical-medium",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ovos-adapt-hierarchical-pipeline-plugin"
     },
     {
-      "battle_id": "1c36cc8bb914e29c",
+      "battle_id": "0366e3ea77ec94de",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01181",
-      "input_text": "saai volgende",
+      "sample_id": "nl-NL/01033",
+      "input_text": "agenda van vandaag alsjeblieft",
       "audio_url": null,
-      "reference": "news:next_story",
+      "reference": "calendar:list_events",
       "prediction_a": {
-        "intent": "media:skip_track"
+        "intent": "news:news_source"
       },
       "prediction_b": {
         "intent": null
       },
       "competitor_a": "adapt-medium",
-      "competitor_b": "palavreado-medium",
+      "competitor_b": "palavreado-hierarchical-medium",
       "plugin_a": "ovos-adapt-pipeline-plugin",
-      "plugin_b": "ovos-palavreado-pipeline-plugin"
+      "plugin_b": "ovos-palavreado-hierarchical-pipeline"
+    },
+    {
+      "battle_id": "0485aa0c39b9a75b",
+      "modality": "intent_keyword",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01056",
+      "input_text": "kom van de teamvergadering in mijn agenda af",
+      "audio_url": null,
+      "reference": "calendar:cancel_event",
+      "prediction_a": {
+        "intent": "news:news_source"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "adapt-medium",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ovos-adapt-pipeline-plugin"
+    },
+    {
+      "battle_id": "0abffc9d9ae1195b",
+      "modality": "intent_keyword",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00455",
+      "input_text": "spelling van alomtegenwoordig",
+      "audio_url": null,
+      "reference": "search_qa:spell_word",
+      "prediction_a": {
+        "intent": "news:news_source"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "palavreado-hierarchical-medium",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-hierarchical-pipeline"
     },
     {
       "battle_id": "93271e45d8b60969",
@@ -784,44 +869,44 @@
       "plugin_b": "ovos-adapt-pipeline-plugin"
     },
     {
-      "battle_id": "203b3aa5ecdd5c9c",
+      "battle_id": "164e2d3c3d4e5ab5",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01159",
-      "input_text": "lees de berichten van vandaag voor",
+      "sample_id": "nl-NL/00779",
+      "input_text": "open mijn berichten",
       "audio_url": null,
-      "reference": "news:read_headlines",
+      "reference": "communication:read_messages",
       "prediction_a": {
-        "intent": "communication:read_messages"
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "adapt-domain-medium",
-      "competitor_b": "palavreado-hierarchical-medium",
-      "plugin_a": "ovos-adapt-domain-pipeline-plugin",
-      "plugin_b": "ovos-palavreado-hierarchical-pipeline"
+      "prediction_b": {
+        "intent": "news:read_topic"
+      },
+      "competitor_a": "palavreado-hierarchical-medium",
+      "competitor_b": "adapt-domain-medium",
+      "plugin_a": "ovos-palavreado-hierarchical-pipeline",
+      "plugin_b": "ovos-adapt-domain-pipeline-plugin"
     },
     {
-      "battle_id": "381a276adfa722fa",
+      "battle_id": "01c45d940617d347",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01181",
-      "input_text": "saai volgende",
+      "sample_id": "nl-NL/00110",
+      "input_text": "stop het geluid",
       "audio_url": null,
-      "reference": "news:next_story",
+      "reference": "media:pause_playback",
       "prediction_a": {
-        "intent": "media:skip_track"
+        "intent": "media:set_volume"
       },
       "prediction_b": {
         "intent": null
       },
-      "competitor_a": "adapt-domain-medium",
-      "competitor_b": "palavreado-medium",
-      "plugin_a": "ovos-adapt-domain-pipeline-plugin",
-      "plugin_b": "ovos-palavreado-pipeline-plugin"
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "adapt-domain-medium",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ovos-adapt-domain-pipeline-plugin"
     },
     {
       "battle_id": "88d48ee5db3d5e6c",
@@ -844,39 +929,39 @@
       "plugin_b": "ovos-adapt-pipeline-plugin"
     },
     {
-      "battle_id": "8b1baae4e4564285",
+      "battle_id": "188deee1dda4384e",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01064",
-      "input_text": "geef me het volgende item op de agenda",
+      "sample_id": "nl-NL/00674",
+      "input_text": "zet de wekker 7 minuten naar achter",
       "audio_url": null,
-      "reference": "calendar:next_event",
+      "reference": "timers_alarms:snooze_alarm",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "calendar:list_events"
+        "intent": "timers_alarms:set_alarm"
       },
-      "competitor_a": "palavreado-hierarchical-medium",
-      "competitor_b": "adapt-hierarchical-medium",
-      "plugin_a": "ovos-palavreado-hierarchical-pipeline",
-      "plugin_b": "ovos-adapt-hierarchical-pipeline-plugin"
+      "competitor_a": "adapt-hierarchical-medium",
+      "competitor_b": "palavreado-hierarchical-medium",
+      "plugin_a": "ovos-adapt-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-hierarchical-pipeline"
     },
     {
-      "battle_id": "d016a866e87aa8f4",
+      "battle_id": "02e1295b54f24af4",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01064",
-      "input_text": "geef me het volgende item op de agenda",
+      "sample_id": "nl-NL/00227",
+      "input_text": "nieuw evenement doktersbezoek",
       "audio_url": null,
-      "reference": "calendar:next_event",
+      "reference": "calendar:create_event",
       "prediction_a": {
-        "intent": "calendar:list_events"
+        "intent": null
       },
       "prediction_b": {
-        "intent": null
+        "intent": "news:read_headlines"
       },
       "competitor_a": "adapt-hierarchical-medium",
       "competitor_b": "palavreado-medium",
@@ -884,44 +969,64 @@
       "plugin_b": "ovos-palavreado-pipeline-plugin"
     },
     {
-      "battle_id": "5417191a81ffa781",
+      "battle_id": "068e5e39d7a76a24",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01159",
-      "input_text": "lees de berichten van vandaag voor",
+      "sample_id": "nl-NL/00578",
+      "input_text": "oké speel nog eens",
       "audio_url": null,
-      "reference": "news:read_headlines",
+      "reference": "media:resume_playback",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "communication:read_messages"
+        "intent": "media:play_song"
       },
-      "competitor_a": "palavreado-hierarchical-medium",
+      "competitor_a": "adapt-medium",
+      "competitor_b": "palavreado-hierarchical-medium",
+      "plugin_a": "ovos-adapt-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-hierarchical-pipeline"
+    },
+    {
+      "battle_id": "067ddcae3556814f",
+      "modality": "intent_keyword",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00057",
+      "input_text": "laat het laatste bericht van piet zien",
+      "audio_url": null,
+      "reference": "communication:read_messages",
+      "prediction_a": {
+        "intent": "news:news_source"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "palavreado-medium",
       "competitor_b": "adapt-medium",
-      "plugin_a": "ovos-palavreado-hierarchical-pipeline",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
       "plugin_b": "ovos-adapt-pipeline-plugin"
     },
     {
-      "battle_id": "38f524d968b7c56c",
+      "battle_id": "0eb0f7a1edf03a47",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00123",
-      "input_text": "vandaag's weer koppen",
+      "sample_id": "nl-NL/00280",
+      "input_text": "spelling van serendipiteit",
       "audio_url": null,
-      "reference": "news:read_topic",
+      "reference": "search_qa:spell_word",
       "prediction_a": {
-        "intent": "weather:weather_today"
+        "intent": "news:news_source"
       },
       "prediction_b": {
         "intent": null
       },
-      "competitor_a": "adapt-medium",
-      "competitor_b": "palavreado-medium",
-      "plugin_a": "ovos-adapt-pipeline-plugin",
-      "plugin_b": "ovos-palavreado-pipeline-plugin"
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "palavreado-hierarchical-medium",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-hierarchical-pipeline"
     },
     {
       "battle_id": "aee9c31b95ee805e",
@@ -964,19 +1069,19 @@
       "plugin_b": "ovos-adapt-pipeline-plugin"
     },
     {
-      "battle_id": "2bc2e68b86b9a1dc",
+      "battle_id": "168300d64cef33b6",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01033",
-      "input_text": "agenda van vandaag alsjeblieft",
+      "sample_id": "nl-NL/00874",
+      "input_text": "ik heb geen aanwijzingen meer nodig",
       "audio_url": null,
-      "reference": "calendar:list_events",
+      "reference": "navigation:cancel_route",
       "prediction_a": {
-        "intent": "news:news_source"
+        "intent": null
       },
       "prediction_b": {
-        "intent": null
+        "intent": "navigation:navigate_to"
       },
       "competitor_a": "adapt-domain-medium",
       "competitor_b": "palavreado-hierarchical-medium",
@@ -984,24 +1089,24 @@
       "plugin_b": "ovos-palavreado-hierarchical-pipeline"
     },
     {
-      "battle_id": "38a2161fd8242dc2",
+      "battle_id": "0239d7d8358ea9a7",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01208",
-      "input_text": "koppen reuters",
+      "sample_id": "nl-NL/00848",
+      "input_text": "vliegveld over hoeveel",
       "audio_url": null,
-      "reference": "news:news_source",
+      "reference": "navigation:eta_query",
       "prediction_a": {
-        "intent": "news:read_topic"
+        "intent": "search_qa:factual_query"
       },
       "prediction_b": {
         "intent": null
       },
-      "competitor_a": "adapt-domain-medium",
-      "competitor_b": "palavreado-medium",
-      "plugin_a": "ovos-adapt-domain-pipeline-plugin",
-      "plugin_b": "ovos-palavreado-pipeline-plugin"
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "adapt-domain-medium",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ovos-adapt-domain-pipeline-plugin"
     },
     {
       "battle_id": "8d8ba2431d5c2561",
@@ -1024,19 +1129,19 @@
       "plugin_b": "ovos-adapt-hierarchical-pipeline-plugin"
     },
     {
-      "battle_id": "a6201a2b6a974640",
+      "battle_id": "1b5fdde606b0bdda",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00112",
-      "input_text": "speel opnieuw",
+      "sample_id": "nl-NL/01058",
+      "input_text": "wat is het volgende dat ik moet doen",
       "audio_url": null,
-      "reference": "media:resume_playback",
+      "reference": "calendar:next_event",
       "prediction_a": {
-        "intent": "system_control:restart"
+        "intent": null
       },
       "prediction_b": {
-        "intent": null
+        "intent": "search_qa:factual_query"
       },
       "competitor_a": "adapt-hierarchical-medium",
       "competitor_b": "palavreado-hierarchical-medium",
@@ -1044,19 +1149,19 @@
       "plugin_b": "ovos-palavreado-hierarchical-pipeline"
     },
     {
-      "battle_id": "d3150539e9916ef6",
+      "battle_id": "03123d55c95b654a",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01159",
-      "input_text": "lees de berichten van vandaag voor",
+      "sample_id": "nl-NL/01020",
+      "input_text": "zet teamvergadering vrijdag vast",
       "audio_url": null,
-      "reference": "news:read_headlines",
+      "reference": "calendar:create_event",
       "prediction_a": {
-        "intent": "communication:read_messages"
+        "intent": null
       },
       "prediction_b": {
-        "intent": null
+        "intent": "media:play_song"
       },
       "competitor_a": "adapt-hierarchical-medium",
       "competitor_b": "palavreado-medium",
@@ -1064,19 +1169,19 @@
       "plugin_b": "ovos-palavreado-pipeline-plugin"
     },
     {
-      "battle_id": "7eb9c66ee2e14b3f",
+      "battle_id": "06ef5becf5f8647d",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01215",
-      "input_text": "nos journaal",
+      "sample_id": "nl-NL/00566",
+      "input_text": "bevries het afspelen",
       "audio_url": null,
-      "reference": "news:news_source",
+      "reference": "media:pause_playback",
       "prediction_a": {
-        "intent": null
+        "intent": "media:play_song"
       },
       "prediction_b": {
-        "intent": "news:read_headlines"
+        "intent": null
       },
       "competitor_a": "palavreado-hierarchical-medium",
       "competitor_b": "adapt-medium",
@@ -1084,23 +1189,43 @@
       "plugin_b": "ovos-adapt-pipeline-plugin"
     },
     {
-      "battle_id": "3a822b910b0025e6",
+      "battle_id": "07ab9ea44fb3d6ac",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00758",
-      "input_text": "draai piets nummer",
+      "sample_id": "nl-NL/00780",
+      "input_text": "de laatste van jan alsjeblieft",
       "audio_url": null,
-      "reference": "communication:call_contact",
+      "reference": "communication:read_messages",
       "prediction_a": {
-        "intent": "media:play_song"
+        "intent": null
       },
       "prediction_b": {
-        "intent": null
+        "intent": "news:news_source"
       },
       "competitor_a": "adapt-medium",
       "competitor_b": "palavreado-medium",
       "plugin_a": "ovos-adapt-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
+    },
+    {
+      "battle_id": "19e4ffce0d9603be",
+      "modality": "intent_keyword",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01074",
+      "input_text": "schuif het doktersbezoek naar volgende maandag",
+      "audio_url": null,
+      "reference": "calendar:reschedule_event",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:skip_track"
+      },
+      "competitor_a": "palavreado-hierarchical-medium",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ovos-palavreado-hierarchical-pipeline",
       "plugin_b": "ovos-palavreado-pipeline-plugin"
     },
     {
@@ -1144,32 +1269,32 @@
       "plugin_b": "ovos-adapt-pipeline-plugin"
     },
     {
-      "battle_id": "42b4b13b0d12b903",
+      "battle_id": "1aa3d2a5574602e8",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01064",
-      "input_text": "geef me het volgende item op de agenda",
+      "sample_id": "nl-NL/00659",
+      "input_text": "heb ik later nog wekkers die afgaan",
       "audio_url": null,
-      "reference": "calendar:next_event",
+      "reference": "timers_alarms:list_alarms",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "calendar:list_events"
+        "intent": "timers_alarms:snooze_alarm"
       },
-      "competitor_a": "palavreado-hierarchical-medium",
-      "competitor_b": "adapt-domain-medium",
-      "plugin_a": "ovos-palavreado-hierarchical-pipeline",
-      "plugin_b": "ovos-adapt-domain-pipeline-plugin"
+      "competitor_a": "adapt-domain-medium",
+      "competitor_b": "palavreado-hierarchical-medium",
+      "plugin_a": "ovos-adapt-domain-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-hierarchical-pipeline"
     },
     {
-      "battle_id": "3ecec0a9fc3a0562",
+      "battle_id": "031077a17d99a841",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00779",
-      "input_text": "open mijn berichten",
+      "sample_id": "nl-NL/00777",
+      "input_text": "zijn er berichten die ik nog niet gezien heb",
       "audio_url": null,
       "reference": "communication:read_messages",
       "prediction_a": {
@@ -1178,10 +1303,10 @@
       "prediction_b": {
         "intent": null
       },
-      "competitor_a": "adapt-domain-medium",
-      "competitor_b": "palavreado-medium",
-      "plugin_a": "ovos-adapt-domain-pipeline-plugin",
-      "plugin_b": "ovos-palavreado-pipeline-plugin"
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "adapt-domain-medium",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ovos-adapt-domain-pipeline-plugin"
     },
     {
       "battle_id": "bfc9992f5b271229",
@@ -1204,19 +1329,19 @@
       "plugin_b": "ovos-adapt-hierarchical-pipeline-plugin"
     },
     {
-      "battle_id": "c03e2c3723303f3b",
+      "battle_id": "1bf6320afae3caad",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01159",
-      "input_text": "lees de berichten van vandaag voor",
+      "sample_id": "nl-NL/00951",
+      "input_text": "geef me de omstandigheden van vandaag",
       "audio_url": null,
-      "reference": "news:read_headlines",
+      "reference": "weather:weather_today",
       "prediction_a": {
-        "intent": null
+        "intent": "news:news_source"
       },
       "prediction_b": {
-        "intent": "communication:read_messages"
+        "intent": null
       },
       "competitor_a": "palavreado-hierarchical-medium",
       "competitor_b": "adapt-hierarchical-medium",
@@ -1224,39 +1349,39 @@
       "plugin_b": "ovos-adapt-hierarchical-pipeline-plugin"
     },
     {
-      "battle_id": "d419a01137d821ae",
+      "battle_id": "041948a0402f3993",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00112",
-      "input_text": "speel opnieuw",
+      "sample_id": "nl-NL/00580",
+      "input_text": "ok muziek weer",
       "audio_url": null,
       "reference": "media:resume_playback",
       "prediction_a": {
-        "intent": "system_control:restart"
+        "intent": "weather:weather_forecast"
       },
       "prediction_b": {
         "intent": null
       },
-      "competitor_a": "adapt-hierarchical-medium",
-      "competitor_b": "palavreado-medium",
-      "plugin_a": "ovos-adapt-hierarchical-pipeline-plugin",
-      "plugin_b": "ovos-palavreado-pipeline-plugin"
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "adapt-hierarchical-medium",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ovos-adapt-hierarchical-pipeline-plugin"
     },
     {
-      "battle_id": "8703f0658daeac2a",
+      "battle_id": "093a222b5d62c2cc",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00123",
-      "input_text": "vandaag's weer koppen",
+      "sample_id": "nl-NL/00598",
+      "input_text": "zet maar op 85",
       "audio_url": null,
-      "reference": "news:read_topic",
+      "reference": "media:set_volume",
       "prediction_a": {
-        "intent": "weather:weather_today"
+        "intent": null
       },
       "prediction_b": {
-        "intent": null
+        "intent": "media:play_song"
       },
       "competitor_a": "adapt-medium",
       "competitor_b": "palavreado-hierarchical-medium",
@@ -1264,24 +1389,44 @@
       "plugin_b": "ovos-palavreado-hierarchical-pipeline"
     },
     {
-      "battle_id": "4ea14dc516b92018",
+      "battle_id": "084654c41705151f",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01215",
-      "input_text": "nos journaal",
+      "sample_id": "nl-NL/01211",
+      "input_text": "zet nos aan",
       "audio_url": null,
       "reference": "news:news_source",
       "prediction_a": {
-        "intent": "news:read_headlines"
+        "intent": "media:play_song"
       },
       "prediction_b": {
         "intent": null
       },
-      "competitor_a": "adapt-medium",
-      "competitor_b": "palavreado-medium",
-      "plugin_a": "ovos-adapt-pipeline-plugin",
-      "plugin_b": "ovos-palavreado-pipeline-plugin"
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "adapt-medium",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ovos-adapt-pipeline-plugin"
+    },
+    {
+      "battle_id": "1a899f1b91ce9a25",
+      "modality": "intent_keyword",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00137",
+      "input_text": "zet de monitorhelderheid op 50",
+      "audio_url": null,
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": "media:play_song"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "palavreado-hierarchical-medium",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-hierarchical-pipeline"
     },
     {
       "battle_id": "62923224e6aea6df",
@@ -1324,39 +1469,39 @@
       "plugin_b": "ovos-adapt-domain-pipeline-plugin"
     },
     {
-      "battle_id": "55e4069332f1b347",
+      "battle_id": "1eaba9f1804221e0",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01181",
-      "input_text": "saai volgende",
+      "sample_id": "nl-NL/00210",
+      "input_text": "zeg me hoe je serendipiteit spelt",
       "audio_url": null,
-      "reference": "news:next_story",
+      "reference": "search_qa:spell_word",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "media:skip_track"
+        "intent": "search_qa:translate_phrase"
       },
-      "competitor_a": "palavreado-hierarchical-medium",
-      "competitor_b": "adapt-domain-medium",
-      "plugin_a": "ovos-palavreado-hierarchical-pipeline",
-      "plugin_b": "ovos-adapt-domain-pipeline-plugin"
+      "competitor_a": "adapt-domain-medium",
+      "competitor_b": "palavreado-hierarchical-medium",
+      "plugin_a": "ovos-adapt-domain-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-hierarchical-pipeline"
     },
     {
-      "battle_id": "5b1627a33596ab70",
+      "battle_id": "0457d0eb70aeb234",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00584",
-      "input_text": "muziek weer aan alsjeblieft",
+      "sample_id": "nl-NL/00254",
+      "input_text": "zet de monitorhelderheid op 75",
       "audio_url": null,
-      "reference": "media:resume_playback",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": "weather:weather_forecast"
+        "intent": null
       },
       "prediction_b": {
-        "intent": null
+        "intent": "media:play_song"
       },
       "competitor_a": "adapt-domain-medium",
       "competitor_b": "palavreado-medium",
@@ -1384,59 +1529,59 @@
       "plugin_b": "ovos-adapt-hierarchical-pipeline-plugin"
     },
     {
-      "battle_id": "f229135421a99f8b",
+      "battle_id": "258c95bac79ec7c8",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00956",
-      "input_text": "vochtigheid hoog vandaag",
+      "sample_id": "nl-NL/00874",
+      "input_text": "ik heb geen aanwijzingen meer nodig",
       "audio_url": null,
-      "reference": "weather:weather_today",
+      "reference": "navigation:cancel_route",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "weather:weather_humidity"
+        "intent": "navigation:navigate_to"
       },
-      "competitor_a": "palavreado-hierarchical-medium",
-      "competitor_b": "adapt-hierarchical-medium",
-      "plugin_a": "ovos-palavreado-hierarchical-pipeline",
-      "plugin_b": "ovos-adapt-hierarchical-pipeline-plugin"
+      "competitor_a": "adapt-hierarchical-medium",
+      "competitor_b": "palavreado-hierarchical-medium",
+      "plugin_a": "ovos-adapt-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-hierarchical-pipeline"
     },
     {
-      "battle_id": "e1314b982ec1e90b",
+      "battle_id": "05db4ab850a0deca",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00563",
-      "input_text": "stilte alsjeblieft",
+      "sample_id": "nl-NL/00722",
+      "input_text": "zet de keuken op 50",
       "audio_url": null,
-      "reference": "media:pause_playback",
+      "reference": "smarthome:set_brightness_light",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "system_control:mute_system"
-      },
-      "competitor_a": "palavreado-medium",
-      "competitor_b": "adapt-hierarchical-medium",
-      "plugin_a": "ovos-palavreado-pipeline-plugin",
-      "plugin_b": "ovos-adapt-hierarchical-pipeline-plugin"
-    },
-    {
-      "battle_id": "8f507550dfd786dc",
-      "modality": "intent_keyword",
-      "dataset_id": "intents-for-eval",
-      "lang": "nl-NL",
-      "sample_id": "nl-NL/00758",
-      "input_text": "draai piets nummer",
-      "audio_url": null,
-      "reference": "communication:call_contact",
-      "prediction_a": {
         "intent": "media:play_song"
       },
-      "prediction_b": {
+      "competitor_a": "adapt-hierarchical-medium",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ovos-adapt-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
+    },
+    {
+      "battle_id": "0eeb9dd820741a48",
+      "modality": "intent_keyword",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00024",
+      "input_text": "wat is nieuw in politiek",
+      "audio_url": null,
+      "reference": "news:read_topic",
+      "prediction_a": {
         "intent": null
+      },
+      "prediction_b": {
+        "intent": "search_qa:factual_query"
       },
       "competitor_a": "adapt-medium",
       "competitor_b": "palavreado-hierarchical-medium",
@@ -1444,24 +1589,44 @@
       "plugin_b": "ovos-palavreado-hierarchical-pipeline"
     },
     {
-      "battle_id": "72607bdde2ab120a",
+      "battle_id": "089ad85b6261a894",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00089",
-      "input_text": "zet het systeem uit",
+      "sample_id": "nl-NL/01117",
+      "input_text": "zet het laptopscherm op 70",
       "audio_url": null,
-      "reference": "system_control:shutdown",
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:play_song"
+      },
+      "competitor_a": "adapt-medium",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ovos-adapt-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
+    },
+    {
+      "battle_id": "1af9ca5dca9df87f",
+      "modality": "intent_keyword",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01121",
+      "input_text": "zet het scherm op 100",
+      "audio_url": null,
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
         "intent": "media:play_song"
       },
       "prediction_b": {
         "intent": null
       },
-      "competitor_a": "adapt-medium",
-      "competitor_b": "palavreado-medium",
-      "plugin_a": "ovos-adapt-pipeline-plugin",
-      "plugin_b": "ovos-palavreado-pipeline-plugin"
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "palavreado-hierarchical-medium",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-hierarchical-pipeline"
     },
     {
       "battle_id": "c6fb1460a4717058",
@@ -1507,16 +1672,16 @@
       "plugin_b": "ovos-adapt-domain-pipeline-plugin"
     },
     {
-      "battle_id": "5a7c061d63ec3c9a",
+      "battle_id": "1ff7b20f4cc2c1a4",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01208",
-      "input_text": "koppen reuters",
+      "sample_id": "nl-NL/00584",
+      "input_text": "muziek weer aan alsjeblieft",
       "audio_url": null,
-      "reference": "news:news_source",
+      "reference": "media:resume_playback",
       "prediction_a": {
-        "intent": "news:read_topic"
+        "intent": "weather:weather_forecast"
       },
       "prediction_b": {
         "intent": null
@@ -1527,24 +1692,24 @@
       "plugin_b": "ovos-palavreado-hierarchical-pipeline"
     },
     {
-      "battle_id": "5b70646d40e0454f",
+      "battle_id": "0489d1d438c3635c",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00135",
-      "input_text": "zet het geluid uit",
+      "sample_id": "nl-NL/00909",
+      "input_text": "wat is het verhaal met napoleon",
       "audio_url": null,
-      "reference": "system_control:mute_system",
+      "reference": "search_qa:who_is",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "media:set_volume"
+        "intent": "search_qa:factual_query"
       },
-      "competitor_a": "palavreado-medium",
-      "competitor_b": "adapt-domain-medium",
-      "plugin_a": "ovos-palavreado-pipeline-plugin",
-      "plugin_b": "ovos-adapt-domain-pipeline-plugin"
+      "competitor_a": "adapt-domain-medium",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ovos-adapt-domain-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
     },
     {
       "battle_id": "e3c6e9579fd6a81b",
@@ -1567,19 +1732,19 @@
       "plugin_b": "ovos-adapt-hierarchical-pipeline-plugin"
     },
     {
-      "battle_id": "0096a34ad21d22e9",
+      "battle_id": "286880b0b17f4eff",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00140",
-      "input_text": "toon mijn wekkers",
+      "sample_id": "nl-NL/00375",
+      "input_text": "zet het zachter op 50",
       "audio_url": null,
-      "reference": "timers_alarms:list_alarms",
+      "reference": "media:set_volume",
       "prediction_a": {
-        "intent": null
+        "intent": "media:play_song"
       },
       "prediction_b": {
-        "intent": "timers_alarms:list_alarms"
+        "intent": null
       },
       "competitor_a": "palavreado-hierarchical-medium",
       "competitor_b": "adapt-hierarchical-medium",
@@ -1587,67 +1752,84 @@
       "plugin_b": "ovos-adapt-hierarchical-pipeline-plugin"
     },
     {
-      "battle_id": "00e8ae7232fb1d6d",
+      "battle_id": "080c0fde5c934290",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00080",
-      "input_text": "zet het licht in de keuken uit",
+      "sample_id": "nl-NL/00575",
+      "input_text": "zet de muziek weer keihard aan",
       "audio_url": null,
-      "reference": "smarthome:lights_off",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "smarthome:lights_off",
-        "slots": {
-          "room": "keuken"
-        }
-      },
-      "competitor_a": "palavreado-medium",
-      "competitor_b": "adapt-hierarchical-medium",
-      "plugin_a": "ovos-palavreado-pipeline-plugin",
-      "plugin_b": "ovos-adapt-hierarchical-pipeline-plugin"
-    },
-    {
-      "battle_id": "8fc2329288acd273",
-      "modality": "intent_keyword",
-      "dataset_id": "intents-for-eval",
-      "lang": "nl-NL",
-      "sample_id": "nl-NL/01095",
-      "input_text": "ik ga zet uit",
-      "audio_url": null,
-      "reference": "system_control:shutdown",
+      "reference": "media:resume_playback",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
         "intent": "media:play_song"
       },
-      "competitor_a": "palavreado-hierarchical-medium",
-      "competitor_b": "adapt-medium",
-      "plugin_a": "ovos-palavreado-hierarchical-pipeline",
-      "plugin_b": "ovos-adapt-pipeline-plugin"
+      "competitor_a": "adapt-hierarchical-medium",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ovos-adapt-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
     },
     {
-      "battle_id": "8a1a56ccb72e2f03",
+      "battle_id": "1212dbda5c552dfa",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01208",
-      "input_text": "koppen reuters",
+      "sample_id": "nl-NL/00674",
+      "input_text": "zet de wekker 7 minuten naar achter",
       "audio_url": null,
-      "reference": "news:news_source",
+      "reference": "timers_alarms:snooze_alarm",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "news:read_headlines"
+        "intent": "timers_alarms:set_alarm"
+      },
+      "competitor_a": "adapt-medium",
+      "competitor_b": "palavreado-hierarchical-medium",
+      "plugin_a": "ovos-adapt-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-hierarchical-pipeline"
+    },
+    {
+      "battle_id": "0ac99c3c380ceb39",
+      "modality": "intent_keyword",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00315",
+      "input_text": "zeg me hoe je kortstondig spelt",
+      "audio_url": null,
+      "reference": "search_qa:spell_word",
+      "prediction_a": {
+        "intent": "search_qa:translate_phrase"
+      },
+      "prediction_b": {
+        "intent": null
       },
       "competitor_a": "palavreado-medium",
       "competitor_b": "adapt-medium",
       "plugin_a": "ovos-palavreado-pipeline-plugin",
       "plugin_b": "ovos-adapt-pipeline-plugin"
+    },
+    {
+      "battle_id": "1d6eeb93d9550e2d",
+      "modality": "intent_keyword",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01197",
+      "input_text": "speel het laatste bericht opnieuw",
+      "audio_url": null,
+      "reference": "news:previous_story",
+      "prediction_a": {
+        "intent": "system_control:restart"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "palavreado-hierarchical-medium",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-hierarchical-pipeline"
     },
     {
       "battle_id": "c4e6db03739c2313",
@@ -1670,19 +1852,19 @@
       "plugin_b": "ovos-adapt-domain-pipeline-plugin"
     },
     {
-      "battle_id": "72e04c9eabc88f87",
+      "battle_id": "20e0e9ea8e8d74b9",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00956",
-      "input_text": "vochtigheid hoog vandaag",
+      "sample_id": "nl-NL/01098",
+      "input_text": "geef het een frisse start",
       "audio_url": null,
-      "reference": "weather:weather_today",
+      "reference": "system_control:restart",
       "prediction_a": {
-        "intent": null
+        "intent": "media:play_song"
       },
       "prediction_b": {
-        "intent": "weather:weather_humidity"
+        "intent": null
       },
       "competitor_a": "palavreado-hierarchical-medium",
       "competitor_b": "adapt-domain-medium",
@@ -1690,19 +1872,22 @@
       "plugin_b": "ovos-adapt-domain-pipeline-plugin"
     },
     {
-      "battle_id": "77d4ea41b210c8ac",
+      "battle_id": "052beec2261d1a9c",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00780",
-      "input_text": "de laatste van jan alsjeblieft",
+      "sample_id": "nl-NL/00805",
+      "input_text": "bel jan met camera",
       "audio_url": null,
-      "reference": "communication:read_messages",
+      "reference": "communication:video_call",
       "prediction_a": {
-        "intent": "news:news_source"
+        "intent": null
       },
       "prediction_b": {
-        "intent": null
+        "intent": "communication:call_contact",
+        "slots": {
+          "contact": "jan"
+        }
       },
       "competitor_a": "adapt-domain-medium",
       "competitor_b": "palavreado-medium",
@@ -1730,19 +1915,19 @@
       "plugin_b": "ovos-adapt-hierarchical-pipeline-plugin"
     },
     {
-      "battle_id": "03eea3aad707d941",
+      "battle_id": "2d8f09e7cafa2293",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00998",
-      "input_text": "vochtigheid checken alsjeblieft",
+      "sample_id": "nl-NL/00851",
+      "input_text": "hoeveel kilometer naar huis",
       "audio_url": null,
-      "reference": "weather:weather_humidity",
+      "reference": "navigation:eta_query",
       "prediction_a": {
-        "intent": null
+        "intent": "search_qa:factual_query"
       },
       "prediction_b": {
-        "intent": "weather:weather_humidity"
+        "intent": null
       },
       "competitor_a": "palavreado-hierarchical-medium",
       "competitor_b": "adapt-hierarchical-medium",
@@ -1750,19 +1935,19 @@
       "plugin_b": "ovos-adapt-hierarchical-pipeline-plugin"
     },
     {
-      "battle_id": "027ccc69fdc3f4ba",
+      "battle_id": "0a5b5aaa4e4bf766",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00992",
-      "input_text": "vochtigheid torenhoog",
+      "sample_id": "nl-NL/00962",
+      "input_text": "regen volgende maandag",
       "audio_url": null,
-      "reference": "weather:weather_humidity",
+      "reference": "weather:weather_forecast",
       "prediction_a": {
-        "intent": "weather:weather_humidity"
+        "intent": null
       },
       "prediction_b": {
-        "intent": null
+        "intent": "media:skip_track"
       },
       "competitor_a": "adapt-hierarchical-medium",
       "competitor_b": "palavreado-medium",
@@ -1770,43 +1955,63 @@
       "plugin_b": "ovos-palavreado-pipeline-plugin"
     },
     {
-      "battle_id": "98b89f017d67ba84",
+      "battle_id": "16c725e44a1cfe03",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00089",
-      "input_text": "zet het systeem uit",
+      "sample_id": "nl-NL/00653",
+      "input_text": "zet een sportschool-wekker op half zes",
       "audio_url": null,
-      "reference": "system_control:shutdown",
+      "reference": "timers_alarms:set_alarm",
       "prediction_a": {
         "intent": "media:play_song"
       },
       "prediction_b": {
         "intent": null
       },
-      "competitor_a": "adapt-medium",
-      "competitor_b": "palavreado-hierarchical-medium",
-      "plugin_a": "ovos-adapt-pipeline-plugin",
-      "plugin_b": "ovos-palavreado-hierarchical-pipeline"
+      "competitor_a": "palavreado-hierarchical-medium",
+      "competitor_b": "adapt-medium",
+      "plugin_a": "ovos-palavreado-hierarchical-pipeline",
+      "plugin_b": "ovos-adapt-pipeline-plugin"
     },
     {
-      "battle_id": "ac7b06f9ee9a90d4",
+      "battle_id": "0b1484c833c624de",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00776",
-      "input_text": "wachten er berichten",
+      "sample_id": "nl-NL/01128",
+      "input_text": "ik wil niets horen",
       "audio_url": null,
-      "reference": "communication:read_messages",
+      "reference": "system_control:mute_system",
       "prediction_a": {
-        "intent": "news:read_topic"
+        "intent": null
       },
       "prediction_b": {
-        "intent": null
+        "intent": "media:play_song"
       },
       "competitor_a": "adapt-medium",
       "competitor_b": "palavreado-medium",
       "plugin_a": "ovos-adapt-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
+    },
+    {
+      "battle_id": "1e020a12d20f47f2",
+      "modality": "intent_keyword",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00193",
+      "input_text": "agenda-items volgende maandag",
+      "audio_url": null,
+      "reference": "calendar:list_events",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:skip_track"
+      },
+      "competitor_a": "palavreado-hierarchical-medium",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ovos-palavreado-hierarchical-pipeline",
       "plugin_b": "ovos-palavreado-pipeline-plugin"
     },
     {
@@ -1830,19 +2035,19 @@
       "plugin_b": "ovos-adapt-domain-pipeline-plugin"
     },
     {
-      "battle_id": "97337cd4c8baf036",
+      "battle_id": "2163bce16b80b86c",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01130",
-      "input_text": "zet het volume op nul",
+      "sample_id": "nl-NL/00912",
+      "input_text": "vertel me het leven van marie curie",
       "audio_url": null,
-      "reference": "system_control:mute_system",
+      "reference": "search_qa:who_is",
       "prediction_a": {
-        "intent": "media:set_volume"
+        "intent": null
       },
       "prediction_b": {
-        "intent": null
+        "intent": "news:news_source"
       },
       "competitor_a": "adapt-domain-medium",
       "competitor_b": "palavreado-hierarchical-medium",
@@ -1850,19 +2055,19 @@
       "plugin_b": "ovos-palavreado-hierarchical-pipeline"
     },
     {
-      "battle_id": "9a54effdcb204006",
+      "battle_id": "057e3a1380112210",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00956",
-      "input_text": "vochtigheid hoog vandaag",
+      "sample_id": "nl-NL/00734",
+      "input_text": "zet de aircon op 18 in de slaapkamer",
       "audio_url": null,
-      "reference": "weather:weather_today",
+      "reference": "smarthome:set_thermostat",
       "prediction_a": {
-        "intent": "weather:weather_humidity"
+        "intent": null
       },
       "prediction_b": {
-        "intent": null
+        "intent": "media:play_song"
       },
       "competitor_a": "adapt-domain-medium",
       "competitor_b": "palavreado-medium",
@@ -1890,22 +2095,19 @@
       "plugin_b": "ovos-adapt-hierarchical-pipeline-plugin"
     },
     {
-      "battle_id": "0579c8f3b6841554",
+      "battle_id": "2e5b9344b8e6750e",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00770",
-      "input_text": "schrijf jan per sms",
+      "sample_id": "nl-NL/00657",
+      "input_text": "geef me een snel overzicht van mijn wekkers",
       "audio_url": null,
-      "reference": "communication:send_message",
+      "reference": "timers_alarms:list_alarms",
       "prediction_a": {
-        "intent": "communication:send_message",
-        "slots": {
-          "contact": "jan"
-        }
+        "intent": null
       },
       "prediction_b": {
-        "intent": null
+        "intent": "news:news_source"
       },
       "competitor_a": "adapt-hierarchical-medium",
       "competitor_b": "palavreado-hierarchical-medium",
@@ -1913,42 +2115,39 @@
       "plugin_b": "ovos-palavreado-hierarchical-pipeline"
     },
     {
-      "battle_id": "042c59d4aa58eb9e",
+      "battle_id": "0bbf923116ad309b",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00612",
-      "input_text": "sla de volgende drie over",
+      "sample_id": "nl-NL/00970",
+      "input_text": "voorspelling voor volgende maandag uit nieuwsgierigheid",
       "audio_url": null,
-      "reference": "media:skip_track",
+      "reference": "weather:weather_forecast",
       "prediction_a": {
-        "intent": "media:skip_track",
-        "slots": {
-          "count": "drie"
-        }
+        "intent": "media:skip_track"
       },
       "prediction_b": {
         "intent": null
       },
-      "competitor_a": "adapt-hierarchical-medium",
-      "competitor_b": "palavreado-medium",
-      "plugin_a": "ovos-adapt-hierarchical-pipeline-plugin",
-      "plugin_b": "ovos-palavreado-pipeline-plugin"
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "adapt-hierarchical-medium",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ovos-adapt-hierarchical-pipeline-plugin"
     },
     {
-      "battle_id": "bd2e05dad547bcfc",
+      "battle_id": "225783a0a0a3b586",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00563",
-      "input_text": "stilte alsjeblieft",
+      "sample_id": "nl-NL/00741",
+      "input_text": "draai de sleutel om",
       "audio_url": null,
-      "reference": "media:pause_playback",
+      "reference": "smarthome:lock_door",
       "prediction_a": {
-        "intent": "system_control:mute_system"
+        "intent": null
       },
       "prediction_b": {
-        "intent": null
+        "intent": "communication:call_contact"
       },
       "competitor_a": "adapt-medium",
       "competitor_b": "palavreado-hierarchical-medium",
@@ -1956,24 +2155,44 @@
       "plugin_b": "ovos-palavreado-hierarchical-pipeline"
     },
     {
-      "battle_id": "b104b06968f022d0",
+      "battle_id": "0ce8e1332995d429",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00157",
-      "input_text": "zet op pauze",
+      "sample_id": "nl-NL/00419",
+      "input_text": "weet je de bevolking van tokio",
       "audio_url": null,
-      "reference": "media:pause_playback",
+      "reference": "search_qa:factual_query",
       "prediction_a": {
-        "intent": "media:play_song"
+        "intent": "news:news_source"
       },
       "prediction_b": {
         "intent": null
       },
-      "competitor_a": "adapt-medium",
-      "competitor_b": "palavreado-medium",
-      "plugin_a": "ovos-adapt-pipeline-plugin",
-      "plugin_b": "ovos-palavreado-pipeline-plugin"
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "adapt-medium",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ovos-adapt-pipeline-plugin"
+    },
+    {
+      "battle_id": "1f41691656ef17a1",
+      "modality": "intent_keyword",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00621",
+      "input_text": "wat dacht je van een timer van 25 minuten",
+      "audio_url": null,
+      "reference": "timers_alarms:set_timer",
+      "prediction_a": {
+        "intent": "news:news_source"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "palavreado-hierarchical-medium",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-hierarchical-pipeline"
     },
     {
       "battle_id": "cbfd3ffe3223e85b",
@@ -1996,19 +2215,19 @@
       "plugin_b": "ovos-adapt-domain-pipeline-plugin"
     },
     {
-      "battle_id": "97e308fe8ea546c1",
+      "battle_id": "23f20ba94954ce45",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00190",
-      "input_text": "wat is de temperatuur",
+      "sample_id": "nl-NL/00582",
+      "input_text": "herstart het afspelen",
       "audio_url": null,
-      "reference": "weather:weather_today",
+      "reference": "media:resume_playback",
       "prediction_a": {
-        "intent": null
+        "intent": "media:play_song"
       },
       "prediction_b": {
-        "intent": "weather:weather_location"
+        "intent": null
       },
       "competitor_a": "palavreado-hierarchical-medium",
       "competitor_b": "adapt-domain-medium",
@@ -2016,24 +2235,24 @@
       "plugin_b": "ovos-adapt-domain-pipeline-plugin"
     },
     {
-      "battle_id": "d87aaa7afed785fe",
+      "battle_id": "096cff3d6470a397",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01064",
-      "input_text": "geef me het volgende item op de agenda",
+      "sample_id": "nl-NL/00401",
+      "input_text": "kom van diner met anneke af",
       "audio_url": null,
-      "reference": "calendar:next_event",
+      "reference": "calendar:cancel_event",
       "prediction_a": {
-        "intent": "calendar:list_events"
+        "intent": "news:news_source"
       },
       "prediction_b": {
         "intent": null
       },
-      "competitor_a": "adapt-domain-medium",
-      "competitor_b": "palavreado-medium",
-      "plugin_a": "ovos-adapt-domain-pipeline-plugin",
-      "plugin_b": "ovos-palavreado-pipeline-plugin"
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "adapt-domain-medium",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ovos-adapt-domain-pipeline-plugin"
     },
     {
       "battle_id": "0b7ab0482af364ad",
@@ -2059,45 +2278,39 @@
       "plugin_b": "ovos-adapt-hierarchical-pipeline-plugin"
     },
     {
-      "battle_id": "058a32bed2e32dca",
+      "battle_id": "31257f3d2892692f",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00017",
-      "input_text": "zoek voor mij een apotheek in de buurt",
+      "sample_id": "nl-NL/00905",
+      "input_text": "geef me een feit over de bevolking van tokio",
       "audio_url": null,
-      "reference": "navigation:find_nearby",
+      "reference": "search_qa:factual_query",
       "prediction_a": {
-        "intent": "navigation:find_nearby",
-        "slots": {
-          "place_type": "apotheek"
-        }
+        "intent": "news:news_source"
       },
       "prediction_b": {
         "intent": null
       },
-      "competitor_a": "adapt-hierarchical-medium",
-      "competitor_b": "palavreado-hierarchical-medium",
-      "plugin_a": "ovos-adapt-hierarchical-pipeline-plugin",
-      "plugin_b": "ovos-palavreado-hierarchical-pipeline"
+      "competitor_a": "palavreado-hierarchical-medium",
+      "competitor_b": "adapt-hierarchical-medium",
+      "plugin_a": "ovos-palavreado-hierarchical-pipeline",
+      "plugin_b": "ovos-adapt-hierarchical-pipeline-plugin"
     },
     {
-      "battle_id": "05d9e0ff5b9d4085",
+      "battle_id": "0c1d24fd328d008d",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00748",
-      "input_text": "voordeur vergrendel hem nu",
+      "sample_id": "nl-NL/00919",
+      "input_text": "zet hallo om naar een andere taal",
       "audio_url": null,
-      "reference": "smarthome:lock_door",
+      "reference": "search_qa:translate_phrase",
       "prediction_a": {
-        "intent": null
+        "intent": "media:play_song"
       },
       "prediction_b": {
-        "intent": "smarthome:lock_door",
-        "slots": {
-          "door": "voordeur"
-        }
+        "intent": null
       },
       "competitor_a": "palavreado-medium",
       "competitor_b": "adapt-hierarchical-medium",
@@ -2105,19 +2318,19 @@
       "plugin_b": "ovos-adapt-hierarchical-pipeline-plugin"
     },
     {
-      "battle_id": "cced5e1ab8b976b9",
+      "battle_id": "239321e1a5cd80c7",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01181",
-      "input_text": "saai volgende",
+      "sample_id": "nl-NL/00385",
+      "input_text": "zeg me hoe je alomtegenwoordig spelt",
       "audio_url": null,
-      "reference": "news:next_story",
+      "reference": "search_qa:spell_word",
       "prediction_a": {
-        "intent": null
+        "intent": "search_qa:translate_phrase"
       },
       "prediction_b": {
-        "intent": "media:skip_track"
+        "intent": null
       },
       "competitor_a": "palavreado-hierarchical-medium",
       "competitor_b": "adapt-medium",
@@ -2125,24 +2338,44 @@
       "plugin_b": "ovos-adapt-pipeline-plugin"
     },
     {
-      "battle_id": "b1d142f94feb6d9a",
+      "battle_id": "0d92b412b0dd7fda",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01159",
-      "input_text": "lees de berichten van vandaag voor",
+      "sample_id": "nl-NL/00420",
+      "input_text": "zeg me hoe je ritme spelt",
       "audio_url": null,
-      "reference": "news:read_headlines",
+      "reference": "search_qa:spell_word",
       "prediction_a": {
-        "intent": "communication:read_messages"
+        "intent": null
       },
       "prediction_b": {
-        "intent": null
+        "intent": "search_qa:translate_phrase"
       },
       "competitor_a": "adapt-medium",
       "competitor_b": "palavreado-medium",
       "plugin_a": "ovos-adapt-pipeline-plugin",
       "plugin_b": "ovos-palavreado-pipeline-plugin"
+    },
+    {
+      "battle_id": "1f845fda8f26652d",
+      "modality": "intent_keyword",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01339",
+      "input_text": "tiimer van fwee minuten voor de eieren",
+      "audio_url": null,
+      "reference": "timers_alarms:set_timer",
+      "prediction_a": {
+        "intent": "news:news_source"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "palavreado-hierarchical-medium",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-hierarchical-pipeline"
     },
     {
       "battle_id": "f113996eff8c8c31",
@@ -2165,39 +2398,39 @@
       "plugin_b": "ovos-adapt-domain-pipeline-plugin"
     },
     {
-      "battle_id": "c208d96c347ba5e4",
+      "battle_id": "29132ea1757a027f",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00780",
-      "input_text": "de laatste van jan alsjeblieft",
+      "sample_id": "nl-NL/00600",
+      "input_text": "deze niet zet een ander op",
       "audio_url": null,
-      "reference": "communication:read_messages",
+      "reference": "media:skip_track",
       "prediction_a": {
-        "intent": "news:news_source"
+        "intent": "media:play_song"
       },
       "prediction_b": {
         "intent": null
       },
-      "competitor_a": "adapt-domain-medium",
-      "competitor_b": "palavreado-hierarchical-medium",
-      "plugin_a": "ovos-adapt-domain-pipeline-plugin",
-      "plugin_b": "ovos-palavreado-hierarchical-pipeline"
+      "competitor_a": "palavreado-hierarchical-medium",
+      "competitor_b": "adapt-domain-medium",
+      "plugin_a": "ovos-palavreado-hierarchical-pipeline",
+      "plugin_b": "ovos-adapt-domain-pipeline-plugin"
     },
     {
-      "battle_id": "f2f8780f0192f277",
+      "battle_id": "09e84a1e8c727647",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00776",
-      "input_text": "wachten er berichten",
+      "sample_id": "nl-NL/00650",
+      "input_text": "bel me om 5:30 stipt",
       "audio_url": null,
-      "reference": "communication:read_messages",
+      "reference": "timers_alarms:set_alarm",
       "prediction_a": {
-        "intent": null
+        "intent": "communication:call_contact"
       },
       "prediction_b": {
-        "intent": "news:read_topic"
+        "intent": null
       },
       "competitor_a": "palavreado-medium",
       "competitor_b": "adapt-domain-medium",
@@ -2225,22 +2458,19 @@
       "plugin_b": "ovos-adapt-hierarchical-pipeline-plugin"
     },
     {
-      "battle_id": "078ca71ad9a54b88",
+      "battle_id": "346b4f815a71530a",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00928",
-      "input_text": "vertaal die zin dank je",
+      "sample_id": "nl-NL/00911",
+      "input_text": "geef me de samenvatting van shakespeare",
       "audio_url": null,
-      "reference": "search_qa:translate_phrase",
+      "reference": "search_qa:who_is",
       "prediction_a": {
-        "intent": "search_qa:translate_phrase",
-        "slots": {
-          "phrase": "dank je"
-        }
+        "intent": null
       },
       "prediction_b": {
-        "intent": null
+        "intent": "news:news_source"
       },
       "competitor_a": "adapt-hierarchical-medium",
       "competitor_b": "palavreado-hierarchical-medium",
@@ -2248,42 +2478,39 @@
       "plugin_b": "ovos-palavreado-hierarchical-pipeline"
     },
     {
-      "battle_id": "05ddde123af939c4",
+      "battle_id": "0c47ac214e84c0c3",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00514",
-      "input_text": "haal nieuws van cnn",
+      "sample_id": "nl-NL/00650",
+      "input_text": "bel me om 5:30 stipt",
       "audio_url": null,
-      "reference": "news:news_source",
+      "reference": "timers_alarms:set_alarm",
       "prediction_a": {
-        "intent": "news:news_source",
-        "slots": {
-          "source": "cnn"
-        }
+        "intent": "communication:call_contact"
       },
       "prediction_b": {
         "intent": null
       },
-      "competitor_a": "adapt-hierarchical-medium",
-      "competitor_b": "palavreado-medium",
-      "plugin_a": "ovos-adapt-hierarchical-pipeline-plugin",
-      "plugin_b": "ovos-palavreado-pipeline-plugin"
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "adapt-hierarchical-medium",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ovos-adapt-hierarchical-pipeline-plugin"
     },
     {
-      "battle_id": "f65167bd42269f1f",
+      "battle_id": "29b6a305c0799053",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01130",
-      "input_text": "zet het volume op nul",
+      "sample_id": "nl-NL/01117",
+      "input_text": "zet het laptopscherm op 70",
       "audio_url": null,
-      "reference": "system_control:mute_system",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": null
+        "intent": "media:play_song"
       },
       "prediction_b": {
-        "intent": "media:set_volume"
+        "intent": null
       },
       "competitor_a": "palavreado-hierarchical-medium",
       "competitor_b": "adapt-medium",
@@ -2291,24 +2518,44 @@
       "plugin_b": "ovos-adapt-pipeline-plugin"
     },
     {
-      "battle_id": "c7a1267f49715c53",
+      "battle_id": "0dcb07298ee3c0cc",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01130",
-      "input_text": "zet het volume op nul",
+      "sample_id": "nl-NL/00787",
+      "input_text": "update me over anneke",
       "audio_url": null,
-      "reference": "system_control:mute_system",
+      "reference": "communication:read_messages",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "media:set_volume"
+        "intent": "news:read_topic"
       },
-      "competitor_a": "palavreado-medium",
-      "competitor_b": "adapt-medium",
-      "plugin_a": "ovos-palavreado-pipeline-plugin",
-      "plugin_b": "ovos-adapt-pipeline-plugin"
+      "competitor_a": "adapt-medium",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ovos-adapt-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
+    },
+    {
+      "battle_id": "2077c59fbea8e95c",
+      "modality": "intent_keyword",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01211",
+      "input_text": "zet nos aan",
+      "audio_url": null,
+      "reference": "news:news_source",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:play_song"
+      },
+      "competitor_a": "palavreado-hierarchical-medium",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ovos-palavreado-hierarchical-pipeline",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
     },
     {
       "battle_id": "f3c3782dd0ba627d",
@@ -2331,44 +2578,44 @@
       "plugin_b": "ovos-adapt-domain-pipeline-plugin"
     },
     {
-      "battle_id": "e0b7eebe5be864b9",
+      "battle_id": "29139e04099a82f6",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00112",
-      "input_text": "speel opnieuw",
+      "sample_id": "nl-NL/00787",
+      "input_text": "update me over anneke",
       "audio_url": null,
-      "reference": "media:resume_playback",
+      "reference": "communication:read_messages",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "system_control:restart"
-      },
-      "competitor_a": "palavreado-hierarchical-medium",
-      "competitor_b": "adapt-domain-medium",
-      "plugin_a": "ovos-palavreado-hierarchical-pipeline",
-      "plugin_b": "ovos-adapt-domain-pipeline-plugin"
-    },
-    {
-      "battle_id": "f82bcb998ca74c1c",
-      "modality": "intent_keyword",
-      "dataset_id": "intents-for-eval",
-      "lang": "nl-NL",
-      "sample_id": "nl-NL/00190",
-      "input_text": "wat is de temperatuur",
-      "audio_url": null,
-      "reference": "weather:weather_today",
-      "prediction_a": {
-        "intent": "weather:weather_location"
-      },
-      "prediction_b": {
-        "intent": null
+        "intent": "news:read_topic"
       },
       "competitor_a": "adapt-domain-medium",
-      "competitor_b": "palavreado-medium",
+      "competitor_b": "palavreado-hierarchical-medium",
       "plugin_a": "ovos-adapt-domain-pipeline-plugin",
-      "plugin_b": "ovos-palavreado-pipeline-plugin"
+      "plugin_b": "ovos-palavreado-hierarchical-pipeline"
+    },
+    {
+      "battle_id": "0bd5416d95177a1d",
+      "modality": "intent_keyword",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00483",
+      "input_text": "start navigatie naar het kantoor",
+      "audio_url": null,
+      "reference": "navigation:navigate_to",
+      "prediction_a": {
+        "intent": "media:play_song"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "adapt-domain-medium",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ovos-adapt-domain-pipeline-plugin"
     },
     {
       "battle_id": "1604536b655a9430",
@@ -2394,58 +2641,12 @@
       "plugin_b": "ovos-adapt-pipeline-plugin"
     },
     {
-      "battle_id": "08ab6299898cc738",
+      "battle_id": "37a49ba4fbb6857f",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00590",
-      "input_text": "ram het volume op 100",
-      "audio_url": null,
-      "reference": "media:set_volume",
-      "prediction_a": {
-        "intent": "media:set_volume",
-        "slots": {
-          "level": "100"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "adapt-hierarchical-medium",
-      "competitor_b": "palavreado-hierarchical-medium",
-      "plugin_a": "ovos-adapt-hierarchical-pipeline-plugin",
-      "plugin_b": "ovos-palavreado-hierarchical-pipeline"
-    },
-    {
-      "battle_id": "062543bba643d45b",
-      "modality": "intent_keyword",
-      "dataset_id": "intents-for-eval",
-      "lang": "nl-NL",
-      "sample_id": "nl-NL/00452",
-      "input_text": "vandaag's politiek koppen",
-      "audio_url": null,
-      "reference": "news:read_topic",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "news:read_topic",
-        "slots": {
-          "topic": "politiek"
-        }
-      },
-      "competitor_a": "palavreado-medium",
-      "competitor_b": "adapt-hierarchical-medium",
-      "plugin_a": "ovos-palavreado-pipeline-plugin",
-      "plugin_b": "ovos-adapt-hierarchical-pipeline-plugin"
-    },
-    {
-      "battle_id": "f700777ed004a816",
-      "modality": "intent_keyword",
-      "dataset_id": "intents-for-eval",
-      "lang": "nl-NL",
-      "sample_id": "nl-NL/00157",
-      "input_text": "zet op pauze",
+      "sample_id": "nl-NL/00566",
+      "input_text": "bevries het afspelen",
       "audio_url": null,
       "reference": "media:pause_playback",
       "prediction_a": {
@@ -2454,29 +2655,89 @@
       "prediction_b": {
         "intent": null
       },
-      "competitor_a": "adapt-medium",
-      "competitor_b": "palavreado-hierarchical-medium",
-      "plugin_a": "ovos-adapt-pipeline-plugin",
-      "plugin_b": "ovos-palavreado-hierarchical-pipeline"
+      "competitor_a": "palavreado-hierarchical-medium",
+      "competitor_b": "adapt-hierarchical-medium",
+      "plugin_a": "ovos-palavreado-hierarchical-pipeline",
+      "plugin_b": "ovos-adapt-hierarchical-pipeline-plugin"
     },
     {
-      "battle_id": "ffa38b9db11ef418",
+      "battle_id": "0ce99ff10e7555f0",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00563",
-      "input_text": "stilte alsjeblieft",
+      "sample_id": "nl-NL/00160",
+      "input_text": "zet het harder op 50",
       "audio_url": null,
-      "reference": "media:pause_playback",
+      "reference": "media:set_volume",
       "prediction_a": {
-        "intent": "system_control:mute_system"
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:play_song"
+      },
+      "competitor_a": "adapt-hierarchical-medium",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ovos-adapt-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
+    },
+    {
+      "battle_id": "2b8d755505cb9b0f",
+      "modality": "intent_keyword",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01058",
+      "input_text": "wat is het volgende dat ik moet doen",
+      "audio_url": null,
+      "reference": "calendar:next_event",
+      "prediction_a": {
+        "intent": "search_qa:factual_query"
       },
       "prediction_b": {
         "intent": null
       },
+      "competitor_a": "palavreado-hierarchical-medium",
+      "competitor_b": "adapt-medium",
+      "plugin_a": "ovos-palavreado-hierarchical-pipeline",
+      "plugin_b": "ovos-adapt-pipeline-plugin"
+    },
+    {
+      "battle_id": "0f6c63ea751dd9a6",
+      "modality": "intent_keyword",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01319",
+      "input_text": "zet de camera an voor mma",
+      "audio_url": null,
+      "reference": "communication:video_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:play_song"
+      },
       "competitor_a": "adapt-medium",
       "competitor_b": "palavreado-medium",
       "plugin_a": "ovos-adapt-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
+    },
+    {
+      "battle_id": "229ef61e95fdfca4",
+      "modality": "intent_keyword",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01194",
+      "input_text": "speel de vorige opnieuw",
+      "audio_url": null,
+      "reference": "news:previous_story",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "system_control:restart"
+      },
+      "competitor_a": "palavreado-hierarchical-medium",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ovos-palavreado-hierarchical-pipeline",
       "plugin_b": "ovos-palavreado-pipeline-plugin"
     },
     {
@@ -2503,19 +2764,19 @@
       "plugin_b": "ovos-adapt-pipeline-plugin"
     },
     {
-      "battle_id": "e55412da5efc689b",
+      "battle_id": "2b43cb307d09b2b7",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00563",
-      "input_text": "stilte alsjeblieft",
+      "sample_id": "nl-NL/01215",
+      "input_text": "nos journaal",
       "audio_url": null,
-      "reference": "media:pause_playback",
+      "reference": "news:news_source",
       "prediction_a": {
-        "intent": null
+        "intent": "news:read_headlines"
       },
       "prediction_b": {
-        "intent": "system_control:mute_system"
+        "intent": null
       },
       "competitor_a": "palavreado-hierarchical-medium",
       "competitor_b": "adapt-domain-medium",
@@ -2523,19 +2784,19 @@
       "plugin_b": "ovos-adapt-domain-pipeline-plugin"
     },
     {
-      "battle_id": "f8656f5d32fea608",
+      "battle_id": "0bf9d59006d57b10",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01159",
-      "input_text": "lees de berichten van vandaag voor",
+      "sample_id": "nl-NL/00919",
+      "input_text": "zet hallo om naar een andere taal",
       "audio_url": null,
-      "reference": "news:read_headlines",
+      "reference": "search_qa:translate_phrase",
       "prediction_a": {
-        "intent": "communication:read_messages"
+        "intent": null
       },
       "prediction_b": {
-        "intent": null
+        "intent": "media:play_song"
       },
       "competitor_a": "adapt-domain-medium",
       "competitor_b": "palavreado-medium",
@@ -2566,95 +2827,103 @@
       "plugin_b": "ovos-adapt-pipeline-plugin"
     },
     {
-      "battle_id": "08c37c6532fa70ba",
+      "battle_id": "39b81fc0e93391a3",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00521",
-      "input_text": "licht uit in de keuken",
+      "sample_id": "nl-NL/00672",
+      "input_text": "snooze me opnieuw",
       "audio_url": null,
-      "reference": "smarthome:lights_off",
+      "reference": "timers_alarms:snooze_alarm",
       "prediction_a": {
-        "intent": "smarthome:lights_off",
-        "slots": {
-          "room": "keuken"
-        }
+        "intent": "system_control:restart"
       },
       "prediction_b": {
         "intent": null
       },
-      "competitor_a": "adapt-hierarchical-medium",
+      "competitor_a": "palavreado-hierarchical-medium",
+      "competitor_b": "adapt-hierarchical-medium",
+      "plugin_a": "ovos-palavreado-hierarchical-pipeline",
+      "plugin_b": "ovos-adapt-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "0d1e1e3791a749b5",
+      "modality": "intent_keyword",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00419",
+      "input_text": "weet je de bevolking van tokio",
+      "audio_url": null,
+      "reference": "search_qa:factual_query",
+      "prediction_a": {
+        "intent": "news:news_source"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "adapt-hierarchical-medium",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ovos-adapt-hierarchical-pipeline-plugin"
+    },
+    {
+      "battle_id": "2cf750ae695aa4ba",
+      "modality": "intent_keyword",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/01093",
+      "input_text": "rond af en sluit af",
+      "audio_url": null,
+      "reference": "system_control:shutdown",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "smarthome:lock_door"
+      },
+      "competitor_a": "adapt-medium",
       "competitor_b": "palavreado-hierarchical-medium",
-      "plugin_a": "ovos-adapt-hierarchical-pipeline-plugin",
+      "plugin_a": "ovos-adapt-pipeline-plugin",
       "plugin_b": "ovos-palavreado-hierarchical-pipeline"
     },
     {
-      "battle_id": "0b65d5595782cf66",
+      "battle_id": "0f85773946733c4f",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00078",
-      "input_text": "vertaal de zin goedemorgen",
+      "sample_id": "nl-NL/00182",
+      "input_text": "zet de pc uit",
       "audio_url": null,
-      "reference": "search_qa:translate_phrase",
+      "reference": "system_control:shutdown",
       "prediction_a": {
-        "intent": "search_qa:translate_phrase",
-        "slots": {
-          "phrase": "goedemorgen"
-        }
+        "intent": "media:play_song"
       },
       "prediction_b": {
         "intent": null
       },
-      "competitor_a": "adapt-hierarchical-medium",
-      "competitor_b": "palavreado-medium",
-      "plugin_a": "ovos-adapt-hierarchical-pipeline-plugin",
-      "plugin_b": "ovos-palavreado-pipeline-plugin"
-    },
-    {
-      "battle_id": "025e510a64af2add",
-      "modality": "intent_keyword",
-      "dataset_id": "intents-for-eval",
-      "lang": "nl-NL",
-      "sample_id": "nl-NL/00346",
-      "input_text": "lees nieuws van bbc",
-      "audio_url": null,
-      "reference": "news:news_source",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "news:news_source",
-        "slots": {
-          "source": "bbc"
-        }
-      },
-      "competitor_a": "palavreado-hierarchical-medium",
+      "competitor_a": "palavreado-medium",
       "competitor_b": "adapt-medium",
-      "plugin_a": "ovos-palavreado-hierarchical-pipeline",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
       "plugin_b": "ovos-adapt-pipeline-plugin"
     },
     {
-      "battle_id": "020613690a2a976c",
+      "battle_id": "26d3abbbfc5de5ae",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00893",
-      "input_text": "kortstondig - wat betekent dat woord",
+      "sample_id": "nl-NL/00806",
+      "input_text": "start video met anneke",
       "audio_url": null,
-      "reference": "search_qa:define_word",
+      "reference": "communication:video_call",
       "prediction_a": {
-        "intent": "search_qa:define_word",
-        "slots": {
-          "word": "kortstondig"
-        }
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "adapt-medium",
+      "prediction_b": {
+        "intent": "media:play_song"
+      },
+      "competitor_a": "palavreado-hierarchical-medium",
       "competitor_b": "palavreado-medium",
-      "plugin_a": "ovos-adapt-pipeline-plugin",
+      "plugin_a": "ovos-palavreado-hierarchical-pipeline",
       "plugin_b": "ovos-palavreado-pipeline-plugin"
     },
     {
@@ -2681,45 +2950,39 @@
       "plugin_b": "ovos-adapt-domain-pipeline-plugin"
     },
     {
-      "battle_id": "00dbfb4b9c7f5c53",
+      "battle_id": "2bc2e68b86b9a1dc",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00305",
-      "input_text": "zet het volume lager op 50",
+      "sample_id": "nl-NL/01033",
+      "input_text": "agenda van vandaag alsjeblieft",
       "audio_url": null,
-      "reference": "media:set_volume",
+      "reference": "calendar:list_events",
       "prediction_a": {
-        "intent": null
+        "intent": "news:news_source"
       },
       "prediction_b": {
-        "intent": "media:set_volume",
-        "slots": {
-          "level": "50"
-        }
+        "intent": null
       },
-      "competitor_a": "palavreado-hierarchical-medium",
-      "competitor_b": "adapt-domain-medium",
-      "plugin_a": "ovos-palavreado-hierarchical-pipeline",
-      "plugin_b": "ovos-adapt-domain-pipeline-plugin"
+      "competitor_a": "adapt-domain-medium",
+      "competitor_b": "palavreado-hierarchical-medium",
+      "plugin_a": "ovos-adapt-domain-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-hierarchical-pipeline"
     },
     {
-      "battle_id": "06f8788ad4f38f6d",
+      "battle_id": "0da0c7f31db6da45",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00070",
-      "input_text": "verander de nieuwsbron naar reuters",
+      "sample_id": "nl-NL/00851",
+      "input_text": "hoeveel kilometer naar huis",
       "audio_url": null,
-      "reference": "news:news_source",
+      "reference": "navigation:eta_query",
       "prediction_a": {
-        "intent": null
+        "intent": "search_qa:factual_query"
       },
       "prediction_b": {
-        "intent": "news:news_source",
-        "slots": {
-          "source": "reuters"
-        }
+        "intent": null
       },
       "competitor_a": "palavreado-medium",
       "competitor_b": "adapt-domain-medium",
@@ -2747,22 +3010,19 @@
       "plugin_b": "ovos-adapt-hierarchical-pipeline-plugin"
     },
     {
-      "battle_id": "096f4818f3a1bd82",
+      "battle_id": "413f749ca179008c",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00045",
-      "input_text": "weer voor morgen",
+      "sample_id": "nl-NL/00883",
+      "input_text": "wat is petrichor eigenlijk",
       "audio_url": null,
-      "reference": "weather:weather_forecast",
+      "reference": "search_qa:define_word",
       "prediction_a": {
-        "intent": "weather:weather_forecast",
-        "slots": {
-          "date": "morgen"
-        }
+        "intent": null
       },
       "prediction_b": {
-        "intent": null
+        "intent": "search_qa:factual_query"
       },
       "competitor_a": "adapt-hierarchical-medium",
       "competitor_b": "palavreado-hierarchical-medium",
@@ -2770,45 +3030,39 @@
       "plugin_b": "ovos-palavreado-hierarchical-pipeline"
     },
     {
-      "battle_id": "0c6aa2df24b445c1",
+      "battle_id": "0d5bf8a216a9170a",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00283",
-      "input_text": "zet het licht in de slaapkamer uit",
+      "sample_id": "nl-NL/01074",
+      "input_text": "schuif het doktersbezoek naar volgende maandag",
       "audio_url": null,
-      "reference": "smarthome:lights_off",
+      "reference": "calendar:reschedule_event",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "smarthome:lights_off",
-        "slots": {
-          "room": "slaapkamer"
-        }
+        "intent": "media:skip_track"
       },
-      "competitor_a": "palavreado-medium",
-      "competitor_b": "adapt-hierarchical-medium",
-      "plugin_a": "ovos-palavreado-pipeline-plugin",
-      "plugin_b": "ovos-adapt-hierarchical-pipeline-plugin"
+      "competitor_a": "adapt-hierarchical-medium",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ovos-adapt-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
     },
     {
-      "battle_id": "0284c1e05d4409b9",
+      "battle_id": "31b4e168c0274033",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00269",
-      "input_text": "speel ik ben verliefd",
+      "sample_id": "nl-NL/00883",
+      "input_text": "wat is petrichor eigenlijk",
       "audio_url": null,
-      "reference": "media:play_song",
+      "reference": "search_qa:define_word",
       "prediction_a": {
-        "intent": null
+        "intent": "search_qa:factual_query"
       },
       "prediction_b": {
-        "intent": "media:play_song",
-        "slots": {
-          "song": "ik ben verliefd"
-        }
+        "intent": null
       },
       "competitor_a": "palavreado-hierarchical-medium",
       "competitor_b": "adapt-medium",
@@ -2816,27 +3070,44 @@
       "plugin_b": "ovos-adapt-pipeline-plugin"
     },
     {
-      "battle_id": "024fb2150872c64b",
+      "battle_id": "104d0470d62bccc7",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00509",
-      "input_text": "zet boudewijn de groot op",
+      "sample_id": "nl-NL/00909",
+      "input_text": "wat is het verhaal met napoleon",
       "audio_url": null,
-      "reference": "media:play_song",
+      "reference": "search_qa:who_is",
       "prediction_a": {
-        "intent": null
+        "intent": "search_qa:factual_query"
       },
       "prediction_b": {
-        "intent": "media:play_song",
-        "slots": {
-          "artist": "boudewijn de groot"
-        }
+        "intent": null
       },
       "competitor_a": "palavreado-medium",
       "competitor_b": "adapt-medium",
       "plugin_a": "ovos-palavreado-pipeline-plugin",
       "plugin_b": "ovos-adapt-pipeline-plugin"
+    },
+    {
+      "battle_id": "2e9560860ed8bed7",
+      "modality": "intent_keyword",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00301",
+      "input_text": "lees mij die van piet voor",
+      "audio_url": null,
+      "reference": "communication:read_messages",
+      "prediction_a": {
+        "intent": "news:news_source"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "palavreado-hierarchical-medium",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-hierarchical-pipeline"
     },
     {
       "battle_id": "07e89f439abcc7e8",
@@ -2862,50 +3133,44 @@
       "plugin_b": "ovos-adapt-pipeline-plugin"
     },
     {
-      "battle_id": "0215866d0dc2e805",
+      "battle_id": "2efa16e5e1e6677a",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00492",
-      "input_text": "zet het licht in de badkamer uit",
+      "sample_id": "nl-NL/01322",
+      "input_text": "geef de cmputfr een frisse start",
       "audio_url": null,
-      "reference": "smarthome:lights_off",
+      "reference": "system_control:restart",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "smarthome:lights_off",
-        "slots": {
-          "room": "badkamer"
-        }
+        "intent": "media:play_song"
       },
-      "competitor_a": "palavreado-hierarchical-medium",
-      "competitor_b": "adapt-domain-medium",
-      "plugin_a": "ovos-palavreado-hierarchical-pipeline",
-      "plugin_b": "ovos-adapt-domain-pipeline-plugin"
+      "competitor_a": "adapt-domain-medium",
+      "competitor_b": "palavreado-hierarchical-medium",
+      "plugin_a": "ovos-adapt-domain-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-hierarchical-pipeline"
     },
     {
-      "battle_id": "080435e17119a35f",
+      "battle_id": "0e63903d566fe7f6",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00326",
-      "input_text": "plan een wekker voor 7 uur 's ochtends",
+      "sample_id": "nl-NL/00600",
+      "input_text": "deze niet zet een ander op",
       "audio_url": null,
-      "reference": "timers_alarms:set_alarm",
+      "reference": "media:skip_track",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "timers_alarms:set_alarm",
-        "slots": {
-          "time": "7 uur"
-        }
+        "intent": "media:play_song"
       },
-      "competitor_a": "palavreado-medium",
-      "competitor_b": "adapt-domain-medium",
-      "plugin_a": "ovos-palavreado-pipeline-plugin",
-      "plugin_b": "ovos-adapt-domain-pipeline-plugin"
+      "competitor_a": "adapt-domain-medium",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ovos-adapt-domain-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
     },
     {
       "battle_id": "1d7dbd1ae262091b",
@@ -2928,19 +3193,19 @@
       "plugin_b": "ovos-adapt-hierarchical-pipeline-plugin"
     },
     {
-      "battle_id": "0a048ccc7580a074",
+      "battle_id": "456102ddf594784c",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00576",
-      "input_text": "laat het liedje doorgaan",
+      "sample_id": "nl-NL/00922",
+      "input_text": "wat is het woord voor hoe gaat het in het frans",
       "audio_url": null,
-      "reference": "media:resume_playback",
+      "reference": "search_qa:translate_phrase",
       "prediction_a": {
-        "intent": "media:resume_playback"
+        "intent": null
       },
       "prediction_b": {
-        "intent": null
+        "intent": "search_qa:factual_query"
       },
       "competitor_a": "adapt-hierarchical-medium",
       "competitor_b": "palavreado-hierarchical-medium",
@@ -2948,42 +3213,39 @@
       "plugin_b": "ovos-palavreado-hierarchical-pipeline"
     },
     {
-      "battle_id": "0d3e2394bce295a6",
+      "battle_id": "0da26a2124369827",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00022",
-      "input_text": "vorige kop",
+      "sample_id": "nl-NL/01026",
+      "input_text": "doktersbezoek volgende maandag in mijn agenda",
       "audio_url": null,
-      "reference": "news:previous_story",
+      "reference": "calendar:create_event",
       "prediction_a": {
-        "intent": "news:previous_story"
+        "intent": "calendar:next_event"
       },
       "prediction_b": {
         "intent": null
       },
-      "competitor_a": "adapt-hierarchical-medium",
-      "competitor_b": "palavreado-medium",
-      "plugin_a": "ovos-adapt-hierarchical-pipeline-plugin",
-      "plugin_b": "ovos-palavreado-pipeline-plugin"
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "adapt-hierarchical-medium",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ovos-adapt-hierarchical-pipeline-plugin"
     },
     {
-      "battle_id": "029d6bbe4ed0f045",
+      "battle_id": "34c2d02a31bd3d07",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00304",
-      "input_text": "zet ik ben verliefd op",
+      "sample_id": "nl-NL/00912",
+      "input_text": "vertel me het leven van marie curie",
       "audio_url": null,
-      "reference": "media:play_song",
+      "reference": "search_qa:who_is",
       "prediction_a": {
-        "intent": null
+        "intent": "news:news_source"
       },
       "prediction_b": {
-        "intent": "media:play_song",
-        "slots": {
-          "song": "ik ben verliefd"
-        }
+        "intent": null
       },
       "competitor_a": "palavreado-hierarchical-medium",
       "competitor_b": "adapt-medium",
@@ -2991,27 +3253,44 @@
       "plugin_b": "ovos-adapt-pipeline-plugin"
     },
     {
-      "battle_id": "025a4be004355690",
+      "battle_id": "112096f917aa58fb",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00318",
-      "input_text": "doe alsjeblieft het licht in de badkamer uit",
+      "sample_id": "nl-NL/01093",
+      "input_text": "rond af en sluit af",
       "audio_url": null,
-      "reference": "smarthome:lights_off",
+      "reference": "system_control:shutdown",
       "prediction_a": {
-        "intent": "smarthome:lights_off",
-        "slots": {
-          "room": "badkamer"
-        }
+        "intent": "smarthome:lock_door"
       },
       "prediction_b": {
         "intent": null
       },
-      "competitor_a": "adapt-medium",
-      "competitor_b": "palavreado-medium",
-      "plugin_a": "ovos-adapt-pipeline-plugin",
-      "plugin_b": "ovos-palavreado-pipeline-plugin"
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "adapt-medium",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ovos-adapt-pipeline-plugin"
+    },
+    {
+      "battle_id": "2ef3453206b578f9",
+      "modality": "intent_keyword",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00944",
+      "input_text": "de letters van serendipiteit in volgorde",
+      "audio_url": null,
+      "reference": "search_qa:spell_word",
+      "prediction_a": {
+        "intent": "news:news_source"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "palavreado-hierarchical-medium",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-hierarchical-pipeline"
     },
     {
       "battle_id": "10d8ca5be6b22ea9",
@@ -3037,47 +3316,44 @@
       "plugin_b": "ovos-adapt-domain-pipeline-plugin"
     },
     {
-      "battle_id": "04b4d6b995147257",
+      "battle_id": "2fea083aa191d5c6",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00452",
-      "input_text": "vandaag's politiek koppen",
+      "sample_id": "nl-NL/00598",
+      "input_text": "zet maar op 85",
       "audio_url": null,
-      "reference": "news:read_topic",
+      "reference": "media:set_volume",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "news:read_topic",
-        "slots": {
-          "topic": "politiek"
-        }
+        "intent": "media:play_song"
       },
-      "competitor_a": "palavreado-hierarchical-medium",
-      "competitor_b": "adapt-domain-medium",
-      "plugin_a": "ovos-palavreado-hierarchical-pipeline",
-      "plugin_b": "ovos-adapt-domain-pipeline-plugin"
+      "competitor_a": "adapt-domain-medium",
+      "competitor_b": "palavreado-hierarchical-medium",
+      "plugin_a": "ovos-adapt-domain-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-hierarchical-pipeline"
     },
     {
-      "battle_id": "0b197ca2e1614e1b",
+      "battle_id": "0f453b37309214a0",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00252",
-      "input_text": "zet de thermostaat op 25",
+      "sample_id": "nl-NL/00564",
+      "input_text": "snij het geluid even af",
       "audio_url": null,
-      "reference": "smarthome:set_thermostat",
+      "reference": "media:pause_playback",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "smarthome:set_thermostat"
+        "intent": "media:set_volume"
       },
-      "competitor_a": "palavreado-medium",
-      "competitor_b": "adapt-domain-medium",
-      "plugin_a": "ovos-palavreado-pipeline-plugin",
-      "plugin_b": "ovos-adapt-domain-pipeline-plugin"
+      "competitor_a": "adapt-domain-medium",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ovos-adapt-domain-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
     },
     {
       "battle_id": "213219cd549f1dfe",
@@ -3103,22 +3379,19 @@
       "plugin_b": "ovos-adapt-pipeline-plugin"
     },
     {
-      "battle_id": "0a6710a65e45b5bb",
+      "battle_id": "484c2d54028f0d03",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00326",
-      "input_text": "plan een wekker voor 7 uur 's ochtends",
+      "sample_id": "nl-NL/00618",
+      "input_text": "bel me over een half uur",
       "audio_url": null,
-      "reference": "timers_alarms:set_alarm",
+      "reference": "timers_alarms:set_timer",
       "prediction_a": {
-        "intent": null
+        "intent": "communication:call_contact"
       },
       "prediction_b": {
-        "intent": "timers_alarms:set_alarm",
-        "slots": {
-          "time": "7 uur"
-        }
+        "intent": null
       },
       "competitor_a": "palavreado-hierarchical-medium",
       "competitor_b": "adapt-hierarchical-medium",
@@ -3126,22 +3399,19 @@
       "plugin_b": "ovos-adapt-hierarchical-pipeline-plugin"
     },
     {
-      "battle_id": "10210cdd53ddfa9b",
+      "battle_id": "0daa2b9a406ff4c5",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00476",
-      "input_text": "controleer berichten van mama",
+      "sample_id": "nl-NL/01113",
+      "input_text": "zet het display omlaag naar 40",
       "audio_url": null,
-      "reference": "communication:read_messages",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": null
+        "intent": "media:play_song"
       },
       "prediction_b": {
-        "intent": "communication:read_messages",
-        "slots": {
-          "contact": "mama"
-        }
+        "intent": null
       },
       "competitor_a": "palavreado-medium",
       "competitor_b": "adapt-hierarchical-medium",
@@ -3149,50 +3419,64 @@
       "plugin_b": "ovos-adapt-hierarchical-pipeline-plugin"
     },
     {
-      "battle_id": "02ee7a940c82b880",
+      "battle_id": "3876c724d65217d9",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00382",
-      "input_text": "weer nieuws",
+      "sample_id": "nl-NL/01098",
+      "input_text": "geef het een frisse start",
       "audio_url": null,
-      "reference": "news:read_topic",
+      "reference": "system_control:restart",
       "prediction_a": {
-        "intent": "news:read_topic",
-        "slots": {
-          "topic": "weer"
-        }
+        "intent": "media:play_song"
       },
       "prediction_b": {
         "intent": null
       },
-      "competitor_a": "adapt-medium",
-      "competitor_b": "palavreado-hierarchical-medium",
-      "plugin_a": "ovos-adapt-pipeline-plugin",
-      "plugin_b": "ovos-palavreado-hierarchical-pipeline"
+      "competitor_a": "palavreado-hierarchical-medium",
+      "competitor_b": "adapt-medium",
+      "plugin_a": "ovos-palavreado-hierarchical-pipeline",
+      "plugin_b": "ovos-adapt-pipeline-plugin"
     },
     {
-      "battle_id": "029a1cb2c559f157",
+      "battle_id": "112cefeffe104fe7",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00399",
-      "input_text": "weer voor volgende maandag",
+      "sample_id": "nl-NL/01089",
+      "input_text": "sluit alles af",
       "audio_url": null,
-      "reference": "weather:weather_forecast",
+      "reference": "system_control:shutdown",
       "prediction_a": {
-        "intent": null
+        "intent": "smarthome:lock_door"
       },
       "prediction_b": {
-        "intent": "weather:weather_forecast",
-        "slots": {
-          "date": "maandag"
-        }
+        "intent": null
       },
       "competitor_a": "palavreado-medium",
       "competitor_b": "adapt-medium",
       "plugin_a": "ovos-palavreado-pipeline-plugin",
       "plugin_b": "ovos-adapt-pipeline-plugin"
+    },
+    {
+      "battle_id": "323f01d6e3f4c49e",
+      "modality": "intent_keyword",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00460",
+      "input_text": "activeer het slot van de garagedeur",
+      "audio_url": null,
+      "reference": "smarthome:lock_door",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "news:news_source"
+      },
+      "competitor_a": "palavreado-hierarchical-medium",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ovos-palavreado-hierarchical-pipeline",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
     },
     {
       "battle_id": "1162bf83bbb093b9",
@@ -3218,22 +3502,19 @@
       "plugin_b": "ovos-adapt-domain-pipeline-plugin"
     },
     {
-      "battle_id": "07d9ca770e874ecd",
+      "battle_id": "31e2c2317e20c1c1",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00168",
-      "input_text": "vandaag's technologie koppen",
+      "sample_id": "nl-NL/00674",
+      "input_text": "zet de wekker 7 minuten naar achter",
       "audio_url": null,
-      "reference": "news:read_topic",
+      "reference": "timers_alarms:snooze_alarm",
       "prediction_a": {
-        "intent": null
+        "intent": "timers_alarms:set_alarm"
       },
       "prediction_b": {
-        "intent": "news:read_topic",
-        "slots": {
-          "topic": "technologie"
-        }
+        "intent": null
       },
       "competitor_a": "palavreado-hierarchical-medium",
       "competitor_b": "adapt-domain-medium",
@@ -3241,19 +3522,19 @@
       "plugin_b": "ovos-adapt-domain-pipeline-plugin"
     },
     {
-      "battle_id": "0bdf4a4ae9dd50d7",
+      "battle_id": "1501a8671c7c4dcd",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00503",
-      "input_text": "wanneer is mijn volgende vergadering",
+      "sample_id": "nl-NL/00231",
+      "input_text": "lees mij die van jan voor",
       "audio_url": null,
-      "reference": "calendar:next_event",
+      "reference": "communication:read_messages",
       "prediction_a": {
-        "intent": null
+        "intent": "news:news_source"
       },
       "prediction_b": {
-        "intent": "calendar:next_event"
+        "intent": null
       },
       "competitor_a": "palavreado-medium",
       "competitor_b": "adapt-domain-medium",
@@ -3284,19 +3565,19 @@
       "plugin_b": "ovos-adapt-pipeline-plugin"
     },
     {
-      "battle_id": "0baff5facbab25fb",
+      "battle_id": "4875124f40222151",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01183",
-      "input_text": "scroll naar het volgende bericht",
+      "sample_id": "nl-NL/00024",
+      "input_text": "wat is nieuw in politiek",
       "audio_url": null,
-      "reference": "news:next_story",
+      "reference": "news:read_topic",
       "prediction_a": {
-        "intent": null
+        "intent": "search_qa:factual_query"
       },
       "prediction_b": {
-        "intent": "news:next_story"
+        "intent": null
       },
       "competitor_a": "palavreado-hierarchical-medium",
       "competitor_b": "adapt-hierarchical-medium",
@@ -3304,42 +3585,39 @@
       "plugin_b": "ovos-adapt-hierarchical-pipeline-plugin"
     },
     {
-      "battle_id": "117c606d82ea837b",
+      "battle_id": "0dd5e08279212c80",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00516",
-      "input_text": "vorig bericht",
+      "sample_id": "nl-NL/00224",
+      "input_text": "weersvoorspelling voor volgende maandag",
       "audio_url": null,
-      "reference": "news:previous_story",
+      "reference": "weather:weather_forecast",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "news:previous_story"
+        "intent": "media:skip_track"
       },
-      "competitor_a": "palavreado-medium",
-      "competitor_b": "adapt-hierarchical-medium",
-      "plugin_a": "ovos-palavreado-pipeline-plugin",
-      "plugin_b": "ovos-adapt-hierarchical-pipeline-plugin"
+      "competitor_a": "adapt-hierarchical-medium",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ovos-adapt-hierarchical-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
     },
     {
-      "battle_id": "06592a9bffc73f75",
+      "battle_id": "3a4531519240fc1b",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00489",
-      "input_text": "schrijf serendipiteit letter voor letter",
+      "sample_id": "nl-NL/00074",
+      "input_text": "wat is nieuw in technologie",
       "audio_url": null,
-      "reference": "search_qa:spell_word",
+      "reference": "news:read_topic",
       "prediction_a": {
-        "intent": null
+        "intent": "search_qa:factual_query"
       },
       "prediction_b": {
-        "intent": "search_qa:spell_word",
-        "slots": {
-          "word": "serendipiteit"
-        }
+        "intent": null
       },
       "competitor_a": "palavreado-hierarchical-medium",
       "competitor_b": "adapt-medium",
@@ -3347,27 +3625,44 @@
       "plugin_b": "ovos-adapt-pipeline-plugin"
     },
     {
-      "battle_id": "0333ab2bfc3d3be6",
+      "battle_id": "117670b5f6529a6a",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00312",
-      "input_text": "sport nieuws",
+      "sample_id": "nl-NL/01082",
+      "input_text": "zet tandartsafspraak op morgen in plaats",
       "audio_url": null,
-      "reference": "news:read_topic",
+      "reference": "calendar:reschedule_event",
       "prediction_a": {
-        "intent": "news:read_topic",
-        "slots": {
-          "topic": "sport"
-        }
+        "intent": null
       },
       "prediction_b": {
-        "intent": null
+        "intent": "media:play_song"
       },
       "competitor_a": "adapt-medium",
       "competitor_b": "palavreado-medium",
       "plugin_a": "ovos-adapt-pipeline-plugin",
       "plugin_b": "ovos-palavreado-pipeline-plugin"
+    },
+    {
+      "battle_id": "32c1dd8e55bc0273",
+      "modality": "intent_keyword",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00875",
+      "input_text": "sla de navigatie over",
+      "audio_url": null,
+      "reference": "navigation:cancel_route",
+      "prediction_a": {
+        "intent": "media:skip_track"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "palavreado-hierarchical-medium",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-hierarchical-pipeline"
     },
     {
       "battle_id": "179fef7b85a952c2",
@@ -3393,22 +3688,19 @@
       "plugin_b": "ovos-adapt-pipeline-plugin"
     },
     {
-      "battle_id": "08036f9fb73ba484",
+      "battle_id": "32114e6ce7a3dad6",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01206",
-      "input_text": "nieuws van nrc",
+      "sample_id": "nl-NL/00207",
+      "input_text": "wat is nieuw in weer",
       "audio_url": null,
-      "reference": "news:news_source",
+      "reference": "news:read_topic",
       "prediction_a": {
-        "intent": "news:news_source",
-        "slots": {
-          "source": "nrc"
-        }
+        "intent": null
       },
       "prediction_b": {
-        "intent": null
+        "intent": "search_qa:factual_query"
       },
       "competitor_a": "adapt-domain-medium",
       "competitor_b": "palavreado-hierarchical-medium",
@@ -3416,27 +3708,24 @@
       "plugin_b": "ovos-palavreado-hierarchical-pipeline"
     },
     {
-      "battle_id": "0c5ba78a4741f43f",
+      "battle_id": "1594f77057f9cdb0",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00526",
-      "input_text": "zet een wekker voor 7 uur 's ochtends",
+      "sample_id": "nl-NL/01185",
+      "input_text": "sla deze over en lees de volgende",
       "audio_url": null,
-      "reference": "timers_alarms:set_alarm",
+      "reference": "news:next_story",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "timers_alarms:set_alarm",
-        "slots": {
-          "time": "7 uur"
-        }
+        "intent": "media:skip_track"
       },
-      "competitor_a": "palavreado-medium",
-      "competitor_b": "adapt-domain-medium",
-      "plugin_a": "ovos-palavreado-pipeline-plugin",
-      "plugin_b": "ovos-adapt-domain-pipeline-plugin"
+      "competitor_a": "adapt-domain-medium",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ovos-adapt-domain-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
     },
     {
       "battle_id": "2993e3621e5e6bb4",
@@ -3462,22 +3751,19 @@
       "plugin_b": "ovos-adapt-pipeline-plugin"
     },
     {
-      "battle_id": "0e4b90ad871e9769",
+      "battle_id": "4972221b707e88e1",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00478",
-      "input_text": "videogesprek met jan",
+      "sample_id": "nl-NL/00157",
+      "input_text": "zet op pauze",
       "audio_url": null,
-      "reference": "communication:video_call",
+      "reference": "media:pause_playback",
       "prediction_a": {
-        "intent": null
+        "intent": "media:play_song"
       },
       "prediction_b": {
-        "intent": "communication:video_call",
-        "slots": {
-          "contact": "jan"
-        }
+        "intent": null
       },
       "competitor_a": "palavreado-hierarchical-medium",
       "competitor_b": "adapt-hierarchical-medium",
@@ -3485,45 +3771,39 @@
       "plugin_b": "ovos-adapt-hierarchical-pipeline-plugin"
     },
     {
-      "battle_id": "139a32aff6309cac",
+      "battle_id": "0ef9b57111c04bc3",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00508",
-      "input_text": "videogesprek met mama",
+      "sample_id": "nl-NL/00897",
+      "input_text": "nieuwsgierigheid over de bevolking van tokio",
       "audio_url": null,
-      "reference": "communication:video_call",
+      "reference": "search_qa:factual_query",
       "prediction_a": {
-        "intent": "communication:video_call",
-        "slots": {
-          "contact": "mama"
-        }
+        "intent": "news:news_source"
       },
       "prediction_b": {
         "intent": null
       },
-      "competitor_a": "adapt-hierarchical-medium",
-      "competitor_b": "palavreado-medium",
-      "plugin_a": "ovos-adapt-hierarchical-pipeline-plugin",
-      "plugin_b": "ovos-palavreado-pipeline-plugin"
+      "competitor_a": "palavreado-medium",
+      "competitor_b": "adapt-hierarchical-medium",
+      "plugin_a": "ovos-palavreado-pipeline-plugin",
+      "plugin_b": "ovos-adapt-hierarchical-pipeline-plugin"
     },
     {
-      "battle_id": "0723ab900f6d1e5c",
+      "battle_id": "40a735c3634d4048",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00017",
-      "input_text": "zoek voor mij een apotheek in de buurt",
+      "sample_id": "nl-NL/00905",
+      "input_text": "geef me een feit over de bevolking van tokio",
       "audio_url": null,
-      "reference": "navigation:find_nearby",
+      "reference": "search_qa:factual_query",
       "prediction_a": {
-        "intent": "navigation:find_nearby",
-        "slots": {
-          "place_type": "apotheek"
-        }
+        "intent": null
       },
       "prediction_b": {
-        "intent": null
+        "intent": "news:news_source"
       },
       "competitor_a": "adapt-medium",
       "competitor_b": "palavreado-hierarchical-medium",
@@ -3531,26 +3811,43 @@
       "plugin_b": "ovos-palavreado-hierarchical-pipeline"
     },
     {
-      "battle_id": "0816289c1ba73064",
+      "battle_id": "12a643732692d4d2",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00034",
-      "input_text": "zet de verwarming lager op 20",
+      "sample_id": "nl-NL/00425",
+      "input_text": "activeer het slot van de voordeur",
       "audio_url": null,
-      "reference": "smarthome:set_thermostat",
+      "reference": "smarthome:lock_door",
       "prediction_a": {
-        "intent": "smarthome:set_thermostat",
-        "slots": {
-          "temperature": "20"
-        }
+        "intent": null
       },
       "prediction_b": {
-        "intent": null
+        "intent": "news:news_source"
       },
       "competitor_a": "adapt-medium",
       "competitor_b": "palavreado-medium",
       "plugin_a": "ovos-adapt-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
+    },
+    {
+      "battle_id": "3360d1f463d442c8",
+      "modality": "intent_keyword",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00359",
+      "input_text": "zet het scherm op 20 procent",
+      "audio_url": null,
+      "reference": "system_control:set_brightness_screen",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:play_song"
+      },
+      "competitor_a": "palavreado-hierarchical-medium",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ovos-palavreado-hierarchical-pipeline",
       "plugin_b": "ovos-palavreado-pipeline-plugin"
     },
     {
@@ -3577,45 +3874,39 @@
       "plugin_b": "ovos-adapt-domain-pipeline-plugin"
     },
     {
-      "battle_id": "08c96c91d0426d0a",
+      "battle_id": "3286fd94d791874f",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00937",
-      "input_text": "help me serendipiteit te spellen",
+      "sample_id": "nl-NL/00110",
+      "input_text": "stop het geluid",
       "audio_url": null,
-      "reference": "search_qa:spell_word",
+      "reference": "media:pause_playback",
       "prediction_a": {
-        "intent": "search_qa:spell_word",
-        "slots": {
-          "word": "serendipiteit"
-        }
+        "intent": "media:set_volume"
       },
       "prediction_b": {
         "intent": null
       },
-      "competitor_a": "adapt-domain-medium",
-      "competitor_b": "palavreado-hierarchical-medium",
-      "plugin_a": "ovos-adapt-domain-pipeline-plugin",
-      "plugin_b": "ovos-palavreado-hierarchical-pipeline"
+      "competitor_a": "palavreado-hierarchical-medium",
+      "competitor_b": "adapt-domain-medium",
+      "plugin_a": "ovos-palavreado-hierarchical-pipeline",
+      "plugin_b": "ovos-adapt-domain-pipeline-plugin"
     },
     {
-      "battle_id": "0e177ae57c082cf6",
+      "battle_id": "179182c8fb03837e",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00077",
-      "input_text": "spel me serendipiteit",
+      "sample_id": "nl-NL/00385",
+      "input_text": "zeg me hoe je alomtegenwoordig spelt",
       "audio_url": null,
       "reference": "search_qa:spell_word",
       "prediction_a": {
-        "intent": "search_qa:spell_word",
-        "slots": {
-          "word": "serendipiteit"
-        }
+        "intent": null
       },
       "prediction_b": {
-        "intent": null
+        "intent": "search_qa:translate_phrase"
       },
       "competitor_a": "adapt-domain-medium",
       "competitor_b": "palavreado-medium",
@@ -3646,42 +3937,39 @@
       "plugin_b": "ovos-adapt-hierarchical-pipeline-plugin"
     },
     {
-      "battle_id": "0e9c6bc67e803a4a",
+      "battle_id": "4b5cf1fe9b758f59",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/01133",
-      "input_text": "helemaal stil alsjeblieft",
+      "sample_id": "nl-NL/01181",
+      "input_text": "saai volgende",
       "audio_url": null,
-      "reference": "system_control:mute_system",
+      "reference": "news:next_story",
       "prediction_a": {
-        "intent": "system_control:mute_system"
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "adapt-hierarchical-medium",
-      "competitor_b": "palavreado-hierarchical-medium",
-      "plugin_a": "ovos-adapt-hierarchical-pipeline-plugin",
-      "plugin_b": "ovos-palavreado-hierarchical-pipeline"
+      "prediction_b": {
+        "intent": "media:skip_track"
+      },
+      "competitor_a": "palavreado-hierarchical-medium",
+      "competitor_b": "adapt-hierarchical-medium",
+      "plugin_a": "ovos-palavreado-hierarchical-pipeline",
+      "plugin_b": "ovos-adapt-hierarchical-pipeline-plugin"
     },
     {
-      "battle_id": "1489d980976b4876",
+      "battle_id": "0f1e2063a6d3e328",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00490",
-      "input_text": "hoe zeg je dank je",
+      "sample_id": "nl-NL/00870",
+      "input_text": "ik ben van gedachten veranderd annuleer het",
       "audio_url": null,
-      "reference": "search_qa:translate_phrase",
+      "reference": "navigation:cancel_route",
       "prediction_a": {
-        "intent": "search_qa:translate_phrase",
-        "slots": {
-          "phrase": "dank je"
-        }
+        "intent": null
       },
       "prediction_b": {
-        "intent": null
+        "intent": "news:news_source"
       },
       "competitor_a": "adapt-hierarchical-medium",
       "competitor_b": "palavreado-medium",
@@ -3689,19 +3977,19 @@
       "plugin_b": "ovos-palavreado-pipeline-plugin"
     },
     {
-      "battle_id": "093e6c9b1b3f944b",
+      "battle_id": "4142989d475d5fcd",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00108",
-      "input_text": "stuur piet een bericht",
+      "sample_id": "nl-NL/00956",
+      "input_text": "vochtigheid hoog vandaag",
       "audio_url": null,
-      "reference": "communication:send_message",
+      "reference": "weather:weather_today",
       "prediction_a": {
-        "intent": null
+        "intent": "weather:weather_humidity"
       },
       "prediction_b": {
-        "intent": "communication:send_message"
+        "intent": null
       },
       "competitor_a": "palavreado-hierarchical-medium",
       "competitor_b": "adapt-medium",
@@ -3709,23 +3997,43 @@
       "plugin_b": "ovos-adapt-pipeline-plugin"
     },
     {
-      "battle_id": "0a1a766d21d877c8",
+      "battle_id": "132ae013b2275bfc",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00115",
-      "input_text": "verlaat de route",
+      "sample_id": "nl-NL/00498",
+      "input_text": "zet het scherm op 50 procent",
       "audio_url": null,
-      "reference": "navigation:cancel_route",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": "navigation:cancel_route"
+        "intent": null
       },
       "prediction_b": {
-        "intent": null
+        "intent": "media:play_song"
       },
       "competitor_a": "adapt-medium",
       "competitor_b": "palavreado-medium",
       "plugin_a": "ovos-adapt-pipeline-plugin",
+      "plugin_b": "ovos-palavreado-pipeline-plugin"
+    },
+    {
+      "battle_id": "3585b020d00df7c0",
+      "modality": "intent_keyword",
+      "dataset_id": "intents-for-eval",
+      "lang": "nl-NL",
+      "sample_id": "nl-NL/00182",
+      "input_text": "zet de pc uit",
+      "audio_url": null,
+      "reference": "system_control:shutdown",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:play_song"
+      },
+      "competitor_a": "palavreado-hierarchical-medium",
+      "competitor_b": "palavreado-medium",
+      "plugin_a": "ovos-palavreado-hierarchical-pipeline",
       "plugin_b": "ovos-palavreado-pipeline-plugin"
     },
     {
@@ -3752,494 +4060,23 @@
       "plugin_b": "ovos-adapt-domain-pipeline-plugin"
     },
     {
-      "battle_id": "09c6901028bc3643",
+      "battle_id": "34cc4408a5e0d8b8",
       "modality": "intent_keyword",
       "dataset_id": "intents-for-eval",
       "lang": "nl-NL",
-      "sample_id": "nl-NL/00458",
-      "input_text": "licht uit in de badkamer",
-      "audio_url": null,
-      "reference": "smarthome:lights_off",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "smarthome:lights_off",
-        "slots": {
-          "room": "badkamer"
-        }
-      },
-      "competitor_a": "palavreado-hierarchical-medium",
-      "competitor_b": "adapt-domain-medium",
-      "plugin_a": "ovos-palavreado-hierarchical-pipeline",
-      "plugin_b": "ovos-adapt-domain-pipeline-plugin"
-    },
-    {
-      "battle_id": "0e965827a082d89f",
-      "modality": "intent_keyword",
-      "dataset_id": "intents-for-eval",
-      "lang": "nl-NL",
-      "sample_id": "nl-NL/00523",
-      "input_text": "zet de thermostaat op 22",
-      "audio_url": null,
-      "reference": "smarthome:set_thermostat",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "smarthome:set_thermostat",
-        "slots": {
-          "temperature": "22"
-        }
-      },
-      "competitor_a": "palavreado-medium",
-      "competitor_b": "adapt-domain-medium",
-      "plugin_a": "ovos-palavreado-pipeline-plugin",
-      "plugin_b": "ovos-adapt-domain-pipeline-plugin"
-    },
-    {
-      "battle_id": "32059d45f557f1f9",
-      "modality": "intent_keyword",
-      "dataset_id": "intents-for-eval",
-      "lang": "nl-NL",
-      "sample_id": "nl-NL/00243",
-      "input_text": "wat betekent serendipiteit",
-      "audio_url": null,
-      "reference": "search_qa:define_word",
-      "prediction_a": {
-        "intent": "search_qa:define_word",
-        "slots": {
-          "word": "serendipiteit"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "adapt-medium",
-      "competitor_b": "adapt-hierarchical-medium",
-      "plugin_a": "ovos-adapt-pipeline-plugin",
-      "plugin_b": "ovos-adapt-hierarchical-pipeline-plugin"
-    },
-    {
-      "battle_id": "1061ca4853770f14",
-      "modality": "intent_keyword",
-      "dataset_id": "intents-for-eval",
-      "lang": "nl-NL",
-      "sample_id": "nl-NL/00092",
-      "input_text": "zet een wekker voor twaalf uur",
-      "audio_url": null,
-      "reference": "timers_alarms:set_alarm",
-      "prediction_a": {
-        "intent": "timers_alarms:set_alarm",
-        "slots": {
-          "time": "twaalf uur"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "adapt-hierarchical-medium",
-      "competitor_b": "palavreado-hierarchical-medium",
-      "plugin_a": "ovos-adapt-hierarchical-pipeline-plugin",
-      "plugin_b": "ovos-palavreado-hierarchical-pipeline"
-    },
-    {
-      "battle_id": "1709f13c7a247f4d",
-      "modality": "intent_keyword",
-      "dataset_id": "intents-for-eval",
-      "lang": "nl-NL",
-      "sample_id": "nl-NL/00288",
-      "input_text": "verander mijn taal naar spaans",
-      "audio_url": null,
-      "reference": "system_control:change_language",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "system_control:change_language",
-        "slots": {
-          "target_language": "spaans"
-        }
-      },
-      "competitor_a": "palavreado-medium",
-      "competitor_b": "adapt-hierarchical-medium",
-      "plugin_a": "ovos-palavreado-pipeline-plugin",
-      "plugin_b": "ovos-adapt-hierarchical-pipeline-plugin"
-    },
-    {
-      "battle_id": "095abf217377dfa5",
-      "modality": "intent_keyword",
-      "dataset_id": "intents-for-eval",
-      "lang": "nl-NL",
-      "sample_id": "nl-NL/00053",
-      "input_text": "wat is mijn volgende vergadering",
-      "audio_url": null,
-      "reference": "calendar:next_event",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "calendar:next_event"
-      },
-      "competitor_a": "palavreado-hierarchical-medium",
-      "competitor_b": "adapt-medium",
-      "plugin_a": "ovos-palavreado-hierarchical-pipeline",
-      "plugin_b": "ovos-adapt-pipeline-plugin"
-    },
-    {
-      "battle_id": "0cede04d4ad7287e",
-      "modality": "intent_keyword",
-      "dataset_id": "intents-for-eval",
-      "lang": "nl-NL",
-      "sample_id": "nl-NL/00358",
-      "input_text": "verander de taal in duits",
-      "audio_url": null,
-      "reference": "system_control:change_language",
-      "prediction_a": {
-        "intent": "system_control:change_language",
-        "slots": {
-          "target_language": "duits"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "adapt-medium",
-      "competitor_b": "palavreado-medium",
-      "plugin_a": "ovos-adapt-pipeline-plugin",
-      "plugin_b": "ovos-palavreado-pipeline-plugin"
-    },
-    {
-      "battle_id": "1b55def067210220",
-      "modality": "intent_keyword",
-      "dataset_id": "intents-for-eval",
-      "lang": "nl-NL",
-      "sample_id": "nl-NL/00594",
-      "input_text": "geluid op 70 dank je",
-      "audio_url": null,
-      "reference": "media:set_volume",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "media:set_volume"
-      },
-      "competitor_a": "adapt-domain-medium",
-      "competitor_b": "adapt-medium",
-      "plugin_a": "ovos-adapt-domain-pipeline-plugin",
-      "plugin_b": "ovos-adapt-pipeline-plugin"
-    },
-    {
-      "battle_id": "0ca38754a92aaa85",
-      "modality": "intent_keyword",
-      "dataset_id": "intents-for-eval",
-      "lang": "nl-NL",
-      "sample_id": "nl-NL/00120",
-      "input_text": "stel de nieuwsbron in op nrc",
-      "audio_url": null,
-      "reference": "news:news_source",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "news:news_source",
-        "slots": {
-          "source": "nrc"
-        }
-      },
-      "competitor_a": "palavreado-hierarchical-medium",
-      "competitor_b": "adapt-domain-medium",
-      "plugin_a": "ovos-palavreado-hierarchical-pipeline",
-      "plugin_b": "ovos-adapt-domain-pipeline-plugin"
-    },
-    {
-      "battle_id": "0f41723db9e8c8ee",
-      "modality": "intent_keyword",
-      "dataset_id": "intents-for-eval",
-      "lang": "nl-NL",
-      "sample_id": "nl-NL/00154",
-      "input_text": "controleer berichten van anneke",
-      "audio_url": null,
-      "reference": "communication:read_messages",
-      "prediction_a": {
-        "intent": "communication:read_messages"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "adapt-domain-medium",
-      "competitor_b": "palavreado-medium",
-      "plugin_a": "ovos-adapt-domain-pipeline-plugin",
-      "plugin_b": "ovos-palavreado-pipeline-plugin"
-    },
-    {
-      "battle_id": "340e578da0d37472",
-      "modality": "intent_keyword",
-      "dataset_id": "intents-for-eval",
-      "lang": "nl-NL",
-      "sample_id": "nl-NL/00409",
-      "input_text": "zet mag ik dan bij jou op",
-      "audio_url": null,
-      "reference": "media:play_song",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "media:play_song",
-        "slots": {
-          "song": "mag ik dan bij jou"
-        }
-      },
-      "competitor_a": "adapt-hierarchical-medium",
-      "competitor_b": "adapt-medium",
-      "plugin_a": "ovos-adapt-hierarchical-pipeline-plugin",
-      "plugin_b": "ovos-adapt-pipeline-plugin"
-    },
-    {
-      "battle_id": "1344c8e4722c6752",
-      "modality": "intent_keyword",
-      "dataset_id": "intents-for-eval",
-      "lang": "nl-NL",
-      "sample_id": "nl-NL/00508",
-      "input_text": "videogesprek met mama",
-      "audio_url": null,
-      "reference": "communication:video_call",
-      "prediction_a": {
-        "intent": "communication:video_call",
-        "slots": {
-          "contact": "mama"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "adapt-hierarchical-medium",
-      "competitor_b": "palavreado-hierarchical-medium",
-      "plugin_a": "ovos-adapt-hierarchical-pipeline-plugin",
-      "plugin_b": "ovos-palavreado-hierarchical-pipeline"
-    },
-    {
-      "battle_id": "19806580d1b4bd49",
-      "modality": "intent_keyword",
-      "dataset_id": "intents-for-eval",
-      "lang": "nl-NL",
-      "sample_id": "nl-NL/00307",
-      "input_text": "geschatte tijd thuis",
-      "audio_url": null,
-      "reference": "navigation:eta_query",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "navigation:eta_query",
-        "slots": {
-          "destination": "thuis"
-        }
-      },
-      "competitor_a": "palavreado-medium",
-      "competitor_b": "adapt-hierarchical-medium",
-      "plugin_a": "ovos-palavreado-pipeline-plugin",
-      "plugin_b": "ovos-adapt-hierarchical-pipeline-plugin"
-    },
-    {
-      "battle_id": "0b46617d120e0cfd",
-      "modality": "intent_keyword",
-      "dataset_id": "intents-for-eval",
-      "lang": "nl-NL",
-      "sample_id": "nl-NL/01268",
-      "input_text": "vertaal hoe gaat wacht naar spaans",
-      "audio_url": null,
-      "reference": "search_qa:translate_phrase",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "search_qa:translate_phrase",
-        "slots": {
-          "target_language": "spaans"
-        }
-      },
-      "competitor_a": "palavreado-hierarchical-medium",
-      "competitor_b": "adapt-medium",
-      "plugin_a": "ovos-palavreado-hierarchical-pipeline",
-      "plugin_b": "ovos-adapt-pipeline-plugin"
-    },
-    {
-      "battle_id": "0d8e97fb8d621117",
-      "modality": "intent_keyword",
-      "dataset_id": "intents-for-eval",
-      "lang": "nl-NL",
-      "sample_id": "nl-NL/00186",
-      "input_text": "zet maar een timer van 10 minuten",
-      "audio_url": null,
-      "reference": "timers_alarms:set_timer",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "timers_alarms:set_timer",
-        "slots": {
-          "duration": "10 minuten"
-        }
-      },
-      "competitor_a": "palavreado-medium",
-      "competitor_b": "adapt-medium",
-      "plugin_a": "ovos-palavreado-pipeline-plugin",
-      "plugin_b": "ovos-adapt-pipeline-plugin"
-    },
-    {
-      "battle_id": "1bee598bc78a535a",
-      "modality": "intent_keyword",
-      "dataset_id": "intents-for-eval",
-      "lang": "nl-NL",
-      "sample_id": "nl-NL/00222",
-      "input_text": "maak een timer van 30 seconden",
-      "audio_url": null,
-      "reference": "timers_alarms:set_timer",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "timers_alarms:set_timer",
-        "slots": {
-          "duration": "30 seconden"
-        }
-      },
-      "competitor_a": "adapt-domain-medium",
-      "competitor_b": "adapt-medium",
-      "plugin_a": "ovos-adapt-domain-pipeline-plugin",
-      "plugin_b": "ovos-adapt-pipeline-plugin"
-    },
-    {
-      "battle_id": "0d33796c54b4927b",
-      "modality": "intent_keyword",
-      "dataset_id": "intents-for-eval",
-      "lang": "nl-NL",
-      "sample_id": "nl-NL/00233",
-      "input_text": "voer een videogesprek met anneke",
-      "audio_url": null,
-      "reference": "communication:video_call",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "communication:video_call"
-      },
-      "competitor_a": "palavreado-hierarchical-medium",
-      "competitor_b": "adapt-domain-medium",
-      "plugin_a": "ovos-palavreado-hierarchical-pipeline",
-      "plugin_b": "ovos-adapt-domain-pipeline-plugin"
-    },
-    {
-      "battle_id": "10c975df750ab08f",
-      "modality": "intent_keyword",
-      "dataset_id": "intents-for-eval",
-      "lang": "nl-NL",
-      "sample_id": "nl-NL/00932",
-      "input_text": "kun je de vertaling doen dank je",
-      "audio_url": null,
-      "reference": "search_qa:translate_phrase",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "search_qa:translate_phrase",
-        "slots": {
-          "phrase": "dank je"
-        }
-      },
-      "competitor_a": "palavreado-medium",
-      "competitor_b": "adapt-domain-medium",
-      "plugin_a": "ovos-palavreado-pipeline-plugin",
-      "plugin_b": "ovos-adapt-domain-pipeline-plugin"
-    },
-    {
-      "battle_id": "3bb66fc6bb41763c",
-      "modality": "intent_keyword",
-      "dataset_id": "intents-for-eval",
-      "lang": "nl-NL",
-      "sample_id": "nl-NL/00169",
-      "input_text": "wat betekent kortstondig",
-      "audio_url": null,
-      "reference": "search_qa:define_word",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "search_qa:define_word",
-        "slots": {
-          "word": "kortstondig"
-        }
-      },
-      "competitor_a": "adapt-hierarchical-medium",
-      "competitor_b": "adapt-medium",
-      "plugin_a": "ovos-adapt-hierarchical-pipeline-plugin",
-      "plugin_b": "ovos-adapt-pipeline-plugin"
-    },
-    {
-      "battle_id": "1529f2bf2efabf4b",
-      "modality": "intent_keyword",
-      "dataset_id": "intents-for-eval",
-      "lang": "nl-NL",
-      "sample_id": "nl-NL/00660",
-      "input_text": "welke wekkers komen eraan",
-      "audio_url": null,
-      "reference": "timers_alarms:list_alarms",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "timers_alarms:list_alarms"
-      },
-      "competitor_a": "palavreado-hierarchical-medium",
-      "competitor_b": "adapt-hierarchical-medium",
-      "plugin_a": "ovos-palavreado-hierarchical-pipeline",
-      "plugin_b": "ovos-adapt-hierarchical-pipeline-plugin"
-    },
-    {
-      "battle_id": "1ab7cacfcd9e0b89",
-      "modality": "intent_keyword",
-      "dataset_id": "intents-for-eval",
-      "lang": "nl-NL",
-      "sample_id": "nl-NL/00123",
-      "input_text": "vandaag's weer koppen",
+      "sample_id": "nl-NL/00024",
+      "input_text": "wat is nieuw in politiek",
       "audio_url": null,
       "reference": "news:read_topic",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "news:read_topic",
-        "slots": {
-          "topic": "weer"
-        }
+        "intent": "search_qa:factual_query"
       },
-      "competitor_a": "palavreado-medium",
-      "competitor_b": "adapt-hierarchical-medium",
-      "plugin_a": "ovos-palavreado-pipeline-plugin",
-      "plugin_b": "ovos-adapt-hierarchical-pipeline-plugin"
-    },
-    {
-      "battle_id": "0bac942f460b71ce",
-      "modality": "intent_keyword",
-      "dataset_id": "intents-for-eval",
-      "lang": "nl-NL",
-      "sample_id": "nl-NL/01206",
-      "input_text": "nieuws van nrc",
-      "audio_url": null,
-      "reference": "news:news_source",
-      "prediction_a": {
-        "intent": "news:news_source",
-        "slots": {
-          "source": "nrc"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "adapt-medium",
+      "competitor_a": "adapt-domain-medium",
       "competitor_b": "palavreado-hierarchical-medium",
-      "plugin_a": "ovos-adapt-pipeline-plugin",
+      "plugin_a": "ovos-adapt-domain-pipeline-plugin",
       "plugin_b": "ovos-palavreado-hierarchical-pipeline"
     }
   ],

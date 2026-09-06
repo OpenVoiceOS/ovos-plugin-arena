@@ -2,8 +2,10 @@
   "modality": "intent",
   "dataset_id": "intents-for-eval",
   "lang": "pt-BR",
-  "generated_at": "2026-09-06T13:23:17.026046+00:00",
+  "generated_at": "2026-09-06T19:37:32.003436+00:00",
   "dataset_info": {
+    "display_name": "OVOS intents for eval (12 languages)",
+    "summary": "The arena's own paradigm-neutral intent benchmark: 50 assistant intents with slot annotations, between 1,354 and 1,384 test rows per language across 12 languages. One row is an utterance, its intent and its slots, tagged with the kind of challenge it poses — a held-out template, a free paraphrase, a typo, transcription noise, or an out-of-scope request that expects silence. Templates are split before expansion, so a test row is never an expansion of a template a fighter trained on.",
     "url": "https://huggingface.co/datasets/OpenVoiceOS/intents-for-eval",
     "license": "apache-2.0",
     "notes": "OVOS canonical paradigm-neutral intent benchmark: 50 intents, between 1,354 and 1,384 test rows per language (rows failing the train/test separation rule are dropped, not replaced) across template / paraphrase / in_distribution / far_ood / asr_noise / typos buckets, with slot annotations. far_ood rows carry expected_intent=null — the correct behaviour is no match. Train and test are separated at the template level: train_templates.jsonl holds an 80% per-intent sample of phrase templates, and the template bucket here is built only from the held-out 20%.",
@@ -166,6 +168,26 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "00a26fcc91023157",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "pt-BR",
+      "sample_id": "pt-BR/00072",
+      "input_text": "uma notícia pra trás",
+      "audio_url": null,
+      "reference": "news:previous_story",
+      "prediction_a": {
+        "intent": "news:read_topic"
+      },
+      "prediction_b": {
+        "intent": "news:next_story"
+      },
+      "competitor_a": "nebulacioso",
+      "competitor_b": "cascade-soft",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "017d7af29c05cfa7",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
@@ -229,19 +251,22 @@
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "014e46491a0f7621",
+      "battle_id": "014749a7849f2e2b",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "pt-BR",
-      "sample_id": "pt-BR/01340",
-      "input_text": "já á nevnadoo",
+      "sample_id": "pt-BR/00472",
+      "input_text": "bota ida ao médico no meu calendário",
       "audio_url": null,
-      "reference": "weather:weather_today",
+      "reference": "calendar:create_event",
       "prediction_a": {
-        "intent": "communication:send_message"
+        "intent": null
       },
       "prediction_b": {
-        "intent": null
+        "intent": "calendar:cancel_event",
+        "slots": {
+          "title": "ida ao médico"
+        }
       },
       "competitor_a": "tmpl-slot-jurebes",
       "competitor_b": "cascade-soft",
@@ -292,22 +317,25 @@
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "0109941e959bd30d",
+      "battle_id": "03b1172a50c5cbdc",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "pt-BR",
-      "sample_id": "pt-BR/01296",
-      "input_text": "tá escuro liga aí abajur",
+      "sample_id": "pt-BR/01178",
+      "input_text": "resumo das notícias da manhã",
       "audio_url": null,
-      "reference": "smarthome:lights_on",
+      "reference": "news:read_headlines",
       "prediction_a": {
-        "intent": "communication:call_contact"
+        "intent": "news:news_source"
       },
       "prediction_b": {
-        "intent": null
+        "intent": "timers_alarms:set_alarm",
+        "slots": {
+          "time": "manhã"
+        }
       },
-      "competitor_a": "trident",
-      "competitor_b": "cascade-soft",
+      "competitor_a": "cascade-soft",
+      "competitor_b": "trident",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
     },
@@ -433,6 +461,26 @@
         "intent": null
       },
       "competitor_a": "mycroft-classic",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "01826236b86ef141",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "pt-BR",
+      "sample_id": "pt-BR/00529",
+      "input_text": "que alarmes eu tenho",
+      "audio_url": null,
+      "reference": "timers_alarms:list_alarms",
+      "prediction_a": {
+        "intent": "calendar:list_events"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulacioso",
       "competitor_b": "frankenparse",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
@@ -690,6 +738,29 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "001ffdfd1fcb683f",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "pt-BR",
+      "sample_id": "pt-BR/00280",
+      "input_text": "por favor soletra ubíquo",
+      "audio_url": null,
+      "reference": "search_qa:spell_word",
+      "prediction_a": {
+        "intent": "search_qa:define_word",
+        "slots": {
+          "word": "ubíquo"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulacioso",
+      "competitor_b": "kw-slot-palavreado",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "0098859ed8e3b0d0",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
@@ -935,6 +1006,26 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "00fcce0b1c32102b",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "pt-BR",
+      "sample_id": "pt-BR/00628",
+      "input_text": "me fala quando passarem 7 minutos",
+      "audio_url": null,
+      "reference": "timers_alarms:set_timer",
+      "prediction_a": {
+        "intent": "timers_alarms:snooze_alarm"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulacioso",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "0061110dcbedcd24",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
@@ -1071,25 +1162,22 @@
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "041afa4a615ef2e1",
+      "battle_id": "05cc0ee9faa3ce46",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "pt-BR",
-      "sample_id": "pt-BR/00449",
-      "input_text": "rota pra o mercado",
+      "sample_id": "pt-BR/00614",
+      "input_text": "fora essa canção",
       "audio_url": null,
-      "reference": "navigation:navigate_to",
+      "reference": "media:skip_track",
       "prediction_a": {
-        "intent": "navigation:cancel_route",
-        "slots": {
-          "destination": "o mercado"
-        }
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "trident",
-      "competitor_b": "m2v-first",
+      "prediction_b": {
+        "intent": "media:pause_playback"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "trident",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
     },
@@ -1156,6 +1244,26 @@
       },
       "competitor_a": "m2v-nebulento",
       "competitor_b": "mycroft-classic",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "00440cfacc0cccbc",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "pt-BR",
+      "sample_id": "pt-BR/01118",
+      "input_text": "novo boot por favor",
+      "audio_url": null,
+      "reference": "system_control:restart",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "communication:call_contact"
+      },
+      "competitor_a": "m2v-nebulento",
+      "competitor_b": "nebulacioso",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
     },
@@ -1346,6 +1454,29 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "00bdb91ffa2ac963",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "pt-BR",
+      "sample_id": "pt-BR/00227",
+      "input_text": "bota reunião de equipe no meu calendário",
+      "audio_url": null,
+      "reference": "calendar:create_event",
+      "prediction_a": {
+        "intent": "calendar:cancel_event",
+        "slots": {
+          "title": "reunião de equipe"
+        }
+      },
+      "prediction_b": {
+        "intent": "calendar:cancel_event"
+      },
+      "competitor_a": "nebulacioso",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
       "battle_id": "009b9a7a1cb45345",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
@@ -1406,19 +1537,19 @@
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "02f5d07f203434dd",
+      "battle_id": "03704a3da4e11243",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "pt-BR",
-      "sample_id": "pt-BR/00178",
-      "input_text": "define o brilho em 50",
+      "sample_id": "pt-BR/00610",
+      "input_text": "essa não bota outra",
       "audio_url": null,
-      "reference": "smarthome:set_brightness_light",
+      "reference": "media:skip_track",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "system_control:set_brightness_screen"
+        "intent": "smarthome:lights_off"
       },
       "competitor_a": "tmpl-slot-jurebes",
       "competitor_b": "m2v-prototype",
@@ -1501,6 +1632,26 @@
         "intent": "communication:call_contact"
       },
       "competitor_a": "mycroft-classic",
+      "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "014ac80792cb54cd",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "pt-BR",
+      "sample_id": "pt-BR/00971",
+      "input_text": "tá tempo de bermuda",
+      "audio_url": null,
+      "reference": "weather:weather_today",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:weather_location"
+      },
+      "competitor_a": "nebulacioso",
       "competitor_b": "m2v-prototype-nebulento",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
@@ -1642,6 +1793,26 @@
       },
       "competitor_a": "trident",
       "competitor_b": "m2v-prototype-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "00b53d12024d1148",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "pt-BR",
+      "sample_id": "pt-BR/01024",
+      "input_text": "ar parado hoje",
+      "audio_url": null,
+      "reference": "weather:weather_wind",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:weather_humidity"
+      },
+      "competitor_a": "mycroft-classic",
+      "competitor_b": "nebulacioso",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
     },
@@ -1800,6 +1971,155 @@
       },
       "competitor_a": "trident",
       "competitor_b": "mycroft-classic",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "016d70b08a22f4e4",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "pt-BR",
+      "sample_id": "pt-BR/01217",
+      "input_text": "me dá o que veio antes",
+      "audio_url": null,
+      "reference": "news:previous_story",
+      "prediction_a": {
+        "intent": "weather:weather_wind"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulacioso",
+      "competitor_b": "nebulapt",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "00be80df3773579b",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "pt-BR",
+      "sample_id": "pt-BR/01202",
+      "input_text": "o que mais tá acontecendo",
+      "audio_url": null,
+      "reference": "news:next_story",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "calendar:list_events"
+      },
+      "competitor_a": "nebulatious",
+      "competitor_b": "nebulacioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "005cbf7bf5b0da9f",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "pt-BR",
+      "sample_id": "pt-BR/00056",
+      "input_text": "interrompe a chamada",
+      "audio_url": null,
+      "reference": "communication:hang_up",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:pause_playback"
+      },
+      "competitor_a": "ovos-stock",
+      "competitor_b": "nebulacioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "011f1a53332188dc",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "pt-BR",
+      "sample_id": "pt-BR/00823",
+      "input_text": "liga a câmera pra mãe",
+      "audio_url": null,
+      "reference": "communication:video_call",
+      "prediction_a": {
+        "intent": "communication:call_contact",
+        "slots": {
+          "contact": "mãe"
+        }
+      },
+      "prediction_b": {
+        "intent": "communication:call_contact"
+      },
+      "competitor_a": "nebulacioso",
+      "competitor_b": "tmpl-slot-jurebes",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "004773639f6825c8",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "pt-BR",
+      "sample_id": "pt-BR/01157",
+      "input_text": "alemão por favor",
+      "audio_url": null,
+      "reference": "system_control:change_language",
+      "prediction_a": {
+        "intent": "search_qa:translate_phrase",
+        "slots": {
+          "target_language": "alemão"
+        }
+      },
+      "prediction_b": {
+        "intent": "system_control:restart"
+      },
+      "competitor_a": "nebulacioso",
+      "competitor_b": "tmpl-slot-linhafina",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "0158e9ad6cb3ac2b",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "pt-BR",
+      "sample_id": "pt-BR/01168",
+      "input_text": "saída em francês por favor",
+      "audio_url": null,
+      "reference": "system_control:change_language",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "search_qa:translate_phrase",
+        "slots": {
+          "target_language": "francês"
+        }
+      },
+      "competitor_a": "tmpl-slot-nebulento",
+      "competitor_b": "nebulacioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "04746e89ada44085",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "pt-BR",
+      "sample_id": "pt-BR/01150",
+      "input_text": "coloca o sistema no silêncio",
+      "audio_url": null,
+      "reference": "system_control:mute_system",
+      "prediction_a": {
+        "intent": "system_control:shutdown"
+      },
+      "prediction_b": {
+        "intent": "system_control:change_language"
+      },
+      "competitor_a": "trident",
+      "competitor_b": "nebulacioso",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
     },
@@ -2172,22 +2492,30 @@
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "0058a78693192f38",
+      "battle_id": "05434ba35f16f8f5",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "pt-BR",
-      "sample_id": "pt-BR/01352",
-      "input_text": "escreve rittmo uma leta de cAda vez",
+      "sample_id": "pt-BR/01038",
+      "input_text": "fixa reunião de equipe sexta-feira",
       "audio_url": null,
-      "reference": "search_qa:spell_word",
+      "reference": "calendar:create_event",
       "prediction_a": {
-        "intent": null
+        "intent": "calendar:reschedule_event",
+        "slots": {
+          "title": "reunião de equipe",
+          "date": "sexta-feira"
+        }
       },
       "prediction_b": {
-        "intent": "communication:send_message"
+        "intent": "calendar:reschedule_event",
+        "slots": {
+          "title": "reunião de equipe",
+          "date": "- feira"
+        }
       },
-      "competitor_a": "tmpl-slot-jurebes",
-      "competitor_b": "trident",
+      "competitor_a": "trident",
+      "competitor_b": "tmpl-slot-jurebes",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
     },
@@ -2212,16 +2540,16 @@
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "00ac495e09a0ebc9",
+      "battle_id": "007d9194797d0e67",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "pt-BR",
-      "sample_id": "pt-BR/01198",
-      "input_text": "chata próxima",
+      "sample_id": "pt-BR/01368",
+      "input_text": "me cuaMa em 20 minutoz",
       "audio_url": null,
-      "reference": "news:next_story",
+      "reference": "timers_alarms:set_timer",
       "prediction_a": {
-        "intent": "media:skip_track"
+        "intent": "smarthome:set_thermostat"
       },
       "prediction_b": {
         "intent": null
@@ -2402,6 +2730,26 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "0c65f98c1055c1bc",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "pt-BR",
+      "sample_id": "pt-BR/00985",
+      "input_text": "tempo do fim de semana por favor",
+      "audio_url": null,
+      "reference": "weather:weather_forecast",
+      "prediction_a": {
+        "intent": "weather:weather_today"
+      },
+      "prediction_b": {
+        "intent": "navigation:eta_query"
+      },
+      "competitor_a": "cascade-soft",
+      "competitor_b": "nebulacioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "01a616eb9a9b660e",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
@@ -2465,19 +2813,19 @@
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "02a86851600ad0a3",
+      "battle_id": "014e46491a0f7621",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "pt-BR",
-      "sample_id": "pt-BR/01051",
-      "input_text": "agenda de hoje por favor",
+      "sample_id": "pt-BR/01340",
+      "input_text": "já á nevnadoo",
       "audio_url": null,
-      "reference": "calendar:list_events",
+      "reference": "weather:weather_today",
       "prediction_a": {
-        "intent": null
+        "intent": "communication:send_message"
       },
       "prediction_b": {
-        "intent": "weather:weather_today"
+        "intent": null
       },
       "competitor_a": "tmpl-slot-jurebes",
       "competitor_b": "cascade-soft",
@@ -2525,25 +2873,22 @@
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "03b1172a50c5cbdc",
+      "battle_id": "05a9b8cf235afde9",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "pt-BR",
-      "sample_id": "pt-BR/01178",
-      "input_text": "resumo das notícias da manhã",
+      "sample_id": "pt-BR/01176",
+      "input_text": "tá rolando algo importante",
       "audio_url": null,
       "reference": "news:read_headlines",
       "prediction_a": {
-        "intent": "news:news_source"
+        "intent": "communication:read_messages"
       },
       "prediction_b": {
-        "intent": "timers_alarms:set_alarm",
-        "slots": {
-          "time": "manhã"
-        }
+        "intent": null
       },
-      "competitor_a": "cascade-soft",
-      "competitor_b": "trident",
+      "competitor_a": "trident",
+      "competitor_b": "cascade-soft",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
     },
@@ -2666,6 +3011,26 @@
         "intent": null
       },
       "competitor_a": "mycroft-classic",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "043397a63e2839b7",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "pt-BR",
+      "sample_id": "pt-BR/00975",
+      "input_text": "já saiu o sol",
+      "audio_url": null,
+      "reference": "weather:weather_today",
+      "prediction_a": {
+        "intent": "media:pause_playback"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulacioso",
       "competitor_b": "frankenparse",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
@@ -2923,6 +3288,29 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "00275a6515f04277",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "pt-BR",
+      "sample_id": "pt-BR/01150",
+      "input_text": "coloca o sistema no silêncio",
+      "audio_url": null,
+      "reference": "system_control:mute_system",
+      "prediction_a": {
+        "intent": "system_control:change_language"
+      },
+      "prediction_b": {
+        "intent": "media:play_song",
+        "slots": {
+          "song": "o sistema no silêncio"
+        }
+      },
+      "competitor_a": "nebulacioso",
+      "competitor_b": "kw-slot-palavreado",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "02df2c9ca432d6d2",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
@@ -3001,7 +3389,7 @@
       "audio_url": null,
       "reference": "system_control:mute_system",
       "prediction_a": {
-        "intent": null
+        "intent": "system_control:shutdown"
       },
       "prediction_b": {
         "intent": "media:play_song",
@@ -3167,6 +3555,29 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "00fe4cfbafad9c35",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "pt-BR",
+      "sample_id": "pt-BR/00825",
+      "input_text": "zoom com a maria",
+      "audio_url": null,
+      "reference": "communication:video_call",
+      "prediction_a": {
+        "intent": "communication:call_contact",
+        "slots": {
+          "contact": "maria"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulacioso",
+      "competitor_b": "m2v-first",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "0128aff5890ab664",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
@@ -3299,19 +3710,19 @@
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "05cc0ee9faa3ce46",
+      "battle_id": "06208de6889aca2e",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "pt-BR",
-      "sample_id": "pt-BR/00614",
-      "input_text": "fora essa canção",
+      "sample_id": "pt-BR/00973",
+      "input_text": "tem nuvens hoje",
       "audio_url": null,
-      "reference": "media:skip_track",
+      "reference": "weather:weather_today",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "media:pause_playback"
+        "intent": "news:read_headlines"
       },
       "competitor_a": "m2v-first",
       "competitor_b": "trident",
@@ -3375,6 +3786,29 @@
       },
       "competitor_a": "mycroft-classic",
       "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "00c357f8c66eebcc",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "pt-BR",
+      "sample_id": "pt-BR/00468",
+      "input_text": "me dá mais 5 minutos",
+      "audio_url": null,
+      "reference": "timers_alarms:snooze_alarm",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "timers_alarms:set_timer",
+        "slots": {
+          "duration": "5 minutos"
+        }
+      },
+      "competitor_a": "m2v-nebulento",
+      "competitor_b": "nebulacioso",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
     },
@@ -3517,7 +3951,7 @@
       "audio_url": null,
       "reference": "system_control:mute_system",
       "prediction_a": {
-        "intent": "system_control:change_language"
+        "intent": "system_control:shutdown"
       },
       "prediction_b": {
         "intent": null
@@ -3566,6 +4000,26 @@
         "intent": "smarthome:lights_on"
       },
       "competitor_a": "mycroft-classic",
+      "competitor_b": "m2v-prototype",
+      "plugin_a": "ensemble",
+      "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "01eaf4c54ff1a205",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "pt-BR",
+      "sample_id": "pt-BR/00694",
+      "input_text": "dá pra ter luz aqui",
+      "audio_url": null,
+      "reference": "smarthome:lights_on",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "navigation:find_nearby"
+      },
+      "competitor_a": "nebulacioso",
       "competitor_b": "m2v-prototype",
       "plugin_a": "ensemble",
       "plugin_b": "ovos-m2v-prototype-pipeline"
@@ -3635,24 +4089,24 @@
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "03704a3da4e11243",
+      "battle_id": "03a84a05bb494f9a",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "pt-BR",
-      "sample_id": "pt-BR/00610",
-      "input_text": "essa não bota outra",
+      "sample_id": "pt-BR/00716",
+      "input_text": "podia ficar tudo escuro",
       "audio_url": null,
-      "reference": "media:skip_track",
+      "reference": "smarthome:lights_off",
       "prediction_a": {
-        "intent": null
+        "intent": "search_qa:define_word"
       },
       "prediction_b": {
-        "intent": "smarthome:lights_off"
+        "intent": null
       },
-      "competitor_a": "tmpl-slot-jurebes",
-      "competitor_b": "m2v-prototype",
-      "plugin_a": "ensemble",
-      "plugin_b": "ovos-m2v-prototype-pipeline"
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "tmpl-slot-jurebes",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
     },
     {
       "battle_id": "03df979854c1e0fc",
@@ -3704,7 +4158,7 @@
       "audio_url": null,
       "reference": "media:pause_playback",
       "prediction_a": {
-        "intent": null
+        "intent": "media:resume_playback"
       },
       "prediction_b": {
         "intent": "smarthome:lights_on"
@@ -3731,6 +4185,26 @@
       },
       "competitor_a": "m2v-prototype-nebulento",
       "competitor_b": "mycroft-classic",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "02bbf301f8aa5f6c",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "pt-BR",
+      "sample_id": "pt-BR/01102",
+      "input_text": "manda dormir de vez",
+      "audio_url": null,
+      "reference": "system_control:shutdown",
+      "prediction_a": {
+        "intent": "system_control:mute_system"
+      },
+      "prediction_b": {
+        "intent": "media:play_song"
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "nebulacioso",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
     },
@@ -3794,468 +4268,6 @@
       },
       "competitor_a": "ovos-stock",
       "competitor_b": "m2v-prototype-nebulento",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "009e5c793f978d42",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "pt-BR",
-      "sample_id": "pt-BR/00972",
-      "input_text": "já tá nevando",
-      "audio_url": null,
-      "reference": "weather:weather_today",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "communication:send_message"
-      },
-      "competitor_a": "m2v-prototype-nebulento",
-      "competitor_b": "tmpl-slot-jurebes",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "0103dd42e4e77ef0",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "pt-BR",
-      "sample_id": "pt-BR/00321",
-      "input_text": "define o brilho em 75",
-      "audio_url": null,
-      "reference": "smarthome:set_brightness_light",
-      "prediction_a": {
-        "intent": "system_control:set_brightness_screen"
-      },
-      "prediction_b": {
-        "intent": "search_qa:define_word"
-      },
-      "competitor_a": "m2v-prototype-nebulento",
-      "competitor_b": "tmpl-slot-linhafina",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "025c3c662b38f2bb",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "pt-BR",
-      "sample_id": "pt-BR/00034",
-      "input_text": "deixa em 19 graus",
-      "audio_url": null,
-      "reference": "smarthome:set_thermostat",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "smarthome:set_brightness_light"
-      },
-      "competitor_a": "tmpl-slot-nebulento",
-      "competitor_b": "m2v-prototype-nebulento",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "011e88b2e6944220",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "pt-BR",
-      "sample_id": "pt-BR/01051",
-      "input_text": "agenda de hoje por favor",
-      "audio_url": null,
-      "reference": "calendar:list_events",
-      "prediction_a": {
-        "intent": "timers_alarms:list_alarms"
-      },
-      "prediction_b": {
-        "intent": "media:set_volume"
-      },
-      "competitor_a": "m2v-prototype-nebulento",
-      "competitor_b": "trident",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "02b769eed95aebce",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "pt-BR",
-      "sample_id": "pt-BR/01057",
-      "input_text": "algo marcado essa semana",
-      "audio_url": null,
-      "reference": "calendar:list_events",
-      "prediction_a": {
-        "intent": "communication:read_messages",
-        "slots": {
-          "contact": "marcado essa semana"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "mycroft-classic",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "1e2b10ce9e834272",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "pt-BR",
-      "sample_id": "pt-BR/00812",
-      "input_text": "encerra o papo por favor",
-      "audio_url": null,
-      "reference": "communication:hang_up",
-      "prediction_a": {
-        "intent": "system_control:shutdown"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "mycroft-classic",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "02f9c90e636b9ab2",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "pt-BR",
-      "sample_id": "pt-BR/00591",
-      "input_text": "manda a canção pra frente de novo",
-      "audio_url": null,
-      "reference": "media:resume_playback",
-      "prediction_a": {
-        "intent": "media:play_song",
-        "slots": {
-          "song": "a canção pra frente de novo"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "mycroft-classic",
-      "competitor_b": "ovos-stock",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "01968e7137eec189",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "pt-BR",
-      "sample_id": "pt-BR/01347",
-      "input_text": "dsca o nÚemro do peddro",
-      "audio_url": null,
-      "reference": "communication:call_contact",
-      "prediction_a": {
-        "intent": "communication:read_messages"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "tmpl-slot-jurebes",
-      "competitor_b": "mycroft-classic",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "0125521e224dc6d2",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "pt-BR",
-      "sample_id": "pt-BR/01036",
-      "input_text": "bloqueia a ida ao médico pra segunda que vem",
-      "audio_url": null,
-      "reference": "calendar:create_event",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "calendar:next_event"
-      },
-      "competitor_a": "mycroft-classic",
-      "competitor_b": "tmpl-slot-linhafina",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "03fbbe2d7e05d6cb",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "pt-BR",
-      "sample_id": "pt-BR/00890",
-      "input_text": "deixa pra lá a navegação",
-      "audio_url": null,
-      "reference": "navigation:cancel_route",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "calendar:cancel_event",
-        "slots": {
-          "title": "a navegação"
-        }
-      },
-      "competitor_a": "tmpl-slot-nebulento",
-      "competitor_b": "mycroft-classic",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "00f2e4e97517da20",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "pt-BR",
-      "sample_id": "pt-BR/00650",
-      "input_text": "joga fora o timer por favor",
-      "audio_url": null,
-      "reference": "timers_alarms:cancel_timer",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "timers_alarms:set_alarm"
-      },
-      "competitor_a": "mycroft-classic",
-      "competitor_b": "trident",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "0261479ef29a7d8f",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "pt-BR",
-      "sample_id": "pt-BR/00724",
-      "input_text": "manda as luzes pra 85",
-      "audio_url": null,
-      "reference": "smarthome:set_brightness_light",
-      "prediction_a": {
-        "intent": "media:play_song",
-        "slots": {
-          "song": "as luzes pra 85"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulatious",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "04b159cc833a50af",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "pt-BR",
-      "sample_id": "pt-BR/00495",
-      "input_text": "brilho 20",
-      "audio_url": null,
-      "reference": "smarthome:set_brightness_light",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "system_control:set_brightness_screen",
-        "slots": {
-          "level": "20"
-        }
-      },
-      "competitor_a": "ovos-stock",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "0213d626c75cad20",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "pt-BR",
-      "sample_id": "pt-BR/00877",
-      "input_text": "difícil pro aeroporto",
-      "audio_url": null,
-      "reference": "navigation:traffic_status",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "navigation:navigate_to"
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "tmpl-slot-jurebes",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "02e0aca010135fa8",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "pt-BR",
-      "sample_id": "pt-BR/00451",
-      "input_text": "usa a uol como minha fonte de notícias",
-      "audio_url": null,
-      "reference": "news:news_source",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "system_control:change_language"
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "tmpl-slot-linhafina",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "2108f707089d90ca",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "pt-BR",
-      "sample_id": "pt-BR/01321",
-      "input_text": "me dá próximo item agenda",
-      "audio_url": null,
-      "reference": "calendar:next_event",
-      "prediction_a": {
-        "intent": "calendar:list_events"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "tmpl-slot-nebulento",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "050cda7069f23283",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "pt-BR",
-      "sample_id": "pt-BR/01105",
-      "input_text": "vamos desligar isso",
-      "audio_url": null,
-      "reference": "system_control:shutdown",
-      "prediction_a": {
-        "intent": "smarthome:lights_off"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "trident",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "02233e0c957f1ecf",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "pt-BR",
-      "sample_id": "pt-BR/00227",
-      "input_text": "bota reunião de equipe no meu calendário",
-      "audio_url": null,
-      "reference": "calendar:create_event",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "calendar:cancel_event",
-        "slots": {
-          "title": "reunião de equipe"
-        }
-      },
-      "competitor_a": "ovos-stock",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "03037a80a3759bf1",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "pt-BR",
-      "sample_id": "pt-BR/00574",
-      "input_text": "congela o som",
-      "audio_url": null,
-      "reference": "media:pause_playback",
-      "prediction_a": {
-        "intent": "system_control:mute_system"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "tmpl-slot-jurebes",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "00c7b00ada099f7d",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "pt-BR",
-      "sample_id": "pt-BR/00489",
-      "input_text": "por favor soletra efêmero",
-      "audio_url": null,
-      "reference": "search_qa:spell_word",
-      "prediction_a": {
-        "intent": "system_control:restart"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "tmpl-slot-linhafina",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "02a614611deb5781",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "pt-BR",
-      "sample_id": "pt-BR/01132",
-      "input_text": "coloca a tela do notebook em 70",
-      "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "media:play_song",
-        "slots": {
-          "song": "a tela",
-          "artist": "notebook em 70"
-        }
-      },
-      "competitor_a": "tmpl-slot-nebulento",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "00cf031c6f834e88",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "pt-BR",
-      "sample_id": "pt-BR/01295",
-      "input_text": "tô tipo assim saindo",
-      "audio_url": null,
-      "reference": "communication:hang_up",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "navigation:eta_query"
-      },
-      "competitor_a": "nebulatious",
-      "competitor_b": "trident",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
     }

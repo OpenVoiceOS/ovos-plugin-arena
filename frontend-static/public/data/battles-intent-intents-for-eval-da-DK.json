@@ -2,8 +2,10 @@
   "modality": "intent",
   "dataset_id": "intents-for-eval",
   "lang": "da-DK",
-  "generated_at": "2026-09-06T13:23:17.026046+00:00",
+  "generated_at": "2026-09-06T19:37:32.003436+00:00",
   "dataset_info": {
+    "display_name": "OVOS intents for eval (12 languages)",
+    "summary": "The arena's own paradigm-neutral intent benchmark: 50 assistant intents with slot annotations, between 1,354 and 1,384 test rows per language across 12 languages. One row is an utterance, its intent and its slots, tagged with the kind of challenge it poses — a held-out template, a free paraphrase, a typo, transcription noise, or an out-of-scope request that expects silence. Templates are split before expansion, so a test row is never an expansion of a template a fighter trained on.",
     "url": "https://huggingface.co/datasets/OpenVoiceOS/intents-for-eval",
     "license": "apache-2.0",
     "notes": "OVOS canonical paradigm-neutral intent benchmark: 50 intents, between 1,354 and 1,384 test rows per language (rows failing the train/test separation rule are dropped, not replaced) across template / paraphrase / in_distribution / far_ood / asr_noise / typos buckets, with slot annotations. far_ood rows carry expected_intent=null — the correct behaviour is no match. Train and test are separated at the template level: train_templates.jsonl holds an 80% per-intent sample of phrase templates, and the template bucket here is built only from the held-out 20%.",
@@ -170,6 +172,26 @@
         }
       },
       "competitor_a": "mycroft-classic",
+      "competitor_b": "cascade-soft",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "081f04042164964f",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "da-DK",
+      "sample_id": "da-DK/01107",
+      "input_text": "lad os genstarte det hele",
+      "audio_url": null,
+      "reference": "system_control:restart",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "media:resume_playback"
+      },
+      "competitor_a": "nebulacioso",
       "competitor_b": "cascade-soft",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
@@ -456,6 +478,29 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "0031e7937ac74130",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "da-DK",
+      "sample_id": "da-DK/00289",
+      "input_text": "sæt lyset til i stue",
+      "audio_url": null,
+      "reference": "smarthome:lights_on",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "room": "stue"
+        }
+      },
+      "competitor_a": "frankenparse",
+      "competitor_b": "nebulacioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "001ad642acec052c",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
@@ -522,16 +567,16 @@
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "01c9da4facd37727",
+      "battle_id": "00203c2c4c883e37",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/01120",
-      "input_text": "skru monitoren op til 90",
+      "sample_id": "da-DK/01271",
+      "input_text": "noget programmet",
       "audio_url": null,
-      "reference": "system_control:set_brightness_screen",
+      "reference": "calendar:list_events",
       "prediction_a": {
-        "intent": "media:set_volume"
+        "intent": "media:play_song"
       },
       "prediction_b": {
         "intent": null
@@ -708,6 +753,26 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "0130d56d5a964f6c",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "da-DK",
+      "sample_id": "da-DK/01137",
+      "input_text": "audio helt slukket",
+      "audio_url": null,
+      "reference": "system_control:mute_system",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "smarthome:lights_off"
+      },
+      "competitor_a": "kw-slot-palavreado",
+      "competitor_b": "nebulacioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "00ce253a4b05d877",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
@@ -777,16 +842,16 @@
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "00031c8abe21a4a1",
+      "battle_id": "00e71d4762ba2e5b",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/00139",
-      "input_text": "sluk helt",
+      "sample_id": "da-DK/01082",
+      "input_text": "kan vi udskyde lægebesøget",
       "audio_url": null,
-      "reference": "system_control:shutdown",
+      "reference": "calendar:reschedule_event",
       "prediction_a": {
-        "intent": "smarthome:lights_off"
+        "intent": "communication:send_message"
       },
       "prediction_b": {
         "intent": null
@@ -840,22 +905,25 @@
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "00d637e9e66ca29c",
+      "battle_id": "009d82b646f50341",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/01269",
-      "input_text": "jeg skal bruge hva nyhedsbriefing",
+      "sample_id": "da-DK/00877",
+      "input_text": "kom så annullér den rute",
       "audio_url": null,
-      "reference": "news:read_headlines",
+      "reference": "navigation:cancel_route",
       "prediction_a": {
-        "intent": null
+        "intent": "timers_alarms:cancel_timer",
+        "slots": {
+          "label": "te"
+        }
       },
       "prediction_b": {
-        "intent": "weather:weather_today"
+        "intent": null
       },
-      "competitor_a": "kw-slot-palavreado",
-      "competitor_b": "trident",
+      "competitor_a": "trident",
+      "competitor_b": "kw-slot-palavreado",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
     },
@@ -942,6 +1010,26 @@
       },
       "competitor_a": "m2v-first",
       "competitor_b": "mycroft-classic",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "007f7ae48b6edfc6",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "da-DK",
+      "sample_id": "da-DK/00162",
+      "input_text": "stop anvisningerne",
+      "audio_url": null,
+      "reference": "navigation:cancel_route",
+      "prediction_a": {
+        "intent": "mycroft.stop"
+      },
+      "prediction_b": {
+        "intent": "media:pause_playback"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "nebulacioso",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
     },
@@ -1164,6 +1252,26 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "016c188b5ebe1855",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "da-DK",
+      "sample_id": "da-DK/00524",
+      "input_text": "sluk lyden",
+      "audio_url": null,
+      "reference": "system_control:mute_system",
+      "prediction_a": {
+        "intent": "smarthome:lights_off"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulacioso",
+      "competitor_b": "m2v-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "03cc8d6e42daa55d",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
@@ -1302,7 +1410,10 @@
         "intent": null
       },
       "prediction_b": {
-        "intent": "smarthome:lights_off"
+        "intent": "smarthome:set_brightness_light",
+        "slots": {
+          "room": "soveværelse"
+        }
       },
       "competitor_a": "m2v-nebulento",
       "competitor_b": "trident",
@@ -1346,6 +1457,29 @@
       },
       "competitor_a": "m2v-prototype",
       "competitor_b": "mycroft-classic",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "000fe096f5602988",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "da-DK",
+      "sample_id": "da-DK/01258",
+      "input_text": "jeg er sulten",
+      "audio_url": null,
+      "reference": null,
+      "prediction_a": {
+        "intent": "communication:send_message"
+      },
+      "prediction_b": {
+        "intent": "timers_alarms:cancel_timer",
+        "slots": {
+          "label": "te"
+        }
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "nebulacioso",
       "plugin_a": "ovos-m2v-prototype-pipeline",
       "plugin_b": "ensemble"
     },
@@ -1419,10 +1553,7 @@
       "audio_url": null,
       "reference": "calendar:list_events",
       "prediction_a": {
-        "intent": "weather:weather_forecast",
-        "slots": {
-          "date": "morgen"
-        }
+        "intent": null
       },
       "prediction_b": {
         "intent": "news:read_headlines"
@@ -1518,6 +1649,29 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "01f4c241d8a67516",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "da-DK",
+      "sample_id": "da-DK/00814",
+      "input_text": "facetime lars for mig",
+      "audio_url": null,
+      "reference": "communication:video_call",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "communication:call_contact",
+        "slots": {
+          "contact": "lars"
+        }
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "nebulacioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "03ef92495315fba6",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
@@ -1593,7 +1747,10 @@
         "intent": "search_qa:translate_phrase"
       },
       "prediction_b": {
-        "intent": null
+        "intent": "communication:hang_up",
+        "slots": {
+          "target_language": "fransk"
+        }
       },
       "competitor_a": "m2v-prototype-nebulento",
       "competitor_b": "tmpl-slot-jurebes",
@@ -1601,19 +1758,19 @@
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "03bbebf7b1970ee6",
+      "battle_id": "041898daeb0b3144",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/01142",
-      "input_text": "kan vi gøre dette på fransk",
+      "sample_id": "da-DK/00726",
+      "input_text": "bring soveværelset til 20 procent",
       "audio_url": null,
-      "reference": "system_control:change_language",
+      "reference": "smarthome:set_brightness_light",
       "prediction_a": {
-        "intent": "search_qa:translate_phrase"
+        "intent": null
       },
       "prediction_b": {
-        "intent": null
+        "intent": "media:set_volume"
       },
       "competitor_a": "m2v-prototype-nebulento",
       "competitor_b": "tmpl-slot-linhafina",
@@ -1657,6 +1814,29 @@
       },
       "competitor_a": "m2v-prototype-nebulento",
       "competitor_b": "trident",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "028370b4fef5aaff",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "da-DK",
+      "sample_id": "da-DK/00195",
+      "input_text": "giv mig vinden",
+      "audio_url": null,
+      "reference": "weather:weather_wind",
+      "prediction_a": {
+        "intent": "weather:weather_today"
+      },
+      "prediction_b": {
+        "intent": "communication:call_contact",
+        "slots": {
+          "contact": "vinden"
+        }
+      },
+      "competitor_a": "nebulacioso",
+      "competitor_b": "mycroft-classic",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
     },
@@ -1813,6 +1993,152 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "001d9a28d5384d79",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "da-DK",
+      "sample_id": "da-DK/01299",
+      "input_text": "skru volumen ned nul",
+      "audio_url": null,
+      "reference": "system_control:mute_system",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "smarthome:set_thermostat"
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "nebulacioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "000e821a5efafc1a",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "da-DK",
+      "sample_id": "da-DK/00606",
+      "input_text": "smid den væk og sæt den næste på",
+      "audio_url": null,
+      "reference": "media:skip_track",
+      "prediction_a": {
+        "intent": "timers_alarms:set_timer",
+        "slots": {
+          "label": "te"
+        }
+      },
+      "prediction_b": {
+        "intent": "timers_alarms:cancel_timer",
+        "slots": {
+          "label-timeren": "den væk og sæt den næste på"
+        }
+      },
+      "competitor_a": "nebulacioso",
+      "competitor_b": "nebulatious",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "00f001af7d3871ea",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "da-DK",
+      "sample_id": "da-DK/01069",
+      "input_text": "hvad står øverst på min agenda",
+      "audio_url": null,
+      "reference": "calendar:next_event",
+      "prediction_a": {
+        "intent": "calendar:list_events"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulacioso",
+      "competitor_b": "ovos-stock",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "00edd4562d91f4e3",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "da-DK",
+      "sample_id": "da-DK/00592",
+      "input_text": "lidt højere sig 55",
+      "audio_url": null,
+      "reference": "media:set_volume",
+      "prediction_a": {
+        "intent": "communication:send_message"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "tmpl-slot-jurebes",
+      "competitor_b": "nebulacioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "00432b30eff5186f",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "da-DK",
+      "sample_id": "da-DK/00572",
+      "input_text": "lad sangen blive hvor den er",
+      "audio_url": null,
+      "reference": "media:pause_playback",
+      "prediction_a": {
+        "intent": "media:resume_playback"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "tmpl-slot-linhafina",
+      "competitor_b": "nebulacioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "00c64bca81e0098e",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "da-DK",
+      "sample_id": "da-DK/00602",
+      "input_text": "væk med den sang",
+      "audio_url": null,
+      "reference": "media:skip_track",
+      "prediction_a": {
+        "intent": "timers_alarms:cancel_timer"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulacioso",
+      "competitor_b": "tmpl-slot-nebulento",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "00435cccc686f749",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "da-DK",
+      "sample_id": "da-DK/01089",
+      "input_text": "lad os slukke den her tingest",
+      "audio_url": null,
+      "reference": "system_control:shutdown",
+      "prediction_a": {
+        "intent": "media:pause_playback"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "trident",
+      "competitor_b": "nebulacioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "00de71fab116d7bc",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
@@ -1860,22 +2186,22 @@
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "0066f7f0da89d27d",
+      "battle_id": "012d17d57ed7a15c",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/00942",
-      "input_text": "hvor mange bogstaver er der i serendipitet",
+      "sample_id": "da-DK/00592",
+      "input_text": "lidt højere sig 55",
       "audio_url": null,
-      "reference": "search_qa:spell_word",
+      "reference": "media:set_volume",
       "prediction_a": {
-        "intent": "search_qa:define_word"
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "tmpl-slot-jurebes",
-      "competitor_b": "nebulapt",
+      "prediction_b": {
+        "intent": "communication:send_message"
+      },
+      "competitor_a": "nebulapt",
+      "competitor_b": "tmpl-slot-jurebes",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
     },
@@ -1966,26 +2292,22 @@
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "00f66f4385a000c2",
+      "battle_id": "01df2d2879c333e1",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/01049",
-      "input_text": "klip middag med anna",
+      "sample_id": "da-DK/01063",
+      "input_text": "hvad kommer der dernæst i køen",
       "audio_url": null,
-      "reference": "calendar:cancel_event",
+      "reference": "calendar:next_event",
       "prediction_a": {
-        "intent": "calendar:reschedule_event",
-        "slots": {
-          "title": "middag med anna",
-          "time": "middag"
-        }
+        "intent": "news:next_story"
       },
       "prediction_b": {
         "intent": null
       },
-      "competitor_a": "nebulatious",
-      "competitor_b": "tmpl-slot-jurebes",
+      "competitor_a": "tmpl-slot-jurebes",
+      "competitor_b": "nebulatious",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
     },
@@ -2036,36 +2358,36 @@
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "02c36cc17399c0f8",
+      "battle_id": "000374e6826b0b7f",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/01061",
-      "input_text": "noget snart",
+      "sample_id": "da-DK/00021",
+      "input_text": "spring denne historie over",
       "audio_url": null,
-      "reference": "calendar:next_event",
+      "reference": "news:next_story",
       "prediction_a": {
-        "intent": null
+        "intent": "media:skip_track"
       },
       "prediction_b": {
-        "intent": "media:play_song"
+        "intent": null
       },
-      "competitor_a": "nebulatious",
-      "competitor_b": "trident",
+      "competitor_a": "trident",
+      "competitor_b": "nebulatious",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "0012f2a9c478f7f3",
+      "battle_id": "00bc7d2518c2dbe9",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/00672",
-      "input_text": "lidt længere tak",
+      "sample_id": "da-DK/01137",
+      "input_text": "audio helt slukket",
       "audio_url": null,
-      "reference": "timers_alarms:snooze_alarm",
+      "reference": "system_control:mute_system",
       "prediction_a": {
-        "intent": "search_qa:translate_phrase"
+        "intent": "smarthome:lights_off"
       },
       "prediction_b": {
         "intent": null
@@ -2119,22 +2441,19 @@
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "00a0ce0873f761de",
+      "battle_id": "0061f0d2a1782fcc",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/01041",
-      "input_text": "kalenderdump for i dag",
+      "sample_id": "da-DK/00516",
+      "input_text": "læs sportsnyheder",
       "audio_url": null,
-      "reference": "calendar:list_events",
+      "reference": "news:read_topic",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "weather:weather_today",
-        "slots": {
-          "date": "i dag"
-        }
+        "intent": "communication:read_messages"
       },
       "competitor_a": "ovos-stock",
       "competitor_b": "trident",
@@ -2225,22 +2544,19 @@
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "0428dd00263110d0",
+      "battle_id": "00c1b605b0fe7eb8",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/00616",
-      "input_text": "buzz mig efter 15 minutter",
+      "sample_id": "da-DK/01296",
+      "input_text": "tørrertøjet øh hurtigt",
       "audio_url": null,
-      "reference": "timers_alarms:set_timer",
+      "reference": "weather:weather_humidity",
       "prediction_a": {
         "intent": null
       },
       "prediction_b": {
-        "intent": "timers_alarms:snooze_alarm",
-        "slots": {
-          "duration": "15 minutter"
-        }
+        "intent": "media:skip_track"
       },
       "competitor_a": "tmpl-slot-linhafina",
       "competitor_b": "trident",
@@ -2248,25 +2564,22 @@
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "02021df3e4f7fe4a",
+      "battle_id": "00249e3b36eca17b",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/00811",
-      "input_text": "tænd kameraet til mor",
+      "sample_id": "da-DK/00781",
+      "input_text": "hvad har jeg gået glip af i beskederne",
       "audio_url": null,
-      "reference": "communication:video_call",
+      "reference": "communication:read_messages",
       "prediction_a": {
-        "intent": null
+        "intent": "calendar:list_events"
       },
       "prediction_b": {
-        "intent": "smarthome:lights_on",
-        "slots": {
-          "room-lyset": "kameraet til mor"
-        }
+        "intent": null
       },
-      "competitor_a": "tmpl-slot-nebulento",
-      "competitor_b": "trident",
+      "competitor_a": "trident",
+      "competitor_b": "tmpl-slot-nebulento",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
     },
@@ -2426,6 +2739,26 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "0b1a7054dc0e4d87",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "da-DK",
+      "sample_id": "da-DK/01286",
+      "input_text": "hvor pænt er udenfor i altså dag",
+      "audio_url": null,
+      "reference": "weather:weather_today",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:weather_wind"
+      },
+      "competitor_a": "nebulacioso",
+      "competitor_b": "cascade-soft",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "00d9ddbc7f9f3299",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
@@ -2504,7 +2837,7 @@
       "audio_url": null,
       "reference": "communication:read_messages",
       "prediction_a": {
-        "intent": "news:read_headlines"
+        "intent": null
       },
       "prediction_b": {
         "intent": "timers_alarms:list_alarms"
@@ -2573,6 +2906,7 @@
       "prediction_a": {
         "intent": "search_qa:translate_phrase",
         "slots": {
+          "phrase": "tak",
           "target_language": "tysk"
         }
       },
@@ -2718,6 +3052,26 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "011ab73e65362c0d",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "da-DK",
+      "sample_id": "da-DK/01191",
+      "input_text": "giv mig en anden overskrift",
+      "audio_url": null,
+      "reference": "news:next_story",
+      "prediction_a": {
+        "intent": "search_qa:who_is"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulacioso",
+      "competitor_b": "frankenparse",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "054b63612cdc83f4",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
@@ -2781,16 +3135,16 @@
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "022a01dd71ce685d",
+      "battle_id": "01c9da4facd37727",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/01158",
-      "input_text": "jeg skal bruge en nyhedsbriefing",
+      "sample_id": "da-DK/01120",
+      "input_text": "skru monitoren op til 90",
       "audio_url": null,
-      "reference": "news:read_headlines",
+      "reference": "system_control:set_brightness_screen",
       "prediction_a": {
-        "intent": "weather:weather_today"
+        "intent": "media:set_volume"
       },
       "prediction_b": {
         "intent": null
@@ -2976,6 +3330,29 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "02a78a13092befd5",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "da-DK",
+      "sample_id": "da-DK/00306",
+      "input_text": "noget fra lars",
+      "audio_url": null,
+      "reference": "communication:read_messages",
+      "prediction_a": {
+        "intent": "communication:call_contact",
+        "slots": {
+          "contact": "lars"
+        }
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "nebulacioso",
+      "competitor_b": "kw-slot-palavreado",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "00dc4cc66262a7dd",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
@@ -3046,22 +3423,22 @@
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "00e71d4762ba2e5b",
+      "battle_id": "0196cef3b091aa9a",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/01082",
-      "input_text": "kan vi udskyde lægebesøget",
+      "sample_id": "da-DK/00922",
+      "input_text": "jeg skal bruge tak oversat",
       "audio_url": null,
-      "reference": "calendar:reschedule_event",
+      "reference": "search_qa:translate_phrase",
       "prediction_a": {
-        "intent": "communication:send_message"
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "tmpl-slot-jurebes",
-      "competitor_b": "kw-slot-palavreado",
+      "prediction_b": {
+        "intent": "weather:weather_today"
+      },
+      "competitor_a": "kw-slot-palavreado",
+      "competitor_b": "tmpl-slot-jurebes",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
     },
@@ -3109,25 +3486,22 @@
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "00f85bca55eeeec1",
+      "battle_id": "00d637e9e66ca29c",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/00944",
-      "input_text": "retskrivning af allestedsnærværende",
+      "sample_id": "da-DK/01269",
+      "input_text": "jeg skal bruge hva nyhedsbriefing",
       "audio_url": null,
-      "reference": "search_qa:spell_word",
+      "reference": "news:read_headlines",
       "prediction_a": {
-        "intent": "search_qa:define_word",
-        "slots": {
-          "word": "allestedsnærværende"
-        }
-      },
-      "prediction_b": {
         "intent": null
       },
-      "competitor_a": "trident",
-      "competitor_b": "kw-slot-palavreado",
+      "prediction_b": {
+        "intent": "weather:weather_today"
+      },
+      "competitor_a": "kw-slot-palavreado",
+      "competitor_b": "trident",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
     },
@@ -3221,6 +3595,29 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "027d9b09ccaedf78",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "da-DK",
+      "sample_id": "da-DK/00057",
+      "input_text": "læs dem fra lars for mig",
+      "audio_url": null,
+      "reference": "communication:read_messages",
+      "prediction_a": {
+        "intent": "news:read_topic",
+        "slots": {
+          "topic": "dem fra lars for mig"
+        }
+      },
+      "prediction_b": {
+        "intent": "timers_alarms:set_alarm"
+      },
+      "competitor_a": "m2v-first",
+      "competitor_b": "nebulacioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "0248470f9cd0c234",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
@@ -3291,25 +3688,22 @@
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "01894b26029e695c",
+      "battle_id": "01987fd1c0d50e09",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/01041",
-      "input_text": "kalenderdump for i dag",
+      "sample_id": "da-DK/00388",
+      "input_text": "ordbogsopslag for allestedsnærværende",
       "audio_url": null,
-      "reference": "calendar:list_events",
+      "reference": "search_qa:define_word",
       "prediction_a": {
-        "intent": null
+        "intent": "search_qa:spell_word"
       },
       "prediction_b": {
-        "intent": "weather:weather_today",
-        "slots": {
-          "date": "i dag"
-        }
+        "intent": null
       },
-      "competitor_a": "m2v-first",
-      "competitor_b": "tmpl-slot-jurebes",
+      "competitor_a": "tmpl-slot-jurebes",
+      "competitor_b": "m2v-first",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
     },
@@ -3451,6 +3845,29 @@
       "plugin_b": "ensemble"
     },
     {
+      "battle_id": "01e15631514cba48",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "da-DK",
+      "sample_id": "da-DK/00877",
+      "input_text": "kom så annullér den rute",
+      "audio_url": null,
+      "reference": "navigation:cancel_route",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "timers_alarms:cancel_timer",
+        "slots": {
+          "label": "te"
+        }
+      },
+      "competitor_a": "m2v-nebulento",
+      "competitor_b": "nebulacioso",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
       "battle_id": "25c634fe25a6edf4",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
@@ -3517,22 +3934,25 @@
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "075b86553ac97d88",
+      "battle_id": "02f649bb084d48e3",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/01163",
-      "input_text": "verdensnyheder tak",
+      "sample_id": "da-DK/01352",
+      "input_text": "fastsæt team møøde frexag",
       "audio_url": null,
-      "reference": "news:read_headlines",
+      "reference": "calendar:create_event",
       "prediction_a": {
-        "intent": null
+        "intent": "calendar:cancel_event",
+        "slots": {
+          "title": "team"
+        }
       },
       "prediction_b": {
-        "intent": "search_qa:translate_phrase"
+        "intent": null
       },
-      "competitor_a": "m2v-nebulento",
-      "competitor_b": "tmpl-slot-jurebes",
+      "competitor_a": "tmpl-slot-jurebes",
+      "competitor_b": "m2v-nebulento",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
     },
@@ -3577,16 +3997,19 @@
       "plugin_b": "ensemble"
     },
     {
-      "battle_id": "00d9b6ccbe85adcd",
+      "battle_id": "003ab01c70cbf3cb",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/00004",
-      "input_text": "kan du omplanlægge lægebesøg",
+      "sample_id": "da-DK/00412",
+      "input_text": "send jens et par linjer",
       "audio_url": null,
-      "reference": "calendar:reschedule_event",
+      "reference": "communication:send_message",
       "prediction_a": {
-        "intent": "calendar:cancel_event"
+        "intent": "communication:call_contact",
+        "slots": {
+          "contact": "jens"
+        }
       },
       "prediction_b": {
         "intent": null
@@ -3635,6 +4058,26 @@
       "competitor_b": "m2v-prototype",
       "plugin_a": "ensemble",
       "plugin_b": "ovos-m2v-prototype-pipeline"
+    },
+    {
+      "battle_id": "05f2aa142a6acb22",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "da-DK",
+      "sample_id": "da-DK/01059",
+      "input_text": "hvad står på programmet for mig",
+      "audio_url": null,
+      "reference": "calendar:next_event",
+      "prediction_a": {
+        "intent": "search_qa:translate_phrase"
+      },
+      "prediction_b": {
+        "intent": null
+      },
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "nebulacioso",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
     },
     {
       "battle_id": "024ddfa07efd7d2f",
@@ -3697,24 +4140,24 @@
       "plugin_b": "ovos-m2v-prototype-pipeline"
     },
     {
-      "battle_id": "01f20ba77f5bed03",
+      "battle_id": "07d3fadb295eb73a",
       "modality": "intent",
       "dataset_id": "intents-for-eval",
       "lang": "da-DK",
-      "sample_id": "da-DK/01244",
-      "input_text": "ja tak",
+      "sample_id": "da-DK/00860",
+      "input_text": "er der opstuvning lige nu",
       "audio_url": null,
-      "reference": null,
+      "reference": "navigation:traffic_status",
       "prediction_a": {
-        "intent": "search_qa:translate_phrase"
+        "intent": "weather:weather_wind"
       },
       "prediction_b": {
-        "intent": "navigation:eta_query"
+        "intent": null
       },
-      "competitor_a": "tmpl-slot-jurebes",
-      "competitor_b": "m2v-prototype",
-      "plugin_a": "ensemble",
-      "plugin_b": "ovos-m2v-prototype-pipeline"
+      "competitor_a": "m2v-prototype",
+      "competitor_b": "tmpl-slot-jurebes",
+      "plugin_a": "ovos-m2v-prototype-pipeline",
+      "plugin_b": "ensemble"
     },
     {
       "battle_id": "045ba7b611b493c7",
@@ -3766,7 +4209,7 @@
       "audio_url": null,
       "reference": null,
       "prediction_a": {
-        "intent": "search_qa:translate_phrase"
+        "intent": "media:pause_playback"
       },
       "prediction_b": {
         "intent": "navigation:eta_query"
@@ -3793,6 +4236,26 @@
       },
       "competitor_a": "m2v-prototype-nebulento",
       "competitor_b": "mycroft-classic",
+      "plugin_a": "ensemble",
+      "plugin_b": "ensemble"
+    },
+    {
+      "battle_id": "022e3595b947c1dc",
+      "modality": "intent",
+      "dataset_id": "intents-for-eval",
+      "lang": "da-DK",
+      "sample_id": "da-DK/00953",
+      "input_text": "giv mig dagens forhold",
+      "audio_url": null,
+      "reference": "weather:weather_today",
+      "prediction_a": {
+        "intent": null
+      },
+      "prediction_b": {
+        "intent": "weather:weather_forecast"
+      },
+      "competitor_a": "m2v-prototype-nebulento",
+      "competitor_b": "nebulacioso",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
     },
@@ -3853,484 +4316,6 @@
       },
       "competitor_a": "ovos-stock",
       "competitor_b": "m2v-prototype-nebulento",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "037609f53aa4ad65",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "da-DK",
-      "sample_id": "da-DK/01029",
-      "input_text": "noget på programmet",
-      "audio_url": null,
-      "reference": "calendar:list_events",
-      "prediction_a": {
-        "intent": "media:play_song"
-      },
-      "prediction_b": {
-        "intent": "news:read_topic"
-      },
-      "competitor_a": "tmpl-slot-jurebes",
-      "competitor_b": "m2v-prototype-nebulento",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "041898daeb0b3144",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "da-DK",
-      "sample_id": "da-DK/00726",
-      "input_text": "bring soveværelset til 20 procent",
-      "audio_url": null,
-      "reference": "smarthome:set_brightness_light",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "media:set_volume"
-      },
-      "competitor_a": "m2v-prototype-nebulento",
-      "competitor_b": "tmpl-slot-linhafina",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "036f02b0372507b8",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "da-DK",
-      "sample_id": "da-DK/01098",
-      "input_text": "maskine slukket",
-      "audio_url": null,
-      "reference": "system_control:shutdown",
-      "prediction_a": {
-        "intent": "smarthome:lights_off"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "m2v-prototype-nebulento",
-      "competitor_b": "tmpl-slot-nebulento",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "029ff4609b2d82ba",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "da-DK",
-      "sample_id": "da-DK/01131",
-      "input_text": "skru volumen ned til nul",
-      "audio_url": null,
-      "reference": "system_control:mute_system",
-      "prediction_a": {
-        "intent": "smarthome:set_thermostat"
-      },
-      "prediction_b": {
-        "intent": "media:set_volume"
-      },
-      "competitor_a": "m2v-prototype-nebulento",
-      "competitor_b": "trident",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "0408ece237c2918b",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "da-DK",
-      "sample_id": "da-DK/00659",
-      "input_text": "giv mig et hurtigt overblik over mine alarmer",
-      "audio_url": null,
-      "reference": "timers_alarms:list_alarms",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "communication:call_contact",
-        "slots": {
-          "contact": "et hurtigt overblik over mine alarmer"
-        }
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "mycroft-classic",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "0b2dcd5053bfc316",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "da-DK",
-      "sample_id": "da-DK/01272",
-      "input_text": "retskrivningaf allestedsnærværende",
-      "audio_url": null,
-      "reference": "search_qa:spell_word",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "search_qa:define_word",
-        "slots": {
-          "word": "allestedsnærværende"
-        }
-      },
-      "competitor_a": "mycroft-classic",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "07a2e90280fd9c90",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "da-DK",
-      "sample_id": "da-DK/00597",
-      "input_text": "skub lydstyrken til 60",
-      "audio_url": null,
-      "reference": "media:set_volume",
-      "prediction_a": {
-        "intent": "calendar:reschedule_event",
-        "slots": {
-          "title": "lydstyrken",
-          "date": "60"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "mycroft-classic",
-      "competitor_b": "ovos-stock",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "01b73ce5af921815",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "da-DK",
-      "sample_id": "da-DK/00697",
-      "input_text": "kunne du lyse soveværelset op",
-      "audio_url": null,
-      "reference": "smarthome:lights_on",
-      "prediction_a": {
-        "intent": "media:set_volume"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "tmpl-slot-jurebes",
-      "competitor_b": "mycroft-classic",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "0128913ccda55516",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "da-DK",
-      "sample_id": "da-DK/00870",
-      "input_text": "glem anvisningerne",
-      "audio_url": null,
-      "reference": "navigation:cancel_route",
-      "prediction_a": {
-        "intent": "calendar:cancel_event",
-        "slots": {
-          "title": "anvisningerne"
-        }
-      },
-      "prediction_b": {
-        "intent": "calendar:cancel_event"
-      },
-      "competitor_a": "mycroft-classic",
-      "competitor_b": "tmpl-slot-linhafina",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "018ad979c03e5620",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "da-DK",
-      "sample_id": "da-DK/01157",
-      "input_text": "giv mig et resumé af dagens historier",
-      "audio_url": null,
-      "reference": "news:read_headlines",
-      "prediction_a": {
-        "intent": "communication:call_contact",
-        "slots": {
-          "contact": "et resumé af dagens historier"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "mycroft-classic",
-      "competitor_b": "tmpl-slot-nebulento",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "036c017aec2fe75c",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "da-DK",
-      "sample_id": "da-DK/00673",
-      "input_text": "hold alarmen lidt",
-      "audio_url": null,
-      "reference": "timers_alarms:snooze_alarm",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "timers_alarms:list_alarms"
-      },
-      "competitor_a": "mycroft-classic",
-      "competitor_b": "trident",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "00e19bb590c73d7a",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "da-DK",
-      "sample_id": "da-DK/00121",
-      "input_text": "læs den næste historie",
-      "audio_url": null,
-      "reference": "news:next_story",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "news:read_topic",
-        "slots": {
-          "topic": "den næste historie"
-        }
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "092f1f23af303c74",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "da-DK",
-      "sample_id": "da-DK/00222",
-      "input_text": "kan du sætte termostaten til 20",
-      "audio_url": null,
-      "reference": "smarthome:set_thermostat",
-      "prediction_a": {
-        "intent": "media:set_volume",
-        "slots": {
-          "level": "20"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "ovos-stock",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "03d8e1825e6dfd7d",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "da-DK",
-      "sample_id": "da-DK/01334",
-      "input_text": "er ddeT shorts-vejr",
-      "audio_url": null,
-      "reference": "weather:weather_today",
-      "prediction_a": {
-        "intent": "news:read_topic"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "tmpl-slot-jurebes",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "005732f68cffdad3",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "da-DK",
-      "sample_id": "da-DK/00196",
-      "input_text": "streg middag med anna ud",
-      "audio_url": null,
-      "reference": "calendar:cancel_event",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "calendar:reschedule_event",
-        "slots": {
-          "title": "middag med anna",
-          "time": "middag"
-        }
-      },
-      "competitor_a": "tmpl-slot-linhafina",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "03d0861e3e35991f",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "da-DK",
-      "sample_id": "da-DK/00456",
-      "input_text": "bbc nyheder tak",
-      "audio_url": null,
-      "reference": "news:news_source",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "news:read_headlines"
-      },
-      "competitor_a": "tmpl-slot-nebulento",
-      "competitor_b": "nebulapt",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "01e6e1669551b35a",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "da-DK",
-      "sample_id": "da-DK/00853",
-      "input_text": "supermarkedet om hvor mange minutter",
-      "audio_url": null,
-      "reference": "navigation:eta_query",
-      "prediction_a": {
-        "intent": null
-      },
-      "prediction_b": {
-        "intent": "timers_alarms:set_timer",
-        "slots": {
-          "label": "te"
-        }
-      },
-      "competitor_a": "nebulapt",
-      "competitor_b": "trident",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "02044d38fe09424a",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "da-DK",
-      "sample_id": "da-DK/00606",
-      "input_text": "smid den væk og sæt den næste på",
-      "audio_url": null,
-      "reference": "media:skip_track",
-      "prediction_a": {
-        "intent": "timers_alarms:cancel_timer",
-        "slots": {
-          "label-timeren": "den væk og sæt den næste på"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulatious",
-      "competitor_b": "ovos-stock",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "01df2d2879c333e1",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "da-DK",
-      "sample_id": "da-DK/01063",
-      "input_text": "hvad kommer der dernæst i køen",
-      "audio_url": null,
-      "reference": "calendar:next_event",
-      "prediction_a": {
-        "intent": "news:next_story"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "tmpl-slot-jurebes",
-      "competitor_b": "nebulatious",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "040de38c8de25c66",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "da-DK",
-      "sample_id": "da-DK/00456",
-      "input_text": "bbc nyheder tak",
-      "audio_url": null,
-      "reference": "news:news_source",
-      "prediction_a": {
-        "intent": "news:read_topic",
-        "slots": {
-          "topic": "bbc"
-        }
-      },
-      "prediction_b": {
-        "intent": "news:read_headlines"
-      },
-      "competitor_a": "nebulatious",
-      "competitor_b": "tmpl-slot-linhafina",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "03c5a1ca651d101a",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "da-DK",
-      "sample_id": "da-DK/01064",
-      "input_text": "giv mig det næste punkt på planen",
-      "audio_url": null,
-      "reference": "calendar:next_event",
-      "prediction_a": {
-        "intent": "communication:call_contact",
-        "slots": {
-          "contact": "det næste punkt på planen"
-        }
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "nebulatious",
-      "competitor_b": "tmpl-slot-nebulento",
-      "plugin_a": "ensemble",
-      "plugin_b": "ensemble"
-    },
-    {
-      "battle_id": "040348f13598488d",
-      "modality": "intent",
-      "dataset_id": "intents-for-eval",
-      "lang": "da-DK",
-      "sample_id": "da-DK/01270",
-      "input_text": "lad osgenstarte hele",
-      "audio_url": null,
-      "reference": "system_control:restart",
-      "prediction_a": {
-        "intent": "system_control:shutdown"
-      },
-      "prediction_b": {
-        "intent": null
-      },
-      "competitor_a": "trident",
-      "competitor_b": "nebulatious",
       "plugin_a": "ensemble",
       "plugin_b": "ensemble"
     }

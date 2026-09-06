@@ -2,7 +2,7 @@
   "modality": "stt",
   "dataset_id": "mls-de-DE",
   "lang": "de-DE",
-  "generated_at": "2026-09-06T07:39:17.080591+00:00",
+  "generated_at": "2026-09-06T19:37:48.644115+00:00",
   "primary_metric": "wer_mean",
   "dataset_info": {
     "display_name": "Multilingual LibriSpeech (German)",
@@ -21,39 +21,73 @@
   "wer_normalizer_version": 1,
   "entries": [
     {
-      "rank": 0,
-      "competitor_id": "fasterwhisper-base-de",
-      "plugin_id": "ovos-stt-plugin-fasterwhisper",
-      "samples": 20,
+      "rank": 1,
+      "competitor_id": "onnx-asr-conformer-transducer-de",
+      "plugin_id": "ovos-stt-plugin-onnx-asr",
+      "samples": 30,
       "metrics": {
-        "wer_mean": 0.2583,
-        "wer_median": 0.2327,
-        "latency_ms_median": 1599.91
+        "wer_mean": 0.0566,
+        "wer_median": 0.049,
+        "latency_ms_median": 2224.64
       },
-      "primary_metric_ci_lower": 0.20917177858603409,
-      "primary_metric_ci_upper": 0.296855963215637,
-      "tied_with_leader": false,
+      "primary_metric_ci_lower": 0.03530444964871195,
+      "primary_metric_ci_upper": 0.072803334910123,
+      "tied_with_leader": true,
       "plugin_versions": [
-        "ovos-stt-plugin-fasterwhisper==0.4.1a6"
+        "ovos-stt-plugin-onnx-asr==0.4.2a2",
+        "ovos-stt-plugin-onnx-asr==0.6.0a1"
       ],
-      "version_blended": false,
-      "unranked": true,
-      "unranked_reason": "sample_set_partial — covers 1% of the published manifest",
+      "version_blended": true,
+      "unranked": false,
+      "unranked_reason": null,
       "perf": {
         "gpu": {
-          "rtf": 0.1128,
-          "rtf_n": 20.0,
-          "peak_rss_mb": 2069.45,
+          "rtf": 0.1554,
+          "rtf_n": 30.0,
+          "peak_rss_mb": 2755.42,
           "peak_rss_mb_n": 20.0
         }
       },
-      "model_mb": null,
-      "sample_set": "manifest",
-      "sample_set_coverage": 0.01,
+      "model_mb": 615.69,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
       "rows_other_revision": 0
     },
     {
-      "rank": 0,
+      "rank": 2,
+      "competitor_id": "onnx-asr-nvidia-de-conformer-ctc-large",
+      "plugin_id": "ovos-stt-plugin-onnx-asr",
+      "samples": 30,
+      "metrics": {
+        "wer_mean": 0.0974,
+        "wer_median": 0.0723,
+        "latency_ms_median": 1600.31
+      },
+      "primary_metric_ci_lower": 0.0646435581440247,
+      "primary_metric_ci_upper": 0.12797667645741026,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-stt-plugin-onnx-asr==0.4.2a2",
+        "ovos-stt-plugin-onnx-asr==0.6.0a1"
+      ],
+      "version_blended": true,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": {
+        "gpu": {
+          "rtf": 0.1121,
+          "rtf_n": 30.0,
+          "peak_rss_mb": 2790.95,
+          "peak_rss_mb_n": 20.0
+        }
+      },
+      "model_mb": 620.83,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 3,
       "competitor_id": "onnx-asr-citrinet-512-de",
       "plugin_id": "ovos-stt-plugin-onnx-asr",
       "samples": 30,
@@ -70,8 +104,8 @@
         "ovos-stt-plugin-onnx-asr==0.6.0a1"
       ],
       "version_blended": true,
-      "unranked": true,
-      "unranked_reason": "sample_set_partial — covers 2% of the published manifest",
+      "unranked": false,
+      "unranked_reason": null,
       "perf": {
         "gpu": {
           "rtf": 0.0634,
@@ -81,78 +115,76 @@
         }
       },
       "model_mb": 137.58,
-      "sample_set": "manifest",
-      "sample_set_coverage": 0.015,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
       "rows_other_revision": 0
     },
     {
-      "rank": 0,
-      "competitor_id": "onnx-asr-conformer-transducer-de",
-      "plugin_id": "ovos-stt-plugin-onnx-asr",
-      "samples": 30,
+      "rank": 4,
+      "competitor_id": "fasterwhisper-base-de",
+      "plugin_id": "ovos-stt-plugin-fasterwhisper",
+      "samples": 20,
       "metrics": {
-        "wer_mean": 0.0566,
-        "wer_median": 0.049,
-        "latency_ms_median": 2224.64
+        "wer_mean": 0.2583,
+        "wer_median": 0.2327,
+        "latency_ms_median": 1599.91
       },
-      "primary_metric_ci_lower": 0.03530444964871195,
-      "primary_metric_ci_upper": 0.072803334910123,
+      "primary_metric_ci_lower": 0.20917177858603409,
+      "primary_metric_ci_upper": 0.296855963215637,
       "tied_with_leader": false,
       "plugin_versions": [
-        "ovos-stt-plugin-onnx-asr==0.4.2a2",
-        "ovos-stt-plugin-onnx-asr==0.6.0a1"
+        "ovos-stt-plugin-fasterwhisper==0.4.1a6"
       ],
-      "version_blended": true,
-      "unranked": true,
-      "unranked_reason": "sample_set_partial — covers 2% of the published manifest",
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
       "perf": {
         "gpu": {
-          "rtf": 0.1554,
-          "rtf_n": 30.0,
-          "peak_rss_mb": 2755.42,
+          "rtf": 0.1128,
+          "rtf_n": 20.0,
+          "peak_rss_mb": 2069.45,
           "peak_rss_mb_n": 20.0
         }
       },
-      "model_mb": 615.69,
-      "sample_set": "manifest",
-      "sample_set_coverage": 0.015,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
       "rows_other_revision": 0
     },
     {
-      "rank": 0,
-      "competitor_id": "onnx-asr-nvidia-de-conformer-ctc-large",
-      "plugin_id": "ovos-stt-plugin-onnx-asr",
+      "rank": 5,
+      "competitor_id": "vosk-small-de",
+      "plugin_id": "ovos-stt-plugin-vosk",
       "samples": 30,
       "metrics": {
-        "wer_mean": 0.0974,
-        "wer_median": 0.0723,
-        "latency_ms_median": 1600.31
+        "wer_mean": 0.4106,
+        "wer_median": 0.4073,
+        "latency_ms_median": 786.54
       },
-      "primary_metric_ci_lower": 0.0646435581440247,
-      "primary_metric_ci_upper": 0.12797667645741026,
+      "primary_metric_ci_lower": 0.3430998140781736,
+      "primary_metric_ci_upper": 0.4462804466919511,
       "tied_with_leader": false,
       "plugin_versions": [
-        "ovos-stt-plugin-onnx-asr==0.4.2a2",
-        "ovos-stt-plugin-onnx-asr==0.6.0a1"
+        "ovos-stt-plugin-vosk==0.2.8a2"
       ],
-      "version_blended": true,
-      "unranked": true,
-      "unranked_reason": "sample_set_partial — covers 2% of the published manifest",
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
       "perf": {
         "gpu": {
-          "rtf": 0.1121,
+          "rtf": 0.0546,
           "rtf_n": 30.0,
-          "peak_rss_mb": 2790.95,
+          "peak_rss_mb": 2193.52,
           "peak_rss_mb_n": 20.0
         }
       },
-      "model_mb": 620.83,
-      "sample_set": "manifest",
-      "sample_set_coverage": 0.015,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
       "rows_other_revision": 0
     },
     {
-      "rank": 0,
+      "rank": 6,
       "competitor_id": "onnx-asr-wav2vec2-base-10k-voxpopuli-ft-de",
       "plugin_id": "ovos-stt-plugin-onnx-asr",
       "samples": 30,
@@ -169,8 +201,8 @@
         "ovos-stt-plugin-onnx-asr==0.6.0a1"
       ],
       "version_blended": true,
-      "unranked": true,
-      "unranked_reason": "sample_set_partial — covers 2% of the published manifest",
+      "unranked": false,
+      "unranked_reason": null,
       "perf": {
         "gpu": {
           "rtf": 0.0839,
@@ -180,45 +212,13 @@
         }
       },
       "model_mb": 361.76,
-      "sample_set": "manifest",
-      "sample_set_coverage": 0.015,
-      "rows_other_revision": 0
-    },
-    {
-      "rank": 0,
-      "competitor_id": "vosk-small-de",
-      "plugin_id": "ovos-stt-plugin-vosk",
-      "samples": 30,
-      "metrics": {
-        "wer_mean": 0.4106,
-        "wer_median": 0.4073,
-        "latency_ms_median": 786.54
-      },
-      "primary_metric_ci_lower": 0.3430998140781736,
-      "primary_metric_ci_upper": 0.4462804466919511,
-      "tied_with_leader": false,
-      "plugin_versions": [
-        "ovos-stt-plugin-vosk==0.2.8a2"
-      ],
-      "version_blended": false,
-      "unranked": true,
-      "unranked_reason": "sample_set_partial — covers 2% of the published manifest",
-      "perf": {
-        "gpu": {
-          "rtf": 0.0546,
-          "rtf_n": 30.0,
-          "peak_rss_mb": 2193.52,
-          "peak_rss_mb_n": 20.0
-        }
-      },
-      "model_mb": null,
-      "sample_set": "manifest",
-      "sample_set_coverage": 0.015,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
       "rows_other_revision": 0
     }
   ],
-  "entries_hash": "6bb862acbba5d1d5682eb857e33f2a02baa27f84a1729cb6aa42082e8bf3cdd1",
-  "input_hash": "6b5e8192e9f36d9f8a16c55c81df8ae251585dfb710bea179a6a3d0983dcd128",
+  "entries_hash": "31c404c4184aedccaa03432bef7b07c831876b9a6054677d3af0df23475163a6",
+  "input_hash": "9234c1bf6d5e8e367f1f2444fabea18d49a34649aba5d4d98ffe2e2dae179b87",
   "judge_agreement": null,
   "intelligibility_judges": [],
   "intelligibility_judge_mismatched_pairs": 0,

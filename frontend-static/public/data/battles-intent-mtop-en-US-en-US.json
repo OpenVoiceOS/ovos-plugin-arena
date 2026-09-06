@@ -2,8 +2,10 @@
   "modality": "intent",
   "dataset_id": "mtop-en-US",
   "lang": "en-US",
-  "generated_at": "2026-09-06T13:23:17.026046+00:00",
+  "generated_at": "2026-09-06T19:37:32.003436+00:00",
   "dataset_info": {
+    "display_name": "MTOP (English)",
+    "summary": "Task-oriented assistant requests in English from the MTOP benchmark, spanning domains such as messaging, alarms, music and reminders. One row is a written request with the domain and intent it belongs to, normalised into the arena's 'domain:intent' label shape before scoring. The corpus was collected by asking annotators to phrase requests for a virtual assistant, so phrasings are natural but the domain mix is narrower than a real assistant's traffic.",
     "url": "https://huggingface.co/datasets/tasksource/mtop",
     "license": "cc-by-sa-4.0",
     "notes": "MTOP (Li et al. 2020) — multilingual task-oriented semantic parsing benchmark, en-US slice. Registered against tasksource/mtop (the public HF mirror; facebook/flores-style gated mirrors were avoided — this one is ungated). The source ships one 'mtop' config with every language's rows concatenated and a 'lang' column ('en_XX' here) instead of a per-language config/split, so this entry filters on source.lang_field='lang'/lang_value='en_XX'. MTOP's own 'intent' column is prefixed with a generic parser tag rather than the real domain (e.g. 'IN:SEND_MESSAGE'); the arena's label convention is 'domain:intent' (see intents-for-eval), so reference_fields maps a 'domain' column too and the runner normalizes both into 'messaging:send_message' via normalize_hierarchical_label() before scoring. mteb/mtop_intent was considered as a fallback but ships a deprecated loading script the datasets library can no longer execute, so it was not used. tasksource/mtop ships a legacy Python loading script under its default 'mtop' config name, which the current `datasets` library refuses to execute ('Dataset scripts are no longer supported') — registered against HF's auto-generated parquet conversion instead (revision='refs/convert/parquet', builder config 'default'), the same escape hatch used elsewhere in this registry for legacy-script sources.",

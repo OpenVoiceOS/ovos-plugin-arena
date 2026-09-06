@@ -2,8 +2,10 @@
   "modality": "stt",
   "dataset_id": "edacc-en-GB",
   "lang": "en-GB",
-  "generated_at": "2026-09-04T07:43:08.252280+00:00",
+  "generated_at": "2026-09-06T19:37:48.644115+00:00",
   "dataset_info": {
+    "display_name": "EdAcc accented English",
+    "summary": "Recorded video conversations between pairs of English speakers, covering 25 accent categories and 29 first-language backgrounds; the test split holds 929 rows. One row is a stretch of conversational speech with its transcript. Despite the en-GB tag this is not a British-accent set — most speakers are non-native or non-UK English speakers — so it measures robustness to accent diversity in general.",
     "url": "https://huggingface.co/datasets/edinburghcstr/edacc",
     "license": "cc-by-sa-4.0",
     "notes": "Edinburgh International Accents of English Corpus (EdAcc) test split, 929 rows — accent-stress eval: dyadic Zoom conversations spanning 25 accent categories and 29 L1 backgrounds (top: Scottish English, Mainstream US English, Spanish-L1, Catalan-L1, Eastern European, Chinese). Tagged en-GB as the closest defensible BCP-47 code (UK-institution corpus, Edinburgh-collected, largest single accent bucket is Scottish English) — it is NOT a British-only accent set, most speakers are non-native or non-UK English speakers; per-row `accent`/`raw_accent`/`l1` columns exist in the source but this registry entry does not filter on them, so scores here measure robustness to accent diversity broadly, not specifically UK English. See PR notes. ~2% of rows (16/929 in the sampled shard) carry the STM out-of-bounds sentinel reference 'IGNORE_TIME_SEGMENT_IN_SCORING' instead of real transcript text; runner/stt_bench.py's STTBench.iter_samples filters these out (see _SENTINEL_REFERENCES) so they never enter a fighter's WER numerator/denominator. Other short/all-caps values in the corpus (YEAH, MM HMM, <OVERLAP>, <LAUGH>, ...) are genuine transcribed content/annotations, not sentinels, and are left unfiltered.",

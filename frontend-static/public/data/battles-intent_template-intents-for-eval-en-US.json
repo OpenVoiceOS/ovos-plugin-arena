@@ -2,8 +2,10 @@
   "modality": "intent_template",
   "dataset_id": "intents-for-eval",
   "lang": "en-US",
-  "generated_at": "2026-09-06T14:05:58.481453+00:00",
+  "generated_at": "2026-09-06T19:37:44.716888+00:00",
   "dataset_info": {
+    "display_name": "OVOS intents for eval (12 languages)",
+    "summary": "The arena's own paradigm-neutral intent benchmark: 50 assistant intents with slot annotations, between 1,354 and 1,384 test rows per language across 12 languages. One row is an utterance, its intent and its slots, tagged with the kind of challenge it poses — a held-out template, a free paraphrase, a typo, transcription noise, or an out-of-scope request that expects silence. Templates are split before expansion, so a test row is never an expansion of a template a fighter trained on.",
     "url": "https://huggingface.co/datasets/OpenVoiceOS/intents-for-eval",
     "license": "apache-2.0",
     "notes": "OVOS canonical paradigm-neutral intent benchmark: 50 intents, between 1,354 and 1,384 test rows per language (rows failing the train/test separation rule are dropped, not replaced) across template / paraphrase / in_distribution / far_ood / asr_noise / typos buckets, with slot annotations. far_ood rows carry expected_intent=null — the correct behaviour is no match. Train and test are separated at the template level: train_templates.jsonl holds an 80% per-intent sample of phrase templates, and the template bucket here is built only from the held-out 20%.",
@@ -1349,27 +1351,28 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "036d82062e5a611b",
+      "battle_id": "4c21f4e4fb14f750",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
-      "sample_id": "en-US/01083",
-      "input_text": "what's first in line on my calendar",
+      "sample_id": "en-US/01241",
+      "input_text": "how are you doing today",
       "audio_url": null,
-      "reference": "calendar:next_event",
+      "reference": null,
       "prediction_a": {
-        "intent": "search_qa:factual_query",
+        "intent": "search_qa:translate_phrase",
         "slots": {
-          "query": "first in line on my calendar"
+          "phrase": "are you",
+          "date": "today"
         }
       },
       "prediction_b": {
         "intent": null
       },
-      "competitor_a": "padacioso-medium",
-      "competitor_b": "jurebes-autoencoder-linear-svc",
-      "plugin_a": "ovos-padacioso-pipeline-plugin",
-      "plugin_b": "ovos-jurebes-pipeline-plugin"
+      "competitor_a": "jurebes-autoencoder-linear-svc",
+      "competitor_b": "padacioso-medium",
+      "plugin_a": "ovos-jurebes-pipeline-plugin",
+      "plugin_b": "ovos-padacioso-pipeline-plugin"
     },
     {
       "battle_id": "002296971481a5b2",
@@ -2712,21 +2715,24 @@
       "plugin_b": "ovos-jurebes-pipeline-plugin"
     },
     {
-      "battle_id": "01cd2aa6a2faac66",
+      "battle_id": "d5f890ab908a183c",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
-      "sample_id": "en-US/01109",
-      "input_text": "drop the system",
+      "sample_id": "en-US/00500",
+      "input_text": "delete the team meeting from my calendar",
       "audio_url": null,
-      "reference": "system_control:shutdown",
+      "reference": "calendar:cancel_event",
       "prediction_a": {
-        "intent": null
+        "intent": "calendar:cancel_event",
+        "slots": {
+          "title": "team meeting"
+        }
       },
       "prediction_b": {
         "intent": "calendar:cancel_event",
         "slots": {
-          "title": "the system"
+          "title": "the team meeting"
         }
       },
       "competitor_a": "jurebes-autoencoder-logreg",
@@ -4063,21 +4069,24 @@
       "plugin_b": "ovos-nebulento-pipeline-plugin"
     },
     {
-      "battle_id": "035220d9eb56eaba",
+      "battle_id": "7b00ddd11b4c2890",
       "modality": "intent_template",
       "dataset_id": "intents-for-eval",
       "lang": "en-US",
-      "sample_id": "en-US/00071",
-      "input_text": "skip this story",
+      "sample_id": "en-US/00500",
+      "input_text": "delete the team meeting from my calendar",
       "audio_url": null,
-      "reference": "news:next_story",
+      "reference": "calendar:cancel_event",
       "prediction_a": {
-        "intent": "media:skip_track"
+        "intent": "calendar:cancel_event",
+        "slots": {
+          "title": "team meeting"
+        }
       },
       "prediction_b": {
-        "intent": "media:skip_track",
+        "intent": "calendar:cancel_event",
         "slots": {
-          "count": "this story"
+          "title": "the team meeting"
         }
       },
       "competitor_a": "jurebes-autoencoder-logreg-deep",

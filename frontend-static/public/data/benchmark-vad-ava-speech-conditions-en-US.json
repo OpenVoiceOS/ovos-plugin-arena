@@ -1,0 +1,219 @@
+{
+  "modality": "vad",
+  "dataset_id": "ava-speech-conditions",
+  "lang": "en-US",
+  "generated_at": "2026-09-06T19:37:30.230453+00:00",
+  "primary_metric": "error_rate",
+  "dataset_info": {
+    "display_name": "AVA-Speech film audio (English)",
+    "summary": "Audio from theatrical films, hand-labelled for when a human is speaking, with music, crowd noise and sound effects running underneath. One row is a fixed-length window cut from that timeline and labelled speech or not-speech. The soundtrack swells and crowd murmurs under the dialogue are the kind of audio that provokes a detector into reporting speech where there is none.",
+    "url": "https://huggingface.co/datasets/nccratliri/vad-human-ava-speech",
+    "license": "apache-2.0",
+    "notes": "AVA-Speech (frame-labelled Hollywood-movie audio) via the nccratliri/vad-human-ava-speech mirror — paired <clip>.wav / <clip>.json files under 'test/' and 'train/', each json giving parallel onset/offset arrays for human-speech segments across a multi-minute clip. Registered against the 'test' split (2 clips) as the smaller of the two. The clips are English-language theatrical films with mixed background music/noise/crowd audio; the mirror carries no per-clip language metadata and lang is genuinely mixed/incidental to the task (this is a VAD false-accept stress test on real cinematic audio, not a speech corpus), so lang is set to the dominant production language en-US rather than 'multi' per the fallback in the integration brief. This mirror already reduces AVA-Speech's four-way condition taxonomy (clean speech / speech+music / speech+noise / no-speech) to a binary human_SPEECH timeline -- the three speech conditions are exactly what a human_SPEECH onset covers, no-speech is everything else -- so reference_fields.format='ava-onset-offset' just flags runner.audio_io._stream_ava_speech to slice fixed-length speech/non_speech windows out of the onset/offset timeline (see that function's docstring); no further label mapping needed. A clip with zero AVA_SPEECH onsets is unlisted here since the 'human_' filename prefix implies the corpus only ships clips with human-attributed speech, but the adapter still yields non_speech windows from the silent gaps around and between segments.",
+    "predictions": [
+      "https://huggingface.co/datasets/OpenVoiceOS/ovos-vad-bench-ava-speech-conditions"
+    ]
+  },
+  "dataset_revision": null,
+  "predictions_revisions": {
+    "OpenVoiceOS/ovos-vad-bench-ava-speech-conditions": "032c2b254d9a977a04003de81495148daa3f2ba1"
+  },
+  "wer_normalizer_version": null,
+  "entries": [
+    {
+      "rank": 1,
+      "competitor_id": "silero-vad-thr07",
+      "plugin_id": "ovos-vad-plugin-silero",
+      "samples": 57,
+      "metrics": {
+        "error_rate": 0.1053,
+        "accuracy": 0.8947,
+        "false_accept_rate": 0.1579,
+        "false_reject_rate": 0.0789,
+        "latency_ms_median": 3.85
+      },
+      "primary_metric_ci_lower": 0.03508771929824561,
+      "primary_metric_ci_upper": 0.19298245614035087,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-vad-plugin-silero==0.1.3a2"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 2,
+      "competitor_id": "silero-vad",
+      "plugin_id": "ovos-vad-plugin-silero",
+      "samples": 57,
+      "metrics": {
+        "error_rate": 0.1228,
+        "accuracy": 0.8772,
+        "false_accept_rate": 0.3158,
+        "false_reject_rate": 0.0263,
+        "latency_ms_median": 1.99
+      },
+      "primary_metric_ci_lower": 0.05263157894736842,
+      "primary_metric_ci_upper": 0.21052631578947367,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-vad-plugin-silero==0.1.3a2"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 3,
+      "competitor_id": "silero-vad-thr03",
+      "plugin_id": "ovos-vad-plugin-silero",
+      "samples": 57,
+      "metrics": {
+        "error_rate": 0.2456,
+        "accuracy": 0.7544,
+        "false_accept_rate": 0.6842,
+        "false_reject_rate": 0.0263,
+        "latency_ms_median": 1.36
+      },
+      "primary_metric_ci_lower": 0.14035087719298245,
+      "primary_metric_ci_upper": 0.3684210526315789,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-vad-plugin-silero==0.1.3a2"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 4,
+      "competitor_id": "webrtcvad",
+      "plugin_id": "ovos-vad-plugin-webrtcvad",
+      "samples": 57,
+      "metrics": {
+        "error_rate": 0.2982,
+        "accuracy": 0.7018,
+        "false_accept_rate": 0.8947,
+        "false_reject_rate": 0.0,
+        "latency_ms_median": 0.05
+      },
+      "primary_metric_ci_lower": 0.19298245614035087,
+      "primary_metric_ci_upper": 0.4390350877192978,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-vad-plugin-webrtcvad==0.0.3a4"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 5,
+      "competitor_id": "noise-vad-strict",
+      "plugin_id": "ovos-vad-plugin-noise",
+      "samples": 57,
+      "metrics": {
+        "error_rate": 0.3333,
+        "accuracy": 0.6667,
+        "false_accept_rate": 1.0,
+        "false_reject_rate": 0.0,
+        "latency_ms_median": 0.03
+      },
+      "primary_metric_ci_lower": 0.21052631578947367,
+      "primary_metric_ci_upper": 0.47412280701754345,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-vad-plugin-noise==0.1.3a7"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 6,
+      "competitor_id": "noise-vad",
+      "plugin_id": "ovos-vad-plugin-noise",
+      "samples": 57,
+      "metrics": {
+        "error_rate": 0.3333,
+        "accuracy": 0.6667,
+        "false_accept_rate": 1.0,
+        "false_reject_rate": 0.0,
+        "latency_ms_median": 0.03
+      },
+      "primary_metric_ci_lower": 0.21052631578947367,
+      "primary_metric_ci_upper": 0.47412280701754345,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-vad-plugin-noise==0.1.3a7"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 7,
+      "competitor_id": "webrtcvad-mode1",
+      "plugin_id": "ovos-vad-plugin-webrtcvad",
+      "samples": 57,
+      "metrics": {
+        "error_rate": 0.3333,
+        "accuracy": 0.6667,
+        "false_accept_rate": 1.0,
+        "false_reject_rate": 0.0,
+        "latency_ms_median": 0.06
+      },
+      "primary_metric_ci_lower": 0.21052631578947367,
+      "primary_metric_ci_upper": 0.47412280701754345,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-vad-plugin-webrtcvad==0.0.3a4"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": null,
+      "model_mb": null,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    }
+  ],
+  "entries_hash": "730002aa1673e5cc8b0999d4d11cdc67f5d76232cd0a875b3d7f93499d5003fc",
+  "input_hash": "5cad9f8949c7969f47ee8ddf4eb053bf60ba06e604fa773c5895de6d2a083301",
+  "judge_agreement": null,
+  "intelligibility_judges": [],
+  "intelligibility_judge_mismatched_pairs": 0,
+  "warnings": []
+}
