@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-06T08:02:04.192019+00:00",
+  "generated_at": "2026-09-06T14:46:43.567056+00:00",
   "competitors": [
     {
       "competitor_id": "cascade-soft",
@@ -49,8 +49,57 @@
         "source": "https://github.com/OpenVoiceOS/linha-fina"
       },
       "notes": "HYPOTHESIS: unlike trident (three-tier but engines picked for architectural distinctness), cascade-soft is picked for a deliberately monotonic 'strictness' gradient — trained classifier (least tolerant of paraphrase, most precise) -> rigid-but-vocab-flexible keyword bag -> fuzzy matcher (most tolerant of ASR noise/typos, least precise) — to test whether ordering engines by how loosely they match, not just by paradigm, is itself a useful axis distinct from trident's paradigm-diversity axis. Linha-Fina is a template-paradigm statistical classifier (see ENGINE_REGISTRY: 'linha_fina.opm:LinhaFinaPipeline', paradigm='template') distinct from both Jurebes (sklearn baseline family) and Padatious (neural+exact-gate), so this fighter and trident do not test the same top stage. exact_match not applicable to linha-fina/palavreado/nebulento (jurebes-only config key, verified absent from linha_fina/opm.py and palavreado/opm.py's self.config.get(...) call sites).",
-      "has_predictions": false,
-      "prediction_datasets": []
+      "has_predictions": true,
+      "prediction_datasets": [
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "ca-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "da-DK"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "de-DE"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "en-US"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "es-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "eu-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "fr-FR"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "gl-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "it-IT"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "nl-NL"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "pt-BR"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "pt-PT"
+        }
+      ]
     },
     {
       "competitor_id": "frankenparse",
@@ -165,24 +214,30 @@
       ]
     },
     {
-      "competitor_id": "knn-first",
+      "competitor_id": "kw-slot-palavreado",
       "schema_version": 1,
       "modality": "intent",
       "config": {
         "intents": {
           "pipeline": [
-            "ovos-hierarchical-knn-pipeline-high",
-            "ovos-linha-fina-pipeline-plugin-medium"
+            "ovos-palavreado-pipeline-plugin-high",
+            "ovos-padatious-pipeline-plugin-medium"
           ],
-          "ovos-hierarchical-knn-pipeline": {
-            "conf_high": 0.7,
-            "conf_medium": 0.5,
-            "conf_low": 0.15
+          "ovos-palavreado-pipeline-plugin": {
+            "conf_high": 0.65,
+            "conf_med": 0.45,
+            "conf_low": 0.25,
+            "max_words": 50
           },
-          "ovos-linha-fina-pipeline-plugin": {
-            "conf_high": 0.8,
-            "conf_med": 0.6,
-            "conf_low": 0.4
+          "ovos-padatious-pipeline-plugin": {
+            "conf_high": 0.95,
+            "conf_med": 0.8,
+            "conf_low": 0.5,
+            "domain_engine": false,
+            "cast_to_ascii": false,
+            "stem": false,
+            "disable_padaos": false,
+            "instant_train": false
           }
         }
       },
@@ -191,18 +246,114 @@
       "capabilities": [
         "clip"
       ],
-      "display_name": "KNN First",
+      "display_name": "KW Slot: Palavreado",
+      "types": [
+        "ensemble",
+        "keyword-match",
+        "neural-net"
+      ],
+      "description": "Replacement-family sibling: Palavreado (order-independent bag-of-keywords) fills the keyword-high slot, Padatious backs it up at medium — identical shape and backup to mycroft-classic, which stands in for the Adapt side of this A/B.",
+      "size": "micro",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/palavreado"
+      },
+      "notes": "FAMILY: kw-slot A/B — mycroft-classic (adapt-high -> padatious-medium) vs kw-slot-palavreado (palavreado-high -> padatious-medium). There is no separate kw-slot-adapt fighter: that config is identical to mycroft-classic (adapt-high -> padatious-medium), and per the 1-fighter-per-config rule mycroft-classic itself now serves as the 'keyword engine = adapt' side of this A/B rather than duplicating the same pipeline under a second competitor_id. This sibling swaps only the keyword-high engine (Palavreado in for Adapt); backup engine and tier (padatious-medium) held fixed against mycroft-classic. Isolates whether Adapt's stricter ordered require/optional grammar or Palavreado's looser order-independent bag-of-keywords matching makes a better front-door gate ahead of an identical Padatious backstop.",
+      "has_predictions": true,
+      "prediction_datasets": [
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "ca-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "da-DK"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "de-DE"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "en-US"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "es-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "eu-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "fr-FR"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "gl-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "it-IT"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "nl-NL"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "pt-BR"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "pt-PT"
+        }
+      ]
+    },
+    {
+      "competitor_id": "m2v-first",
+      "schema_version": 1,
+      "modality": "intent",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-m2v-pipeline-high",
+            "ovos-padatious-pipeline-plugin-medium"
+          ],
+          "ovos-m2v-pipeline": {
+            "conf_high": 0.7,
+            "conf_medium": 0.5,
+            "conf_low": 0.15
+          },
+          "ovos-padatious-pipeline-plugin": {
+            "conf_high": 0.95,
+            "conf_med": 0.8,
+            "conf_low": 0.5,
+            "domain_engine": false,
+            "cast_to_ascii": false,
+            "stem": false,
+            "disable_padaos": false,
+            "instant_train": false
+          }
+        }
+      },
+      "langs": [],
+      "alias": [],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "M2V First",
       "types": [
         "ensemble",
         "embeddings",
         "neural-net"
       ],
-      "description": "Second embedding-fronted fighter, a paradigm sibling of m2v-first with a different embedding-space strategy: Hierarchical-KNN (nearest-neighbour search over an embedding index, coarse-to-fine domain-then-intent routing) leads at high, Linha-Fina's trained statistical classifier backs it at medium.",
+      "description": "The first embedding-fronted fighter in the league: Model2Vec sentence-embedding similarity leads at high confidence, Padatious's trained template classifier backs it at medium.",
       "size": "micro",
       "links": {
-        "source": "https://github.com/OpenVoiceOS/ovos-hierarchical-knn-pipeline"
+        "source": "https://github.com/OpenVoiceOS/ovos-m2v-pipeline"
       },
-      "notes": "HYPOTHESIS: m2v-first tests a flat single-vector-similarity embedding front door; knn-first tests a structurally different embedding mechanism — nearest-neighbour retrieval over a (documented hierarchical: domain-then-intent) index, config-verified in ovos_hierarchical_knn_pipeline/__init__.py (conf_high/conf_medium/conf_low, index_dir, hf repo id default) rather than a single learned classifier boundary. Pairing it with Linha-Fina (not Padatious, already used by m2v-first) keeps the two embedding-fronted fighters from sharing a backup engine, so a head-to-head between them isolates the embedding-front difference rather than being confounded by which classifier backs each up. Both m2v (dense sentence embeddings) and hierarchical-knn (KNN retrieval over an embedding index) are 'embeddings' paradigm per ENGINE_REGISTRY import paths (ovos_m2v_pipeline / ovos_hierarchical_knn_pipeline), distinct from every trained-classifier or keyword-rule engine used elsewhere in the league.",
+      "notes": "HYPOTHESIS: none of the existing fighters (frankenparse, padapt, nebulatious, nebulapt, palavadapt) use embeddings at all — every stage in every prior fighter is either keyword-rule matching or a trained-per-intent template classifier. m2v-first tests whether leading with a general-purpose sentence-embedding similarity engine (Model2Vec, config-verified in ovos_m2v_pipeline/__init__.py: model default 'Jarbas/ovos-model2vec-intents-distiluse-base-multilingual-cased-v2', conf_high/conf_medium/conf_low keys) — which generalizes across paraphrases via embedding distance rather than exact template/keyword matching — beats a template classifier leading, when Padatious backs it up at medium. This isolates 'does an embedding-similarity front door change which utterances get caught first' from every non-embedding fusion already in the league. Distinct paradigm from Jurebes/Padatious (learned per-intent classifiers over hand-engineered or TF-IDF features) and from Nebulento (fuzzy string edit-distance, not vector similarity).",
       "has_predictions": true,
       "prediction_datasets": [
         {
@@ -264,118 +415,6 @@
       ]
     },
     {
-      "competitor_id": "kw-slot-palavreado",
-      "schema_version": 1,
-      "modality": "intent",
-      "config": {
-        "intents": {
-          "pipeline": [
-            "ovos-palavreado-pipeline-plugin-high",
-            "ovos-padatious-pipeline-plugin-medium"
-          ],
-          "ovos-palavreado-pipeline-plugin": {
-            "conf_high": 0.65,
-            "conf_med": 0.45,
-            "conf_low": 0.25,
-            "max_words": 50
-          },
-          "ovos-padatious-pipeline-plugin": {
-            "conf_high": 0.95,
-            "conf_med": 0.8,
-            "conf_low": 0.5,
-            "domain_engine": false,
-            "cast_to_ascii": false,
-            "stem": false,
-            "disable_padaos": false,
-            "instant_train": false
-          }
-        }
-      },
-      "langs": [],
-      "alias": [],
-      "capabilities": [
-        "clip"
-      ],
-      "display_name": "KW Slot: Palavreado",
-      "types": [
-        "ensemble",
-        "keyword-match",
-        "neural-net"
-      ],
-      "description": "Replacement-family sibling: Palavreado (order-independent bag-of-keywords) fills the keyword-high slot, Padatious backs it up at medium — identical shape and backup to mycroft-classic, which stands in for the Adapt side of this A/B.",
-      "size": "micro",
-      "links": {
-        "source": "https://github.com/OpenVoiceOS/palavreado"
-      },
-      "notes": "FAMILY: kw-slot A/B — mycroft-classic (adapt-high -> padatious-medium) vs kw-slot-palavreado (palavreado-high -> padatious-medium). There is no separate kw-slot-adapt fighter: that config is identical to mycroft-classic (adapt-high -> padatious-medium), and per the 1-fighter-per-config rule mycroft-classic itself now serves as the 'keyword engine = adapt' side of this A/B rather than duplicating the same pipeline under a second competitor_id. This sibling swaps only the keyword-high engine (Palavreado in for Adapt); backup engine and tier (padatious-medium) held fixed against mycroft-classic. Isolates whether Adapt's stricter ordered require/optional grammar or Palavreado's looser order-independent bag-of-keywords matching makes a better front-door gate ahead of an identical Padatious backstop.",
-      "has_predictions": false,
-      "prediction_datasets": []
-    },
-    {
-      "competitor_id": "m2v-first",
-      "schema_version": 1,
-      "modality": "intent",
-      "config": {
-        "intents": {
-          "pipeline": [
-            "ovos-m2v-pipeline-high",
-            "ovos-padatious-pipeline-plugin-medium"
-          ],
-          "ovos-m2v-pipeline": {
-            "conf_high": 0.7,
-            "conf_medium": 0.5,
-            "conf_low": 0.15
-          },
-          "ovos-padatious-pipeline-plugin": {
-            "conf_high": 0.95,
-            "conf_med": 0.8,
-            "conf_low": 0.5,
-            "domain_engine": false,
-            "cast_to_ascii": false,
-            "stem": false,
-            "disable_padaos": false,
-            "instant_train": false
-          }
-        }
-      },
-      "langs": [],
-      "alias": [],
-      "capabilities": [
-        "clip"
-      ],
-      "display_name": "M2V First",
-      "types": [
-        "ensemble",
-        "embeddings",
-        "neural-net"
-      ],
-      "description": "The first embedding-fronted fighter in the league: Model2Vec sentence-embedding similarity leads at high confidence, Padatious's trained template classifier backs it at medium.",
-      "size": "micro",
-      "links": {
-        "source": "https://github.com/OpenVoiceOS/ovos-m2v-pipeline"
-      },
-      "notes": "HYPOTHESIS: none of the existing fighters (frankenparse, padapt, nebulatious, nebulapt, palavadapt) use embeddings at all — every stage in every prior fighter is either keyword-rule matching or a trained-per-intent template classifier. m2v-first tests whether leading with a general-purpose sentence-embedding similarity engine (Model2Vec, config-verified in ovos_m2v_pipeline/__init__.py: model default 'Jarbas/ovos-model2vec-intents-distiluse-base-multilingual-cased-v2', conf_high/conf_medium/conf_low keys) — which generalizes across paraphrases via embedding distance rather than exact template/keyword matching — beats a template classifier leading, when Padatious backs it up at medium. This isolates 'does an embedding-similarity front door change which utterances get caught first' from every non-embedding fusion already in the league. Distinct paradigm from Jurebes/Padatious (learned per-intent classifiers over hand-engineered or TF-IDF features) and from Nebulento (fuzzy string edit-distance, not vector similarity).",
-      "has_predictions": true,
-      "prediction_datasets": [
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "ca-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "da-DK"
-        },
-        {
-          "dataset_id": "mtop-de-DE",
-          "lang": "de-DE"
-        },
-        {
-          "dataset_id": "mtop-en-US",
-          "lang": "en-US"
-        }
-      ]
-    },
-    {
       "competitor_id": "m2v-nebulento",
       "schema_version": 1,
       "modality": "intent",
@@ -417,6 +456,54 @@
       "notes": "HYPOTHESIS: m2v + nebulento is probably better than padatious. m2v-first (see sibling fighter) already showed an embedding-similarity front door changes what gets caught first, but it still leans on Padatious as the backstop, which means it inherits Padatious's two blockers to being a default: no slot extraction and no open-world runtime-registered intents. Nebulento fills both gaps — it extracts slots from its templates and accepts templates registered at runtime rather than only at training time — while still being a fuzzy/edit-distance matcher rather than a learned classifier, so pairing it with m2v's paraphrase-robust embedding similarity tests whether the combination can fully replace Padatious rather than merely front it. Comparators: padatious-stock (the plain baseline this fighter is trying to unseat) and the existing ensembles nebulatious and trident. REQUIRES ovos-m2v-pipeline>=0.9.0a1 — versions before 0.8.1a1 have a label-filter bug that poisons predictions; there is no plugin floor/pin field in this registry schema, so sweeps of this fighter must be run with that floor already installed in the runner environment.",
       "has_predictions": true,
       "prediction_datasets": [
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "ca-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "da-DK"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "de-DE"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "en-US"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "es-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "eu-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "fr-FR"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "gl-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "it-IT"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "nl-NL"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "pt-BR"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "pt-PT"
+        },
         {
           "dataset_id": "mtop-de-DE",
           "lang": "de-DE"
@@ -465,6 +552,54 @@
       "notes": "HYPOTHESIS: every other fighter in the league, including the m2v-first/m2v-nebulento embedding-fronted ensembles, ultimately relies on a classifier (Padatious, Nebulento, or Model2Vec's own trained label set) that must see an intent's templates at a training step before it can match against them. Prototype mode instead embeds a class prototype directly from the templates handed to it at registration, so intents registered at runtime — after the pipeline is already live, with no retrain — are immediately matchable. This isolates the open-world/zero-shot axis: can embedding-prototype similarity alone, with no trained head, replace a trained classifier's raw matching accuracy. conf_high/conf_medium/conf_low are the cosine-calibrated defaults from ovos-m2v-pipeline PR #91, not the classifier-mode thresholds used by m2v-first/m2v-nebulento. REQUIRES ovos-m2v-pipeline>=0.9.0a1 — the calibrated thresholds land with ovos-m2v-pipeline#91; sweeps run before that PR merges and releases exercise the pipeline's code defaults instead, so this fighter's sweep must be sequenced after #91 merges. There is no plugin floor/pin field in this registry schema, so the floor must already be installed in the runner environment.",
       "has_predictions": true,
       "prediction_datasets": [
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "ca-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "da-DK"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "de-DE"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "en-US"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "es-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "eu-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "fr-FR"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "gl-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "it-IT"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "nl-NL"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "pt-BR"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "pt-PT"
+        },
         {
           "dataset_id": "mtop-de-DE",
           "lang": "de-DE"
@@ -518,6 +653,54 @@
       "notes": "HYPOTHESIS: m2v-prototype (see sibling fighter) shows that prototype-mode embedding similarity alone, with no trained head, can match runtime-registered intents. But it still lacks slot extraction. Nebulento fills that gap with template-based slot extraction and its own runtime-registered templates, so pairing it with the prototype pipeline's zero-shot front door tests a fully training-step-free replacement for padatious, not merely a front door for it. Comparators: padatious-stock (the trained baseline this fighter is trying to unseat), m2v-first/m2v-nebulento (the classifier-mode embedding fighters this pipeline is a zero-shot sibling to), and m2v-prototype (isolates whether adding Nebulento's fuzzy backstop helps over the pure prototype fighter alone). conf_high/conf_medium/conf_low on the prototype block are the cosine-calibrated defaults from ovos-m2v-pipeline PR #91. REQUIRES ovos-m2v-pipeline>=0.9.0a1 — the calibrated thresholds land with ovos-m2v-pipeline#91; sweeps run before that PR merges and releases exercise the pipeline's code defaults instead, so this fighter's sweep must be sequenced after #91 merges. There is no plugin floor/pin field in this registry schema, so the floor must already be installed in the runner environment.",
       "has_predictions": true,
       "prediction_datasets": [
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "ca-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "da-DK"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "de-DE"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "en-US"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "es-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "eu-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "fr-FR"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "gl-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "it-IT"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "nl-NL"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "pt-BR"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "pt-PT"
+        },
         {
           "dataset_id": "mtop-de-DE",
           "lang": "de-DE"
@@ -623,6 +806,51 @@
           "lang": "pt-PT"
         }
       ]
+    },
+    {
+      "competitor_id": "nebulacioso",
+      "schema_version": 1,
+      "modality": "intent",
+      "config": {
+        "intents": {
+          "pipeline": [
+            "ovos-padacioso-pipeline-plugin-high",
+            "ovos-nebulento-pipeline-plugin-low"
+          ],
+          "ovos-padacioso-pipeline-plugin": {
+            "conf_high": 0.95,
+            "conf_med": 0.8,
+            "conf_low": 0.5,
+            "workers": 4,
+            "fuzz": false
+          },
+          "ovos-nebulento-pipeline-plugin": {
+            "conf_high": 0.95,
+            "conf_med": 0.8,
+            "conf_low": 0.5,
+            "workers": 4
+          }
+        }
+      },
+      "langs": [],
+      "alias": [],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "Nebulacioso",
+      "types": [
+        "ensemble",
+        "template-match",
+        "fuzzy-match"
+      ],
+      "description": "Padacioso's deterministic, regex-based template matcher takes the first shot and extracts slots from an exact match; Nebulento's fuzzy string matching mops up anything the strict templates miss. Both engines are training-free and dependency-light, making this the lightweight padatious replacement candidate for installs where model2vec is not available.",
+      "size": "micro",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/padacioso"
+      },
+      "notes": "HYPOTHESIS: Padacioso's high-confidence exact template gate plus Nebulento's fuzzy fallback should catch both exact and near-miss phrasings without any training step, unlike padatious or m2v-based fighters which need a trained model. Nebulento runs at its own low-confidence gate (conf_low) rather than medium so it actually fires as a fallback instead of sitting nearly silent behind Padacioso's high gate; conf_high/conf_med/conf_low values are copied verbatim from the single-engine nebulento-medium template fighter, only the pipeline tier differs.",
+      "has_predictions": false,
+      "prediction_datasets": []
     },
     {
       "competitor_id": "nebulapt",
@@ -894,7 +1122,47 @@
         },
         {
           "dataset_id": "intents-for-eval",
+          "lang": "da-DK"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "de-DE"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "en-US"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "es-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "eu-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "fr-FR"
+        },
+        {
+          "dataset_id": "intents-for-eval",
           "lang": "gl-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "it-IT"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "nl-NL"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "pt-BR"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "pt-PT"
         }
       ]
     },
@@ -1745,120 +2013,6 @@
         {
           "dataset_id": "intents-for-eval",
           "lang": "pt-PT"
-        }
-      ]
-    },
-    {
-      "competitor_id": "hierarchical-knn-medium",
-      "schema_version": 1,
-      "modality": "intent_template",
-      "plugin": "ovos-hierarchical-knn-pipeline",
-      "config": {
-        "intents": {
-          "pipeline": [
-            "ovos-hierarchical-knn-pipeline-medium"
-          ],
-          "ovos-hierarchical-knn-pipeline": {
-            "hf_repo_id": "fdemelo/ovos-hierarchical-knn-granite-97m-multilingual-r2",
-            "ignore_intents": [],
-            "timeout": 1,
-            "renormalize": false,
-            "conf_high": 0.7,
-            "conf_medium": 0.5,
-            "conf_low": 0.15
-          }
-        }
-      },
-      "langs": [],
-      "alias": [
-        "ovos-hierarchical-knn-pipeline"
-      ],
-      "capabilities": [
-        "clip"
-      ],
-      "display_name": "Hierarchical KNN",
-      "species": "HierarchicalKNNIntentPipeline",
-      "family": "HierarchicalKNNIntentPipeline",
-      "types": [
-        "embedding",
-        "neural-net"
-      ],
-      "description": "Two-stage hierarchical k-NN over a pre-built FAISS IVF+PQ index of IBM Granite multilingual embeddings: domain-level search scoped to loaded skills, then intent-level scoring with Wu-Lin pairwise probability estimation.",
-      "model": "IBM Granite Embedding 97M Multilingual R2 (quint8 ONNX) + FAISS index",
-      "size": "medium",
-      "links": {
-        "source": "https://github.com/OpenVoiceOS/ovos-hierarchical-knn-pipeline"
-      },
-      "notes": "Single-stage pipeline at the plugin's own medium-confidence gate; per-plugin config keeps the shipped defaults. Published predictions are migrated from the legacy ovos-intent-benchmark, where this engine was trained on the benchmark's own corpora; the pinned pretrained model targets real OVOS skill intents and cannot emit this benchmark's label space, so native re-sweeps require a dataset-trained variant.",
-      "has_predictions": true,
-      "prediction_datasets": [
-        {
-          "dataset_id": "banking77",
-          "lang": "en-US"
-        },
-        {
-          "dataset_id": "clinc150",
-          "lang": "en-US"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "ca-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "da-DK"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "de-DE"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "en-US"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "es-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "eu-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "fr-FR"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "gl-ES"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "it-IT"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "nl-NL"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "pt-BR"
-        },
-        {
-          "dataset_id": "intents-for-eval",
-          "lang": "pt-PT"
-        },
-        {
-          "dataset_id": "mtop-de-DE",
-          "lang": "de-DE"
-        },
-        {
-          "dataset_id": "mtop-en-US",
-          "lang": "en-US"
-        },
-        {
-          "dataset_id": "snips",
-          "lang": "en-US"
         }
       ]
     },
@@ -10364,6 +10518,54 @@
       "notes": "Same plugin id and medium-confidence gate as padatious-medium; the only config change is flipping 'disable_padaos' from false to true. padaos is the exact-match regex layer inside padatious (IntentContainer(disable_padaos=...)); this fighter exists to quantify how much accuracy it actually buys, particularly on exact-template-match utterances, versus the training/boot-time cost of maintaining it. Padatious itself is not changing: disable_padaos stays a permanent, opt-in option in the plugin regardless of what these numbers show.",
       "has_predictions": true,
       "prediction_datasets": [
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "ca-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "da-DK"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "de-DE"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "en-US"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "es-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "eu-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "fr-FR"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "gl-ES"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "it-IT"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "nl-NL"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "pt-BR"
+        },
+        {
+          "dataset_id": "intents-for-eval",
+          "lang": "pt-PT"
+        },
         {
           "dataset_id": "mtop-de-DE",
           "lang": "de-DE"
@@ -116854,7 +117056,6 @@
     "ovos-adapt-pipeline-plugin": "AdaptPipeline",
     "ovos-palavreado-hierarchical-pipeline": "PalavreadoPipeline",
     "ovos-palavreado-pipeline-plugin": "PalavreadoPipeline",
-    "ovos-hierarchical-knn-pipeline": "HierarchicalKNNIntentPipeline",
     "ovos-jurebes-pipeline-plugin": "JurebesPipeline",
     "ovos-linha-fina-domain-pipeline-plugin": "LinhaFinaPipeline",
     "ovos-linha-fina-hierarchical-pipeline-plugin": "LinhaFinaPipeline",
