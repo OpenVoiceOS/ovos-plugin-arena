@@ -122,6 +122,15 @@ def fit_bradley_terry(  # R6 primary rating, batch-fit
     w = {i: dict(js) for i, js in wins.items()}
     g = {i: dict(js) for i, js in games.items()}
 
+    # Tolerate a pairwise matrix that names a fighter absent from
+    # *competitors* (e.g. a seed whose roster and pairwise totals have
+    # drifted apart) rather than raising a KeyError on ``prev[j]`` below:
+    # such a fighter is held fixed at the prior strength and excluded from
+    # the returned ratings, exactly as if it had never been recorded.
+    extra_fighters = (set(w) | set(g)) - set(competitors)
+    for f in extra_fighters:
+        strength.setdefault(f, 1.0)
+
     if prior_weight > 0:
         for c in competitors:
             w.setdefault(c, {})
@@ -134,7 +143,7 @@ def fit_bradley_terry(  # R6 primary rating, batch-fit
     for _ in range(max_iter):
         prev = dict(strength)
         for i in ids:
-            if i == _PHANTOM:
+            if i == _PHANTOM or i in extra_fighters:
                 continue
             total_wins_i = sum(w.get(i, {}).values())
             denom = 0.0
@@ -146,7 +155,7 @@ def fit_bradley_terry(  # R6 primary rating, batch-fit
                 strength[i] = max(total_wins_i / denom, 1e-12)
         strength[_PHANTOM] = 1.0
 
-        real_ids = [c for c in ids if c != _PHANTOM]
+        real_ids = [c for c in ids if c != _PHANTOM and c not in extra_fighters]
         max_delta = max(
             abs(math.log(strength[c]) - math.log(prev[c])) for c in real_ids
         )
@@ -199,13 +208,21 @@ def bootstrap_confidence_intervals(  # R8 bootstrap confidence intervals
     """
     if not competitors:
         return {}
+    # Canonicalise by content (not input order) before resampling: the
+    # bootstrap must be a function of the vote *multiset* (§P5 replayable),
+    # never of positional order. Records with identical (a, b, score_a,
+    # weight) are interchangeable for resampling purposes, so a stable sort
+    # on those fields alone is sufficient to make the result depend only on
+    # the multiset, regardless of the order callers happen to pass in.
+    canonical_results = sorted(human_results, key=lambda r: (r.a, r.b, r.score_a, r.weight))
+
     rng = random.Random(seed)
-    n = len(human_results)
+    n = len(canonical_results)
     samples: dict[str, list[float]] = {c: [] for c in competitors}
 
     for _ in range(rounds):
         if n:
-            resample = [human_results[rng.randrange(n)] for _ in range(n)]
+            resample = [canonical_results[rng.randrange(n)] for _ in range(n)]
             resample_wins, resample_games = pairwise_from_results(resample)
         else:
             resample_wins, resample_games = {}, {}

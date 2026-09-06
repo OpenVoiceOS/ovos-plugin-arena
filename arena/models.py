@@ -13,7 +13,7 @@ import enum
 import hashlib
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 # ---------------------------------------------------------------------------
 # Enums
@@ -525,6 +525,30 @@ class EloSeed(BaseModel):
     # on every rebuild, same machinery as the primary ladder minus the
     # bootstrap CI (no human resampling to bootstrap over).
     secondary_metrics: dict[str, "SecondaryMetricSeed"] = Field(default_factory=dict)
+
+    @model_validator(mode="after")
+    def _pairwise_roster_subset_of_ratings(self) -> EloSeed:
+        """Reject a seed whose pairwise totals name a fighter with no rating.
+
+        ``pairwise_wins``/``pairwise_games`` are, by construction, totals
+        over the same competitors listed in ``ratings`` — a fighter named
+        only in the pairwise matrices (row or column) has no prior to
+        anchor its display rating and signals the seed and its pairwise
+        totals were assembled from different rosters.
+        """
+        roster = set(self.ratings)
+        offenders: set[str] = set()
+        for matrix in (self.pairwise_wins, self.pairwise_games):
+            for i, js in matrix.items():
+                if i not in roster:
+                    offenders.add(i)
+                offenders.update(j for j in js if j not in roster)
+        if offenders:
+            raise ValueError(
+                "EloSeed pairwise totals name fighters absent from ratings: "
+                f"{sorted(offenders)}"
+            )
+        return self
 
 
 class SecondaryMetricSeed(BaseModel):
