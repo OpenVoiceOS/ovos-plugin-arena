@@ -123,15 +123,27 @@ def _is_unjudgeable_row(row: dict, lang: str) -> bool:
     return judge in (None, "none", _UNIVERSAL_FALLBACK)
 
 
-def _download_repo_tree(repo_id: str, revision: str = "main") -> Path:
-    """Download ``predictions/`` and ``audio/`` from a TTS predictions repo."""
+def _download_repo_tree(repo_id: str, revision: str = "main",
+                         langs: list[str] | None = None) -> Path:
+    """Download ``predictions/`` and ``audio/`` from a TTS predictions repo.
+
+    ``langs``, when given, restricts the download to those languages'
+    ``predictions/<lang>/`` and ``audio/<lang>/`` trees instead of the whole
+    repo — a predictions repo can cover dozens of languages and every
+    fighter's audio, most of which a targeted rescore has no reason to touch.
+    """
     from huggingface_hub import snapshot_download
 
+    if langs:
+        allow_patterns = [p for lang in langs
+                           for p in (f"predictions/{lang}/*.jsonl", f"audio/{lang}/**")]
+    else:
+        allow_patterns = ["predictions/**/*.jsonl", "audio/**"]
     local = snapshot_download(
         repo_id=repo_id,
         repo_type="dataset",
         revision=revision,
-        allow_patterns=["predictions/**/*.jsonl", "audio/**"],
+        allow_patterns=allow_patterns,
     )
     return Path(local)
 
@@ -253,18 +265,30 @@ def rescore_file(path: Path, repo_dir: Path,
 
 
 def rescore_repo(repo_id: str, revision: str = "main",
-                  rejudge_intelligibility: bool = False) -> Path:
-    """Download, rescore in place, and return the local repo dir for upload."""
-    repo_dir = _download_repo_tree(repo_id, revision)
+                  rejudge_intelligibility: bool = False,
+                  langs: list[str] | None = None) -> Path:
+    """Download, rescore in place, and return the local repo dir for upload.
+
+    ``langs``, when given, restricts both the download and the rewrite to
+    those languages' ``predictions/<lang>/*.jsonl`` files — every other
+    language's shard is left untouched and never even downloaded.
+    """
+    repo_dir = _download_repo_tree(repo_id, revision, langs)
     predictions_dir = repo_dir / "predictions"
+    lang_dirs = ([predictions_dir / lang for lang in langs] if langs
+                 else [predictions_dir])
     total_rescored = 0
     total_skipped = 0
-    for jsonl_path in sorted(predictions_dir.glob("**/*.jsonl")):
-        rescored, skipped = rescore_file(jsonl_path, repo_dir, rejudge_intelligibility)
-        total_rescored += rescored
-        total_skipped += skipped
-        log.info("  %s: rescored %d, skipped %d",
-                  jsonl_path.relative_to(predictions_dir), rescored, skipped)
+    for lang_dir in lang_dirs:
+        if not lang_dir.is_dir():
+            log.warning("no predictions dir at %s", lang_dir)
+            continue
+        for jsonl_path in sorted(lang_dir.glob("**/*.jsonl")):
+            rescored, skipped = rescore_file(jsonl_path, repo_dir, rejudge_intelligibility)
+            total_rescored += rescored
+            total_skipped += skipped
+            log.info("  %s: rescored %d, skipped %d",
+                      jsonl_path.relative_to(predictions_dir), rescored, skipped)
     log.info("%s: rescored %d rows total, skipped %d",
               repo_id, total_rescored, total_skipped)
     return repo_dir
@@ -296,11 +320,18 @@ def main() -> None:
         help="Also re-judge intelligibility with the #143 ROVER panel for "
              "any row not yet carrying intelligibility_rover: true, from "
              "its stored wav (no re-synthesis)")
+    parser.add_argument(
+        "--langs", nargs="+", default=None,
+        help="Restrict the download and rewrite to these languages (e.g. "
+             "--langs ru-RU pl-PL); every other language's shard is left "
+             "untouched and never downloaded. Default: every language in "
+             "the repo.")
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO)
     repo_id = results_repo_for(MODALITY, args.dataset_id, args.hf_owner)
-    repo_dir = rescore_repo(repo_id, args.revision, args.rejudge_intelligibility)
+    repo_dir = rescore_repo(repo_id, args.revision, args.rejudge_intelligibility,
+                             args.langs)
     if args.upload:
         upload_rescored(repo_id, repo_dir)
         log.info("Uploaded rescored predictions to %s", repo_id)

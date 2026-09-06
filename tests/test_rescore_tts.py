@@ -405,6 +405,45 @@ class TestRejudgeIntelligibility:
         assert jsonl_path.read_bytes() == original_bytes
 
 
+class TestRescoreRepoLangs:
+    """``rescore_repo(..., langs=[...])`` must restrict the rewrite to the
+    named languages' shards — every other language's shard, even one that
+    also needs rescoring, is left byte-identical."""
+
+    def test_only_named_lang_is_rewritten(self, tmp_path, monkeypatch):
+        for lang in ("ru-RU", "pl-PL"):
+            wav = tmp_path / "audio" / lang / "voice_a" / "abc.wav"
+            wav.parent.mkdir(parents=True)
+            wav.write_bytes(b"RIFF....WAVEfmt ")
+            url = (f"https://huggingface.co/datasets/OpenVoiceOS/ovos-tts-bench-d"
+                   f"/resolve/main/audio/{lang}/voice_a/abc.wav")
+            jsonl_path = tmp_path / "predictions" / lang / "voice_a.jsonl"
+            _write_jsonl(jsonl_path, [
+                {"sample_id": "s1", "competitor_id": "voice_a", "audio_url": url,
+                 "extras": {"utmos": 4.0}},
+            ])
+
+        monkeypatch.setattr(rescore_tts, "_download_repo_tree",
+                             lambda repo_id, revision, langs=None: tmp_path)
+        monkeypatch.setattr(
+            rescore_tts, "_score_quality_dimensions",
+            lambda p: {"sigmos.ovrl": 4.5, "dnsmos.ovrl": 3.2, "nisqa.mos": 4.6})
+
+        ru_before = (tmp_path / "predictions" / "ru-RU" / "voice_a.jsonl").read_bytes()
+        pl_before = (tmp_path / "predictions" / "pl-PL" / "voice_a.jsonl").read_bytes()
+
+        rescore_tts.rescore_repo("OpenVoiceOS/ovos-tts-bench-massive-prompts",
+                                  langs=["ru-RU"])
+
+        ru_after = (tmp_path / "predictions" / "ru-RU" / "voice_a.jsonl").read_bytes()
+        pl_after = (tmp_path / "predictions" / "pl-PL" / "voice_a.jsonl").read_bytes()
+
+        assert ru_after != ru_before, "the named language must be rewritten"
+        assert pl_after == pl_before, (
+            "a language not passed via --langs must be left byte-identical, "
+            "even though its shard also needed rescoring")
+
+
 class TestUnjudgeableLanguageMigration:
     """``--rejudge-intelligibility`` marks rows whose language has no ASR
     judge, and must not touch a row that carries a real measurement."""
