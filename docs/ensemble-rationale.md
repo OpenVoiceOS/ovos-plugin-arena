@@ -223,6 +223,26 @@ both grids. Its historical framing (see above) and its role as the shared adapt/
 baseline are the same config asked two different questions. There is nothing to
 duplicate. Each fighter's `notes` cross-reference this explicitly.
 
+### nebulacioso, KEEP (new family: training-free replacement)
+
+**Composition:** `nebulacioso` = `padacioso-high → nebulento-low`.
+
+**Why this is not the `padatioso` duplication:** `padatioso` (dropped above) failed
+because Padacioso's exact-match gate duplicates the `padaos` matcher Padatious already
+runs internally. Nebulento carries no such matcher: it is a fuzzy string matcher with no
+regex/exact-match stage of its own, so pairing it behind Padacioso's exact gate combines
+two genuinely different matching strategies rather than invoking the same gate twice.
+
+**What it measures:** whether an exact-match template engine backstopped by a fuzzy
+template engine can stand in for Padatious. Both stages are training-free and carry no
+embedding or classifier dependency, which is what makes this fighter a candidate default
+for installs that cannot run Model2Vec: Padacioso matches and extracts slots from any
+utterance that hits a registered template exactly, and Nebulento's fuzzy fallback catches
+near-misses — typos, ASR noise, minor phrasing drift — that the exact gate lets through.
+Nebulento runs at its low-confidence gate rather than medium: at medium it barely fires
+behind Padacioso's high gate and stops being a fallback in practice, while low lets it
+actually catch what Padacioso misses.
+
 ### padatioso, DROP
 
 **Composition (removed):** `padacioso-high → padatious-medium`.
@@ -248,6 +268,7 @@ names. **Removed** (`git rm registry/competitors/intent/padatioso.json`).
 | nebulatious | padatious-high, nebulento-medium, padatious-medium | KEEP | does neural template + fuzzy template beat either alone on paraphrase/noise |
 | nebulapt | adapt-high, nebulento-medium, adapt-medium | KEEP | does strict keyword rules + fuzzy keyword matching beat either alone on noise |
 | padatioso | padacioso-high, padatious-medium | **DROP** | none, Padatious already runs padaos internally with conf=1.0 on perfect match; padacioso tests nothing padatious doesn't already do |
+| nebulacioso | padacioso-high, nebulento-low | KEEP | does a training-free exact-match + fuzzy-match fusion stand in for Padatious |
 | ovos-stock | padatious-high, adapt-high, m2v-high, adapt-medium | KEEP | faithful reproduction of the shipped ovos-core default, arena-runnable subset |
 | mycroft-classic | adapt-high, padatious-medium | KEEP | historical adapt-first/padatious-fallback order; also the shared baseline for both kw-slot and tmpl-slot replacement grids |
 | trident | padatious-high, jurebes(mlp_shallow)-medium, nebulento-low | KEEP | does an architecture-diverse 3-tier confidence cascade beat 2-engine fusions |
