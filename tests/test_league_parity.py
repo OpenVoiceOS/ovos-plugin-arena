@@ -67,8 +67,8 @@ class TestLeagueParity:
             )
         ]
         py = [
-            {"id": l["id"], "battle_group": l["battle_group"], "order": l["order"]}
-            for l in leagues()
+            {"id": lg["id"], "battle_group": lg["battle_group"], "order": lg["order"]}
+            for lg in leagues()
         ]
         assert js == py, "DEFAULT_LEAGUES drifted from arena.models.leagues()"
 

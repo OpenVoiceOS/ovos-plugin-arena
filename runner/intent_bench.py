@@ -646,7 +646,9 @@ def run_competitor_lang(
         for i, test_row in todo:
             try:
                 (prediction, slots, confidence, latency_ms, stage), _, peak_rss_mb = (
-                    measure_call(lambda: pipeline.predict(test_row["utterance"]))
+                    measure_call(
+                        lambda test_row=test_row: pipeline.predict(test_row["utterance"])
+                    )
                 )
             except Exception as exc:
                 log.warning("    %s/%s sample %s failed: %s",

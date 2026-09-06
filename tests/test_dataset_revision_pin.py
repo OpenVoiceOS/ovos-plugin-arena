@@ -450,9 +450,8 @@ class TestBranchPinnedDatasetsAreNeverPruned:
     def test_media_bench_resumes_a_branch_pinned_shard(self, tmp_path):
         """Drives the real ``media_bench.run_competitor_lang``: a shard swept
         at an older branch sha must resume, not be wiped and re-run."""
-        from tests.test_media_bench import StubAdapter, _competitor, _eval_def
-
         from runner import media_bench as mb
+        from tests.test_media_bench import StubAdapter, _competitor, _eval_def
 
         out = tmp_path / "out.jsonl"
         self._seed(out, [
@@ -471,9 +470,8 @@ class TestBranchPinnedDatasetsAreNeverPruned:
         assert len(out.read_text().splitlines()) == 3
 
     def test_media_bench_resumes_a_shard_with_no_revision_column(self, tmp_path):
-        from tests.test_media_bench import StubAdapter, _competitor, _eval_def
-
         from runner import media_bench as mb
+        from tests.test_media_bench import StubAdapter, _competitor, _eval_def
 
         out = tmp_path / "out.jsonl"
         self._seed(out, [
@@ -495,9 +493,8 @@ class TestBranchPinnedDatasetsAreNeverPruned:
         prune rows from another revision."""
         from types import SimpleNamespace
 
-        from tests.test_media_bench import StubAdapter, _competitor
-
         from runner import media_bench as mb
+        from tests.test_media_bench import StubAdapter, _competitor
 
         pinned_def = SimpleNamespace(
             source=SimpleNamespace(hf_id="PolyAI/minds14", revision=PIN))

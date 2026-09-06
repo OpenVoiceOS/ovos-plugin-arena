@@ -24,9 +24,10 @@ from __future__ import annotations
 import argparse
 import re
 import sys
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Iterable, Protocol
+from typing import Protocol
 
 from registry.loaders import load_all_competitors, load_all_datasets
 from registry.schemas import CompetitorDef, DatasetDef
@@ -497,7 +498,10 @@ def breadth_first_order(
 def render_dry_run_table(missing: list[MissingPair]) -> str:
     if not missing:
         return "No missing or incomplete pairs found.\n"
-    header = f"{'modality':<10} {'competitor_id':<32} {'dataset_id':<28} {'lang':<8} {'reason':<12} rows"
+    header = (
+        f"{'modality':<10} {'competitor_id':<32} {'dataset_id':<28} "
+        f"{'lang':<8} {'reason':<12} rows"
+    )
     lines = [header, "-" * len(header)]
     for mp in missing:
         rows = "" if mp.rows is None else str(mp.rows)

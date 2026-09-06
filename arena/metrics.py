@@ -84,9 +84,9 @@ def is_pinned_revision(revision: str | None) -> bool:
     sha it pointed at when they were produced, so there is nothing to
     compare them against.
     """
-    return bool(revision) and len(revision) == 40 and all(
-        c in "0123456789abcdef" for c in revision.lower()
-    )
+    if not revision or len(revision) != 40:
+        return False
+    return all(c in "0123456789abcdef" for c in revision.lower())
 
 
 def row_on_pinned_revision(row: PredictionRow, pinned_revision: str | None) -> bool:
@@ -236,7 +236,9 @@ def expected_calibration_error(rows: list[PredictionRow]) -> float | None:
         return None
     bins: dict[int, list[tuple[float, bool]]] = defaultdict(list)
     for row in scored:
-        conf = max(0.0, min(1.0, float(row.confidence)))
+        if row.confidence is None:
+            continue
+        conf = max(0.0, min(1.0, row.confidence))
         # confidence == 1.0 falls in the last bin (10 equal-width bins over
         # [0, 1] means the top edge belongs to bin index 9, not a stray 10th).
         idx = min(int(conf * ECE_N_BINS), ECE_N_BINS - 1)
@@ -706,7 +708,7 @@ def row_intelligibility_cer(row: PredictionRow) -> float | None:
     return value
 
 
-def row_intelligibility_agreement(row: PredictionRow) -> float | None:
+def row_intelligibility_agreement(row: PredictionRow) -> float:
     """Per-row inter-judge ROVER agreement (§4 R16 extension) — the mean
     per-slot vote share of the ROVER consensus (``arena.rover``): how much
     the judge panel agreed on what the clip said. ``1.0`` for legacy rows
@@ -1480,8 +1482,13 @@ def build_benchmark_board(
     off_metric = [e for e in scoreable if not _has_signal(e) and _scored_any(e)]
     failed = [e for e in scoreable if not _scored_any(e)]
 
+    def _primary_metric(entry: BenchmarkEntry) -> float:
+        value = entry.metrics.get(primary)
+        assert value is not None, "ranked entries are filtered by _has_signal"
+        return value
+
     reverse = primary in _HIGHER_BETTER
-    ranked.sort(key=lambda e: e.metrics.get(primary), reverse=reverse)
+    ranked.sort(key=_primary_metric, reverse=reverse)
     for i, entry in enumerate(ranked, 1):
         entry.rank = i
     for entry in partial:

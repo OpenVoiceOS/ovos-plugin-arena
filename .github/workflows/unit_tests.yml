@@ -43,3 +43,17 @@ jobs:
       mypy_args: "arena registry"
       test_extras: "lint"
       test_extras_fallback: "test"
+
+  # The shared lint/type_check jobs above run with continue-on-error inside
+  # gh-automations, so dev stays green even when ruff or mypy fail. This job
+  # runs the same checks with their real exit code as the actual gate.
+  lint_strict:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - run: pip install .[lint]
+      - run: ruff check .
+      - run: mypy arena registry

@@ -7,10 +7,10 @@ for 25+ minutes and a restart redid every previously-published manifest).
 """
 from __future__ import annotations
 
+import concurrent.futures
 import time
 from types import SimpleNamespace
 
-import concurrent.futures
 import pytest
 
 from registry.schemas import SamplePolicy

@@ -91,29 +91,30 @@ FAMILY_DISPLAY = {
     "vits2": "VITS2",
 }
 
+_DESCRIPTION_PREFIX = "ONNX-runtime TTS via the phoonnx adapter framework, running "
 DESCRIPTIONS = {
-    "BSC": "ONNX-runtime TTS via the phoonnx adapter framework, running a BSC (Barcelona Supercomputing Center) voice.",
-    "MMS": "ONNX-runtime TTS via the phoonnx adapter framework, running a Meta MMS (Massively Multilingual Speech) VITS voice.",
-    "OVOS": "ONNX-runtime TTS via the phoonnx adapter framework, running an OpenVoiceOS community voice.",
-    "chatterbox": "ONNX-runtime TTS via the phoonnx adapter framework, running a Chatterbox voice.",
-    "coqui_community": "ONNX-runtime TTS via the phoonnx adapter framework, running a community-trained Coqui TTS voice.",
-    "coqui_vits": "ONNX-runtime TTS via the phoonnx adapter framework, running a Coqui VITS voice.",
-    "f5tts": "ONNX-runtime TTS via the phoonnx adapter framework, running an F5-TTS voice.",
-    "fastpitch": "ONNX-runtime TTS via the phoonnx adapter framework, running a FastPitch voice.",
-    "glowtts": "ONNX-runtime TTS via the phoonnx adapter framework, running a GlowTTS voice.",
-    "mimic3": "ONNX-runtime TTS via the phoonnx adapter framework, running a Mycroft Mimic3 voice.",
-    "mixertts": "ONNX-runtime TTS via the phoonnx adapter framework, running a MixerTTS voice.",
-    "neurlang": "ONNX-runtime TTS via the phoonnx adapter framework, running a Neurlang voice.",
-    "optispeech": "ONNX-runtime TTS via the phoonnx adapter framework, running an OptiSpeech voice.",
-    "phonikud": "ONNX-runtime TTS via the phoonnx adapter framework, running a Phonikud voice.",
-    "piper": "ONNX-runtime TTS via the phoonnx adapter framework, running a Piper VITS voice.",
-    "piper_community": "ONNX-runtime TTS via the phoonnx adapter framework, running a community-trained Piper voice.",
-    "proxectonos": "ONNX-runtime TTS via the phoonnx adapter framework, running a Proxecto Nós (Galician) voice.",
-    "shami": "ONNX-runtime TTS via the phoonnx adapter framework, running a Shami voice.",
-    "styletts2": "ONNX-runtime TTS via the phoonnx adapter framework, running a StyleTTS2 voice.",
-    "supertonic": "ONNX-runtime TTS via the phoonnx adapter framework, running a SuperTonic voice.",
-    "transformers_community": "ONNX-runtime TTS via the phoonnx adapter framework, running a community HF Transformers TTS voice.",
-    "vits2": "ONNX-runtime TTS via the phoonnx adapter framework, running a VITS2 voice.",
+    "BSC": _DESCRIPTION_PREFIX + "a BSC (Barcelona Supercomputing Center) voice.",
+    "MMS": _DESCRIPTION_PREFIX + "a Meta MMS (Massively Multilingual Speech) VITS voice.",
+    "OVOS": _DESCRIPTION_PREFIX + "an OpenVoiceOS community voice.",
+    "chatterbox": _DESCRIPTION_PREFIX + "a Chatterbox voice.",
+    "coqui_community": _DESCRIPTION_PREFIX + "a community-trained Coqui TTS voice.",
+    "coqui_vits": _DESCRIPTION_PREFIX + "a Coqui VITS voice.",
+    "f5tts": _DESCRIPTION_PREFIX + "an F5-TTS voice.",
+    "fastpitch": _DESCRIPTION_PREFIX + "a FastPitch voice.",
+    "glowtts": _DESCRIPTION_PREFIX + "a GlowTTS voice.",
+    "mimic3": _DESCRIPTION_PREFIX + "a Mycroft Mimic3 voice.",
+    "mixertts": _DESCRIPTION_PREFIX + "a MixerTTS voice.",
+    "neurlang": _DESCRIPTION_PREFIX + "a Neurlang voice.",
+    "optispeech": _DESCRIPTION_PREFIX + "an OptiSpeech voice.",
+    "phonikud": _DESCRIPTION_PREFIX + "a Phonikud voice.",
+    "piper": _DESCRIPTION_PREFIX + "a Piper VITS voice.",
+    "piper_community": _DESCRIPTION_PREFIX + "a community-trained Piper voice.",
+    "proxectonos": _DESCRIPTION_PREFIX + "a Proxecto Nós (Galician) voice.",
+    "shami": _DESCRIPTION_PREFIX + "a Shami voice.",
+    "styletts2": _DESCRIPTION_PREFIX + "a StyleTTS2 voice.",
+    "supertonic": _DESCRIPTION_PREFIX + "a SuperTonic voice.",
+    "transformers_community": _DESCRIPTION_PREFIX + "a community HF Transformers TTS voice.",
+    "vits2": _DESCRIPTION_PREFIX + "a VITS2 voice.",
 }
 
 
@@ -266,7 +267,7 @@ def main() -> None:
         family_display = FAMILY_DISPLAY.get(family, family)
         description_base = DESCRIPTIONS.get(
             family,
-            f"ONNX-runtime TTS via the phoonnx adapter framework, running a {family_display} voice.",
+            _DESCRIPTION_PREFIX + f"a {family_display} voice.",
         )
 
         for voice_id, meta in voices.items():

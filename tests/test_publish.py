@@ -5,7 +5,6 @@ The daemon's legacy root-level shards are invisible to both the assembler
 ``predictions/<competitor_id>.jsonl``): publishing anywhere else makes the
 runner's work silently unusable, so the remote path shape is pinned here.
 """
-from pathlib import Path
 
 from runner.publish import publish_competitor_output
 

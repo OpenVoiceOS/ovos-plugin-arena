@@ -38,24 +38,24 @@ import argparse
 import fnmatch
 import json
 import logging
-import socket
 import multiprocessing as mp
 import queue
 import random
 import re
 import shutil
 import signal
+import socket
 import sys
 import threading
 import time
 from collections import Counter
-from dataclasses import dataclass, field
+from collections.abc import Callable, Iterable, Iterator
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, Iterable, Iterator
 
+from arena.metrics import is_pinned_revision
 from registry.loaders import load_all_competitors, load_all_datasets
 from runner import media_bench as mb
-from arena.metrics import is_pinned_revision
 from runner.intent_bench import HF_OWNER, resolve_revision, results_repo_for
 from runner.publish_sample_set import run_with_timeout
 from runner.queue_tools import (
@@ -287,7 +287,7 @@ class PairKey:
         return str(self)
 
     @classmethod
-    def from_str(cls, s: str) -> "PairKey":
+    def from_str(cls, s: str) -> PairKey:
         modality, competitor_id, dataset_id, lang = s.split("|", 3)
         return cls(modality, competitor_id, dataset_id, lang)
 
@@ -328,7 +328,7 @@ class QuarantineEntry:
         }
 
     @classmethod
-    def from_dict(cls, d) -> "QuarantineEntry":
+    def from_dict(cls, d) -> QuarantineEntry:
         if isinstance(d, str):
             # Pre-backoff state file shape (reason string only) — treat as
             # immediately eligible for a retry rather than refusing to load.
@@ -694,8 +694,8 @@ class AutoRunner:
         # _last_order, so at most one discovery is ever outstanding no
         # matter how many sweeps a wedged HF connection spans.
         self._discovery_thread: threading.Thread | None = None
-        self._discovery_task_q: "queue.Queue" = queue.Queue()
-        self._discovery_result_q: "queue.Queue" = queue.Queue()
+        self._discovery_task_q: queue.Queue = queue.Queue()
+        self._discovery_result_q: queue.Queue = queue.Queue()
         self._discovery_inflight = False
         self._discovery_started_at: float | None = None  # time.monotonic()
         self._discovery_started_wall: float | None = None  # time.time(), for logging
@@ -786,12 +786,12 @@ class AutoRunner:
                 )
             try:
                 outcome = parent_conn.recv()
-            except EOFError:
+            except EOFError as err:
                 proc.join(5)
                 raise RuntimeError(
                     f"{pair_desc}: child process died without a result "
                     f"(exitcode={proc.exitcode})"
-                )
+                ) from err
         finally:
             parent_conn.close()
 
@@ -1059,11 +1059,11 @@ class AutoRunner:
         entries = apply_filters(entries, **filters)
         self._probe_new_fighters(entries)
         entries = self._drop_unavailable(entries)
-        for modality, competitor, dataset, lang in entries:
+        for modality, _competitor, dataset, _lang in entries:
             self._dataset_cache[(modality, dataset.dataset_id)] = dataset
         lookup = {
-            PairKey(m, c.competitor_id, d.dataset_id, l): (m, c, d, l)
-            for m, c, d, l in entries
+            PairKey(m, c.competitor_id, d.dataset_id, lang): (m, c, d, lang)
+            for m, c, d, lang in entries
         }
         self.scheduler.set_pairs(lookup.keys())
         self.scheduler.set_order(
@@ -1073,8 +1073,8 @@ class AutoRunner:
         for pair in self.scheduler.sweep():
             if self._stop:
                 break
-            m, c, d, l = lookup[pair]
-            self.process_pair(m, c, d, l)
+            m, c, d, lang = lookup[pair]
+            self.process_pair(m, c, d, lang)
             self.flush_all()
 
     # -- discovery worker (single long-lived daemon thread) -------------
@@ -1347,8 +1347,8 @@ class AutoRunner:
             self._probe_new_fighters(entries)
             entries = self._drop_unavailable(entries)
             lookup = {
-                PairKey(m, c.competitor_id, d.dataset_id, l): (m, c, d, l)
-                for m, c, d, l in entries
+                PairKey(m, c.competitor_id, d.dataset_id, lang): (m, c, d, lang)
+                for m, c, d, lang in entries
             }
             for _m, _c, d, _l in entries:
                 self._dataset_cache[(_m, d.dataset_id)] = d
@@ -1381,7 +1381,11 @@ class AutoRunner:
                 present_by_competitor: dict[str, int] = {}
                 present_by_dataset: dict[str, int] = {}
 
-                def _discover(entries=entries) -> None:
+                def _discover(
+                    entries=entries,
+                    present_by_competitor=present_by_competitor,
+                    present_by_dataset=present_by_dataset,
+                ) -> None:
                     for modality in {m for m, _c, _d, _l in entries}:
                         find_missing_pairs(
                             modality,
@@ -1414,7 +1418,7 @@ class AutoRunner:
 
             result = None
             chosen = None
-            m = c = d = l = None
+            m = c = d = lang = None
             attempts_made = 0
             for cand in candidates:
                 if deadline_passed():
@@ -1427,11 +1431,11 @@ class AutoRunner:
                     continue
                 attempts_made += 1
                 chosen = cand
-                m, c, d, l = lookup[cand]
+                m, c, d, lang = lookup[cand]
                 log.info("one-shot: attempt %d/%d — chosen pair %s",
                           attempts_made, max_attempts, chosen)
                 pair_start = time.monotonic()
-                result = self.process_pair(m, c, d, l, batch=max_samples,
+                result = self.process_pair(m, c, d, lang, batch=max_samples,
                                             deadline=deadline)
                 elapsed = time.monotonic() - pair_start
                 if result is not None:

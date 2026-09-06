@@ -7,8 +7,6 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
-import pytest
-
 from arena.metrics import (
     hw_tier_of,
     pareto_frontier,
@@ -164,7 +162,8 @@ class TestLikelyHfRepoId:
         # Real values seen in the registry's pre-existing "model" field
         # that are NOT HF repo ids — must never be sent to HF as a lookup.
         assert likely_hf_repo_id("sabela") is False  # cotovia voice id
-        assert likely_hf_repo_id("tts_models/en/ljspeech/vits") is False  # coqui path — has slash but 3 segments? actually 3 slashes
+        # coqui path — has slash but 3 segments? actually 3 slashes
+        assert likely_hf_repo_id("tts_models/en/ljspeech/vits") is False
         assert likely_hf_repo_id("gTTS en (tld=us)") is False  # spaces/parens
         assert likely_hf_repo_id("YatharthS/LuxTTS (zipvoice)") is False  # trailing free text
 

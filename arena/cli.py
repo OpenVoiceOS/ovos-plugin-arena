@@ -1347,8 +1347,12 @@ def _registry_dataset_revisions() -> dict[str, str | None]:
     entry pins; see ``arena.metrics.drop_rows_off_pinned_revision``.
     """
     from registry.loaders import list_datasets
+    from registry.schemas import HuggingFaceSource
 
-    return {d.dataset_id: d.source.revision for d in list_datasets()}
+    return {
+        d.dataset_id: d.source.revision if isinstance(d.source, HuggingFaceSource) else None
+        for d in list_datasets()
+    }
 
 
 def _registry_battle_groups() -> set[str]:

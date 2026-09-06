@@ -18,7 +18,6 @@ from runner.autorun import (
     AutoRunConfig,
     AutoRunner,
     PairKey,
-    QuarantineEntry,
     RoundRobinScheduler,
     _quarantine_backoff_seconds,
     apply_filters,
@@ -259,14 +258,14 @@ class TestAutoRunnerRoundRobin:
 
         # Two full sweeps by hand (bypassing enumerate_all_pairs/registry).
         lookup = {
-            PairKey(m, c.competitor_id, d.dataset_id, l): (m, c, d, l)
-            for m, c, d, l in entries
+            PairKey(m, c.competitor_id, d.dataset_id, lang): (m, c, d, lang)
+            for m, c, d, lang in entries
         }
         runner.scheduler.set_pairs(lookup.keys())
         for _ in range(2):
             for pair in list(runner.scheduler.sweep()):
-                m, c, d, l = lookup[pair]
-                runner.process_pair(m, c, d, l)
+                m, c, d, lang = lookup[pair]
+                runner.process_pair(m, c, d, lang)
 
         # A and B alternate: A gets a batch, then B, then A again, then B.
         assert fake.calls == [
@@ -296,15 +295,15 @@ class TestAutoRunnerRoundRobin:
         runner.scheduler.set_pairs(lookup.keys())
 
         for pair in list(runner.scheduler.sweep()):
-            m, c, d, l = lookup[pair]
-            runner.process_pair(m, c, d, l)
+            m, c, d, lang = lookup[pair]
+            runner.process_pair(m, c, d, lang)
 
         assert runner.scheduler.completed == {PairKey("stt", "A", "d", "en")}
         # Second sweep only touches B.
         fake.calls.clear()
         for pair in list(runner.scheduler.sweep()):
-            m, c, d, l = lookup[pair]
-            runner.process_pair(m, c, d, l)
+            m, c, d, lang = lookup[pair]
+            runner.process_pair(m, c, d, lang)
         assert fake.calls == [PairKey("stt", "B", "d", "en").to_str()]
 
     def test_quarantine_on_hard_load_failure_stops_retries(self, tmp_path):
@@ -323,7 +322,7 @@ class TestAutoRunnerRoundRobin:
         # Within the backoff window, a later sweep never calls process_fn
         # again for BAD.
         fake.calls.clear()
-        for p in runner.scheduler.sweep():
+        for _p in runner.scheduler.sweep():
             pass  # empty
         assert fake.calls == []
 
@@ -533,8 +532,8 @@ class TestBreadthOrderedKeys:
 
     def _lookup(self, entries):
         return {
-            PairKey(m, c.competitor_id, d.dataset_id, l): (m, c, d, l)
-            for m, c, d, l in entries
+            PairKey(m, c.competitor_id, d.dataset_id, lang): (m, c, d, lang)
+            for m, c, d, lang in entries
         }
 
     def test_zero_coverage_fighter_ordered_before_deep_fighters_second_pair(
@@ -728,7 +727,7 @@ class TestOneShot:
             fake = FakeProcessor(sizes)
             config = AutoRunConfig(output_dir=tmp_path / f"seed{seed}", batch=10, upload=False)
             runner = AutoRunner(config, process_fn=fake)
-            runner.pair_is_complete = lambda m, c, d_, l, deadline=None: c.competitor_id == "A"
+            runner.pair_is_complete = lambda m, c, d_, lang, deadline=None: c.competitor_id == "A"
 
             summary = runner.run_one_shot(["stt"], max_samples=5, seed=seed)
             assert summary["pairs"], f"seed={seed} should have found B"
@@ -874,7 +873,7 @@ class TestOneShot:
 
         probe_calls = {"n": 0}
 
-        def counting_pair_is_complete(m, c, d, l, deadline=None):
+        def counting_pair_is_complete(m, c, d, lang, deadline=None):
             probe_calls["n"] += 1
             return False  # the very first candidate is immediately usable
 
@@ -909,7 +908,7 @@ class TestOneShot:
         clock = {"t": 0.0}
         monkeypatch.setattr(autorun_module.time, "monotonic", lambda: clock["t"])
 
-        def slow_complete_check(m, c, d, l, deadline=None):
+        def slow_complete_check(m, c, d, lang, deadline=None):
             clock["t"] += 10  # each completeness probe "costs" 10s
             return True  # every candidate looks complete — never a real draw
 
@@ -930,7 +929,9 @@ class TestOneShot:
         assert fake.calls == []  # never actually drew/ran a pair
         assert 0 < summary["candidates_probed"] < 50
 
-    def test_summary_shapes_are_mutually_exclusive_across_three_outcomes(self, tmp_path, monkeypatch):
+    def test_summary_shapes_are_mutually_exclusive_across_three_outcomes(
+        self, tmp_path, monkeypatch
+    ):
         """The three possible "found nothing" exits — real work done, every
         pair genuinely complete, ran out of time before finding one — must
         never overlap in their flags."""
@@ -951,7 +952,8 @@ class TestOneShot:
                               process_fn=FakeProcessor({}))
         runner2.pair_is_complete = lambda *a, **k: True
         summary2 = runner2.run_one_shot(["stt"], max_samples=5, seed=0)
-        assert not summary2["pairs"] and summary2["nothing_to_do"] and not summary2["discovery_bound"]
+        assert (not summary2["pairs"] and summary2["nothing_to_do"]
+                and not summary2["discovery_bound"])
 
         # 3) Discovery-bound: only discovery_bound. Needs MORE than one
         # candidate so the deadline is actually detected mid-walk (checked
@@ -963,7 +965,7 @@ class TestOneShot:
         clock = {"t": 0.0}
         monkeypatch.setattr(autorun_module.time, "monotonic", lambda: clock["t"])
 
-        def slow_complete_check(m, c, d, l, deadline=None):
+        def slow_complete_check(m, c, d, lang, deadline=None):
             clock["t"] += 100
             return True
 
@@ -971,7 +973,8 @@ class TestOneShot:
                               process_fn=FakeProcessor({}))
         runner3.pair_is_complete = slow_complete_check
         summary3 = runner3.run_one_shot(["stt"], max_samples=5, seed=0, time_budget_secs=10)
-        assert not summary3["pairs"] and not summary3["nothing_to_do"] and summary3["discovery_bound"]
+        assert (not summary3["pairs"] and not summary3["nothing_to_do"]
+                and summary3["discovery_bound"])
 
 
 class TestDiscoveryTimeout:
@@ -990,8 +993,8 @@ class TestDiscoveryTimeout:
             ("stt", _comp("shallow"), _ds("d1"), "en"),
         ]
         lookup = {
-            PairKey(m, c.competitor_id, d.dataset_id, l): (m, c, d, l)
-            for m, c, d, l in entries
+            PairKey(m, c.competitor_id, d.dataset_id, lang): (m, c, d, lang)
+            for m, c, d, lang in entries
         }
 
         calls = {"n": 0}
@@ -1140,8 +1143,8 @@ class TestLowDiskGuard:
 
         entries = [("stt", _comp("shallow"), _ds("d1"), "en")]
         lookup = {
-            PairKey(m, c.competitor_id, d.dataset_id, l): (m, c, d, l)
-            for m, c, d, l in entries
+            PairKey(m, c.competitor_id, d.dataset_id, lang): (m, c, d, lang)
+            for m, c, d, lang in entries
         }
 
         never_returns = threading.Event()
@@ -1170,8 +1173,8 @@ class TestLowDiskGuard:
 
         entries = [("stt", _comp("shallow"), _ds("d1"), "en")]
         lookup = {
-            PairKey(m, c.competitor_id, d.dataset_id, l): (m, c, d, l)
-            for m, c, d, l in entries
+            PairKey(m, c.competitor_id, d.dataset_id, lang): (m, c, d, lang)
+            for m, c, d, lang in entries
         }
         never_returns = threading.Event()
 

@@ -260,7 +260,7 @@ class TestNeedsIntelligibilityRejudge:
                         "intelligibility_judge_revision": None}},
         ])
         monkeypatch.setattr(rescore_tts, "_score_intelligibility",
-                            lambda w, t, l: _stub_panel_result())
+                            lambda w, t, lang: _stub_panel_result())
 
         rescored, skipped = rescore_tts.rescore_file(
             jsonl_path, tmp_path, rejudge_intelligibility=True)
@@ -354,7 +354,7 @@ class TestRejudgeIntelligibility:
         called = []
         monkeypatch.setattr(
             rescore_tts, "_score_intelligibility",
-            lambda w, t, l: called.append((w, t, l)) or _stub_panel_result())
+            lambda w, t, lang: called.append((w, t, lang)) or _stub_panel_result())
 
         rescored, skipped = rescore_tts.rescore_file(
             jsonl_path, tmp_path, rejudge_intelligibility=True)
@@ -375,7 +375,7 @@ class TestRejudgeIntelligibility:
         called = []
         monkeypatch.setattr(
             rescore_tts, "_score_intelligibility",
-            lambda w, t, l: called.append((w, t, l)) or _stub_panel_result())
+            lambda w, t, lang: called.append((w, t, lang)) or _stub_panel_result())
 
         rescored, skipped = rescore_tts.rescore_file(
             jsonl_path, tmp_path, rejudge_intelligibility=True)
@@ -394,7 +394,7 @@ class TestRejudgeIntelligibility:
         called = []
         monkeypatch.setattr(
             rescore_tts, "_score_intelligibility",
-            lambda w, t, l: called.append((w, t, l)) or _stub_panel_result())
+            lambda w, t, lang: called.append((w, t, lang)) or _stub_panel_result())
 
         # flag defaults to False; quality dims already present so nothing
         # to rescore at all — file must be left byte-identical.
@@ -492,11 +492,12 @@ class TestUnjudgeableLanguageMigration:
             "utmos": 3.9, "intelligibility_wer": 0.21,
             "intelligibility_cer": 0.08, "intelligibility_judge": "gigaam-v2-rnnt"})
         monkeypatch.setattr(rescore_tts, "judge_available", lambda lang: False)
-        panel = lambda *a, **kw: {
-            "wer": 0.21, "cer": 0.08, "judge_model_id": "gigaam-v2-rnnt",
-            "judge_revision": "abc", "judges": [], "consensus": "x",
-            "agreement": 1.0,
-        }
+        def panel(*a, **kw):
+            return {
+                "wer": 0.21, "cer": 0.08, "judge_model_id": "gigaam-v2-rnnt",
+                "judge_revision": "abc", "judges": [], "consensus": "x",
+                "agreement": 1.0,
+            }
         updated = self._run(tmp_path, "ru-RU", row, monkeypatch, judge=panel)
 
         assert updated["extras"]["intelligibility_wer"] == pytest.approx(0.21)

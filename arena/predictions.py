@@ -280,7 +280,9 @@ def resolve_predictions_revision(repo_id: str, revision: str = "main") -> str:
                 "Resolving %s@%s failed (attempt %d/%d): %s — retrying in %ss",
                 repo_id, revision, attempt, len(HF_FETCH_BACKOFF_SECONDS), exc, pause)
             time.sleep(pause)
-    raise last
+    raise last if last is not None else RuntimeError(
+        "retry loop exited without recording a failure"
+    )
 
 
 def reset_revision_cache() -> None:
@@ -338,7 +340,9 @@ def fetch_hf_predictions(repo_id: str, revision: str = "main") -> Path | None:
             logger.warning("Fetching %s failed (attempt %d/%d): %s — retrying in %ss",
                         repo_id, attempt, len(HF_FETCH_BACKOFF_SECONDS), exc, pause)
             time.sleep(pause)
-    raise last
+    raise last if last is not None else RuntimeError(
+        "retry loop exited without recording a failure"
+    )
 
 
 def _is_missing(exc: Exception) -> bool:

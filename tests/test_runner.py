@@ -288,6 +288,7 @@ class TestPluginFromCompetitor:
 
     def test_fighter_without_nested_section_falls_back_to_competitor_id(self, tmp_path):
         import json
+
         from runner.queue_config import _plugin_from_competitor
         d = tmp_path / "competitors" / "stt"
         d.mkdir(parents=True)
@@ -328,7 +329,9 @@ class TestRunJobAttribution:
 
     def _run(self, tmp_path, monkeypatch, competitor_id):
         import json
+
         import numpy as np
+
         import runner.plugin_runner as pr
         from runner.queue_config import DatasetSpec, JobSpec, PluginSpec
 
@@ -355,7 +358,7 @@ class TestRunJobAttribution:
         out = pr.run_job(JobSpec(plugin=plugin, dataset=dataset,
                                  hf_output_dataset="fake/out"),
                          base_dir=tmp_path)
-        rows = [json.loads(l) for l in out.read_text().splitlines()]
+        rows = [json.loads(line) for line in out.read_text().splitlines()]
         return out, rows
 
     def test_competitor_job_rows_carry_competitor_id(self, tmp_path, monkeypatch):
@@ -444,7 +447,6 @@ class TestCollisionFreeSampleIdentity:
         already-done."""
         import json
 
-        import numpy as np
         import runner.plugin_runner as pr
         from runner.queue_config import DatasetSpec, JobSpec, PluginSpec
 
@@ -504,6 +506,7 @@ class TestDatasetSpecRegistryId:
 
     def test_registry_referenced_dataset_uses_canonical_id(self, tmp_path):
         import json
+
         from runner.queue_config import _dataset_spec_from_registry
         d = tmp_path / "datasets" / "stt"
         d.mkdir(parents=True)

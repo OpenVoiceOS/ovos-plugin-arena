@@ -352,7 +352,9 @@ def run_job(
                     signal.alarm(per_sample_timeout)
 
                 (text, conf), elapsed_ms, peak_rss_mb = measure_call(
-                    lambda: _transcribe(stt, array, sample_rate, plugin.lang)
+                    lambda array=array, sample_rate=sample_rate: _transcribe(
+                        stt, array, sample_rate, plugin.lang
+                    )
                 )
 
                 if hasattr(signal, "SIGALRM"):

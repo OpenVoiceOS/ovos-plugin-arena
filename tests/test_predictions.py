@@ -494,7 +494,9 @@ class TestHfFetchMissingRepo:
     def test_missing_repo_is_no_data_and_is_not_retried(self, monkeypatch, caplog):
         from huggingface_hub.utils import RepositoryNotFoundError
 
-        attempts = self._hub(monkeypatch, RepositoryNotFoundError("401 ...", response=_response(401)))
+        attempts = self._hub(
+            monkeypatch, RepositoryNotFoundError("401 ...", response=_response(401))
+        )
 
         with caplog.at_level("INFO"):
             assert predictions_mod.fetch_hf_predictions("Org/never-swept") is None

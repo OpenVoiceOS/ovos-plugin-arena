@@ -116,7 +116,6 @@ class TestStreamAudioDatasetHonoursPolicy:
     against a fake parquet corpus (no network)."""
 
     def _fake_corpus(self, monkeypatch, n=50):
-        import numpy as np
 
         from runner import audio_io
 
