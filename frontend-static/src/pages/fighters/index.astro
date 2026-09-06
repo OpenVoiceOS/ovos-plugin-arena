@@ -1,51 +1,63 @@
 ---
 import Base from '../../layouts/Base.astro';
 ---
-<Base title="Fighters" description="The fighter bestiary — every competitor in the arena, with species, types and stats.">
+<Base title="Fighters" description="The fighter bestiary — every competitor in the arena, by league, with its rank, species, types and configuration.">
   <h1>Fighters</h1>
   <p>
     The arena bestiary. Every fighter is a <strong>shippable configuration</strong> declared as a
     JSON file in the <a href="https://github.com/OpenVoiceOS/ovos-plugin-arena/tree/dev/registry">registry</a> —
-    a valid <code>mycroft.conf</code> fragment naming its pipeline stages. Its
-    <strong>species</strong> is the plugin class it instantiates; its <strong>types</strong>
-    describe the architecture doing the matching. Multi-stage pipelines are
-    <strong>ensemble</strong> fighters in their own right.
+    a valid <code>mycroft.conf</code> fragment naming its pipeline stages. Pick a league to browse
+    its fighters, ranked by the same ELO boards the leaderboard uses.
   </p>
 
-  <div class="card" style="display:flex;gap:1rem;flex-wrap:wrap;align-items:center;margin-bottom:1.5rem">
-    <label for="sel-search" style="color:var(--muted);font-size:0.9rem">Search</label>
-    <input id="sel-search" type="search" placeholder="Search fighters…"
-           style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:0.35rem 0.6rem;min-width:12rem" />
-    <label for="sel-modality" style="color:var(--muted);font-size:0.9rem">Modality</label>
-    <select id="sel-modality" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:0.35rem 0.6rem">
-      <option value="">All</option>
-      <option value="stt">STT</option>
-      <option value="tts">TTS</option>
-      <option value="wake_word">Wake Word</option>
-      <option value="vad">VAD</option>
-      <option value="intent">Intent · Open</option>
-      <option value="intent_template">Intent · Template</option>
-      <option value="intent_keyword">Intent · Keyword</option>
-    </select>
-    <label for="sel-type" style="color:var(--muted);font-size:0.9rem">Type</label>
-    <select id="sel-type" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:0.35rem 0.6rem">
-      <option value="">All</option>
-    </select>
-    <label for="sel-flang" style="color:var(--muted);font-size:0.9rem">Language</label>
-    <select id="sel-flang" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:0.35rem 0.6rem">
-      <option value="">All</option>
-    </select>
-    <label for="chk-group-variants" style="color:var(--muted);font-size:0.9rem;cursor:pointer;display:flex;align-items:center;gap:0.35rem">
-      <input type="checkbox" id="chk-group-variants" checked />
-      <span>Group variants</span>
-    </label>
-    <button type="button" id="btn-reset-filters" class="btn" style="background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:0.35rem 0.75rem;cursor:pointer">
-      Reset filters
-    </button>
-    <span id="dex-count" style="color:var(--muted);font-size:0.85rem;margin-left:auto" aria-live="polite"></span>
-  </div>
+  <!-- Cards, groups and tiles are built by the script below, so these rules
+       must not be scoped to the elements Astro renders at build time. -->
+  <style is:global>
+    .league-grid {
+      display: grid; gap: 1rem; margin: 1.5rem 0;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    }
+    .league-tile {
+      display: flex; flex-direction: column; gap: 0.5rem; text-align: left;
+      background: var(--card, rgba(255, 255, 255, 0.02));
+      color: var(--text); font: inherit; cursor: pointer;
+      border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.1rem;
+    }
+    .league-tile:hover { border-color: var(--muted); }
+    .league-tile:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    .league-tile[aria-pressed='true'] { border-color: var(--accent); }
+    .tile-head { display: flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap; }
+    .tile-name { font-size: 1.1rem; font-weight: 600; letter-spacing: -0.01em; }
+    .tile-count { font-family: var(--mono); font-size: 0.76rem; color: var(--muted);
+      border: 1px solid var(--border); border-radius: 999px; padding: 0.1rem 0.55rem; }
+    .tile-blurb { display: block; font-size: 0.85rem; color: var(--muted); }
+    .tile-top { display: block; font-size: 0.8rem; color: var(--muted); }
 
-  <style>
+    /* Once a league is picked the tiles stay as a compact league switcher. */
+    .league-grid.compact { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 1.2rem 0 1rem; }
+    .league-grid.compact .league-tile { padding: 0.35rem 0.8rem; font-size: 0.9rem; }
+    .league-grid.compact .tile-blurb,
+    .league-grid.compact .tile-top { display: none; }
+    .league-grid.compact .tile-name { font-size: 0.9rem; font-weight: 500; }
+
+    .dex-controls { display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; margin-bottom: 1rem; }
+    .dex-controls label { color: var(--muted); font-size: 0.9rem; }
+    .dex-controls select,
+    .dex-controls input[type='search'] {
+      background: var(--bg); color: var(--text); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 0.35rem 0.6rem;
+    }
+    .dex-controls input[type='search'] { min-width: 12rem; }
+    .size-chips { display: flex; gap: 0.4rem; flex-wrap: wrap; align-items: center; }
+    .size-chip {
+      background: var(--bg); color: var(--text); font: inherit; font-size: 0.8rem;
+      border: 1px solid var(--border); border-radius: 999px;
+      padding: 0.2rem 0.7rem; cursor: pointer;
+    }
+    .size-chip[aria-pressed='true'] { border-color: var(--accent); color: var(--accent); }
+    .size-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    #dex-count { color: var(--muted); font-size: 0.85rem; margin-left: auto; }
+
     #dex-grid { justify-content: center; }
     .fighter {
       margin-bottom: 0;
@@ -53,18 +65,20 @@ import Base from '../../layouts/Base.astro';
       flex-direction: column;
       gap: 0.7rem;
       text-align: center;
-      /* Thousands of cards can exist in the DOM at once (registry scale) —
-         skip layout/paint for the ones currently off-screen. The intrinsic
-         size is a rough estimate of a typical card's rendered height so
-         scrollbar geometry doesn't jump around as cards come in/out of view. */
+      /* Cards off-screen skip layout and paint. The placeholder is the
+         measured height of a typical card, and `auto` makes a card that has
+         been rendered once keep its own real height, so scrolling back over
+         it doesn't resize anything under the reader. */
       content-visibility: auto;
-      contain-intrinsic-size: 420px;
+      contain-intrinsic-size: auto 576px;
     }
     .fighter-hero { display: flex; flex-direction: column; align-items: center; gap: 0.45rem; }
     .fighter-hero svg { filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.45)); }
-    .fighter-hero h2 { margin: 0.2rem 0 0; font-size: 1.2rem; letter-spacing: -0.01em; }
+    .fighter-hero h3 { margin: 0.2rem 0 0; font-size: 1.2rem; letter-spacing: -0.01em; }
     .fighter-types { display: flex; gap: 0.3rem; flex-wrap: wrap; justify-content: center; }
     .fighter-desc { font-size: 0.86rem; margin: 0; }
+    .rank-line { margin: 0; font-size: 0.85rem; font-family: var(--mono); }
+    .rank-line.unranked { color: var(--muted); }
     .fighter-stats {
       display: grid;
       grid-template-columns: auto 1fr;
@@ -81,7 +95,7 @@ import Base from '../../layouts/Base.astro';
     .fighter-stats dd { margin: 0; font-family: var(--mono); word-break: break-word; }
     .fighter-foot { margin-top: auto; }
 
-    /* ---- subspecies groups ---- */
+    /* ---- engine / family groups ---- */
     .fighter-group { display: contents; }
     .group-card {
       padding: 0; margin-bottom: 0; overflow: hidden;
@@ -95,50 +109,104 @@ import Base from '../../layouts/Base.astro';
     .group-summary::-webkit-details-marker { display: none; }
     .group-summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     .group-head { display: flex; align-items: center; justify-content: center; gap: 0.5rem; flex-wrap: wrap; }
-    .group-head h2 { margin: 0; font-size: 1.2rem; letter-spacing: -0.01em; }
+    .group-head h3 { margin: 0; font-size: 1.2rem; letter-spacing: -0.01em; }
     .group-count { font-family: var(--mono); font-size: 0.76rem; color: var(--muted);
       border: 1px solid var(--border); border-radius: 999px; padding: 0.1rem 0.55rem; }
     .group-meta { font-size: 0.8rem; color: var(--muted); }
     .group-toggle-hint { font-size: 0.76rem; color: var(--muted); }
-    .group-details[open] .group-toggle-hint::before { content: '▾ hide variants'; }
-    .group-details:not([open]) .group-toggle-hint::before { content: '▸ show variants'; }
-    .group-members {
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 1rem; padding: 0 1.1rem 1.1rem;
+    .group-details[open] .group-toggle-hint::before { content: '▾ hide members'; }
+    .group-details:not([open]) .group-toggle-hint::before { content: '▸ show members'; }
+    .group-members { list-style: none; margin: 0; padding: 0 1.1rem 1.1rem; text-align: left; }
+    .member-row {
+      display: flex; gap: 0.6rem; align-items: baseline; flex-wrap: wrap;
+      padding: 0.45rem 0; border-top: 1px solid var(--border); font-size: 0.85rem;
     }
-    .group-members .fighter { border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; }
+    .member-row .member-name { font-weight: 600; }
+    .member-row .member-meta { color: var(--muted); font-size: 0.8rem; }
+    .member-row details { flex-basis: 100%; font-size: 0.8rem; }
+    .member-row summary { cursor: pointer; color: var(--muted); }
+
+    .more-cards {
+      grid-column: 1 / -1; display: flex; gap: 0.6rem; align-items: center;
+      flex-wrap: wrap; justify-content: center; margin: 0.5rem 0 0;
+    }
+    .more-cards span { color: var(--muted); font-size: 0.85rem; }
   </style>
+
+  <h2 id="leagues-heading">Leagues</h2>
+  <div id="dex-leagues" class="league-grid"></div>
 
   <div id="dex-loading" class="card" aria-live="polite">Loading fighters…</div>
   <div id="dex-empty" class="card" style="display:none">
     No fighters found. Run the <code>export-bestiary</code> CLI / the <code>assemble.yml</code> Action to generate <code>competitors.json</code>.
   </div>
-  <div id="dex-filtered-empty" class="card" style="display:none">
-    No fighters match these filters — reset or try another language.
-  </div>
-  <div id="dex-grid" style="display:none;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1rem"></div>
 
-  <details id="dex-upcoming-section" class="card" style="display:none;margin-top:1.5rem;padding:0">
-    <summary style="cursor:pointer;list-style:none;padding:1rem 1.1rem" class="group-summary">
-      <div class="group-head">
-        <h2 style="margin:0;font-size:1.1rem">Upcoming fighters</h2>
-        <span class="group-count" id="dex-upcoming-count">0</span>
-      </div>
-      <p style="margin:0.4rem 0 0;font-size:0.85rem;color:var(--muted)">
-        Registered in the registry but awaiting predictions — not yet ranked on any board or picker.
-      </p>
-    </summary>
-    <div id="dex-upcoming-grid" style="grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1rem;padding:0 1.1rem 1.1rem"></div>
-  </details>
+  <div id="dex-browser" style="display:none">
+    <h2 id="league-heading"></h2>
+    <div class="card dex-controls">
+      <label for="sel-search">Search</label>
+      <input id="sel-search" type="search" placeholder="Search fighters…" />
+      <label for="sel-type">Type</label>
+      <select id="sel-type"><option value="">All types</option></select>
+      <label for="sel-flang">Language</label>
+      <select id="sel-flang"><option value="">All languages</option></select>
+      <label for="sel-sort">Sort</label>
+      <select id="sel-sort">
+        <option value="rank">Rank</option>
+        <option value="name">Name</option>
+        <option value="size">Size</option>
+      </select>
+      <label for="chk-group-variants" style="cursor:pointer;display:flex;align-items:center;gap:0.35rem">
+        <input type="checkbox" id="chk-group-variants" checked />
+        <span>Group by engine</span>
+      </label>
+      <button type="button" id="btn-reset-filters" class="btn">Reset filters</button>
+      <span id="dex-count" aria-live="polite"></span>
+      <div id="size-chips" class="size-chips" role="group" aria-label="Model size" style="display:none;flex-basis:100%"></div>
+    </div>
+
+    <div id="dex-filtered-empty" class="card" style="display:none">
+      <p style="margin:0 0 0.75rem">No fighters in this league match these filters.</p>
+      <button type="button" id="btn-reset-empty" class="btn">Reset filters</button>
+    </div>
+    <div id="dex-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1rem"></div>
+
+    <details id="dex-upcoming-section" class="card" style="display:none;margin-top:1.5rem;padding:0">
+      <summary class="group-summary" style="padding:1rem 1.1rem">
+        <div class="group-head">
+          <h2 style="margin:0;font-size:1.1rem">Upcoming fighters</h2>
+          <span class="group-count" id="dex-upcoming-count">0</span>
+        </div>
+        <p style="margin:0.4rem 0 0;font-size:0.85rem;color:var(--muted)">
+          Registered in the registry but awaiting predictions — not yet ranked on any board or picker.
+        </p>
+      </summary>
+      <div id="dex-upcoming-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1rem;padding:0 1.1rem 1.1rem"></div>
+    </details>
+  </div>
 
   <script>
-    import { spriteSvg, TYPE_HUE } from '../../lib/sprite.js';
+    import { spriteSvg } from '../../lib/sprite.js';
     import { langDisplayName } from '../../lib/lang.js';
+    import { pickBoardLang, rankIndex } from '../../lib/ranks.js';
 
     const BASE = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
     const MODALITY_LABELS = { stt: 'STT', tts: 'TTS', wake_word: 'Wake Word', vad: 'VAD', intent: 'Intent · Open', intent_template: 'Intent · Template', intent_keyword: 'Intent · Keyword' };
     const BADGE_CLASS = { stt: 'badge-stt', tts: 'badge-tts', wake_word: 'badge-ww', vad: 'badge-vad', intent: 'badge-intent', intent_template: 'badge-intent', intent_keyword: 'badge-intent' };
     const KNOWN_TYPES = ['gofai','fuzzy-match','neural-net','template-match','keyword-match','embedding','llm','ensemble','transformer'];
+    const LEAGUE_BLURB = {
+      tts: 'Voices that read text out loud.',
+      stt: 'Engines that turn recorded speech into text.',
+      wake_word: 'Always-on detectors listening for the wake word.',
+      vad: 'Detectors deciding where speech starts and stops.',
+      intent: 'Multi-stage pipelines combining several intent engines.',
+      intent_template: 'Engines matching an utterance against example phrasings.',
+      intent_keyword: 'Engines matching an utterance by keyword rules.',
+    };
+    // Voices and models of one engine belong on one card; the intent leagues
+    // instead fold config-variant wrappers of the same engine via `family`.
+    const ENGINE_LEAGUES = new Set(['tts', 'stt', 'wake_word', 'vad']);
+    const SIZE_ORDER = ['micro', 'small', 'base', 'medium', 'large', 'x-large'];
 
     function escHtml(str) {
       return String(str).replace(/[&<>"']/g, c =>
@@ -151,6 +219,41 @@ import Base from '../../layouts/Base.astro';
       return `<span class="type-chip ${cls}">${escHtml(type)}</span>`;
     }
 
+    const state = { league: '', type: '', lang: '', size: '', q: '', sort: 'rank', group: true };
+    let fighters = [];
+    let upcoming = [];
+    let leagues = [];
+    let leaderboards = [];
+    let ranks = new Map();
+    let rankLang = '';
+    // league id -> "top three" line, so switching leagues and coming back
+    // doesn't blank the tiles that were already filled in.
+    const tileTops = new Map();
+    // group key -> members, for the current render, so a group's rows can be
+    // built the first time the visitor expands it instead of up front.
+    const pendingMembers = new Map();
+
+    // Unranked sorts last; a finite sentinel keeps the comparators well-defined.
+    const UNRANKED = Number.MAX_SAFE_INTEGER;
+    const rankOf = c => ranks.get(c.competitor_id)?.rank ?? UNRANKED;
+
+    // A fighter with no battles behind its rating is seeded, not measured —
+    // it shares its rank with everyone else on the seed and says so instead
+    // of showing a rating that means nothing yet.
+    function rankLine(c) {
+      const entry = ranks.get(c.competitor_id);
+      if (!entry) {
+        return `<p class="rank-line unranked">Unranked${rankLang ? ` in ${escHtml(rankLang)}` : ''}</p>`;
+      }
+      const score = entry.battles ? `rating ${entry.rating}` : 'tied, no battles yet';
+      return `<p class="rank-line">Rank #${entry.rank} · ${score} · ${escHtml(rankLang)}</p>`;
+    }
+
+    function langsLabelOf(langs) {
+      if (!langs.length) return 'any language';
+      return langs.length > 6 ? `${langs.length} languages` : langs.join(', ');
+    }
+
     function fighterCard(c) {
       const name = c.display_name || c.competitor_id;
       const types = (c.types || []).map(typeChip).join(' ');
@@ -158,20 +261,15 @@ import Base from '../../layouts/Base.astro';
       const config = Object.entries(c.config || {});
       const links = Object.entries(c.links || {});
       const pipeline = c.config?.intents?.pipeline || [];
-      const langsLabel = !langs.length ? 'any language'
-        : langs.length > 6 ? `${langs.length} languages`
-        : langs.join(', ');
       return `
-        <article class="card fighter" data-modality="${escHtml(c.modality)}"
-                 data-types="${escHtml((c.types || []).join('|').toLowerCase())}"
-                 data-langs="${escHtml(langs.join('|').toLowerCase())}"
-                 data-search="${escHtml(`${name} ${c.competitor_id}`.toLowerCase())}">
+        <article class="card fighter">
           <div class="fighter-hero">
             ${spriteSvg(c.competitor_id, (c.types || [])[0] || '', 84)}
-            <h2><a href="${BASE}fighter/${encodeURIComponent(c.competitor_id)}/" style="color:inherit">${escHtml(name)}</a></h2>
+            <h3><a href="${BASE}fighter/${encodeURIComponent(c.competitor_id)}/" style="color:inherit">${escHtml(name)}</a></h3>
             <span class="badge ${BADGE_CLASS[c.modality] || ''}">${escHtml(MODALITY_LABELS[c.modality] || c.modality)}</span>
             <div class="fighter-types">${types}</div>
           </div>
+          ${rankLine(c)}
           ${c.description ? `<p class="fighter-desc">${escHtml(c.description)}</p>` : ''}
           <dl class="fighter-stats">
             ${c.species ? `<dt>Species</dt><dd>${escHtml(c.species)}</dd>` : ''}
@@ -179,7 +277,7 @@ import Base from '../../layouts/Base.astro';
             ${pipeline.length > 1 ? `<dt>Pipeline</dt><dd style="font-size:0.76rem">${pipeline.map(escHtml).join('<br>')}</dd>` : ''}
             ${c.model ? `<dt>Model</dt><dd>${escHtml(c.model)}</dd>` : ''}
             ${c.size ? `<dt>Size</dt><dd style="font-family:var(--font)">${escHtml(c.size)}</dd>` : ''}
-            <dt>Languages</dt><dd style="font-family:var(--font)" title="${escHtml(langs.join(', '))}">${escHtml(langsLabel)}</dd>
+            <dt>Languages</dt><dd style="font-family:var(--font)">${escHtml(langsLabelOf(langs))}</dd>
           </dl>
           <div class="fighter-foot">
             ${config.length ? `
@@ -197,20 +295,28 @@ import Base from '../../layouts/Base.astro';
         </article>`;
     }
 
-    // ---- subspecies grouping ----------------------------------------
-    // Group key: `family` (registry-derived, see registry/schemas.py) is
-    // always set by the backend now — for intent leagues it folds
-    // config-variant wrapper species (domain-scoped, hierarchical-scoped,
-    // …) of the same underlying engine onto one card via FAMILY_ALIASES;
-    // for every other league (tts/stt/wake_word/vad) it always equals the
-    // fighter's own competitor_id, so each model is a singleton family and
-    // gets its own card — that's the intended per-model bestiary for those
-    // leagues, not a fallback. `family` can still be unset for a valid
-    // intent record with no `species` (schemas.py only derives it from
-    // species there), so the `species`/`plugin`/`competitor_id` reads below
-    // are a real fallback for those records (and hand-built fixtures), not
-    // just defensive.
-    const groupKeyOf = c => c.family || c.species || c.plugin || c.competitor_id;
+    function memberRow(c) {
+      const name = c.display_name || c.competitor_id;
+      const entry = ranks.get(c.competitor_id);
+      const rank = entry
+        ? `<span class="rank-line">#${entry.rank} · ${entry.battles ? entry.rating : 'tied, no battles yet'}</span>`
+        : `<span class="rank-line unranked">unranked</span>`;
+      const meta = [c.model, c.size, langsLabelOf(c.langs || [])].filter(Boolean).join(' · ');
+      const config = Object.keys(c.config || {}).length
+        ? `<details><summary>mycroft.conf</summary><pre style="margin:0.3rem 0 0;font-size:0.75rem;overflow-x:auto;color:var(--muted)">${escHtml(JSON.stringify(c.config, null, 2))}</pre></details>`
+        : '';
+      return `
+        <li class="member-row">
+          <a class="member-name" href="${BASE}fighter/${encodeURIComponent(c.competitor_id)}/">${escHtml(name)}</a>
+          ${rank}
+          <span class="member-meta">${escHtml(meta)}</span>
+          ${config}
+        </li>`;
+    }
+
+    const groupKeyOf = c => ENGINE_LEAGUES.has(c.modality)
+      ? (c.plugin || c.competitor_id)
+      : (c.family || c.species || c.plugin || c.competitor_id);
 
     // "JurebesPipeline" -> "Jurebes Pipeline"; "OnnxASR" -> "Onnx ASR";
     // trailing "Pipeline"/"Plugin" tokens are dropped when there's more
@@ -228,11 +334,13 @@ import Base from '../../layouts/Base.astro';
       return words.join(' ');
     }
 
-    // "ovos-fasterwhisper-plugin" -> "Fasterwhisper"
+    // "ovos-stt-plugin-fasterwhisper" -> "Fasterwhisper"
     function humanizePlugin(plugin) {
       const words = plugin
         .replace(/^ovos-/, '')
+        .replace(/^(stt|tts|vad|ww|wake-word|intent)-/, '')
         .replace(/-plugin$/, '')
+        .replace(/^plugin-/, '')
         .split('-')
         .filter(Boolean)
         .map(w => w.charAt(0).toUpperCase() + w.slice(1));
@@ -241,62 +349,274 @@ import Base from '../../layouts/Base.astro';
 
     function groupDisplayName(key, members) {
       const sample = members[0];
-      if (sample.family === key || sample.species === key) return humanizeSpecies(key);
+      // A shared species reads better than the pip name it ships under
+      // ("Onnx ASR", not "Onnx Asr"), so prefer it when the whole group agrees.
+      const species = sample.species;
+      if (species && members.every(m => m.species === species)) return humanizeSpecies(species);
       if (sample.plugin === key) return humanizePlugin(key);
+      if (sample.family === key) return humanizeSpecies(key);
       return sample.display_name || key;
     }
 
-    function groupCard(key, members) {
+    function groupCard(scope, key, members) {
       const name = escHtml(groupDisplayName(key, members));
-      const modalities = [...new Set(members.map(m => m.modality))];
       const langs = [...new Set(members.flatMap(m => m.langs || []))].sort();
-      const langsLabel = members.some(m => !(m.langs || []).length) ? 'any language'
-        : langs.length > 6 ? `${langs.length} languages` : langs.join(', ');
-      const modalityBadges = modalities.map(m =>
-        `<span class="badge ${BADGE_CLASS[m] || ''}">${escHtml(MODALITY_LABELS[m] || m)}</span>`).join(' ');
+      const anyLang = members.some(m => !(m.langs || []).length);
       const groupTypes = [...new Set(members.flatMap(m => m.types || []))];
-      const membersHtml = members.map(fighterCard).join('');
-      // data-* mirrors the individual .fighter attributes so a group is
-      // findable/expandable under the same filters as ungrouped fighters —
-      // "matches" is decided per-member below, this is just for the
-      // group-level scan in applyFilters().
+      const best = members.reduce((a, b) => (rankOf(b) < rankOf(a) ? b : a));
+      const modality = members[0].modality;
       return `
-        <div class="fighter-group" data-group-key="${escHtml(key)}">
-          <details class="group-details card group-card">
+        <div class="fighter-group">
+          <details class="group-details card group-card" data-group-key="${escHtml(scope + '|' + key)}">
             <summary class="group-summary">
               <div class="group-head">
                 ${spriteSvg(key, groupTypes[0] || '', 56)}
               </div>
               <div class="group-head">
-                <h2>${name}</h2>
-                <span class="group-count">${members.length} variants</span>
+                <h3>${name}</h3>
+                <span class="group-count">${members.length} fighters</span>
               </div>
-              <div class="group-head">${modalityBadges}</div>
-              <div class="group-meta">${escHtml(langsLabel)}</div>
+              <div class="group-head">
+                <span class="badge ${BADGE_CLASS[modality] || ''}">${escHtml(MODALITY_LABELS[modality] || modality)}</span>
+              </div>
+              <div class="group-head">${groupTypes.map(typeChip).join(' ')}</div>
+              ${rankLine(best)}
+              <div class="group-meta">${escHtml(anyLang ? 'any language' : langsLabelOf(langs))}</div>
               <span class="group-toggle-hint"></span>
             </summary>
-            <div class="group-members">${membersHtml}</div>
+            <ul class="group-members" role="list"></ul>
           </details>
         </div>`;
     }
 
-    function renderFighters(fighters, groupVariants = true) {
-      if (!groupVariants) return fighters.map(fighterCard).join('');
-      const groups = new Map();
-      for (const c of fighters) {
-        const key = groupKeyOf(c);
-        (groups.get(key) ?? groups.set(key, []).get(key)).push(c);
-      }
-      const html = [];
-      for (const [key, members] of groups) {
-        html.push(members.length > 1 ? groupCard(key, members) : fighterCard(members[0]));
-      }
-      return html.join('');
+    // Members are rendered on first expand: one engine can hold hundreds of
+    // voices, and building all of them up front is what made the flat grid
+    // slow.
+    function expandGroup(details) {
+      if (details.dataset.rendered) return;
+      const members = pendingMembers.get(details.dataset.groupKey) || [];
+      details.querySelector('.group-members').innerHTML = members.map(memberRow).join('');
+      details.dataset.rendered = '1';
     }
 
-    // simple debounce so typing doesn't re-filter the whole grid on every
-    // keystroke — fine at this scale, and matches the ~150ms feel of a live
-    // search without adding a dependency.
+    function sortValue(c) {
+      if (state.sort === 'name') return null;
+      if (state.sort === 'size') {
+        const i = SIZE_ORDER.indexOf(c.size);
+        return i === -1 ? SIZE_ORDER.length : i;
+      }
+      return rankOf(c);
+    }
+
+    const nameOf = c => (c.display_name || c.competitor_id).toLowerCase();
+
+    function byEntry(a, b) {
+      if (state.sort !== 'name') {
+        const av = Math.min(...a.members.map(sortValue));
+        const bv = Math.min(...b.members.map(sortValue));
+        if (av !== bv) return av - bv;
+      }
+      return nameOf(a.members[0]) < nameOf(b.members[0]) ? -1 : 1;
+    }
+
+    const primaryLang = tag => String(tag).split(/[-_]/)[0].toLowerCase();
+
+    function langMatches(langs, wanted) {
+      if (!wanted) return true;
+      if (!langs || !langs.length) return true;  // empty list = any language
+      return langs.some(t => t.toLowerCase() === wanted.toLowerCase()
+                          || primaryLang(t) === primaryLang(wanted));
+    }
+
+    // One predicate per dimension, used both to filter the grid (with the
+    // value the visitor picked) and to count a facet option (with the value
+    // that option would set) — so an option can never promise a count the
+    // grid then contradicts.
+    const PREDICATES = {
+      type: (c, v) => !v || (c.types || []).some(t => t.toLowerCase() === v),
+      lang: (c, v) => langMatches(c.langs, v),
+      size: (c, v) => !v || c.size === v,
+      q: (c, v) => !v || `${c.display_name || ''} ${c.competitor_id} ${c.plugin || ''}`
+        .toLowerCase().includes(v),
+    };
+
+    const inLeague = pool => pool.filter(c => c.modality === state.league);
+
+    // `except` leaves one dimension unfiltered so its own options can be
+    // counted against everything else the visitor has already picked.
+    function matching(pool, except) {
+      return inLeague(pool).filter(c =>
+        Object.entries(PREDICATES).every(([dim, test]) => dim === except || test(c, state[dim])));
+    }
+
+    // How many fighters each option of `dim` would leave, given everything
+    // else already picked.
+    function facetCounts(dim, values) {
+      const pool = matching(fighters, dim);
+      const test = PREDICATES[dim];
+      const counts = new Map();
+      for (const value of values) {
+        const n = pool.reduce((total, c) => total + (test(c, value) ? 1 : 0), 0);
+        if (n) counts.set(value, n);
+      }
+      return counts;
+    }
+
+    // Cards are built in chunks: one league ungrouped is hundreds of full
+    // cards, and building them all at once costs seconds on a slow machine.
+    const CHUNK = 60;
+    const limits = { ranked: CHUNK, upcoming: CHUNK };
+
+    function renderGrid(scope, container, pool) {
+      const selected = matching(pool);
+      const groups = new Map();
+      for (const c of selected) {
+        const key = state.group ? groupKeyOf(c) : c.competitor_id;
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push(c);
+      }
+      const entries = [...groups].map(([key, members]) => ({ key, members })).sort(byEntry);
+      for (const e of entries) {
+        e.members.sort((a, b) => (state.sort === 'name'
+          ? (nameOf(a) < nameOf(b) ? -1 : 1)
+          : sortValue(a) - sortValue(b) || (nameOf(a) < nameOf(b) ? -1 : 1)));
+        if (e.members.length > 1) pendingMembers.set(`${scope}|${e.key}`, e.members);
+      }
+      const limit = Math.min(limits[scope], entries.length);
+      const remaining = entries.length - limit;
+      container.innerHTML = entries.slice(0, limit)
+        .map(e => (e.members.length > 1 ? groupCard(scope, e.key, e.members) : fighterCard(e.members[0])))
+        .join('') + (remaining ? `
+          <p class="more-cards">
+            <button type="button" class="btn" data-more="${scope}">Show ${Math.min(CHUNK, remaining)} more</button>
+            <button type="button" class="btn" data-more="${scope}" data-all="1">Show all ${entries.length}</button>
+            <span>${remaining} more card${remaining === 1 ? '' : 's'} not built yet</span>
+          </p>` : '');
+      return selected.length;
+    }
+
+    function fillOptions(select, counts, allLabel, labelOf, selected) {
+      const keys = [...counts.keys()].sort();
+      select.innerHTML = `<option value="">${allLabel}</option>` + keys
+        .map(k => `<option value="${escHtml(k)}">${escHtml(labelOf(k))} (${counts.get(k)})</option>`)
+        .join('');
+      select.value = keys.includes(selected) ? selected : '';
+    }
+
+    const valuesIn = pick => [...new Set(inLeague(fighters).flatMap(pick))];
+
+    function renderFacets() {
+      fillOptions(
+        document.getElementById('sel-type'),
+        facetCounts('type', valuesIn(c => (c.types || []).map(t => t.toLowerCase()))),
+        'All types', t => t, state.type);
+      fillOptions(
+        document.getElementById('sel-flang'),
+        facetCounts('lang', valuesIn(c => c.langs || [])),
+        'All languages', langDisplayName, state.lang);
+
+      const sizeCounts = facetCounts('size', valuesIn(c => (c.size ? [c.size] : [])));
+      const chips = document.getElementById('size-chips');
+      const sizes = [...sizeCounts.keys()].sort((a, b) => SIZE_ORDER.indexOf(a) - SIZE_ORDER.indexOf(b));
+      chips.style.display = sizes.length ? 'flex' : 'none';
+      chips.innerHTML = sizes.length
+        ? `<span style="color:var(--muted);font-size:0.9rem">Size</span>` + sizes.map(s =>
+            `<button type="button" class="size-chip" data-size="${escHtml(s)}" aria-pressed="${state.size === s}">${escHtml(s)} (${sizeCounts.get(s)})</button>`).join('')
+        : '';
+    }
+
+    function renderTiles() {
+      const box = document.getElementById('dex-leagues');
+      box.classList.toggle('compact', Boolean(state.league));
+      box.innerHTML = leagues.map(l => {
+        const count = fighters.filter(c => c.modality === l.id).length;
+        const waiting = upcoming.filter(c => c.modality === l.id).length;
+        const top = tileTops.get(l.id) || '';
+        return `
+          <button type="button" class="league-tile" data-league="${escHtml(l.id)}"
+                  aria-pressed="${state.league === l.id}">
+            <span class="tile-head">
+              <span class="tile-name">${escHtml(l.label)}</span>
+              <span class="tile-count">${count} fighters${waiting ? ` · ${waiting} upcoming` : ''}</span>
+            </span>
+            <span class="tile-blurb">${escHtml(LEAGUE_BLURB[l.id] || '')}</span>
+            <span class="tile-top" data-top="${escHtml(l.id)}">${top}</span>
+          </button>`;
+      }).join('');
+    }
+
+    // Top-3 per tile comes from each league's own board for the visitor's
+    // language, so the landing page already answers "who is winning here".
+    async function renderTileTops() {
+      const wanted = navigator.language || 'en-US';
+      const names = new Map(fighters.map(c => [c.competitor_id, c.display_name || c.competitor_id]));
+      await Promise.all(leagues.map(async l => {
+        const lang = pickBoardLang(leaderboards, l.id, wanted);
+        const index = await rankIndex(BASE, l.id, lang);
+        const top = [...index].sort((a, b) => a[1].rank - b[1].rank).slice(0, 3);
+        if (!top.length) return;
+        tileTops.set(l.id, `Top in ${escHtml(lang)}: ${top
+          .map(([id]) => escHtml(names.get(id) || id)).join(', ')}`);
+        const el = document.querySelector(`[data-top="${l.id}"]`);
+        if (el) el.innerHTML = tileTops.get(l.id);
+      }));
+    }
+
+    function syncUrl() {
+      const params = new URLSearchParams();
+      if (state.league) params.set('league', state.league);
+      if (state.type) params.set('type', state.type);
+      if (state.lang) params.set('lang', state.lang);
+      if (state.size) params.set('size', state.size);
+      if (state.q) params.set('q', state.q);
+      if (state.sort !== 'rank') params.set('sort', state.sort);
+      if (!state.group) params.set('group', '0');
+      const qs = params.toString();
+      window.history.replaceState(null, '', `${window.location.pathname}${qs ? '?' + qs : ''}${window.location.hash}`);
+    }
+
+    function render(keepLimits = false) {
+      if (!keepLimits) limits.ranked = limits.upcoming = CHUNK;
+      renderTiles();
+      const browser = document.getElementById('dex-browser');
+      browser.style.display = state.league ? '' : 'none';
+      if (state.league) {
+        renderFacets();
+        pendingMembers.clear();
+        const shown = renderGrid('ranked', document.getElementById('dex-grid'), fighters);
+        const total = inLeague(fighters).length;
+        const label = leagues.find(l => l.id === state.league)?.label || state.league;
+        document.getElementById('league-heading').textContent = `${label} fighters`;
+        document.getElementById('dex-count').textContent =
+          `Showing ${shown} of ${total} ${label} fighters` +
+          (rankLang ? ` · ranks from the ${rankLang} board` : '');
+        document.getElementById('dex-filtered-empty').style.display = shown ? 'none' : '';
+        document.getElementById('dex-grid').style.display = shown ? 'grid' : 'none';
+
+        const waiting = inLeague(upcoming).length;
+        const section = document.getElementById('dex-upcoming-section');
+        section.style.display = waiting ? '' : 'none';
+        if (waiting) {
+          const shownUpcoming = renderGrid('upcoming', document.getElementById('dex-upcoming-grid'), upcoming);
+          document.getElementById('dex-upcoming-count').textContent =
+            `${shownUpcoming} of ${waiting} awaiting predictions`;
+        }
+      }
+      syncUrl();
+    }
+
+    async function loadRanks() {
+      rankLang = state.league
+        ? pickBoardLang(leaderboards, state.league, state.lang || navigator.language || 'en-US') || ''
+        : '';
+      ranks = await rankIndex(BASE, state.league, rankLang);
+    }
+
+    async function refresh() {
+      await loadRanks();
+      render();
+    }
+
     function debounce(fn, ms) {
       let t;
       return (...args) => {
@@ -305,160 +625,103 @@ import Base from '../../layouts/Base.astro';
       };
     }
 
-    const primaryLang = tag => tag.split(/[-_]/)[0].toLowerCase();
-
-    function langMatches(fighterLangs, wanted) {
-      if (!wanted) return true;
-      if (!fighterLangs) return true;  // empty list = any language
-      const tags = fighterLangs.split('|').filter(Boolean);
-      if (!tags.length) return true;
-      return tags.some(t => t === wanted.toLowerCase()
-                         || primaryLang(t) === primaryLang(wanted));
-    }
-
-    // URL state so a filtered dex view is linkable/shareable — mirrors the
-    // leaderboard's ?league=&lang= pattern. No dataset filter here: mapping a
-    // fighter to "registered datasets" would mean guessing at an association
-    // (modality+lang overlap) the data doesn't actually encode per-fighter,
-    // and inventing that link would be a fake one — see task note in the PR.
-    function syncUrl() {
-      const params = new URLSearchParams(window.location.search);
-      const modality = document.getElementById('sel-modality').value;
-      const type = document.getElementById('sel-type').value;
-      const lang = document.getElementById('sel-flang').value;
-      const q = document.getElementById('sel-search').value.trim();
-      modality ? params.set('modality', modality) : params.delete('modality');
-      type ? params.set('type', type) : params.delete('type');
-      lang ? params.set('lang', lang) : params.delete('lang');
-      q ? params.set('q', q) : params.delete('q');
-      const qs = params.toString();
-      window.history.replaceState(null, '', `${window.location.pathname}${qs ? '?' + qs : ''}${window.location.hash}`);
-    }
-
-    function applyFilters() {
-      const modality = document.getElementById('sel-modality').value;
-      const type = document.getElementById('sel-type').value.toLowerCase();
-      const wanted = document.getElementById('sel-flang').value;
-      const q = document.getElementById('sel-search').value.trim().toLowerCase();
-      let total = 0, shown = 0;
-      document.querySelectorAll('.fighter').forEach(el => {
-        total++;
-        const show = (!modality || el.dataset.modality === modality)
-                  && (!type || el.dataset.types.split('|').includes(type))
-                  && langMatches(el.dataset.langs, wanted)
-                  && (!q || el.dataset.search.includes(q));
-        el.style.display = show ? '' : 'none';
-        if (show) shown++;
-      });
-      // a group matches (and stays visible) if any of its members do;
-      // expanding it still only reveals the members that individually
-      // matched, since their own display was already set above.
-      document.querySelectorAll('.fighter-group').forEach(group => {
-        const anyVisible = [...group.querySelectorAll('.fighter')]
-          .some(el => el.style.display !== 'none');
-        group.style.display = anyVisible ? '' : 'none';
-      });
-      const counter = document.getElementById('dex-count');
-      if (counter) counter.textContent = `Showing ${shown} of ${total} active fighters`;
-      const filteredEmpty = document.getElementById('dex-filtered-empty');
-      const grid = document.getElementById('dex-grid');
-      if (filteredEmpty && grid) {
-        const noMatches = total > 0 && shown === 0;
-        filteredEmpty.style.display = noMatches ? '' : 'none';
-        grid.style.display = noMatches ? 'none' : 'grid';
-      }
-      const upcomingGrid = document.getElementById('dex-upcoming-grid');
-      if (upcomingGrid) upcomingGrid.style.display = 'grid';
-      syncUrl();
-    }
-
-    const applyFiltersDebounced = debounce(applyFilters, 150);
-
     function resetFilters() {
-      document.getElementById('sel-modality').value = '';
-      document.getElementById('sel-type').value = '';
-      document.getElementById('sel-flang').value = '';
+      state.type = state.lang = state.size = state.q = '';
+      state.sort = 'rank';
       document.getElementById('sel-search').value = '';
-      applyFilters();
+      document.getElementById('sel-sort').value = 'rank';
+      refresh();
     }
 
-    function initFromUrl() {
+    function readUrl() {
       const params = new URLSearchParams(window.location.search);
-      const modality = params.get('modality');
-      const type = params.get('type');
-      const lang = params.get('lang');
-      const q = params.get('q');
-      const selModality = document.getElementById('sel-modality');
-      const selType = document.getElementById('sel-type');
-      const selLang = document.getElementById('sel-flang');
-      const selSearch = document.getElementById('sel-search');
-      if (modality && [...selModality.options].some(o => o.value === modality)) selModality.value = modality;
-      if (type && [...selType.options].some(o => o.value === type)) selType.value = type;
-      if (lang && [...selLang.options].some(o => o.value === lang)) selLang.value = lang;
-      if (q) selSearch.value = q;
+      state.league = params.get('league') || '';
+      state.type = (params.get('type') || '').toLowerCase();
+      state.lang = params.get('lang') || '';
+      state.size = params.get('size') || '';
+      state.q = (params.get('q') || '').toLowerCase();
+      state.sort = ['rank', 'name', 'size'].includes(params.get('sort')) ? params.get('sort') : 'rank';
+      state.group = params.get('group') !== '0';
+      document.getElementById('sel-search').value = params.get('q') || '';
+      document.getElementById('sel-sort').value = state.sort;
+      document.getElementById('chk-group-variants').checked = state.group;
+    }
+
+    function wire() {
+      document.getElementById('dex-leagues').addEventListener('click', e => {
+        const tile = e.target.closest('.league-tile');
+        if (!tile) return;
+        state.league = tile.dataset.league === state.league ? '' : tile.dataset.league;
+        state.type = state.lang = state.size = '';
+        refresh();
+      });
+      document.getElementById('sel-type').addEventListener('change', e => {
+        state.type = e.target.value; render();
+      });
+      document.getElementById('sel-flang').addEventListener('change', e => {
+        state.lang = e.target.value; refresh();
+      });
+      document.getElementById('sel-sort').addEventListener('change', e => {
+        state.sort = e.target.value; render();
+      });
+      document.getElementById('size-chips').addEventListener('click', e => {
+        const chip = e.target.closest('.size-chip');
+        if (!chip) return;
+        state.size = chip.dataset.size === state.size ? '' : chip.dataset.size;
+        render();
+      });
+      document.getElementById('sel-search').addEventListener('input', debounce(e => {
+        state.q = e.target.value.trim().toLowerCase(); render();
+      }, 150));
+      document.getElementById('chk-group-variants').addEventListener('change', e => {
+        state.group = e.target.checked; render();
+      });
+      document.getElementById('btn-reset-filters').addEventListener('click', resetFilters);
+      document.getElementById('btn-reset-empty').addEventListener('click', resetFilters);
+      // `toggle` doesn't bubble, so the grid listens in the capture phase.
+      for (const id of ['dex-grid', 'dex-upcoming-grid']) {
+        const grid = document.getElementById(id);
+        grid.addEventListener('toggle', e => {
+          if (e.target.matches('.group-details') && e.target.open) expandGroup(e.target);
+        }, true);
+        grid.addEventListener('click', e => {
+          const more = e.target.closest('[data-more]');
+          if (!more) return;
+          limits[more.dataset.more] += more.dataset.all ? Number.MAX_SAFE_INTEGER : CHUNK;
+          render(true);
+        });
+      }
     }
 
     async function init() {
-      const loading = document.getElementById('dex-loading');
-      const empty = document.getElementById('dex-empty');
-      const grid = document.getElementById('dex-grid');
+      const fetchJson = p => fetch(p).then(r => (r.ok ? r.json() : null)).catch(() => null);
+      const [payload, index] = await Promise.all([
+        fetchJson(`${BASE}data/competitors.json`),
+        fetchJson(`${BASE}data/index.json`),
+      ]);
+      document.getElementById('dex-loading').style.display = 'none';
 
-      const payload = await fetch(`${BASE}data/competitors.json`)
-        .then(r => r.ok ? r.json() : null).catch(() => null);
-      loading.style.display = 'none';
-
-      const allFighters = payload?.competitors || [];
-      if (!allFighters.length) {
-        empty.style.display = '';
+      const all = payload?.competitors || [];
+      if (!all.length) {
+        document.getElementById('dex-empty').style.display = '';
         return;
       }
       // A fighter with no prediction rows anywhere is registered but not
-      // battle-ready — kept out of the active grid/pickers, shown in the
-      // collapsed "Upcoming fighters" section instead.
-      const fighters = allFighters.filter(c => c.has_predictions);
-      const upcoming = allFighters.filter(c => !c.has_predictions);
+      // battle-ready — kept out of the ranked grid, shown in the collapsed
+      // "Upcoming fighters" section of its league instead.
+      fighters = all.filter(c => c.has_predictions);
+      upcoming = all.filter(c => !c.has_predictions);
+      leaderboards = index?.leaderboards || [];
+      leagues = (index?.leagues || []).map(l => ({ id: l.id, label: l.label }));
+      if (!leagues.length) {
+        leagues = [...new Set(all.map(c => c.modality))]
+          .map(id => ({ id, label: MODALITY_LABELS[id] || id }));
+      }
 
-      const types = [...new Set(allFighters.flatMap(c => c.types || []))].sort();
-      const selType = document.getElementById('sel-type');
-      types.forEach(t => {
-        const o = document.createElement('option');
-        o.value = t; o.textContent = t;
-        selType.appendChild(o);
-      });
-
-      const allLangs = [...new Set(allFighters.flatMap(c => c.langs || []))].sort();
-      const selLang = document.getElementById('sel-flang');
-      allLangs.forEach(l => {
-        const o = document.createElement('option');
-        o.value = l; o.textContent = langDisplayName(l);
-        selLang.appendChild(o);
-      });
-
-      const upcomingSection = document.getElementById('dex-upcoming-section');
-      const upcomingCount = document.getElementById('dex-upcoming-count');
-      const upcomingGrid = document.getElementById('dex-upcoming-grid');
-
-      const chkGroup = document.getElementById('chk-group-variants');
-      const rerender = () => {
-        grid.innerHTML = renderFighters(fighters, chkGroup.checked);
-        if (upcoming.length) {
-          upcomingGrid.innerHTML = renderFighters(upcoming, chkGroup.checked);
-          upcomingCount.textContent = `${upcoming.length} awaiting predictions`;
-          upcomingSection.style.display = '';
-        }
-        applyFilters();
-      };
-      rerender();
-      grid.style.display = 'grid';
-
-      ['sel-modality', 'sel-type', 'sel-flang'].forEach(id =>
-        document.getElementById(id).addEventListener('change', applyFilters));
-      document.getElementById('sel-search').addEventListener('input', applyFiltersDebounced);
-      chkGroup.addEventListener('change', rerender);
-      document.getElementById('btn-reset-filters').addEventListener('click', resetFilters);
-
-      initFromUrl();
-      applyFilters();
+      readUrl();
+      wire();
+      await refresh();
+      renderTileTops();
     }
 
     init();
