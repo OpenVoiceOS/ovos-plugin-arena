@@ -132,9 +132,15 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
+  # `predict` has no job-level `if:` so it can never skip, but the explicit
+  # `needs.predict.result` check plus `always()` is used anyway, matching
+  # every other workflow's notify jobs — see replay-proof.yml's notify
+  # jobs for the trap this avoids (a bare `success()`/`failure()` treats a
+  # skipped need as neither, which silently stranded both notify jobs
+  # there in run 34040895690).
   notify-on-failure:
     needs: predict
-    if: failure()
+    if: always() && needs.predict.result == 'failure'
     runs-on: ubuntu-latest
     permissions:
       issues: write
@@ -147,7 +153,7 @@ jobs:
 
   notify-on-success:
     needs: predict
-    if: success()
+    if: always() && needs.predict.result == 'success'
     runs-on: ubuntu-latest
     permissions:
       issues: write

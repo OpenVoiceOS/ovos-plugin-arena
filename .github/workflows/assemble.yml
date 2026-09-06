@@ -259,9 +259,18 @@ jobs:
   # See docs/operations.md "Alarms" — a red assemble run silently absorbed
   # under a green badge is exactly what left the daily boards frozen before
   # anyone noticed (see the matrix-sharding note on the assemble job above).
+  #
+  # Neither `assemble` (no job-level `if:`, matrix legs failing/succeeding
+  # is reflected as the job's own success/failure, never a skip) nor
+  # `commit` (`if: always()`) can actually be skipped today, but the
+  # explicit `needs.<job>.result` check plus `always()` is used anyway so
+  # this workflow can never regress into the "skipped need silently blocks
+  # both notify jobs" trap a bare `success()`/`failure()` hides (see the
+  # same note on replay-proof.yml's notify jobs, the one that actually hit
+  # it in run 34040895690).
   notify-on-failure:
     needs: [assemble, commit]
-    if: failure()
+    if: always() && (needs.assemble.result == 'failure' || needs.commit.result == 'failure')
     runs-on: ubuntu-latest
     permissions:
       issues: write
@@ -274,7 +283,7 @@ jobs:
 
   notify-on-success:
     needs: [assemble, commit]
-    if: success()
+    if: always() && needs.assemble.result == 'success' && needs.commit.result == 'success'
     runs-on: ubuntu-latest
     permissions:
       issues: write

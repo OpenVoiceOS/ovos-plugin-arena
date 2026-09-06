@@ -134,9 +134,22 @@ jobs:
   # See docs/operations.md "Alarms" — the replay proof verifying zero
   # votes for weeks under a green badge is exactly the failure mode a red
   # run of THIS workflow must never repeat.
+  #
+  # `detect` only runs `if: github.event_name == 'push'` (skipped on every
+  # workflow_run/schedule/workflow_dispatch trigger — the ones that
+  # actually matter here), and `verify-replay` itself can legitimately
+  # skip too (board-logic-changed push). A bare `success()`/`failure()`
+  # treats ANY skipped need as neither success nor failure, so on every
+  # non-push trigger neither notify job could ever run — the exact defect
+  # this comment replaces (run 34040895690: detect=skipped,
+  # verify-replay=success, notify-on-success=skipped). `needs.<job>.result`
+  # is checked explicitly instead, and `always()` is required alongside it:
+  # GitHub prepends an implicit `success()` to any `if:` that doesn't
+  # itself call a status-check function, which would silently reintroduce
+  # the same "skipped need blocks this job" behaviour.
   notify-on-failure:
     needs: [detect, verify-replay]
-    if: failure()
+    if: always() && (needs.verify-replay.result == 'failure' || needs.detect.result == 'failure')
     runs-on: ubuntu-latest
     permissions:
       issues: write
@@ -149,7 +162,7 @@ jobs:
 
   notify-on-success:
     needs: [detect, verify-replay]
-    if: success()
+    if: always() && needs.verify-replay.result == 'success'
     runs-on: ubuntu-latest
     permissions:
       issues: write

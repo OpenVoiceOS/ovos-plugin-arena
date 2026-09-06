@@ -6,6 +6,20 @@ description: >-
   hourly-predictions) so a red run is never silent under a green badge —
   see docs/operations.md "Alarms".
 
+# Every caller's `notify-on-failure`/`notify-on-success` job MUST gate its
+# own `if:` on explicit `needs.<job>.result == 'success'`/`'failure'`
+# checks wrapped in `always()`, never a bare `success()`/`failure()`. A
+# bare status-check function treats ANY needed job that was SKIPPED
+# (a conditional job whose own `if:` was false, e.g. replay-proof.yml's
+# `detect` outside a push trigger, or pages.yml's `deploy` on a private
+# repo) as neither success nor failure, so the caller job is itself
+# skipped too — silently, on every trigger where that upstream job skips.
+# `always()` is required alongside the explicit checks: GitHub prepends an
+# implicit `success()` to any `if:` that doesn't itself call a
+# status-check function, which reintroduces the same block. This is not
+# theoretical — it happened in production (run 34040895690:
+# detect=skipped, verify-replay=success, notify-on-success=skipped, so the
+# tracking issue was never closed on a real green run).
 inputs:
   title:
     description: 'Issue title, e.g. "CI: tally votes failing"'
