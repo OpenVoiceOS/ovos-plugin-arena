@@ -2,8 +2,10 @@
   "modality": "intent",
   "dataset_id": "meteocat",
   "lang": "ca-ES",
-  "generated_at": "2026-09-06T16:23:10.358391+00:00",
+  "generated_at": "2026-09-06T21:36:17.365037+00:00",
   "dataset_info": {
+    "display_name": "MeteoCat weather queries (Catalan)",
+    "summary": "Catalan questions about the weather, synthesised by the Barcelona Supercomputing Center from public weather-service data. One row is one weather question, and because the source carries no per-question intent label the reference is the domain 'weather' rather than a specific intent. This measures recall only: every row really is a weather query, so an engine that answers 'weather' to everything scores perfectly here and its false-alarm behaviour has to be read off another board.",
     "url": "https://huggingface.co/datasets/crodri/meteocat",
     "license": "cc-by-nc-nd-4.0",
     "notes": "Catalan weather queries synthesised by BSC's Text Mining Unit (Projecte AINA) from CCMA weather-service data — 'instruction' column only (question about weather at a place/time); 'context'/'response' are for the source dataset's own text-generation task and unused here. No per-intent annotation exists, only the fact that every row is a weather query, so this is a domain-level probe: every row's reference is the constant domain label 'weather' (reference_granularity='domain'), scored via the domain part of a 'skill_id:intent_name'-shaped prediction — exercises the domain stage of adapt-domain-medium / linha-fina-domain-medium / palavreado-hierarchical-medium against real (if synthetic) Catalan phrasing outside the intents-for-eval taxonomy's own weather intents. Uses the test split reported by the datasets-server parquet conversion (num_rows_total=4598); the source README's own split counts (test.json: 1279) describe the raw jsonl files before HF's auto parquet conversion and don't match — a known upstream quirk, not an arena bug. License is CC-BY-NC-ND-4.0 (non-commercial, no-derivatives): fine for eval-only benchmarking, not for redistributing a modified corpus. Measures recall only, not precision — every row is a genuine weather query, so a fighter that always answers weather scores perfectly; pair with a mixed-domain dataset for false-positive rate.",
