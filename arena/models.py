@@ -383,8 +383,9 @@ class BenchmarkBoard(BaseModel):
     dataset_info: dict[str, Any] | None = Field(
         None,
         description=(
-            "Registry metadata for the eval corpus: url, license, notes, "
-            "and the HF predictions repo(s) the board was assembled from."
+            "Registry metadata for the eval corpus: display_name, summary, "
+            "url, license, notes, and the HF predictions repo(s) the board "
+            "was assembled from."
         ),
     )
     dataset_revision: str | None = Field(

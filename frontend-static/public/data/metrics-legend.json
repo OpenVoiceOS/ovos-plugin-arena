@@ -1,0 +1,300 @@
+{
+  "metrics": {
+    "generalization_accuracy": {
+      "label": "Generalization",
+      "meaning": "Share of correct answers on the phrasings least like the training data \u2014 free-form paraphrases, out-of-scope input, typos and transcription noise.",
+      "direction": "higher",
+      "unit": "share of rows, 0\u2013100%",
+      "caveat": "The ranked number for every intent league: it is the one that says how the engine behaves on words it was never shown."
+    },
+    "accuracy": {
+      "label": "Overall accuracy",
+      "meaning": "Share of all scored rows the fighter got right, counting a correct silence on out-of-scope input as right.",
+      "direction": "higher",
+      "unit": "share of rows, 0\u2013100%",
+      "caveat": "Includes the test buckets whose phrasings resemble the training templates; generalization_accuracy excludes them and is what the board is ranked on."
+    },
+    "macro_f1": {
+      "label": "Macro F1",
+      "meaning": "Average of the per-intent F1 scores, weighting a rare intent as heavily as a common one.",
+      "direction": "higher",
+      "unit": "score, 0\u2013100%",
+      "caveat": "Firing the wrong intent on out-of-scope input hurts that intent's precision, so hallucinations show up here."
+    },
+    "ood_fpr": {
+      "label": "Out-of-scope false fires",
+      "meaning": "How often the engine answers with some intent on an utterance that has no intent at all.",
+      "direction": "lower",
+      "unit": "share of out-of-scope rows, 0\u2013100%",
+      "caveat": "Only defined on corpora that carry out-of-scope rows."
+    },
+    "slot_exact_match": {
+      "label": "Slot exact match",
+      "meaning": "Share of rows where every extracted slot value matched the annotation exactly.",
+      "direction": "higher",
+      "unit": "share of rows, 0\u2013100%",
+      "caveat": "Scored only on rows that have gold slots and where the intent was already correct, so it measures extraction, not recognition."
+    },
+    "ece": {
+      "label": "Calibration error",
+      "meaning": "How far the confidence an engine reports drifts from how often it is actually right at that confidence.",
+      "direction": "lower",
+      "unit": "error magnitude, 0\u20131",
+      "caveat": "A dataset-wide aggregate with no per-row value, so it never gets its own ranking ladder."
+    },
+    "acc_test": {
+      "label": "Test bucket",
+      "meaning": "Accuracy on rows the corpus left unlabelled by bucket \u2014 the default held-out test rows.",
+      "direction": "higher",
+      "unit": "share of rows, 0\u2013100%"
+    },
+    "acc_template": {
+      "label": "Held-out templates",
+      "meaning": "Accuracy on utterances built from phrase templates held back from training, so the wording follows a pattern the engine was taught but this exact template was not.",
+      "direction": "higher",
+      "unit": "share of rows, 0\u2013100%",
+      "caveat": "Phrasing close to the training material, so this bucket is excluded from generalization_accuracy and counts only towards overall accuracy."
+    },
+    "acc_in_distribution": {
+      "label": "In-distribution",
+      "meaning": "Accuracy on in-domain utterances phrased close to the training material.",
+      "direction": "higher",
+      "unit": "share of rows, 0\u2013100%",
+      "caveat": "Phrasing close to the training material, so this bucket is excluded from generalization_accuracy and counts only towards overall accuracy."
+    },
+    "acc_paraphrase": {
+      "label": "Paraphrases",
+      "meaning": "Accuracy on free-form rewordings of an intent that keep the meaning but not the training phrasing.",
+      "direction": "higher",
+      "unit": "share of rows, 0\u2013100%"
+    },
+    "acc_typos": {
+      "label": "Typos",
+      "meaning": "Accuracy on utterances with spelling mistakes of the kind a person makes typing.",
+      "direction": "higher",
+      "unit": "share of rows, 0\u2013100%"
+    },
+    "acc_asr_noise": {
+      "label": "Speech-recognition noise",
+      "meaning": "Accuracy on utterances corrupted the way a speech recogniser mishears them, so it shows how an engine copes downstream of an imperfect transcript.",
+      "direction": "higher",
+      "unit": "share of rows, 0\u2013100%"
+    },
+    "acc_far_ood": {
+      "label": "Far out-of-scope",
+      "meaning": "Accuracy on utterances from a completely different domain, where answering nothing is the correct behaviour.",
+      "direction": "higher",
+      "unit": "share of rows, 0\u2013100%"
+    },
+    "wer_mean": {
+      "label": "Word error rate, mean",
+      "meaning": "Average share of words a transcript got wrong \u2014 words inserted, deleted or substituted against the human reference.",
+      "direction": "lower",
+      "unit": "share of words, 0\u2013100%",
+      "caveat": "Both sides are lowercased, stripped of punctuation and spelled out digit by digit first, so formatting differences do not count as errors. A single disastrous clip can pull the mean far above the median."
+    },
+    "wer_median": {
+      "label": "Word error rate, median",
+      "meaning": "The middle clip's word error rate, unaffected by a handful of catastrophic transcripts.",
+      "direction": "lower",
+      "unit": "share of words, 0\u2013100%"
+    },
+    "error_rate": {
+      "label": "Error rate",
+      "meaning": "Share of clips decided wrong in either direction \u2014 missed detections plus false alarms.",
+      "direction": "lower",
+      "unit": "share of clips, 0\u2013100%",
+      "caveat": "One number over two very different failures; read it together with the false-accept and false-reject columns, which trade off against each other as an engine's threshold moves."
+    },
+    "false_accept_rate": {
+      "label": "False alarms",
+      "meaning": "How often the detector fires on audio that should not have triggered it \u2014 other speech, music or noise.",
+      "direction": "lower",
+      "unit": "share of negative clips, 0\u2013100%",
+      "caveat": "Measured over clips, not over hours, so it does not say how often a device would wake up on its own in a day."
+    },
+    "false_reject_rate": {
+      "label": "Misses",
+      "meaning": "How often the user says the phrase, or speaks, and the detector stays silent.",
+      "direction": "lower",
+      "unit": "share of positive clips, 0\u2013100%"
+    },
+    "fa_per_hour": {
+      "label": "False alarms per hour",
+      "meaning": "How many times an hour of non-wake audio wrongly triggers the detector \u2014 the annoyance a user actually feels.",
+      "direction": "lower",
+      "unit": "count per hour",
+      "caveat": "Omitted for a fighter backed by too little negative audio to give a stable estimate; fa_per_hour_hours says how much audio there was."
+    },
+    "fa_per_hour_hours": {
+      "label": "Negative audio covered",
+      "meaning": "Hours of non-wake audio behind the false-alarms-per-hour figure.",
+      "direction": "neutral",
+      "unit": "hours",
+      "caveat": "Coverage, not performance \u2014 it is here so a board never implies more evidence than it has."
+    },
+    "utmos": {
+      "label": "Naturalness",
+      "meaning": "A machine estimate of the mean opinion score listeners would give the clip for how natural it sounds.",
+      "direction": "higher",
+      "unit": "MOS, 1\u20135",
+      "caveat": "A machine listener's opinion score, not a human panel, and the judge models are trained mostly on English-adjacent audio \u2014 compare voices within one language, never across languages."
+    },
+    "intelligibility_wer": {
+      "label": "Intelligibility",
+      "meaning": "Word error rate when a panel of speech recognisers transcribes the synthesised clip back \u2014 how easy the voice is to understand.",
+      "direction": "lower",
+      "unit": "share of words, 0\u2013100%",
+      "caveat": "Measured by machine listeners, so a voice that is hard for models and easy for people scores worse than it deserves."
+    },
+    "intelligibility_wer_ci_lower": {
+      "label": "Intelligibility, lower bound",
+      "meaning": "Lower end of the 95% confidence interval around the intelligibility word error rate.",
+      "direction": "neutral",
+      "unit": "share of words, 0\u2013100%",
+      "caveat": "Two voices whose intervals overlap are not separated by the data."
+    },
+    "intelligibility_wer_ci_upper": {
+      "label": "Intelligibility, upper bound",
+      "meaning": "Upper end of the 95% confidence interval around the intelligibility word error rate.",
+      "direction": "neutral",
+      "unit": "share of words, 0\u2013100%",
+      "caveat": "Two voices whose intervals overlap are not separated by the data."
+    },
+    "intelligibility_n_scored": {
+      "label": "Clips scored for intelligibility",
+      "meaning": "How many synthesised clips the recogniser panel transcribed back.",
+      "direction": "neutral",
+      "unit": "count"
+    },
+    "n_scored": {
+      "label": "Rows scored",
+      "meaning": "How many rows this fighter actually produced a scorable answer for.",
+      "direction": "neutral",
+      "unit": "count",
+      "caveat": "A fighter with far fewer scored rows than its rivals was measured on less evidence, however good its score looks."
+    },
+    "latency_ms_median": {
+      "label": "Latency",
+      "meaning": "The middle row's processing time, measured on the machine that ran the sweep.",
+      "direction": "lower",
+      "unit": "milliseconds",
+      "caveat": "Hardware-dependent: comparable between fighters on one board, not against numbers from anywhere else."
+    },
+    "sigmos.sig": {
+      "label": "Speech quality (SIGMOS)",
+      "meaning": "How clean and undistorted the speech itself sounds, judged apart from anything in the background.",
+      "direction": "higher",
+      "unit": "MOS, 1\u20135",
+      "caveat": "A machine listener's opinion score, not a human panel, and the judge models are trained mostly on English-adjacent audio \u2014 compare voices within one language, never across languages."
+    },
+    "sigmos.noise": {
+      "label": "Background cleanliness (SIGMOS)",
+      "meaning": "How free the clip is of hiss and background noise; a clean clip scores high.",
+      "direction": "higher",
+      "unit": "MOS, 1\u20135",
+      "caveat": "A machine listener's opinion score, not a human panel, and the judge models are trained mostly on English-adjacent audio \u2014 compare voices within one language, never across languages."
+    },
+    "sigmos.col": {
+      "label": "Coloration (SIGMOS)",
+      "meaning": "How free the voice is of muffling and tinny or boxy timbre.",
+      "direction": "higher",
+      "unit": "MOS, 1\u20135",
+      "caveat": "A machine listener's opinion score, not a human panel, and the judge models are trained mostly on English-adjacent audio \u2014 compare voices within one language, never across languages."
+    },
+    "sigmos.disc": {
+      "label": "Continuity (SIGMOS)",
+      "meaning": "How free the clip is of clicks, gaps and dropouts; smooth audio scores high.",
+      "direction": "higher",
+      "unit": "MOS, 1\u20135",
+      "caveat": "A machine listener's opinion score, not a human panel, and the judge models are trained mostly on English-adjacent audio \u2014 compare voices within one language, never across languages."
+    },
+    "sigmos.loud": {
+      "label": "Loudness (SIGMOS)",
+      "meaning": "How comfortable the playback level is, neither faint nor blaring.",
+      "direction": "higher",
+      "unit": "MOS, 1\u20135",
+      "caveat": "A machine listener's opinion score, not a human panel, and the judge models are trained mostly on English-adjacent audio \u2014 compare voices within one language, never across languages."
+    },
+    "sigmos.reverb": {
+      "label": "Room echo (SIGMOS)",
+      "meaning": "How free the clip is of reverberation, the hollow sound of a large room.",
+      "direction": "higher",
+      "unit": "MOS, 1\u20135",
+      "caveat": "A machine listener's opinion score, not a human panel, and the judge models are trained mostly on English-adjacent audio \u2014 compare voices within one language, never across languages."
+    },
+    "sigmos.ovrl": {
+      "label": "Overall quality (SIGMOS)",
+      "meaning": "The SIGMOS judge's single summary score across all its dimensions.",
+      "direction": "higher",
+      "unit": "MOS, 1\u20135",
+      "caveat": "A machine listener's opinion score, not a human panel, and the judge models are trained mostly on English-adjacent audio \u2014 compare voices within one language, never across languages."
+    },
+    "dnsmos.sig": {
+      "label": "Speech quality (DNSMOS)",
+      "meaning": "A second judge's view of how clean the speech itself sounds.",
+      "direction": "higher",
+      "unit": "MOS, 1\u20135",
+      "caveat": "A machine listener's opinion score, not a human panel, and the judge models are trained mostly on English-adjacent audio \u2014 compare voices within one language, never across languages."
+    },
+    "dnsmos.bak": {
+      "label": "Background cleanliness (DNSMOS)",
+      "meaning": "A second judge's view of how free the clip is of background noise.",
+      "direction": "higher",
+      "unit": "MOS, 1\u20135",
+      "caveat": "A machine listener's opinion score, not a human panel, and the judge models are trained mostly on English-adjacent audio \u2014 compare voices within one language, never across languages."
+    },
+    "dnsmos.ovrl": {
+      "label": "Overall quality (DNSMOS)",
+      "meaning": "The DNSMOS judge's single summary score.",
+      "direction": "higher",
+      "unit": "MOS, 1\u20135",
+      "caveat": "A machine listener's opinion score, not a human panel, and the judge models are trained mostly on English-adjacent audio \u2014 compare voices within one language, never across languages."
+    },
+    "nisqa.mos": {
+      "label": "Overall quality (NISQA)",
+      "meaning": "A third judge's summary opinion score for the clip.",
+      "direction": "higher",
+      "unit": "MOS, 1\u20135",
+      "caveat": "A machine listener's opinion score, not a human panel, and the judge models are trained mostly on English-adjacent audio \u2014 compare voices within one language, never across languages."
+    },
+    "nisqa.noi": {
+      "label": "Background cleanliness (NISQA)",
+      "meaning": "A third judge's view of how free the clip is of background noise.",
+      "direction": "higher",
+      "unit": "MOS, 1\u20135",
+      "caveat": "A machine listener's opinion score, not a human panel, and the judge models are trained mostly on English-adjacent audio \u2014 compare voices within one language, never across languages."
+    },
+    "nisqa.col": {
+      "label": "Coloration (NISQA)",
+      "meaning": "A third judge's view of how free the voice is of muffled or tinny timbre.",
+      "direction": "higher",
+      "unit": "MOS, 1\u20135",
+      "caveat": "A machine listener's opinion score, not a human panel, and the judge models are trained mostly on English-adjacent audio \u2014 compare voices within one language, never across languages."
+    },
+    "nisqa.dis": {
+      "label": "Continuity (NISQA)",
+      "meaning": "A third judge's view of how free the clip is of clicks and dropouts.",
+      "direction": "higher",
+      "unit": "MOS, 1\u20135",
+      "caveat": "A machine listener's opinion score, not a human panel, and the judge models are trained mostly on English-adjacent audio \u2014 compare voices within one language, never across languages."
+    },
+    "nisqa.loud": {
+      "label": "Loudness (NISQA)",
+      "meaning": "A third judge's view of how comfortable the playback level is.",
+      "direction": "higher",
+      "unit": "MOS, 1\u20135",
+      "caveat": "A machine listener's opinion score, not a human panel, and the judge models are trained mostly on English-adjacent audio \u2014 compare voices within one language, never across languages."
+    }
+  },
+  "leagues": {
+    "intent_template": "Template-paradigm intent engines compete here. A fighter is trained only from phrase templates with {slot} placeholders and example slot values, then handed one written utterance at a time and must answer with the intent it belongs to \u2014 or with nothing at all, when the utterance is out of scope. Voters are shown two engines' answers to the same utterance and pick the one that understood it.",
+    "intent_keyword": "Keyword-paradigm intent engines compete here. A fighter is trained from Adapt-style required and optional vocabulary rules rather than phrase templates, then handed one written utterance at a time and must answer with the intent it belongs to, or with nothing when the utterance is out of scope. Voters are shown two engines' answers to the same utterance and pick the one that understood it.",
+    "intent": "The open intent league is for pipeline fusions: multi-stage cascades that mix paradigms, such as a template matcher backed by a keyword matcher. Supervision may come from any of the training corpora. The task is the same one the pure leagues run \u2014 read an utterance, name the intent, stay silent on out-of-scope input \u2014 and voters judge the two answers side by side.",
+    "stt": "Speech-to-text engines transcribe a spoken clip. A fighter receives the audio and returns the words it heard; the transcript is compared with the human reference after both sides are normalised the same way, so punctuation and formatting differences do not count as errors. Voters listen to the clip and pick the transcript that is closer to what was said.",
+    "tts": "Text-to-speech voices read a sentence aloud. A fighter receives the text and returns synthesised audio, which is scored two ways: how natural it sounds and how accurately a panel of listeners-by-machine can transcribe it back. Human ears are the primary signal here \u2014 voters hear two clips of the same sentence and pick the better one.",
+    "wake_word": "Wake-word detectors listen for the phrase that starts a conversation. A fighter is fed one labelled clip at a time, frame by frame exactly as a live microphone would drive it, and must decide whether the phrase was spoken. Missing the phrase and waking up on the wrong sound are both failures, and the engine owns its own threshold. Voters compare how two detectors behaved on the same clip.",
+    "vad": "Voice-activity detectors decide whether a clip contains speech at all. A fighter is fed the clip frame by frame and the clip counts as speech when any frame is voiced. Both mistakes matter: calling music or noise speech wakes the pipeline for nothing, and missing real speech drops the user's words. Voters compare the two decisions on the same clip.",
+    "ww_stream": "Streaming wake-word detectors run continuously over hours of audio instead of isolated clips, the way they run against a live microphone. A fighter reports every activation with its timestamp, and an activation counts only when it lands close enough to a real spoken onset. Hours of continuous non-wake audio are what make the false-alarm rate meaningful."
+  }
+}

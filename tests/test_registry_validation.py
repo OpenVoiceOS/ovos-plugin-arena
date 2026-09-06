@@ -62,6 +62,57 @@ class TestMalformedRegistry:
         assert len(errors) == 1
         assert "bad-ds.json" in errors[0]
 
+    def test_eval_dataset_without_summary_is_caught(self, tmp_path):
+        """An eval corpus reaches the leaderboard as a bare code name unless
+        it carries a human name and a plain-language summary."""
+        self._write(
+            tmp_path / "datasets" / "stt" / "no-summary.json",
+            {
+                "dataset_id": "no-summary",
+                "display_name": "Some corpus (English)",
+                "modality": "stt",
+                "source": {"type": "path", "path": "/x.jsonl"},
+                "lang": "en-US",
+                "role": "eval",
+            },
+        )
+        errors = validate_registry(registry_root=tmp_path)
+        assert len(errors) == 1
+        assert "no-summary.json" in errors[0]
+        assert "summary is required" in errors[0]
+
+    def test_dataset_without_display_name_is_caught(self, tmp_path):
+        self._write(
+            tmp_path / "datasets" / "intent_template" / "no-name.json",
+            {
+                "dataset_id": "no-name",
+                "modality": "intent_template",
+                "source": {"type": "path", "path": "/x.jsonl"},
+                "lang": "en-US",
+                "role": "train",
+                "paradigm": "template",
+            },
+        )
+        errors = validate_registry(registry_root=tmp_path)
+        assert len(errors) == 1
+        assert "no-name.json" in errors[0]
+        assert "display_name is required" in errors[0]
+
+    def test_train_dataset_needs_no_summary(self, tmp_path):
+        self._write(
+            tmp_path / "datasets" / "intent_template" / "trainer.json",
+            {
+                "dataset_id": "trainer",
+                "display_name": "Some corpus, training templates (English)",
+                "modality": "intent_template",
+                "source": {"type": "path", "path": "/x.jsonl"},
+                "lang": "en-US",
+                "role": "train",
+                "paradigm": "template",
+            },
+        )
+        assert validate_registry(registry_root=tmp_path) == []
+
     def test_bad_type_is_caught(self, tmp_path):
         self._write(
             tmp_path / "competitors" / "stt" / "bad-type.json",
@@ -112,6 +163,8 @@ class TestNegativesDatasetIds:
     def _ww_dataset(self, dataset_id, lang="en-US", negatives_dataset_ids=None):
         payload = {
             "dataset_id": dataset_id,
+            "display_name": f"Fake wake word corpus ({dataset_id})",
+            "summary": "A stand-in corpus used by these tests.",
             "modality": "wake_word",
             "source": {
                 "type": "huggingface",
@@ -145,6 +198,8 @@ class TestNegativesDatasetIds:
             tmp_path / "datasets" / "vad" / "some-vad-set.json",
             {
                 "dataset_id": "some-vad-set",
+                "display_name": "A stand-in VAD corpus",
+                "summary": "A stand-in corpus used by these tests.",
                 "modality": "vad",
                 "source": {"type": "path", "path": "/x.jsonl"},
                 "lang": "en-US",
