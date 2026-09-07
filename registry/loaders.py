@@ -177,12 +177,15 @@ def validate_registry(registry_root: Path | None = None) -> list[str]:
 
     competitors_dir = root / "competitors"
     competitors: dict[Path, CompetitorDef] = {}
+    all_competitors: dict[str, CompetitorDef] = {}
+    competitor_paths: dict[str, Path] = {}
     if competitors_dir.exists():
         for path in sorted(competitors_dir.glob("**/*.json")):
             try:
-                competitors[path] = CompetitorDef.model_validate(
-                    json.loads(path.read_text())
-                )
+                competitor = CompetitorDef.model_validate(json.loads(path.read_text()))
+                competitors[path] = competitor
+                all_competitors[competitor.competitor_id] = competitor
+                competitor_paths[competitor.competitor_id] = path
             except Exception as exc:
                 errors.append(f"{path}: {exc}")
 
@@ -250,6 +253,30 @@ def validate_registry(registry_root: Path | None = None) -> list[str]:
                     f"lang={neg.lang!r}, differs from this dataset's "
                     f"lang={dataset.lang!r}",
                     stacklevel=2,
+                )
+
+    # trained_on must resolve to a registered dataset for the fighter's OWN
+    # modality — the pair the entry excludes from scoring
+    # (runner.media_bench, arena.predictions.group_rows, runner.autorun).
+    # A typo'd or cross-modality id here would silently never exclude
+    # anything, so it fails the registry gate instead of being discovered
+    # at benchmark time.
+    for competitor_id, competitor in all_competitors.items():
+        if not competitor.trained_on:
+            continue
+        path = competitor_paths[competitor_id]
+        for dataset_id in competitor.trained_on:
+            trained_dataset = all_datasets.get(dataset_id)
+            if trained_dataset is None:
+                errors.append(
+                    f"{path}: trained_on references unknown dataset_id "
+                    f"{dataset_id!r}"
+                )
+            elif trained_dataset.modality != competitor.modality:
+                errors.append(
+                    f"{path}: trained_on entry {dataset_id!r} has "
+                    f"modality={trained_dataset.modality.value!r}, expected "
+                    f"{competitor.modality.value!r}"
                 )
 
     return errors

@@ -45,6 +45,49 @@ def _fighters_always_installed(monkeypatch):
 
 
 # ---------------------------------------------------------------------------
+# enumerate_all_pairs
+# ---------------------------------------------------------------------------
+
+
+class TestEnumerateAllPairsTrainedOn:
+    """The scheduler never yields a (fighter, dataset) pair the fighter's
+    registry entry lists in ``trained_on`` — owner ruling: never scored on
+    a corpus containing its own training recordings."""
+
+    def _competitor(self, cid, modality="wake_word", trained_on=None):
+        return SimpleNamespace(
+            competitor_id=cid, modality=modality, langs=[],
+            trained_on=trained_on or [],
+        )
+
+    def _dataset(self, did, modality="wake_word"):
+        return SimpleNamespace(dataset_id=did, modality=modality, role="eval")
+
+    def test_trained_on_pair_excluded(self, monkeypatch):
+        trained = self._competitor("trained-fighter", trained_on=["ds-a"])
+        clean = self._competitor("clean-fighter")
+        ds = self._dataset("ds-a")
+
+        monkeypatch.setattr(autorun_module, "load_all_competitors",
+                             lambda registry_root=None: [trained, clean])
+        monkeypatch.setattr(autorun_module, "load_all_datasets",
+                             lambda registry_root=None: [ds])
+        monkeypatch.setattr(autorun_module, "is_compatible", lambda c, d: True)
+        monkeypatch.setattr(autorun_module, "dataset_langs", lambda d: ["en-US"])
+        monkeypatch.setattr(
+            autorun_module, "adapter_factories",
+            lambda: {"wake_word": lambda: SimpleNamespace(
+                filter_competitors=lambda comps: comps,
+                competitor_langs=lambda comp, langs: langs,
+            )},
+        )
+
+        pairs = autorun_module.enumerate_all_pairs(["wake_word"])
+        comp_ids = {p[1].competitor_id for p in pairs}
+        assert comp_ids == {"clean-fighter"}
+
+
+# ---------------------------------------------------------------------------
 # RoundRobinScheduler
 # ---------------------------------------------------------------------------
 

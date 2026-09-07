@@ -25,6 +25,11 @@ def registry_stub(monkeypatch):
         cli, "_registry_battle_groups",
         lambda: {"stt", "intent_template"},
     )
+    monkeypatch.setattr(
+        cli, "_registry_dataset_modalities",
+        lambda: {"minds14-en-US": "stt", "intents-for-eval": "intent_template"},
+    )
+    monkeypatch.setattr(cli, "_registry_trained_on_by_modality", lambda: {})
 
 
 def test_untouched_live_leaderboard_survives_transient_miss(tmp_path, registry_stub):
@@ -143,3 +148,105 @@ def test_prune_data_keeps_live_paradigm_league_artifact(tmp_path, monkeypatch):
 def test_prune_data_missing_data_dir_is_a_noop(tmp_path):
     rc = cli.cmd_prune_data(_Args(tmp_path / "does-not-exist"))
     assert rc == 0
+
+
+class TestTrainedOnPruning:
+    """A board/battle-pool entry for a (fighter, dataset) pair the registry
+    now excludes via ``trained_on`` must not survive a prune just because
+    the file's ``(dataset_id, lang)`` key is otherwise still live —
+    reproduces the review finding: a stale board with the excluded pair as
+    its sole (or one of several) entrants must have that entry stripped."""
+
+    def _stub(self, monkeypatch, trained_on_by_modality):
+        monkeypatch.setattr(
+            cli, "_registry_dataset_langs",
+            lambda: {"community-athena": {"en-US"}},
+        )
+        monkeypatch.setattr(cli, "_registry_battle_groups", lambda: {"wake_word"})
+        monkeypatch.setattr(
+            cli, "_registry_dataset_modalities",
+            lambda: {"community-athena": "wake_word"},
+        )
+        monkeypatch.setattr(
+            cli, "_registry_trained_on_by_modality", lambda: trained_on_by_modality,
+        )
+
+    def test_stale_benchmark_board_sole_entrant_is_deleted(self, tmp_path, monkeypatch):
+        self._stub(monkeypatch, {"wake_word": {"precise-onnx-athena": {"community-athena"}}})
+        path = tmp_path / "benchmark-wake_word-community-athena-en-US.json"
+        path.write_text(json.dumps({
+            "entries": [{"competitor_id": "precise-onnx-athena", "score": 0.99}],
+        }))
+        pruned = cli._prune_stale_artifacts(tmp_path, written_files=set(), modality_scope=None)
+        assert pruned == ["benchmark-wake_word-community-athena-en-US.json"]
+        assert not path.exists()
+
+    def test_stale_benchmark_board_keeps_other_entrants(self, tmp_path, monkeypatch):
+        self._stub(monkeypatch, {"wake_word": {"precise-onnx-athena": {"community-athena"}}})
+        path = tmp_path / "benchmark-wake_word-community-athena-en-US.json"
+        path.write_text(json.dumps({
+            "entries": [
+                {"competitor_id": "precise-onnx-athena", "score": 0.99},
+                {"competitor_id": "vosk-ww-athena", "score": 0.5},
+            ],
+        }))
+        pruned = cli._prune_stale_artifacts(tmp_path, written_files=set(), modality_scope=None)
+        assert pruned == []
+        remaining = json.loads(path.read_text())
+        assert [e["competitor_id"] for e in remaining["entries"]] == ["vosk-ww-athena"]
+
+    def test_stale_battles_pool_drops_battles_naming_the_excluded_fighter(
+        self, tmp_path, monkeypatch,
+    ):
+        self._stub(monkeypatch, {"wake_word": {"precise-onnx-athena": {"community-athena"}}})
+        path = tmp_path / "battles-wake_word-community-athena-en-US.json"
+        path.write_text(json.dumps({
+            "battles": [
+                {"competitor_a": "precise-onnx-athena", "competitor_b": "vosk-ww-athena"},
+                {"competitor_a": "vosk-ww-athena", "competitor_b": "openwakeword-alexa"},
+            ],
+        }))
+        cli._prune_stale_artifacts(tmp_path, written_files=set(), modality_scope=None)
+        remaining = json.loads(path.read_text())
+        assert len(remaining["battles"]) == 1
+        assert remaining["battles"][0]["competitor_a"] == "vosk-ww-athena"
+
+    def test_untainted_pair_survives_untouched(self, tmp_path, monkeypatch):
+        self._stub(monkeypatch, {})
+        path = tmp_path / "benchmark-wake_word-community-athena-en-US.json"
+        original = {"entries": [{"competitor_id": "precise-onnx-athena", "score": 0.99}]}
+        path.write_text(json.dumps(original))
+        pruned = cli._prune_stale_artifacts(tmp_path, written_files=set(), modality_scope=None)
+        assert pruned == []
+        assert json.loads(path.read_text()) == original
+
+    def test_written_this_run_is_left_alone_by_trained_on_pruning(self, tmp_path, monkeypatch):
+        # A file the assemble loop itself just (re)wrote this run is never
+        # touched by the prune pass at all, trained_on or not.
+        self._stub(monkeypatch, {"wake_word": {"precise-onnx-athena": {"community-athena"}}})
+        name = "benchmark-wake_word-community-athena-en-US.json"
+        path = tmp_path / name
+        original = {"entries": [{"competitor_id": "precise-onnx-athena", "score": 0.99}]}
+        path.write_text(json.dumps(original))
+        pruned = cli._prune_stale_artifacts(tmp_path, written_files={name}, modality_scope=None)
+        assert pruned == []
+        assert json.loads(path.read_text()) == original
+
+    def test_leaderboard_entry_dropped_when_every_live_dataset_is_excluded(
+        self, tmp_path, monkeypatch,
+    ):
+        # A group-scoped board only drops a competitor entry when EVERY
+        # live dataset feeding it is one the competitor trained on — here
+        # community-athena is the only live wake_word dataset in scope.
+        self._stub(monkeypatch, {"wake_word": {"precise-onnx-athena": {"community-athena"}}})
+        path = tmp_path / "leaderboard-wake_word-en-US.json"
+        path.write_text(json.dumps({
+            "entries": [
+                {"competitor_id": "precise-onnx-athena", "elo": 1675.32},
+                {"competitor_id": "vosk-ww-athena", "elo": 1500.0},
+            ],
+        }))
+        pruned = cli._prune_stale_artifacts(tmp_path, written_files=set(), modality_scope=None)
+        assert pruned == []
+        remaining = json.loads(path.read_text())
+        assert [e["competitor_id"] for e in remaining["entries"]] == ["vosk-ww-athena"]

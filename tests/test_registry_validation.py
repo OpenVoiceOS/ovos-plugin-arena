@@ -233,3 +233,72 @@ class TestNegativesDatasetIds:
             "other-lang-negs" in str(w.message) and "lang" in str(w.message)
             for w in caught
         )
+
+
+class TestTrainedOn:
+    def _write(self, path, payload):
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(payload))
+
+    def _ww_dataset(self, dataset_id, modality="wake_word", lang="en-US"):
+        return {
+            "dataset_id": dataset_id,
+            "display_name": f"Fake corpus ({dataset_id})",
+            "summary": "A stand-in corpus used by these tests.",
+            "modality": modality,
+            "source": {
+                "type": "huggingface",
+                "hf_id": "TigreGotico/fake-wakeword-corpus",
+                "revision": "main",
+            },
+            "wakeword": "hey_fake",
+            "lang": lang,
+            "role": "eval",
+        }
+
+    def _ww_competitor(self, competitor_id, trained_on=None):
+        payload = {
+            "competitor_id": competitor_id,
+            "modality": "wake_word",
+            "plugin": "ovos-ww-plugin-x",
+            "langs": ["en-US"],
+        }
+        if trained_on is not None:
+            payload["trained_on"] = trained_on
+        return payload
+
+    def test_unknown_trained_on_dataset_id_is_caught(self, tmp_path):
+        self._write(
+            tmp_path / "competitors" / "wake_word" / "fighter.json",
+            self._ww_competitor("fighter", trained_on=["does-not-exist"]),
+        )
+        errors = validate_registry(registry_root=tmp_path)
+        assert len(errors) == 1
+        assert "fighter.json" in errors[0]
+        assert "does-not-exist" in errors[0]
+
+    def test_wrong_modality_trained_on_dataset_id_is_caught(self, tmp_path):
+        self._write(
+            tmp_path / "competitors" / "wake_word" / "fighter.json",
+            self._ww_competitor("fighter", trained_on=["some-stt-set"]),
+        )
+        self._write(
+            tmp_path / "datasets" / "stt" / "some-stt-set.json",
+            self._ww_dataset("some-stt-set", modality="stt"),
+        )
+        errors = validate_registry(registry_root=tmp_path)
+        assert len(errors) == 1
+        assert "fighter.json" in errors[0]
+        assert "some-stt-set" in errors[0]
+        assert "modality" in errors[0].lower()
+
+    def test_valid_trained_on_dataset_id_has_no_errors(self, tmp_path):
+        self._write(
+            tmp_path / "competitors" / "wake_word" / "fighter.json",
+            self._ww_competitor("fighter", trained_on=["community-fake"]),
+        )
+        self._write(
+            tmp_path / "datasets" / "wake_word" / "community-fake.json",
+            self._ww_dataset("community-fake"),
+        )
+        assert validate_registry(registry_root=tmp_path) == []

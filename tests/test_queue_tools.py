@@ -221,6 +221,25 @@ class TestCompatibility:
         )
         assert not is_compatible(comp, ds)
 
+    def test_trained_on_pair_excluded_from_enumeration(self, mini_registry):
+        # A fighter never scored on a corpus it was trained on (owner
+        # ruling) — enumerate_pairs must never yield that pair, since
+        # find_missing_pairs's "outstanding work" report is built directly
+        # from it.
+        _write(
+            mini_registry / "competitors" / "stt" / "vosk-en.json",
+            {
+                "competitor_id": "vosk-en",
+                "modality": "stt",
+                "plugin": "ovos-stt-plugin-vosk",
+                "langs": ["en-US"],
+                "trained_on": ["minds14-en-US"],
+            },
+        )
+        pairs = enumerate_pairs("stt", registry_root=mini_registry)
+        vosk_en_datasets = {ds.dataset_id for c, ds in pairs if c.competitor_id == "vosk-en"}
+        assert vosk_en_datasets == set()
+
 
 # ---------------------------------------------------------------------------
 # find_missing_pairs — the diff logic
@@ -234,6 +253,25 @@ class TestFindMissingPairs:
         reasons = {(mp.competitor.competitor_id, mp.dataset.dataset_id): mp.reason
                    for mp in missing}
         assert reasons[("vosk-en", "minds14-en-US")] == "no_file"
+
+    def test_trained_on_pair_never_reported_missing(self, mini_registry):
+        # An excluded pair never gets a published shard (it is never run),
+        # so a naive diff would report it "missing" forever — it must not
+        # show up in the queue at all.
+        _write(
+            mini_registry / "competitors" / "stt" / "vosk-en.json",
+            {
+                "competitor_id": "vosk-en",
+                "modality": "stt",
+                "plugin": "ovos-stt-plugin-vosk",
+                "langs": ["en-US"],
+                "trained_on": ["minds14-en-US"],
+            },
+        )
+        lister = FakeLister(files={})
+        missing = find_missing_pairs("stt", registry_root=mini_registry, lister=lister)
+        pairs = {(mp.competitor.competitor_id, mp.dataset.dataset_id) for mp in missing}
+        assert ("vosk-en", "minds14-en-US") not in pairs
 
     def test_zero_byte_file_is_missing(self, mini_registry):
         """Adversarial case mirroring the real onnx-asr-parakeet-tdt-11b.jsonl 0-byte file."""
