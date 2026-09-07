@@ -118,6 +118,14 @@ def is_in_distribution(row: PredictionRow) -> bool:
 #: contest to hold.
 MIN_BOARD_SAMPLES = 30
 
+#: Fraction of a dataset's label set a pretrained fighter's loaded model must
+#: cover (``runner.intent_bench.model_label_overlap``) to be ranked. A
+#: fighter that only emits a sliver of the corpus's labels is not being
+#: evaluated on the same task as the rest of the board — it seeds no
+#: auto-battles and joins no battle pool, but is still scored so its extras
+#: carry the measurement for whoever wants it.
+LABEL_COVERAGE_FLOOR = 0.8
+
 
 def is_pinned_revision(revision: str | None) -> bool:
     """Whether a registry ``source.revision`` names one immutable commit.
@@ -1471,6 +1479,18 @@ def build_benchmark_board(
                     "version",
                     modality, dataset_id, lang, competitor_id, versions,
                 )
+            # label_overlap/label_overlap_total are constant across a
+            # competitor's rows (measured once at train time in
+            # runner.intent_bench._train_and_predict) — read off the first
+            # row that carries them.
+            label_overlap = next(
+                (r.extras["label_overlap"] for r in rows
+                 if "label_overlap" in r.extras), None,
+            )
+            label_overlap_total = next(
+                (r.extras["label_overlap_total"] for r in rows
+                 if "label_overlap_total" in r.extras), None,
+            )
             entries.append(
                 BenchmarkEntry(
                     competitor_id=competitor_id,
@@ -1485,6 +1505,8 @@ def build_benchmark_board(
                     sample_set=sample_set,
                     sample_set_coverage=coverage,
                     rows_other_revision=off_revision.get(competitor_id, 0),
+                    label_overlap=label_overlap,
+                    label_overlap_total=label_overlap_total,
                 )
             )
 
@@ -1528,10 +1550,24 @@ def build_benchmark_board(
     def _off_revision(entry: BenchmarkEntry) -> bool:
         return entry.samples == 0 and entry.rows_other_revision > 0
 
+    # A pretrained fighter whose model only emits a sliver of the dataset's
+    # labels (arena.metrics.LABEL_COVERAGE_FLOOR) is scored — its rows are
+    # real predictions, not a crash — but is not being evaluated on the same
+    # label set as the rest of the board, so it does not take a rank.
+    def _partial_label_coverage(entry: BenchmarkEntry) -> bool:
+        if entry.label_overlap is None or not entry.label_overlap_total:
+            return False
+        return (entry.label_overlap / entry.label_overlap_total) < LABEL_COVERAGE_FLOOR
+
     stale = [e for e in entries if _off_revision(e)]
     scoreable = [e for e in entries if not _off_revision(e)]
     thin = [e for e in scoreable if _scored_any(e) and _too_few(e)]
     scoreable = [e for e in scoreable if e not in thin]
+    label_partial = [
+        e for e in scoreable if _has_signal(e) and not _partial_coverage(e)
+        and _partial_label_coverage(e)
+    ]
+    scoreable = [e for e in scoreable if e not in label_partial]
     ranked = [e for e in scoreable if _has_signal(e) and not _partial_coverage(e)]
     partial = [e for e in scoreable if _has_signal(e) and _partial_coverage(e)]
     off_metric = [e for e in scoreable if not _has_signal(e) and _scored_any(e)]
@@ -1552,6 +1588,13 @@ def build_benchmark_board(
         entry.unranked_reason = (
             f"sample_set_partial — covers {entry.sample_set_coverage:.0%} "
             "of the published manifest"
+        )
+    for entry in label_partial:
+        entry.rank = 0
+        entry.unranked = True
+        entry.unranked_reason = (
+            f"label_set_partial — covers {entry.label_overlap} of "
+            f"{entry.label_overlap_total} labels"
         )
     for entry in off_metric:
         entry.rank = 0
@@ -1579,7 +1622,7 @@ def build_benchmark_board(
             f"{entry.rows_other_revision} row(s) from another revision were "
             "dropped; the fighter needs a re-sweep"
         )
-    entries = ranked + partial + thin + off_metric + failed + stale
+    entries = ranked + partial + label_partial + thin + off_metric + failed + stale
 
     if ranked:
         leader_ci = cis.get(ranked[0].competitor_id)

@@ -68,11 +68,15 @@ artefact can emit. It is benchmarked on those and skipped everywhere else,
 where every answer would be wrong for a reason that says nothing about the
 engine. A fighter whose `label_set` matches no registered corpus is unranked
 until one exists. The claim is checked, not trusted: before scoring, the
-runner intersects the loaded model's own class list with the corpus's labels
-and refuses the sweep outright when nothing overlaps, so a mislabelled
-`label_set` cannot publish a board of zeros. An offline fighter also pins the
-exact model commit it runs (`model_revision`), which the runner downloads and
-stamps on every row.
+runner intersects the loaded model's own matcher-effective class list with
+the corpus's labels and refuses the sweep outright when nothing overlaps, so
+a mislabelled `label_set` cannot publish a board of zeros. A fighter that
+covers less than `arena.metrics.LABEL_COVERAGE_FLOOR` (80%) of the corpus's
+labels is still scored, but unranked with the reason `label_set_partial` and
+seeds no auto-battles, since it is not being evaluated on the same task as
+the rest of the board. An offline fighter also pins the exact model commit
+it runs (`model_revision`), which the runner downloads and stamps on every
+row.
 
 The `ovos-intents-v5` `label_set` carries a matrix of Model2Vec classifier
 heads trained on the same 208-intent corpus with different base encoders,

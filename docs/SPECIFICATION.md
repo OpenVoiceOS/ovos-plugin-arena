@@ -78,7 +78,10 @@ Padatious × Adapt).
 An offline fighter MUST declare the `label_set` its artefact was trained on
 — the dataset_ids whose labels it can emit. It is benchmarked only on those
 corpora; anywhere else its answers measure a label-space mismatch rather than
-the engine.
+the engine. The declared `label_set` is a claim, not a guarantee: a fighter
+whose measured label overlap on a corpus falls under the league's coverage
+floor is scored but unranked, since it is not being evaluated on the same
+label space as the rest of the board.
 
 The per-league task definitions and the exact metric formulas (what each
 benchmark board ranks by and what seeds ELO) are specified in

@@ -760,3 +760,152 @@ class TestRunBenchmarkTrainedOnSkip:
         )
         assert rc == 0
         assert run_calls == ["clean-fighter"]
+
+
+class TestModelLabelOverlap:
+    """model_label_overlap measures overlap against the matcher's effective
+    class list — classes_ narrowed by the plugin's own registered-intents
+    set, when the plugin exposes one — not raw classes_ alone."""
+
+    def _pipeline(self, plugins):
+        from types import SimpleNamespace
+        return SimpleNamespace(plugins=plugins)
+
+    def test_overlap_narrowed_by_registered_intents(self):
+        """A plugin whose matcher only fires on a subset of its own
+        classes_ (self.intents narrower than the model's class list) must
+        be measured on that narrower, matcher-effective set."""
+        from types import SimpleNamespace
+
+        from runner.intent_bench import model_label_overlap
+
+        model = SimpleNamespace(classes_=["a", "b", "c", "d"])
+        plugin = SimpleNamespace(model=model, intents={"a", "b"})
+        pipeline = self._pipeline({"stub": plugin})
+
+        overlap = model_label_overlap(pipeline, {"a", "b", "c", "d"})
+
+        assert overlap == 2, (
+            "matcher only ever returns 'a'/'b' — 'c'/'d' are unreachable "
+            "even though they're in classes_"
+        )
+
+    def test_falls_back_to_raw_classes_without_a_registered_set(self):
+        """A plugin that exposes no ``intents`` attribute at all (or an
+        empty one) is measured on raw ``classes_``, same as before."""
+        from types import SimpleNamespace
+
+        from runner.intent_bench import model_label_overlap
+
+        model = SimpleNamespace(classes_=["a", "b", "c"])
+        plugin = SimpleNamespace(model=model, intents=set())
+        pipeline = self._pipeline({"stub": plugin})
+
+        overlap = model_label_overlap(pipeline, {"a", "b", "c", "d"})
+
+        assert overlap == 3
+
+    def test_no_class_list_returns_none(self):
+        from types import SimpleNamespace
+
+        from runner.intent_bench import model_label_overlap
+
+        plugin = SimpleNamespace(model=None, intents=set())
+        pipeline = self._pipeline({"stub": plugin})
+
+        assert model_label_overlap(pipeline, {"a"}) is None
+
+
+class TestNullProbeAbort:
+    """A cell whose leading predictions are all null is refused outright —
+    a matcher that never sees the labels it claims to know (the plugin's
+    registered-intents set stayed empty, e.g.) predicts None for every
+    utterance, and that must not publish a board of zeros."""
+
+    def _eval_def(self):
+        from types import SimpleNamespace
+        return SimpleNamespace(
+            source=SimpleNamespace(hf_id="org/eval-repo", revision="main",
+                                   file_pattern=None, subset=None, split="test"),
+            train_datasets={}, input="text", reference_granularity="flat",
+        )
+
+    def _competitor(self):
+        from types import SimpleNamespace
+        return SimpleNamespace(
+            competitor_id="x", config={"intents": {}}, model_revision=None,
+            training_regime=None,
+            pipeline_plugins=[], modality=SimpleNamespace(value="intent_offline"),
+            plugin="stub-plugin", pipeline="stub-pipeline",
+        )
+
+    def test_all_null_leading_predictions_abort_the_cell(self, tmp_path):
+        from runner import intent_bench
+
+        class NullPipeline:
+            stage_names = ["stub"]
+
+            def __init__(self, *a, **kw):
+                pass
+
+            def train(self, *a, **kw):
+                pass
+
+            def predict(self, utterance):
+                return None, {}, None, 1.0, None
+
+        test_rows = [
+            {"utterance": f"utterance {i}", "expected_intent": "weather"}
+            for i in range(intent_bench.NULL_PROBE_ROWS + 5)
+        ]
+        out_path = tmp_path / "out.jsonl"
+
+        with patch.object(intent_bench, "resolve_revision", return_value="EVALSHA"), \
+             patch.object(intent_bench, "fetch_rows", return_value=test_rows), \
+             patch.object(intent_bench, "needed_paradigms", return_value=set()), \
+             patch.object(intent_bench, "done_samples", return_value=set()), \
+             patch.object(intent_bench, "IntentPipeline", NullPipeline):
+            written = intent_bench.run_competitor_lang(
+                self._competitor(), "corpus", "en-US", self._eval_def(), {},
+                "EVALSHA", out_path,
+            )
+
+        assert written == 0, "an all-null cell must write no rows"
+        assert not out_path.exists() or out_path.read_text() == ""
+
+    def test_a_few_real_predictions_clear_the_probe(self, tmp_path):
+        """Not every leading prediction has to be null — one real match
+        among the probe rows is enough to trust the rest of the cell."""
+        from runner import intent_bench
+
+        class MostlyNullPipeline:
+            stage_names = ["stub"]
+
+            def __init__(self, *a, **kw):
+                pass
+
+            def train(self, *a, **kw):
+                pass
+
+            def predict(self, utterance):
+                if utterance == "utterance 0":
+                    return "weather", {}, 1.0, 1.0, "stub"
+                return None, {}, None, 1.0, None
+
+        test_rows = [
+            {"utterance": f"utterance {i}", "expected_intent": "weather"}
+            for i in range(intent_bench.NULL_PROBE_ROWS + 5)
+        ]
+        out_path = tmp_path / "out.jsonl"
+
+        with patch.object(intent_bench, "resolve_revision", return_value="EVALSHA"), \
+             patch.object(intent_bench, "fetch_rows", return_value=test_rows), \
+             patch.object(intent_bench, "needed_paradigms", return_value=set()), \
+             patch.object(intent_bench, "done_samples", return_value=set()), \
+             patch.object(intent_bench, "IntentPipeline", MostlyNullPipeline):
+            written = intent_bench.run_competitor_lang(
+                self._competitor(), "corpus", "en-US", self._eval_def(), {},
+                "EVALSHA", out_path,
+            )
+
+        assert written == len(test_rows), "one real match clears the probe"

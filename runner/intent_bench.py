@@ -52,6 +52,15 @@ from runner.queue_tools import is_trained_on
 
 log = logging.getLogger("intent-bench")
 
+#: How many of a cell's leading predictions to probe before trusting the
+#: rest of the run. A pretrained fighter whose matcher never sees its own
+#: registered labels (e.g. the plugin's manifest sync silently no-ops on a
+#: bus with no intent-service listener) predicts ``None`` for everything;
+#: without this probe that reads as "an engine that is honest about being
+#: out-of-distribution" instead of a broken cell, and the board scores it
+#: at accuracy 0 rather than refusing it.
+NULL_PROBE_ROWS = 25
+
 
 def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
@@ -459,6 +468,7 @@ def make_row(
     stt_provenance: dict | None = None,
     model_revision: str | None = None,
     label_overlap: int | None = None,
+    label_overlap_total: int | None = None,
 ) -> dict:
     """Build one §3.2 prediction row.
 
@@ -519,7 +529,10 @@ def make_row(
     if stt_provenance:
         row.update(stt_provenance)
     if label_overlap is not None:
-        row["extras"] = {"label_overlap": label_overlap}
+        row["extras"] = {
+            "label_overlap": label_overlap,
+            "label_overlap_total": label_overlap_total,
+        }
     return row
 
 
@@ -728,31 +741,66 @@ def _train_and_predict(
             )
             return 0
 
+    label_overlap_total = len(reference_labels) if reference_labels else None
+
+    def _predict_row(i, test_row):
+        (prediction, slots, confidence, latency_ms, stage), _, peak_rss_mb = (
+            measure_call(
+                lambda: pipeline.predict(test_row["utterance"])
+            )
+        )
+        row = make_row(
+            competitor, dataset_id, lang, i, test_row,
+            prediction, slots, confidence, latency_ms, stage, revision,
+            granularity=granularity,
+            peak_rss_mb=peak_rss_mb,
+            stt_provenance=stt_provenance,
+            model_revision=model_revision,
+            label_overlap=label_overlap,
+            label_overlap_total=label_overlap_total,
+        )
+        return prediction, row
+
     out_path.parent.mkdir(parents=True, exist_ok=True)
     written = 0
     errored = 0
+    # The first NULL_PROBE_ROWS predictions are held back rather than
+    # written immediately: a matcher that is silently broken (as opposed to
+    # an engine correctly declining every out-of-distribution utterance)
+    # predicts None for everything, and only once the probe clears do the
+    # buffered rows — and the rest of the cell — get written at all.
+    probe_todo, rest_todo = todo[:NULL_PROBE_ROWS], todo[NULL_PROBE_ROWS:]
+    probe_rows: list[dict] = []
+    for i, test_row in probe_todo:
+        try:
+            prediction, row = _predict_row(i, test_row)
+        except Exception as exc:
+            log.warning("    %s/%s sample %s failed: %s",
+                        competitor.competitor_id, lang, i, exc)
+            errored += 1
+            continue
+        probe_rows.append((prediction, row))
+
+    if probe_rows and all(prediction is None for prediction, _ in probe_rows):
+        log.error(
+            "  %s/%s: the first %d prediction(s) on %s were all null — "
+            "trained=False reason=all_null_predictions; no rows written",
+            competitor.competitor_id, lang, len(probe_rows), dataset_id,
+        )
+        return 0
+
     with out_path.open("a", encoding="utf-8") as fh:
-        for i, test_row in todo:
+        for _, row in probe_rows:
+            fh.write(json.dumps(row, ensure_ascii=False) + "\n")
+            written += 1
+        for i, test_row in rest_todo:
             try:
-                (prediction, slots, confidence, latency_ms, stage), _, peak_rss_mb = (
-                    measure_call(
-                        lambda test_row=test_row: pipeline.predict(test_row["utterance"])
-                    )
-                )
+                _prediction, row = _predict_row(i, test_row)
             except Exception as exc:
                 log.warning("    %s/%s sample %s failed: %s",
                             competitor.competitor_id, lang, i, exc)
                 errored += 1
                 continue
-            row = make_row(
-                competitor, dataset_id, lang, i, test_row,
-                prediction, slots, confidence, latency_ms, stage, revision,
-                granularity=granularity,
-                peak_rss_mb=peak_rss_mb,
-                stt_provenance=stt_provenance,
-                model_revision=model_revision,
-                label_overlap=label_overlap,
-            )
             fh.write(json.dumps(row, ensure_ascii=False) + "\n")
             written += 1
             if written % 500 == 0:
@@ -819,19 +867,41 @@ def resolve_model_pin(competitor, intents_config: dict) -> str | None:
 def model_label_overlap(pipeline, reference_labels: set) -> int | None:
     """How many of a corpus's labels the loaded model can actually emit.
 
-    A pretrained head has a fixed class list. ``label_set`` is the registry's
-    *claim* that it matches a corpus; this is the measurement. Returns None
-    when no stage exposes a class list (nothing to check).
+    A pretrained head has a fixed class list, but a classifier-mode matcher
+    (e.g. ovos-m2v-pipeline's ``_match_classifier``) narrows that list at
+    match time to the intents it has separately been told are registered —
+    ``classes_`` alone overstates what the matcher will ever return when
+    that registered set is narrower (or, as with a bus that never answers
+    the manifest query, empty). Where the plugin exposes its registered
+    set, the overlap is measured against ``classes_ & registered`` — what
+    the matcher actually intersects with — falling back to raw ``classes_``
+    only for plugins that expose no such list.
     """
     classes: set = set()
+    registered: set = set()
+    has_registered = False
     for plugin in pipeline.plugins.values():
         model = getattr(plugin, "model", None)
         model_classes = getattr(model, "classes_", None)
         if model_classes is not None:
             classes.update(str(c) for c in model_classes)
+        plugin_intents = getattr(plugin, "intents", None)
+        if plugin_intents:
+            has_registered = True
+            registered.update(str(i) for i in plugin_intents)
     if not classes:
         return None
-    return len(classes & reference_labels)
+    raw_overlap = len(classes & reference_labels)
+    if not has_registered:
+        return raw_overlap
+    matcher_overlap = len(classes & registered & reference_labels)
+    if matcher_overlap != raw_overlap:
+        log.info(
+            "  label overlap: matcher-effective=%d raw classes_=%d "
+            "(registered intents narrower than the model's class list)",
+            matcher_overlap, raw_overlap,
+        )
+    return matcher_overlap
 
 
 def run_competitor_lang(

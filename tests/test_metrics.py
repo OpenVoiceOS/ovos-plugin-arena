@@ -800,3 +800,54 @@ class TestTtsSeedScoreWithoutAnAsrJudge:
     def test_missing_cer_without_the_marker_is_still_not_computable(self):
         row = _row(modality="tts", lang="pt-PT", extras={"utmos": 3.5})
         assert tts_seed_score(row) is None
+
+
+class TestLabelCoverageFloor:
+    """A pretrained fighter (intent_offline) whose measured label overlap
+    (runner.intent_bench.model_label_overlap, carried on each row's
+    ``extras``) falls under LABEL_COVERAGE_FLOOR is scored but unranked —
+    it is not being evaluated on the same label space as the rest of the
+    board."""
+
+    def test_partial_coverage_fighter_is_unranked(self):
+        by_competitor = {
+            "narrow": [
+                _row(competitor_id="narrow", sample_id=f"n{i}",
+                     reference_intent="a", prediction="a",
+                     extras={"label_overlap": 20, "label_overlap_total": 208})
+                for i in range(4)
+            ],
+            "full": [
+                _row(competitor_id="full", sample_id=f"f{i}",
+                     reference_intent="a", prediction="a",
+                     extras={"label_overlap": 198, "label_overlap_total": 208})
+                for i in range(4)
+            ],
+        }
+        board = build_benchmark_board("intent_offline", "d", "en-US",
+                                       by_competitor, "t", min_samples=1)
+        narrow = next(e for e in board.entries if e.competitor_id == "narrow")
+        full = next(e for e in board.entries if e.competitor_id == "full")
+
+        assert narrow.unranked is True
+        assert narrow.rank == 0
+        assert "label_set_partial" in narrow.unranked_reason
+        assert "20" in narrow.unranked_reason and "208" in narrow.unranked_reason
+
+        assert full.unranked is False
+        assert full.rank == 1
+
+    def test_no_label_overlap_measurement_is_unaffected(self):
+        # An online/keyword fighter (or an offline one that trains on the
+        # corpus) carries no label_overlap extras at all and must rank
+        # exactly as before.
+        by_competitor = {
+            "trained": [
+                _row(competitor_id="trained", reference_intent="a", prediction="a")
+            ],
+        }
+        board = build_benchmark_board("intent_online", "d", "en-US",
+                                       by_competitor, "t", min_samples=1)
+        entry = board.entries[0]
+        assert entry.unranked is False
+        assert entry.rank == 1

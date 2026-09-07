@@ -389,6 +389,13 @@ class BenchmarkEntry(BaseModel):
     # ``samples == 0`` and a non-zero count here has not been swept against
     # the current corpus at all and is unranked for that reason.
     rows_other_revision: int = 0
+    # How many of the eval dataset's labels a pretrained fighter's loaded
+    # model actually emits (runner.intent_bench.model_label_overlap) out of
+    # how many the dataset carries — None/None for a fighter that trains on
+    # this corpus (no pretrained label set to measure) or a modality without
+    # the concept. See arena.metrics.LABEL_COVERAGE_FLOOR.
+    label_overlap: int | None = None
+    label_overlap_total: int | None = None
 
 
 class BenchmarkBoard(BaseModel):
