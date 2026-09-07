@@ -100,7 +100,7 @@ def parse_row(raw: dict, competitor_id: str) -> PredictionRow:
     per-competitor-file layout, §3.2).
     """
     if raw.get("dataset_entry_id") and not raw.get("sample_id"):
-        from runner.schema import STTRow
+        from arena.legacy_schema import STTRow
         legacy = STTRow.from_dict(raw)
         resolved = _resolve_competitor_id("stt", legacy.plugin_name)
         raw = legacy.to_prediction_row_dict(resolved or "")

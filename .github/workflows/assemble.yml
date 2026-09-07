@@ -228,6 +228,14 @@ jobs:
                     "rows — false_accept_rate/fa_per_hour cannot be measured "
                     "until a negatives corpus is swept for this board")
 
+          unmanaged_on_error = summary.get("boards_unmanaged_on_error") or []
+          for board in unmanaged_on_error:
+              print(f"::warning::assemble: {board} scored unfiltered because "
+                    "its sample_sets manifest failed to load (not just "
+                    "unpublished — the fetch or parse itself errored, see the "
+                    "assemble job log) — fix the loader or republish the "
+                    "manifest, then re-run assemble")
+
           dropped = summary.get("rows_dropped_off_revision") or 0
           if dropped:
               print(f"::warning::assemble: {dropped} row(s) dropped for being "

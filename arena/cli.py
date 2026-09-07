@@ -607,9 +607,8 @@ def _prediction_source_langs(prediction_sources: list[str]) -> dict[str, str | N
     """
     langs: dict[str, str | None] = {}
     try:
-        from registry.loaders import list_datasets
+        from registry.loaders import list_datasets, resolved_dataset_lang
         from registry.schemas import INTENT_MODALITIES
-        from runner.queue_tools import resolved_dataset_lang
     except ImportError:
         return {s: None for s in prediction_sources}
 
@@ -627,13 +626,34 @@ def _prediction_source_langs(prediction_sources: list[str]) -> dict[str, str | N
 
 _SAMPLE_SET_CACHE: dict[tuple[str, str, str], set[str] | None] = {}
 
+# §alarms — (modality, dataset_id, lang) keys whose manifest *failed to
+# load* (network/parse/import error) rather than simply not existing yet.
+# ``cmd_assemble`` folds these into ``boards_unmanaged_on_error`` in
+# assemble-summary.json so a broken fetch path is a loud alarm instead of
+# silently degrading every affected board to ``sample_set="unmanaged"``
+# indistinguishably from "no manifest published yet" (see docstring below).
+_SAMPLE_SET_LOAD_ERRORS: dict[tuple[str, str, str], str] = {}
+
 
 def _load_sample_set(modality: str, dataset_id: str, lang: str) -> set[str] | None:
     """Load a published ``sample_sets/<lang>.json`` manifest's id set for
-    one (modality, dataset, lang), or ``None`` when the dataset carries no
-    ``sample_policy`` or the manifest hasn't been published yet — in which
-    case the caller falls back to unfiltered scoring (§comparability gap,
-    board build stays best-effort rather than failing outright) and
+    one (modality, dataset, lang).
+
+    Three outcomes, logged at different severities so a broken fetch path
+    never looks identical to an unmanaged dataset:
+
+    - the dataset carries no ``sample_policy`` — ``None``, silent, nothing
+      to publish for this dataset.
+    - a policy is declared but no manifest exists yet on the results repo
+      (``EntryNotFoundError``/``RepositoryNotFoundError``) — ``None``, a
+      WARNING naming the missing manifest.
+    - the fetch or parse itself failed for any other reason (import error,
+      network transport error, malformed JSON) — ``None``, an ERROR naming
+      the exception, and the (modality, dataset_id, lang) key is recorded
+      in ``_SAMPLE_SET_LOAD_ERRORS`` for the caller to alarm on.
+
+    Every ``None`` case falls back to unfiltered scoring (§comparability
+    gap, board build stays best-effort rather than failing outright) and
     ``build_benchmark_board`` marks every entry ``sample_set="unmanaged"``.
     """
     key = (modality, dataset_id, lang)
@@ -642,31 +662,42 @@ def _load_sample_set(modality: str, dataset_id: str, lang: str) -> set[str] | No
 
     result: set[str] | None = None
     try:
-        from registry.loaders import load_dataset
+        from registry.loaders import load_dataset, results_repo_for
         from registry.schemas import dataset_namespace
 
         dataset = load_dataset(dataset_namespace(modality), dataset_id)
         if dataset.sample_policy is not None:
             from huggingface_hub import hf_hub_download
-
-            from runner.intent_bench import results_repo_for
+            from huggingface_hub.utils import EntryNotFoundError, RepositoryNotFoundError
 
             repo = dataset.predictions_hf or results_repo_for(modality, dataset_id)
             lang_file = lang.replace("-", "_")
-            local = hf_hub_download(
-                repo, f"sample_sets/{lang_file}.json",
-                repo_type="dataset", revision="main",
-            )
+            try:
+                local = hf_hub_download(
+                    repo, f"sample_sets/{lang_file}.json",
+                    repo_type="dataset", revision="main",
+                )
+            except (EntryNotFoundError, RepositoryNotFoundError, FileNotFoundError) as exc:
+                log.warning(
+                    "%s/%s/%s: sample_policy is set but no sample_sets "
+                    "manifest is published yet (%s) — scoring unfiltered "
+                    "this run; publish one with runner.publish_sample_set "
+                    "for a comparable board",
+                    modality, dataset_id, lang, exc,
+                )
+                _SAMPLE_SET_CACHE[key] = None
+                return None
             with open(local, encoding="utf-8") as fh:
                 manifest = json.load(fh)
             result = set(manifest["sample_ids"])
     except Exception as exc:
-        log.warning(
-            "%s/%s/%s: sample_policy is set but no sample_sets manifest is "
-            "published yet (%s) — scoring unfiltered this run; publish one "
-            "with runner.publish_sample_set for a comparable board",
-            modality, dataset_id, lang, exc,
+        log.error(
+            "%s/%s/%s: sample_policy is set but loading the sample_sets "
+            "manifest failed (%s: %s) — scoring unfiltered this run and "
+            "flagging the board as unmanaged-on-error",
+            modality, dataset_id, lang, type(exc).__name__, exc,
         )
+        _SAMPLE_SET_LOAD_ERRORS[key] = f"{type(exc).__name__}: {exc}"
         result = None
 
     _SAMPLE_SET_CACHE[key] = result
@@ -988,6 +1019,7 @@ def cmd_assemble(args: argparse.Namespace) -> int:
     # the run a board happens to be rebuilt.
     boards_without_ranked_fighters: list[str] = []
     boards_without_negatives: list[str] = []
+    boards_unmanaged_on_error: list[str] = []
     rows_dropped_off_revision = 0
 
     degraded_langs: dict[str, list[str]] = {}
@@ -1103,6 +1135,8 @@ def cmd_assemble(args: argparse.Namespace) -> int:
             board_file = f"benchmark-{modality}-{dataset_id}-{lang}.json"
             board_path = data_dir / board_file
             sample_set_ids = _load_sample_set(modality, dataset_id, lang)
+            if (modality, dataset_id, lang) in _SAMPLE_SET_LOAD_ERRORS:
+                boards_unmanaged_on_error.append(board_file)
             input_hash = benchmark_board_input_signature(by_competitor, sample_set_ids)
             # Skip the O(rounds * samples) bootstrap CI entirely when this
             # board's prediction rows (+ scoring logic) are byte-identical to
@@ -1297,7 +1331,8 @@ def cmd_assemble(args: argparse.Namespace) -> int:
         return 0
 
     if (unregistered_competitors or boards_without_ranked_fighters
-            or boards_without_negatives or rows_dropped_off_revision):
+            or boards_without_negatives or boards_unmanaged_on_error
+            or rows_dropped_off_revision):
         # Named per modality, like every other artifact this run writes
         # (§assemble scalability — see the matrix-sharding comment on the
         # assemble.yml job), when this run is scoped to one: a sharded
@@ -1321,6 +1356,7 @@ def cmd_assemble(args: argparse.Namespace) -> int:
                 ),
                 "boards_without_ranked_fighters": sorted(boards_without_ranked_fighters),
                 "boards_without_negatives": sorted(boards_without_negatives),
+                "boards_unmanaged_on_error": sorted(boards_unmanaged_on_error),
                 "rows_dropped_off_revision": rows_dropped_off_revision,
             },
         )
@@ -1605,15 +1641,16 @@ def merge_assemble_summaries(payloads: list[dict[str, Any]]) -> dict[str, Any]:
 
     Every field is combined, never overwritten: ``unregistered_competitors_
     excluded`` counts are summed per competitor id, ``boards_without_
-    ranked_fighters`` is a union, and ``rows_dropped_off_revision`` is a
-    total across every leg. A leg with nothing to report never uploads a
-    summary at all (``cmd_assemble`` only writes one when it has something
-    to say), so an empty *payloads* list is the normal all-clear case, not
-    an error.
+    ranked_fighters``/``boards_unmanaged_on_error`` are unions, and
+    ``rows_dropped_off_revision`` is a total across every leg. A leg with
+    nothing to report never uploads a summary at all (``cmd_assemble`` only
+    writes one when it has something to say), so an empty *payloads* list
+    is the normal all-clear case, not an error.
     """
     unregistered: dict[str, int] = {}
     boards: set[str] = set()
     boards_no_negatives: set[str] = set()
+    boards_error: set[str] = set()
     rows_dropped = 0
     for payload in payloads:
         excluded = payload.get("unregistered_competitors_excluded") or {}
@@ -1621,12 +1658,14 @@ def merge_assemble_summaries(payloads: list[dict[str, Any]]) -> dict[str, Any]:
             unregistered[competitor_id] = unregistered.get(competitor_id, 0) + count
         boards.update(payload.get("boards_without_ranked_fighters") or [])
         boards_no_negatives.update(payload.get("boards_without_negatives") or [])
+        boards_error.update(payload.get("boards_unmanaged_on_error") or [])
         rows_dropped += payload.get("rows_dropped_off_revision") or 0
     return {
         "generated_at": _now_iso(),
         "unregistered_competitors_excluded": dict(sorted(unregistered.items())),
         "boards_without_ranked_fighters": sorted(boards),
         "boards_without_negatives": sorted(boards_no_negatives),
+        "boards_unmanaged_on_error": sorted(boards_error),
         "rows_dropped_off_revision": rows_dropped,
     }
 

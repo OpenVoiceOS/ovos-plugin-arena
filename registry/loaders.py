@@ -7,6 +7,7 @@ Reads competitor and dataset definitions from the JSON files under
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 from registry.schemas import INTENT_MODALITIES, CompetitorDef, DatasetDef, Modality
@@ -254,10 +255,53 @@ def validate_registry(registry_root: Path | None = None) -> list[str]:
     return errors
 
 
+HF_OWNER = "OpenVoiceOS"
+
+
+def results_repo_for(modality: str, dataset_id: str, owner: str = HF_OWNER) -> str:
+    """One dedicated HF repo per benchmark modality.
+
+    Lives here rather than in ``runner`` so that ``arena`` (which only
+    reads published results, never runs plugins) can name a dataset's
+    results repo without importing the runner package — pulling in
+    ``runner`` for this one naming convention used to drag the whole
+    plugin-adapter stack, including audio-only dependencies, into every
+    ``arena`` code path.
+    """
+    return f"{owner}/ovos-{modality.replace('_', '-')}-bench-{dataset_id}"
+
+
+_TRAILING_LOCALE_RE = re.compile(r"-([a-zA-Z]{2,3}(?:-[a-zA-Z]{2,3})?)$")
+
+
+def resolved_dataset_lang(dataset: DatasetDef) -> str | None:
+    """The single concrete BCP-47 tag this dataset runs jobs under, or
+    ``None`` when the dataset is genuinely multilingual/unknown.
+
+    A queued job that omits ``lang`` resolves against the *fighter's*
+    default lang (``runner.queue_config._plugin_from_competitor``), not the
+    dataset's — for a multilingual fighter that silently runs the wrong
+    lang and publishes into the wrong ``predictions/<lang>/`` path (e.g.
+    onnx-asr-canary queued against ``speech-massive-de-DE`` running as
+    ``en`` instead of ``de-DE``). Every generated entry for a
+    single-language dataset must pin ``lang`` explicitly to this value.
+    """
+    lang = getattr(dataset, "lang", None)
+    if lang and lang != "multi":
+        return lang
+    # Registry lang is missing/multi/unknown — fall back to parsing a
+    # trailing "-xx-XX" (or "-xx") locale suffix off the dataset id itself,
+    # e.g. "speech-massive-de-DE" -> "de-DE".
+    match = _TRAILING_LOCALE_RE.search(dataset.dataset_id)
+    if match:
+        return match.group(1)
+    return None
+
+
 def paradigm_league_repo(dataset: DatasetDef, paradigm: str) -> str:
     """The real HF repo backing *dataset*'s ``<paradigm>``-supervised
     predictions: ``<owner>/ovos-intent-<paradigm>-bench-<dataset_id>`` (the
-    ``runner.intent_bench.results_repo_for`` convention).
+    ``results_repo_for`` convention).
 
     *dataset* is the eval corpus (e.g. ``banking77``, or ``meteocat`` which
     borrows another corpus's training data); the repo is always keyed by

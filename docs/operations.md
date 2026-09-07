@@ -211,6 +211,15 @@ goes quietly wrong, rather than failing outright:
   be swept and pooled onto that board via the dataset's own
   `negatives_dataset_ids` (see `runner/audio_io.py`'s pooling of negative
   clips into a fighter's own prediction stream).
+- **`assemble.yml` emits one `::warning::` per board named in
+  `assemble-summary.json`'s `boards_unmanaged_on_error`**. A dataset with a
+  `sample_policy` whose manifest simply hasn't been published yet never
+  reaches this list — that is the ordinary, silent-to-WARNING-only
+  "unmanaged" state `arena.cli._load_sample_set` returns `None` for. This
+  alarm fires only when the fetch or parse itself failed (an import error,
+  a network transport error, a malformed manifest) — the board still
+  publishes unfiltered, but the failure needs fixing, not a manifest
+  republish.
 
 ## Sample-set manifests
 

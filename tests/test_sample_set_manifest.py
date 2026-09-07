@@ -286,3 +286,39 @@ class TestLoadSampleSetFallback:
 
         result = cli._load_sample_set("stt", "fake", "en-US")
         assert result == {"a", "b"}
+
+    def test_fetch_failure_logs_error_and_records_alarm(self, monkeypatch, caplog):
+        """A manifest fetch that fails for a reason OTHER than 'not
+        published yet' (here: an import error, the actual regression that
+        put every board in production on 'unmanaged') must be an ERROR
+        naming the exception, not the WARNING used for a merely-unpublished
+        manifest — and it must be recorded so the caller can alarm on it
+        (§alarms, docs/operations.md, boards_unmanaged_on_error)."""
+        from arena import cli
+
+        cli._SAMPLE_SET_CACHE.clear()
+        cli._SAMPLE_SET_LOAD_ERRORS.clear()
+
+        def fake_load_dataset(modality, dataset_id):
+            return SimpleNamespace(
+                sample_policy=SamplePolicy(max_samples=100, seed=1),
+                predictions_hf="OpenVoiceOS/ovos-stt-bench-fake",
+            )
+
+        monkeypatch.setattr("registry.loaders.load_dataset", fake_load_dataset)
+
+        def fake_hf_hub_download(*a, **k):
+            raise ModuleNotFoundError("No module named 'ovos_spec_tools'")
+
+        monkeypatch.setattr("huggingface_hub.hf_hub_download", fake_hf_hub_download)
+
+        import logging
+        with caplog.at_level(logging.WARNING):
+            result = cli._load_sample_set("stt", "broken", "en-US")
+
+        assert result is None
+        assert cli._SAMPLE_SET_LOAD_ERRORS[("stt", "broken", "en-US")].startswith(
+            "ModuleNotFoundError"
+        )
+        error_records = [r for r in caplog.records if r.levelno >= logging.ERROR]
+        assert any("manifest failed" in r.getMessage() for r in error_records)
