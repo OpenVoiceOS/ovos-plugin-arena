@@ -33,7 +33,7 @@ from pathlib import Path
 
 from arena.metrics import domain_of, is_pinned_revision
 from arena.version import __version__ as ARENA_VERSION
-from registry.loaders import load_all_competitors, load_dataset
+from registry.loaders import HF_OWNER, load_all_competitors, load_dataset, results_repo_for
 from registry.schemas import (
     ENGINE_TRAITS,
     TrainingRegime,
@@ -44,18 +44,16 @@ from runner.audio_io import resolve_sample_cap, stream_audio_dataset, stream_man
 from runner.intent_pipeline import IntentPipeline, plugin_version
 from runner.perf import hw_fingerprint, measure_call
 
-log = logging.getLogger("intent-bench")
+# HF_OWNER / results_repo_for live in registry.loaders (they're a naming
+# convention over the registry, not runner-specific) and are re-exported
+# here since every caller in this module — and every other runner script —
+# already imports them from here.
 
-HF_OWNER = "OpenVoiceOS"
+log = logging.getLogger("intent-bench")
 
 
 def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
-
-
-def results_repo_for(modality: str, dataset_id: str, owner: str = HF_OWNER) -> str:
-    """One dedicated HF repo per benchmark modality."""
-    return f"{owner}/ovos-{modality.replace('_', '-')}-bench-{dataset_id}"
 
 
 def split_name(lang: str) -> str:

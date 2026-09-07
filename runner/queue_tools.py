@@ -29,7 +29,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Protocol
 
-from registry.loaders import load_all_competitors, load_all_datasets
+from registry.loaders import load_all_competitors, load_all_datasets, resolved_dataset_lang
 from registry.schemas import CompetitorDef, DatasetDef
 
 MODALITIES = ("stt", "wake_word", "tts", "vad")
@@ -149,31 +149,10 @@ def dataset_langs(dataset: DatasetDef) -> list[str]:
     return [dataset.lang]
 
 
-_TRAILING_LOCALE_RE = re.compile(r"-([a-zA-Z]{2,3}(?:-[a-zA-Z]{2,3})?)$")
-
-
-def resolved_dataset_lang(dataset: DatasetDef) -> str | None:
-    """The single concrete BCP-47 tag this dataset runs jobs under, or
-    ``None`` when the dataset is genuinely multilingual/unknown.
-
-    A queued job that omits ``lang`` resolves against the *fighter's*
-    default lang (``queue_config._plugin_from_competitor``), not the
-    dataset's — for a multilingual fighter that silently runs the wrong
-    lang and publishes into the wrong ``predictions/<lang>/`` path (e.g.
-    onnx-asr-canary queued against ``speech-massive-de-DE`` running as
-    ``en`` instead of ``de-DE``). Every generated entry for a
-    single-language dataset must pin ``lang`` explicitly to this value.
-    """
-    lang = getattr(dataset, "lang", None)
-    if lang and lang != "multi":
-        return lang
-    # Registry lang is missing/multi/unknown — fall back to parsing a
-    # trailing "-xx-XX" (or "-xx") locale suffix off the dataset id itself,
-    # e.g. "speech-massive-de-DE" -> "de-DE".
-    match = _TRAILING_LOCALE_RE.search(dataset.dataset_id)
-    if match:
-        return match.group(1)
-    return None
+# resolved_dataset_lang lives in registry.loaders (it only touches
+# DatasetDef, a registry type) and is re-exported here since this is
+# where every caller in this module — and arena.cli — already imports it
+# from.
 
 
 def is_compatible(competitor: CompetitorDef, dataset: DatasetDef) -> bool:
