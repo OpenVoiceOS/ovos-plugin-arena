@@ -31,7 +31,7 @@ script and registry fighters:
 | `intent_zero_shot` · `intent_online` · `intent_offline` · `intent_keyword` | `benchmarks/intent_*.py` over [`intents-for-eval`](https://huggingface.co/datasets/OpenVoiceOS/intents-for-eval) (12 langs) + `massive-templates` (52 langs) | accuracy / macro-F1 / OOD-FPR / slot-EM → ELO seed |
 | `stt` | `benchmarks/stt_minds14.py` over MInDS-14 | WER → ELO seed |
 | `wake_word` | `benchmarks/ww_hey_mycroft.py` over [`synthetic-wakewords`](https://huggingface.co/datasets/OpenVoiceOS/synthetic-wakewords) | detection error / false-accept / false-reject → ELO seed |
-| `tts` | `benchmarks/tts_intents_prompts.py` | human votes only (no objective metric, no ELO seed) |
+| `tts` | `benchmarks/tts_intents_prompts.py` | mean UTMOS, with STT round-trip intelligibility WER beside it → ELO seed |
 
 The intent leagues are fully populated with published predictions. STT, TTS
 and wake-word fighters and datasets are registered and runnable, and

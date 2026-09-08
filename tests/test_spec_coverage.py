@@ -79,3 +79,32 @@ def test_every_requirement_is_cited():
         f"spec R-numbers with no citation anywhere in {_SOURCE_DIRS}: {uncited} "
         "— add a short '# R<n> <name>' comment at the implementing site"
     )
+
+
+def test_no_modality_with_a_scorer_is_called_unscored():
+    """A modality the code aggregates a board metric for is never described
+    in the spec as having no objective metric, board or ELO seed.
+
+    ``arena.metrics`` grows one ``score_<modality>`` aggregator per modality
+    that has a benchmark board. The spec's modality walkthrough is prose and
+    drifts silently when a scorer lands, which understates the system to
+    exactly the reader least able to check it against the code.
+    """
+    from arena import metrics
+
+    scored = {name[len("score_"):] for name in dir(metrics)
+              if name.startswith("score_") and callable(getattr(metrics, name))}
+    assert "tts" in scored, "expected score_tts to exist"
+
+    text = SPEC.read_text(encoding="utf-8")
+    denials = ("no objective metric", "no benchmark board", "no ELO seed")
+    for paragraph in re.split(r"\n(?=\d+\. \*\*)", text):
+        named = {m for m in scored if f"**{m.upper()}**" in paragraph
+                 or f"**{m}**" in paragraph}
+        if not named:
+            continue
+        for denial in denials:
+            assert denial not in paragraph, (
+                f"spec says '{denial}' about {sorted(named)}, "
+                f"which arena.metrics scores"
+            )
