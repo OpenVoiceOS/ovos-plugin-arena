@@ -235,7 +235,7 @@ distinct hand-authored templates and are kept. Rows that fail the rule are
 dropped rather than replaced, which is why per-language test counts range from
 1,354 to 1,384 instead of landing on a round number.
 
-The intent boards rank on `generalization_accuracy`, which averages `paraphrase`, `far_ood`, `asr_noise` and `typos` only. `template`
+The intent boards rank on `generalization_accuracy`. On `intents-for-eval` that averages `paraphrase`, `far_ood`, `asr_noise` and `typos` only. `template`
 and `in_distribution` (the dataset's raw bucket name) are in-distribution buckets, not
 out-of-scope or memorized rows: `template` tests recall of a held-out template rather
 than free-form phrasing, and `in_distribution` holds in-domain paraphrase-adjacent utterances
@@ -243,9 +243,25 @@ with a real expected intent. Both enter overall `accuracy` and are reported in t
 own `acc_template` and `acc_in_distribution` columns, but not the ranked metric, since they measure a
 narrower kind of generalization than the free-form buckets.
 
-Corpora without bucket annotations, such as `banking77` and `clinc150`, have
-no excluded buckets, so their `generalization_accuracy` equals their
-`accuracy`.
+That description holds for corpora that annotate their buckets. The metric is
+defined by exclusion rather than by an allow-list: `is_in_distribution` drops
+rows whose bucket the corpus declares in-distribution, or, for a corpus that
+predates `DatasetDef.bucket_roles`, whose bucket is `template`,
+`in_distribution` or `near_ood`. Every other bucket is scored into it.
+
+A corpus whose buckets are all scored in therefore has nothing excluded, and its
+`generalization_accuracy` equals its `accuracy`. This is not a rare case. Every
+one of the 453 published board entries outside `intents-for-eval` is in it:
+`massive-templates` across its languages, `meteocat`, `snips`, `mtop`,
+`banking77` and `clinc150`, whose rows carry a plain `test` bucket, and
+`clinc150` additionally a `far_ood` one that is scored in as well. For those
+corpora the guarantee behind the ranked number is the train/test split of the
+corpus itself, not the arena's bucket exclusion.
+
+How many buckets feed the metric is a property of the corpus, not of the metric.
+`ovos-intents-v5` declares one generalization bucket, `ood`, against its
+in-distribution `id_test`. Compare boards through the `acc_*` columns published
+beside the headline number rather than assuming they rank on the same rows.
 
 ## Dataset sampling policy
 
