@@ -80,9 +80,12 @@ class WakeWordBench(MediaBenchAdapter):
         fields = dataset_def.reference_fields or {}
         if getattr(dataset_def, "wakeword", None):
             # positives = the wakeword clips; negatives = a not-wake-word corpus
-            # (false-accept test) or the same corpus's other phrases. max_samples
-            # caps each class so the battle pool stays balanced.
-            yield from stream_ww(dataset_def, revision, max_per_class=max_samples)
+            # (false-accept test) or the same corpus's other phrases. The cap
+            # applies to each class so the battle pool stays balanced, which
+            # makes a sample_policy's max_samples a PER-CLASS depth here rather
+            # than a total.
+            per_class, _seed = resolve_sample_cap(dataset_def, max_samples)
+            yield from stream_ww(dataset_def, revision, max_per_class=per_class)
             return
         audio_key = fields.get("audio", "audio")
         label_col = fields.get("label", "label")
