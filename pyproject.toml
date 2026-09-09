@@ -90,6 +90,10 @@ test = [
     # test_intent_pipeline.py exercises the typed-slot stripping choke
     # point directly, so the test extra needs it self-sufficiently too.
     "ovos-spec-tools>=1.11.0a1",
+    # test_intent_pipeline.py's registration-context test builds a real
+    # PadatiousPipeline; 2.1.2a2 is the floor that rejects registrations
+    # missing message.context['skill_id'] (OVOS-INTENT-4 §3.1).
+    "ovos-padatious>=2.1.2a2",
 ]
 lint = [
     "ruff>=0.6",

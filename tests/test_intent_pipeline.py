@@ -181,6 +181,29 @@ class TestRegisterTemplatesTypedSlots:
         assert "turn the lights {bar}" in samples
         assert not any("{foo:bar}" in s for s in samples)
 
+    def test_registration_carries_skill_id_in_context(self):
+        # OVOS-INTENT-4 §3.1: engines key registration on
+        # message.context['skill_id'], not message.data — ovos-padatious
+        # 2.1.2a2 rejects (and warns) a registration message that carries
+        # skill_id only in data, same as adapt and m2v. Run the runner's
+        # actual registration path through a real PadatiousPipeline so a
+        # regression here is caught by the engine's own acceptance rule,
+        # not by inspecting the message we happen to have built.
+        pipeline = IntentPipeline(
+            {"pipeline": ["ovos-padatious-pipeline-plugin-high"]},
+            lang="en-us",
+        )
+        pipeline.train({"template": [{
+            "intent_id": "play_song",
+            "template": "play {song}",
+            "slots": [{"name": "song", "examples": ["africa"]}],
+        }]})
+        engine = pipeline.plugins["ovos-padatious-pipeline-plugin"]
+        # Value, not presence: the engine files the intent under the
+        # skill_id it read from context, so it must land under "arena" and
+        # nowhere else.
+        assert dict(engine._skill2intent) == {"arena": ["play_song"]}
+
 
 class TestNormalise:
     def test_skill_prefix_stripped(self):

@@ -306,7 +306,7 @@ class IntentPipeline:
                 "samples": samples,
                 "lang": self.lang,
                 "skill_id": "arena",
-            })
+            }, {"skill_id": "arena"})
             bus.emit(msg)
             # Mirror onto the intent-transformer bus (if configured) so
             # transformers that learn from registration traffic — e.g.
@@ -324,7 +324,7 @@ class IntentPipeline:
                 "samples": samples,
                 "lang": self.lang,
                 "skill_id": "arena",
-            })
+            }, {"skill_id": "arena"})
             bus.emit(msg)
             if extra_bus is not None:
                 extra_bus.emit(msg)
