@@ -308,6 +308,15 @@ METRICS: dict[str, dict[str, Any]] = {
         "How many synthesised clips the recogniser panel transcribed back.",
         "neutral", "count",
     ),
+    "generalization_n": _metric(
+        "Rows behind Generalization",
+        "How many rows the generalization share was averaged over — the "
+        "free-form paraphrase, out-of-scope, typo and transcription-noise "
+        "rows, not the whole run.",
+        "neutral", "count",
+        "This is the evidence the intent ranking rests on. A fighter with a "
+        "large run but few rows here was ranked on the smaller number.",
+    ),
     "n_scored": _metric(
         "Rows scored",
         "How many rows this fighter actually produced a scorable answer for.",

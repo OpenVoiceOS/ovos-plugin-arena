@@ -203,6 +203,33 @@ _HIGHER_BETTER = {
     "accuracy", "generalization_accuracy", "utmos", "slot_exact_match",
 }
 
+#: Metric key holding the denominator a primary metric was averaged over,
+#: for the primary metrics scored on a subset of the entry's rows. Intent
+#: boards rank on ``generalization_accuracy``, which excludes the
+#: in-distribution buckets, and TTS boards rank on mean ``utmos``, which
+#: excludes rows whose judge returned nothing. Every other primary metric is
+#: scored over the whole row set.
+_PRIMARY_METRIC_DENOMINATOR = {
+    "generalization_accuracy": "generalization_n",
+    "utmos": "n_scored",
+}
+
+
+def _ranked_population(entry: BenchmarkEntry, primary: str) -> int:
+    """How many rows the board's ranked metric was actually computed over.
+
+    ``MIN_BOARD_SAMPLES`` protects the rank, so it has to be compared against
+    the number behind the rank. A corpus that is mostly in-distribution can
+    give a fighter hundreds of scored rows while ``generalization_accuracy``
+    rests on three of them, and a floor checked against the row count clears
+    that without ever looking at the population it exists to guard.
+    """
+    key = _PRIMARY_METRIC_DENOMINATOR.get(primary)
+    if key is None:
+        return entry.samples
+    denominator = entry.metrics.get(key)
+    return entry.samples if denominator is None else int(denominator)
+
 #: Polarity of the flattened SIGMOS/DNSMOS/NISQA quality-dimension columns
 #: (§4 R14 extension) — NOT primary-metric ranking keys (UTMOS stays
 #: primary), but secondary board metrics whose "higher/lower is better"
@@ -376,6 +403,7 @@ def score_intent(rows: list[PredictionRow]) -> dict[str, float]:
         metrics["generalization_accuracy"] = round(
             generalization["correct"] / generalization["total"], 4
         )
+        metrics["generalization_n"] = float(generalization["total"])
     for bucket, v in sorted(per_bucket.items()):
         if v["total"]:
             name = BUCKET_METRIC_NAMES.get(bucket, bucket)
@@ -1515,7 +1543,7 @@ def build_benchmark_board(
     _MIN_COVERAGE = 0.9
 
     def _too_few(entry: BenchmarkEntry) -> bool:
-        return 0 < entry.samples < min_samples
+        return 0 < _ranked_population(entry, primary) < min_samples
 
     def _partial_coverage(entry: BenchmarkEntry) -> bool:
         return (entry.sample_set_coverage is not None
@@ -1564,8 +1592,9 @@ def build_benchmark_board(
         entry.rank = 0
         entry.unranked = True
         entry.unranked_reason = (
-            f"too_few_samples — {entry.samples} scored row(s), under the "
-            f"{min_samples} a board needs to say anything"
+            f"too_few_samples — {_ranked_population(entry, primary)} row(s) "
+            f"under {primary}, below the {min_samples} a board needs to say "
+            "anything"
         )
     for entry in failed:
         entry.rank = 0
