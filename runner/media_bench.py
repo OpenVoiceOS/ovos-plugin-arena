@@ -35,6 +35,7 @@ from pathlib import Path
 
 from arena.version import __version__ as ARENA_VERSION
 from registry.loaders import list_competitors, load_dataset
+from runner.dataset_cards import FUNDING_BLOCK, check_funding_block
 from runner.intent_bench import (
     HF_OWNER,
     _now_iso,
@@ -481,10 +482,7 @@ the arena §3.2 contract (pinned `dataset_revision`, `plugin_version`,
 the arena's `assemble` workflow turns these rows into benchmark boards, blind
 battle pools and a benchmark-seeded ELO ladder.
 
-Funded by the [NGI0 Commons Fund](https://nlnet.nl/project/OpenVoiceOS) /
-[NLnet](https://nlnet.nl) under grant agreement No
-[101135429](https://cordis.europa.eu/project/id/101135429), through the
-European Commission's [Next Generation Internet](https://ngi.eu) programme.
+{FUNDING_BLOCK}
 """
 
 
@@ -511,7 +509,8 @@ def upload_predictions(
     except Exception as exc:
         log.warning("create_repo(%s) refused (%s) — uploading anyway", repo, exc)
     api.upload_file(
-        path_or_fileobj=dataset_card(adapter, dataset_id, eval_def, langs).encode(),
+        path_or_fileobj=check_funding_block(
+            dataset_card(adapter, dataset_id, eval_def, langs), repo).encode(),
         path_in_repo="README.md",
         repo_id=repo,
         repo_type="dataset",
