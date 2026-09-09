@@ -2,7 +2,7 @@
   "modality": "stt",
   "dataset_id": "stt-sampler-v1",
   "lang": "ca-ES",
-  "generated_at": "2026-09-08T07:49:41.095006+00:00",
+  "generated_at": "2026-09-09T07:52:38.966921+00:00",
   "primary_metric": "wer_mean",
   "dataset_info": {
     "display_name": "STT sampler (20 languages)",
@@ -16,22 +16,22 @@
   },
   "dataset_revision": null,
   "predictions_revisions": {
-    "OpenVoiceOS/ovos-stt-bench-stt-sampler-v1": "65522e311d91f5678e6e2cfe764d7025fc764a7d"
+    "OpenVoiceOS/ovos-stt-bench-stt-sampler-v1": "f702e93a4248e3531736d0499a8c5baf71e04a58"
   },
   "wer_normalizer_version": 1,
   "entries": [
     {
       "rank": 1,
-      "competitor_id": "onnx-asr-nvidia-ca-conformer-ctc-large",
+      "competitor_id": "onnx-asr-conformer-transducer-ca-es",
       "plugin_id": "ovos-stt-plugin-onnx-asr",
       "samples": 40,
       "metrics": {
-        "wer_mean": 0.0575,
-        "wer_median": 0.0377,
-        "latency_ms_median": 1127.36
+        "wer_mean": 0.0466,
+        "wer_median": 0.0,
+        "latency_ms_median": 982.98
       },
-      "primary_metric_ci_lower": 0.0385026459737239,
-      "primary_metric_ci_upper": 0.08625779944764568,
+      "primary_metric_ci_lower": 0.030977253356945535,
+      "primary_metric_ci_upper": 0.07555670527099191,
       "tied_with_leader": true,
       "plugin_versions": [
         "ovos-stt-plugin-onnx-asr==0.4.2a2"
@@ -41,10 +41,42 @@
       "unranked_reason": null,
       "perf": {
         "gpu": {
-          "rtf": 0.079,
+          "rtf": 0.0742,
           "rtf_n": 40.0,
-          "peak_rss_mb": 2309.49,
+          "peak_rss_mb": 2469.74,
           "peak_rss_mb_n": 40.0
+        }
+      },
+      "model_mb": 475.72,
+      "sample_set": "unmanaged",
+      "sample_set_coverage": null,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 2,
+      "competitor_id": "onnx-asr-nvidia-ca-conformer-ctc-large",
+      "plugin_id": "ovos-stt-plugin-onnx-asr",
+      "samples": 50,
+      "metrics": {
+        "wer_mean": 0.06,
+        "wer_median": 0.0447,
+        "latency_ms_median": 802.28
+      },
+      "primary_metric_ci_lower": 0.043811868096239985,
+      "primary_metric_ci_upper": 0.0866777711022789,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-stt-plugin-onnx-asr==0.4.2a2"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": {
+        "gpu": {
+          "rtf": 0.0618,
+          "rtf_n": 50.0,
+          "peak_rss_mb": 2309.49,
+          "peak_rss_mb_n": 50.0
         }
       },
       "model_mb": 620.83,
@@ -53,17 +85,17 @@
       "rows_other_revision": 0
     },
     {
-      "rank": 2,
+      "rank": 3,
       "competitor_id": "onnx-asr-conformer-transducer-ca",
       "plugin_id": "ovos-stt-plugin-onnx-asr",
-      "samples": 40,
+      "samples": 50,
       "metrics": {
-        "wer_mean": 0.0619,
-        "wer_median": 0.037,
-        "latency_ms_median": 1226.29
+        "wer_mean": 0.0645,
+        "wer_median": 0.0385,
+        "latency_ms_median": 781.23
       },
-      "primary_metric_ci_lower": 0.043639586124925016,
-      "primary_metric_ci_upper": 0.09375688663075415,
+      "primary_metric_ci_lower": 0.04875818264307473,
+      "primary_metric_ci_upper": 0.0941660384388756,
       "tied_with_leader": true,
       "plugin_versions": [
         "ovos-stt-plugin-onnx-asr==0.4.2a2"
@@ -73,45 +105,13 @@
       "unranked_reason": null,
       "perf": {
         "gpu": {
-          "rtf": 0.1071,
-          "rtf_n": 40.0,
+          "rtf": 0.0679,
+          "rtf_n": 50.0,
           "peak_rss_mb": 2218.91,
-          "peak_rss_mb_n": 40.0
+          "peak_rss_mb_n": 50.0
         }
       },
       "model_mb": 615.69,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
-      "rows_other_revision": 0
-    },
-    {
-      "rank": 0,
-      "competitor_id": "onnx-asr-conformer-transducer-ca-es",
-      "plugin_id": "ovos-stt-plugin-onnx-asr",
-      "samples": 20,
-      "metrics": {
-        "wer_mean": 0.0466,
-        "wer_median": 0.0156,
-        "latency_ms_median": 2054.01
-      },
-      "primary_metric_ci_lower": 0.027335831925675676,
-      "primary_metric_ci_upper": 0.07925690456658463,
-      "tied_with_leader": false,
-      "plugin_versions": [
-        "ovos-stt-plugin-onnx-asr==0.4.2a2"
-      ],
-      "version_blended": false,
-      "unranked": true,
-      "unranked_reason": "too_few_samples — 20 scored row(s), under the 30 a board needs to say anything",
-      "perf": {
-        "gpu": {
-          "rtf": 0.1853,
-          "rtf_n": 20.0,
-          "peak_rss_mb": 2433.95,
-          "peak_rss_mb_n": 20.0
-        }
-      },
-      "model_mb": 475.72,
       "sample_set": "unmanaged",
       "sample_set_coverage": null,
       "rows_other_revision": 0
@@ -147,8 +147,8 @@
       "rows_other_revision": 0
     }
   ],
-  "entries_hash": "da2b259e0cf1195c217b4dc2427e6f803ae0235f9521258760f9850c00644dd8",
-  "input_hash": "aa56c5b9d4d5411121bd2bbf48b5987ddbc5dd3aba002d159ce4a1012125cb81",
+  "entries_hash": "5c470153c2c8479d14254329a87719f2286a52907a4d7f8d2b54bd0a40312aad",
+  "input_hash": "1fa2db69cc62ffcd5140fff3aebf242b65b5f88dbc3f886006865dcfa2743e80",
   "judge_agreement": null,
   "intelligibility_judges": [],
   "intelligibility_judge_mismatched_pairs": 0,
