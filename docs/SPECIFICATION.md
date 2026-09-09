@@ -216,8 +216,9 @@ Per modality:
 - **Wake word**: `label`, `prediction` (decision), `latency_ms`.
 - **TTS**: `input_text`, `prediction` (audio ref), `latency_ms`. No
   ground-truth reference (there is no single "correct" waveform for a
-  prompt), so human votes stay the primary ranking signal. Each clip is
-  also scored with an objective, reference-free naturalness metric
+  prompt), so the ELO ladder stays driven by human votes while the benchmark
+  board is ranked on the objective metrics below. Each clip is
+  scored with an objective, reference-free naturalness metric
   (**R14**) whose per-row value and judge provenance live in `extras`:
   `utmos` (1-5, higher better), `utmos_judge`, `utmos_judge_revision`.
   Alongside it, each clip also gets an STT round-trip intelligibility score
@@ -660,9 +661,10 @@ audio modalities share `runner/media_bench.py` (the intent leagues share
    Ranked by detection error rate (with false-accept / false-reject) and an
    ELO seed.
 4. **TTS**, `benchmarks/tts_intents_prompts.py` (`runner/tts_bench.py`):
-   synthesises a prompt corpus per fighter and stores the clips. Human-vote
-   only, no objective metric, no benchmark board, no ELO seed. The ELO board
-   accrues purely from blind A/B listening votes.
+   synthesises a prompt corpus per fighter and stores the clips. Ranked by
+   mean UTMOS with an ELO seed (§4 R14), with STT round-trip intelligibility
+   WER reported beside it as a secondary metric (§4 R16). Blind A/B listening
+   votes refine that seed the same way they refine every other league's.
 
 ---
 [Home](index.md) · [Local testing →](local-testing.md)
