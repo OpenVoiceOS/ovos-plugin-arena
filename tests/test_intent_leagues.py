@@ -395,6 +395,54 @@ class TestMinimumBoardSamples:
         assert entry.unranked_reason.startswith("too_few_samples")
         assert str(MIN_BOARD_SAMPLES) in entry.unranked_reason
 
+    def _mixed_rows(self, in_distribution, generalization,
+                    competitor="fixture"):
+        """Rows split between an in-distribution bucket and a ranked one."""
+        from arena.models import PredictionRow
+
+        buckets = ["in_distribution"] * in_distribution + ["ood"] * generalization
+        return [
+            PredictionRow(
+                competitor_id=competitor, sample_id=f"en-US/{i:05d}",
+                dataset_id="ovos-intents-v5", lang="en-US", plugin_id="p",
+                modality="intent_online", utterance="turn on the lights",
+                reference_intent="lights:on", prediction="lights:on",
+                exact_match=True, bucket=bucket,
+            )
+            for i, bucket in enumerate(buckets)
+        ]
+
+    def test_the_floor_counts_the_rows_the_rank_is_computed_from(self):
+        """A mostly in-distribution run clears a row-count floor while the
+        ranked metric rests on a handful of rows."""
+        from arena.metrics import MIN_BOARD_SAMPLES, build_benchmark_board
+
+        rows = self._mixed_rows(in_distribution=100, generalization=3)
+        board = build_benchmark_board(
+            "intent_online", "ovos-intents-v5", "en-US",
+            {"fixture": rows}, "t",
+        )
+        entry = board.entries[0]
+        assert entry.samples > MIN_BOARD_SAMPLES
+        assert entry.unranked
+        assert entry.rank == 0
+        assert entry.unranked_reason.startswith("too_few_samples")
+        assert entry.metrics["generalization_n"] == 3
+
+    def test_enough_ranked_rows_ranks_whatever_the_bucket_mix(self):
+        from arena.metrics import MIN_BOARD_SAMPLES, build_benchmark_board
+
+        rows = self._mixed_rows(
+            in_distribution=100, generalization=MIN_BOARD_SAMPLES)
+        board = build_benchmark_board(
+            "intent_online", "ovos-intents-v5", "en-US",
+            {"fixture": rows}, "t",
+        )
+        entry = board.entries[0]
+        assert entry.metrics["generalization_n"] == MIN_BOARD_SAMPLES
+        assert not entry.unranked
+        assert entry.rank == 1
+
     def test_a_full_board_ranks_normally(self):
         from arena.metrics import MIN_BOARD_SAMPLES, build_benchmark_board
 
