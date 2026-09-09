@@ -94,6 +94,14 @@ test = [
     # PadatiousPipeline; 2.1.2a2 is the floor that rejects registrations
     # missing message.context['skill_id'] (OVOS-INTENT-4 §3.1).
     "ovos-padatious>=2.1.2a2",
+    # The HF classification-row tests patch datasets.load_dataset, which
+    # requires the real module to be importable even though the corpus
+    # itself is faked; datasets otherwise arrives only with the hf extra.
+    "datasets>=2.20",
+    # The sample-policy, manifest and collision tests build in-memory
+    # parquet tables to drive runner/audio_io.py's parquet row walk;
+    # pyarrow otherwise arrives only with the audio extra.
+    "pyarrow>=14",
 ]
 lint = [
     "ruff>=0.6",
