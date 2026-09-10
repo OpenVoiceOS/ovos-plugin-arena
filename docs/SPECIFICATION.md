@@ -225,6 +225,21 @@ Per modality:
   (**R16**): `intelligibility_wer`, `intelligibility_cer`,
   `intelligibility_judge`, `intelligibility_judge_revision`.
 
+  A TTS row's provenance keys on the **voice checkpoint**, not the engine
+  version. Every TTS row MUST carry `voice_hf` (the HF repo holding the
+  checkpoint that produced the audio) and `voice_revision` (that repo's
+  commit SHA). A row lacking both names no checkpoint, and whether such a row
+  may be ranked beside one that names its own is left to the board policy
+  rather than settled here. Two rows produced from the same checkpoint by different engine versions describe the same voice and MAY be
+  ranked against each other. Two rows from different checkpoints MUST NOT be,
+  even at an identical engine version.
+
+  This is what makes a TTS board survive an engine upgrade. The engine is the
+  code that runs a checkpoint, and raising it does not change which voice a
+  listener hears, so an engine bump does not invalidate a published shard and
+  does not require regenerating the board. A checkpoint change does, because
+  the voice itself is then a different thing wearing the same name.
+
 Performance columns (performance-metrics campaign M1), all optional, all
 default to null/absent: `elapsed_ms` (wall time of the single inference
 call, `time.perf_counter`-based — distinct from `latency_ms`, which some
