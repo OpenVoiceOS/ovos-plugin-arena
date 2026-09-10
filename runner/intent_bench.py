@@ -41,6 +41,7 @@ from registry.schemas import (
     expected_league,
 )
 from runner.audio_io import resolve_sample_cap, stream_audio_dataset, stream_manifest_audio
+from runner.dataset_cards import FUNDING_BLOCK, check_funding_block
 from runner.intent_pipeline import IntentPipeline, plugin_version
 from runner.perf import hw_fingerprint, measure_call
 from runner.queue_tools import is_trained_on
@@ -1010,10 +1011,7 @@ semantics). Produced by the reproducible benchmark script in the arena repo;
 the arena's `assemble` workflow turns these rows into benchmark boards,
 blind battle pools and a benchmark-seeded ELO ladder.
 
-Funded by the [NGI0 Commons Fund](https://nlnet.nl/project/OpenVoiceOS) /
-[NLnet](https://nlnet.nl) under grant agreement No
-[101135429](https://cordis.europa.eu/project/id/101135429), through the
-European Commission's [Next Generation Internet](https://ngi.eu) programme.
+{FUNDING_BLOCK}
 """
 
 
@@ -1041,8 +1039,9 @@ def upload_predictions(
             log.warning("create_repo(%s) refused (%s) — uploading anyway",
                         repo, exc)
         api.upload_file(
-            path_or_fileobj=_dataset_card(
-                modality, dataset_id, eval_def, langs).encode(),
+            path_or_fileobj=check_funding_block(
+                _dataset_card(modality, dataset_id, eval_def, langs),
+                repo).encode(),
             path_in_repo="README.md",
             repo_id=repo,
             repo_type="dataset",
