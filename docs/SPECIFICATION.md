@@ -78,7 +78,13 @@ Padatious × Adapt).
 An offline fighter MUST declare the `label_set` its artefact was trained on
 — the dataset_ids whose labels it can emit. It is benchmarked only on those
 corpora; anywhere else its answers measure a label-space mismatch rather than
-the engine.
+the engine. The declared claim is checked, not trusted: before scoring, the
+runner intersects the loaded model's own class list with the corpus's
+labels, and a fighter whose model classes reach no overlap with a corpus
+in its own declared `label_set` is unranked there rather than scored on a
+board of zeros. That gate is global and binary — zero overlap versus any
+overlap — and identical in every league; there is no per-league floor. Each
+scored row records the class overlap the fighter actually measured.
 
 The per-league task definitions and the exact metric formulas (what each
 benchmark board ranks by and what seeds ELO) are specified in
@@ -131,18 +137,29 @@ plugin class it instantiates), `types` (architecture tags: `GOFAI`,
 `fuzzy-match`, `neural-net`, `template-match`, `keyword-match`, `embedding`,
 `LLM`, `ensemble`), `description`, `model`, `links`.
 
-`trained_on` lists dataset ids whose recordings were in this competitor's
-training data — the deny-list mirror of `train_datasets` below: a fighter
-stays registered and competes normally everywhere else, but every scoring
-point (the media/wake-word bench, `arena.predictions.group_rows`, the
-autorun scheduler) skips the `(fighter, dataset)` pair instead of grading
-it. `validate_registry` rejects a `trained_on` id that does not resolve to
-a registered dataset for the competitor's own modality.
+`trained_on` lists every dataset id whose recordings were in this
+competitor's training data — the deny-list mirror of `train_datasets`
+below: a fighter stays registered and competes normally everywhere else,
+but every scoring point (the media/wake-word bench,
+`arena.predictions.group_rows`, the autorun scheduler) skips the
+`(fighter, dataset)` pair instead of grading it, so a fighter is never
+scored on data it was trained on. A corpus republished under a different
+dataset id is a different id as far as this list is concerned — it is not
+covered by an entry naming the original id, so the registrant MUST list
+every id the training recordings were published under, including
+republications. `validate_registry` rejects a `trained_on` id that does not
+resolve to a registered dataset for the competitor's own modality.
 
 **Datasets** (`registry/datasets/<modality>/<id>.json`): one corpus per
 entry, source (HF id + revision + split or per-lang `file_pattern`),
 `reference_fields` (the datashape contract), license, `lang` (or
-`lang: multi` plus a `langs` list), and a `role`. `display_name` is the
+`lang: multi` plus a `langs` list), and a `role`. Every `lang` tag MUST be a
+full BCP-47 lang-REGION tag; a bare primary subtag is accepted only for a
+language on `registry/schemas.py`'s allow-list, because none of the regions
+it is spoken in is a dialect the corpora distinguish. That allow-list is
+closed: adding a language to it is an owner ruling recorded in the schema
+file itself, not a convenience a registrant can reach for by leaving off a
+region. `display_name` is the
 human-readable corpus name the leaderboard shows in place of the code-name
 `dataset_id`, and `summary` is the plain-language paragraph that tells a
 visitor where the data comes from, what one row is and what changes how to
@@ -294,7 +311,13 @@ Voting options MUST include: candidate A, candidate B, tie, both-wrong.
 ## 4. Matchmaking rules
 
 - **R1, Same stimulus.** A battle pairs two predictions for the *same*
-  `sample_id` from the same dataset, by two different competitors.
+  `sample_id` from the same dataset, by two different competitors. Where the
+  dataset publishes a sample-set manifest (a `sample_policy`-capped
+  dataset's `sample_sets/<lang>.json`, see `docs/runner.md`), both
+  predictions MUST also fall inside that manifest's id set — a sample
+  either competitor answered outside the published manifest carries no
+  signal about the managed comparison and MUST NOT seed a battle
+  (`arena.cli._load_sample_set`, invoked during `cmd_assemble`).
 - **R2, Identical outputs are never battled** (no signal for a voter).
 - **R3, Prefer discriminative samples.** Within each competitor pair,
   both-wrong samples sort first, then one-wrong disagreements. Battle pools
@@ -314,21 +337,31 @@ Voting options MUST include: candidate A, candidate B, tie, both-wrong.
   statistically indistinguishable is benchmark noise and MUST NOT seed the
   rating.
 - **R5b, Weight cap.** A pair's total Bradley-Terry auto-vote weight is
-  capped at `MAX_AUTO_WEIGHT_PER_PAIR` (5 human-vote-equivalents),
-  proportionally scaled to preserve the observed win rate, dataset size
-  MUST NOT be a lever on how much the auto-vote seed can move a pair's
-  rating. `ovos-arena audit-seeds` reports every pair's weight and whether
-  it sits at the cap.
-- **R12, Full-history replay.** `tally` MUST fetch every `vote`-labelled
-  issue (open and closed), not only issues opened since the previous run,
-  the vote log is the complete issue history (§6), and every tally run
-  replays it from scratch. An issue absent from the vote record is
-  recorded exactly once, with the battle context it was cast on; an issue
-  already in the record MUST NOT be re-parsed, so a later title edit
-  changes no rating. Already-closed issues MUST NOT be re-commented on or
+  capped, in human-vote-equivalent units, at a fixed ceiling applied
+  symmetrically to both members of the pair; the weight below the cap is
+  scaled proportionally so it preserves the pair's observed auto-battle win
+  rate rather than distorting it. Dataset size MUST NOT be a lever on how
+  much the auto-vote seed can move a pair's rating — a benchmark corpus with
+  ten thousand samples must not outweigh a hand-voted pair the way an
+  uncapped weight would let it. Replay MUST reproduce the capped weight
+  deterministically from the published predictions alone, same as any other
+  seed value (§2 P5). The tuned ceiling is the `MAX_AUTO_WEIGHT_PER_PAIR`
+  constant in `arena/assembler.py`, worked through alongside the per-round
+  scaling in `docs/methodology.md`. `ovos-arena audit-seeds` reports
+  every pair's weight and whether it sits at the cap.
+- **R12, Full-history replay.** The vote record (§6) is the complete history
+  of votes as they were publicly cast, one committed line per `vote`-labelled
+  issue, appended once and never rewritten. `tally` fetches every
+  `vote`-labelled issue (open and closed) so it can detect any one not yet
+  in the record, records that issue exactly once with the battle context it
+  was cast on, and then rebuilds every leaderboard by replaying the FULL
+  record from the start — not only the newly appended lines — so the rating
+  never depends on which run first observed a given vote. An issue already
+  in the record MUST NOT be re-parsed, so a later title edit changes no
+  rating, and an already-closed issue MUST NOT be re-commented on or
   re-closed. `assemble`, `tally` and `verify-replay` MUST build every
-  leaderboard through the same replay of that record, so what `assemble`
-  publishes is what `verify-replay` reproduces.
+  leaderboard through that same replay of the committed record, so what
+  `assemble` publishes is what `verify-replay` reproduces.
 - **R13, Vote fraud rules** (`arena/fraud.py`, pure functions of the vote
   log, see `docs/methodology.md` for the full rationale):
   - one vote per (voter, battle), R1's battle identity dedupe. - a per-voter, per-league, per-UTC-day cap (`DAILY_VOTE_CAP = 50`). - an account-age gate (`NEW_ACCOUNT_MIN_DAYS = 7`) using a creation-date
