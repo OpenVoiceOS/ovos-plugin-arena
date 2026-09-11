@@ -96,3 +96,105 @@ def test_a_publisher_refuses_to_upload_a_card_missing_the_block(monkeypatch, tmp
         intent_bench.upload_predictions(bench_dir, "intents-for-eval", _EvalDef)
     assert api.uploaded_files == []
     assert api.uploaded_folders == []
+
+
+class TestSampleSetCard:
+    """The card the manifest publisher writes."""
+
+    def test_a_manifest_repo_is_not_described_as_holding_predictions(self):
+        from runner.dataset_cards import sample_set_card
+
+        card = sample_set_card("minds14", "en-US", "OpenVoiceOS/minds14")
+        assert "holds manifests rather than predictions" in card
+        assert "predictions/<lang>/" not in card
+
+
+class TestSampleSetPublisherWritesACard:
+    """The path that creates manifest repos is the path that must card them."""
+
+    class _Source:
+        hf_id = "OpenVoiceOS/minds14"
+
+    class _Modality:
+        value = "stt"
+
+    class _DatasetDef:
+        dataset_id = "minds14"
+        lang = "en-US"
+        source = None
+        modality = None
+
+    def _dataset_def(self):
+        d = self._DatasetDef()
+        d.source = self._Source()
+        d.modality = self._Modality()
+        return d
+
+    class _Api:
+        def __init__(self, existing=None):
+            self.existing = existing
+            self.uploaded = []
+
+        def hf_hub_download(self, repo, path, repo_type=None):
+            if self.existing is None:
+                raise FileNotFoundError(path)
+            import tempfile
+            f = tempfile.NamedTemporaryFile("w", suffix=".md", delete=False)
+            f.write(self.existing)
+            f.close()
+            return f.name
+
+        def upload_file(self, **kw):
+            self.uploaded.append(kw)
+
+    def test_a_repo_with_no_card_gets_one(self):
+        from runner.publish_sample_set import _write_card
+
+        api = self._Api(existing=None)
+        _write_card(api, "OpenVoiceOS/ovos-stt-bench-minds14", self._dataset_def())
+        assert len(api.uploaded) == 1
+        assert api.uploaded[0]["path_in_repo"] == "README.md"
+        assert FUNDING_BLOCK in api.uploaded[0]["path_or_fileobj"].decode()
+
+    def test_a_prediction_publishers_card_is_left_alone(self):
+        """This job runs weekly; without the check it would overwrite the
+        richer prediction card every time."""
+        from runner.media_bench import dataset_card
+        from runner.publish_sample_set import _write_card
+
+        prediction_card = dataset_card(_Adapter, "minds14", _EvalDef, ["en-US"])
+        api = self._Api(existing=prediction_card)
+        _write_card(api, "OpenVoiceOS/ovos-stt-bench-minds14", self._dataset_def())
+        assert api.uploaded == []
+
+    def test_an_unchanged_card_is_not_rewritten(self):
+        from runner.dataset_cards import sample_set_card
+        from runner.publish_sample_set import _write_card
+
+        current = sample_set_card("minds14", "en-US", "OpenVoiceOS/minds14")
+        api = self._Api(existing=current)
+        _write_card(api, "OpenVoiceOS/ovos-stt-bench-minds14", self._dataset_def())
+        assert api.uploaded == []
+
+    def test_publishing_a_manifest_cards_the_repo(self, monkeypatch):
+        """The call site, not just the helper: a publish writes both files.
+
+        The other cells here drive ``_write_card`` directly, so they stay
+        green if the call is dropped from :func:`publish_sample_set`.
+        """
+        import huggingface_hub
+
+        from runner import publish_sample_set as mod
+
+        api = self._Api(existing=None)
+        monkeypatch.setattr(huggingface_hub, "HfApi", lambda *a, **k: api)
+        monkeypatch.setattr(api, "create_repo", lambda *a, **k: None,
+                            raising=False)
+        monkeypatch.setattr(mod, "compute_sample_set", lambda *a, **k: {
+            "sample_ids": ["1"], "total_rows": 1, "seed": 0, "max_samples": 1})
+
+        mod.publish_sample_set(self._dataset_def(), "rev", "OpenVoiceOS",
+                               dry_run=False)
+
+        written = {u["path_in_repo"] for u in api.uploaded}
+        assert "README.md" in written
