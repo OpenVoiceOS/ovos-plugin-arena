@@ -26,6 +26,7 @@ import hashlib
 import itertools
 import json
 import logging
+import math
 import random
 import re
 import unicodedata
@@ -188,11 +189,11 @@ PRIMARY_METRIC = {
     "wake_word": "error_rate",
     "vad": "error_rate",
     "tts": "utmos",
-    # §A3.2 / R17 — FRR at a fixed 2-false-accepts/hour operating point, not
+    # §A3.2 / R17 — FRR at a fixed 1-false-accept/hour operating point, not
     # raw threshold-0.5 FRR alone: a streaming detector's usable operating
     # point is a trade-off curve, and ranking on FRR alone would reward a
     # fighter that only "wins" by firing so eagerly its FA/hour is unusable.
-    "ww_stream": "error_at_2fa_per_hour",
+    "ww_stream": "error_at_1fa_per_hour",
 }
 
 # Higher is better for these primary metrics; lower for the rest (error rates,
@@ -964,40 +965,86 @@ def score_tts(rows: list[PredictionRow]) -> dict[str, float]:
 #                           a confidence the plugin doesn't provide — P2:
 #                           the plugin owns its own threshold).
 #   extras.truth_onsets   — [timestamp_s, ...] ground-truth wake-word onsets
+#   extras.truth_ends     — optional, parallel to truth_onsets: where each
+#                           phrase ends (see _match_clip for the window)
 #                           in that clip (empty for negative-only clips).
 #   extras.duration_s     — total clip length, for the FA/hour denominator.
 
 EVENT_TOLERANCE_S = 1.5  # ± window for matching an event to a truth onset
-TARGET_FA_PER_HOUR = 2.0  # operating point for the primary metric
+TARGET_FA_PER_HOUR = 1.0  # operating point for the primary metric
+#: False-accept budgets reported as secondary operating points
+#: (``error_at_<n>fa_per_hour`` / ``recall_at_<n>fa_per_hour``).
+FA_BUDGETS_PER_HOUR = (0.5, 1.0, 2.0)
 _DET_THRESHOLDS = [round(0.1 * i, 2) for i in range(1, 10)]  # 0.1 .. 0.9
 
+#: One truth onset: (start_s, end_s). ``end_s`` is None when the manifest
+#: carries no ends, which falls back to a symmetric window around the start.
+_Onset = tuple[float, float | None]
+_StreamClip = tuple[list[_Onset], list[tuple[float, float]], float]
 
-def _stream_clips(
-    rows: list[PredictionRow],
-) -> list[tuple[list[float], list[tuple[float, float]], float]]:
+
+def _fa_label(budget: float) -> str:
+    return f"{budget:g}fa_per_hour"
+
+
+def _stream_clips(rows: list[PredictionRow]) -> list[_StreamClip]:
     """(truth_onsets, events, duration_s) per streaming row, others ignored."""
     clips = []
     for row in rows:
         if row.prediction != "WW_STREAM":
             continue
         extras = row.extras or {}
-        truth = [float(t) for t in (extras.get("truth_onsets") or [])]
+        starts = [float(t) for t in (extras.get("truth_onsets") or [])]
+        raw_ends = extras.get("truth_ends") or []
+        if len(raw_ends) == len(starts):
+            truth: list[_Onset] = [(t, float(e)) for t, e in zip(starts, raw_ends, strict=True)]
+        else:
+            truth = [(t, None) for t in starts]
         events = [(float(t), float(s)) for t, s in (extras.get("events") or [])]
         duration = float(extras.get("duration_s") or 0.0)
         clips.append((truth, events, duration))
     return clips
 
 
-def _stream_stats_at_threshold(
-    clips: list[tuple[list[float], list[tuple[float, float]], float]],
-    threshold: float,
-) -> dict[str, Any]:
-    """FRR / FA-per-hour / latencies at one detection threshold.
+def _match_clip(
+    truth: list[_Onset], events: list[tuple[float, float]], threshold: float
+) -> tuple[list[float | None], int]:
+    """Match one clip's events at *threshold* against its truth onsets.
 
-    Each truth onset matches at most one fired event within
-    ``EVENT_TOLERANCE_S`` (closest in time); every fired event left
-    unmatched is a false accept.
+    An event matches an onset when its time falls in
+    ``[start, end + EVENT_TOLERANCE_S]`` (a detector fires at the end of the
+    phrase, which can be seconds after its start), or, for an onset with no
+    known end, in ``[start - EVENT_TOLERANCE_S, start + EVENT_TOLERANCE_S]``.
+    Returns ``(latencies, false_accepts)`` where ``latencies[i]`` is the
+    delay of the matching event after onset ``i``'s start (None when
+    missed). Each onset matches at most one fired event (closest to its
+    start); every fired event left unmatched is a false accept.
     """
+    fired = [(t, s) for t, s in events if s >= threshold]
+    matched_events: set[int] = set()
+    latencies: list[float | None] = []
+    for start, end in truth:
+        lo = start - EVENT_TOLERANCE_S if end is None else start
+        hi = (start if end is None else end) + EVENT_TOLERANCE_S
+        best_idx, best_gap = None, None
+        for idx, (t, _s) in enumerate(fired):
+            if idx in matched_events:
+                continue
+            gap = abs(t - start)
+            if lo <= t <= hi and (best_gap is None or gap < best_gap):
+                best_idx, best_gap = idx, gap
+        if best_idx is None:
+            latencies.append(None)
+        else:
+            matched_events.add(best_idx)
+            latencies.append(fired[best_idx][0] - start)
+    return latencies, len(fired) - len(matched_events)
+
+
+def _stream_stats_at_threshold(
+    clips: list[_StreamClip], threshold: float
+) -> dict[str, Any]:
+    """FRR / FA-per-hour / latencies at one detection threshold."""
     total_onsets = 0
     missed = 0
     false_accepts = 0
@@ -1005,23 +1052,14 @@ def _stream_stats_at_threshold(
     latencies: list[float] = []
     for truth, events, duration in clips:
         total_duration += duration
-        fired = [(t, s) for t, s in events if s >= threshold]
-        matched_events: set[int] = set()
-        for onset in truth:
-            best_idx, best_gap = None, None
-            for idx, (t, _s) in enumerate(fired):
-                if idx in matched_events:
-                    continue
-                gap = abs(t - onset)
-                if gap <= EVENT_TOLERANCE_S and (best_gap is None or gap < best_gap):
-                    best_idx, best_gap = idx, gap
-            total_onsets += 1
-            if best_idx is None:
+        per_onset, fa = _match_clip(truth, events, threshold)
+        false_accepts += fa
+        total_onsets += len(per_onset)
+        for lat in per_onset:
+            if lat is None:
                 missed += 1
             else:
-                matched_events.add(best_idx)
-                latencies.append(fired[best_idx][0] - onset)
-        false_accepts += len(fired) - len(matched_events)
+                latencies.append(lat)
 
     hours = total_duration / 3600.0
     return {
@@ -1034,17 +1072,51 @@ def _stream_stats_at_threshold(
     }
 
 
+def _candidate_thresholds(clips: list[_StreamClip]) -> list[float]:
+    """Every distinct observed event score, ascending, then ``inf`` (nothing
+    fires). Engines whose scores saturate near 1 (0.998 vs 0.9995) only
+    separate on these, never on a fixed 0.1..0.9 grid."""
+    scores = sorted({s for _t, events, _d in clips for _ts, s in events})
+    return [*scores, math.inf]
+
+
+def _operating_threshold(
+    clips: list[_StreamClip],
+    budget: float,
+    stats_at=None,
+) -> float:
+    """Lowest candidate threshold whose FA/hour stays within *budget*.
+
+    False accepts never decrease as the threshold drops (a new event is
+    either a false accept itself, or takes an onset's match and demotes the
+    old event to one), so the feasible thresholds form an upper set and a
+    bisection finds its lowest member. ``inf`` is always feasible.
+    """
+    candidates = _candidate_thresholds(clips)
+    stats_at = stats_at or (lambda thr: _stream_stats_at_threshold(clips, thr))
+    lo, hi = 0, len(candidates) - 1
+    while lo < hi:
+        mid = (lo + hi) // 2
+        if stats_at(candidates[mid])["fa_per_hour"] <= budget:
+            hi = mid
+        else:
+            lo = mid + 1
+    return candidates[lo]
+
+
 def score_ww_stream(rows: list[PredictionRow]) -> dict[str, float]:
     """Continuous-stream detection metrics for a `ww_stream` competitor.
 
-    ``error_at_2fa_per_hour`` (primary, lower is better) is the FRR at the
-    lowest scanned threshold whose FA/hour stays within
+    ``error_at_1fa_per_hour`` (primary, lower is better) is the FRR at the
+    lowest observed-score threshold whose FA/hour stays within
     ``TARGET_FA_PER_HOUR`` — the FRR a deployer would actually get while
-    respecting a 2-false-accepts-per-hour budget, rather than a raw
-    threshold-0.5 number that hides the trade-off. ``det_frr@<thr>`` /
-    ``det_fa_per_hour@<thr>`` flatten a small DET curve into float metrics
-    (``BenchmarkEntry.metrics`` is ``dict[str, float]``, so the curve can't
-    be nested).
+    respecting a 1-false-accept-per-hour budget, rather than a raw
+    threshold-0.5 number that hides the trade-off. The same operating-point
+    search runs for every budget in ``FA_BUDGETS_PER_HOUR``, emitting
+    ``error_at_<n>fa_per_hour`` and ``recall_at_<n>fa_per_hour`` (1 - FRR).
+    ``det_frr@<thr>`` / ``det_fa_per_hour@<thr>`` flatten a small DET curve
+    into float metrics (``BenchmarkEntry.metrics`` is ``dict[str, float]``,
+    so the curve can't be nested).
     """
     clips = _stream_clips(rows)
     if not clips:
@@ -1060,18 +1132,16 @@ def score_ww_stream(rows: list[PredictionRow]) -> dict[str, float]:
     if base["latencies"]:
         metrics["latency_s_median"] = round(median(base["latencies"]), 3)
 
-    det_points = []
     for thr in _DET_THRESHOLDS:
         stats = _stream_stats_at_threshold(clips, thr)
-        det_points.append((thr, stats["frr"], stats["fa_per_hour"]))
         metrics[f"det_frr@{thr}"] = stats["frr"]
         metrics[f"det_fa_per_hour@{thr}"] = stats["fa_per_hour"]
 
-    within_budget = [p for p in det_points if p[2] <= TARGET_FA_PER_HOUR]
-    # Ascending threshold order: the first (lowest) threshold within budget
-    # gives the best (lowest) FRR achievable at that FA/hour ceiling.
-    chosen = within_budget[0] if within_budget else det_points[-1]
-    metrics["error_at_2fa_per_hour"] = chosen[1]
+    for budget in FA_BUDGETS_PER_HOUR:
+        thr = _operating_threshold(clips, budget)
+        frr = _stream_stats_at_threshold(clips, thr)["frr"]
+        metrics[f"error_at_{_fa_label(budget)}"] = frr
+        metrics[f"recall_at_{_fa_label(budget)}"] = round(1.0 - frr, 4)
     return metrics
 
 
@@ -1201,9 +1271,60 @@ def bootstrap_ratio_ci(
 
 
 # R11 benchmark boards carry confidence intervals
+def bootstrap_ww_stream_ci(
+    clips: list[_StreamClip],
+    budget: float = TARGET_FA_PER_HOUR,
+    seed: int = BOOTSTRAP_SEED,
+    rounds: int = BOOTSTRAP_ROUNDS,
+) -> tuple[float, float] | None:
+    """Seeded bootstrap 95% CI for the FRR at the *budget* FA/hour operating
+    point, resampling whole recordings (clips) with replacement and
+    re-searching the operating threshold in every round. Per-clip match
+    counts are cached by (clip, threshold), so rounds share most of their
+    work.
+    """
+    if not clips or not any(c[0] for c in clips):
+        return None
+    cache: dict[tuple[int, float], tuple[int, int, int]] = {}
+
+    def clip_counts(idx: int, thr: float) -> tuple[int, int, int]:
+        key = (idx, thr)
+        if key not in cache:
+            truth, events, _dur = clips[idx]
+            lats, fa = _match_clip(truth, events, thr)
+            cache[key] = (len(lats), sum(1 for x in lats if x is None), fa)
+        return cache[key]
+
+    def frr_of(sample: list[int]) -> float:
+        hours = sum(clips[i][2] for i in sample) / 3600.0
+
+        def stats_at(thr: float) -> dict[str, Any]:
+            fa = sum(clip_counts(i, thr)[2] for i in sample)
+            return {"fa_per_hour": (fa / hours) if hours else 0.0}
+
+        thr = _operating_threshold([clips[i] for i in sample], budget, stats_at)
+        onsets = sum(clip_counts(i, thr)[0] for i in sample)
+        missed = sum(clip_counts(i, thr)[1] for i in sample)
+        return missed / onsets if onsets else 0.0
+
+    n = len(clips)
+    if n == 1:
+        v = frr_of([0])
+        return (v, v)
+    rng = random.Random(seed)
+    values = sorted(frr_of([rng.randrange(n) for _ in range(n)]) for _ in range(rounds))
+    return (percentile(values, CI_LOWER_PCT), percentile(values, CI_UPPER_PCT))
+
+
+def _ww_stream_ci(rows: list[PredictionRow]) -> tuple[float, float] | None:
+    return bootstrap_ww_stream_ci(_stream_clips(rows))
+
+
 def primary_metric_ci(modality: str, rows: list[PredictionRow]) -> tuple[float, float] | None:
     """Bootstrap 95% CI for *rows*' primary metric under *modality*, or None
     when the modality has no CI strategy or too few scoreable rows."""
+    if modality == "ww_stream":
+        return _ww_stream_ci(rows)
     mean_extractor = _CI_MEAN_EXTRACTORS.get(modality)
     if mean_extractor is not None:
         return bootstrap_mean_ci(mean_extractor(rows))

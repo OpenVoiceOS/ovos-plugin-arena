@@ -242,7 +242,10 @@ class WakeWordStreamBench(WakeWordBench):
         yield from stream_manifest_audio(
             dataset_def.source,
             audio_key=fields.get("audio", "audio"),
-            extra_keys={"truth_onsets": fields.get("onsets", "onsets")},
+            extra_keys={
+                "truth_onsets": fields.get("onsets", "onsets"),
+                "truth_ends": fields.get("ends", "ends"),
+            },
             revision=revision,
             max_samples=max_samples,
         )
@@ -251,6 +254,9 @@ class WakeWordStreamBench(WakeWordBench):
         array = sample["array"]
         events = _detect_stream(stack, array)
         truth_onsets = [float(t) for t in (sample.get("truth_onsets") or [])]
+        truth_ends = [float(t) for t in (sample.get("truth_ends") or [])]
+        if len(truth_ends) != len(truth_onsets):
+            truth_ends = []
         duration_s = round(len(array) / SAMPLE_RATE, 3)
         return {
             "label": "positive" if truth_onsets else "negative",
@@ -259,6 +265,7 @@ class WakeWordStreamBench(WakeWordBench):
             "extras": {
                 "events": [list(e) for e in events],
                 "truth_onsets": truth_onsets,
+                "truth_ends": truth_ends,
                 "duration_s": duration_s,
             },
         }

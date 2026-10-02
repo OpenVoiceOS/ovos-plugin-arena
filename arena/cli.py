@@ -727,6 +727,8 @@ def _dataset_info_lookup(prediction_sources: list[str]) -> dict[str, dict[str, A
             entry["license"] = dataset.license
         if dataset.notes:
             entry["notes"] = dataset.notes
+        if dataset.test_set_kind:
+            entry["test_set_kind"] = dataset.test_set_kind
         own_repos = [r for r in hf_repos
                      if r.endswith(f"-bench-{dataset.dataset_id}")]
         if dataset.predictions_hf:
