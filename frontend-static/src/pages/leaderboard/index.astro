@@ -945,6 +945,7 @@ import Base from '../../layouts/Base.astro';
       if (board.lang) facts.push(`${esc(langDisplayName(board.lang))} (${esc(board.lang)})`);
       if (rows) facts.push(`${rows.toLocaleString()} rows scored per fighter`);
       facts.push(`${entries.length} fighter${entries.length === 1 ? '' : 's'} ranked`);
+      if (info.test_set_kind) facts.push(`${esc(info.test_set_kind)} test set`);
       return `<div class="ds-intro">
         <h2 class="ds-title">${esc(datasetTitle(board))}
           <code class="ds-id">${esc(board.dataset_id || '')}</code></h2>

@@ -224,27 +224,65 @@ streaming feature buffers. Everything else defaults to clip-only until
 verified otherwise.
 
 **Metrics** (`score_ww_stream`), per `(dataset, lang)`, an event within
-`EVENT_TOLERANCE_S` (1.5 s) of a truth onset is a true positive. An unmatched
-onset is a false reject. An unmatched fired event is a false accept:
+a truth onset is a true positive when it falls in `[onset, end + EVENT_TOLERANCE_S]`
+(1.5 s), because a detector fires at the end of the phrase; a manifest with no
+`ends` falls back to `[onset - 1.5 s, onset + 1.5 s]` (rows carry the ends as
+`extras.truth_ends`). An unmatched
+onset is a false reject. An unmatched fired event is a false accept. An
+operating point is the lowest threshold whose FA/hour stays within a budget;
+candidate thresholds are the distinct event scores the engine produced (plus
+"nothing fires"), not a fixed grid, so an engine whose scores saturate near 1
+(0.998 against 0.9995) still gets a separating threshold. An operating
+point is the engine's own activations filtered by score: it cannot go below
+the engine's configured threshold, and an engine that reports no score
+(every activation scores 1.0) gets only one point:
 
 | Metric | Meaning | Direction |
 |---|---|---|
-| **`error_at_2fa_per_hour`** *(primary)* | FRR at the lowest scanned threshold keeping FA/hour ≤ `TARGET_FA_PER_HOUR` (2/hour), the FRR a deployer actually gets at a usable operating point | lower better |
+| **`error_at_1fa_per_hour`** *(primary)* | FRR at the operating point keeping FA/hour ≤ `TARGET_FA_PER_HOUR` (1/hour) | lower better |
+| `error_at_0.5fa_per_hour`, `error_at_2fa_per_hour` | the same at 0.5 and 2 FA/hour | lower better |
+| `recall_at_0.5fa_per_hour`, `recall_at_1fa_per_hour`, `recall_at_2fa_per_hour` | detected share of onsets (1 − FRR) at each budget | higher better |
 | `frr` | false-reject rate at threshold 0.5 | lower better |
 | `fa_per_hour` | false accepts per hour of streamed audio, at threshold 0.5 | lower better |
 | `negative_hours` | total streamed audio hours scored (FA/hour denominator) | — |
 | `latency_s_median` | median detection latency vs. the matched onset, at threshold 0.5 | lower better |
 | `det_frr@<thr>` / `det_fa_per_hour@<thr>` | a small DET curve (thresholds 0.1–0.9), flattened into float metrics | — |
 
+The primary metric carries a seeded bootstrap 95% CI that resamples whole
+recordings and re-searches the operating threshold in every round.
+
+**Ladder.** The league seeds an ELO ladder (`elo-seed-ww_stream-<lang>.json`,
+same shape as every other league) from per-onset auto-battles within each
+`(dataset, lang)` pool. Every competitor is pinned to its own 1 FA/hour
+operating point over the dataset. For each recording and each pair of
+competitors, a truth onset detected within tolerance by one and missed by the
+other is a battle won by the one that detected it; onsets both or neither
+detected are no battle. As in the clip leagues, a pair contributes battles
+only when the two primary-metric CIs do not overlap, and the per-pair weight
+is capped so human votes can outweigh the seed.
+
 **Dataset**: `ww_stream_hey_mycroft` (`registry/datasets/ww_stream/`), a
 planned corpus (`TigreGotico/ww-stream-bench-hey_mycroft`, not yet published)
 of long continuous clips with a ground-truth-event manifest (onset
 timestamps + duration, 16 kHz pinned). Until it exists, this league is
 inert: `assemble` already skips a dataset whose `predictions_hf` repo 404s,
-so no board is produced and no other league is affected. Building the corpus
-and running the sweep across `capabilities`-eligible fighters is separate,
-later operational work, this scaffolding (registry entry, scorer, runner
-adapter, dedicated benchmark script) is what that work will run against.
+so no board is produced and no other league is affected.
+`scripts/build_ww_stream_corpus.py` builds such a corpus from a directory of
+positive clips (wav/flac plus `metadata.csv`) and local negative audio: it
+inserts the positives between negative audio at random, non-overlapping
+times at a configurable level relative to the recording's negative audio (never below -35 dBFS), and writes
+16 kHz mono recordings plus `manifest.jsonl` (`audio`, `onsets`,
+`duration_s`, `sources` naming the clip behind each onset, and `end_samples`,
+`spoken_s`, `level_dbfs` per onset). Positives are trimmed of leading and
+trailing silence, so the onset is where the phrase starts and `ends` where it
+ends; no positive is left out for being long, and one over 4 s is logged. The output is
+a pure function of the inputs and `--seed`.
+
+**Test-set kind.** A `ww_stream` dataset entry may set `test_set_kind` to
+`real` (positives are human recordings) or `synthetic` (synthesised
+positives). The value is copied into the benchmark board's `dataset_info`
+and the leaderboard shows it beside the dataset facts, so a board built on a
+synthetic test set is labelled as one.
 
 ## VAD league (`vad`)
 

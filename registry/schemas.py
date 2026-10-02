@@ -621,6 +621,15 @@ class DatasetDef(BaseModel):
             "``arena.metrics.EVENT_TOLERANCE_S``)."
         ),
     )
+    test_set_kind: Literal["real", "synthetic"] | None = Field(
+        None,
+        description=(
+            "``ww_stream`` only: whether the positives in the continuous "
+            "recordings are real human speech (``real``) or synthesised "
+            "(``synthetic``). Surfaced on the benchmark board so a board "
+            "built on a synthetic test set is labelled as one."
+        ),
+    )
     notes: str | None = None
     sample_policy: SamplePolicy | None = Field(
         None,
@@ -727,6 +736,15 @@ class DatasetDef(BaseModel):
             "on every prediction row's stt_config for provenance."
         ),
     )
+
+    @model_validator(mode="after")
+    def _validate_test_set_kind(self) -> DatasetDef:
+        if self.test_set_kind is not None and self.modality != "ww_stream":
+            raise ValueError(
+                f"{self.dataset_id}: test_set_kind is only defined for "
+                "ww_stream datasets"
+            )
+        return self
 
     @model_validator(mode="after")
     def _validate_audio_input(self) -> DatasetDef:

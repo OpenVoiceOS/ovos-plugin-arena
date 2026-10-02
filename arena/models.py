@@ -73,9 +73,9 @@ def is_intent_modality(modality: str) -> bool:
 # ``leaderboard-*`` artifacts for these modalities, and the prune/superseded-
 # artifact guard (``_clean_merged_artifacts``) must not treat a missing
 # leaderboard here as something to regenerate. ``ww_stream`` is *not* listed:
-# it is benchmark-only in practice (no registered eval dataset publishes
-# votes), but its identity battle_group mapping was never explicitly gated,
-# so leaving it out preserves existing behaviour exactly.
+# its ELO seed is derived from per-onset auto-battles at each competitor's
+# 1 false-accept-per-hour operating point
+# (``arena.assembler._replay_ww_stream_dataset``).
 # R20 vote-less leagues
 VOTELESS_MODALITIES: frozenset[str] = frozenset()
 
@@ -91,8 +91,8 @@ def battle_group(modality: str) -> str:
     where the training regime does change what the number means.
 
     Every other modality is its own group (identity mapping), ``ww_stream``
-    included: it is benchmark-only (see ``arena.metrics.score_ww_stream``)
-    and never produces battles or ELO artifacts at all.
+    included: its ladder is seeded from per-onset auto-battles between
+    competitors (see ``arena.assembler.seed_elo``).
     """
     return "intent" if is_intent_modality(modality) else modality
 
@@ -113,6 +113,7 @@ LEAGUE_LABELS: dict[str, str] = {
     Modality.TTS.value: "TTS",
     Modality.WAKE_WORD.value: "Wake Word",
     Modality.VAD.value: "VAD",
+    Modality.WW_STREAM.value: "Wake Word · Streaming",
 }
 
 LEAGUE_ORDER: tuple[str, ...] = (
@@ -124,6 +125,7 @@ LEAGUE_ORDER: tuple[str, ...] = (
     Modality.TTS.value,
     Modality.WAKE_WORD.value,
     Modality.VAD.value,
+    Modality.WW_STREAM.value,
 )
 
 

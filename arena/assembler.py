@@ -25,6 +25,10 @@ import logging
 
 from arena.elo import EloLedger
 from arena.metrics import (
+    TARGET_FA_PER_HOUR,
+    _match_clip,
+    _operating_threshold,
+    _stream_clips,
     is_in_distribution,
     metric_higher_is_better,
     primary_metric_ci,
@@ -414,6 +418,72 @@ def _cap_auto_pairwise_weight(
             ledger.pairwise_wins[i][j] = ledger.pairwise_wins[i].get(j, 0.0) * scale
 
 
+def _replay_ww_stream_dataset(
+    ledger: EloLedger,
+    competitor_plugin: dict[str, str],
+    samples: dict[str, dict[str, PredictionRow]],
+    ci_for,
+) -> int:
+    """Auto-battles for one ``ww_stream`` dataset; returns the vote count.
+
+    Every competitor is pinned to its own operating point: the lowest
+    observed-score threshold whose FA/hour over the dataset stays within
+    ``TARGET_FA_PER_HOUR``. At that point each truth onset is either detected
+    within tolerance or missed. For each recording (sample) and each pair of
+    competitors, every onset detected by exactly one of them is a battle won
+    by that one; onsets both or neither detected are no battle. Pairs whose
+    primary-metric CIs overlap contribute nothing, as in the clip league.
+    """
+    rows_by_competitor = _rows_by_competitor(samples)
+    threshold = {
+        comp: _operating_threshold(_stream_clips(rows), TARGET_FA_PER_HOUR)
+        for comp, rows in rows_by_competitor.items()
+    }
+    detected_cache: dict[tuple[str, str], list[bool]] = {}
+
+    def detected(comp: str, sample_id: str) -> list[bool]:
+        key = (comp, sample_id)
+        if key not in detected_cache:
+            ((truth, events, _dur),) = _stream_clips([samples[sample_id][comp]])
+            latencies, _fa = _match_clip(truth, events, threshold[comp])
+            detected_cache[key] = [lat is not None for lat in latencies]
+        return detected_cache[key]
+
+    significant: dict[tuple[str, str], bool] = {}
+    auto_votes = 0
+    for sample_id in sorted(samples):
+        rows = samples[sample_id]
+        for competitor, row in rows.items():
+            competitor_plugin.setdefault(competitor, row.plugin_id)
+            ledger.ensure(competitor)
+        for comp_a, comp_b in itertools.combinations(sorted(rows), 2):
+            if any(
+                (rows[comp_a].extras or {}).get(key) != (rows[comp_b].extras or {}).get(key)
+                for key in ("truth_onsets", "truth_ends")
+            ):
+                continue
+            pair = (comp_a, comp_b)
+            if pair not in significant:
+                significant[pair] = significant_from_cis(
+                    ci_for(comp_a), ci_for(comp_b)
+                )
+            if not significant[pair]:
+                continue
+            for hit_a, hit_b in zip(
+                detected(comp_a, sample_id), detected(comp_b, sample_id), strict=True
+            ):
+                if hit_a == hit_b:
+                    continue
+                ledger.apply(
+                    comp_a,
+                    comp_b,
+                    VoteOutcome.CANDIDATE_A if hit_a else VoteOutcome.CANDIDATE_B,
+                    auto=True,
+                )
+                auto_votes += 1
+    return auto_votes
+
+
 def seed_elo(
     modality: str,
     lang: str,
@@ -455,6 +525,12 @@ def seed_elo(
                     modality, rows_by_competitor[competitor]
                 )
             return ci_cache[competitor]
+
+        if modality == "ww_stream":
+            auto_votes += _replay_ww_stream_dataset(
+                ledger, competitor_plugin, samples, _ci
+            )
+            continue
 
         significant: dict[tuple[str, str], bool] = {}
 

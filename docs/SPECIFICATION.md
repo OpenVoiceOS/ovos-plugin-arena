@@ -588,12 +588,17 @@ Voting options MUST include: candidate A, candidate B, tie, both-wrong.
   negative audio, not seconds-long clips. `ww_stream` (`arena/metrics.py:
   score_ww_stream`) is therefore a distinct modality/board scored from
   continuous-audio detection events (`(timestamp_s, score)` per activation)
-  matched against ground-truth onsets within `EVENT_TOLERANCE_S` (1.5 s).
+  matched against ground-truth onsets: a detection counts for an onset when it falls in `[onset, end + EVENT_TOLERANCE_S]` (1.5 s), or in `[onset ± 1.5 s]` when the manifest has no ends.
   `CompetitorDef.capabilities` MUST list `"stream"` for a fighter to be
   eligible (`runner.ww_bench.WakeWordStreamBench.filter_competitors`), clip-only fighters are excluded outright, never zero-scored. The primary
-  metric, `error_at_2fa_per_hour`, is FRR at the lowest scanned threshold
-  keeping FA/hour within `TARGET_FA_PER_HOUR` (2/hour), not raw
-  threshold-0.5 FRR alone. The `wake_word` board and `score_wake_word` are
+  metric, `error_at_1fa_per_hour`, is FRR at the lowest observed-score
+  threshold keeping FA/hour within `TARGET_FA_PER_HOUR` (1/hour), not raw
+  threshold-0.5 FRR alone; `error_at_<n>fa_per_hour` and
+  `recall_at_<n>fa_per_hour` report 0.5, 1 and 2 FA/hour. The league seeds an
+  ELO ladder from per-onset auto-battles between competitors at their own
+  1 FA/hour operating points, gated on non-overlapping primary-metric CIs.
+  A dataset entry may carry `test_set_kind` (`real` or `synthetic`), shown on
+  its board. The `wake_word` board and `score_wake_word` are
   unchanged by this rule.
 - **R19, Published leaderboards must be provably reproducible from the
   public vote record.** `arena/cli.py:cmd_verify_replay` (`verify-replay`
