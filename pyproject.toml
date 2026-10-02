@@ -39,10 +39,10 @@ audio = [
     "soundfile",
     "pyarrow>=14",
     "speechonnxmetrics>=0.0.1a1",
-    # faster-whisper stays ONLY for its decode_audio resample fallback in
-    # runner/audio_io.py / runner/plugin_runner.py — the intelligibility
-    # judge itself is per-language onnx-asr (runner/asr_judges.py, §4 R16).
-    "faster-whisper",
+    # scipy resamples decoded clips to 16 kHz (runner/audio_io.py); av is the
+    # libav fallback decoder for containers soundfile cannot read.
+    "scipy",
+    "av",
     "onnx-asr[cpu,hub]",
     # Holds the per-language ASR registry runner/asr_judges.py reads to
     # decide which languages can be judged for intelligibility at all.
@@ -71,10 +71,10 @@ test = [
     "numpy",
     # test_tts_bench.py's RealWavEngine and the audio decode path it
     # exercises (runner/audio_io.py) read/write real wav/mp3 clips, and
-    # decode_audio_bytes' resample step falls back to faster-whisper's
-    # decode_audio for non-target sample rates.
+    # decode_audio_bytes' resample step uses scipy.
     "soundfile",
-    "faster-whisper",
+    "scipy",
+    "av",
     # The wake-word adapter tests exercise the real ovoscope WakeWordProbe
     # (runner/ww_bench.py) — tests must fail loudly, never skip, on missing
     # deps, so the probe dependency belongs in the test extra too.

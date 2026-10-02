@@ -29,7 +29,7 @@ uv pip install --prerelease=allow -e ".[test,audio,hf]"
 | Extra | Needed for |
 |---|---|
 | `test` | running `pytest` at all (pulls in `ovoscope` for the wake-word adapter tests) |
-| `audio` | STT / wake-word / TTS benchmarks and their tests (`soundfile`, `onnx-asr`, `faster-whisper`, `speechonnxmetrics`) |
+| `audio` | STT / wake-word / TTS benchmarks and their tests (`soundfile`, `onnx-asr`, `scipy`, `av`, `speechonnxmetrics`) |
 | `hf` | anything that talks to HuggingFace: `assemble`, `--upload` |
 
 If you only need the intent leagues and the assembler, `.[test,hf]` is

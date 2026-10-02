@@ -64,6 +64,18 @@ def resolve_sample_cap(dataset_def, cli_max_samples: int = 0) -> tuple[int, int 
     return policy_cap, policy.seed
 
 
+def resample_to(array, sr: int, target_sr: int):
+    """Polyphase-resample a mono float32 array from *sr* to *target_sr*."""
+    from math import gcd
+
+    import numpy as np
+    from scipy.signal import resample_poly
+
+    g = gcd(int(sr), int(target_sr))
+    out = resample_poly(array, int(target_sr) // g, int(sr) // g)
+    return np.asarray(out, dtype=np.float32)
+
+
 def decode_audio_bytes(raw_bytes: bytes, target_sr: int = TARGET_SR):
     """Decode encoded audio bytes → (mono float32 array, sample_rate)."""
     import io
@@ -93,12 +105,8 @@ def decode_audio_bytes(raw_bytes: bytes, target_sr: int = TARGET_SR):
             raise RuntimeError(f"cannot decode audio: {exc}") from exc
 
     if sr != target_sr:
-        try:
-            from faster_whisper.audio import decode_audio
-            array = decode_audio(io.BytesIO(raw_bytes), sampling_rate=target_sr)
-            sr = target_sr
-        except Exception:
-            pass  # plugin handles the native rate
+        array = resample_to(array, sr, target_sr)
+        sr = target_sr
     return array, sr
 
 
