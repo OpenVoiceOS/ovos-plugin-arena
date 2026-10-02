@@ -89,8 +89,10 @@ def _decode_audio_bytes(raw_bytes: bytes, target_sr: int = 16000):
     buf = io.BytesIO(raw_bytes)
     try:
         array, sr = sf.read(buf, dtype="float32", always_2d=False)
+        if array.ndim > 1:
+            array = array.mean(axis=1)
     except Exception:
-        # Try with av (installed as part of fasterwhisper deps)
+        # Try with av (declared in the audio extra)
         try:
             import av
             buf.seek(0)
@@ -107,15 +109,11 @@ def _decode_audio_bytes(raw_bytes: bytes, target_sr: int = 16000):
         except Exception as e:
             raise RuntimeError(f"Cannot decode audio: {e}") from e
 
-    # Resample if needed
     if sr != target_sr:
-        try:
-            from faster_whisper.audio import decode_audio
-            buf.seek(0)
-            array = decode_audio(buf, sampling_rate=target_sr)
-            sr = target_sr
-        except Exception:
-            pass  # Keep original sr; plugin will handle it
+        from runner.audio_io import resample_to
+
+        array = resample_to(array, sr, target_sr)
+        sr = target_sr
 
     return array, sr
 

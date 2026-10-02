@@ -528,3 +528,24 @@ class TestDatasetSpecRegistryId:
         spec = DatasetSpec(hf_repo="PolyAI/minds14", subset="pt-PT",
                            split="train")
         assert spec.dataset_id == "PolyAI/minds14/pt-PT/train"
+
+
+class TestDaemonDecodeAudioBytes:
+    def test_44khz_stereo_wav_becomes_16k_mono(self):
+        import io
+
+        import numpy as np
+        import soundfile as sf
+
+        import runner.plugin_runner as pr
+
+        n = 22050
+        tone = (0.1 * np.sin(2 * np.pi * 440 * np.arange(n) / 44100)).astype("float32")
+        buf = io.BytesIO()
+        sf.write(buf, np.stack([tone, tone], axis=-1), 44100, format="WAV")
+
+        array, sr = pr._decode_audio_bytes(buf.getvalue(), target_sr=16000)
+
+        assert sr == 16000
+        assert array.ndim == 1
+        assert abs(len(array) - 8000) < 10
