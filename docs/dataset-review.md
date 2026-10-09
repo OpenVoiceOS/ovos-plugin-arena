@@ -383,10 +383,8 @@ pools.
 The `OpenVoiceOS` HF org hosts several datasets that look benchmark-ready
 but have no corresponding `registry/datasets/` entry:
 
-- `OpenVoiceOS/ovos-localize-intents` and
-  `OpenVoiceOS/ovos-localize-intents-translated`, localized intent
-  utterances. Worth checking against the intent registry's language
-  coverage gap in the same way as proposal 9.
+- `OpenVoiceOS/ovos-intents`, localized intent utterances. Worth checking
+  against the intent registry's language coverage gap in the same way as proposal 9.
 - `OpenVoiceOS/ovos-localize-synthetic-multilingual`, synthetic
   multilingual speech. A candidate STT or TTS-prompt source depending on
   its actual content (audio+transcript pairs would be an STT eval set,
