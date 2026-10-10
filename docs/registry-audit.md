@@ -42,11 +42,11 @@ rather than as a separate `listener.VAD` pipeline stage.
 Fighters that gate this way carry `"vad-gated"` in `types` alongside
 fighters that add an explicit `listener.VAD` stage
 (`openwakeword-*-silero`, `microwakeword-*-silero`,
-`wakeforge-*-silero`, `precise-onnx-*-silero`), so boards can tell a
+`precise-onnx-*-silero`), so boards can tell a
 gated detector from an ungated one regardless of which mechanism did the
-gating. Each detector that supports it also ships `-speaker`
-(speaker-verification gate) and `-silero-speaker` (both gates) variants
-for the same phrase.
+gating. The openWakeWord 'hey mycroft' family carries the full set of
+`-silero`, `-speaker` and `-silero-speaker` stacks; `microwakeword-*` and
+`precise-onnx-*` carry the `-silero` stack only.
 
 `vosk-ww-*` registers one fighter per phrase rather than one per
 configuration, because Vosk's keyword-spotting grammar is defined by the
