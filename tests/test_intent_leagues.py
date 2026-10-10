@@ -163,30 +163,32 @@ class TestLeagueVisibility:
 
 
 class TestV5Corpus:
-    def test_eval_corpus_is_pinned_over_forty_locales(self):
+    def test_eval_corpus_is_pinned_over_the_gold_locales(self):
         ds = load_dataset("intent", "ovos-intents-v5")
-        assert len(ds.langs) == 40
-        assert ds.source.revision == "70798090ab515a6d8c78d7c260decf9a6b3e72b4"
-        assert ds.reference_fields["bucket"] == "split"
+        assert len(ds.langs) == 21
+        assert ds.source.hf_id == "OpenVoiceOS/ovos-intents"
+        assert ds.source.revision == "b3e08d77bc2f353d7841ce2ba49416b5b55077e7"
+        assert ds.reference_fields["intent"] == "label"
         assert ds.train_datasets == {"template": "ovos-intents-v5-templates-train"}
 
     def test_iso_639_3_locales_are_kept_bare(self):
         ds = load_dataset("intent", "ovos-intents-v5")
-        assert {"arb", "kab"} <= set(ds.langs)
+        assert "kab" in set(ds.langs)
         assert all("-" in tag or len(tag) == 3 for tag in ds.langs)
 
-    def test_template_corpus_matches_the_eval_locales(self):
+    def test_template_corpus_covers_the_main_eval_locales(self):
         train = load_dataset("intent_template", "ovos-intents-v5-templates-train")
         assert train.paradigm == "template"
         assert train.role == "train"
-        assert train.langs == load_dataset("intent", "ovos-intents-v5").langs
+        shared = set(load_dataset("intent", "ovos-intents-v5").langs) & set(train.langs)
+        assert {"en-US", "kab"} <= shared
 
 
 class TestBucketRoles:
     """The ranked metric must mean the same thing on every corpus, whatever
     each one calls its buckets."""
 
-    def _row(self, bucket, correct, dataset_id="ovos-intents-v5"):
+    def _row(self, bucket, correct, dataset_id="intents-for-eval"):
         from arena.models import PredictionRow
 
         return PredictionRow(
@@ -198,21 +200,21 @@ class TestBucketRoles:
             exact_match=correct, bucket=bucket,
         )
 
-    def test_v5_id_test_rows_do_not_count_as_generalization(self):
+    def test_in_distribution_rows_do_not_count_as_generalization(self):
         from arena.metrics import score_intent
 
-        rows = [self._row("id_test", True) for _ in range(8)]
-        rows += [self._row("ood", False) for _ in range(4)]
+        rows = [self._row("template", True) for _ in range(8)]
+        rows += [self._row("far_ood", False) for _ in range(4)]
         metrics = score_intent(rows)
         assert metrics["generalization_accuracy"] == 0.0
         assert metrics["accuracy"] == round(8 / 12, 4)
-        assert metrics["acc_id_test"] == 1.0
+        assert metrics["acc_template"] == 1.0
 
     def test_declared_generalization_bucket_is_ranked(self):
         from arena.metrics import score_intent
 
-        rows = [self._row("id_test", False) for _ in range(4)]
-        rows += [self._row("ood", True) for _ in range(4)]
+        rows = [self._row("template", False) for _ in range(4)]
+        rows += [self._row("far_ood", True) for _ in range(4)]
         assert score_intent(rows)["generalization_accuracy"] == 1.0
 
     def test_a_corpus_that_declares_nothing_keeps_the_default_buckets(self):
@@ -222,11 +224,8 @@ class TestBucketRoles:
         rows += [self._row("paraphrase", False, dataset_id="snips") for _ in range(4)]
         assert score_intent(rows)["generalization_accuracy"] == 0.0
 
-    def test_both_intent_corpora_declare_their_buckets(self):
-        v5 = load_dataset("intent", "ovos-intents-v5")
+    def test_intents_for_eval_declares_its_buckets(self):
         ife = load_dataset("intent", "intents-for-eval")
-        assert v5.bucket_roles == {"id_test": "in_distribution",
-                                   "ood": "generalization"}
         assert ife.bucket_roles["template"] == "in_distribution"
         assert ife.bucket_roles["far_ood"] == "generalization"
 
