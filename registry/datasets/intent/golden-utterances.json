@@ -1,26 +1,44 @@
 {
   "dataset_id": "golden-utterances",
-  "display_name": "OVOS golden utterances (19 languages)",
-  "summary": "Hand-checked utterances mined from the end-to-end test suites the OVOS skills ship themselves, so the phrasings come from what skill authors actually expect users to say. One row is one utterance labelled with the skill and intent that should handle it: 1,121 rows across 19 languages, of which 683 are English and the rest have between 8 and 34 each. The small non-English slices are indicative rather than conclusive, and no slot annotation exists, so slot scores are not reported here.",
+  "display_name": "OVOS golden utterances (21 languages)",
+  "summary": "Utterances taken from the end-to-end golden suites the OVOS skills ship themselves, so the phrasings come from what skill authors expect users to say. One row is one utterance labelled with the skill and intent that should handle it: 2,380 rows across 21 languages, of which 1,007 are English. The non-English slices are small and indicative rather than conclusive. No slot annotation exists, so slot scores are not reported.",
   "modality": "intent",
   "source": {
     "type": "huggingface",
-    "hf_id": "OpenVoiceOS/ovos-golden-utterances-bench",
-    "revision": "main",
+    "hf_id": "OpenVoiceOS/ovos-intents",
+    "revision": "b3e08d77bc2f353d7841ce2ba49416b5b55077e7",
     "file_pattern": "{lang}/test.jsonl"
   },
   "reference_fields": {
     "utterance": "utterance",
-    "intent": "expected_intent"
+    "intent": "label"
   },
   "lang": "multi",
   "langs": [
-    "ca-ES", "cs-CZ", "da-DK", "de-DE", "en-US", "es-ES", "eu-ES",
-    "fa-IR", "fr-FR", "gl-ES", "hu-HU", "it-IT", "nl-NL", "pl-PL",
-    "pt-BR", "pt-PT", "ru-RU", "sv-FI", "sv-SE"
+    "ca-ES",
+    "cs-CZ",
+    "da-DK",
+    "de-DE",
+    "en-US",
+    "es-ES",
+    "eu-ES",
+    "fa-IR",
+    "fr-FR",
+    "gl-ES",
+    "hu-HU",
+    "it-IT",
+    "kab",
+    "nl-NL",
+    "oc-FR",
+    "pl-PL",
+    "pt-BR",
+    "pt-PT",
+    "ru-RU",
+    "sv-FI",
+    "sv-SE"
   ],
   "license": "apache-2.0",
   "role": "eval",
   "predictions_hf": "OpenVoiceOS/ovos-intent-bench-golden-utterances",
-  "notes": "Hand-curated ground truth mined from the OVOS skill fleet's own end-to-end test suites, independent of the skills' own intent templates/vocab (source_repo/source_file/intent_label_original provenance columns retained per row). expected_intent is the canonical 'skill_id:intent_name' label with the .intent suffix already stripped by the corpus builder, matching this registry's label convention (see intents-for-eval). 1,121 rows across 19 languages (en-US 683, the rest 8-34 each). No train_datasets link: this eval set has no matching template/keyword training corpus in the registry (the skill fleet's own intent files are not registered as a paradigm-specific train corpus here), so golden-utterances is scoped to the open 'intent' (fusion) league only, same v1-scoping precedent as speech-massive-*. Rows also carry needs_manual/machine_generated flags for filtering low-confidence or synthetic rows, and a required_vocab/expected_messages pair for future slot/vocab scoring, but this entry does not map a 'slots' reference field — the corpus has no slot-span gold yet, so slot_exact_match is not scoreable against golden-utterances."
+  "notes": "Test split of OpenVoiceOS/ovos-intents at tag v6.1, the canonical OVOS intent corpus that supersedes the retired OpenVoiceOS/ovos-golden-utterances-bench. Labels are '<skill_id>:<intent_name>'. 2,380 gold rows over 21 locales (en-US 1,007). No train_datasets link: this eval set has no registered template or keyword training corpus, so it is scoped to the open 'intent' (fusion) league only. scripts/build_golden_utterances.py regenerates the retired bench layout, not this one."
 }

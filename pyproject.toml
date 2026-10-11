@@ -68,6 +68,8 @@ test = [
     "pytest-timeout>=2.3",
     "huggingface_hub>=0.24",
     "requests",
+    # tests build httpx.Response(request=...), which the 1.0 prereleases drop.
+    "httpx>=0.28,<1",
     "numpy",
     # test_tts_bench.py's RealWavEngine and the audio decode path it
     # exercises (runner/audio_io.py) read/write real wav/mp3 clips, and
