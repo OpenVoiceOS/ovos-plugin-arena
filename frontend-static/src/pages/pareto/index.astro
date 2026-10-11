@@ -370,6 +370,7 @@ import Base from '../../layouts/Base.astro';
       tierSel.innerHTML = `<option value="">All tiers (charted separately)</option>` +
         allTiers.map(t => `<option value="${esc(t)}">${esc(t)} only</option>`).join('');
       tierFilter = allTiers.includes(prevTier) ? prevTier : '';
+      if (prevTier !== tierFilter) syncUrl();
       tierSel.value = tierFilter;
       tierSel.closest('label').style.display = allTiers.length > 1 ? '' : 'none';
 
@@ -408,6 +409,9 @@ import Base from '../../layouts/Base.astro';
       league ? params.set('league', league) : params.delete('league');
       lang ? params.set('lang', lang) : params.delete('lang');
       dataset ? params.set('dataset', dataset) : params.delete('dataset');
+      costKey !== 'peak_rss_mb' ? params.set('cost', costKey) : params.delete('cost');
+      tierFilter ? params.set('tier', tierFilter) : params.delete('tier');
+      tolerance !== 5 ? params.set('tol', String(tolerance)) : params.delete('tol');
       const qs = params.toString();
       window.history.replaceState(null, '', `${window.location.pathname}${qs ? '?' + qs : ''}`);
     }
@@ -479,16 +483,17 @@ import Base from '../../layouts/Base.astro';
         dataset = e.target.value; syncUrl(); render();
       });
       document.getElementById('sel-cost').addEventListener('change', e => {
-        costKey = e.target.value; render();
+        costKey = e.target.value; syncUrl(); render();
       });
       document.getElementById('sel-tier').addEventListener('change', e => {
-        tierFilter = e.target.value; render();
+        tierFilter = e.target.value; syncUrl(); render();
       });
       const rng = document.getElementById('rng-tolerance');
       const rngVal = document.getElementById('rng-tolerance-val');
       rng.addEventListener('input', () => {
         tolerance = Number(rng.value);
         rngVal.textContent = `${tolerance}%`;
+        syncUrl();
         render();
       });
 
@@ -501,6 +506,16 @@ import Base from '../../layouts/Base.astro';
       const startLeague = activeLeagues.some(l => l.id === wantLeague) ? wantLeague : activeLeagues[0].id;
       if (wantLang) lang = wantLang;
       if (wantDataset) dataset = wantDataset;
+      // Cost axis, tier and tolerance are view state like the rest, so a
+      // shared or reloaded link shows the same chart.
+      const wantCost = urlParams.get('cost');
+      if ([...document.getElementById('sel-cost').options].some(o => o.value === wantCost)) costKey = wantCost;
+      document.getElementById('sel-cost').value = costKey;
+      tierFilter = urlParams.get('tier') || '';
+      const wantTol = Number(urlParams.get('tol'));
+      if (urlParams.has('tol') && Number.isFinite(wantTol)) tolerance = Math.max(0, Math.min(30, Math.round(wantTol)));
+      rng.value = String(tolerance);
+      rngVal.textContent = `${tolerance}%`;
       setLeague(startLeague);
     }
 

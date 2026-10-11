@@ -161,9 +161,19 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
         const winnerId = winner === 'a' ? a : b;
         choice = winnerId === battle.competitor_a ? 'a' : 'b';
       }
-      window.open(buildIssueUrl(battle.battle_id, choice), '_blank', 'noopener,noreferrer');
-      hint.textContent = 'Opening a GitHub issue — submit it to record your vote. '
-        + 'One vote per matchup counts; the tally runs hourly, so it lands on the board within the hour.';
+      // `noopener` in the feature string makes window.open return null even
+      // when the tab opened, so a blocked pop-up could not be told apart.
+      const url = buildIssueUrl(battle.battle_id, choice);
+      let popup = null;
+      try { popup = window.open(url, '_blank'); } catch { popup = null; }
+      if (popup) { try { popup.opener = null; } catch { /* cross-origin already */ } }
+      const tail = 'One vote per matchup counts; the tally runs hourly, so it lands on the board within the hour.';
+      if (popup && !popup.closed) {
+        hint.textContent = `Opening a GitHub issue — submit it to record your vote. ${tail}`;
+      } else {
+        hint.innerHTML = `Your browser blocked the pop-up. <a id="fv-issue-link" href="${esc(url)}"
+          target="_blank" rel="noopener noreferrer">Open the vote issue on GitHub</a> and submit it. ${esc(tail)}`;
+      }
     }
 
     // Deep-link support: a shared ?a=&b= URL preselects the matchup. Fails
@@ -246,9 +256,15 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
       const index = await fetchJson(`${BASE}data/index.json`);
       // cache-bust per-pool fetches with the index build stamp so CDN staleness can't mask fresh data
       const v = index?.generated_at ? `?v=${encodeURIComponent(index.generated_at)}` : '';
+      // Pools are keyed by battle group: every intent league arrives as the
+      // one pooled `intent` group, which has no league entry of its own.
       for (const l of index?.leagues || []) {
         LEAGUE_LABELS[l.id] = l.label;
         LEAGUE_ORDER[l.id] = l.order;
+        if (l.battle_group !== l.id) {
+          LEAGUE_LABELS[l.battle_group] ??= l.battle_group.charAt(0).toUpperCase() + l.battle_group.slice(1);
+          LEAGUE_ORDER[l.battle_group] = Math.min(LEAGUE_ORDER[l.battle_group] ?? Infinity, l.order);
+        }
       }
       pools = (await Promise.all((index?.freeform_pools || []).map(r => fetchJson(`${BASE}data/${r.file}${v}`)))).filter(Boolean);
       const bestiary = await fetchJson(`${BASE}data/competitors.json${v}`);

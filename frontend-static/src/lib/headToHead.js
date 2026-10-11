@@ -80,6 +80,13 @@ function loadVotes(base) {
   return votesPromise;
 }
 
+// Every counted human vote, optionally scoped to `modality` (battle group)
+// and/or `lang`.
+export async function humanVotes(base, { modality, lang } = {}) {
+  const votes = await loadVotes(base);
+  return votes.filter(v => (!modality || v.modality === modality) && (!lang || v.lang === lang));
+}
+
 // Real human head-to-head for `a` against `b`, optionally scoped to `lang`.
 export async function humanPairRecord(base, a, b, { lang } = {}) {
   const votes = await loadVotes(base);
