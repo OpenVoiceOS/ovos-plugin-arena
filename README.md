@@ -27,7 +27,7 @@ the arena:
 > **Work in progress.** Development is focused on the platform itself. The tasks,
 > datasets and fighter configurations are still being defined, so every
 > leaderboard, rating and vote on the site and in the prediction datasets is
-> placeholder data. All content will be regenerated at launch.
+> placeholder data. At launch the results will be regenerated and the votes reset.
 
 **Alpha: all modalities wired.** Every league has a reproducible benchmark
 script and registry fighters:
