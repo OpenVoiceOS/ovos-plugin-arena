@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-11T08:16:49.272603+00:00",
+  "generated_at": "2026-10-12T10:43:42.703932+00:00",
   "competitors": [
     {
       "competitor_id": "adapt-domain-medium",
@@ -521,7 +521,7 @@
       "links": {
         "source": "https://github.com/OpenVoiceOS/ovos-m2v-pipeline"
       },
-      "notes": "HYPOTHESIS: none of the existing fighters (frankenparse, padapt, nebulatious, nebulapt, palavadapt) use embeddings at all — every stage in every prior fighter is either keyword-rule matching or a trained-per-intent template classifier. m2v-first tests whether leading with a general-purpose sentence-embedding similarity engine (Model2Vec, config-verified in ovos_m2v_pipeline/__init__.py: model default 'Jarbas/ovos-model2vec-intents-distiluse-base-multilingual-cased-v2', conf_high/conf_medium/conf_low keys) — which generalizes across paraphrases via embedding distance rather than exact template/keyword matching — beats a template classifier leading, when Padatious backs it up at medium. This isolates 'does an embedding-similarity front door change which utterances get caught first' from every non-embedding fusion already in the league. Distinct paradigm from Jurebes/Padatious (learned per-intent classifiers over hand-engineered or TF-IDF features) and from Nebulento (fuzzy string edit-distance, not vector similarity).",
+      "notes": "Purpose: Embedding-fronted fusion: Model2Vec similarity leads, Padatious backs it up. HYPOTHESIS: none of the existing fighters (frankenparse, padapt, nebulatious, nebulapt, palavadapt) use embeddings at all — every stage in every prior fighter is either keyword-rule matching or a trained-per-intent template classifier. m2v-first tests whether leading with a general-purpose sentence-embedding similarity engine (Model2Vec, config-verified in ovos_m2v_pipeline/__init__.py: model default 'Jarbas/ovos-model2vec-intents-distiluse-base-multilingual-cased-v2', conf_high/conf_medium/conf_low keys) — which generalizes across paraphrases via embedding distance rather than exact template/keyword matching — beats a template classifier leading, when Padatious backs it up at medium. This isolates 'does an embedding-similarity front door change which utterances get caught first' from every non-embedding fusion already in the league. Distinct paradigm from Jurebes/Padatious (learned per-intent classifiers over hand-engineered or TF-IDF features) and from Nebulento (fuzzy string edit-distance, not vector similarity).",
       "has_predictions": false,
       "prediction_datasets": []
     },
@@ -623,7 +623,7 @@
       "links": {
         "source": "https://github.com/OpenVoiceOS/ovos-m2v-pipeline"
       },
-      "notes": "HYPOTHESIS: m2v + nebulento is probably better than padatious. m2v-first (see sibling fighter) already showed an embedding-similarity front door changes what gets caught first, but it still leans on Padatious as the backstop, which means it inherits Padatious's two blockers to being a default: no slot extraction and no open-world runtime-registered intents. Nebulento fills both gaps — it extracts slots from its templates and accepts templates registered at runtime rather than only at training time — while still being a fuzzy/edit-distance matcher rather than a learned classifier, so pairing it with m2v's paraphrase-robust embedding similarity tests whether the combination can fully replace Padatious rather than merely front it. Comparators: padatious-stock (the plain baseline this fighter is trying to unseat) and the existing ensembles nebulatious and trident. REQUIRES ovos-m2v-pipeline>=0.9.0a1 — versions before 0.8.1a1 have a label-filter bug that poisons predictions; there is no plugin floor/pin field in this registry schema, so sweeps of this fighter must be run with that floor already installed in the runner environment.",
+      "notes": "Purpose: Padatious-free replacement candidate: Model2Vec leads, Nebulento adds slots and runtime-registered templates. HYPOTHESIS: m2v + nebulento is probably better than padatious. m2v-first (see sibling fighter) already showed an embedding-similarity front door changes what gets caught first, but it still leans on Padatious as the backstop, which means it inherits Padatious's two blockers to being a default: no slot extraction and no open-world runtime-registered intents. Nebulento fills both gaps — it extracts slots from its templates and accepts templates registered at runtime rather than only at training time — while still being a fuzzy/edit-distance matcher rather than a learned classifier, so pairing it with m2v's paraphrase-robust embedding similarity tests whether the combination can fully replace Padatious rather than merely front it. Comparators: padatious-stock (the plain baseline this fighter is trying to unseat) and the existing ensembles nebulatious and trident. REQUIRES ovos-m2v-pipeline>=0.9.0a1 — versions before 0.8.1a1 have a label-filter bug that poisons predictions; there is no plugin floor/pin field in this registry schema, so sweeps of this fighter must be run with that floor already installed in the runner environment.",
       "has_predictions": false,
       "prediction_datasets": []
     },
@@ -1945,7 +1945,7 @@
       "links": {
         "source": "https://github.com/OpenVoiceOS/ovos-config"
       },
-      "notes": "SOURCE: the exact shipped order, verbatim, from the installed ovos-config package's default mycroft.conf — /home/miro/.venvs/ovos/lib/python3.12/site-packages/ovos_config/mycroft.conf, 'intents.pipeline' key, lines 218-231 (ovos-config==<installed version>): [\"ovos-stop-pipeline-plugin-high\", \"ovos-converse-pipeline-plugin\", \"ovos-ocp-pipeline-plugin-high\", \"ovos-padatious-pipeline-plugin-high\", \"ovos-adapt-pipeline-plugin-high\", \"ovos-m2v-pipeline-high\", \"ovos-ocp-pipeline-plugin-medium\", \"ovos-fallback-pipeline-plugin-high\", \"ovos-stop-pipeline-plugin-medium\", \"ovos-adapt-pipeline-plugin-medium\", \"ovos-fallback-pipeline-plugin-medium\", \"ovos-fallback-pipeline-plugin-low\"]. SKIPS (arena cannot instantiate these outside a full ovos-core session — no skill-service converse loop, no OCP media-skill roster, no fallback-skill registry): ovos-stop-pipeline-plugin-{high,medium} (requires a running skill with stop handlers), ovos-converse-pipeline-plugin (requires active-skill session state), ovos-ocp-pipeline-plugin-{high,medium} (requires OCP media skills registered), ovos-fallback-pipeline-plugin-{high,medium,low} (requires fallback-skill registrations; nothing left to fall back to in the intent-only benchmark). What remains — padatious-high, adapt-high, m2v-high, adapt-medium — is exactly the intent-classifier subset of the stock order, in stock order, so this fighter is the arena's best-effort faithful reproduction of 'what ovos-core actually ships', not a curated fusion hypothesis. m2v-pipeline config keys verified in ovos_m2v_pipeline/__init__.py: conf_high (default 0.7), conf_medium (default 0.5, note the plugin uses 'conf_medium' not 'conf_med'), conf_low (default 0.15).",
+      "notes": "Purpose: Reproduces the ovos-core default intent pipeline so every fusion has a stock baseline. SOURCE: the exact shipped order, verbatim, from the installed ovos-config package's default mycroft.conf — /home/miro/.venvs/ovos/lib/python3.12/site-packages/ovos_config/mycroft.conf, 'intents.pipeline' key, lines 218-231 (ovos-config==<installed version>): [\"ovos-stop-pipeline-plugin-high\", \"ovos-converse-pipeline-plugin\", \"ovos-ocp-pipeline-plugin-high\", \"ovos-padatious-pipeline-plugin-high\", \"ovos-adapt-pipeline-plugin-high\", \"ovos-m2v-pipeline-high\", \"ovos-ocp-pipeline-plugin-medium\", \"ovos-fallback-pipeline-plugin-high\", \"ovos-stop-pipeline-plugin-medium\", \"ovos-adapt-pipeline-plugin-medium\", \"ovos-fallback-pipeline-plugin-medium\", \"ovos-fallback-pipeline-plugin-low\"]. SKIPS (arena cannot instantiate these outside a full ovos-core session — no skill-service converse loop, no OCP media-skill roster, no fallback-skill registry): ovos-stop-pipeline-plugin-{high,medium} (requires a running skill with stop handlers), ovos-converse-pipeline-plugin (requires active-skill session state), ovos-ocp-pipeline-plugin-{high,medium} (requires OCP media skills registered), ovos-fallback-pipeline-plugin-{high,medium,low} (requires fallback-skill registrations; nothing left to fall back to in the intent-only benchmark). What remains — padatious-high, adapt-high, m2v-high, adapt-medium — is exactly the intent-classifier subset of the stock order, in stock order, so this fighter is the arena's best-effort faithful reproduction of 'what ovos-core actually ships', not a curated fusion hypothesis. m2v-pipeline config keys verified in ovos_m2v_pipeline/__init__.py: conf_high (default 0.7), conf_medium (default 0.5, note the plugin uses 'conf_medium' not 'conf_med'), conf_low (default 0.15).",
       "has_predictions": false,
       "prediction_datasets": []
     },
@@ -1998,7 +1998,7 @@
       "links": {
         "source": "https://github.com/OpenVoiceOS/linha-fina"
       },
-      "notes": "HYPOTHESIS: unlike trident (three-tier but engines picked for architectural distinctness), cascade-soft is picked for a deliberately monotonic 'strictness' gradient — trained classifier (least tolerant of paraphrase, most precise) -> rigid-but-vocab-flexible keyword bag -> fuzzy matcher (most tolerant of ASR noise/typos, least precise) — to test whether ordering engines by how loosely they match, not just by paradigm, is itself a useful axis distinct from trident's paradigm-diversity axis. Linha-Fina is a template-paradigm statistical classifier (see ENGINE_REGISTRY: 'linha_fina.opm:LinhaFinaPipeline', paradigm='template') distinct from both Jurebes (sklearn baseline family) and Padatious (neural+exact-gate), so this fighter and trident do not test the same top stage. exact_match not applicable to linha-fina/palavreado/nebulento (jurebes-only config key, verified absent from linha_fina/opm.py and palavreado/opm.py's self.config.get(...) call sites).",
+      "notes": "Purpose: Tests whether ordering engines by how loosely they match (trained classifier, keyword bag, fuzzy matcher) is a useful fusion axis. HYPOTHESIS: unlike trident (three-tier but engines picked for architectural distinctness), cascade-soft is picked for a deliberately monotonic 'strictness' gradient — trained classifier (least tolerant of paraphrase, most precise) -> rigid-but-vocab-flexible keyword bag -> fuzzy matcher (most tolerant of ASR noise/typos, least precise) — to test whether ordering engines by how loosely they match, not just by paradigm, is itself a useful axis distinct from trident's paradigm-diversity axis. Linha-Fina is a template-paradigm statistical classifier (see ENGINE_REGISTRY: 'linha_fina.opm:LinhaFinaPipeline', paradigm='template') distinct from both Jurebes (sklearn baseline family) and Padatious (neural+exact-gate), so this fighter and trident do not test the same top stage. exact_match not applicable to linha-fina/palavreado/nebulento (jurebes-only config key, verified absent from linha_fina/opm.py and palavreado/opm.py's self.config.get(...) call sites).",
       "has_predictions": true,
       "prediction_datasets": [
         {
@@ -2112,7 +2112,7 @@
       "links": {
         "source": "https://github.com/OpenVoiceOS/ovos-plugin-arena"
       },
-      "notes": "HYPOTHESIS: does a maximal-diversity cascade (one stage per paradigm, no paradigm repeated) beat curated 2-3 engine pairs? Slimmed from the original 7-stage config: dropped the explicit Padacioso-high stage because Padatious already runs padaos internally (disable_padaos=false) and returns conf=1.0 for perfect/regex matches before its neural score is even consulted, so a separate padacioso stage tested nothing padatious wasn't already doing; dropped the redundant padatious-medium retry since a second tier of the same trained classifier is not an independent paradigm and wasn't separately justified.",
+      "notes": "Purpose: Upper bound for one engine per paradigm: does maximal diversity keep helping past two engines. HYPOTHESIS: does a maximal-diversity cascade (one stage per paradigm, no paradigm repeated) beat curated 2-3 engine pairs? Slimmed from the original 7-stage config: dropped the explicit Padacioso-high stage because Padatious already runs padaos internally (disable_padaos=false) and returns conf=1.0 for perfect/regex matches before its neural score is even consulted, so a separate padacioso stage tested nothing padatious wasn't already doing; dropped the redundant padatious-medium retry since a second tier of the same trained classifier is not an independent paradigm and wasn't separately justified.",
       "has_predictions": true,
       "prediction_datasets": [
         {
@@ -9141,7 +9141,7 @@
       "links": {
         "source": "https://github.com/OpenVoiceOS/palavreado"
       },
-      "notes": "FAMILY: kw-slot A/B — mycroft-classic (adapt-high -> padatious-medium) vs kw-slot-palavreado (palavreado-high -> padatious-medium). There is no separate kw-slot-adapt fighter: that config is identical to mycroft-classic (adapt-high -> padatious-medium), and per the 1-fighter-per-config rule mycroft-classic itself now serves as the 'keyword engine = adapt' side of this A/B rather than duplicating the same pipeline under a second competitor_id. This sibling swaps only the keyword-high engine (Palavreado in for Adapt); backup engine and tier (padatious-medium) held fixed against mycroft-classic. Isolates whether Adapt's stricter ordered require/optional grammar or Palavreado's looser order-independent bag-of-keywords matching makes a better front-door gate ahead of an identical Padatious backstop.",
+      "notes": "Purpose: Swaps only the keyword engine (Palavreado for Adapt) against mycroft-classic to isolate keyword-engine choice. FAMILY: kw-slot A/B — mycroft-classic (adapt-high -> padatious-medium) vs kw-slot-palavreado (palavreado-high -> padatious-medium). There is no separate kw-slot-adapt fighter: that config is identical to mycroft-classic (adapt-high -> padatious-medium), and per the 1-fighter-per-config rule mycroft-classic itself now serves as the 'keyword engine = adapt' side of this A/B rather than duplicating the same pipeline under a second competitor_id. This sibling swaps only the keyword-high engine (Palavreado in for Adapt); backup engine and tier (padatious-medium) held fixed against mycroft-classic. Isolates whether Adapt's stricter ordered require/optional grammar or Palavreado's looser order-independent bag-of-keywords matching makes a better front-door gate ahead of an identical Padatious backstop.",
       "has_predictions": true,
       "prediction_datasets": [
         {
@@ -9577,7 +9577,7 @@
       "links": {
         "source": "https://github.com/OpenVoiceOS/ovos-m2v-pipeline"
       },
-      "notes": "HYPOTHESIS: m2v-prototype (see sibling fighter) shows that prototype-mode embedding similarity alone, with no trained head, can match runtime-registered intents. But it still lacks slot extraction. Nebulento fills that gap with template-based slot extraction and its own runtime-registered templates, so pairing it with the prototype pipeline's zero-shot front door tests a fully training-step-free replacement for padatious, not merely a front door for it. Comparators: padatious-stock (the trained baseline this fighter is trying to unseat), m2v-first/m2v-nebulento (the classifier-mode embedding fighters this pipeline is a zero-shot sibling to), and m2v-prototype (isolates whether adding Nebulento's fuzzy backstop helps over the pure prototype fighter alone). conf_high/conf_medium/conf_low on the prototype block are the cosine-calibrated defaults from ovos-m2v-pipeline PR #91. REQUIRES ovos-m2v-pipeline>=0.9.0a1 — the calibrated thresholds land with ovos-m2v-pipeline#91; sweeps run before that PR merges and releases exercise the pipeline's code defaults instead, so this fighter's sweep must be sequenced after #91 merges. There is no plugin floor/pin field in this registry schema, so the floor must already be installed in the runner environment.",
+      "notes": "Purpose: Training-free replacement candidate: zero-shot prototype matching plus Nebulento slots. HYPOTHESIS: m2v-prototype (see sibling fighter) shows that prototype-mode embedding similarity alone, with no trained head, can match runtime-registered intents. But it still lacks slot extraction. Nebulento fills that gap with template-based slot extraction and its own runtime-registered templates, so pairing it with the prototype pipeline's zero-shot front door tests a fully training-step-free replacement for padatious, not merely a front door for it. Comparators: padatious-stock (the trained baseline this fighter is trying to unseat), m2v-first/m2v-nebulento (the classifier-mode embedding fighters this pipeline is a zero-shot sibling to), and m2v-prototype (isolates whether adding Nebulento's fuzzy backstop helps over the pure prototype fighter alone). conf_high/conf_medium/conf_low on the prototype block are the cosine-calibrated defaults from ovos-m2v-pipeline PR #91. REQUIRES ovos-m2v-pipeline>=0.9.0a1 — the calibrated thresholds land with ovos-m2v-pipeline#91; sweeps run before that PR merges and releases exercise the pipeline's code defaults instead, so this fighter's sweep must be sequenced after #91 merges. There is no plugin floor/pin field in this registry schema, so the floor must already be installed in the runner environment.",
       "has_predictions": true,
       "prediction_datasets": [
         {
@@ -9927,7 +9927,7 @@
       "links": {
         "source": "https://github.com/MycroftAI/mycroft-core/pull/939"
       },
-      "notes": "SOURCE: mycroft-core PR #939 ('Implement Padatious support (examples based intent parser)', MatthewScholefield) added Padatious to mycroft-core by making PadatiousService inherit from FallbackSkill (per forslund's review comment 'Make PadatiousService inherit from FallbackSkill to fix new fallback changes' on that PR) — i.e. Padatious was wired in as a fallback handler invoked only when Adapt's IntentBuilder grammar produced no match, not as a co-equal parallel matcher. Author confirmed back-compat ('Adapt will still work :)'). This is the inverse of the modern OVOS/mycroft-dev order (see ovos-stock.json and current MycroftAI/mycroft-core dev intent_service.py, which interleaves padatious-high ahead of adapt) — the point of this fighter is to test whether that later re-ordering (template-first) actually helped, by running the original adapt-first/padatious-fallback shape through the arena. Modeled as adapt-high -> padatious-medium: Adapt gets first shot at its own high gate; Padatious's medium tier (not high) reflects that classic Padatious ran as a general-purpose fallback rather than a first-look high-confidence matcher. Arena skips: fallback-skill priority tiers (90-99 catch-all range documented in Mycroft's Fallback Skill docs) don't exist as an arena stage — Padatious substitutes directly for 'the fallback', consistent with the historical mechanism. SHARED BASELINE ROLE: this exact pipeline (adapt-high -> padatious-medium) is also the natural 'keyword engine = adapt' / 'template engine = padatious' cell of both replacement-study grids below — rather than keep separate duplicate-config fighters (kw-slot-adapt, tmpl-slot-padatious) alongside this one (1 fighter per config, no exceptions), mycroft-classic itself now serves as that shared baseline for both families: kw-slot family compares mycroft-classic against kw-slot-palavreado (keyword-engine A/B, Padatious backup+shape fixed); tmpl-slot family compares mycroft-classic against tmpl-slot-{nebulento,linhafina,jurebes} (template-engine 4-way, Adapt front+shape fixed). Its historical framing and its role as the shared adapt/padatious baseline are not in tension — the config is the same regardless of which question is being asked of it.",
+      "notes": "Purpose: Reproduces the historical Mycroft ordering (Adapt first, Padatious as fallback) as a baseline. SOURCE: mycroft-core PR #939 ('Implement Padatious support (examples based intent parser)', MatthewScholefield) added Padatious to mycroft-core by making PadatiousService inherit from FallbackSkill (per forslund's review comment 'Make PadatiousService inherit from FallbackSkill to fix new fallback changes' on that PR) — i.e. Padatious was wired in as a fallback handler invoked only when Adapt's IntentBuilder grammar produced no match, not as a co-equal parallel matcher. Author confirmed back-compat ('Adapt will still work :)'). This is the inverse of the modern OVOS/mycroft-dev order (see ovos-stock.json and current MycroftAI/mycroft-core dev intent_service.py, which interleaves padatious-high ahead of adapt) — the point of this fighter is to test whether that later re-ordering (template-first) actually helped, by running the original adapt-first/padatious-fallback shape through the arena. Modeled as adapt-high -> padatious-medium: Adapt gets first shot at its own high gate; Padatious's medium tier (not high) reflects that classic Padatious ran as a general-purpose fallback rather than a first-look high-confidence matcher. Arena skips: fallback-skill priority tiers (90-99 catch-all range documented in Mycroft's Fallback Skill docs) don't exist as an arena stage — Padatious substitutes directly for 'the fallback', consistent with the historical mechanism. SHARED BASELINE ROLE: this exact pipeline (adapt-high -> padatious-medium) is also the natural 'keyword engine = adapt' / 'template engine = padatious' cell of both replacement-study grids below — rather than keep separate duplicate-config fighters (kw-slot-adapt, tmpl-slot-padatious) alongside this one (1 fighter per config, no exceptions), mycroft-classic itself now serves as that shared baseline for both families: kw-slot family compares mycroft-classic against kw-slot-palavreado (keyword-engine A/B, Padatious backup+shape fixed); tmpl-slot family compares mycroft-classic against tmpl-slot-{nebulento,linhafina,jurebes} (template-engine 4-way, Adapt front+shape fixed). Its historical framing and its role as the shared adapt/padatious baseline are not in tension — the config is the same regardless of which question is being asked of it.",
       "has_predictions": true,
       "prediction_datasets": [
         {
@@ -10023,7 +10023,7 @@
       "links": {
         "source": "https://github.com/OpenVoiceOS/padacioso"
       },
-      "notes": "HYPOTHESIS: Padacioso's high-confidence exact template gate plus Nebulento's fuzzy fallback should catch both exact and near-miss phrasings without any training step, unlike padatious or m2v-based fighters which need a trained model. Nebulento runs at its own low-confidence gate (conf_low) rather than medium so it actually fires as a fallback instead of sitting nearly silent behind Padacioso's high gate; conf_high/conf_med/conf_low values are copied verbatim from the single-engine nebulento-medium template fighter, only the pipeline tier differs.",
+      "notes": "Purpose: Training-free pair: exact Padacioso templates with a fuzzy Nebulento fallback. HYPOTHESIS: Padacioso's high-confidence exact template gate plus Nebulento's fuzzy fallback should catch both exact and near-miss phrasings without any training step, unlike padatious or m2v-based fighters which need a trained model. Nebulento runs at its own low-confidence gate (conf_low) rather than medium so it actually fires as a fallback instead of sitting nearly silent behind Padacioso's high gate; conf_high/conf_med/conf_low values are copied verbatim from the single-engine nebulento-medium template fighter, only the pipeline tier differs.",
       "has_predictions": true,
       "prediction_datasets": [
         {
@@ -10118,7 +10118,7 @@
       "links": {
         "source": "https://github.com/OpenVoiceOS/ovos-adapt-pipeline-plugin"
       },
-      "notes": "HYPOTHESIS: does a strict keyword-rule engine (Adapt, low false-positive but brittle to phrasing/typos) at high confidence, backstopped by a fuzzy keyword matcher (Nebulento, tolerant of ASR noise and near-misses) at medium, and a lower-bar Adapt retry, beat either engine alone? Adapt and Nebulento are different matching strategies (strict rule vs fuzzy), so this tests real precision/recall complementarity, not a duplicate.",
+      "notes": "Purpose: Keyword-side precision/recall test: strict Adapt backed by fuzzy Nebulento. HYPOTHESIS: does a strict keyword-rule engine (Adapt, low false-positive but brittle to phrasing/typos) at high confidence, backstopped by a fuzzy keyword matcher (Nebulento, tolerant of ASR noise and near-misses) at medium, and a lower-bar Adapt retry, beat either engine alone? Adapt and Nebulento are different matching strategies (strict rule vs fuzzy), so this tests real precision/recall complementarity, not a duplicate.",
       "has_predictions": true,
       "prediction_datasets": [
         {
@@ -10218,7 +10218,7 @@
       "links": {
         "source": "https://github.com/OpenVoiceOS/ovos-padatious-pipeline-plugin"
       },
-      "notes": "HYPOTHESIS: does a neural template classifier (Padatious) at high confidence, backed by a fuzzy template matcher (Nebulento) tuned for typos/ASR noise, beat either alone — and does retrying Padatious at a looser gate afterward recover cases the fuzzy stage still missed? Padatious's internal padaos exact-match gate already covers regex-perfect input (verified in ovos_padatious/intent_container.py), so this pair specifically probes the neural-vs-fuzzy paraphrase gap, not exact-match duplication.",
+      "notes": "Purpose: Template-side test of neural Padatious against fuzzy Nebulento on paraphrase and noise. HYPOTHESIS: does a neural template classifier (Padatious) at high confidence, backed by a fuzzy template matcher (Nebulento) tuned for typos/ASR noise, beat either alone — and does retrying Padatious at a looser gate afterward recover cases the fuzzy stage still missed? Padatious's internal padaos exact-match gate already covers regex-perfect input (verified in ovos_padatious/intent_container.py), so this pair specifically probes the neural-vs-fuzzy paraphrase gap, not exact-match duplication.",
       "has_predictions": true,
       "prediction_datasets": [
         {
@@ -11424,7 +11424,7 @@
       "links": {
         "source": "https://github.com/OpenVoiceOS/jurebes"
       },
-      "notes": "FAMILY: tmpl-slot 4-way — mycroft-classic (adapt-high -> padatious-medium) is the shared baseline; siblings are tmpl-slot-nebulento, tmpl-slot-linhafina, tmpl-slot-jurebes (this file), each swapping only the template-medium engine with adapt-high held fixed. There is no separate tmpl-slot-padatious fighter: that config is identical to mycroft-classic, and per the 1-fighter-per-config rule mycroft-classic itself serves as the 'template engine = padatious' cell of this grid rather than duplicating the same pipeline under a second competitor_id. This sibling swaps in Jurebes using the same top-accuracy 'mlp_shallow' baseline selected for trident.json (accuracy 0.8154 on frontend-static/public/data/benchmark-intent_template-intents-for-eval-en-US.json among all jurebes-* entries), with exact_match forced to false so the fighter tests the trained classifier itself rather than jurebes's own internal exact-template short-circuit — consistent with the exact_match:false convention used everywhere jurebes appears in this pass. adapt-high held fixed as the front door, matching the other tmpl-slot siblings.",
+      "notes": "Purpose: Swaps only the template engine (Jurebes) behind Adapt against mycroft-classic. FAMILY: tmpl-slot 4-way — mycroft-classic (adapt-high -> padatious-medium) is the shared baseline; siblings are tmpl-slot-nebulento, tmpl-slot-linhafina, tmpl-slot-jurebes (this file), each swapping only the template-medium engine with adapt-high held fixed. There is no separate tmpl-slot-padatious fighter: that config is identical to mycroft-classic, and per the 1-fighter-per-config rule mycroft-classic itself serves as the 'template engine = padatious' cell of this grid rather than duplicating the same pipeline under a second competitor_id. This sibling swaps in Jurebes using the same top-accuracy 'mlp_shallow' baseline selected for trident.json (accuracy 0.8154 on frontend-static/public/data/benchmark-intent_template-intents-for-eval-en-US.json among all jurebes-* entries), with exact_match forced to false so the fighter tests the trained classifier itself rather than jurebes's own internal exact-template short-circuit — consistent with the exact_match:false convention used everywhere jurebes appears in this pass. adapt-high held fixed as the front door, matching the other tmpl-slot siblings.",
       "has_predictions": true,
       "prediction_datasets": [
         {
@@ -11517,7 +11517,7 @@
       "links": {
         "source": "https://github.com/OpenVoiceOS/linha-fina"
       },
-      "notes": "FAMILY: tmpl-slot 4-way — mycroft-classic (adapt-high -> padatious-medium) is the shared baseline; siblings are tmpl-slot-nebulento, tmpl-slot-linhafina (this file), tmpl-slot-jurebes, each swapping only the template-medium engine with adapt-high held fixed. There is no separate tmpl-slot-padatious fighter: that config is identical to mycroft-classic, and per the 1-fighter-per-config rule mycroft-classic itself serves as the 'template engine = padatious' cell of this grid rather than duplicating the same pipeline under a second competitor_id. This sibling swaps in Linha-Fina, a distinct trained-classifier engine from Padatious and Jurebes (see ENGINE_REGISTRY import path 'linha_fina.opm:LinhaFinaPipeline'), with adapt-high held fixed as the front door. Never previously paired with plain Adapt in the registry (linha-fina does not appear in frankenparse/padapt/nebulatious/nebulapt/palavadapt), so this is the first head-to-head data point for Linha-Fina against the keyword-rule paradigm specifically.",
+      "notes": "Purpose: Swaps only the template engine (Linha-Fina) behind Adapt against mycroft-classic. FAMILY: tmpl-slot 4-way — mycroft-classic (adapt-high -> padatious-medium) is the shared baseline; siblings are tmpl-slot-nebulento, tmpl-slot-linhafina (this file), tmpl-slot-jurebes, each swapping only the template-medium engine with adapt-high held fixed. There is no separate tmpl-slot-padatious fighter: that config is identical to mycroft-classic, and per the 1-fighter-per-config rule mycroft-classic itself serves as the 'template engine = padatious' cell of this grid rather than duplicating the same pipeline under a second competitor_id. This sibling swaps in Linha-Fina, a distinct trained-classifier engine from Padatious and Jurebes (see ENGINE_REGISTRY import path 'linha_fina.opm:LinhaFinaPipeline'), with adapt-high held fixed as the front door. Never previously paired with plain Adapt in the registry (linha-fina does not appear in frankenparse/padapt/nebulatious/nebulapt/palavadapt), so this is the first head-to-head data point for Linha-Fina against the keyword-rule paradigm specifically.",
       "has_predictions": true,
       "prediction_datasets": [
         {
@@ -11611,7 +11611,7 @@
       "links": {
         "source": "https://github.com/OpenVoiceOS/nebulento"
       },
-      "notes": "FAMILY: tmpl-slot 4-way — mycroft-classic (adapt-high -> padatious-medium) is the shared baseline; siblings are tmpl-slot-nebulento (this file), tmpl-slot-linhafina, tmpl-slot-jurebes, each swapping only the template-medium engine with adapt-high held fixed. There is no separate tmpl-slot-padatious fighter: that config is identical to mycroft-classic, and per the 1-fighter-per-config rule mycroft-classic itself serves as the 'template engine = padatious' cell of this grid rather than duplicating the same pipeline under a second competitor_id. This sibling swaps in Nebulento (fuzzy edit-distance-style template matching, tolerant of typos/ASR noise) as the backup, with adapt-high held fixed. Note this pipeline shape (adapt-high -> nebulento-medium -> [no third stage]) is a strict 2-stage subset of nebulapt.json's 3-stage adapt-high -> nebulento-medium -> adapt-medium; kept as a separate, deliberately shorter fighter because the family's isolation question is 'first successful replacement per engine' with no retry stage, whereas nebulapt additionally tests whether an adapt-medium retry recovers more on top of the pair — a different, additive hypothesis.",
+      "notes": "Purpose: Swaps only the template engine (Nebulento) behind Adapt against mycroft-classic. FAMILY: tmpl-slot 4-way — mycroft-classic (adapt-high -> padatious-medium) is the shared baseline; siblings are tmpl-slot-nebulento (this file), tmpl-slot-linhafina, tmpl-slot-jurebes, each swapping only the template-medium engine with adapt-high held fixed. There is no separate tmpl-slot-padatious fighter: that config is identical to mycroft-classic, and per the 1-fighter-per-config rule mycroft-classic itself serves as the 'template engine = padatious' cell of this grid rather than duplicating the same pipeline under a second competitor_id. This sibling swaps in Nebulento (fuzzy edit-distance-style template matching, tolerant of typos/ASR noise) as the backup, with adapt-high held fixed. Note this pipeline shape (adapt-high -> nebulento-medium -> [no third stage]) is a strict 2-stage subset of nebulapt.json's 3-stage adapt-high -> nebulento-medium -> adapt-medium; kept as a separate, deliberately shorter fighter because the family's isolation question is 'first successful replacement per engine' with no retry stage, whereas nebulapt additionally tests whether an adapt-medium retry recovers more on top of the pair — a different, additive hypothesis.",
       "has_predictions": true,
       "prediction_datasets": [
         {
@@ -11719,7 +11719,7 @@
       "links": {
         "source": "https://github.com/OpenVoiceOS/jurebes"
       },
-      "notes": "HYPOTHESIS: does mixing three architecturally distinct classifiers by descending confidence tier — neural-template-with-exact-gate (Padatious) high, statistical-ML classifier (Jurebes) medium, fuzzy-string (Nebulento) low — beat any two-engine fusion in the league? Unlike frankenparse (which mixes paradigms but stays single-tier-per-engine at similar confidence bands), trident deliberately spans the full high/medium/low ladder with one engine per rung, so it also probes whether a strict confidence-descending cascade (not just paradigm diversity) is itself a useful shape. BASELINE SELECTION: 'mlp_shallow' is the top-accuracy entry on frontend-static/public/data/benchmark-intent_template-intents-for-eval-en-US.json among all jurebes-* competitor_ids (accuracy 0.8154, beating jurebes-sgd-modified-huber at 0.8143 and every other of the ~55 published jurebes sklearn baselines on that board). Config key verified in jurebes/opm.py (self.baseline = self.config.get('baseline', 'linear_svc')) and jurebes/baselines.py ('mlp_shallow': lambda: _p(tfidf_word(), MLPClassifier(hidden_layer_sizes=(64,), max_iter=500))). exact_match set to false per spec (jurebes/opm.py: self.exact_match = bool(self.config.get('exact_match', True)) — forced off here so this fighter tests the trained MLP classifier itself, not jurebes's own internal exact-template short-circuit, which would otherwise duplicate what Padatious's high-tier stage already does one step earlier in the cascade).",
+      "notes": "Purpose: Three distinct paradigms across the high/medium/low ladder: does a full confidence cascade beat any two-engine fusion. HYPOTHESIS: does mixing three architecturally distinct classifiers by descending confidence tier — neural-template-with-exact-gate (Padatious) high, statistical-ML classifier (Jurebes) medium, fuzzy-string (Nebulento) low — beat any two-engine fusion in the league? Unlike frankenparse (which mixes paradigms but stays single-tier-per-engine at similar confidence bands), trident deliberately spans the full high/medium/low ladder with one engine per rung, so it also probes whether a strict confidence-descending cascade (not just paradigm diversity) is itself a useful shape. BASELINE SELECTION: 'mlp_shallow' is the top-accuracy entry on frontend-static/public/data/benchmark-intent_template-intents-for-eval-en-US.json among all jurebes-* competitor_ids (accuracy 0.8154, beating jurebes-sgd-modified-huber at 0.8143 and every other of the ~55 published jurebes sklearn baselines on that board). Config key verified in jurebes/opm.py (self.baseline = self.config.get('baseline', 'linear_svc')) and jurebes/baselines.py ('mlp_shallow': lambda: _p(tfidf_word(), MLPClassifier(hidden_layer_sizes=(64,), max_iter=500))). exact_match set to false per spec (jurebes/opm.py: self.exact_match = bool(self.config.get('exact_match', True)) — forced off here so this fighter tests the trained MLP classifier itself, not jurebes's own internal exact-template short-circuit, which would otherwise duplicate what Padatious's high-tier stage already does one step earlier in the cascade).",
       "has_predictions": true,
       "prediction_datasets": [
         {
@@ -11995,182 +11995,6 @@
         "source": "https://github.com/OpenVoiceOS/ovos-stt-plugin-citrinet"
       },
       "notes": "Model from the README models table (self-reported WER 6.684 on CV11); downloaded from HuggingFace.",
-      "has_predictions": false,
-      "prediction_datasets": []
-    },
-    {
-      "competitor_id": "coreml-parakeet-tdt-1.1b-4bit",
-      "schema_version": 1,
-      "modality": "stt",
-      "plugin": "ovos-stt-plugin-coreml",
-      "config": {
-        "lang": "en",
-        "stt": {
-          "module": "ovos-stt-plugin-coreml",
-          "ovos-stt-plugin-coreml": {
-            "repo_id": "OpenVoiceOS/parakeet-tdt-1.1b-coreml-4bit"
-          }
-        }
-      },
-      "langs": [
-        "en-US",
-        "en-GB",
-        "en-AU"
-      ],
-      "alias": [
-        "ovos-stt-plugin-coreml"
-      ],
-      "trained_on": [],
-      "capabilities": [
-        "clip"
-      ],
-      "display_name": "CoreML Parakeet TDT 1.1B (4-bit, en)",
-      "species": "CoremlSTT",
-      "family": "coreml-parakeet-tdt-1.1b-4bit",
-      "types": [
-        "neural-net",
-        "conformer",
-        "transducer"
-      ],
-      "description": "NVIDIA Parakeet TDT 1.1B compiled to CoreML and run through Apple's Neural Engine/GPU dispatch with no PyTorch dependency. This fighter runs the 4-bit quantization tier for English.",
-      "model": "OpenVoiceOS/parakeet-tdt-1.1b-coreml-4bit",
-      "size": "small",
-      "links": {
-        "source": "https://github.com/TigreGotico/ovos-stt-plugin-coreml"
-      },
-      "notes": "Quantization-tier variant: fp16/int8/4bit/6bit are meaningfully different fighters on the accuracy/footprint curve, not just packaging. macOS-only (CoreML); requires an Apple Silicon runner to score.",
-      "has_predictions": false,
-      "prediction_datasets": []
-    },
-    {
-      "competitor_id": "coreml-parakeet-tdt-1.1b-6bit",
-      "schema_version": 1,
-      "modality": "stt",
-      "plugin": "ovos-stt-plugin-coreml",
-      "config": {
-        "lang": "en",
-        "stt": {
-          "module": "ovos-stt-plugin-coreml",
-          "ovos-stt-plugin-coreml": {
-            "repo_id": "OpenVoiceOS/parakeet-tdt-1.1b-coreml-6bit"
-          }
-        }
-      },
-      "langs": [
-        "en-US",
-        "en-GB",
-        "en-AU"
-      ],
-      "alias": [
-        "ovos-stt-plugin-coreml"
-      ],
-      "trained_on": [],
-      "capabilities": [
-        "clip"
-      ],
-      "display_name": "CoreML Parakeet TDT 1.1B (6-bit, en)",
-      "species": "CoremlSTT",
-      "family": "coreml-parakeet-tdt-1.1b-6bit",
-      "types": [
-        "neural-net",
-        "conformer",
-        "transducer"
-      ],
-      "description": "NVIDIA Parakeet TDT 1.1B compiled to CoreML and run through Apple's Neural Engine/GPU dispatch with no PyTorch dependency. This fighter runs the 6-bit quantization tier for English.",
-      "model": "OpenVoiceOS/parakeet-tdt-1.1b-coreml-6bit",
-      "size": "small",
-      "links": {
-        "source": "https://github.com/TigreGotico/ovos-stt-plugin-coreml"
-      },
-      "notes": "Quantization-tier variant: fp16/int8/4bit/6bit are meaningfully different fighters on the accuracy/footprint curve, not just packaging. macOS-only (CoreML); requires an Apple Silicon runner to score.",
-      "has_predictions": false,
-      "prediction_datasets": []
-    },
-    {
-      "competitor_id": "coreml-parakeet-tdt-1.1b-fp16",
-      "schema_version": 1,
-      "modality": "stt",
-      "plugin": "ovos-stt-plugin-coreml",
-      "config": {
-        "lang": "en",
-        "stt": {
-          "module": "ovos-stt-plugin-coreml",
-          "ovos-stt-plugin-coreml": {
-            "repo_id": "OpenVoiceOS/parakeet-tdt-1.1b-coreml-fp16"
-          }
-        }
-      },
-      "langs": [
-        "en-US",
-        "en-GB",
-        "en-AU"
-      ],
-      "alias": [
-        "ovos-stt-plugin-coreml"
-      ],
-      "trained_on": [],
-      "capabilities": [
-        "clip"
-      ],
-      "display_name": "CoreML Parakeet TDT 1.1B (fp16, en)",
-      "species": "CoremlSTT",
-      "family": "coreml-parakeet-tdt-1.1b-fp16",
-      "types": [
-        "neural-net",
-        "conformer",
-        "transducer"
-      ],
-      "description": "NVIDIA Parakeet TDT 1.1B compiled to CoreML and run through Apple's Neural Engine/GPU dispatch with no PyTorch dependency. This fighter runs the fp16 quantization tier for English.",
-      "model": "OpenVoiceOS/parakeet-tdt-1.1b-coreml-fp16",
-      "size": "large",
-      "links": {
-        "source": "https://github.com/TigreGotico/ovos-stt-plugin-coreml"
-      },
-      "notes": "Quantization-tier variant: fp16/int8/4bit/6bit are meaningfully different fighters on the accuracy/footprint curve, not just packaging. macOS-only (CoreML); requires an Apple Silicon runner to score.",
-      "has_predictions": false,
-      "prediction_datasets": []
-    },
-    {
-      "competitor_id": "coreml-parakeet-tdt-1.1b-int8",
-      "schema_version": 1,
-      "modality": "stt",
-      "plugin": "ovos-stt-plugin-coreml",
-      "config": {
-        "lang": "en",
-        "stt": {
-          "module": "ovos-stt-plugin-coreml",
-          "ovos-stt-plugin-coreml": {
-            "repo_id": "OpenVoiceOS/parakeet-tdt-1.1b-coreml-int8"
-          }
-        }
-      },
-      "langs": [
-        "en-US",
-        "en-GB",
-        "en-AU"
-      ],
-      "alias": [
-        "ovos-stt-plugin-coreml"
-      ],
-      "trained_on": [],
-      "capabilities": [
-        "clip"
-      ],
-      "display_name": "CoreML Parakeet TDT 1.1B (int8, en)",
-      "species": "CoremlSTT",
-      "family": "coreml-parakeet-tdt-1.1b-int8",
-      "types": [
-        "neural-net",
-        "conformer",
-        "transducer"
-      ],
-      "description": "NVIDIA Parakeet TDT 1.1B compiled to CoreML and run through Apple's Neural Engine/GPU dispatch with no PyTorch dependency. This fighter runs the int8 quantization tier for English.",
-      "model": "OpenVoiceOS/parakeet-tdt-1.1b-coreml-int8",
-      "size": "medium",
-      "links": {
-        "source": "https://github.com/TigreGotico/ovos-stt-plugin-coreml"
-      },
-      "notes": "Quantization-tier variant: fp16/int8/4bit/6bit are meaningfully different fighters on the accuracy/footprint curve, not just packaging. macOS-only (CoreML); requires an Apple Silicon runner to score.",
       "has_predictions": false,
       "prediction_datasets": []
     },
@@ -21479,7 +21303,7 @@
       "links": {
         "source": "https://github.com/TigreGotico/ovos-stt-plugin-rover"
       },
-      "notes": "Backends per the README configuration example, with each backend model pinned: openai/whisper-small.en (from the whisper plugin's documented model list) and vosk-model-small-en-us-0.15 (from the vosk plugin's documented model URL).",
+      "notes": "Purpose: The ROVER meta-engine's documented example configuration: word-level voting over Whisper and Vosk, which have different error profiles. Backends per the README configuration example, with each backend model pinned: openai/whisper-small.en (from the whisper plugin's documented model list) and vosk-model-small-en-us-0.15 (from the vosk plugin's documented model URL).",
       "has_predictions": true,
       "prediction_datasets": [
         {
@@ -22859,57 +22683,6 @@
       ]
     },
     {
-      "competitor_id": "lux-clone-en",
-      "schema_version": 1,
-      "modality": "tts",
-      "plugin": "ovos-tts-plugin-lux",
-      "config": {
-        "lang": "en",
-        "tts": {
-          "module": "ovos-tts-plugin-lux",
-          "ovos-tts-plugin-lux": {
-            "model_path": "YatharthS/LuxTTS",
-            "prompt_audio": "reference.wav",
-            "device": "cpu",
-            "num_steps": 4,
-            "t_shift": 0.9,
-            "threads": 4,
-            "rms": 0.01,
-            "speed": 1.0,
-            "return_smooth": false,
-            "ref_duration": 5
-          }
-        }
-      },
-      "langs": [
-        "en-US",
-        "en-GB",
-        "en-AU"
-      ],
-      "alias": [
-        "ovos-tts-plugin-lux"
-      ],
-      "trained_on": [],
-      "capabilities": [
-        "clip"
-      ],
-      "display_name": "LuxTTS (cloned)",
-      "species": "LuxTTS",
-      "family": "lux-clone-en",
-      "types": [
-        "neural-net"
-      ],
-      "description": "LuxTTS, a lightweight zipvoice-based voice-cloning TTS (>150x realtime). Clones the voice in the reference clip pointed at by prompt_audio.",
-      "model": "YatharthS/LuxTTS (zipvoice)",
-      "size": "small",
-      "links": {
-        "source": "https://github.com/OpenVoiceOS/ovos-tts-plugin-lux"
-      },
-      "notes": "Voice-cloning fighter — set prompt_audio to a reference clip; a different reference voice is a different competitor. TTS ranks by human votes only.",
-      "has_predictions": false,
-      "prediction_datasets": []
-    },
-    {
       "competitor_id": "marytts-cmu-slt",
       "schema_version": 1,
       "modality": "tts",
@@ -23278,45 +23051,6 @@
         "config": "https://huggingface.co/OpenVoiceOS/phoonnx-matcha/resolve/main/cat-multispeaker-acoustic/config.json"
       },
       "notes": "Voice 'OpenVoiceOS/matxa-cat-multispeaker-wavenext-2stage' from the phoonnx voice_index (BSC family). phoneme_type=espeak. alphabet=ipa.",
-      "has_predictions": false,
-      "prediction_datasets": []
-    },
-    {
-      "competitor_id": "phoonnx-chatterbox-chatterbox-base-en",
-      "schema_version": 1,
-      "modality": "tts",
-      "plugin": "ovos-tts-plugin-phoonnx",
-      "config": {
-        "tts": {
-          "module": "ovos-tts-plugin-phoonnx",
-          "ovos-tts-plugin-phoonnx": {
-            "voice": "chatterbox/base/en"
-          }
-        }
-      },
-      "langs": [
-        "en-US"
-      ],
-      "alias": [
-        "ovos-tts-plugin-phoonnx"
-      ],
-      "trained_on": [],
-      "capabilities": [
-        "clip"
-      ],
-      "display_name": "Phoonnx Chatterbox (en)",
-      "species": "PhoonnxChatterbox",
-      "family": "phoonnx-chatterbox-chatterbox-base-en",
-      "types": [
-        "neural-net"
-      ],
-      "description": "ONNX-runtime TTS via the phoonnx adapter framework, running a Chatterbox voice. Engine: chatterbox.",
-      "model": "chatterbox/base/en",
-      "links": {
-        "source": "https://github.com/TigreGotico/phoonnx",
-        "model": "https://huggingface.co/OpenVoiceOS/phoonnx-chatterbox/resolve/main/language_model_q4.onnx"
-      },
-      "notes": "Voice 'chatterbox/base/en' from the phoonnx voice_index (chatterbox family). phoneme_type=unicode. alphabet=unicode.",
       "has_predictions": false,
       "prediction_datasets": []
     },
@@ -24877,45 +24611,6 @@
         "model": "https://huggingface.co/OpenVoiceOS/phoonnx-chatterbox-multilingual/resolve/main/language_model_q4.onnx"
       },
       "notes": "Voice 'chatterbox/multilingual/zh' from the phoonnx voice_index (chatterbox family). phoneme_type=unicode. alphabet=unicode.",
-      "has_predictions": false,
-      "prediction_datasets": []
-    },
-    {
-      "competitor_id": "phoonnx-chatterbox-chatterbox-turbo-en",
-      "schema_version": 1,
-      "modality": "tts",
-      "plugin": "ovos-tts-plugin-phoonnx",
-      "config": {
-        "tts": {
-          "module": "ovos-tts-plugin-phoonnx",
-          "ovos-tts-plugin-phoonnx": {
-            "voice": "chatterbox/turbo/en"
-          }
-        }
-      },
-      "langs": [
-        "en-US"
-      ],
-      "alias": [
-        "ovos-tts-plugin-phoonnx"
-      ],
-      "trained_on": [],
-      "capabilities": [
-        "clip"
-      ],
-      "display_name": "Phoonnx Chatterbox (en)",
-      "species": "PhoonnxChatterbox",
-      "family": "phoonnx-chatterbox-chatterbox-turbo-en",
-      "types": [
-        "neural-net"
-      ],
-      "description": "ONNX-runtime TTS via the phoonnx adapter framework, running a Chatterbox voice. Engine: chatterbox.",
-      "model": "chatterbox/turbo/en",
-      "links": {
-        "source": "https://github.com/TigreGotico/phoonnx",
-        "model": "https://huggingface.co/OpenVoiceOS/phoonnx-chatterbox-turbo/resolve/main/language_model_q4.onnx"
-      },
-      "notes": "Voice 'chatterbox/turbo/en' from the phoonnx voice_index (chatterbox family). phoneme_type=unicode. alphabet=unicode.",
       "has_predictions": false,
       "prediction_datasets": []
     },
@@ -115851,7 +115546,7 @@
       "links": {
         "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-microwakeword"
       },
-      "notes": "Combo fighter: wake-word engine + pre-wake VAD. The same engine without the VAD, or with a different VAD, is a different competitor.",
+      "notes": "Purpose: Repeats the VAD-gate question on a second detector family (published on the clip boards). Combo fighter: wake-word engine + pre-wake VAD. The same engine without the VAD, or with a different VAD, is a different competitor.",
       "has_predictions": true,
       "prediction_datasets": [
         {
@@ -115959,130 +115654,6 @@
           "lang": "en-US"
         }
       ]
-    },
-    {
-      "competitor_id": "microwakeword-hey-jarvis-silero-speaker",
-      "schema_version": 1,
-      "modality": "wake_word",
-      "plugin": "ovos-ww-plugin-microwakeword",
-      "config": {
-        "listener": {
-          "wake_word": "hey_jarvis",
-          "VAD": {
-            "module": "ovos-vad-plugin-silero",
-            "threshold": 0.5,
-            "ovos-vad-plugin-silero": {
-              "threshold": 0.5
-            }
-          }
-        },
-        "hotwords": {
-          "hey_jarvis": {
-            "module": "ovos-ww-plugin-microwakeword",
-            "listen": true,
-            "model": "https://github.com/esphome/micro-wake-word-models/raw/main/models/hey_jarvis.tflite",
-            "model_name": "hey_jarvis",
-            "model_version": 1,
-            "probability_cutoff": 0.5,
-            "sliding_window_size": 10,
-            "refractory_frames": 40
-          }
-        },
-        "hotword_verifier": {
-          "module": "ovos-ww-verifier-speaker",
-          "model": "wespeaker-resnet34",
-          "threshold": 0.45,
-          "fail_open": true,
-          "per_profile_thresholds": {}
-        }
-      },
-      "langs": [
-        "en-US",
-        "en-GB",
-        "en-AU"
-      ],
-      "alias": [
-        "ovos-ww-plugin-microwakeword"
-      ],
-      "trained_on": [],
-      "capabilities": [
-        "clip",
-        "stream"
-      ],
-      "display_name": "microWakeWord + Silero VAD + speaker verifier (hey jarvis)",
-      "species": "MicroWakeWordPlugin",
-      "family": "microwakeword-hey-jarvis-silero-speaker",
-      "types": [
-        "neural-net",
-        "vad-gated",
-        "verified"
-      ],
-      "description": "The full listener stack for 'hey jarvis' on microWakeWord: a Silero pre-wake VAD gate, then the microWakeWord detector, then a speaker-verification confirm.",
-      "model": "silero-vad -> hey_jarvis (microWakeWord) -> speaker verifier",
-      "links": {
-        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-microwakeword"
-      },
-      "notes": "Combo fighter: pre-wake VAD + wake-word engine + verifier. Each distinct (engine, VAD, verifier) triple is its own competitor.",
-      "has_predictions": false,
-      "prediction_datasets": []
-    },
-    {
-      "competitor_id": "microwakeword-hey-jarvis-speaker",
-      "schema_version": 1,
-      "modality": "wake_word",
-      "plugin": "ovos-ww-plugin-microwakeword",
-      "config": {
-        "listener": {
-          "wake_word": "hey_jarvis"
-        },
-        "hotwords": {
-          "hey_jarvis": {
-            "module": "ovos-ww-plugin-microwakeword",
-            "listen": true,
-            "model": "https://github.com/esphome/micro-wake-word-models/raw/main/models/hey_jarvis.tflite",
-            "model_name": "hey_jarvis",
-            "model_version": 1,
-            "probability_cutoff": 0.5,
-            "sliding_window_size": 10,
-            "refractory_frames": 40
-          }
-        },
-        "hotword_verifier": {
-          "module": "ovos-ww-verifier-speaker",
-          "model": "wespeaker-resnet34",
-          "threshold": 0.45,
-          "fail_open": true,
-          "per_profile_thresholds": {}
-        }
-      },
-      "langs": [
-        "en-US",
-        "en-GB",
-        "en-AU"
-      ],
-      "alias": [
-        "ovos-ww-plugin-microwakeword"
-      ],
-      "trained_on": [],
-      "capabilities": [
-        "clip",
-        "stream"
-      ],
-      "display_name": "microWakeWord + speaker verifier (hey jarvis)",
-      "species": "MicroWakeWordPlugin",
-      "family": "microwakeword-hey-jarvis-speaker",
-      "types": [
-        "neural-net",
-        "verified"
-      ],
-      "description": "microWakeWord 'hey jarvis' followed by a speaker-verification gate: an activation only counts when the verifier confirms it.",
-      "model": "hey_jarvis (microWakeWord) + speaker verifier",
-      "links": {
-        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-microwakeword"
-      },
-      "notes": "Combo fighter: wake-word engine + verifier. The same engine without the verifier is a different competitor.",
-      "has_predictions": false,
-      "prediction_datasets": []
     },
     {
       "competitor_id": "microwakeword-hey-jarvis-thr07",
@@ -116745,7 +116316,7 @@
       "links": {
         "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-openWakeWord"
       },
-      "notes": "Combo fighter: wake-word engine + pre-wake VAD. The same engine without the VAD, or with a different VAD, is a different competitor.",
+      "notes": "Purpose: Measures whether a pre-wake Silero VAD gate cuts false accepts on non-speech versus the bare detector. Combo fighter: wake-word engine + pre-wake VAD. The same engine without the VAD, or with a different VAD, is a different competitor.",
       "has_predictions": true,
       "prediction_datasets": [
         {
@@ -116913,7 +116484,7 @@
       "links": {
         "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-openWakeWord"
       },
-      "notes": "Combo fighter: pre-wake VAD + wake-word engine + verifier. Each distinct (engine, VAD, verifier) triple is its own competitor.",
+      "notes": "Purpose: The full listener stack (VAD gate plus speaker verifier) as the reference for the openWakeWord stack family. Combo fighter: pre-wake VAD + wake-word engine + verifier. Each distinct (engine, VAD, verifier) triple is its own competitor.",
       "has_predictions": false,
       "prediction_datasets": []
     },
@@ -116968,7 +116539,7 @@
       "links": {
         "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-openWakeWord"
       },
-      "notes": "Combo fighter: wake-word engine + verifier. The same engine without the verifier is a different competitor.",
+      "notes": "Purpose: Measures whether a speaker-verification gate cuts false accepts versus the bare detector. Combo fighter: wake-word engine + verifier. The same engine without the verifier is a different competitor.",
       "has_predictions": false,
       "prediction_datasets": []
     },
@@ -118122,7 +117693,7 @@
       "links": {
         "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-precise-onnx"
       },
-      "notes": "Combo fighter: wake-word engine + pre-wake VAD. The same engine without the VAD, or with a different VAD, is a different competitor. 'hey mycroft' used to stay comparable with the openWakeWord combo fighters.",
+      "notes": "Purpose: Repeats the VAD-gate question on a third detector family (published on the clip boards). Combo fighter: wake-word engine + pre-wake VAD. The same engine without the VAD, or with a different VAD, is a different competitor. 'hey mycroft' used to stay comparable with the openWakeWord combo fighters.",
       "has_predictions": true,
       "prediction_datasets": [
         {
@@ -118230,124 +117801,6 @@
           "lang": "en-US"
         }
       ]
-    },
-    {
-      "competitor_id": "precise-onnx-hey-mycroft-silero-speaker",
-      "schema_version": 1,
-      "modality": "wake_word",
-      "plugin": "ovos-ww-plugin-precise-onnx",
-      "config": {
-        "listener": {
-          "wake_word": "hey_mycroft",
-          "VAD": {
-            "module": "ovos-vad-plugin-silero",
-            "threshold": 0.5,
-            "ovos-vad-plugin-silero": {
-              "threshold": 0.5
-            }
-          }
-        },
-        "hotwords": {
-          "hey_mycroft": {
-            "module": "ovos-ww-plugin-precise-onnx",
-            "listen": true,
-            "model": "https://github.com/OpenVoiceOS/precise-lite-models/raw/master/wakewords/en/hey_mycroft.onnx",
-            "sensitivity": 0.5,
-            "trigger_level": 3
-          }
-        },
-        "hotword_verifier": {
-          "module": "ovos-ww-verifier-speaker",
-          "model": "wespeaker-resnet34",
-          "threshold": 0.45,
-          "fail_open": true,
-          "per_profile_thresholds": {}
-        }
-      },
-      "langs": [
-        "en-US",
-        "en-GB",
-        "en-AU"
-      ],
-      "alias": [
-        "ovos-ww-plugin-precise-onnx"
-      ],
-      "trained_on": [],
-      "capabilities": [
-        "clip",
-        "stream"
-      ],
-      "display_name": "Precise ONNX + Silero VAD + speaker verifier (hey mycroft)",
-      "species": "PreciseOnnxHotwordPlugin",
-      "family": "precise-onnx-hey-mycroft-silero-speaker",
-      "types": [
-        "neural-net",
-        "vad-gated",
-        "verified"
-      ],
-      "description": "The full listener stack for 'hey mycroft' on Precise ONNX: a Silero pre-wake VAD gate, then the Precise recurrent detector, then a speaker-verification confirm.",
-      "model": "silero-vad -> hey_mycroft.onnx (precise-lite-models) -> speaker verifier",
-      "links": {
-        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-precise-onnx"
-      },
-      "notes": "Combo fighter: pre-wake VAD + wake-word engine + verifier. Each distinct (engine, VAD, verifier) triple is its own competitor. 'hey mycroft' is used here (not 'hey jarvis') because it's the phrase precise-onnx shares with openWakeWord, keeping the comparison apples-to-apples on synthetic-wakewords-hey_mycroft.",
-      "has_predictions": false,
-      "prediction_datasets": []
-    },
-    {
-      "competitor_id": "precise-onnx-hey-mycroft-speaker",
-      "schema_version": 1,
-      "modality": "wake_word",
-      "plugin": "ovos-ww-plugin-precise-onnx",
-      "config": {
-        "listener": {
-          "wake_word": "hey_mycroft"
-        },
-        "hotwords": {
-          "hey_mycroft": {
-            "module": "ovos-ww-plugin-precise-onnx",
-            "listen": true,
-            "model": "https://github.com/OpenVoiceOS/precise-lite-models/raw/master/wakewords/en/hey_mycroft.onnx",
-            "sensitivity": 0.5,
-            "trigger_level": 3
-          }
-        },
-        "hotword_verifier": {
-          "module": "ovos-ww-verifier-speaker",
-          "model": "wespeaker-resnet34",
-          "threshold": 0.45,
-          "fail_open": true,
-          "per_profile_thresholds": {}
-        }
-      },
-      "langs": [
-        "en-US",
-        "en-GB",
-        "en-AU"
-      ],
-      "alias": [
-        "ovos-ww-plugin-precise-onnx"
-      ],
-      "trained_on": [],
-      "capabilities": [
-        "clip",
-        "stream"
-      ],
-      "display_name": "Precise ONNX + speaker verifier (hey mycroft)",
-      "species": "PreciseOnnxHotwordPlugin",
-      "family": "precise-onnx-hey-mycroft-speaker",
-      "types": [
-        "neural-net",
-        "verified"
-      ],
-      "description": "Precise ONNX 'hey mycroft' followed by a speaker-verification gate: an activation only counts when the verifier confirms it.",
-      "model": "hey_mycroft.onnx (precise-lite-models) + speaker verifier",
-      "links": {
-        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-precise-onnx"
-      },
-      "notes": "Combo fighter: wake-word engine + verifier. The same engine without the verifier is a different competitor. 'hey mycroft' used to stay comparable with the openWakeWord combo fighters.",
-      "has_predictions": false,
-      "prediction_datasets": []
     },
     {
       "competitor_id": "precise-onnx-hey-robin",
@@ -122336,6 +121789,235 @@
       ]
     },
     {
+      "competitor_id": "wakeforge-alexa",
+      "schema_version": 1,
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-wakeforge",
+      "config": {
+        "listener": {
+          "wake_word": "alexa"
+        },
+        "hotwords": {
+          "alexa": {
+            "module": "ovos-ww-plugin-wakeforge",
+            "model": "wakehubert_alexa",
+            "listen": true
+          }
+        }
+      },
+      "langs": [
+        "en-US",
+        "en-GB",
+        "en-AU"
+      ],
+      "alias": [
+        "ovos-ww-plugin-wakeforge"
+      ],
+      "trained_on": [
+        "synthetic-wakewords-alexa"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "wakeforge (alexa)",
+      "species": "WakeForgeHotwordPlugin",
+      "family": "wakeforge-alexa",
+      "types": [
+        "neural-net"
+      ],
+      "description": "The ready WakeHuBERT 'alexa' model that ovos-ww-plugin-wakeforge ships as its default wake-word engine, at the model's own calibrated default threshold (0.44).",
+      "model": "wakehubert_alexa (OpenVoiceOS/wakehubert-wakewords)",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge",
+        "model": "https://huggingface.co/OpenVoiceOS/wakehubert-wakewords"
+      },
+      "notes": "Plugin default config: the ready model named in 'model', fetched from OpenVoiceOS/wakehubert-wakewords at the revision the plugin pins; threshold, smoothing and debounce come from the model's own metadata. Training data per the model card: synthetic speech only: text-to-speech clips from TigreGotico/synthetic-wakeword-alexa (multi-engine, edge-tts multi-voice and Piper with LibriTTS-R speakers, CC BY 4.0) and OmniVoice clips.",
+      "has_predictions": false,
+      "prediction_datasets": []
+    },
+    {
+      "competitor_id": "wakeforge-computer",
+      "schema_version": 1,
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-wakeforge",
+      "config": {
+        "listener": {
+          "wake_word": "computer"
+        },
+        "hotwords": {
+          "computer": {
+            "module": "ovos-ww-plugin-wakeforge",
+            "model": "wakehubert_computer",
+            "listen": true
+          }
+        }
+      },
+      "langs": [
+        "en-US",
+        "en-GB",
+        "en-AU"
+      ],
+      "alias": [
+        "ovos-ww-plugin-wakeforge"
+      ],
+      "trained_on": [],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "wakeforge (computer)",
+      "species": "WakeForgeHotwordPlugin",
+      "family": "wakeforge-computer",
+      "types": [
+        "neural-net"
+      ],
+      "description": "The ready WakeHuBERT 'computer' model that ovos-ww-plugin-wakeforge ships as its default wake-word engine, at the model's own calibrated default threshold (0.99).",
+      "model": "wakehubert_computer (OpenVoiceOS/wakehubert-wakewords)",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge",
+        "model": "https://huggingface.co/OpenVoiceOS/wakehubert-wakewords"
+      },
+      "notes": "Plugin default config: the ready model named in 'model', fetched from OpenVoiceOS/wakehubert-wakewords at the revision the plugin pins; threshold, smoothing and debounce come from the model's own metadata. Training data per the model card: TigreGotico/synthetic-wakeword-computer (CC BY 4.0).",
+      "has_predictions": false,
+      "prediction_datasets": []
+    },
+    {
+      "competitor_id": "wakeforge-hey-chatterbox",
+      "schema_version": 1,
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-wakeforge",
+      "config": {
+        "listener": {
+          "wake_word": "hey_chatterbox"
+        },
+        "hotwords": {
+          "hey_chatterbox": {
+            "module": "ovos-ww-plugin-wakeforge",
+            "model": "wakehubert_hey_chatterbox",
+            "listen": true
+          }
+        }
+      },
+      "langs": [
+        "en-US",
+        "en-GB",
+        "en-AU"
+      ],
+      "alias": [
+        "ovos-ww-plugin-wakeforge"
+      ],
+      "trained_on": [],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "wakeforge (hey chatterbox)",
+      "species": "WakeForgeHotwordPlugin",
+      "family": "wakeforge-hey-chatterbox",
+      "types": [
+        "neural-net"
+      ],
+      "description": "The ready WakeHuBERT 'hey chatterbox' model that ovos-ww-plugin-wakeforge ships as its default wake-word engine, at the model's own calibrated default threshold (0.13).",
+      "model": "wakehubert_hey_chatterbox (OpenVoiceOS/wakehubert-wakewords)",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge",
+        "model": "https://huggingface.co/OpenVoiceOS/wakehubert-wakewords"
+      },
+      "notes": "Plugin default config: the ready model named in 'model', fetched from OpenVoiceOS/wakehubert-wakewords at the revision the plugin pins; threshold, smoothing and debounce come from the model's own metadata. Training data per the model card: synthetic speech only: an edge-tts voice grid, voice-converted copies of edge-tts clips, OmniVoice clips, with six held-out edge-tts test voices excluded.",
+      "has_predictions": false,
+      "prediction_datasets": []
+    },
+    {
+      "competitor_id": "wakeforge-hey-computer",
+      "schema_version": 1,
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-wakeforge",
+      "config": {
+        "listener": {
+          "wake_word": "hey_computer"
+        },
+        "hotwords": {
+          "hey_computer": {
+            "module": "ovos-ww-plugin-wakeforge",
+            "model": "wakehubert_hey_computer",
+            "listen": true
+          }
+        }
+      },
+      "langs": [
+        "en-US",
+        "en-GB",
+        "en-AU"
+      ],
+      "alias": [
+        "ovos-ww-plugin-wakeforge"
+      ],
+      "trained_on": [
+        "synthetic-wakewords-hey_computer"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "wakeforge (hey computer)",
+      "species": "WakeForgeHotwordPlugin",
+      "family": "wakeforge-hey-computer",
+      "types": [
+        "neural-net"
+      ],
+      "description": "The ready WakeHuBERT 'hey computer' model that ovos-ww-plugin-wakeforge ships as its default wake-word engine, at the model's own calibrated default threshold (0.31).",
+      "model": "wakehubert_hey_computer (OpenVoiceOS/wakehubert-wakewords)",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge",
+        "model": "https://huggingface.co/OpenVoiceOS/wakehubert-wakewords"
+      },
+      "notes": "Plugin default config: the ready model named in 'model', fetched from OpenVoiceOS/wakehubert-wakewords at the revision the plugin pins; threshold, smoothing and debounce come from the model's own metadata. Training data per the model card: synthetic speech only: an edge-tts voice grid, OmniVoice clips, with six held-out edge-tts test voices excluded.",
+      "has_predictions": false,
+      "prediction_datasets": []
+    },
+    {
+      "competitor_id": "wakeforge-hey-floyd",
+      "schema_version": 1,
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-wakeforge",
+      "config": {
+        "listener": {
+          "wake_word": "hey_floyd"
+        },
+        "hotwords": {
+          "hey_floyd": {
+            "module": "ovos-ww-plugin-wakeforge",
+            "model": "wakehubert_hey_floyd",
+            "listen": true
+          }
+        }
+      },
+      "langs": [
+        "en-US",
+        "en-GB",
+        "en-AU"
+      ],
+      "alias": [
+        "ovos-ww-plugin-wakeforge"
+      ],
+      "trained_on": [],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "wakeforge (hey floyd)",
+      "species": "WakeForgeHotwordPlugin",
+      "family": "wakeforge-hey-floyd",
+      "types": [
+        "neural-net"
+      ],
+      "description": "The ready WakeHuBERT 'hey floyd' model that ovos-ww-plugin-wakeforge ships as its default wake-word engine, at the model's own calibrated default threshold (0.43).",
+      "model": "wakehubert_hey_floyd (OpenVoiceOS/wakehubert-wakewords)",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge",
+        "model": "https://huggingface.co/OpenVoiceOS/wakehubert-wakewords"
+      },
+      "notes": "Plugin default config: the ready model named in 'model', fetched from OpenVoiceOS/wakehubert-wakewords at the revision the plugin pins; threshold, smoothing and debounce come from the model's own metadata. Training data per the model card: synthetic speech only: an edge-tts voice grid, voice-converted copies of edge-tts clips, OmniVoice clips, with six held-out edge-tts test voices excluded.",
+      "has_predictions": false,
+      "prediction_datasets": []
+    },
+    {
       "competitor_id": "wakeforge-hey-jarvis",
       "schema_version": 1,
       "modality": "wake_word",
@@ -122347,16 +122029,8 @@
         "hotwords": {
           "hey_jarvis": {
             "module": "ovos-ww-plugin-wakeforge",
-            "listen": true,
-            "featurizer": "https://huggingface.co/OpenVoiceOS/wakeforge-hey_jarvis/resolve/main/featurizer.onnx",
-            "model": "https://huggingface.co/OpenVoiceOS/wakeforge-hey_jarvis/resolve/main/best_f1.onnx",
-            "threshold": 0.5,
-            "smoothing": "ema",
-            "patience": 3,
-            "debounce_sec": 1.0,
-            "window_size": 5,
-            "ema_alpha": 0.3,
-            "streaming": false
+            "model": "wakehubert_hey_jarvis",
+            "listen": true
           }
         }
       },
@@ -122368,7 +122042,9 @@
       "alias": [
         "ovos-ww-plugin-wakeforge"
       ],
-      "trained_on": [],
+      "trained_on": [
+        "synthetic-wakewords-hey_jarvis"
+      ],
       "capabilities": [
         "clip"
       ],
@@ -122378,44 +122054,30 @@
       "types": [
         "neural-net"
       ],
-      "description": "A custom wake-word model trained with the wakeforge pipeline, run as an always-on hotword engine: a feature-extractor ONNX plus a classifier-head ONNX, with EMA smoothing and a patience counter before firing.",
-      "model": "wakeforge hey_jarvis (featurizer + classifier ONNX)",
+      "description": "The ready WakeHuBERT 'hey jarvis' model that ovos-ww-plugin-wakeforge ships as its default wake-word engine, at the model's own calibrated default threshold (0.16).",
+      "model": "wakehubert_hey_jarvis (OpenVoiceOS/wakehubert-wakewords)",
       "links": {
-        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge"
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge",
+        "model": "https://huggingface.co/OpenVoiceOS/wakehubert-wakewords"
       },
-      "notes": "Point featurizer + model at the trained ONNX pair (paths or URLs). A different model or smoothing/patience setting is a different competitor.",
+      "notes": "Plugin default config: the ready model named in 'model', fetched from OpenVoiceOS/wakehubert-wakewords at the revision the plugin pins; threshold, smoothing and debounce come from the model's own metadata. Training data per the model card: synthetic speech only: an edge-tts voice grid, edge-tts and Google Translate TTS voices, OmniVoice clips, with six held-out edge-tts test voices excluded.",
       "has_predictions": false,
       "prediction_datasets": []
     },
     {
-      "competitor_id": "wakeforge-hey-jarvis-silero",
+      "competitor_id": "wakeforge-hey-k9",
       "schema_version": 1,
       "modality": "wake_word",
       "plugin": "ovos-ww-plugin-wakeforge",
       "config": {
         "listener": {
-          "wake_word": "hey_jarvis",
-          "VAD": {
-            "module": "ovos-vad-plugin-silero",
-            "threshold": 0.5,
-            "ovos-vad-plugin-silero": {
-              "threshold": 0.5
-            }
-          }
+          "wake_word": "hey_k9"
         },
         "hotwords": {
-          "hey_jarvis": {
+          "hey_k9": {
             "module": "ovos-ww-plugin-wakeforge",
-            "listen": true,
-            "featurizer": "https://huggingface.co/OpenVoiceOS/wakeforge-hey_jarvis/resolve/main/featurizer.onnx",
-            "model": "https://huggingface.co/OpenVoiceOS/wakeforge-hey_jarvis/resolve/main/best_f1.onnx",
-            "threshold": 0.5,
-            "smoothing": "ema",
-            "patience": 3,
-            "debounce_sec": 1.0,
-            "window_size": 5,
-            "ema_alpha": 0.3,
-            "streaming": false
+            "model": "wakehubert_hey_k9",
+            "listen": true
           }
         }
       },
@@ -122431,59 +122093,37 @@
       "capabilities": [
         "clip"
       ],
-      "display_name": "wakeforge + Silero VAD (hey jarvis)",
+      "display_name": "wakeforge (hey k9)",
       "species": "WakeForgeHotwordPlugin",
-      "family": "wakeforge-hey-jarvis-silero",
+      "family": "wakeforge-hey-k9",
       "types": [
-        "neural-net",
-        "vad-gated"
+        "neural-net"
       ],
-      "description": "wakeforge 'hey jarvis' fronted by a Silero pre-wake VAD gate: the featurizer+classifier only runs on clips the VAD calls speech.",
-      "model": "wakeforge hey_jarvis + silero-vad",
+      "description": "The ready WakeHuBERT 'hey k9' model that ovos-ww-plugin-wakeforge ships as its default wake-word engine, at the model's own calibrated default threshold (0.06).",
+      "model": "wakehubert_hey_k9 (OpenVoiceOS/wakehubert-wakewords)",
       "links": {
-        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge"
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge",
+        "model": "https://huggingface.co/OpenVoiceOS/wakehubert-wakewords"
       },
-      "notes": "Combo fighter: wake-word engine + pre-wake VAD. The same engine without the VAD, or with a different VAD, is a different competitor.",
+      "notes": "Plugin default config: the ready model named in 'model', fetched from OpenVoiceOS/wakehubert-wakewords at the revision the plugin pins; threshold, smoothing and debounce come from the model's own metadata. Training data per the model card: synthetic speech only: an edge-tts voice grid, OmniVoice clips, with six held-out edge-tts test voices excluded.",
       "has_predictions": false,
       "prediction_datasets": []
     },
     {
-      "competitor_id": "wakeforge-hey-jarvis-silero-speaker",
+      "competitor_id": "wakeforge-hey-marvin",
       "schema_version": 1,
       "modality": "wake_word",
       "plugin": "ovos-ww-plugin-wakeforge",
       "config": {
         "listener": {
-          "wake_word": "hey_jarvis",
-          "VAD": {
-            "module": "ovos-vad-plugin-silero",
-            "threshold": 0.5,
-            "ovos-vad-plugin-silero": {
-              "threshold": 0.5
-            }
-          }
+          "wake_word": "hey_marvin"
         },
         "hotwords": {
-          "hey_jarvis": {
+          "hey_marvin": {
             "module": "ovos-ww-plugin-wakeforge",
-            "listen": true,
-            "featurizer": "https://huggingface.co/OpenVoiceOS/wakeforge-hey_jarvis/resolve/main/featurizer.onnx",
-            "model": "https://huggingface.co/OpenVoiceOS/wakeforge-hey_jarvis/resolve/main/best_f1.onnx",
-            "threshold": 0.5,
-            "smoothing": "ema",
-            "patience": 3,
-            "debounce_sec": 1.0,
-            "window_size": 5,
-            "ema_alpha": 0.3,
-            "streaming": false
+            "model": "wakehubert_hey_marvin",
+            "listen": true
           }
-        },
-        "hotword_verifier": {
-          "module": "ovos-ww-verifier-speaker",
-          "model": "wespeaker-resnet34",
-          "threshold": 0.45,
-          "fail_open": true,
-          "per_profile_thresholds": {}
         }
       },
       "langs": [
@@ -122494,372 +122134,42 @@
       "alias": [
         "ovos-ww-plugin-wakeforge"
       ],
-      "trained_on": [],
+      "trained_on": [
+        "synthetic-wakewords-hey_marvin"
+      ],
       "capabilities": [
         "clip"
       ],
-      "display_name": "wakeforge + Silero VAD + speaker verifier (hey jarvis)",
+      "display_name": "wakeforge (hey marvin)",
       "species": "WakeForgeHotwordPlugin",
-      "family": "wakeforge-hey-jarvis-silero-speaker",
+      "family": "wakeforge-hey-marvin",
       "types": [
-        "neural-net",
-        "vad-gated",
-        "verified"
+        "neural-net"
       ],
-      "description": "The full listener stack for 'hey jarvis' on wakeforge: a Silero pre-wake VAD gate, then the wakeforge featurizer+classifier, then a speaker-verification confirm.",
-      "model": "silero-vad -> wakeforge hey_jarvis -> speaker verifier",
+      "description": "The ready WakeHuBERT 'hey marvin' model that ovos-ww-plugin-wakeforge ships as its default wake-word engine, at the model's own calibrated default threshold (0.34).",
+      "model": "wakehubert_hey_marvin (OpenVoiceOS/wakehubert-wakewords)",
       "links": {
-        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge"
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge",
+        "model": "https://huggingface.co/OpenVoiceOS/wakehubert-wakewords"
       },
-      "notes": "Combo fighter: pre-wake VAD + wake-word engine + verifier. Each distinct (engine, VAD, verifier) triple is its own competitor.",
+      "notes": "Plugin default config: the ready model named in 'model', fetched from OpenVoiceOS/wakehubert-wakewords at the revision the plugin pins; threshold, smoothing and debounce come from the model's own metadata. Training data per the model card: synthetic speech only: an edge-tts voice grid, OmniVoice clips, with six held-out edge-tts test voices excluded.",
       "has_predictions": false,
       "prediction_datasets": []
     },
     {
-      "competitor_id": "wakeforge-hey-jarvis-speaker",
+      "competitor_id": "wakeforge-hey-mycroft",
       "schema_version": 1,
       "modality": "wake_word",
       "plugin": "ovos-ww-plugin-wakeforge",
-      "config": {
-        "listener": {
-          "wake_word": "hey_jarvis"
-        },
-        "hotwords": {
-          "hey_jarvis": {
-            "module": "ovos-ww-plugin-wakeforge",
-            "listen": true,
-            "featurizer": "https://huggingface.co/OpenVoiceOS/wakeforge-hey_jarvis/resolve/main/featurizer.onnx",
-            "model": "https://huggingface.co/OpenVoiceOS/wakeforge-hey_jarvis/resolve/main/best_f1.onnx",
-            "threshold": 0.5,
-            "smoothing": "ema",
-            "patience": 3,
-            "debounce_sec": 1.0,
-            "window_size": 5,
-            "ema_alpha": 0.3,
-            "streaming": false
-          }
-        },
-        "hotword_verifier": {
-          "module": "ovos-ww-verifier-speaker",
-          "model": "wespeaker-resnet34",
-          "threshold": 0.45,
-          "fail_open": true,
-          "per_profile_thresholds": {}
-        }
-      },
-      "langs": [
-        "en-US",
-        "en-GB",
-        "en-AU"
-      ],
-      "alias": [
-        "ovos-ww-plugin-wakeforge"
-      ],
-      "trained_on": [],
-      "capabilities": [
-        "clip"
-      ],
-      "display_name": "wakeforge + speaker verifier (hey jarvis)",
-      "species": "WakeForgeHotwordPlugin",
-      "family": "wakeforge-hey-jarvis-speaker",
-      "types": [
-        "neural-net",
-        "verified"
-      ],
-      "description": "wakeforge 'hey jarvis' followed by a speaker-verification gate: an activation only counts when the verifier confirms it.",
-      "model": "wakeforge hey_jarvis + speaker verifier",
-      "links": {
-        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge"
-      },
-      "notes": "Combo fighter: wake-word engine + verifier. The same engine without the verifier is a different competitor.",
-      "has_predictions": false,
-      "prediction_datasets": []
-    },
-    {
-      "competitor_id": "wakewordlab-hey-jarvis",
-      "schema_version": 1,
-      "modality": "wake_word",
-      "plugin": "ovos-ww-plugin-wakewordlab",
-      "config": {
-        "listener": {
-          "wake_word": "hey_jarvis"
-        },
-        "hotwords": {
-          "hey_jarvis": {
-            "module": "ovos-ww-plugin-wakewordlab",
-            "listen": true,
-            "model": "hey_jarvis",
-            "threshold": 0.5,
-            "vad": true,
-            "vad_threshold": 0.5
-          }
-        }
-      },
-      "langs": [
-        "en-US",
-        "en-GB",
-        "en-AU"
-      ],
-      "alias": [
-        "ovos-ww-plugin-wakewordlab"
-      ],
-      "trained_on": [],
-      "capabilities": [
-        "clip"
-      ],
-      "display_name": "wakewordlab (hey jarvis)",
-      "species": "WakewordLabHotwordPlugin",
-      "family": "wakewordlab-hey-jarvis",
-      "types": [
-        "neural-net",
-        "vad-gated"
-      ],
-      "description": "wakewordlab pretrained 'hey jarvis' model on a shared mel/embedding frontend with an optional Silero VAD pre-filter; models are auto-downloaded by name and cached.",
-      "model": "hey_jarvis (wakewordlab pretrained)",
-      "links": {
-        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakewordlab"
-      },
-      "notes": "Pretrained model selected by name; threshold and the built-in VAD pre-filter are config. A different model/threshold is a different competitor. The VAD gate (config.hotwords.hey_jarvis.vad / vad_threshold) is built into the plugin's own config block, not a separate listener.VAD pipeline stage — do not expect a listener.VAD block when diffing this against the openWakeWord -silero combo fighters.",
-      "has_predictions": false,
-      "prediction_datasets": []
-    },
-    {
-      "competitor_id": "wakewordlab-hey-jarvis-silero",
-      "schema_version": 1,
-      "modality": "wake_word",
-      "plugin": "ovos-ww-plugin-wakewordlab",
-      "config": {
-        "listener": {
-          "wake_word": "hey_jarvis",
-          "VAD": {
-            "module": "ovos-vad-plugin-silero",
-            "threshold": 0.5,
-            "ovos-vad-plugin-silero": {
-              "threshold": 0.5
-            }
-          }
-        },
-        "hotwords": {
-          "hey_jarvis": {
-            "module": "ovos-ww-plugin-wakewordlab",
-            "listen": true,
-            "model": "hey_jarvis",
-            "threshold": 0.5,
-            "vad": false,
-            "vad_threshold": 0.5
-          }
-        }
-      },
-      "langs": [
-        "en-US",
-        "en-GB",
-        "en-AU"
-      ],
-      "alias": [
-        "ovos-ww-plugin-wakewordlab"
-      ],
-      "trained_on": [],
-      "capabilities": [
-        "clip"
-      ],
-      "display_name": "wakewordlab + Silero VAD (hey jarvis)",
-      "species": "WakewordLabHotwordPlugin",
-      "family": "wakewordlab-hey-jarvis-silero",
-      "types": [
-        "neural-net",
-        "vad-gated"
-      ],
-      "description": "wakewordlab 'hey jarvis' fronted by an external Silero pre-wake VAD gate (the plugin's own built-in VAD is disabled to avoid double-gating).",
-      "model": "hey_jarvis (wakewordlab) + silero-vad",
-      "links": {
-        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakewordlab"
-      },
-      "notes": "Combo fighter: wake-word engine + pre-wake VAD. The plugin's own config.hotwords.hey_jarvis.vad is set to false and an external listener.VAD stage is used instead, so this gate is the same mechanism as the openWakeWord -silero combo fighters (vs. the bare wakewordlab-hey-jarvis fighter, which uses the plugin's built-in VAD gate).",
-      "has_predictions": false,
-      "prediction_datasets": []
-    },
-    {
-      "competitor_id": "wakewordlab-hey-jarvis-silero-speaker",
-      "schema_version": 1,
-      "modality": "wake_word",
-      "plugin": "ovos-ww-plugin-wakewordlab",
-      "config": {
-        "listener": {
-          "wake_word": "hey_jarvis",
-          "VAD": {
-            "module": "ovos-vad-plugin-silero",
-            "threshold": 0.5,
-            "ovos-vad-plugin-silero": {
-              "threshold": 0.5
-            }
-          }
-        },
-        "hotwords": {
-          "hey_jarvis": {
-            "module": "ovos-ww-plugin-wakewordlab",
-            "listen": true,
-            "model": "hey_jarvis",
-            "threshold": 0.5,
-            "vad": false,
-            "vad_threshold": 0.5
-          }
-        },
-        "hotword_verifier": {
-          "module": "ovos-ww-verifier-speaker",
-          "model": "wespeaker-resnet34",
-          "threshold": 0.45,
-          "fail_open": true,
-          "per_profile_thresholds": {}
-        }
-      },
-      "langs": [
-        "en-US",
-        "en-GB",
-        "en-AU"
-      ],
-      "alias": [
-        "ovos-ww-plugin-wakewordlab"
-      ],
-      "trained_on": [],
-      "capabilities": [
-        "clip"
-      ],
-      "display_name": "wakewordlab + Silero VAD + speaker verifier (hey jarvis)",
-      "species": "WakewordLabHotwordPlugin",
-      "family": "wakewordlab-hey-jarvis-silero-speaker",
-      "types": [
-        "neural-net",
-        "vad-gated",
-        "verified"
-      ],
-      "description": "The full listener stack for 'hey jarvis' on wakewordlab: an external Silero pre-wake VAD gate (the plugin's own built-in VAD is disabled to avoid double-gating), then the wakewordlab detector, then a speaker-verification confirm.",
-      "model": "silero-vad -> hey_jarvis (wakewordlab) -> speaker verifier",
-      "links": {
-        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakewordlab"
-      },
-      "notes": "Combo fighter: pre-wake VAD + wake-word engine + verifier. The plugin's own config.hotwords.hey_jarvis.vad is set to false and an external listener.VAD stage is used instead, so this gate is the same mechanism as the openWakeWord -silero combo fighters (vs. the bare wakewordlab-hey-jarvis fighter, which uses the plugin's built-in VAD gate).",
-      "has_predictions": false,
-      "prediction_datasets": []
-    },
-    {
-      "competitor_id": "wakewordlab-hey-jarvis-speaker",
-      "schema_version": 1,
-      "modality": "wake_word",
-      "plugin": "ovos-ww-plugin-wakewordlab",
-      "config": {
-        "listener": {
-          "wake_word": "hey_jarvis"
-        },
-        "hotwords": {
-          "hey_jarvis": {
-            "module": "ovos-ww-plugin-wakewordlab",
-            "listen": true,
-            "model": "hey_jarvis",
-            "threshold": 0.5,
-            "vad": false,
-            "vad_threshold": 0.5
-          }
-        },
-        "hotword_verifier": {
-          "module": "ovos-ww-verifier-speaker",
-          "model": "wespeaker-resnet34",
-          "threshold": 0.45,
-          "fail_open": true,
-          "per_profile_thresholds": {}
-        }
-      },
-      "langs": [
-        "en-US",
-        "en-GB",
-        "en-AU"
-      ],
-      "alias": [
-        "ovos-ww-plugin-wakewordlab"
-      ],
-      "trained_on": [],
-      "capabilities": [
-        "clip"
-      ],
-      "display_name": "wakewordlab + speaker verifier (hey jarvis)",
-      "species": "WakewordLabHotwordPlugin",
-      "family": "wakewordlab-hey-jarvis-speaker",
-      "types": [
-        "neural-net",
-        "verified"
-      ],
-      "description": "wakewordlab 'hey jarvis' followed by a speaker-verification gate: an activation only counts when the verifier confirms it. The plugin's own built-in VAD gate is disabled (vad:false) for this fighter.",
-      "model": "hey_jarvis (wakewordlab) + speaker verifier",
-      "links": {
-        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakewordlab"
-      },
-      "notes": "Combo fighter: wake-word engine + verifier. The plugin's own config.hotwords.hey_jarvis.vad is set to false here so the verifier is isolated from the built-in VAD gate; compare against the bare wakewordlab-hey-jarvis fighter (built-in VAD on, no verifier).",
-      "has_predictions": false,
-      "prediction_datasets": []
-    },
-    {
-      "competitor_id": "wakewordlab-hey-jarvis-thr07",
-      "schema_version": 1,
-      "modality": "wake_word",
-      "plugin": "ovos-ww-plugin-wakewordlab",
-      "config": {
-        "listener": {
-          "wake_word": "hey_jarvis"
-        },
-        "hotwords": {
-          "hey_jarvis": {
-            "module": "ovos-ww-plugin-wakewordlab",
-            "listen": true,
-            "model": "hey_jarvis",
-            "threshold": 0.7,
-            "vad": true,
-            "vad_threshold": 0.5
-          }
-        }
-      },
-      "langs": [
-        "en-US",
-        "en-GB",
-        "en-AU"
-      ],
-      "alias": [
-        "ovos-ww-plugin-wakewordlab"
-      ],
-      "trained_on": [],
-      "capabilities": [
-        "clip"
-      ],
-      "display_name": "wakewordlab @0.7 (hey jarvis)",
-      "species": "WakewordLabHotwordPlugin",
-      "family": "wakewordlab-hey-jarvis-thr07",
-      "types": [
-        "neural-net",
-        "vad-gated"
-      ],
-      "description": "wakewordlab 'hey jarvis' at a strict 0.7 threshold — fewer activations (lower false-accept, higher false-reject) than the 0.5 default.",
-      "model": "hey_jarvis (wakewordlab pretrained), threshold 0.7",
-      "links": {
-        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakewordlab"
-      },
-      "notes": "Threshold variant of wakewordlab-hey-jarvis. The VAD gate (config.hotwords.hey_jarvis.vad / vad_threshold) is built into the plugin's own config block, not a separate listener.VAD pipeline stage — do not expect a listener.VAD block when diffing this against the openWakeWord -silero combo fighters.",
-      "has_predictions": false,
-      "prediction_datasets": []
-    },
-    {
-      "competitor_id": "ww-server-hey-mycroft",
-      "schema_version": 1,
-      "modality": "wake_word",
-      "plugin": "ovos-ww-plugin-server",
       "config": {
         "listener": {
           "wake_word": "hey_mycroft"
         },
         "hotwords": {
           "hey_mycroft": {
-            "module": "ovos-ww-plugin-server",
-            "listen": true,
-            "host": "ws://localhost:8338",
-            "sample_rate": 16000,
-            "sample_width": 2
+            "module": "ovos-ww-plugin-wakeforge",
+            "model": "wakehubert_hey_mycroft",
+            "listen": true
           }
         }
       },
@@ -122869,23 +122179,258 @@
         "en-AU"
       ],
       "alias": [
-        "ovos-ww-plugin-server"
+        "ovos-ww-plugin-wakeforge"
+      ],
+      "trained_on": [
+        "synthetic-wakewords-hey_mycroft"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "wakeforge (hey mycroft)",
+      "species": "WakeForgeHotwordPlugin",
+      "family": "wakeforge-hey-mycroft",
+      "types": [
+        "neural-net"
+      ],
+      "description": "The ready WakeHuBERT 'hey mycroft' model that ovos-ww-plugin-wakeforge ships as its default wake-word engine, at the model's own calibrated default threshold (0.18).",
+      "model": "wakehubert_hey_mycroft (OpenVoiceOS/wakehubert-wakewords)",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge",
+        "model": "https://huggingface.co/OpenVoiceOS/wakehubert-wakewords"
+      },
+      "notes": "Plugin default config: the ready model named in 'model', fetched from OpenVoiceOS/wakehubert-wakewords at the revision the plugin pins; threshold, smoothing and debounce come from the model's own metadata. Training data per the model card: synthetic speech only: text-to-speech clips from TigreGotico/synthetic-wakeword-hey_mycroft (edge-tts, Piper with LibriTTS-R speakers, Amazon Polly, OVOS TTS plugins, OmniVoice, and Chatterbox and OpenVoice conversions onto Common Voice speakers, CC BY 4.0) and further edge-tts and Google Translate TTS clips, with eight held-out edge-tts test voices excluded.",
+      "has_predictions": false,
+      "prediction_datasets": []
+    },
+    {
+      "competitor_id": "wakeforge-hey-robin",
+      "schema_version": 1,
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-wakeforge",
+      "config": {
+        "listener": {
+          "wake_word": "hey_robin"
+        },
+        "hotwords": {
+          "hey_robin": {
+            "module": "ovos-ww-plugin-wakeforge",
+            "model": "wakehubert_hey_robin",
+            "listen": true
+          }
+        }
+      },
+      "langs": [
+        "en-US",
+        "en-GB",
+        "en-AU"
+      ],
+      "alias": [
+        "ovos-ww-plugin-wakeforge"
+      ],
+      "trained_on": [
+        "synthetic-wakewords-hey_robin"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "wakeforge (hey robin)",
+      "species": "WakeForgeHotwordPlugin",
+      "family": "wakeforge-hey-robin",
+      "types": [
+        "neural-net"
+      ],
+      "description": "The ready WakeHuBERT 'hey robin' model that ovos-ww-plugin-wakeforge ships as its default wake-word engine, at the model's own calibrated default threshold (0.05).",
+      "model": "wakehubert_hey_robin (OpenVoiceOS/wakehubert-wakewords)",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge",
+        "model": "https://huggingface.co/OpenVoiceOS/wakehubert-wakewords"
+      },
+      "notes": "Plugin default config: the ready model named in 'model', fetched from OpenVoiceOS/wakehubert-wakewords at the revision the plugin pins; threshold, smoothing and debounce come from the model's own metadata. Training data per the model card: synthetic speech only: an edge-tts voice grid, OmniVoice clips, with six held-out edge-tts test voices excluded.",
+      "has_predictions": false,
+      "prediction_datasets": []
+    },
+    {
+      "competitor_id": "wakeforge-hey-scout",
+      "schema_version": 1,
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-wakeforge",
+      "config": {
+        "listener": {
+          "wake_word": "hey_scout"
+        },
+        "hotwords": {
+          "hey_scout": {
+            "module": "ovos-ww-plugin-wakeforge",
+            "model": "wakehubert_hey_scout",
+            "listen": true
+          }
+        }
+      },
+      "langs": [
+        "en-US",
+        "en-GB",
+        "en-AU"
+      ],
+      "alias": [
+        "ovos-ww-plugin-wakeforge"
       ],
       "trained_on": [],
       "capabilities": [
         "clip"
       ],
-      "display_name": "WW-Server (hey mycroft)",
-      "species": "ServerHotWordPlugin",
-      "family": "ww-server-hey-mycroft",
+      "display_name": "wakeforge (hey scout)",
+      "species": "WakeForgeHotwordPlugin",
+      "family": "wakeforge-hey-scout",
       "types": [
-        "remote"
+        "neural-net"
       ],
-      "description": "Delegates wake-word detection to a shared remote host over a persistent WebSocket connection (satellite architecture): streams raw PCM frames to the server and receives detection events back, instead of running any model locally.",
+      "description": "The ready WakeHuBERT 'hey scout' model that ovos-ww-plugin-wakeforge ships as its default wake-word engine, at the model's own calibrated default threshold (0.36).",
+      "model": "wakehubert_hey_scout (OpenVoiceOS/wakehubert-wakewords)",
       "links": {
-        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-server"
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge",
+        "model": "https://huggingface.co/OpenVoiceOS/wakehubert-wakewords"
       },
-      "notes": "Remote-dependent, like the Azure/Google cloud fighters: requires a reachable ovos-ww-plugin-server host (default ws://localhost:8338); optional 'api_key' config sends 'Authorization: Bearer <key>'. No local model weights. Streams raw PCM frames but is not tagged 'stream' capability here since that tag is reserved by tests/test_ww_stream.py for the openwakeword-/microwakeword-/precise-onnx- families.",
+      "notes": "Plugin default config: the ready model named in 'model', fetched from OpenVoiceOS/wakehubert-wakewords at the revision the plugin pins; threshold, smoothing and debounce come from the model's own metadata. Training data per the model card: synthetic speech only: an edge-tts voice grid, OmniVoice clips, with six held-out edge-tts test voices excluded.",
+      "has_predictions": false,
+      "prediction_datasets": []
+    },
+    {
+      "competitor_id": "wakeforge-hey-ziggy",
+      "schema_version": 1,
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-wakeforge",
+      "config": {
+        "listener": {
+          "wake_word": "hey_ziggy"
+        },
+        "hotwords": {
+          "hey_ziggy": {
+            "module": "ovos-ww-plugin-wakeforge",
+            "model": "wakehubert_hey_ziggy",
+            "listen": true
+          }
+        }
+      },
+      "langs": [
+        "en-US",
+        "en-GB",
+        "en-AU"
+      ],
+      "alias": [
+        "ovos-ww-plugin-wakeforge"
+      ],
+      "trained_on": [
+        "synthetic-wakewords-hey_ziggy"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "wakeforge (hey ziggy)",
+      "species": "WakeForgeHotwordPlugin",
+      "family": "wakeforge-hey-ziggy",
+      "types": [
+        "neural-net"
+      ],
+      "description": "The ready WakeHuBERT 'hey ziggy' model that ovos-ww-plugin-wakeforge ships as its default wake-word engine, at the model's own calibrated default threshold (0.27).",
+      "model": "wakehubert_hey_ziggy (OpenVoiceOS/wakehubert-wakewords)",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge",
+        "model": "https://huggingface.co/OpenVoiceOS/wakehubert-wakewords"
+      },
+      "notes": "Plugin default config: the ready model named in 'model', fetched from OpenVoiceOS/wakehubert-wakewords at the revision the plugin pins; threshold, smoothing and debounce come from the model's own metadata. Training data per the model card: synthetic speech only: an edge-tts voice grid, voice-converted copies of edge-tts clips, OmniVoice clips, each checked against a speech recogniser transcript, with eight held-out edge-tts test voices excluded.",
+      "has_predictions": false,
+      "prediction_datasets": []
+    },
+    {
+      "competitor_id": "wakeforge-jarvis",
+      "schema_version": 1,
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-wakeforge",
+      "config": {
+        "listener": {
+          "wake_word": "jarvis"
+        },
+        "hotwords": {
+          "jarvis": {
+            "module": "ovos-ww-plugin-wakeforge",
+            "model": "wakehubert_jarvis",
+            "listen": true
+          }
+        }
+      },
+      "langs": [
+        "en-US",
+        "en-GB",
+        "en-AU"
+      ],
+      "alias": [
+        "ovos-ww-plugin-wakeforge"
+      ],
+      "trained_on": [],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "wakeforge (jarvis)",
+      "species": "WakeForgeHotwordPlugin",
+      "family": "wakeforge-jarvis",
+      "types": [
+        "neural-net"
+      ],
+      "description": "The ready WakeHuBERT 'jarvis' model that ovos-ww-plugin-wakeforge ships as its default wake-word engine, at the model's own calibrated default threshold (0.57).",
+      "model": "wakehubert_jarvis (OpenVoiceOS/wakehubert-wakewords)",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge",
+        "model": "https://huggingface.co/OpenVoiceOS/wakehubert-wakewords"
+      },
+      "notes": "Plugin default config: the ready model named in 'model', fetched from OpenVoiceOS/wakehubert-wakewords at the revision the plugin pins; threshold, smoothing and debounce come from the model's own metadata. Training data per the model card: synthetic speech only: an edge-tts voice grid, voice-converted copies of edge-tts clips, edge-tts and Google Translate TTS voices, OmniVoice clips, with six held-out edge-tts test voices excluded.",
+      "has_predictions": false,
+      "prediction_datasets": []
+    },
+    {
+      "competitor_id": "wakeforge-wake-up",
+      "schema_version": 1,
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-wakeforge",
+      "config": {
+        "listener": {
+          "wake_word": "wake_up"
+        },
+        "hotwords": {
+          "wake_up": {
+            "module": "ovos-ww-plugin-wakeforge",
+            "model": "wakehubert_wake_up",
+            "listen": true
+          }
+        }
+      },
+      "langs": [
+        "en-US",
+        "en-GB",
+        "en-AU"
+      ],
+      "alias": [
+        "ovos-ww-plugin-wakeforge"
+      ],
+      "trained_on": [
+        "synthetic-wakewords-wake_up"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "wakeforge (wake up)",
+      "species": "WakeForgeHotwordPlugin",
+      "family": "wakeforge-wake-up",
+      "types": [
+        "neural-net"
+      ],
+      "description": "The ready WakeHuBERT 'wake up' model that ovos-ww-plugin-wakeforge ships as its default wake-word engine, at the model's own calibrated default threshold (0.36).",
+      "model": "wakehubert_wake_up (OpenVoiceOS/wakehubert-wakewords)",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge",
+        "model": "https://huggingface.co/OpenVoiceOS/wakehubert-wakewords"
+      },
+      "notes": "Plugin default config: the ready model named in 'model', fetched from OpenVoiceOS/wakehubert-wakewords at the revision the plugin pins; threshold, smoothing and debounce come from the model's own metadata. Training data per the model card: synthetic speech only: an edge-tts voice grid, OmniVoice clips, with six held-out edge-tts test voices excluded.",
       "has_predictions": false,
       "prediction_datasets": []
     }
