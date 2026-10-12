@@ -63,6 +63,8 @@ function startServer() {
 const PAGES = [
   ['/', 'home'],
   ['/leaderboard/', 'leaderboard'],
+  ['/leaderboard/?league=wake_word&lang=en-US', 'wake-word leagues overview'],
+  ['/leaderboard/?league=wake_word&lang=en-US&word=hey_mycroft', 'one wake-word league'],
   ['/pareto/', 'cost vs. quality'],
   ['/matchups/', 'matchup heatmap'],
   ['/battle/', 'battle (blind vote flow)'],

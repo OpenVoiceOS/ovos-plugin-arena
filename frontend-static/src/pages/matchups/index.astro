@@ -26,6 +26,10 @@ import Base from '../../layouts/Base.astro';
         <span>Language</span>
         <select id="sel-lang"></select>
       </label>
+      <label for="sel-word" class="lb-lang" style="display:none">
+        <span>Wake word</span>
+        <select id="sel-word"></select>
+      </label>
       <label for="sel-dataset" class="lb-lang">
         <span>Benchmark dataset</span>
         <select id="sel-dataset"></select>
@@ -116,6 +120,8 @@ import Base from '../../layouts/Base.astro';
 
   <script>
     import { groupedLangOptionsHtml } from '../../lib/lang.js';
+    import { humanVotes } from '../../lib/headToHead.js';
+    import { WAKE_LEAGUES, datasetPhrase, fighterPhrase, normPhrase, phraseKey } from '../../lib/wakeword.js';
 
     const BASE = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
 
@@ -144,6 +150,11 @@ import Base from '../../layouts/Base.astro';
     let benchmarksMeta = [], leaderboardsMeta = [], battlesPoolsMeta = [], freeformPoolsMeta = [];
     let fighters = {};
     let league = '', lang = '', dataset = '', mode = 'votes', cacheV = '', showAll = false;
+    // Wake-word leagues: one phrase's detectors per grid ('all' for every
+    // phrase at once). Detectors for different phrases never meet, so the
+    // full grid is mostly empty cells.
+    let word = '';
+    let wordDatasets = null;
     const fileCache = new Map();
 
     const esc = s => String(s).replace(/[&<>"']/g, c =>
@@ -219,7 +230,8 @@ import Base from '../../layouts/Base.astro';
       const group = leagueById[league]?.battle_group;
       const meta = [...battlesPoolsMeta, ...freeformPoolsMeta]
         .filter(m => m.modality === group && m.lang === lang);
-      const pools = await fetchBoards(meta);
+      const [pools, votes] = await Promise.all([
+        fetchBoards(meta), humanVotes(BASE, { modality: group, lang })]);
       const idSet = new Set(ids);
       const rec = () => ({ wins: 0, losses: 0, ties: 0, total: 0 });
       const m = {};
@@ -237,6 +249,19 @@ import Base from '../../layouts/Base.astro';
             cellAB.ties++; cellAB.total++; cellBA.ties++; cellBA.total++;
           }
         }
+      }
+      // Cast human votes (blind battles and free votes alike) are decided
+      // battles too; a free-vote pool has no reference, so they are its
+      // only signal.
+      for (const v of votes) {
+        const a1 = v.competitor_a, a2 = v.competitor_b;
+        if (!idSet.has(a1) || !idSet.has(a2) || a1 === a2) continue;
+        const cellAB = m[a1][a2], cellBA = m[a2][a1];
+        cellAB.human = (cellAB.human || 0) + 1; cellBA.human = (cellBA.human || 0) + 1;
+        cellAB.total++; cellBA.total++;
+        if (v.choice === 'a') { cellAB.wins++; cellBA.losses++; }
+        else if (v.choice === 'b') { cellAB.losses++; cellBA.wins++; }
+        else { cellAB.ties++; cellBA.ties++; }
       }
       return m;
     }
@@ -302,7 +327,7 @@ import Base from '../../layouts/Base.astro';
 
     async function buildBenchMatrix(ids) {
       const meta = benchmarksMeta.filter(b => b.modality === league && b.lang === lang &&
-        (!dataset || b.dataset_id === dataset));
+        (!dataset || b.dataset_id === dataset) && (!wordDatasets || wordDatasets.includes(b.dataset_id)));
       const boards = await fetchBoards(meta);
       if (!boards.length) return null;
       if (dataset || boards.length === 1) {
@@ -477,12 +502,12 @@ import Base from '../../layouts/Base.astro';
         return `<td class="mu-cell" tabindex="0" style="background:${bg};color:${cellTextColor(bg)}"
           data-row="${esc(rowId)}" data-col="${esc(colId)}" data-kind="votes"
           data-wr="${(winRate * 100).toFixed(0)}" data-w="${rec.wins}" data-l="${rec.losses}"
-          data-t="${rec.ties}" data-n="${rec.total}">${(winRate * 100).toFixed(0)}</td>`;
+          data-t="${rec.ties}" data-n="${rec.total}" data-h="${rec.human || 0}">${(winRate * 100).toFixed(0)}</td>`;
       };
       const srCellFn = (rowId, colId) => {
         const rec = matrix[rowId][colId];
         const txt = !rec || rec.total === 0 ? 'no decided battles'
-          : `${rec.wins}W ${rec.losses}L ${rec.ties}T of ${rec.total}`;
+          : `${rec.wins}W ${rec.losses}L ${rec.ties}T of ${rec.total}${rec.human ? `, ${rec.human} by human vote` : ''}`;
         return `<tr><td>${esc(nameOf(rowId))}</td><td>${esc(nameOf(colId))}</td><td>${txt}</td></tr>`;
       };
       return renderGrid(ids, cellFn, votesLegend(),
@@ -606,7 +631,33 @@ import Base from '../../layouts/Base.astro';
       for (const pool of pools) for (const b of pool.battles || []) { idSet.add(b.competitor_a); idSet.add(b.competitor_b); }
       for (const board of benches) for (const e of board.entries || []) idSet.add(e.competitor_id);
       const rest = [...idSet].filter(id => !eloOrder.includes(id)).sort((a, b) => nameOf(a).localeCompare(nameOf(b)));
-      const ids = [...eloOrder, ...rest];
+      let ids = [...eloOrder, ...rest];
+      wordDatasets = null;
+      if (WAKE_LEAGUES.has(league)) {
+        const counts = new Map();
+        for (const id of ids) {
+          const ph = fighterPhrase(fighters[id]);
+          if (ph) counts.set(ph, (counts.get(ph) || 0) + 1);
+        }
+        const words = [...counts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+        if (word !== 'all' && !counts.has(word)) word = words[0]?.[0] || 'all';
+        const sel = document.getElementById('sel-word');
+        sel.innerHTML = words.map(([ph, n]) => `<option value="${esc(phraseKey(ph))}">${esc(ph)} (${n})</option>`).join('')
+          + '<option value="all">All wake words</option>';
+        sel.value = word === 'all' ? 'all' : phraseKey(word);
+        sel.closest('label').style.display = '';
+        if (word !== 'all') {
+          ids = ids.filter(id => fighterPhrase(fighters[id]) === word);
+          const known = new Set(Object.values(fighters).map(fighterPhrase).filter(Boolean));
+          const all = await fetchBoards(benchmarksMeta.filter(b => b.modality === league && b.lang === lang));
+          if (seq !== renderSeq) return;
+          wordDatasets = all.filter(b => datasetPhrase(b, known) === word).map(b => b.dataset_id);
+        }
+        populateDatasets();
+        syncUrl();
+      } else {
+        document.getElementById('sel-word').closest('label').style.display = 'none';
+      }
 
       const panels = document.getElementById('mu-panels');
       const html = mode === 'votes' ? await renderVotes(ids) : await renderBench(ids);
@@ -614,7 +665,7 @@ import Base from '../../layouts/Base.astro';
       panels.innerHTML = html;
 
       document.getElementById('mu-note').innerHTML = mode === 'votes'
-        ? 'Win rate from decided battles. Only benchmark-seeded battle pools carry a checkable outcome today — freeform pools populate once human votes accumulate.'
+        ? 'Win rate from decided battles: benchmark-seeded battle outcomes plus every counted human vote, blind or free.'
         : '';
 
       const focusStatus = document.getElementById('mu-focus-status');
@@ -645,7 +696,7 @@ import Base from '../../layouts/Base.astro';
       if (kind === 'nodata') return title + 'No data yet.';
       if (kind === 'votes') {
         return title + `${cell.dataset.wr}% win rate — ${cell.dataset.w}W ${cell.dataset.l}L ${cell.dataset.t}T
-          of ${cell.dataset.n} decided battle(s).`;
+          of ${cell.dataset.n} decided battle(s)${Number(cell.dataset.h) ? `, ${cell.dataset.h} by human vote` : ''}.`;
       }
       if (kind === 'bench-agg') {
         return title + `${cell.dataset.wr}% of datasets won — ${cell.dataset.w}W ${cell.dataset.l}L ${cell.dataset.t}T
@@ -664,7 +715,7 @@ import Base from '../../layouts/Base.astro';
       if (kind === 'nodata') return `${pair}: no data yet.`;
       if (kind === 'votes') {
         return `${pair}: ${cell.dataset.wr}% win rate, ${cell.dataset.w} wins, ${cell.dataset.l} losses,
-          ${cell.dataset.t} ties, of ${cell.dataset.n} decided battles.`;
+          ${cell.dataset.t} ties, of ${cell.dataset.n} decided battles${Number(cell.dataset.h) ? `, ${cell.dataset.h} by human vote` : ''}.`;
       }
       if (kind === 'bench-agg') {
         return `${pair}: ${cell.dataset.wr}% of datasets won, ${cell.dataset.w} wins, ${cell.dataset.l} losses,
@@ -678,6 +729,7 @@ import Base from '../../layouts/Base.astro';
       league ? params.set('league', league) : params.delete('league');
       lang ? params.set('lang', lang) : params.delete('lang');
       dataset ? params.set('dataset', dataset) : params.delete('dataset');
+      word && WAKE_LEAGUES.has(league) ? params.set('word', word === 'all' ? 'all' : phraseKey(word)) : params.delete('word');
       mode !== 'votes' ? params.set('mode', mode) : params.delete('mode');
       showAll ? params.set('all', '1') : params.delete('all');
       const qs = params.toString();
@@ -688,7 +740,8 @@ import Base from '../../layouts/Base.astro';
     function populateDatasets() {
       const datasets = [...new Set(benchmarksMeta
         .filter(b => b.modality === league && b.lang === lang)
-        .map(b => b.dataset_id))].sort();
+        .map(b => b.dataset_id)
+        .filter(d => !wordDatasets || wordDatasets.includes(d)))].sort();
       const sel = document.getElementById('sel-dataset');
       sel.innerHTML = `<option value="">All datasets</option>` +
         datasets.map(d => `<option value="${esc(d)}">${esc(d)}</option>`).join('');
@@ -707,6 +760,7 @@ import Base from '../../layouts/Base.astro';
     }
 
     function setLeague(next) {
+      if (next !== league) { word = ''; wordDatasets = null; }
       league = next;
       const group = leagueById[league]?.battle_group;
       document.querySelectorAll('.lb-tab').forEach(t =>
@@ -766,6 +820,11 @@ import Base from '../../layouts/Base.astro';
       document.getElementById('sel-dataset').addEventListener('change', e => {
         dataset = e.target.value; syncUrl(); render();
       });
+      document.getElementById('sel-word').addEventListener('change', e => {
+        word = e.target.value === 'all' ? 'all' : normPhrase(e.target.value);
+        dataset = '';
+        syncUrl(); render();
+      });
       document.getElementById('mode-votes').addEventListener('click', () => setMode('votes'));
       document.getElementById('mode-bench').addEventListener('click', () => setMode('bench'));
       document.getElementById('chk-show-all').addEventListener('change', e => {
@@ -779,6 +838,8 @@ import Base from '../../layouts/Base.astro';
       const wantLang = urlParams.get('lang');
       const wantDataset = urlParams.get('dataset');
       const wantMode = urlParams.get('mode');
+      const wantWord = urlParams.get('word');
+      word = wantWord === 'all' ? 'all' : normPhrase(wantWord);
       const startLeague = activeLeagues.some(l => l.id === wantLeague) ? wantLeague : activeLeagues[0].id;
       if (wantLang) lang = wantLang;
       if (wantDataset) dataset = wantDataset;
@@ -787,6 +848,7 @@ import Base from '../../layouts/Base.astro';
       document.getElementById('chk-show-all').checked = showAll;
       document.getElementById('mode-votes').setAttribute('aria-pressed', String(mode === 'votes'));
       document.getElementById('mode-bench').setAttribute('aria-pressed', String(mode === 'bench'));
+      league = startLeague;
       setLeague(startLeague);
     }
 

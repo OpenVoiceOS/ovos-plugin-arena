@@ -27,6 +27,10 @@ import Base from '../../layouts/Base.astro';
         <span>Language</span>
         <select id="sel-lang"></select>
       </label>
+      <label for="sel-word" class="lb-lang" style="display:none">
+        <span>Wake word</span>
+        <select id="sel-word"></select>
+      </label>
       <label for="sel-dataset" class="lb-lang">
         <span>Dataset</span>
         <select id="sel-dataset"></select>
@@ -124,6 +128,22 @@ import Base from '../../layouts/Base.astro';
     .ww-phrase { margin-bottom:1.6rem; }
     .ww-phrase-title { font-family:var(--display); font-weight:600; font-size:1rem;
       margin:0 0 0.7rem; padding-bottom:0.4rem; border-bottom:1px solid var(--border); color:var(--text); }
+    .ww-overview td:first-child a { font-family:var(--display); font-weight:600; }
+    .ww-overview .best-cell { white-space:normal; }
+
+    /* ---- several boards on one page: one collapsible card per dataset ---- */
+    .bench-fold { margin-bottom:1.1rem; }
+    .bench-fold > summary { cursor:pointer; list-style:none; display:flex; flex-wrap:wrap; gap:0.3rem 0.8rem;
+      align-items:baseline; padding:0.75rem 1.1rem; border:1px solid var(--border); border-radius:14px;
+      background:var(--surface); }
+    .bench-fold > summary::-webkit-details-marker { display:none; }
+    .bench-fold > summary::before { content:'▸'; color:var(--muted); }
+    .bench-fold[open] > summary::before { content:'▾'; }
+    .bench-fold[open] > summary { border-bottom-left-radius:0; border-bottom-right-radius:0; border-bottom:none; }
+    .bench-fold > summary:focus-visible { outline:2px solid var(--accent); outline-offset:2px; }
+    .bench-fold .fold-title { font-family:var(--display); font-weight:600; }
+    .bench-fold .fold-meta { font-size:0.8rem; color:var(--muted); }
+    .bench-fold[open] > .bench { border-top-left-radius:0; border-top-right-radius:0; }
 
     /* ---- podium (top 3) ---- */
     .podium { display:grid; grid-template-columns:1fr 1.25fr 1fr; gap:0.8rem; align-items:end; margin-bottom:1rem; }
@@ -222,6 +242,7 @@ import Base from '../../layouts/Base.astro';
     import { spriteSvg } from '../../lib/sprite.js';
     import { groupedLangOptionsHtml, langDisplayName } from '../../lib/lang.js';
     import { boardVoteProvenance, provenanceHtml } from '../../lib/provenance.js';
+    import { WAKE_LEAGUES, datasetPhrase, fighterPhrase, normPhrase, phraseKey, phraseLabel } from '../../lib/wakeword.js';
 
     const BASE = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
 
@@ -399,6 +420,9 @@ import Base from '../../layouts/Base.astro';
     // singleton keyed on its own dead id. See groupKeyOf.
     let pluginFamilies = {};
     let league = '', lang = '', dataset = '', cacheV = '', metric = '';
+    // Wake-word leagues only: the phrase whose league is shown, or '' for
+    // the overview listing one league per phrase.
+    let word = '';
     // data/metrics-legend.json (arena/metrics_legend.py) — plain-language
     // names, meanings and caveats for every metric a board can carry, plus
     // one intro paragraph per league. Absent on a stale CDN edge, in which
@@ -439,7 +463,7 @@ import Base from '../../layouts/Base.astro';
     const nameOf = id => fighters[id]?.display_name || id;
     const sprite = (id, size) => spriteSvg(id, typeOf(id), size, false);
     // wake-word phrase a fighter targets (its hotword config key)
-    const phraseOf = id => Object.keys(fighters[id]?.config?.hotwords || {})[0] || '';
+    const phraseOf = id => fighterPhrase(fighters[id]);
 
     function wlt(e) {
       return `<span class="wlt"><span class="w">${e.wins}<b>W</b></span>
@@ -621,7 +645,7 @@ import Base from '../../layouts/Base.astro';
       // benchmark-derived auto-battles with no human votes whatsoever.
       const note = autoOnly ? '' : league === 'tts'
         ? 'Ranked by human listening votes only — no benchmark seed. Vote in the Battle page.'
-        : league === 'wake_word'
+        : WAKE_LEAGUES.has(league)
           ? 'One ranking per wake word — detectors only compete on the same phrase.'
         : league === 'vad'
           ? 'Voice Activity Detection — fighters are language-agnostic; boards are grouped by the dataset’s language.'
@@ -642,14 +666,14 @@ import Base from '../../layouts/Base.astro';
         return `<section class="lb-section">${head}<div class="card" style="margin:0">No ladder standings yet.</div></section>`;
 
       let body;
-      if (league === 'wake_word') {
+      if (WAKE_LEAGUES.has(league)) {
         // a separate ranking per wake-word phrase
         const byPhrase = {};
         for (const e of entries)
           (byPhrase[phraseOf(e.competitor_id) || 'other'] ??= []).push(e);
         body = Object.keys(byPhrase).sort().map(ph => `
           <div class="ww-phrase">
-            <p class="ww-phrase-title">📣 “${esc(ph.replace(/_/g, ' '))}”</p>
+            <p class="ww-phrase-title">📣 ${esc(phraseLabel(ph))}</p>
             ${unranked ? renderUnranked(byPhrase[ph]) : renderRanking(byPhrase[ph])}
           </div>`).join('');
       } else {
@@ -1007,27 +1031,177 @@ import Base from '../../layouts/Base.astro';
     // overwrite the panels with stale content once it resolves.
     let renderSeq = 0;
 
+    // Benchmark boards a league shows for the current language. The wake-word
+    // league also carries the streaming boards, so each phrase's page holds
+    // every board recorded for that phrase.
+    const leagueBenchMeta = () => benchmarksMeta.filter(b => b.lang === lang &&
+      (league === 'wake_word' ? WAKE_LEAGUES.has(b.modality) : b.modality === league));
+
+    // A board narrowed to one phrase's fighters, re-ranked among themselves.
+    function boardForWord(board, ph) {
+      let rank = 0;
+      const entries = (board.entries || [])
+        .filter(e => phraseOf(e.competitor_id) === ph)
+        .map(e => (e.unranked ? e : { ...e, rank: ++rank }));
+      return { ...board, entries };
+    }
+
+    function ladderForWord(elo, ph) {
+      if (!elo) return elo;
+      const keep = entries => (entries || []).filter(e => phraseOf(e.competitor_id) === ph);
+      const ladders = Object.fromEntries(Object.entries(elo.metric_ladders || {})
+        .map(([k, l]) => [k, { ...l, entries: keep(l.entries) }]));
+      return { ...elo, entries: keep(elo.entries), metric_ladders: ladders };
+    }
+
+    // One row per wake word: its fighters, its datasets and its best fighter.
+    function wordLeagues(boards, elo) {
+      const known = new Set(Object.values(fighters).map(f => fighterPhrase(f)).filter(Boolean));
+      const words = new Map();
+      const slot = ph => {
+        if (!words.has(ph)) words.set(ph, { phrase: ph, boards: [], fighters: new Set(), best: null });
+        return words.get(ph);
+      };
+      for (const board of boards) {
+        const w = slot(datasetPhrase(board, known));
+        w.boards.push(board);
+        for (const e of board.entries || [])
+          if (phraseOf(e.competitor_id) === w.phrase) w.fighters.add(e.competitor_id);
+      }
+      for (const e of elo?.entries || []) {
+        const ph = phraseOf(e.competitor_id);
+        if (!ph) continue;
+        const w = slot(ph);
+        w.fighters.add(e.competitor_id);
+        if (e.battles && (!w.best || e.bt_rating > w.best.bt_rating)) w.best = e;
+      }
+      for (const w of words.values()) {
+        if (w.best || !w.boards.length) continue;
+        const top = boardForWord(w.boards[0], w.phrase).entries.find(e => !e.unranked);
+        if (top) w.best = { competitor_id: top.competitor_id, board: w.boards[0] };
+      }
+      return [...words.values()]
+        .filter(w => w.fighters.size || w.boards.length)
+        .sort((a, b) => b.fighters.size - a.fighters.size || a.phrase.localeCompare(b.phrase));
+    }
+
+    const wordHref = ph => {
+      const params = new URLSearchParams({ league, lang, word: phraseKey(ph) });
+      return `${window.location.pathname}?${params}`;
+    };
+
+    function wordOverviewHtml(words) {
+      if (!words.length) return '<div class="card">No wake-word boards for this language yet.</div>';
+      const best = w => {
+        if (!w.best) return '<span class="pl">no ranked fighter yet</span>';
+        const how = w.best.board
+          ? `top of ${esc(datasetTitle(w.best.board))}`
+          : `rating ${Math.round(w.best.bt_rating)}`;
+        return `${fighterLink(w.best.competitor_id)} <span class="pl">· ${how}</span>`;
+      };
+      const rows = words.map(w => `<tr>
+          <td><a href="${esc(wordHref(w.phrase))}" data-word="${esc(phraseKey(w.phrase))}">${esc(phraseLabel(w.phrase))}</a></td>
+          <td class="metric-chip">${w.fighters.size}</td>
+          <td class="metric-chip">${w.boards.length}</td>
+          <td class="best-cell">${best(w)}</td>
+        </tr>`).join('');
+      return `<section class="lb-section">
+        <div class="lb-section-head"><p class="eyebrow" style="color:var(--accent)">Wake words</p>
+          <h2>📣 One league per wake word</h2>
+          <span class="tag">${words.length} wake word${words.length === 1 ? '' : 's'}</span></div>
+        <p class="lb-note">A detector is built for one phrase. Pick a wake word to see only the detectors
+          built for it, ranked on the datasets recorded for it.</p>
+        <div style="overflow-x:auto"><table class="bench-tbl ww-overview">
+          <caption class="bench-caption">Wake-word leagues in ${esc(langDisplayName(lang))}</caption>
+          <thead><tr><th scope="col">Wake word</th><th scope="col">Fighters</th>
+            <th scope="col">Datasets</th><th scope="col">Best fighter</th></tr></thead>
+          <tbody>${rows}</tbody></table></div>
+      </section>`;
+    }
+
+    function populateWords(words) {
+      const sel = document.getElementById('sel-word');
+      sel.innerHTML = '<option value="">All wake words (overview)</option>' + words.map(w =>
+        `<option value="${esc(phraseKey(w.phrase))}">${esc(w.phrase)} (${w.fighters.size})</option>`).join('');
+      if (!words.some(w => w.phrase === word)) word = '';
+      sel.value = word ? phraseKey(word) : '';
+      sel.closest('label').style.display = '';
+    }
+
+    // Several boards on one page read as one long scroll; each becomes a
+    // card that opens on demand, with its leader in the summary line.
+    function foldBoards(boards, htmlOf) {
+      if (boards.length < 2) return boards.map(htmlOf).join('');
+      return boards.map((b, i) => {
+        const ranked = (b.entries || []).filter(e => !e.unranked);
+        const top = ranked[0];
+        const lead = top
+          ? ` · top: ${esc(nameOf(top.competitor_id))} (${esc(fmtMetric(b.primary_metric, top.metrics?.[b.primary_metric]))} ${esc(metricLabel(b.primary_metric))})`
+          : '';
+        return `<details class="bench-fold"${i === 0 ? ' open' : ''}>
+          <summary><span class="fold-title">${esc(datasetTitle(b))}</span>
+            <span class="fold-meta">${ranked.length} fighter${ranked.length === 1 ? '' : 's'} ranked${lead}</span></summary>
+          ${htmlOf(b)}
+        </details>`;
+      }).join('');
+    }
+
     async function render() {
       const seq = ++renderSeq;
       const group = leagueById[league]?.battle_group;
-      const benchMeta = benchmarksMeta.filter(b => b.modality === league && b.lang === lang &&
-        (!dataset || b.dataset_id === dataset));
+      const wake = WAKE_LEAGUES.has(league);
       // Vote-less leagues never have a leaderboard file to fetch and MUST
       // NOT render a ladder section at all (not even the "no standings
       // yet" placeholder) — this is a permanent property of the league,
       // not a temporary empty state.
       const isVoteless = !!leagueById[league]?.voteless;
       const eloMeta = isVoteless ? [] : leaderboardsMeta.filter(b => b.modality === group && b.lang === lang);
-      const [benches, eloBoards] = await Promise.all([fetchBoards(benchMeta), fetchBoards(eloMeta)]);
+      // A wake-word page needs every board of the language to know which
+      // phrase each one tests; any other league fetches only what it shows.
+      const benchMeta = wake ? leagueBenchMeta()
+        : leagueBenchMeta().filter(b => !dataset || b.dataset_id === dataset);
+      let [benches, eloBoards] = await Promise.all([fetchBoards(benchMeta), fetchBoards(eloMeta)]);
       if (seq !== renderSeq) return; // a newer render superseded this one
       benches.sort((a, b) => (a.dataset_id || '').localeCompare(b.dataset_id || ''));
-      const elo = eloBoards[0];
+      let elo = eloBoards[0];
 
       const prov = document.getElementById('lb-provenance');
       const provHtml = provenanceHtml(boardVoteProvenance(elo, indexData),
         `${BASE}methodology/#where-ratings-come-from`);
       prov.innerHTML = provHtml;
       prov.style.display = provHtml ? '' : 'none';
+
+      const panels = document.getElementById('lb-panels');
+      if (wake) {
+        const words = wordLeagues(benches, elo);
+        // A link from before the per-phrase split names only a dataset:
+        // open the phrase that dataset tests.
+        if (!word && dataset) {
+          const known = new Set(Object.values(fighters).map(f => fighterPhrase(f)).filter(Boolean));
+          const linked = benches.find(b => b.dataset_id === dataset);
+          if (linked) word = datasetPhrase(linked, known);
+        }
+        populateWords(words);
+        if (!word) {
+          fillDatasets([]);
+          syncUrl();
+          document.getElementById('dataset-info').innerHTML = '';
+          panels.innerHTML = wordOverviewHtml(words);
+          panels.querySelectorAll('a[data-word]').forEach(a => a.addEventListener('click', e => {
+            e.preventDefault();
+            selectWord(normPhrase(a.dataset.word));
+          }));
+          return;
+        }
+        const known = new Set(Object.values(fighters).map(f => fighterPhrase(f)).filter(Boolean));
+        const wordBoards = benches.filter(b => datasetPhrase(b, known) === word);
+        fillDatasets(wordBoards.map(b => b.dataset_id));
+        syncUrl();
+        benches = wordBoards
+          .filter(b => !dataset || b.dataset_id === dataset)
+          .map(b => boardForWord(b, word));
+        elo = ladderForWord(elo, word);
+      }
 
       // Reconcile the ?metric= selection against this board's actual
       // ladders — an invalid/stale metric (wrong league, older link) falls
@@ -1037,15 +1211,20 @@ import Base from '../../layouts/Base.astro';
       if (!ladders[metric]) metric = primaryMetric;
 
       document.getElementById('dataset-info').innerHTML = datasetInfoHtml(benches[0]);
-      const panels = document.getElementById('lb-panels');
       const leagueIntro = legend.leagues[league];
-      panels.innerHTML = (isVoteless ? '' : eloSection(elo, league, metric)) + `<section class="lb-section">
+      const wordHead = wake ? `<p class="lb-note"><a href="${esc(wordHref(''))}" data-word="">← All wake words</a>
+        · the ${esc(phraseLabel(word))} league: only detectors built for this phrase.</p>` : '';
+      panels.innerHTML = wordHead + (isVoteless ? '' : eloSection(elo, league, metric)) + `<section class="lb-section">
         <div class="lb-section-head"><p class="eyebrow" style="color:var(--accent)">The Data</p>
           <h2>📊 Benchmark boards</h2></div>
         ${leagueIntro ? `<p class="league-intro">${esc(leagueIntro)}</p>` : ''}
         ${isVoteless ? '<p class="lb-note">Vote-less league — ranked by phoneme error rate against provenance-tiered gold, no battles/ELO.</p>' : ''}
-        ${benches.length ? benches.map(b => benchBoard(b, league, metric, ladders)).join('') : benchBoard(null, league, metric, ladders)}
+        ${benches.length ? foldBoards(benches, b => benchBoard(b, league, metric, ladders)) : benchBoard(null, league, metric, ladders)}
       </section>`;
+      panels.querySelectorAll('a[data-word]').forEach(a => a.addEventListener('click', e => {
+        e.preventDefault();
+        selectWord(normPhrase(a.dataset.word));
+      }));
       panels.querySelectorAll('.metric-chip-btn').forEach(btn => {
         btn.addEventListener('click', () => {
           metric = btn.dataset.metric;
@@ -1085,15 +1264,22 @@ import Base from '../../layouts/Base.astro';
       lang ? params.set('lang', lang) : params.delete('lang');
       dataset ? params.set('dataset', dataset) : params.delete('dataset');
       metric ? params.set('metric', metric) : params.delete('metric');
+      word && WAKE_LEAGUES.has(league) ? params.set('word', phraseKey(word)) : params.delete('word');
       const qs = params.toString();
       const url = `${window.location.pathname}${qs ? '?' + qs : ''}${window.location.hash}`;
       window.history.replaceState(null, '', url);
     }
 
     function populateDatasets() {
-      const datasets = [...new Set(benchmarksMeta
-        .filter(b => b.modality === league && b.lang === lang)
-        .map(b => b.dataset_id))].sort();
+      // A wake-word league lists only the current phrase's datasets, known
+      // once its boards are fetched (see render).
+      if (WAKE_LEAGUES.has(league)) return;
+      document.getElementById('sel-word').closest('label').style.display = 'none';
+      fillDatasets(leagueBenchMeta().map(b => b.dataset_id));
+    }
+
+    function fillDatasets(ids) {
+      const datasets = [...new Set(ids)].sort();
       const sel = document.getElementById('sel-dataset');
       sel.innerHTML = `<option value="">All datasets</option>` +
         datasets.map(d => `<option value="${esc(d)}">${esc(d)}</option>`).join('');
@@ -1103,7 +1289,16 @@ import Base from '../../layouts/Base.astro';
       sel.closest('label').style.display = datasets.length > 1 ? '' : 'none';
     }
 
+    function selectWord(next) {
+      word = next;
+      dataset = '';
+      syncUrl();
+      render();
+      document.getElementById('lb-app').scrollIntoView({ block: 'start' });
+    }
+
     function setLeague(next) {
+      if (next !== league) word = '';
       league = next;
       const group = leagueById[league]?.battle_group;
       document.querySelectorAll('.lb-tab').forEach(t =>
@@ -1158,6 +1353,7 @@ import Base from '../../layouts/Base.astro';
       document.getElementById('sel-dataset').addEventListener('change', e => {
         dataset = e.target.value; syncUrl(); render();
       });
+      document.getElementById('sel-word').addEventListener('change', e => selectWord(normPhrase(e.target.value)));
       const chkGroup = document.getElementById('chk-group-variants');
       chkGroup.checked = groupVariants;
       chkGroup.addEventListener('change', e => {
@@ -1175,10 +1371,12 @@ import Base from '../../layouts/Base.astro';
       const wantLang = urlParams.get('lang');
       const wantDataset = urlParams.get('dataset');
       const wantMetric = urlParams.get('metric');
+      word = normPhrase(urlParams.get('word'));
       const startLeague = activeLeagues.some(l => l.id === wantLeague) ? wantLeague : activeLeagues[0].id;
       if (wantLang) lang = wantLang;
       if (wantDataset) dataset = wantDataset;
       if (wantMetric) metric = wantMetric; // reconciled against the board's real ladders in render()
+      league = startLeague;
       setLeague(startLeague);
     }
 

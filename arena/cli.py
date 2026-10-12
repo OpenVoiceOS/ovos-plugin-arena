@@ -729,6 +729,10 @@ def _dataset_info_lookup(prediction_sources: list[str]) -> dict[str, dict[str, A
             entry["notes"] = dataset.notes
         if dataset.test_set_kind:
             entry["test_set_kind"] = dataset.test_set_kind
+        if dataset.wakeword:
+            # The frontend splits the wake-word league into one league per
+            # phrase and needs to know which phrase a board tests.
+            entry["wakeword"] = dataset.wakeword
         own_repos = [r for r in hf_repos
                      if r.endswith(f"-bench-{dataset.dataset_id}")]
         if dataset.predictions_hf:

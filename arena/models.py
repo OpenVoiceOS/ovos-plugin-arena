@@ -404,7 +404,7 @@ class BenchmarkBoard(BaseModel):
     dataset_info: dict[str, Any] | None = Field(
         None,
         description=(
-            "Registry metadata for the eval corpus: display_name, summary, "
+            "Registry metadata for the eval corpus: display_name, summary, wakeword, "
             "url, license, notes, and the HF predictions repo(s) the board "
             "was assembled from."
         ),

@@ -498,6 +498,10 @@ import Base from '../../layouts/Base.astro';
     }
 
     function fillOptions(select, counts, allLabel, labelOf, selected) {
+      // A value still in force must stay visible even when the other filters
+      // leave it nothing to match, or the grid empties while the select
+      // claims "All".
+      if (selected && !counts.has(selected)) counts.set(selected, 0);
       const keys = [...counts.keys()].sort();
       select.innerHTML = `<option value="">${allLabel}</option>` + keys
         .map(k => `<option value="${escHtml(k)}">${escHtml(labelOf(k))} (${counts.get(k)})</option>`)
@@ -518,6 +522,7 @@ import Base from '../../layouts/Base.astro';
         'All languages', langDisplayName, state.lang);
 
       const sizeCounts = facetCounts('size', valuesIn(c => (c.size ? [c.size] : [])));
+      if (state.size && !sizeCounts.has(state.size)) sizeCounts.set(state.size, 0);
       const chips = document.getElementById('size-chips');
       const sizes = [...sizeCounts.keys()].sort((a, b) => SIZE_ORDER.indexOf(a) - SIZE_ORDER.indexOf(b));
       chips.style.display = sizes.length ? 'flex' : 'none';
@@ -549,13 +554,19 @@ import Base from '../../layouts/Base.astro';
 
     // Top-3 per tile comes from each league's own board for the visitor's
     // language, so the landing page already answers "who is winning here".
+    // Ladders are published per battle group: the intent leagues share one
+    // pooled `intent` ladder, so a league id alone never finds its board.
+    const groupOf = id => leagues.find(l => l.id === id)?.group || id;
+
     async function renderTileTops() {
       const wanted = navigator.language || 'en-US';
       const names = new Map(fighters.map(c => [c.competitor_id, c.display_name || c.competitor_id]));
       await Promise.all(leagues.map(async l => {
-        const lang = pickBoardLang(leaderboards, l.id, wanted);
-        const index = await rankIndex(BASE, l.id, lang);
-        const top = [...index].sort((a, b) => a[1].rank - b[1].rank).slice(0, 3);
+        const lang = pickBoardLang(leaderboards, l.group, wanted);
+        const index = await rankIndex(BASE, l.group, lang);
+        const inLeagueIds = new Set(fighters.filter(c => c.modality === l.id).map(c => c.competitor_id));
+        const top = [...index].filter(([id]) => inLeagueIds.has(id))
+          .sort((a, b) => a[1].rank - b[1].rank).slice(0, 3);
         if (!top.length) return;
         tileTops.set(l.id, `Top in ${escHtml(lang)}: ${top
           .map(([id]) => escHtml(names.get(id) || id)).join(', ')}`);
@@ -608,10 +619,11 @@ import Base from '../../layouts/Base.astro';
     }
 
     async function loadRanks() {
+      const group = groupOf(state.league);
       rankLang = state.league
-        ? pickBoardLang(leaderboards, state.league, state.lang || navigator.language || 'en-US') || ''
+        ? pickBoardLang(leaderboards, group, state.lang || navigator.language || 'en-US') || ''
         : '';
-      ranks = await rankIndex(BASE, state.league, rankLang);
+      ranks = await rankIndex(BASE, group, rankLang);
     }
 
     async function refresh() {
@@ -714,10 +726,10 @@ import Base from '../../layouts/Base.astro';
       fighters = all.filter(c => c.has_predictions);
       upcoming = all.filter(c => !c.has_predictions);
       leaderboards = index?.leaderboards || [];
-      leagues = (index?.leagues || []).map(l => ({ id: l.id, label: l.label }));
+      leagues = (index?.leagues || []).map(l => ({ id: l.id, label: l.label, group: l.battle_group || l.id }));
       if (!leagues.length) {
         leagues = [...new Set(all.map(c => c.modality))]
-          .map(id => ({ id, label: MODALITY_LABELS[id] || id }));
+          .map(id => ({ id, label: MODALITY_LABELS[id] || id, group: id }));
       }
 
       readUrl();

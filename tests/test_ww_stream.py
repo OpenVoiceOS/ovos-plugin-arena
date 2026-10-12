@@ -624,6 +624,18 @@ class TestTestSetKind:
         info = _dataset_info_lookup([])
         assert info["ww_stream_x"]["test_set_kind"] == "synthetic"
 
+    def test_wakeword_surfaced_in_board_dataset_info(self, monkeypatch):
+        from arena.cli import _dataset_info_lookup
+
+        monkeypatch.setattr(
+            "registry.loaders.list_datasets",
+            lambda *a, **k: [self._def(wakeword="hey_mycroft"),
+                             self._def(dataset_id="ww_stream_y")],
+        )
+        info = _dataset_info_lookup([])
+        assert info["ww_stream_x"]["wakeword"] == "hey_mycroft"
+        assert "wakeword" not in info["ww_stream_y"]
+
 
 class TestOnsetEndWindow:
     def _clip_row(self, event_t, ends=True):

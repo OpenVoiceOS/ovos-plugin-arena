@@ -57,6 +57,9 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
       }
     </style>
 
+    <div id="battle-none" class="card" style="display:none" role="status"></div>
+
+    <div id="battle-stage">
     <!-- The stimulus -->
     <div class="card" style="text-align:center;border-color:#57393d">
       <p id="input-kicker" style="font-size:0.78rem;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.4rem">heard utterance</p>
@@ -131,6 +134,7 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
       </p>
       <button class="btn btn-primary" id="btn-continue" style="margin-top:0.9rem">Next battle →</button>
     </div>
+    </div>
   </section>
 
   <style>
@@ -198,13 +202,16 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
     import { spriteSvg } from '../../lib/sprite.js';
     import { pairRecord, humanPairRecord, humanVoteCount } from '../../lib/headToHead.js';
     import { storageGet, storageSet } from '../../lib/storage.js';
+    import { datasetPhrase, fighterPhrase, phraseLabel } from '../../lib/wakeword.js';
 
     const BASE = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
     const GITHUB_REPO = import.meta.env.VITE_GITHUB_REPO || 'OpenVoiceOS/ovos-plugin-arena';
 
-    const BADGE_CLASS = { stt: 'badge-stt', tts: 'badge-tts', wake_word: 'badge-ww', vad: 'badge-vad', intent_zero_shot: 'badge-intent', intent_online: 'badge-intent', intent_offline: 'badge-intent', intent_keyword: 'badge-intent' };
-    const MODALITY_LABELS = { stt: 'STT', tts: 'TTS', wake_word: 'Wake Word', vad: 'VAD', intent_zero_shot: 'Intent · Zero-shot', intent_online: 'Intent · Trains at boot', intent_offline: 'Intent · Pretrained', intent_keyword: 'Intent · Keyword' };
-    const MODALITY_KICKER = { stt: 'spoken audio — what was said?', tts: 'text to read aloud', wake_word: 'audio clip — did the wake word fire?', vad: 'audio clip — is anyone speaking?', intent_zero_shot: 'heard utterance', intent_online: 'heard utterance', intent_offline: 'heard utterance', intent_keyword: 'heard utterance' };
+    // Battle pools are keyed by battle group, so every intent league arrives
+    // as the one pooled `intent` group.
+    const BADGE_CLASS = { intent: 'badge-intent', stt: 'badge-stt', tts: 'badge-tts', wake_word: 'badge-ww', vad: 'badge-vad', intent_zero_shot: 'badge-intent', intent_online: 'badge-intent', intent_offline: 'badge-intent', intent_keyword: 'badge-intent' };
+    const MODALITY_LABELS = { intent: 'Intent', stt: 'STT', tts: 'TTS', wake_word: 'Wake Word', vad: 'VAD', intent_zero_shot: 'Intent · Zero-shot', intent_online: 'Intent · Trains at boot', intent_offline: 'Intent · Pretrained', intent_keyword: 'Intent · Keyword' };
+    const MODALITY_KICKER = { intent: 'heard utterance', stt: 'spoken audio — what was said?', tts: 'text to read aloud', wake_word: 'audio clip — did the wake word fire?', vad: 'audio clip — is anyone speaking?', intent_zero_shot: 'heard utterance', intent_online: 'heard utterance', intent_offline: 'heard utterance', intent_keyword: 'heard utterance' };
     const MODALITY_PROMPT = {
       stt: 'Which candidate is the more accurate transcription?',
       tts: 'Listen to both voices reading the same line — which sounds better?',
@@ -239,6 +246,23 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
       const s = votedSet();
       s.add(battleId);
       storageSet('arena-battle-voted', JSON.stringify([...s]));
+    }
+
+    // A wake-word battle can only be judged when both masked detectors listen
+    // for the same phrase and the voter is told which one: a detector firing
+    // on a clip is right or wrong only relative to its own phrase. Pairs of
+    // detectors for different phrases are left out; the rest carry both the
+    // detectors' phrase and the phrase the clip was recorded for.
+    function judgeableWakeBattles(pool, bs) {
+      const known = new Set(Object.values(fightersById).map(fighterPhrase).filter(Boolean));
+      const clipPhrase = pool ? datasetPhrase(pool, known) : '';
+      return bs.filter(b => {
+        const pa = fighterPhrase(fightersById[b.competitor_a]);
+        if (!pa || pa !== fighterPhrase(fightersById[b.competitor_b])) return false;
+        b.ww_phrase = pa;
+        b.clip_phrase = clipPhrase;
+        return true;
+      });
     }
 
     function shuffle(arr) {
@@ -318,7 +342,8 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
       await Promise.all(wanted.map(async m => {
         if (!poolCache.has(m.file)) {
           const data = await fetchJson_(`${BASE}data/${m.file}${cacheV}`);
-          const bs = (data?.battles || []).map(b => { b.dataset_info = data.dataset_info || null; return b; });
+          let bs = (data?.battles || []).map(b => { b.dataset_info = data.dataset_info || null; return b; });
+          if (m.modality === 'wake_word') bs = judgeableWakeBattles(data, bs);
           poolCache.set(m.file, bs);
         }
       }));
@@ -339,15 +364,11 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
       battles = shuffle(allBattles.filter(b => !voted.has(b.battle_id)));
       currentIdx = 0;
       if (battles.length) {
-        document.getElementById('battle-empty').style.display = 'none';
-        document.getElementById('battle-ui').style.display = '';
         loadBattle(battles[0]);
       } else {
-        document.getElementById('battle-ui').style.display = 'none';
-        document.getElementById('battle-empty').style.display = '';
-        document.getElementById('battle-empty').textContent = allBattles.length
+        showNoBattles(allBattles.length
           ? "You've voted on every battle available for this language/modality combination. Pick another option above."
-          : 'No battles for this language/modality combination. Pick another option above.';
+          : 'No battles for this language/modality combination. Pick another option above.');
       }
     }
 
@@ -492,9 +513,11 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
         kicker = b.audio_url ? 'spoken audio' : 'reference transcript';
         mainText = b.audio_url ? '' : (b.reference || '');
       } else if (b.modality === 'wake_word') {
-        kicker = b.audio_url ? 'audio clip' : 'expected';
-        mainText = b.audio_url ? '' : (b.reference === 'positive'
-          ? 'wake word IS present' : 'wake word is NOT present');
+        kicker = `both detectors listen for ${phraseLabel(b.ww_phrase)}`;
+        const said = b.reference === 'positive'
+          ? `this clip says ${phraseLabel(b.clip_phrase)}` : 'this clip has no wake word in it';
+        mainText = b.audio_url ? '' : said;
+        if (b.audio_url) kicker += ` · ${said}`;
       }
       document.getElementById('battle-input').textContent = mainText;
       document.getElementById('input-kicker').textContent = kicker;
@@ -527,6 +550,8 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
       document.getElementById('popup-blocked-note').style.display = 'none';
 
       updateLeagueVotes(b.modality);
+      document.getElementById('battle-none').style.display = 'none';
+      document.getElementById('battle-stage').style.display = '';
       document.getElementById('battle-ui').style.display = '';
     }
 
@@ -559,8 +584,12 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
       if (!currentBattle) return;
       pendingChoice = choice;
       const url = buildIssueUrl(currentBattle.battle_id, choice);
+      // `noopener` in the feature string makes window.open return null even
+      // when the tab opened, which read as "blocked" on every vote. Open it
+      // plainly and cut the opener link by hand instead.
       let popup = null;
-      try { popup = window.open(url, '_blank', 'noopener,noreferrer'); } catch (e) { popup = null; }
+      try { popup = window.open(url, '_blank'); } catch (e) { popup = null; }
+      if (popup) { try { popup.opener = null; } catch { /* cross-origin already */ } }
       const blocked = !popup || popup.closed;
 
       document.getElementById('vote-panel').style.display = 'none';
@@ -580,6 +609,13 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
       if (!currentBattle || pendingChoice == null) return;
       const battle = currentBattle;
       markVoted(battle.battle_id);
+      // A confirmed battle leaves this session's rotation too, not only the
+      // next page load's, so cycling through the pool never offers it again.
+      const at = battles.indexOf(battle);
+      if (at !== -1) {
+        battles.splice(at, 1);
+        if (at <= currentIdx) currentIdx -= 1;
+      }
       reveal('a', battle.competitor_a);
       reveal('b', battle.competitor_b);
       if (pendingChoice === 'a') document.getElementById('cand-a').classList.add('winner');
@@ -614,8 +650,24 @@ const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL :
       nextBattle();
     }
 
+    // The language and modality chips stay on screen when a selection has
+    // nothing to vote on; hiding them with the battle left no way back.
+    function showNoBattles(message) {
+      currentBattle = null;
+      document.getElementById('battle-ui').style.display = '';
+      document.getElementById('battle-stage').style.display = 'none';
+      document.getElementById('battle-count').textContent = '';
+      document.getElementById('battle-id').textContent = '';
+      const none = document.getElementById('battle-none');
+      none.textContent = message;
+      none.style.display = '';
+    }
+
     function nextBattle() {
-      if (!battles.length) return;
+      if (!battles.length) {
+        showNoBattles("You've voted on every battle available for this language/modality combination. Pick another option above.");
+        return;
+      }
       currentIdx = (currentIdx + 1) % battles.length;
       loadBattle(battles[currentIdx]);
     }

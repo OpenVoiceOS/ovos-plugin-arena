@@ -27,6 +27,20 @@ rule, the offending selector, and a snippet of the markup. Run `npm run
 build` first so the gate scans real output. Install the browser once with
 `npx playwright install chromium` before the first run.
 
+The behaviour check, `npm run ui-check`, drives the built site in the same
+headless Chromium. It answers every request for `data/` from the small fixed
+arena in `scripts/ui-fixtures.mjs`, so a data refresh never changes its
+outcome, and covers the per-wake-word leagues, the blind and free vote flows,
+and the filter controls on the fighters, matchups and cost pages. Run
+`npm run build` first. CI runs it on every pull request.
+
+The wake-word league is one league per phrase. A detector is built for one
+wake word, so the leaderboard lists the phrases first and each phrase's page
+shows only its own detectors, ranked on the clip and streaming boards recorded
+for that phrase. The phrase comes from registry data: a fighter's hotword key,
+and a dataset's `wakeword` field or the phrase quoted in its display name
+(`src/lib/wakeword.js`).
+
 Most of the page content here is injected client-side through `innerHTML`
 from `<script>` tags rather than rendered by Astro at build time. Styling for
 that injected markup, such as links, tables, or heatmap cells, has to live in
