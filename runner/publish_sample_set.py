@@ -180,8 +180,51 @@ def publish_sample_set(
             commit_message=f"sample-set: {dataset_def.dataset_id}/{dataset_def.lang}",
         )
         log.info("  uploaded %s → %s", path_in_repo, repo)
+        _write_card(api, repo, dataset_def)
 
     return manifest
+
+
+def _write_card(api, repo: str, dataset_def) -> None:
+    """Give the repo a card describing what a manifest repository is.
+
+    This path creates repos that nothing else ever writes a README into, which
+    is how they came to carry a card naming no funder. Writing one here is what
+    stops that recurring.
+
+    A repo that already carries a prediction publisher's card keeps it. The
+    same repo can hold manifests and prediction rows, the prediction card is
+    the more informative of the two, and this job runs on a schedule — without
+    the check it would overwrite that card every week.
+    """
+    from runner.dataset_cards import sample_set_card
+
+    existing = _existing_card(api, repo)
+    if existing and "card-sample-set-manifest" not in existing:
+        return
+    card = sample_set_card(dataset_def.dataset_id, dataset_def.lang,
+                           dataset_def.source.hf_id)
+    if existing == card:
+        return
+    api.upload_file(
+        path_or_fileobj=card.encode("utf-8"),
+        path_in_repo="README.md",
+        repo_id=repo,
+        repo_type="dataset",
+        commit_message="docs: describe the sample-set manifests this repo holds",
+    )
+    log.info("  wrote card → %s", repo)
+
+
+def _existing_card(api, repo: str) -> str | None:
+    """The repo's current README, or None when it has none."""
+    from pathlib import Path as _Path
+
+    try:
+        return _Path(api.hf_hub_download(
+            repo, "README.md", repo_type="dataset")).read_text()
+    except Exception:
+        return None
 
 
 def _publish_one(dataset_def, owner: str, dry_run: bool,
