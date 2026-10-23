@@ -51,7 +51,7 @@ BOOTSTRAP_SEED = 0
 # ``input_hash`` never survives a scoring-logic change — the whole point of
 # the signature is "same input AND same logic produces the same output",
 # not just "same input".
-BOARD_LOGIC_VERSION = 3
+BOARD_LOGIC_VERSION = 4
 
 #: Test buckets phrased close to the training data: ``template`` rows are
 #: expansions of held-out phrase templates (a template-paradigm fighter
@@ -1145,6 +1145,10 @@ def score_ww_stream(rows: list[PredictionRow]) -> dict[str, float]:
     return metrics
 
 
+#: Binary detection leagues: a row is a positive or a negative clip, and the
+#: board's error rate means something only when both classes were scored.
+_DETECTION_MODALITIES = {"wake_word", "vad"}
+
 _SCORERS = {
     "intent_zero_shot": score_intent,
     "intent_online": score_intent,
@@ -1677,8 +1681,17 @@ def build_benchmark_board(
     def _off_revision(entry: BenchmarkEntry) -> bool:
         return entry.samples == 0 and entry.rows_other_revision > 0
 
+    # A detection error rate over one class is that class's error alone: on
+    # positives only, a detector that fires on every clip scores 0.0. Both
+    # rates must exist before the error rate says anything.
+    def _one_class(entry: BenchmarkEntry) -> bool:
+        return (modality in _DETECTION_MODALITIES and _has_signal(entry)
+                and not {"false_accept_rate", "false_reject_rate"} <= entry.metrics.keys())
+
     stale = [e for e in entries if _off_revision(e)]
     scoreable = [e for e in entries if not _off_revision(e)]
+    one_class = [e for e in scoreable if _one_class(e)]
+    scoreable = [e for e in scoreable if e not in one_class]
     thin = [e for e in scoreable if _scored_any(e) and _too_few(e)]
     scoreable = [e for e in scoreable if e not in thin]
     ranked = [e for e in scoreable if _has_signal(e) and not _partial_coverage(e)]
@@ -1717,6 +1730,14 @@ def build_benchmark_board(
             f"under {primary}, below the {min_samples} a board needs to say "
             "anything"
         )
+    for entry in one_class:
+        missing = "negatives" if "false_accept_rate" not in entry.metrics else "positives"
+        entry.rank = 0
+        entry.unranked = True
+        entry.unranked_reason = (
+            f"one_class — no {missing} were scored, so {primary} measures one "
+            "error type only; the fighter needs a sweep over both classes"
+        )
     for entry in failed:
         entry.rank = 0
         entry.unranked = True
@@ -1729,7 +1750,7 @@ def build_benchmark_board(
             f"{entry.rows_other_revision} row(s) from another revision were "
             "dropped; the fighter needs a re-sweep"
         )
-    entries = ranked + partial + thin + off_metric + failed + stale
+    entries = ranked + partial + thin + one_class + off_metric + failed + stale
 
     if ranked:
         leader_ci = cis.get(ranked[0].competitor_id)

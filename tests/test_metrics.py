@@ -727,9 +727,13 @@ class TestBenchmarkBoard:
     def test_wake_word_ranked_by_error_rate_asc(self):
         by_competitor = {
             "noisy": [_row(competitor_id="noisy", label="negative",
+                           prediction="detected"),
+                      _row(competitor_id="noisy", sample_id="p", label="positive",
                            prediction="detected")],
             "clean": [_row(competitor_id="clean", label="negative",
-                           prediction="not_detected")],
+                           prediction="not_detected"),
+                      _row(competitor_id="clean", sample_id="p", label="positive",
+                           prediction="detected")],
         }
         board = build_benchmark_board("wake_word", "d", "en", by_competitor, "t", min_samples=1)
         assert board.primary_metric == "error_rate"
