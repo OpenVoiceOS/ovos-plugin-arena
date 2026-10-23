@@ -12,7 +12,8 @@ appears on the boards.
 ## 1. Write the competitor file
 
 Drop a JSON file at `registry/competitors/<modality>/<competitor-id>.json`.
-`<modality>` is one of `stt`, `tts`, `ww`, `vad`, `intent`.
+`<modality>` is one of `stt`, `tts`, `wake_word`, `vad`, or an intent league:
+`intent_zero_shot`, `intent_online`, `intent_offline`, `intent_keyword`.
 
 ### Example: a single-engine STT fighter
 
@@ -109,7 +110,7 @@ VAD fighter. Do not deduplicate them.
 | Field | Required | Notes |
 |-------|----------|-------|
 | `competitor_id` | yes | Stable unique id. Becomes the filename and badge path. |
-| `modality` | yes | `stt` / `tts` / `ww` / `vad`, or an intent league: `intent_zero_shot` / `intent_online` / `intent_offline` / `intent_keyword`. |
+| `modality` | yes | `stt` / `tts` / `wake_word` / `vad`, or an intent league: `intent_zero_shot` / `intent_online` / `intent_offline` / `intent_keyword`. |
 | `config` | yes | A valid `mycroft.conf` fragment. Intent fighters need `config.intents.pipeline`. |
 | `plugin` | for non-intent | OPM entry-point name. Derived from the pipeline for single-engine intent fighters. |
 | `langs` | recommended | BCP-47 tags the fighter supports. |
