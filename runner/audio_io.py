@@ -11,6 +11,7 @@ from __future__ import annotations
 import logging
 import random
 from collections.abc import Iterable, Iterator
+from itertools import zip_longest
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -202,8 +203,10 @@ def _emit_labelled(pos, neg, max_per_class, pos_label="positive",
     if max_per_class:
         pos = _even(sorted(pos), max_per_class)
         neg = _even(sorted(neg), max_per_class)
-    for label, clips in ((pos_label, pos), (neg_label, neg)):
-        for hf_id, rel, rev in clips:
+    # Alternate the classes: a sweep cut short by a batch cap or a deadline
+    # must still hold both, or its board ranks on one error type alone.
+    for pair in zip_longest([(pos_label, c) for c in pos], [(neg_label, c) for c in neg]):
+        for label, (hf_id, rel, rev) in filter(None, pair):
             try:
                 local = hf_hub_download(hf_id, rel, repo_type="dataset", revision=rev)
                 with open(local, "rb") as fh:
@@ -214,6 +217,15 @@ def _emit_labelled(pos, neg, max_per_class, pos_label="positive",
             url = (f"https://huggingface.co/datasets/{hf_id}"
                    f"/resolve/{rev}/{quote(rel)}")
             yield rel, {"array": array, "sr": sr, "label": label, "audio_url": url}
+
+
+def _alternate(*streams: Iterator) -> Iterator:
+    """One item from each stream in turn, until every stream is exhausted."""
+    for items in zip_longest(*streams, fillvalue=_DONE):
+        yield from (item for item in items if item is not _DONE)
+
+
+_DONE = object()
 
 
 def _emit_ww(pos, neg, max_per_class):
@@ -239,8 +251,8 @@ def _pool_negatives(sources, max_per_class):
     return out
 
 
-def _pooled_dataset_negatives(dataset_ids: list[str], max_per_class: int
-                              ) -> Iterator[tuple[str, dict]]:
+def _pooled_dataset_negatives(dataset_ids: list[str], max_per_class: int,
+                              failures: list[Exception]) -> Iterator[tuple[str, dict]]:
     """Wake-word negatives pooled from other *registry* datasets, resolved via
     the registry loader and streamed through :func:`stream_audio_dataset` —
     the generic parquet-aware audio path used for STT/VAD positives.
@@ -249,7 +261,8 @@ def _pooled_dataset_negatives(dataset_ids: list[str], max_per_class: int
     corpora only), this handles negatives shipped as parquet row groups
     (e.g. ml_spoken_words), which ``huggingface_hub.list_repo_files``-based
     pooling cannot consume. Each source gets an even share of
-    ``max_per_class`` so one big corpus does not dominate the pool.
+    ``max_per_class`` so one big corpus does not dominate the pool. A source
+    that fails is appended to ``failures`` and the other sources go on.
     """
     from registry.loaders import load_dataset
 
@@ -262,13 +275,19 @@ def _pooled_dataset_negatives(dataset_ids: list[str], max_per_class: int
         # unrestricted corpus (e.g. ml_spoken_words) stays capped even when
         # the parent wake-word dataset's own share (`per`) would ask for more.
         effective_per, seed = resolve_sample_cap(neg_def, per)
-        for sid, sample in stream_audio_dataset(
-                neg_def.source, audio_key=audio_key, extra_keys={},
-                revision=neg_def.source.revision, max_samples=effective_per,
-                seed=seed):
-            sample["label"] = "negative"
-            sample.setdefault("audio_url", None)
-            yield f"{did}/{sid}", sample
+        # The stream interleaves this channel from its first sample, so a
+        # source that cannot load must not end the other channels early.
+        try:
+            for sid, sample in stream_audio_dataset(
+                    neg_def.source, audio_key=audio_key, extra_keys={},
+                    revision=neg_def.source.revision, max_samples=effective_per,
+                    seed=seed):
+                sample["label"] = "negative"
+                sample.setdefault("audio_url", None)
+                yield f"{did}/{sid}", sample
+        except Exception as exc:
+            logger.warning("pooled negatives %s failed: %s", did, exc)
+            failures.append(exc)
 
 
 def _ava_speech_windows(onsets: list, offsets: list, duration_s: float,
@@ -397,13 +416,17 @@ def stream_vad(dataset_def, revision: str, max_per_class: int = 0
         # any speech corpus works as VAD positives. Negatives stay the shared
         # non-speech pool. Lets VAD run across many languages.
         audio_key = fields.get("audio", "audio")
-        for sid, sample in stream_audio_dataset(
-                src, audio_key=audio_key, extra_keys={}, revision=revision,
-                max_samples=max_per_class):
-            sample["label"] = "speech"
-            sample.setdefault("audio_url", None)
-            yield f"speech/{sid}", sample
-        yield from _emit_labelled([], neg, max_per_class, "speech", "non_speech")
+
+        def speech():
+            for sid, sample in stream_audio_dataset(
+                    src, audio_key=audio_key, extra_keys={}, revision=revision,
+                    max_samples=max_per_class):
+                sample["label"] = "speech"
+                sample.setdefault("audio_url", None)
+                yield f"speech/{sid}", sample
+
+        yield from _alternate(
+            speech(), _emit_labelled([], neg, max_per_class, "speech", "non_speech"))
         return
 
     # Audiofolder speech positives (whole repo, or a subset subdir).
@@ -475,14 +498,18 @@ def stream_ww(dataset_def, revision: str, max_per_class: int = 0
     else:
         neg = same_neg
 
-    yield from _emit_ww(pos, neg, max_per_class)
-
+    negatives = _emit_ww([], neg, max_per_class)
+    pooled_failures: list[Exception] = []
     if dataset_def.negatives_dataset_ids:
         # additional, independent negatives channel — pooled from other
         # registry datasets (parquet-shaped corpora) on top of whichever of
         # the above (negatives_sources/negatives_hf/same-corpus) applied.
-        yield from _pooled_dataset_negatives(
-            dataset_def.negatives_dataset_ids, max_per_class)
+        negatives = _alternate(negatives, _pooled_dataset_negatives(
+            dataset_def.negatives_dataset_ids, max_per_class, pooled_failures))
+    yield from _alternate(_emit_ww(pos, [], max_per_class), negatives)
+    # Raised after the last row, so a short sweep is not read as complete.
+    if pooled_failures:
+        raise pooled_failures[0]
 
 
 def stream_manifest_audio(
