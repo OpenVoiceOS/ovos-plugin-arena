@@ -279,6 +279,29 @@ def validate_registry(registry_root: Path | None = None) -> list[str]:
                     f"{competitor.modality.value!r}"
                 )
 
+    # A few-shot wake-word fighter takes its references from a registry
+    # dataset (runner.ww_bench.reference_clips); scoring it on that dataset
+    # would test it on its own references.
+    for competitor_id, competitor in all_competitors.items():
+        for hw_cfg in (competitor.config.get("hotwords") or {}).values():
+            ref = (hw_cfg or {}).get("samples_from")
+            if ref is None:
+                continue
+            path = competitor_paths[competitor_id]
+            if not isinstance(ref, dict):
+                errors.append(f"{path}: samples_from must be {{dataset_id, count}}")
+                continue
+            ref_id = ref.get("dataset_id")
+            if ref_id not in all_datasets:
+                errors.append(
+                    f"{path}: samples_from references unknown dataset_id {ref_id!r}")
+            elif ref_id not in (competitor.trained_on or []):
+                errors.append(
+                    f"{path}: samples_from dataset {ref_id!r} is missing from trained_on")
+            count = ref.get("count")
+            if type(count) is not int or count < 1:
+                errors.append(f"{path}: samples_from needs a positive integer count")
+
     return errors
 
 

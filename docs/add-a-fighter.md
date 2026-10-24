@@ -105,6 +105,30 @@ This is not copy-paste residue. The listener's VAD manager reads the flat key
 reads the nested key. Both copies must stay in sync when you add or edit a
 VAD fighter. Do not deduplicate them.
 
+### Note: few-shot wake-word fighters name their recordings
+
+A plugin that learns a phrase from a few recordings, such as
+`ovos-ww-plugin-local-wake`, needs a `samples` folder. A registry entry cannot
+hold a path on one machine, so it names a registry dataset instead:
+
+```jsonc
+"hotwords": {
+  "alexa": {
+    "module": "ovos-ww-plugin-local-wake",
+    "listen": true,
+    "samples_from": { "dataset_id": "synthetic-wakewords-alexa", "count": 4 }
+  }
+}
+```
+
+When the fighter loads, the runner writes `count` positive clips of that
+dataset, in the dataset's own sampling order, into a cache folder and gives the plugin that folder as
+`samples`. The cache is `~/.cache/ovos-plugin-arena/ww-references`, or
+`$ARENA_CACHE/ww-references`. The dataset must also be in `trained_on`, so the
+fighter is never scored on its own recordings; `validate-registry` refuses the
+entry otherwise. `scripts/gen_ww_fewshot_fighters.py` writes the zero-shot and
+few-shot wake-word fighters.
+
 ## 2. Field reference
 
 | Field | Required | Notes |
