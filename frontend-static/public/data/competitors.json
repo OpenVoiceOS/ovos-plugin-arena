@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-12T10:43:42.703932+00:00",
+  "generated_at": "2026-10-24T17:30:40.105166+00:00",
   "competitors": [
     {
       "competitor_id": "adapt-domain-medium",
@@ -115338,6 +115338,218 @@
       ]
     },
     {
+      "competitor_id": "efficientword-net-alexa",
+      "schema_version": 1,
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-efficientword-net",
+      "config": {
+        "listener": {
+          "wake_word": "alexa"
+        },
+        "hotwords": {
+          "alexa": {
+            "module": "ovos-ww-plugin-efficientword-net",
+            "listen": true
+          }
+        }
+      },
+      "langs": [
+        "en-US",
+        "en-GB",
+        "en-AU"
+      ],
+      "alias": [
+        "ovos-ww-plugin-efficientword-net"
+      ],
+      "trained_on": [],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "EfficientWord-Net (alexa)",
+      "species": "EfficientWordHotwordPlugin",
+      "family": "efficientword-net-alexa",
+      "types": [
+        "neural-net",
+        "few-shot"
+      ],
+      "description": "EfficientWord-Net ResNet-50 embeddings compared against the plugin's bundled references for 'alexa'.",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-efficientword-net"
+      },
+      "notes": "Bundled reference embeddings and the plugin's default threshold (0.7).",
+      "has_predictions": true,
+      "prediction_datasets": [
+        {
+          "dataset_id": "picovoice-alexa",
+          "lang": "en-US"
+        },
+        {
+          "dataset_id": "synthetic-wakewords-alexa",
+          "lang": "en-US"
+        }
+      ]
+    },
+    {
+      "competitor_id": "efficientword-net-computer",
+      "schema_version": 1,
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-efficientword-net",
+      "config": {
+        "listener": {
+          "wake_word": "computer"
+        },
+        "hotwords": {
+          "computer": {
+            "module": "ovos-ww-plugin-efficientword-net",
+            "listen": true
+          }
+        }
+      },
+      "langs": [
+        "en-US",
+        "en-GB",
+        "en-AU"
+      ],
+      "alias": [
+        "ovos-ww-plugin-efficientword-net"
+      ],
+      "trained_on": [],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "EfficientWord-Net (computer)",
+      "species": "EfficientWordHotwordPlugin",
+      "family": "efficientword-net-computer",
+      "types": [
+        "neural-net",
+        "few-shot"
+      ],
+      "description": "EfficientWord-Net ResNet-50 embeddings compared against the plugin's bundled references for 'computer'.",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-efficientword-net"
+      },
+      "notes": "Bundled reference embeddings and the plugin's default threshold (0.7).",
+      "has_predictions": true,
+      "prediction_datasets": [
+        {
+          "dataset_id": "community-computer",
+          "lang": "en-US"
+        },
+        {
+          "dataset_id": "picovoice-computer",
+          "lang": "en-US"
+        }
+      ]
+    },
+    {
+      "competitor_id": "local-wake-alexa",
+      "schema_version": 1,
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-local-wake",
+      "config": {
+        "listener": {
+          "wake_word": "alexa"
+        },
+        "hotwords": {
+          "alexa": {
+            "module": "ovos-ww-plugin-local-wake",
+            "listen": true,
+            "samples_from": {
+              "dataset_id": "synthetic-wakewords-alexa",
+              "count": 4
+            }
+          }
+        }
+      },
+      "langs": [
+        "en-US",
+        "en-GB",
+        "en-AU"
+      ],
+      "alias": [
+        "ovos-ww-plugin-local-wake"
+      ],
+      "trained_on": [
+        "synthetic-wakewords-alexa"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "local-wake (alexa)",
+      "species": "LocalWakeHotwordPlugin",
+      "family": "local-wake-alexa",
+      "types": [
+        "template-matching",
+        "few-shot"
+      ],
+      "description": "Dynamic time warping of speech features against 4 recordings of 'alexa'.",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-local-wake"
+      },
+      "notes": "The references are 4 positive clips of synthetic-wakewords-alexa, so the fighter is not scored on that set. Threshold is the plugin default.",
+      "has_predictions": true,
+      "prediction_datasets": [
+        {
+          "dataset_id": "picovoice-alexa",
+          "lang": "en-US"
+        }
+      ]
+    },
+    {
+      "competitor_id": "local-wake-hey-ziggy",
+      "schema_version": 1,
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-local-wake",
+      "config": {
+        "listener": {
+          "wake_word": "hey_ziggy"
+        },
+        "hotwords": {
+          "hey_ziggy": {
+            "module": "ovos-ww-plugin-local-wake",
+            "listen": true,
+            "samples_from": {
+              "dataset_id": "synthetic-wakewords-hey_ziggy",
+              "count": 4
+            }
+          }
+        }
+      },
+      "langs": [
+        "en-US",
+        "en-GB",
+        "en-AU"
+      ],
+      "alias": [
+        "ovos-ww-plugin-local-wake"
+      ],
+      "trained_on": [
+        "synthetic-wakewords-hey_ziggy"
+      ],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "local-wake (hey ziggy)",
+      "species": "LocalWakeHotwordPlugin",
+      "family": "local-wake-hey-ziggy",
+      "types": [
+        "template-matching",
+        "few-shot"
+      ],
+      "description": "Dynamic time warping of speech features against 4 recordings of 'hey ziggy'.",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-local-wake"
+      },
+      "notes": "The references are 4 positive clips of synthetic-wakewords-hey_ziggy, so the fighter is not scored on that set. Threshold is the plugin default.",
+      "has_predictions": true,
+      "prediction_datasets": [
+        {
+          "dataset_id": "community-hey-ziggy",
+          "lang": "en-US"
+        }
+      ]
+    },
+    {
       "competitor_id": "microwakeword-hey-jarvis",
       "schema_version": 1,
       "modality": "wake_word",
@@ -116485,8 +116697,13 @@
         "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-openWakeWord"
       },
       "notes": "Purpose: The full listener stack (VAD gate plus speaker verifier) as the reference for the openWakeWord stack family. Combo fighter: pre-wake VAD + wake-word engine + verifier. Each distinct (engine, VAD, verifier) triple is its own competitor.",
-      "has_predictions": false,
-      "prediction_datasets": []
+      "has_predictions": true,
+      "prediction_datasets": [
+        {
+          "dataset_id": "synthetic-wakewords-hey_mycroft",
+          "lang": "en-US"
+        }
+      ]
     },
     {
       "competitor_id": "openwakeword-hey-mycroft-speaker",
@@ -116540,8 +116757,13 @@
         "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-openWakeWord"
       },
       "notes": "Purpose: Measures whether a speaker-verification gate cuts false accepts versus the bare detector. Combo fighter: wake-word engine + verifier. The same engine without the verifier is a different competitor.",
-      "has_predictions": false,
-      "prediction_datasets": []
+      "has_predictions": true,
+      "prediction_datasets": [
+        {
+          "dataset_id": "synthetic-wakewords-hey_mycroft",
+          "lang": "en-US"
+        }
+      ]
     },
     {
       "competitor_id": "openwakeword-hey-mycroft-thr03",
@@ -121832,8 +122054,13 @@
         "model": "https://huggingface.co/OpenVoiceOS/wakehubert-wakewords"
       },
       "notes": "Plugin default config: the ready model named in 'model', fetched from OpenVoiceOS/wakehubert-wakewords at the revision the plugin pins; threshold, smoothing and debounce come from the model's own metadata. Training data per the model card: synthetic speech only: text-to-speech clips from TigreGotico/synthetic-wakeword-alexa (multi-engine, edge-tts multi-voice and Piper with LibriTTS-R speakers, CC BY 4.0) and OmniVoice clips.",
-      "has_predictions": false,
-      "prediction_datasets": []
+      "has_predictions": true,
+      "prediction_datasets": [
+        {
+          "dataset_id": "picovoice-alexa",
+          "lang": "en-US"
+        }
+      ]
     },
     {
       "competitor_id": "wakeforge-computer",
@@ -121877,8 +122104,17 @@
         "model": "https://huggingface.co/OpenVoiceOS/wakehubert-wakewords"
       },
       "notes": "Plugin default config: the ready model named in 'model', fetched from OpenVoiceOS/wakehubert-wakewords at the revision the plugin pins; threshold, smoothing and debounce come from the model's own metadata. Training data per the model card: TigreGotico/synthetic-wakeword-computer (CC BY 4.0).",
-      "has_predictions": false,
-      "prediction_datasets": []
+      "has_predictions": true,
+      "prediction_datasets": [
+        {
+          "dataset_id": "community-computer",
+          "lang": "en-US"
+        },
+        {
+          "dataset_id": "picovoice-computer",
+          "lang": "en-US"
+        }
+      ]
     },
     {
       "competitor_id": "wakeforge-hey-chatterbox",
@@ -121922,8 +122158,13 @@
         "model": "https://huggingface.co/OpenVoiceOS/wakehubert-wakewords"
       },
       "notes": "Plugin default config: the ready model named in 'model', fetched from OpenVoiceOS/wakehubert-wakewords at the revision the plugin pins; threshold, smoothing and debounce come from the model's own metadata. Training data per the model card: synthetic speech only: an edge-tts voice grid, voice-converted copies of edge-tts clips, OmniVoice clips, with six held-out edge-tts test voices excluded.",
-      "has_predictions": false,
-      "prediction_datasets": []
+      "has_predictions": true,
+      "prediction_datasets": [
+        {
+          "dataset_id": "community-hey-chatterbox",
+          "lang": "en-US"
+        }
+      ]
     },
     {
       "competitor_id": "wakeforge-hey-computer",
@@ -122014,8 +122255,13 @@
         "model": "https://huggingface.co/OpenVoiceOS/wakehubert-wakewords"
       },
       "notes": "Plugin default config: the ready model named in 'model', fetched from OpenVoiceOS/wakehubert-wakewords at the revision the plugin pins; threshold, smoothing and debounce come from the model's own metadata. Training data per the model card: synthetic speech only: an edge-tts voice grid, voice-converted copies of edge-tts clips, OmniVoice clips, with six held-out edge-tts test voices excluded.",
-      "has_predictions": false,
-      "prediction_datasets": []
+      "has_predictions": true,
+      "prediction_datasets": [
+        {
+          "dataset_id": "community-hey-floyd",
+          "lang": "en-US"
+        }
+      ]
     },
     {
       "competitor_id": "wakeforge-hey-jarvis",
@@ -122106,8 +122352,13 @@
         "model": "https://huggingface.co/OpenVoiceOS/wakehubert-wakewords"
       },
       "notes": "Plugin default config: the ready model named in 'model', fetched from OpenVoiceOS/wakehubert-wakewords at the revision the plugin pins; threshold, smoothing and debounce come from the model's own metadata. Training data per the model card: synthetic speech only: an edge-tts voice grid, OmniVoice clips, with six held-out edge-tts test voices excluded.",
-      "has_predictions": false,
-      "prediction_datasets": []
+      "has_predictions": true,
+      "prediction_datasets": [
+        {
+          "dataset_id": "community-hey-k9",
+          "lang": "en-US"
+        }
+      ]
     },
     {
       "competitor_id": "wakeforge-hey-marvin",
@@ -122292,8 +122543,13 @@
         "model": "https://huggingface.co/OpenVoiceOS/wakehubert-wakewords"
       },
       "notes": "Plugin default config: the ready model named in 'model', fetched from OpenVoiceOS/wakehubert-wakewords at the revision the plugin pins; threshold, smoothing and debounce come from the model's own metadata. Training data per the model card: synthetic speech only: an edge-tts voice grid, OmniVoice clips, with six held-out edge-tts test voices excluded.",
-      "has_predictions": false,
-      "prediction_datasets": []
+      "has_predictions": true,
+      "prediction_datasets": [
+        {
+          "dataset_id": "community-hey-scout",
+          "lang": "en-US"
+        }
+      ]
     },
     {
       "competitor_id": "wakeforge-hey-ziggy",
@@ -122339,8 +122595,13 @@
         "model": "https://huggingface.co/OpenVoiceOS/wakehubert-wakewords"
       },
       "notes": "Plugin default config: the ready model named in 'model', fetched from OpenVoiceOS/wakehubert-wakewords at the revision the plugin pins; threshold, smoothing and debounce come from the model's own metadata. Training data per the model card: synthetic speech only: an edge-tts voice grid, voice-converted copies of edge-tts clips, OmniVoice clips, each checked against a speech recogniser transcript, with eight held-out edge-tts test voices excluded.",
-      "has_predictions": false,
-      "prediction_datasets": []
+      "has_predictions": true,
+      "prediction_datasets": [
+        {
+          "dataset_id": "community-hey-ziggy",
+          "lang": "en-US"
+        }
+      ]
     },
     {
       "competitor_id": "wakeforge-jarvis",
@@ -122384,8 +122645,13 @@
         "model": "https://huggingface.co/OpenVoiceOS/wakehubert-wakewords"
       },
       "notes": "Plugin default config: the ready model named in 'model', fetched from OpenVoiceOS/wakehubert-wakewords at the revision the plugin pins; threshold, smoothing and debounce come from the model's own metadata. Training data per the model card: synthetic speech only: an edge-tts voice grid, voice-converted copies of edge-tts clips, edge-tts and Google Translate TTS voices, OmniVoice clips, with six held-out edge-tts test voices excluded.",
-      "has_predictions": false,
-      "prediction_datasets": []
+      "has_predictions": true,
+      "prediction_datasets": [
+        {
+          "dataset_id": "picovoice-jarvis",
+          "lang": "en-US"
+        }
+      ]
     },
     {
       "competitor_id": "wakeforge-wake-up",
@@ -122433,6 +122699,1168 @@
       "notes": "Plugin default config: the ready model named in 'model', fetched from OpenVoiceOS/wakehubert-wakewords at the revision the plugin pins; threshold, smoothing and debounce come from the model's own metadata. Training data per the model card: synthetic speech only: an edge-tts voice grid, OmniVoice clips, with six held-out edge-tts test voices excluded.",
       "has_predictions": false,
       "prediction_datasets": []
+    },
+    {
+      "competitor_id": "wakeforge-zeroshot-alexa",
+      "schema_version": 1,
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-wakeforge-zeroshot",
+      "config": {
+        "listener": {
+          "wake_word": "alexa"
+        },
+        "hotwords": {
+          "alexa": {
+            "module": "ovos-ww-plugin-wakeforge-zeroshot",
+            "listen": true,
+            "ipa": "ɐ l ɛ k s ə"
+          }
+        }
+      },
+      "langs": [
+        "en-US",
+        "en-GB",
+        "en-AU"
+      ],
+      "alias": [
+        "ovos-ww-plugin-wakeforge-zeroshot"
+      ],
+      "trained_on": [],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "wakeforge zero-shot (alexa)",
+      "species": "WakePhoneHuBERTZeroShotPlugin",
+      "family": "wakeforge-zeroshot-alexa",
+      "types": [
+        "neural-net",
+        "zero-shot"
+      ],
+      "description": "WakePhoneHuBERT phone posteriors matched against the phones of 'alexa'. No recordings and no training for the phrase.",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge",
+        "model": "https://huggingface.co/TigreGotico/wakephonehubert"
+      },
+      "notes": "Phones 'ɐ l ɛ k s ə' from espeak-ng (en-us), stress marks removed. Threshold, confirm_blocks and debounce are the plugin defaults.",
+      "has_predictions": true,
+      "prediction_datasets": [
+        {
+          "dataset_id": "picovoice-alexa",
+          "lang": "en-US"
+        },
+        {
+          "dataset_id": "synthetic-wakewords-alexa",
+          "lang": "en-US"
+        }
+      ]
+    },
+    {
+      "competitor_id": "wakeforge-zeroshot-amelia",
+      "schema_version": 1,
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-wakeforge-zeroshot",
+      "config": {
+        "listener": {
+          "wake_word": "amelia"
+        },
+        "hotwords": {
+          "amelia": {
+            "module": "ovos-ww-plugin-wakeforge-zeroshot",
+            "listen": true,
+            "ipa": "ɐ m iː l iə"
+          }
+        }
+      },
+      "langs": [
+        "en-US",
+        "en-GB",
+        "en-AU"
+      ],
+      "alias": [
+        "ovos-ww-plugin-wakeforge-zeroshot"
+      ],
+      "trained_on": [],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "wakeforge zero-shot (amelia)",
+      "species": "WakePhoneHuBERTZeroShotPlugin",
+      "family": "wakeforge-zeroshot-amelia",
+      "types": [
+        "neural-net",
+        "zero-shot"
+      ],
+      "description": "WakePhoneHuBERT phone posteriors matched against the phones of 'amelia'. No recordings and no training for the phrase.",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge",
+        "model": "https://huggingface.co/TigreGotico/wakephonehubert"
+      },
+      "notes": "Phones 'ɐ m iː l iə' from espeak-ng (en-us), stress marks removed. Threshold, confirm_blocks and debounce are the plugin defaults.",
+      "has_predictions": true,
+      "prediction_datasets": [
+        {
+          "dataset_id": "community-amelia",
+          "lang": "en-US"
+        }
+      ]
+    },
+    {
+      "competitor_id": "wakeforge-zeroshot-athena",
+      "schema_version": 1,
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-wakeforge-zeroshot",
+      "config": {
+        "listener": {
+          "wake_word": "athena"
+        },
+        "hotwords": {
+          "athena": {
+            "module": "ovos-ww-plugin-wakeforge-zeroshot",
+            "listen": true,
+            "ipa": "æ θ iː n ə"
+          }
+        }
+      },
+      "langs": [
+        "en-US",
+        "en-GB",
+        "en-AU"
+      ],
+      "alias": [
+        "ovos-ww-plugin-wakeforge-zeroshot"
+      ],
+      "trained_on": [],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "wakeforge zero-shot (athena)",
+      "species": "WakePhoneHuBERTZeroShotPlugin",
+      "family": "wakeforge-zeroshot-athena",
+      "types": [
+        "neural-net",
+        "zero-shot"
+      ],
+      "description": "WakePhoneHuBERT phone posteriors matched against the phones of 'athena'. No recordings and no training for the phrase.",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge",
+        "model": "https://huggingface.co/TigreGotico/wakephonehubert"
+      },
+      "notes": "Phones 'æ θ iː n ə' from espeak-ng (en-us), stress marks removed. Threshold, confirm_blocks and debounce are the plugin defaults.",
+      "has_predictions": true,
+      "prediction_datasets": [
+        {
+          "dataset_id": "community-athena",
+          "lang": "en-US"
+        }
+      ]
+    },
+    {
+      "competitor_id": "wakeforge-zeroshot-computer",
+      "schema_version": 1,
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-wakeforge-zeroshot",
+      "config": {
+        "listener": {
+          "wake_word": "computer"
+        },
+        "hotwords": {
+          "computer": {
+            "module": "ovos-ww-plugin-wakeforge-zeroshot",
+            "listen": true,
+            "ipa": "k ə m p j uː ɾ ɚ"
+          }
+        }
+      },
+      "langs": [
+        "en-US",
+        "en-GB",
+        "en-AU"
+      ],
+      "alias": [
+        "ovos-ww-plugin-wakeforge-zeroshot"
+      ],
+      "trained_on": [],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "wakeforge zero-shot (computer)",
+      "species": "WakePhoneHuBERTZeroShotPlugin",
+      "family": "wakeforge-zeroshot-computer",
+      "types": [
+        "neural-net",
+        "zero-shot"
+      ],
+      "description": "WakePhoneHuBERT phone posteriors matched against the phones of 'computer'. No recordings and no training for the phrase.",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge",
+        "model": "https://huggingface.co/TigreGotico/wakephonehubert"
+      },
+      "notes": "Phones 'k ə m p j uː ɾ ɚ' from espeak-ng (en-us), stress marks removed. Threshold, confirm_blocks and debounce are the plugin defaults.",
+      "has_predictions": true,
+      "prediction_datasets": [
+        {
+          "dataset_id": "community-computer",
+          "lang": "en-US"
+        },
+        {
+          "dataset_id": "picovoice-computer",
+          "lang": "en-US"
+        }
+      ]
+    },
+    {
+      "competitor_id": "wakeforge-zeroshot-hey-andromeda",
+      "schema_version": 1,
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-wakeforge-zeroshot",
+      "config": {
+        "listener": {
+          "wake_word": "hey_andromeda"
+        },
+        "hotwords": {
+          "hey_andromeda": {
+            "module": "ovos-ww-plugin-wakeforge-zeroshot",
+            "listen": true,
+            "ipa": "h eɪ æ n d ɹ ɑː m ɪ d ə"
+          }
+        }
+      },
+      "langs": [
+        "en-US",
+        "en-GB",
+        "en-AU"
+      ],
+      "alias": [
+        "ovos-ww-plugin-wakeforge-zeroshot"
+      ],
+      "trained_on": [],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "wakeforge zero-shot (hey andromeda)",
+      "species": "WakePhoneHuBERTZeroShotPlugin",
+      "family": "wakeforge-zeroshot-hey-andromeda",
+      "types": [
+        "neural-net",
+        "zero-shot"
+      ],
+      "description": "WakePhoneHuBERT phone posteriors matched against the phones of 'hey andromeda'. No recordings and no training for the phrase.",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge",
+        "model": "https://huggingface.co/TigreGotico/wakephonehubert"
+      },
+      "notes": "Phones 'h eɪ æ n d ɹ ɑː m ɪ d ə' from espeak-ng (en-us), stress marks removed. Threshold, confirm_blocks and debounce are the plugin defaults.",
+      "has_predictions": true,
+      "prediction_datasets": [
+        {
+          "dataset_id": "synthetic-wakewords-hey_andromeda",
+          "lang": "en-US"
+        }
+      ]
+    },
+    {
+      "competitor_id": "wakeforge-zeroshot-hey-chatterbox",
+      "schema_version": 1,
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-wakeforge-zeroshot",
+      "config": {
+        "listener": {
+          "wake_word": "hey_chatterbox"
+        },
+        "hotwords": {
+          "hey_chatterbox": {
+            "module": "ovos-ww-plugin-wakeforge-zeroshot",
+            "listen": true,
+            "ipa": "h eɪ tʃ æ ɾ ɚ b ɑː k s"
+          }
+        }
+      },
+      "langs": [
+        "en-US",
+        "en-GB",
+        "en-AU"
+      ],
+      "alias": [
+        "ovos-ww-plugin-wakeforge-zeroshot"
+      ],
+      "trained_on": [],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "wakeforge zero-shot (hey chatterbox)",
+      "species": "WakePhoneHuBERTZeroShotPlugin",
+      "family": "wakeforge-zeroshot-hey-chatterbox",
+      "types": [
+        "neural-net",
+        "zero-shot"
+      ],
+      "description": "WakePhoneHuBERT phone posteriors matched against the phones of 'hey chatterbox'. No recordings and no training for the phrase.",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge",
+        "model": "https://huggingface.co/TigreGotico/wakephonehubert"
+      },
+      "notes": "Phones 'h eɪ tʃ æ ɾ ɚ b ɑː k s' from espeak-ng (en-us), stress marks removed. Threshold, confirm_blocks and debounce are the plugin defaults.",
+      "has_predictions": true,
+      "prediction_datasets": [
+        {
+          "dataset_id": "community-hey-chatterbox",
+          "lang": "en-US"
+        }
+      ]
+    },
+    {
+      "competitor_id": "wakeforge-zeroshot-hey-computer",
+      "schema_version": 1,
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-wakeforge-zeroshot",
+      "config": {
+        "listener": {
+          "wake_word": "hey_computer"
+        },
+        "hotwords": {
+          "hey_computer": {
+            "module": "ovos-ww-plugin-wakeforge-zeroshot",
+            "listen": true,
+            "ipa": "h eɪ k ə m p j uː ɾ ɚ"
+          }
+        }
+      },
+      "langs": [
+        "en-US",
+        "en-GB",
+        "en-AU"
+      ],
+      "alias": [
+        "ovos-ww-plugin-wakeforge-zeroshot"
+      ],
+      "trained_on": [],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "wakeforge zero-shot (hey computer)",
+      "species": "WakePhoneHuBERTZeroShotPlugin",
+      "family": "wakeforge-zeroshot-hey-computer",
+      "types": [
+        "neural-net",
+        "zero-shot"
+      ],
+      "description": "WakePhoneHuBERT phone posteriors matched against the phones of 'hey computer'. No recordings and no training for the phrase.",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge",
+        "model": "https://huggingface.co/TigreGotico/wakephonehubert"
+      },
+      "notes": "Phones 'h eɪ k ə m p j uː ɾ ɚ' from espeak-ng (en-us), stress marks removed. Threshold, confirm_blocks and debounce are the plugin defaults.",
+      "has_predictions": true,
+      "prediction_datasets": [
+        {
+          "dataset_id": "synthetic-wakewords-hey_computer",
+          "lang": "en-US"
+        }
+      ]
+    },
+    {
+      "competitor_id": "wakeforge-zeroshot-hey-eggbert",
+      "schema_version": 1,
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-wakeforge-zeroshot",
+      "config": {
+        "listener": {
+          "wake_word": "hey_eggbert"
+        },
+        "hotwords": {
+          "hey_eggbert": {
+            "module": "ovos-ww-plugin-wakeforge-zeroshot",
+            "listen": true,
+            "ipa": "h eɪ ɛ ɡ b ɚ t"
+          }
+        }
+      },
+      "langs": [
+        "en-US",
+        "en-GB",
+        "en-AU"
+      ],
+      "alias": [
+        "ovos-ww-plugin-wakeforge-zeroshot"
+      ],
+      "trained_on": [],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "wakeforge zero-shot (hey eggbert)",
+      "species": "WakePhoneHuBERTZeroShotPlugin",
+      "family": "wakeforge-zeroshot-hey-eggbert",
+      "types": [
+        "neural-net",
+        "zero-shot"
+      ],
+      "description": "WakePhoneHuBERT phone posteriors matched against the phones of 'hey eggbert'. No recordings and no training for the phrase.",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge",
+        "model": "https://huggingface.co/TigreGotico/wakephonehubert"
+      },
+      "notes": "Phones 'h eɪ ɛ ɡ b ɚ t' from espeak-ng (en-us), stress marks removed. Threshold, confirm_blocks and debounce are the plugin defaults.",
+      "has_predictions": true,
+      "prediction_datasets": [
+        {
+          "dataset_id": "synthetic-wakewords-hey_eggbert",
+          "lang": "en-US"
+        }
+      ]
+    },
+    {
+      "competitor_id": "wakeforge-zeroshot-hey-floyd",
+      "schema_version": 1,
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-wakeforge-zeroshot",
+      "config": {
+        "listener": {
+          "wake_word": "hey_floyd"
+        },
+        "hotwords": {
+          "hey_floyd": {
+            "module": "ovos-ww-plugin-wakeforge-zeroshot",
+            "listen": true,
+            "ipa": "h eɪ f l ɔɪ d"
+          }
+        }
+      },
+      "langs": [
+        "en-US",
+        "en-GB",
+        "en-AU"
+      ],
+      "alias": [
+        "ovos-ww-plugin-wakeforge-zeroshot"
+      ],
+      "trained_on": [],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "wakeforge zero-shot (hey floyd)",
+      "species": "WakePhoneHuBERTZeroShotPlugin",
+      "family": "wakeforge-zeroshot-hey-floyd",
+      "types": [
+        "neural-net",
+        "zero-shot"
+      ],
+      "description": "WakePhoneHuBERT phone posteriors matched against the phones of 'hey floyd'. No recordings and no training for the phrase.",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge",
+        "model": "https://huggingface.co/TigreGotico/wakephonehubert"
+      },
+      "notes": "Phones 'h eɪ f l ɔɪ d' from espeak-ng (en-us), stress marks removed. Threshold, confirm_blocks and debounce are the plugin defaults.",
+      "has_predictions": true,
+      "prediction_datasets": [
+        {
+          "dataset_id": "community-hey-floyd",
+          "lang": "en-US"
+        }
+      ]
+    },
+    {
+      "competitor_id": "wakeforge-zeroshot-hey-jarvis",
+      "schema_version": 1,
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-wakeforge-zeroshot",
+      "config": {
+        "listener": {
+          "wake_word": "hey_jarvis"
+        },
+        "hotwords": {
+          "hey_jarvis": {
+            "module": "ovos-ww-plugin-wakeforge-zeroshot",
+            "listen": true,
+            "ipa": "h eɪ dʒ ɑːɹ v ɪ s"
+          }
+        }
+      },
+      "langs": [
+        "en-US",
+        "en-GB",
+        "en-AU"
+      ],
+      "alias": [
+        "ovos-ww-plugin-wakeforge-zeroshot"
+      ],
+      "trained_on": [],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "wakeforge zero-shot (hey jarvis)",
+      "species": "WakePhoneHuBERTZeroShotPlugin",
+      "family": "wakeforge-zeroshot-hey-jarvis",
+      "types": [
+        "neural-net",
+        "zero-shot"
+      ],
+      "description": "WakePhoneHuBERT phone posteriors matched against the phones of 'hey jarvis'. No recordings and no training for the phrase.",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge",
+        "model": "https://huggingface.co/TigreGotico/wakephonehubert"
+      },
+      "notes": "Phones 'h eɪ dʒ ɑːɹ v ɪ s' from espeak-ng (en-us), stress marks removed. Threshold, confirm_blocks and debounce are the plugin defaults.",
+      "has_predictions": true,
+      "prediction_datasets": [
+        {
+          "dataset_id": "synthetic-wakewords-hey_jarvis",
+          "lang": "en-US"
+        }
+      ]
+    },
+    {
+      "competitor_id": "wakeforge-zeroshot-hey-k9",
+      "schema_version": 1,
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-wakeforge-zeroshot",
+      "config": {
+        "listener": {
+          "wake_word": "hey_k9"
+        },
+        "hotwords": {
+          "hey_k9": {
+            "module": "ovos-ww-plugin-wakeforge-zeroshot",
+            "listen": true,
+            "ipa": "h eɪ k eɪ n aɪ n"
+          }
+        }
+      },
+      "langs": [
+        "en-US",
+        "en-GB",
+        "en-AU"
+      ],
+      "alias": [
+        "ovos-ww-plugin-wakeforge-zeroshot"
+      ],
+      "trained_on": [],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "wakeforge zero-shot (hey k9)",
+      "species": "WakePhoneHuBERTZeroShotPlugin",
+      "family": "wakeforge-zeroshot-hey-k9",
+      "types": [
+        "neural-net",
+        "zero-shot"
+      ],
+      "description": "WakePhoneHuBERT phone posteriors matched against the phones of 'hey k9'. No recordings and no training for the phrase.",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge",
+        "model": "https://huggingface.co/TigreGotico/wakephonehubert"
+      },
+      "notes": "Phones 'h eɪ k eɪ n aɪ n' from espeak-ng (en-us), stress marks removed. Threshold, confirm_blocks and debounce are the plugin defaults.",
+      "has_predictions": true,
+      "prediction_datasets": [
+        {
+          "dataset_id": "community-hey-k9",
+          "lang": "en-US"
+        }
+      ]
+    },
+    {
+      "competitor_id": "wakeforge-zeroshot-hey-marvin",
+      "schema_version": 1,
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-wakeforge-zeroshot",
+      "config": {
+        "listener": {
+          "wake_word": "hey_marvin"
+        },
+        "hotwords": {
+          "hey_marvin": {
+            "module": "ovos-ww-plugin-wakeforge-zeroshot",
+            "listen": true,
+            "ipa": "h eɪ m ɑːɹ v ɪ n"
+          }
+        }
+      },
+      "langs": [
+        "en-US",
+        "en-GB",
+        "en-AU"
+      ],
+      "alias": [
+        "ovos-ww-plugin-wakeforge-zeroshot"
+      ],
+      "trained_on": [],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "wakeforge zero-shot (hey marvin)",
+      "species": "WakePhoneHuBERTZeroShotPlugin",
+      "family": "wakeforge-zeroshot-hey-marvin",
+      "types": [
+        "neural-net",
+        "zero-shot"
+      ],
+      "description": "WakePhoneHuBERT phone posteriors matched against the phones of 'hey marvin'. No recordings and no training for the phrase.",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge",
+        "model": "https://huggingface.co/TigreGotico/wakephonehubert"
+      },
+      "notes": "Phones 'h eɪ m ɑːɹ v ɪ n' from espeak-ng (en-us), stress marks removed. Threshold, confirm_blocks and debounce are the plugin defaults.",
+      "has_predictions": true,
+      "prediction_datasets": [
+        {
+          "dataset_id": "synthetic-wakewords-hey_marvin",
+          "lang": "en-US"
+        }
+      ]
+    },
+    {
+      "competitor_id": "wakeforge-zeroshot-hey-mycroft",
+      "schema_version": 1,
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-wakeforge-zeroshot",
+      "config": {
+        "listener": {
+          "wake_word": "hey_mycroft"
+        },
+        "hotwords": {
+          "hey_mycroft": {
+            "module": "ovos-ww-plugin-wakeforge-zeroshot",
+            "listen": true,
+            "ipa": "h eɪ m aɪ k ɹ ɔ f t"
+          }
+        }
+      },
+      "langs": [
+        "en-US",
+        "en-GB",
+        "en-AU"
+      ],
+      "alias": [
+        "ovos-ww-plugin-wakeforge-zeroshot"
+      ],
+      "trained_on": [],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "wakeforge zero-shot (hey mycroft)",
+      "species": "WakePhoneHuBERTZeroShotPlugin",
+      "family": "wakeforge-zeroshot-hey-mycroft",
+      "types": [
+        "neural-net",
+        "zero-shot"
+      ],
+      "description": "WakePhoneHuBERT phone posteriors matched against the phones of 'hey mycroft'. No recordings and no training for the phrase.",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge",
+        "model": "https://huggingface.co/TigreGotico/wakephonehubert"
+      },
+      "notes": "Phones 'h eɪ m aɪ k ɹ ɔ f t' written by hand, because espeak-ng reads the name with the vowel of 'mick'. Threshold, confirm_blocks and debounce are the plugin defaults.",
+      "has_predictions": true,
+      "prediction_datasets": [
+        {
+          "dataset_id": "synthetic-wakewords-hey_mycroft",
+          "lang": "en-US"
+        }
+      ]
+    },
+    {
+      "competitor_id": "wakeforge-zeroshot-hey-neon",
+      "schema_version": 1,
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-wakeforge-zeroshot",
+      "config": {
+        "listener": {
+          "wake_word": "hey_neon"
+        },
+        "hotwords": {
+          "hey_neon": {
+            "module": "ovos-ww-plugin-wakeforge-zeroshot",
+            "listen": true,
+            "ipa": "h eɪ n iː ɑː n"
+          }
+        }
+      },
+      "langs": [
+        "en-US",
+        "en-GB",
+        "en-AU"
+      ],
+      "alias": [
+        "ovos-ww-plugin-wakeforge-zeroshot"
+      ],
+      "trained_on": [],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "wakeforge zero-shot (hey neon)",
+      "species": "WakePhoneHuBERTZeroShotPlugin",
+      "family": "wakeforge-zeroshot-hey-neon",
+      "types": [
+        "neural-net",
+        "zero-shot"
+      ],
+      "description": "WakePhoneHuBERT phone posteriors matched against the phones of 'hey neon'. No recordings and no training for the phrase.",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge",
+        "model": "https://huggingface.co/TigreGotico/wakephonehubert"
+      },
+      "notes": "Phones 'h eɪ n iː ɑː n' from espeak-ng (en-us), stress marks removed. Threshold, confirm_blocks and debounce are the plugin defaults.",
+      "has_predictions": true,
+      "prediction_datasets": [
+        {
+          "dataset_id": "synthetic-wakewords-hey_neon",
+          "lang": "en-US"
+        }
+      ]
+    },
+    {
+      "competitor_id": "wakeforge-zeroshot-hey-robin",
+      "schema_version": 1,
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-wakeforge-zeroshot",
+      "config": {
+        "listener": {
+          "wake_word": "hey_robin"
+        },
+        "hotwords": {
+          "hey_robin": {
+            "module": "ovos-ww-plugin-wakeforge-zeroshot",
+            "listen": true,
+            "ipa": "h eɪ ɹ ɑː b ɪ n"
+          }
+        }
+      },
+      "langs": [
+        "en-US",
+        "en-GB",
+        "en-AU"
+      ],
+      "alias": [
+        "ovos-ww-plugin-wakeforge-zeroshot"
+      ],
+      "trained_on": [],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "wakeforge zero-shot (hey robin)",
+      "species": "WakePhoneHuBERTZeroShotPlugin",
+      "family": "wakeforge-zeroshot-hey-robin",
+      "types": [
+        "neural-net",
+        "zero-shot"
+      ],
+      "description": "WakePhoneHuBERT phone posteriors matched against the phones of 'hey robin'. No recordings and no training for the phrase.",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge",
+        "model": "https://huggingface.co/TigreGotico/wakephonehubert"
+      },
+      "notes": "Phones 'h eɪ ɹ ɑː b ɪ n' from espeak-ng (en-us), stress marks removed. Threshold, confirm_blocks and debounce are the plugin defaults.",
+      "has_predictions": true,
+      "prediction_datasets": [
+        {
+          "dataset_id": "synthetic-wakewords-hey_robin",
+          "lang": "en-US"
+        }
+      ]
+    },
+    {
+      "competitor_id": "wakeforge-zeroshot-hey-savant",
+      "schema_version": 1,
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-wakeforge-zeroshot",
+      "config": {
+        "listener": {
+          "wake_word": "hey_savant"
+        },
+        "hotwords": {
+          "hey_savant": {
+            "module": "ovos-ww-plugin-wakeforge-zeroshot",
+            "listen": true,
+            "ipa": "h eɪ s ɐ v ɑː n t"
+          }
+        }
+      },
+      "langs": [
+        "en-US",
+        "en-GB",
+        "en-AU"
+      ],
+      "alias": [
+        "ovos-ww-plugin-wakeforge-zeroshot"
+      ],
+      "trained_on": [],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "wakeforge zero-shot (hey savant)",
+      "species": "WakePhoneHuBERTZeroShotPlugin",
+      "family": "wakeforge-zeroshot-hey-savant",
+      "types": [
+        "neural-net",
+        "zero-shot"
+      ],
+      "description": "WakePhoneHuBERT phone posteriors matched against the phones of 'hey savant'. No recordings and no training for the phrase.",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge",
+        "model": "https://huggingface.co/TigreGotico/wakephonehubert"
+      },
+      "notes": "Phones 'h eɪ s ɐ v ɑː n t' from espeak-ng (en-us), stress marks removed. Threshold, confirm_blocks and debounce are the plugin defaults.",
+      "has_predictions": true,
+      "prediction_datasets": [
+        {
+          "dataset_id": "community-hey-savant",
+          "lang": "en-US"
+        }
+      ]
+    },
+    {
+      "competitor_id": "wakeforge-zeroshot-hey-scout",
+      "schema_version": 1,
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-wakeforge-zeroshot",
+      "config": {
+        "listener": {
+          "wake_word": "hey_scout"
+        },
+        "hotwords": {
+          "hey_scout": {
+            "module": "ovos-ww-plugin-wakeforge-zeroshot",
+            "listen": true,
+            "ipa": "h eɪ s k aʊ t"
+          }
+        }
+      },
+      "langs": [
+        "en-US",
+        "en-GB",
+        "en-AU"
+      ],
+      "alias": [
+        "ovos-ww-plugin-wakeforge-zeroshot"
+      ],
+      "trained_on": [],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "wakeforge zero-shot (hey scout)",
+      "species": "WakePhoneHuBERTZeroShotPlugin",
+      "family": "wakeforge-zeroshot-hey-scout",
+      "types": [
+        "neural-net",
+        "zero-shot"
+      ],
+      "description": "WakePhoneHuBERT phone posteriors matched against the phones of 'hey scout'. No recordings and no training for the phrase.",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge",
+        "model": "https://huggingface.co/TigreGotico/wakephonehubert"
+      },
+      "notes": "Phones 'h eɪ s k aʊ t' from espeak-ng (en-us), stress marks removed. Threshold, confirm_blocks and debounce are the plugin defaults.",
+      "has_predictions": true,
+      "prediction_datasets": [
+        {
+          "dataset_id": "community-hey-scout",
+          "lang": "en-US"
+        }
+      ]
+    },
+    {
+      "competitor_id": "wakeforge-zeroshot-hey-ziggy",
+      "schema_version": 1,
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-wakeforge-zeroshot",
+      "config": {
+        "listener": {
+          "wake_word": "hey_ziggy"
+        },
+        "hotwords": {
+          "hey_ziggy": {
+            "module": "ovos-ww-plugin-wakeforge-zeroshot",
+            "listen": true,
+            "ipa": "h eɪ z ɪ ɡ i"
+          }
+        }
+      },
+      "langs": [
+        "en-US",
+        "en-GB",
+        "en-AU"
+      ],
+      "alias": [
+        "ovos-ww-plugin-wakeforge-zeroshot"
+      ],
+      "trained_on": [],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "wakeforge zero-shot (hey ziggy)",
+      "species": "WakePhoneHuBERTZeroShotPlugin",
+      "family": "wakeforge-zeroshot-hey-ziggy",
+      "types": [
+        "neural-net",
+        "zero-shot"
+      ],
+      "description": "WakePhoneHuBERT phone posteriors matched against the phones of 'hey ziggy'. No recordings and no training for the phrase.",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge",
+        "model": "https://huggingface.co/TigreGotico/wakephonehubert"
+      },
+      "notes": "Phones 'h eɪ z ɪ ɡ i' from espeak-ng (en-us), stress marks removed. Threshold, confirm_blocks and debounce are the plugin defaults.",
+      "has_predictions": true,
+      "prediction_datasets": [
+        {
+          "dataset_id": "community-hey-ziggy",
+          "lang": "en-US"
+        },
+        {
+          "dataset_id": "synthetic-wakewords-hey_ziggy",
+          "lang": "en-US"
+        }
+      ]
+    },
+    {
+      "competitor_id": "wakeforge-zeroshot-jarvis",
+      "schema_version": 1,
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-wakeforge-zeroshot",
+      "config": {
+        "listener": {
+          "wake_word": "jarvis"
+        },
+        "hotwords": {
+          "jarvis": {
+            "module": "ovos-ww-plugin-wakeforge-zeroshot",
+            "listen": true,
+            "ipa": "dʒ ɑːɹ v ɪ s"
+          }
+        }
+      },
+      "langs": [
+        "en-US",
+        "en-GB",
+        "en-AU"
+      ],
+      "alias": [
+        "ovos-ww-plugin-wakeforge-zeroshot"
+      ],
+      "trained_on": [],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "wakeforge zero-shot (jarvis)",
+      "species": "WakePhoneHuBERTZeroShotPlugin",
+      "family": "wakeforge-zeroshot-jarvis",
+      "types": [
+        "neural-net",
+        "zero-shot"
+      ],
+      "description": "WakePhoneHuBERT phone posteriors matched against the phones of 'jarvis'. No recordings and no training for the phrase.",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge",
+        "model": "https://huggingface.co/TigreGotico/wakephonehubert"
+      },
+      "notes": "Phones 'dʒ ɑːɹ v ɪ s' from espeak-ng (en-us), stress marks removed. Threshold, confirm_blocks and debounce are the plugin defaults.",
+      "has_predictions": true,
+      "prediction_datasets": [
+        {
+          "dataset_id": "picovoice-jarvis",
+          "lang": "en-US"
+        }
+      ]
+    },
+    {
+      "competitor_id": "wakeforge-zeroshot-smart-mirror",
+      "schema_version": 1,
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-wakeforge-zeroshot",
+      "config": {
+        "listener": {
+          "wake_word": "smart mirror"
+        },
+        "hotwords": {
+          "smart mirror": {
+            "module": "ovos-ww-plugin-wakeforge-zeroshot",
+            "listen": true,
+            "ipa": "s m ɑːɹ t m ɪ ɹ ɚ"
+          }
+        }
+      },
+      "langs": [
+        "en-US",
+        "en-GB",
+        "en-AU"
+      ],
+      "alias": [
+        "ovos-ww-plugin-wakeforge-zeroshot"
+      ],
+      "trained_on": [],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "wakeforge zero-shot (smart mirror)",
+      "species": "WakePhoneHuBERTZeroShotPlugin",
+      "family": "wakeforge-zeroshot-smart-mirror",
+      "types": [
+        "neural-net",
+        "zero-shot"
+      ],
+      "description": "WakePhoneHuBERT phone posteriors matched against the phones of 'smart mirror'. No recordings and no training for the phrase.",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge",
+        "model": "https://huggingface.co/TigreGotico/wakephonehubert"
+      },
+      "notes": "Phones 's m ɑːɹ t m ɪ ɹ ɚ' from espeak-ng (en-us), stress marks removed. Threshold, confirm_blocks and debounce are the plugin defaults.",
+      "has_predictions": true,
+      "prediction_datasets": [
+        {
+          "dataset_id": "picovoice-smart-mirror",
+          "lang": "en-US"
+        }
+      ]
+    },
+    {
+      "competitor_id": "wakeforge-zeroshot-snowboy",
+      "schema_version": 1,
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-wakeforge-zeroshot",
+      "config": {
+        "listener": {
+          "wake_word": "snowboy"
+        },
+        "hotwords": {
+          "snowboy": {
+            "module": "ovos-ww-plugin-wakeforge-zeroshot",
+            "listen": true,
+            "ipa": "s n oʊ b ɔɪ"
+          }
+        }
+      },
+      "langs": [
+        "en-US",
+        "en-GB",
+        "en-AU"
+      ],
+      "alias": [
+        "ovos-ww-plugin-wakeforge-zeroshot"
+      ],
+      "trained_on": [],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "wakeforge zero-shot (snowboy)",
+      "species": "WakePhoneHuBERTZeroShotPlugin",
+      "family": "wakeforge-zeroshot-snowboy",
+      "types": [
+        "neural-net",
+        "zero-shot"
+      ],
+      "description": "WakePhoneHuBERT phone posteriors matched against the phones of 'snowboy'. No recordings and no training for the phrase.",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge",
+        "model": "https://huggingface.co/TigreGotico/wakephonehubert"
+      },
+      "notes": "Phones 's n oʊ b ɔɪ' from espeak-ng (en-us), stress marks removed. Threshold, confirm_blocks and debounce are the plugin defaults.",
+      "has_predictions": true,
+      "prediction_datasets": [
+        {
+          "dataset_id": "picovoice-snowboy",
+          "lang": "en-US"
+        }
+      ]
+    },
+    {
+      "competitor_id": "wakeforge-zeroshot-view-glass",
+      "schema_version": 1,
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-wakeforge-zeroshot",
+      "config": {
+        "listener": {
+          "wake_word": "view glass"
+        },
+        "hotwords": {
+          "view glass": {
+            "module": "ovos-ww-plugin-wakeforge-zeroshot",
+            "listen": true,
+            "ipa": "v j uː ɡ l æ s"
+          }
+        }
+      },
+      "langs": [
+        "en-US",
+        "en-GB",
+        "en-AU"
+      ],
+      "alias": [
+        "ovos-ww-plugin-wakeforge-zeroshot"
+      ],
+      "trained_on": [],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "wakeforge zero-shot (view glass)",
+      "species": "WakePhoneHuBERTZeroShotPlugin",
+      "family": "wakeforge-zeroshot-view-glass",
+      "types": [
+        "neural-net",
+        "zero-shot"
+      ],
+      "description": "WakePhoneHuBERT phone posteriors matched against the phones of 'view glass'. No recordings and no training for the phrase.",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge",
+        "model": "https://huggingface.co/TigreGotico/wakephonehubert"
+      },
+      "notes": "Phones 'v j uː ɡ l æ s' from espeak-ng (en-us), stress marks removed. Threshold, confirm_blocks and debounce are the plugin defaults.",
+      "has_predictions": true,
+      "prediction_datasets": [
+        {
+          "dataset_id": "picovoice-view-glass",
+          "lang": "en-US"
+        }
+      ]
+    },
+    {
+      "competitor_id": "wakeforge-zeroshot-wake-up",
+      "schema_version": 1,
+      "modality": "wake_word",
+      "plugin": "ovos-ww-plugin-wakeforge-zeroshot",
+      "config": {
+        "listener": {
+          "wake_word": "wake_up"
+        },
+        "hotwords": {
+          "wake_up": {
+            "module": "ovos-ww-plugin-wakeforge-zeroshot",
+            "listen": true,
+            "ipa": "w eɪ k ʌ p"
+          }
+        }
+      },
+      "langs": [
+        "en-US",
+        "en-GB",
+        "en-AU"
+      ],
+      "alias": [
+        "ovos-ww-plugin-wakeforge-zeroshot"
+      ],
+      "trained_on": [],
+      "capabilities": [
+        "clip"
+      ],
+      "display_name": "wakeforge zero-shot (wake up)",
+      "species": "WakePhoneHuBERTZeroShotPlugin",
+      "family": "wakeforge-zeroshot-wake-up",
+      "types": [
+        "neural-net",
+        "zero-shot"
+      ],
+      "description": "WakePhoneHuBERT phone posteriors matched against the phones of 'wake up'. No recordings and no training for the phrase.",
+      "links": {
+        "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge",
+        "model": "https://huggingface.co/TigreGotico/wakephonehubert"
+      },
+      "notes": "Phones 'w eɪ k ʌ p' from espeak-ng (en-us), stress marks removed. Threshold, confirm_blocks and debounce are the plugin defaults.",
+      "has_predictions": true,
+      "prediction_datasets": [
+        {
+          "dataset_id": "synthetic-wakewords-wake_up",
+          "lang": "en-US"
+        }
+      ]
     }
   ],
   "plugin_families": {
