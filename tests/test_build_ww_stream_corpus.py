@@ -231,3 +231,12 @@ class TestTrimAndEnds:
             )
         assert {n for r in rows for n in r["sources"]} == {"slow.wav", "huge.wav"}
         assert "huge.wav is" in caplog.text and "slow.wav is" not in caplog.text
+
+
+class TestNegativesOnly:
+    def test_no_positives_dir_writes_recordings_with_no_wake_word(self, inputs, tmp_path):
+        _, neg = inputs
+        rows = bwc.build_corpus(None, [neg], tmp_path / "out", negative_hours=0.05, seed=3,
+                                file_seconds=60.0)
+        assert rows and all(r["onsets"] == [] and r["sources"] == [] for r in rows)
+        assert sum(r["duration_s"] for r in rows) == pytest.approx(0.05 * 3600, abs=1.0)

@@ -1,0 +1,39 @@
+{
+  "competitor_id": "wakeforge-hey-potato-streaming",
+  "modality": "wake_word",
+  "plugin": "ovos-ww-plugin-wakeforge",
+  "config": {
+    "listener": {
+      "wake_word": "hey_potato"
+    },
+    "hotwords": {
+      "hey_potato": {
+        "module": "ovos-ww-plugin-wakeforge",
+        "listen": true,
+        "model": "wakehubert_hey_potato_streaming",
+        "models_revision": "2ac92d3bcf55f177a47049c3f810a78984a31ff9"
+      }
+    }
+  },
+  "langs": [
+    "en-US",
+    "en-GB",
+    "en-AU"
+  ],
+  "display_name": "wakeforge (hey potato, streaming)",
+  "species": "WakeForgeHotwordPlugin",
+  "types": [
+    "neural-net"
+  ],
+  "description": "The ready WakeHuBERT streaming 'hey potato' model at its own calibrated default threshold (0.48).",
+  "model": "wakehubert_hey_potato_streaming (OpenVoiceOS/wakehubert-wakewords)",
+  "links": {
+    "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge",
+    "model": "https://huggingface.co/OpenVoiceOS/wakehubert-wakewords"
+  },
+  "notes": "models.json at 2ac92d3b: featurizer wakehubert-int8. Threshold, smoothing and debounce come from the model's own metadata. Training data per models.json: synthetic only: edge-tts voice grid, Chatterbox voice-converted copies and OmniVoice no-reference clips that passed the speech recogniser check (the hf-stage copy of training-runs/src/omni-mixes/hey_potato), with one voice in ten held out; mixed into 30 s synthetic streams (LibriSpeech train-clean-100, KWS windows, AudioSet noise, RIR); streamed WakeHuBERT-tiny int8 features.",
+  "capabilities": [
+    "clip",
+    "stream"
+  ]
+}

@@ -162,7 +162,7 @@ def _insertion_points(
 
 
 def build_corpus(
-    positives_dir: Path,
+    positives_dir: Path | None,
     negative_dirs: list[Path],
     out_dir: Path,
     negative_hours: float,
@@ -176,10 +176,11 @@ def build_corpus(
     min_level_dbfs: float = MIN_LEVEL_DBFS,
 ) -> list[dict]:
     """Write the recordings and ``manifest.jsonl`` under *out_dir*; returns
-    the manifest rows."""
+    the manifest rows. With no *positives_dir* every recording is negative
+    audio only."""
     rng = np.random.default_rng(seed)
-    all_names = read_positive_names(positives_dir, file_column)
-    if not all_names:
+    all_names = read_positive_names(positives_dir, file_column) if positives_dir else []
+    if positives_dir and not all_names:
         raise ValueError(f"{positives_dir}/metadata.csv lists no clips")
     clips: dict[str, np.ndarray] = {}
     for name in all_names:
@@ -190,8 +191,10 @@ def build_corpus(
             log.warning("%s is %.1f s long after trimming", name, len(trimmed) / sample_rate)
         clips[name] = trimmed
     pos_names = sorted(clips)
-    if not pos_names:
+    if positives_dir and not pos_names:
         raise ValueError("no usable (non-silent) positive clips")
+    if not pos_names:
+        positives_per_file = 0
     neg_files = [f for d in negative_dirs for f in list_audio(d)]
     stream = NegativeStream(neg_files, rng, sample_rate)
 
@@ -284,8 +287,9 @@ def build_corpus(
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    ap.add_argument("--positives", type=Path, required=True,
-                    help="directory of positive clips with a metadata.csv")
+    ap.add_argument("--positives", type=Path,
+                    help="directory of positive clips with a metadata.csv; "
+                         "without it the recordings hold negative audio only")
     ap.add_argument("--negatives", type=Path, nargs="+", required=True,
                     help="directories of negative wav/flac audio")
     ap.add_argument("--out", type=Path, required=True)

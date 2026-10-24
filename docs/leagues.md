@@ -261,12 +261,26 @@ detected are no battle. As in the clip leagues, a pair contributes battles
 only when the two primary-metric CIs do not overlap, and the per-pair weight
 is capped so human votes can outweigh the seed.
 
-**Dataset**: `ww_stream_hey_mycroft` (`registry/datasets/ww_stream/`), a
-planned corpus (`TigreGotico/ww-stream-bench-hey_mycroft`, not yet published)
-of long continuous clips with a ground-truth-event manifest (onset
-timestamps + duration, 16 kHz pinned). Until it exists, this league is
-inert: `assemble` already skips a dataset whose `predictions_hf` repo 404s,
-so no board is produced and no other league is affected.
+**Datasets**: one `ww_stream_<set>` entry per clip test set with a phrase
+(`registry/datasets/ww_stream/`), all from one corpus,
+[`OpenVoiceOS/ww-stream-bench`](https://huggingface.co/datasets/OpenVoiceOS/ww-stream-bench).
+Each entry streams the recording of its clip set's phrase, then the shared
+recordings with no wake word: about 12 hours of LibriSpeech test speech
+(CC BY 4.0) and public-domain sounds. The phrase recording holds every clip of
+the set, each between 3 and 6 s of LibriSpeech dev speech; its manifest row
+gives the onset and end of every clip. A fighter trained on the clip set is
+also trained on its stream set, so `trained_on` lists both. The runner keeps
+the events of each recording per fighter config (`ww-stream-events` in the
+arena cache), so a fighter streams the shared recordings once for all its
+stream sets. `scripts/publish_ww_stream_bench.py` builds the corpus from
+pinned source revisions with a fixed seed, uploads it and writes the registry
+entries. `benchmarks/ww_stream.py --dataset ww_stream_<set>` runs it.
+
+Every wake-word fighter declares `stream`, because every OVOS wake-word plugin
+runs on the live microphone stream. A configured pre-wake VAD and verifier
+judge the 2 s of audio before an activation, the way the listener hands them
+the buffered phrase.
+
 `scripts/build_ww_stream_corpus.py` builds such a corpus from a directory of
 positive clips (wav/flac plus `metadata.csv`) and local negative audio: it
 inserts the positives between negative audio at random, non-overlapping

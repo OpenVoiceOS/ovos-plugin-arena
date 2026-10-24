@@ -1,0 +1,37 @@
+{
+  "competitor_id": "wakeforge-wakker-worden",
+  "modality": "wake_word",
+  "plugin": "ovos-ww-plugin-wakeforge",
+  "config": {
+    "listener": {
+      "wake_word": "wakker_worden"
+    },
+    "hotwords": {
+      "wakker_worden": {
+        "module": "ovos-ww-plugin-wakeforge",
+        "listen": true,
+        "model": "wakehubert_wakker_worden",
+        "models_revision": "2ac92d3bcf55f177a47049c3f810a78984a31ff9"
+      }
+    }
+  },
+  "langs": [
+    "nl-NL"
+  ],
+  "display_name": "wakeforge (wakker worden)",
+  "species": "WakeForgeHotwordPlugin",
+  "types": [
+    "neural-net"
+  ],
+  "description": "The ready WakeHuBERT 'wakker worden' model at its own calibrated default threshold (0.56).",
+  "model": "wakehubert_wakker_worden (OpenVoiceOS/wakehubert-wakewords)",
+  "links": {
+    "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge",
+    "model": "https://huggingface.co/OpenVoiceOS/wakehubert-wakewords"
+  },
+  "notes": "models.json at 2ac92d3b: featurizer wakehubert-int8. Threshold, smoothing and debounce come from the model's own metadata. Training data per models.json: synthetic only: OmniVoice clips with no reference speaker, one seed per clip, each checked against a speech recogniser transcript, and the training clips of TigreGotico/synthetic-wakeword-wakker_worden (CC BY 4.0); LibriSpeech train-clean-100 (CC BY 4.0) mixed in as background babble; negatives from wakeforge datasets/train.csv, the even half of an AudioSet noise sample, and Dutch speech from Common Voice 17 train (CC0) and FLEURS train (CC BY 4.0) cut into 1.5 s windows.",
+  "capabilities": [
+    "clip",
+    "stream"
+  ]
+}

@@ -17,6 +17,9 @@ REGISTRY_ROOT: Path = Path(__file__).parent
 
 _COMPETITORS_DIR = REGISTRY_ROOT / "competitors"
 _DATASETS_DIR = REGISTRY_ROOT / "datasets"
+# Leagues that score a fighter of another modality: wake-word fighters also
+# stream the ww_stream recordings (runner.ww_bench.WakeWordStreamBench).
+_SCORED_ON = {"wake_word": {"wake_word", "ww_stream"}}
 
 
 # ---------------------------------------------------------------------------
@@ -255,8 +258,8 @@ def validate_registry(registry_root: Path | None = None) -> list[str]:
                     stacklevel=2,
                 )
 
-    # trained_on must resolve to a registered dataset for the fighter's OWN
-    # modality — the pair the entry excludes from scoring
+    # trained_on must resolve to a registered dataset of a league that scores
+    # the fighter's modality — the pair the entry excludes from scoring
     # (runner.media_bench, arena.predictions.group_rows, runner.autorun).
     # A typo'd or cross-modality id here would silently never exclude
     # anything, so it fails the registry gate instead of being discovered
@@ -272,7 +275,9 @@ def validate_registry(registry_root: Path | None = None) -> list[str]:
                     f"{path}: trained_on references unknown dataset_id "
                     f"{dataset_id!r}"
                 )
-            elif trained_dataset.modality != competitor.modality:
+            elif trained_dataset.modality.value not in _SCORED_ON.get(
+                competitor.modality.value, {competitor.modality.value}
+            ):
                 errors.append(
                     f"{path}: trained_on entry {dataset_id!r} has "
                     f"modality={trained_dataset.modality.value!r}, expected "

@@ -6,10 +6,12 @@
   the stress marks removed, or from PHONE_OVERRIDES where espeak-ng misreads
   a name. One fighter per en-US phrase that has a test set.
 - ``efficientword-net-<phrase>``: ovos-ww-plugin-efficientword-net with its
-  bundled references, for the bundled phrases that have a test set.
+  bundled references, one per bundled phrase.
 - ``local-wake-<phrase>``: ovos-ww-plugin-local-wake, given four clips of the
   phrase from one registry dataset (``samples_from``). That dataset is in
   ``trained_on``, so the fighter is scored only on the other sets.
+- ``vosk-ww-<phrase>``: ovos-ww-plugin-vosk matching the transcript against the
+  phrase, for each en-US test-set phrase that has no vosk fighter yet.
 
 Output is deterministic and idempotent. Run from the repository root.
 """
@@ -24,13 +26,46 @@ from pathlib import Path
 from registry.loaders import list_datasets
 
 OUT = Path("registry/competitors/wake_word")
-EFFICIENTWORD_BUNDLED = {"alexa", "computer"}
+EFFICIENTWORD_BUNDLED = [
+    "alexa",
+    "balloon",
+    "computer",
+    "lights_off",
+    "lights_on",
+    "mobile",
+    "mycroft",
+]
+VOSK_MODEL = "http://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip"
+# phrases whose vosk fighter is written by hand, with alternate spellings as samples
+VOSK_HAND_WRITTEN = {
+    "alexa",
+    "amelia",
+    "athena",
+    "computer",
+    "hey_andromeda",
+    "hey_chatterbox",
+    "hey_computer",
+    "hey_eggbert",
+    "hey_floyd",
+    "hey_k9",
+    "hey_marvin",
+    "hey_neon",
+    "hey_robin",
+    "hey_savant",
+    "hey_scout",
+    "hey_ziggy",
+    "jarvis",
+    "sam",
+    "smart_mirror",
+    "snowboy",
+    "view_glass",
+}
 # phrase -> the dataset its local-wake references come from. A reference must
 # hold only the phrase: the community clips carry seconds of room sound, and
 # local-wake then matches every clip, so the references are synthetic.
 LOCAL_WAKE_REFERENCES = {
-    "alexa": "synthetic-wakewords-alexa",
-    "hey_ziggy": "synthetic-wakewords-hey_ziggy",
+    key: f"synthetic-wakewords-{key}"
+    for key in ("alexa", "amelia", "athena", "hey_chatterbox", "hey_floyd", "hey_ziggy")
 }
 REFERENCE_COUNT = 4
 # espeak-ng reads the name Mycroft with the vowel of "mick"; it is said "MY-croft"
@@ -76,6 +111,7 @@ def fighter(
         "description": description,
         "links": links,
         "notes": notes,
+        "capabilities": ["clip", "stream"],
     }
     if trained_on:
         entry["trained_on"] = trained_on
@@ -85,9 +121,9 @@ def fighter(
 def main() -> None:
     keys = sorted(
         {
-            d.wakeword
+            d.wakeword.replace(" ", "_")
             for d in list_datasets("wake_word")
-            if d.wakeword and d.lang == "en-US" and d.role == "eval" and d.wakeword != "positive"
+            if d.wakeword and d.lang == "en-US" and d.role == "eval"
         }
     )
     entries = []
@@ -95,8 +131,11 @@ def main() -> None:
         phrase = key.replace("_", " ")
         slug = key.replace("_", "-").replace(" ", "-")
         ipa = PHONE_OVERRIDES.get(key) or phones(phrase)
-        source = ("written by hand, because espeak-ng reads the name with the vowel of 'mick'"
-                  if key in PHONE_OVERRIDES else "from espeak-ng (en-us), stress marks removed")
+        source = (
+            "written by hand, because espeak-ng reads the name with the vowel of 'mick'"
+            if key in PHONE_OVERRIDES
+            else "from espeak-ng (en-us), stress marks removed"
+        )
         entries.append(
             fighter(
                 f"wakeforge-zeroshot-{slug}",
@@ -116,20 +155,30 @@ def main() -> None:
                 },
             )
         )
-        if key in EFFICIENTWORD_BUNDLED:
+        if key not in VOSK_HAND_WRITTEN:
             entries.append(
                 fighter(
-                    f"efficientword-net-{slug}",
-                    "ovos-ww-plugin-efficientword-net",
+                    f"vosk-ww-{slug}",
+                    "ovos-ww-plugin-vosk",
                     key,
-                    {},
-                    f"EfficientWord-Net ({phrase})",
-                    "EfficientWordHotwordPlugin",
-                    ["neural-net", "few-shot"],
-                    f"EfficientWord-Net ResNet-50 embeddings compared against the plugin's bundled "
-                    f"references for '{phrase}'.",
-                    "Bundled reference embeddings and the plugin's default threshold (0.7).",
-                    {"source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-efficientword-net"},
+                    {
+                        "model": VOSK_MODEL,
+                        "lang": "en-US",
+                        "samples": [phrase],
+                        "full_vocab": False,
+                        "rule": "equals",
+                        "threshold": 0.75,
+                        "time_between_checks": 1.0,
+                        "debug": False,
+                    },
+                    f"Vosk wake word ({phrase})",
+                    "VoskWakeWordPlugin",
+                    ["neural-net", "keyword-match"],
+                    "Detects wake words by running the Vosk Kaldi recognizer in keyword mode and "
+                    "matching the transcript against configured samples.",
+                    f"Transcript-match samples: ['{phrase}']. "
+                    "The language model is auto-downloaded.",
+                    {"source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-vosk"},
                 )
             )
         if key in LOCAL_WAKE_REFERENCES:
@@ -151,6 +200,23 @@ def main() -> None:
                     trained_on=[ref],
                 )
             )
+    for key in EFFICIENTWORD_BUNDLED:
+        phrase = key.replace("_", " ")
+        entries.append(
+            fighter(
+                f"efficientword-net-{key.replace('_', '-')}",
+                "ovos-ww-plugin-efficientword-net",
+                key,
+                {},
+                f"EfficientWord-Net ({phrase})",
+                "EfficientWordHotwordPlugin",
+                ["neural-net", "few-shot"],
+                f"EfficientWord-Net ResNet-50 embeddings compared against the plugin's bundled "
+                f"references for '{phrase}'.",
+                "Bundled reference embeddings and the plugin's default threshold (0.7).",
+                {"source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-efficientword-net"},
+            )
+        )
     for entry in entries:
         (OUT / f"{entry['competitor_id']}.json").write_text(
             json.dumps(entry, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"

@@ -1,0 +1,43 @@
+{
+  "competitor_id": "wakeforge-hey-jarvis-streaming",
+  "modality": "wake_word",
+  "plugin": "ovos-ww-plugin-wakeforge",
+  "config": {
+    "listener": {
+      "wake_word": "hey_jarvis"
+    },
+    "hotwords": {
+      "hey_jarvis": {
+        "module": "ovos-ww-plugin-wakeforge",
+        "listen": true,
+        "model": "wakehubert_hey_jarvis_streaming",
+        "models_revision": "2ac92d3bcf55f177a47049c3f810a78984a31ff9"
+      }
+    }
+  },
+  "langs": [
+    "en-US",
+    "en-GB",
+    "en-AU"
+  ],
+  "display_name": "wakeforge (hey jarvis, streaming)",
+  "species": "WakeForgeHotwordPlugin",
+  "types": [
+    "neural-net"
+  ],
+  "description": "The ready WakeHuBERT streaming 'hey jarvis' model at its own calibrated default threshold (0.49).",
+  "model": "wakehubert_hey_jarvis_streaming (OpenVoiceOS/wakehubert-wakewords)",
+  "links": {
+    "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge",
+    "model": "https://huggingface.co/OpenVoiceOS/wakehubert-wakewords"
+  },
+  "notes": "models.json at 2ac92d3b: featurizer wakehubert-int8. Threshold, smoothing and debounce come from the model's own metadata. Training data per models.json: synthetic TTS wake words (the shipped heads' positive sources, one voice in ten held out) in 30 s synthetic streams (LibriSpeech train-clean-100, KWS windows, AudioSet noise, RIR), streamed WakeHuBERT-tiny int8 features.",
+  "capabilities": [
+    "clip",
+    "stream"
+  ],
+  "trained_on": [
+    "synthetic-wakewords-hey_jarvis",
+    "ww_stream_synthetic-wakewords-hey_jarvis"
+  ]
+}

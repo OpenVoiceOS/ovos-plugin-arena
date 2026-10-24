@@ -303,6 +303,18 @@ class TestTrainedOn:
         )
         assert validate_registry(registry_root=tmp_path) == []
 
+    def test_stream_set_in_a_wake_word_fighters_trained_on_validates(self, tmp_path):
+        self._write(
+            tmp_path / "competitors" / "wake_word" / "fighter.json",
+            self._ww_competitor("fighter", trained_on=["ww_stream_community-fake"]),
+        )
+        self._write(
+            tmp_path / "datasets" / "ww_stream" / "ww_stream_community-fake.json",
+            {**self._ww_dataset("ww_stream_community-fake", modality="ww_stream"),
+             "sample_rate_hz": 16000},
+        )
+        assert validate_registry(registry_root=tmp_path) == []
+
 
 class TestSamplesFrom(TestTrainedOn):
     def _fewshot(self, trained_on, dataset_id="community-fake", count=4):
@@ -342,3 +354,17 @@ class TestSamplesFrom(TestTrainedOn):
     def test_a_boolean_count_is_caught(self, tmp_path):
         errors = self._errors(tmp_path, self._fewshot(["community-fake"], count=True))
         assert len(errors) == 1 and "count" in errors[0]
+
+
+def test_every_wake_word_hotword_key_is_snake_case():
+    """The assembler groups battles by hotword key, so one phrase has one key."""
+    import re
+
+    from registry.loaders import list_competitors
+
+    bad = []
+    for comp in list_competitors("wake_word"):
+        (key,) = comp.config["hotwords"]
+        if not re.fullmatch(r"[a-z0-9_]+", key) or comp.config["listener"]["wake_word"] != key:
+            bad.append((comp.competitor_id, key))
+    assert bad == []

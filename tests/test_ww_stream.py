@@ -70,22 +70,14 @@ class TestCapabilitiesSchema:
             assert fighter.capabilities  # non-empty, defaults to ["clip"]
             assert set(fighter.capabilities) <= {"clip", "stream"}
 
-    def test_stream_fighters_are_the_expected_families(self):
+    def test_every_wake_word_fighter_streams(self):
+        """Every OVOS wake-word plugin runs on the live microphone stream, so
+        every wake-word fighter is eligible for the stream board."""
         from registry.loaders import list_competitors
 
-        stream_ids = {
-            c.competitor_id for c in list_competitors("wake_word")
-            if "stream" in c.capabilities
-        }
-        assert stream_ids, "expected at least one stream-capable fighter"
-        for cid in stream_ids:
-            assert cid.startswith(("openwakeword-", "microwakeword-", "precise-onnx-"))
-        # a representative clip-only fighter stays clip-only
-        clip_only = {
-            c.competitor_id for c in list_competitors("wake_word")
-            if c.capabilities == ["clip"]
-        }
-        assert any(cid.startswith("vosk-ww-") for cid in clip_only)
+        clip_only = {c.competitor_id for c in list_competitors("wake_word")
+                     if "stream" not in c.capabilities}
+        assert clip_only == set()
 
 
 # ---------------------------------------------------------------------------
@@ -97,7 +89,7 @@ class TestStreamDatasetEntry:
     def test_loads_and_pins_sample_rate(self):
         from registry.loaders import load_dataset
 
-        d = load_dataset("ww_stream", "ww_stream_hey_mycroft")
+        d = load_dataset("ww_stream", "ww_stream_synthetic-wakewords-hey_mycroft")
         assert isinstance(d, DatasetDef)
         assert d.sample_rate_hz == 16000
         assert d.event_tolerance_s == EVENT_TOLERANCE_S
@@ -105,8 +97,8 @@ class TestStreamDatasetEntry:
 
     def test_predictions_repo_404_is_skipped_not_fatal(self, monkeypatch):
         """assemble's fetch loop must tolerate an unpublished predictions_hf
-        repo — this dataset is legitimately unbuilt (§A3.2 is scaffolding
-        only), so it must never crash a full assemble run. Simulates the
+        repo — a stream set has no predictions repo until its first upload,
+        so it must never crash a full assemble run. Simulates the
         404 without touching the network: any exception from fetching must
         propagate as a normal exception, which ``arena.cli.cmd_assemble``
         already catches per-source (log + continue)."""
@@ -675,3 +667,150 @@ class TestOnsetEndWindow:
         sample["truth_ends"] = None
         out = WakeWordStreamBench().predict(stack, sample, None)
         assert out["extras"]["truth_ends"] == []
+
+
+# ---------------------------------------------------------------------------
+# _detect_stream: the VAD and the verifier judge the window before activation
+# ---------------------------------------------------------------------------
+
+
+class _TimedEngine:
+    """Fires on fixed frames, whatever the audio holds."""
+
+    def __init__(self, fire_at_s):
+        self.fire_frames = {round(t * SAMPLE_RATE / FRAME_SAMPLES) for t in fire_at_s}
+        self.frame = -1
+
+    def found_wake_word(self, chunk):
+        self.frame += 1
+        return self.frame in self.fire_frames
+
+
+def _loud(pcm: bytes) -> bool:
+    return bool(np.abs(np.frombuffer(pcm, dtype="<i2")).max(initial=0) > 0.5 * 32767)
+
+
+class _EnergyVad:
+    def is_silence(self, chunk):
+        return not _loud(chunk)
+
+
+class _EnergyVerifier:
+    def verify(self, pcm):
+        return _loud(pcm)
+
+
+class TestGateWindow:
+    """A burst at 5.5 s lies in the 2 s before the 6 s activation and not in
+    the 2 s before the 2 s activation, so only the 6 s activation passes."""
+
+    clip = _tone_burst(start_s=5.5, dur_s=0.3, total_s=8.0)
+
+    def test_vad_hears_only_the_window_before_the_activation(self):
+        stack = WWStack(ww=_TimedEngine([2.0, 6.0]), vad=_EnergyVad())
+        assert [round(t) for t, _ in _detect_stream(stack, self.clip)] == [6]
+
+    def test_verifier_judges_only_the_window_before_the_activation(self):
+        stack = WWStack(ww=_TimedEngine([2.0, 6.0]), verifier=_EnergyVerifier())
+        assert [round(t) for t, _ in _detect_stream(stack, self.clip)] == [6]
+
+    def test_no_gate_keeps_every_activation(self):
+        stack = WWStack(ww=_TimedEngine([2.0, 6.0]))
+        assert [round(t) for t, _ in _detect_stream(stack, self.clip)] == [2, 6]
+
+
+# ---------------------------------------------------------------------------
+# _cached_events: a fighter streams each shared recording once
+# ---------------------------------------------------------------------------
+
+
+class TestStreamEventCache:
+    @pytest.fixture
+    def calls(self, monkeypatch, tmp_path):
+        from runner import ww_bench
+
+        calls = []
+
+        def fake_detect(stack, array):
+            calls.append(len(array))
+            return [(1.5, 1.0), (len(calls) + 0.25, 0.5)]
+
+        monkeypatch.setattr(ww_bench, "STREAM_EVENT_CACHE", tmp_path)
+        monkeypatch.setattr(ww_bench, "_detect_stream", fake_detect)
+        return calls
+
+    @staticmethod
+    def _ctx(config):
+        from runner.media_bench import PredictContext
+
+        comp = CompetitorDef(competitor_id="c", modality="wake_word",
+                             plugin="ovos-ww-plugin-x", config=config, langs=["en-US"])
+        return PredictContext(comp, "en-US", "d", "ww_stream", None, "org/repo")
+
+    def test_the_same_recording_is_streamed_once(self, calls):
+        from runner.ww_bench import _cached_events
+
+        sample = {"array": np.zeros(16), "audio_url": "https://x/negatives/0.wav"}
+        first = _cached_events(WWStack(ww=None), sample, self._ctx({"a": 1}))
+        again = _cached_events(WWStack(ww=None), dict(sample), self._ctx({"a": 1}))
+        assert first == again == [(1.5, 1.0), (1.25, 0.5)]
+        assert calls == [16]
+
+    def test_another_config_or_recording_streams_again(self, calls):
+        from runner.ww_bench import _cached_events
+
+        sample = {"array": np.zeros(16), "audio_url": "https://x/negatives/0.wav"}
+        stack = WWStack(ww=None)
+        _cached_events(stack, sample, self._ctx({"a": 1}))
+        assert _cached_events(stack, sample, self._ctx({"a": 2})) == [(1.5, 1.0), (2.25, 0.5)]
+        other = {"array": np.zeros(8), "audio_url": "https://x/negatives/1.wav"}
+        assert _cached_events(stack, other, self._ctx({"a": 1})) == [(1.5, 1.0), (3.25, 0.5)]
+        assert calls == [16, 16, 8]
+
+    def test_resolved_references_or_stream_code_version_stream_again(self, calls, monkeypatch):
+        from runner import ww_bench
+        from runner.ww_bench import _cached_events
+
+        sample = {"array": np.zeros(16), "audio_url": "https://x/negatives/0.wav"}
+        _cached_events(WWStack(ww=None, config={"samples": "/c/ds@rev1-4"}), sample, self._ctx({}))
+        _cached_events(WWStack(ww=None, config={"samples": "/c/ds@rev2-4"}), sample, self._ctx({}))
+        monkeypatch.setattr(ww_bench, "STREAM_EVENTS_VERSION", ww_bench.STREAM_EVENTS_VERSION + 1)
+        _cached_events(WWStack(ww=None, config={"samples": "/c/ds@rev2-4"}), sample, self._ctx({}))
+        assert calls == [16, 16, 16]
+
+    def test_a_gate_plugin_version_is_part_of_the_key(self, calls, monkeypatch):
+        from runner import ww_bench
+        from runner.ww_bench import _cached_events
+
+        sample = {"array": np.zeros(16), "audio_url": "https://x/negatives/0.wav"}
+        stack = WWStack(ww=None, vad=_EnergyVad())
+        versions = iter([[("vad-plugin", "1.0")], [("vad-plugin", "1.0")], [("vad-plugin", "2.0")]])
+        monkeypatch.setattr(ww_bench, "_distribution_versions", lambda obj: next(versions))
+        for _ in range(3):
+            _cached_events(stack, sample, self._ctx({}))
+        assert calls == [16, 16]
+
+    def test_a_recording_with_no_url_is_never_cached(self, calls):
+        from runner.ww_bench import _cached_events
+
+        sample = {"array": np.zeros(16)}
+        _cached_events(WWStack(ww=None), sample, self._ctx({}))
+        _cached_events(WWStack(ww=None), sample, self._ctx({}))
+        assert calls == [16, 16]
+
+
+# ---------------------------------------------------------------------------
+# positives_dir: a dataset whose phrase folder is not named after the phrase
+# ---------------------------------------------------------------------------
+
+
+def test_positives_dir_names_the_folder_with_the_phrase(monkeypatch):
+    from runner import audio_io
+
+    files = [f"positive/{i}.wav" for i in range(3)] + [f"negative/{i}.wav" for i in range(2)]
+    monkeypatch.setattr(audio_io, "_repo_audio", lambda hf, rev: files)
+    ds = DatasetDef(dataset_id="sam", modality="wake_word", wakeword="sam",
+                    positives_dir="positive", negative_dirs=["negative"], lang="en-US",
+                    source={"type": "huggingface", "hf_id": "org/sam", "revision": "r"})
+    assert audio_io.ww_positive_files(ds, "r") == [("org/sam", f, "r") for f in files[:3]]
+    assert audio_io._ww_split(ds, "r")[1] == [("org/sam", f, "r") for f in files[3:]]

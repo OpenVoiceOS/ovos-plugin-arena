@@ -1,0 +1,37 @@
+{
+  "competitor_id": "wakeforge-hey-stemcom",
+  "modality": "wake_word",
+  "plugin": "ovos-ww-plugin-wakeforge",
+  "config": {
+    "listener": {
+      "wake_word": "hey_stemcom"
+    },
+    "hotwords": {
+      "hey_stemcom": {
+        "module": "ovos-ww-plugin-wakeforge",
+        "listen": true,
+        "model": "wakehubert_hey_stemcom",
+        "models_revision": "2ac92d3bcf55f177a47049c3f810a78984a31ff9"
+      }
+    }
+  },
+  "langs": [
+    "nl-NL"
+  ],
+  "display_name": "wakeforge (hey stemcom)",
+  "species": "WakeForgeHotwordPlugin",
+  "types": [
+    "neural-net"
+  ],
+  "description": "The ready WakeHuBERT 'hey stemcom' model at its own calibrated default threshold (0.28).",
+  "model": "wakehubert_hey_stemcom (OpenVoiceOS/wakehubert-wakewords)",
+  "links": {
+    "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge",
+    "model": "https://huggingface.co/OpenVoiceOS/wakehubert-wakewords"
+  },
+  "notes": "models.json at 2ac92d3b: featurizer wakehubert-int8. Threshold, smoothing and debounce come from the model's own metadata. Training data per models.json: synthetic only: a Dutch edge-tts voice grid (nl-NL and nl-BE), voice-converted copies of edge-tts clips, OmniVoice clips, each checked against a speech recogniser transcript, with one held-out edge-tts test voice excluded; LibriSpeech train-clean-100 (CC BY 4.0) mixed in as background babble; negatives from wakeforge datasets/train.csv and the even half of an AudioSet noise sample.",
+  "capabilities": [
+    "clip",
+    "stream"
+  ]
+}
