@@ -193,8 +193,10 @@ goes quietly wrong, rather than failing outright:
   directly, the replay proof alone cannot tell the two states apart.
 - **`assemble.yml` emits one `::warning::` per board named in
   `assemble-summary.json`'s `boards_without_ranked_fighters`**, plus one
-  for `rows_dropped_off_revision` when it is non-zero. Every fighter on an
-  unranked board scored zero samples, board-wide, and a dataset revision
+  for `rows_dropped_off_revision` when it is non-zero. A board has no
+  ranked fighter when every fighter scored zero samples, or, on a wake-word
+  or VAD board, when every fighter's rows hold one class only (reason
+  `one_class`; `boards_without_negatives` names the same board). A dataset revision
   mismatch means rows were swept against a corpus version other than the
   one the registry pins. Both are legitimate, temporary states
   while a re-sweep against the right revision is in flight, so the run
