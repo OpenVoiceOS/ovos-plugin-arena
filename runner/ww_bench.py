@@ -436,8 +436,11 @@ def _detect_stream(stack: WWStack, array) -> list[tuple[float, float]]:
             engine.update(chunk)
         fired = fww(chunk) if fww_takes_arg else fww()
         if fired and _gate_window(stack, array, off // 2 + len(chunk) // 2):
-            score = getattr(engine, "confidence", None) or getattr(engine, "score", None)
-            events.append((round(t, 3), float(score) if score is not None else 1.0))
+            # only a number is a confidence: vosk's ``score`` is a classmethod
+            score = next((v for v in (getattr(engine, "confidence", None),
+                                      getattr(engine, "score", None))
+                          if isinstance(v, (int, float))), 1.0)
+            events.append((round(t, 3), float(score)))
         t += frame_dur
     return events
 

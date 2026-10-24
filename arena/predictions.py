@@ -441,7 +441,7 @@ def group_rows(
     are aggregated into *trained_on_dropped* (keyed ``"<competitor_id>
     /<dataset_id>"``) when given.
     """
-    from registry.loaders import list_competitors
+    from registry.loaders import fighter_pool, list_competitors
     from registry.schemas import INTENT_MODALITIES
 
     registered_by_modality: dict[str, set[str]] = {}
@@ -451,7 +451,7 @@ def group_rows(
 
     def _competitors(modality: str) -> list:
         try:
-            return list_competitors(modality)
+            return list_competitors(fighter_pool(modality))
         except Exception as exc:
             logger.warning(
                 "Could not load registry for modality %s: %s", modality, exc
