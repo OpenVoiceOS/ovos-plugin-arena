@@ -1,0 +1,43 @@
+{
+  "competitor_id": "wakeforge-android",
+  "modality": "wake_word",
+  "plugin": "ovos-ww-plugin-wakeforge",
+  "config": {
+    "listener": {
+      "wake_word": "android"
+    },
+    "hotwords": {
+      "android": {
+        "module": "ovos-ww-plugin-wakeforge",
+        "listen": true,
+        "model": "wakehubert_android",
+        "models_revision": "2ac92d3bcf55f177a47049c3f810a78984a31ff9"
+      }
+    }
+  },
+  "langs": [
+    "en-US",
+    "en-GB",
+    "en-AU"
+  ],
+  "display_name": "wakeforge (android)",
+  "species": "WakeForgeHotwordPlugin",
+  "types": [
+    "neural-net"
+  ],
+  "description": "The ready WakeHuBERT 'android' model at its own calibrated default threshold (0.42).",
+  "model": "wakehubert_android (OpenVoiceOS/wakehubert-wakewords)",
+  "links": {
+    "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge",
+    "model": "https://huggingface.co/OpenVoiceOS/wakehubert-wakewords"
+  },
+  "notes": "models.json at 2ac92d3b: featurizer wakehubert-int8. Threshold, smoothing and debounce come from the model's own metadata. Training data per models.json: synthetic only: an edge-tts voice grid, OmniVoice clips, with six held-out edge-tts test voices excluded; LibriSpeech train-clean-100 (CC BY 4.0) mixed in as background babble; negatives from wakeforge datasets/train.csv and the even half of an AudioSet noise sample.",
+  "capabilities": [
+    "clip",
+    "stream"
+  ],
+  "trained_on": [
+    "synthetic-wakewords-android",
+    "ww_stream_synthetic-wakewords-android"
+  ]
+}

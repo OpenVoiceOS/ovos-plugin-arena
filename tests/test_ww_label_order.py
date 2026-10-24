@@ -46,8 +46,9 @@ def test_the_per_class_cap_still_applies(monkeypatch):
 
 class _Def:
     def __init__(self, **kw):
-        self.__dict__.update(dict(reference_fields={}, negative_dirs=None, negatives_sources=None,
-                                  negatives_hf=None, negatives_dir=None, negatives_dataset_ids=None,
+        self.__dict__.update(dict(reference_fields={}, positives_dir=None, negative_dirs=None,
+                                  negatives_sources=None, negatives_hf=None, negatives_dir=None,
+                                  negatives_dataset_ids=None,
                                   wakeword="ww"), **kw)
 
 

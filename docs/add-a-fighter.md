@@ -129,6 +129,22 @@ fighter is never scored on its own recordings; `validate-registry` refuses the
 entry otherwise. `scripts/gen_ww_fewshot_fighters.py` writes the zero-shot and
 few-shot wake-word fighters.
 
+### Note: wake-word fighters for every published model
+
+`scripts/gen_ww_model_fighters.py` writes one fighter for every published
+model of the model-based wake-word plugins: every WakeHuBERT model in
+`OpenVoiceOS/wakehubert-wakewords` (batch and streaming), every Precise ONNX
+model, every ESPHome microWakeWord model and every pretrained openWakeWord
+model. It leaves an existing fighter file as it is. Then it gives every
+wake-word fighter the `stream` capability and adds the `ww_stream_<set>`
+dataset of each `trained_on` clip set. Run it again after you add a stream
+dataset. Both generators run from the repository root with
+`PYTHONPATH=.`.
+
+A wake-word dataset whose folder of clips with the phrase is not named after
+the phrase sets `positives_dir` to that folder, as `sam-wake-word` does
+(`positive/` and `negative/`).
+
 ## 2. Field reference
 
 | Field | Required | Notes |

@@ -1,0 +1,44 @@
+{
+  "competitor_id": "local-wake-hey-chatterbox",
+  "modality": "wake_word",
+  "plugin": "ovos-ww-plugin-local-wake",
+  "config": {
+    "listener": {
+      "wake_word": "hey_chatterbox"
+    },
+    "hotwords": {
+      "hey_chatterbox": {
+        "module": "ovos-ww-plugin-local-wake",
+        "listen": true,
+        "samples_from": {
+          "dataset_id": "synthetic-wakewords-hey_chatterbox",
+          "count": 4
+        }
+      }
+    }
+  },
+  "langs": [
+    "en-US",
+    "en-GB",
+    "en-AU"
+  ],
+  "display_name": "local-wake (hey chatterbox)",
+  "species": "LocalWakeHotwordPlugin",
+  "types": [
+    "template-matching",
+    "few-shot"
+  ],
+  "description": "Dynamic time warping of speech features against 4 recordings of 'hey chatterbox'.",
+  "links": {
+    "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-local-wake"
+  },
+  "notes": "The references are 4 positive clips of synthetic-wakewords-hey_chatterbox, so the fighter is not scored on that set. Threshold is the plugin default.",
+  "capabilities": [
+    "clip",
+    "stream"
+  ],
+  "trained_on": [
+    "synthetic-wakewords-hey_chatterbox",
+    "ww_stream_synthetic-wakewords-hey_chatterbox"
+  ]
+}

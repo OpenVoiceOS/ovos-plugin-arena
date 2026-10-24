@@ -531,6 +531,13 @@ class DatasetDef(BaseModel):
             "Clips in other folders are negatives."
         ),
     )
+    positives_dir: str | None = Field(
+        None,
+        description=(
+            "Wake-word audiofolder corpora whose folder of positive clips is "
+            "not named after the phrase (e.g. 'positive'); default: ``wakeword``."
+        ),
+    )
     negative_dirs: list[str] | None = Field(
         None,
         description=(

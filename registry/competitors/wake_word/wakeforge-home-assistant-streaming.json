@@ -1,0 +1,39 @@
+{
+  "competitor_id": "wakeforge-home-assistant-streaming",
+  "modality": "wake_word",
+  "plugin": "ovos-ww-plugin-wakeforge",
+  "config": {
+    "listener": {
+      "wake_word": "home_assistant"
+    },
+    "hotwords": {
+      "home_assistant": {
+        "module": "ovos-ww-plugin-wakeforge",
+        "listen": true,
+        "model": "wakehubert_home_assistant_streaming",
+        "models_revision": "2ac92d3bcf55f177a47049c3f810a78984a31ff9"
+      }
+    }
+  },
+  "langs": [
+    "en-US",
+    "en-GB",
+    "en-AU"
+  ],
+  "display_name": "wakeforge (home assistant, streaming)",
+  "species": "WakeForgeHotwordPlugin",
+  "types": [
+    "neural-net"
+  ],
+  "description": "The ready WakeHuBERT streaming 'home assistant' model at its own calibrated default threshold (0.51).",
+  "model": "wakehubert_home_assistant_streaming (OpenVoiceOS/wakehubert-wakewords)",
+  "links": {
+    "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge",
+    "model": "https://huggingface.co/OpenVoiceOS/wakehubert-wakewords"
+  },
+  "notes": "models.json at 2ac92d3b: featurizer wakehubert-int8. Threshold, smoothing and debounce come from the model's own metadata. Training data per models.json: synthetic only: an edge-tts voice grid, edge-tts and Google Translate TTS voices, OmniVoice no-reference clips, with one voice in ten held out; mixed into 30 s synthetic streams (LibriSpeech train-clean-100, KWS windows, AudioSet noise, RIR); streamed WakeHuBERT-tiny int8 features.",
+  "capabilities": [
+    "clip",
+    "stream"
+  ]
+}

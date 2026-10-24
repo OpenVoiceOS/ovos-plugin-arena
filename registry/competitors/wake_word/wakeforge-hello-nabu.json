@@ -1,0 +1,39 @@
+{
+  "competitor_id": "wakeforge-hello-nabu",
+  "modality": "wake_word",
+  "plugin": "ovos-ww-plugin-wakeforge",
+  "config": {
+    "listener": {
+      "wake_word": "hello_nabu"
+    },
+    "hotwords": {
+      "hello_nabu": {
+        "module": "ovos-ww-plugin-wakeforge",
+        "listen": true,
+        "model": "wakehubert_hello_nabu",
+        "models_revision": "2ac92d3bcf55f177a47049c3f810a78984a31ff9"
+      }
+    }
+  },
+  "langs": [
+    "en-US",
+    "en-GB",
+    "en-AU"
+  ],
+  "display_name": "wakeforge (hello nabu)",
+  "species": "WakeForgeHotwordPlugin",
+  "types": [
+    "neural-net"
+  ],
+  "description": "The ready WakeHuBERT 'hello nabu' model at its own calibrated default threshold (0.49).",
+  "model": "wakehubert_hello_nabu (OpenVoiceOS/wakehubert-wakewords)",
+  "links": {
+    "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge",
+    "model": "https://huggingface.co/OpenVoiceOS/wakehubert-wakewords"
+  },
+  "notes": "models.json at 2ac92d3b: featurizer wakehubert-int8. Threshold, smoothing and debounce come from the model's own metadata. Training data per models.json: synthetic only: an edge-tts voice grid, further edge-tts voices, OmniVoice clips, with six held-out edge-tts test voices excluded; LibriSpeech train-clean-100 (CC BY 4.0) mixed in as background babble; negatives from wakeforge datasets/train.csv and the even half of an AudioSet noise sample.",
+  "capabilities": [
+    "clip",
+    "stream"
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "competitor_id": "wakeforge-aufwachen-streaming",
+  "modality": "wake_word",
+  "plugin": "ovos-ww-plugin-wakeforge",
+  "config": {
+    "listener": {
+      "wake_word": "aufwachen"
+    },
+    "hotwords": {
+      "aufwachen": {
+        "module": "ovos-ww-plugin-wakeforge",
+        "listen": true,
+        "model": "wakehubert_aufwachen_streaming",
+        "models_revision": "2ac92d3bcf55f177a47049c3f810a78984a31ff9"
+      }
+    }
+  },
+  "langs": [
+    "de-DE"
+  ],
+  "display_name": "wakeforge (aufwachen, streaming)",
+  "species": "WakeForgeHotwordPlugin",
+  "types": [
+    "neural-net"
+  ],
+  "description": "The ready WakeHuBERT streaming 'aufwachen' model at its own calibrated default threshold (0.5).",
+  "model": "wakehubert_aufwachen_streaming (OpenVoiceOS/wakehubert-wakewords)",
+  "links": {
+    "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge",
+    "model": "https://huggingface.co/OpenVoiceOS/wakehubert-wakewords"
+  },
+  "notes": "models.json at 2ac92d3b: featurizer wakehubert-int8. Threshold, smoothing and debounce come from the model's own metadata. Training data per models.json: synthetic only: OmniVoice no-reference clips, one seed per clip, checked against a speech recogniser transcript, and the OmniVoice donor clips of TigreGotico/synthetic-wakeword-aufwachen train/omnivoice: the train split of TigreGotico/synthetic-wakeword-aufwachen at revision 04b68d6f596cd38b5c46f4ea73cab524adeebbeb, which holds byte for byte the local copies wakeup-localised/de/train and omnivoice-donor-synthesis/de/aufwachen, with one voice in ten held out; mixed into 30 s synthetic streams (LibriSpeech train-clean-100, KWS windows, AudioSet noise, RIR); streamed WakeHuBERT-tiny int8 features.",
+  "capabilities": [
+    "clip",
+    "stream"
+  ]
+}

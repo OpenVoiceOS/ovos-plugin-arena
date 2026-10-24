@@ -446,8 +446,20 @@ def stream_ww(dataset_def, revision: str, max_per_class: int = 0
     is set (general speech/noise that must never fire — the proper false-accept
     test), otherwise from the same corpus's other phrases.
     """
+    pos, same_neg = _ww_split(dataset_def, revision)
+    yield from _stream_ww_split(dataset_def, pos, same_neg, max_per_class)
+
+
+def ww_positive_files(dataset_def, revision: str) -> list[tuple[str, str, str]]:
+    """``(hf_id, path, revision)`` of every clip with the phrase in a wake-word dataset."""
+    return _ww_split(dataset_def, revision)[0]
+
+
+def _ww_split(dataset_def, revision: str):
+    """The dataset's own clips: ``(positives, negatives)`` as ``(hf_id, path, revision)``."""
     src = dataset_def.source
-    hf, ww = src.hf_id, dataset_def.wakeword
+    hf = src.hf_id
+    ww = dataset_def.positives_dir or dataset_def.wakeword
     fields = dataset_def.reference_fields or {}
     negset = set(dataset_def.negative_dirs) if dataset_def.negative_dirs else None
 
@@ -475,7 +487,10 @@ def stream_ww(dataset_def, revision: str, max_per_class: int = 0
         same_neg = [(hf, f, revision) for f in files
                     if _phrase(f) not in (ww, None)
                     and (negset is None or _phrase(f) in negset)]
+    return pos, same_neg
 
+
+def _stream_ww_split(dataset_def, pos, same_neg, max_per_class):
     if dataset_def.negatives_sources:
         # pool negatives across several not-wake-word corpora (speech, music,
         # noise, household sounds) so false-accept rate spans many scenarios;

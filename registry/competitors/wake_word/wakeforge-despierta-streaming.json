@@ -1,0 +1,37 @@
+{
+  "competitor_id": "wakeforge-despierta-streaming",
+  "modality": "wake_word",
+  "plugin": "ovos-ww-plugin-wakeforge",
+  "config": {
+    "listener": {
+      "wake_word": "despierta"
+    },
+    "hotwords": {
+      "despierta": {
+        "module": "ovos-ww-plugin-wakeforge",
+        "listen": true,
+        "model": "wakehubert_despierta_streaming",
+        "models_revision": "2ac92d3bcf55f177a47049c3f810a78984a31ff9"
+      }
+    }
+  },
+  "langs": [
+    "es-ES"
+  ],
+  "display_name": "wakeforge (despierta, streaming)",
+  "species": "WakeForgeHotwordPlugin",
+  "types": [
+    "neural-net"
+  ],
+  "description": "The ready WakeHuBERT streaming 'despierta' model at its own calibrated default threshold (0.37).",
+  "model": "wakehubert_despierta_streaming (OpenVoiceOS/wakehubert-wakewords)",
+  "links": {
+    "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge",
+    "model": "https://huggingface.co/OpenVoiceOS/wakehubert-wakewords"
+  },
+  "notes": "models.json at 2ac92d3b: featurizer wakehubert-int8. Threshold, smoothing and debounce come from the model's own metadata. Training data per models.json: synthetic only: OmniVoice no-reference clips, one seed per clip, checked against a speech recogniser transcript, and the OmniVoice donor clips of TigreGotico/synthetic-wakeword-despierta train/omnivoice: the train split of TigreGotico/synthetic-wakeword-despierta at revision c6be022b246af6eab47c83034cc088e4cb28ee96, which holds byte for byte the local copies wakeup-localised/es/train and omnivoice-donor-synthesis/es/despierta, with one voice in ten held out; mixed into 30 s synthetic streams (LibriSpeech train-clean-100, KWS windows, AudioSet noise, RIR); streamed WakeHuBERT-tiny int8 features.",
+  "capabilities": [
+    "clip",
+    "stream"
+  ]
+}

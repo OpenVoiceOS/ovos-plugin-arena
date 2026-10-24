@@ -18,14 +18,16 @@ Three corpus layouts are supported:
 """
 from __future__ import annotations
 
+import hashlib
 import inspect
+import json
 import logging
 import os
 import shutil
 import tempfile
 import time
 from collections.abc import Iterator
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from itertools import islice
 from pathlib import Path
 from typing import Any
@@ -58,6 +60,13 @@ SAMPLE_RATE = 16000
 # dataset revision and clip count.
 REFERENCE_CACHE = (Path(os.environ.get("ARENA_CACHE", "~/.cache/ovos-plugin-arena")).expanduser()
                    / "ww-references")
+# Stream events per fighter config and recording (see _cached_events).
+STREAM_EVENT_CACHE = REFERENCE_CACHE.parent / "ww-stream-events"
+# Audio before an activation that a stream fighter's VAD and verifier judge.
+GATE_WINDOW_S = 2.0
+# Part of every stream event cache key: bump it when _detect_stream or
+# _gate_window changes the events a recording gives.
+STREAM_EVENTS_VERSION = 1
 
 
 @dataclass
@@ -75,6 +84,8 @@ class WWStack:
     ww: Any
     vad: Any | None = None
     verifier: Any | None = None
+    # the hotword config the engine was built with, ``samples_from`` resolved
+    config: dict = field(default_factory=dict)
 
 
 class WakeWordBench(MediaBenchAdapter):
@@ -133,7 +144,8 @@ class WakeWordBench(MediaBenchAdapter):
             ww = clazz(key_phrase, hw_cfg)
         return WWStack(ww,
                        vad=_load_vad(competitor.config),
-                       verifier=_load_verifier(competitor.config))
+                       verifier=_load_verifier(competitor.config),
+                       config=hw_cfg)
 
     def predict(self, stack, sample: dict, ctx: PredictContext) -> dict:
         start = time.perf_counter()
@@ -304,7 +316,7 @@ class WakeWordStreamBench(WakeWordBench):
 
     def predict(self, stack: WWStack, sample: dict, ctx: PredictContext) -> dict:
         array = sample["array"]
-        events = _detect_stream(stack, array)
+        events = _cached_events(stack, sample, ctx)
         truth_onsets = [float(t) for t in (sample.get("truth_onsets") or [])]
         truth_ends = [float(t) for t in (sample.get("truth_ends") or [])]
         if len(truth_ends) != len(truth_onsets):
@@ -321,6 +333,58 @@ class WakeWordStreamBench(WakeWordBench):
                 "duration_s": duration_s,
             },
         }
+
+
+def _cached_events(
+    stack: WWStack, sample: dict, ctx: PredictContext | None
+) -> list[tuple[float, float]]:
+    """``_detect_stream`` events of *sample*, kept per fighter config and recording URL.
+
+    The key holds the stream code version, the plugin and gate versions, the
+    registry config and the resolved hotword config (so a ``samples_from``
+    revision is part of it).
+
+    Every ``ww_stream`` dataset of the corpus lists the same negative
+    recordings, so a fighter streams each of them once and later datasets
+    read the events back.
+    """
+    url = sample.get("audio_url")
+    if not url or ctx is None:
+        return _detect_stream(stack, sample["array"])
+    competitor = ctx.competitor
+    gates = [_distribution_versions(g) for g in (stack.vad, stack.verifier) if g is not None]
+    config = json.dumps(
+        [STREAM_EVENTS_VERSION, GATE_WINDOW_S, competitor.plugin,
+         _plugin_version(competitor.plugin), competitor.config, stack.config, gates],
+        sort_keys=True, default=str)
+    key = hashlib.sha256(config.encode()).hexdigest()[:16]
+    path = STREAM_EVENT_CACHE / f"{competitor.competitor_id}-{key}" / (
+        hashlib.sha256(url.encode()).hexdigest()[:32] + ".json")
+    if path.is_file():
+        return [tuple(e) for e in json.loads(path.read_text())]
+    events = _detect_stream(stack, sample["array"])
+    path.parent.mkdir(parents=True, exist_ok=True)
+    partial = path.with_suffix(f".{os.getpid()}.tmp")
+    partial.write_text(json.dumps(events))
+    os.replace(partial, path)
+    return events
+
+
+def _distribution_versions(obj) -> list[tuple[str, str | None]]:
+    """The installed distributions, with versions, that provide *obj*'s class."""
+    from importlib.metadata import packages_distributions
+
+    top = type(obj).__module__.split(".")[0]
+    return [(name, _plugin_version(name)) for name in sorted(packages_distributions().get(top, []))]
+
+
+def _plugin_version(distribution: str) -> str | None:
+    from importlib.metadata import PackageNotFoundError, version
+
+    try:
+        return version(distribution)
+    except PackageNotFoundError:
+        return None
 
 
 def _detect_stream(stack: WWStack, array) -> list[tuple[float, float]]:
@@ -342,8 +406,11 @@ def _detect_stream(stack: WWStack, array) -> list[tuple[float, float]]:
     (patience, debounce, cooldown — the engine owns its own threshold and
     re-arm behaviour, same as P2) decides when it is ready to fire again,
     exactly as it would against a live mic; the arena does not force a
-    re-arm the plugin didn't ask for. An activation still has to clear a
-    configured verifier, if any. Score defaults to 1.0: most OVOS hotword
+    re-arm the plugin didn't ask for. A configured pre-wake VAD and verifier
+    judge the audio of the ``GATE_WINDOW_S`` before an activation, the way the
+    listener hands them the buffered phrase, never the whole recording: an
+    activation counts only when the VAD hears speech in that window and the
+    verifier confirms it. Score defaults to 1.0: most OVOS hotword
     engines only expose a binary latch (``found_wake_word()``), not a
     calibrated confidence — the arena does not invent one. Engines that do
     expose a numeric ``.confidence``/``.score`` after firing get it
@@ -368,11 +435,22 @@ def _detect_stream(stack: WWStack, array) -> list[tuple[float, float]]:
         if has_update:
             engine.update(chunk)
         fired = fww(chunk) if fww_takes_arg else fww()
-        if fired and (stack.verifier is None or _verify(stack.verifier, array)):
+        if fired and _gate_window(stack, array, off // 2 + len(chunk) // 2):
             score = getattr(engine, "confidence", None) or getattr(engine, "score", None)
             events.append((round(t, 3), float(score) if score is not None else 1.0))
         t += frame_dur
     return events
+
+
+def _gate_window(stack: WWStack, array, end: int) -> bool:
+    """VAD and verifier verdict on the ``GATE_WINDOW_S`` of *array* that ends at sample *end*."""
+    window = array[max(0, end - int(GATE_WINDOW_S * SAMPLE_RATE)):end]
+    if stack.vad is not None:
+        from runner.vad_bench import _has_speech
+
+        if not _has_speech(stack.vad, window):
+            return False
+    return stack.verifier is None or _verify(stack.verifier, window)
 
 
 def _norm_label(raw) -> str:
