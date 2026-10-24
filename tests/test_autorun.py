@@ -283,6 +283,21 @@ def _ds(did):
     return SimpleNamespace(dataset_id=did)
 
 
+class TestPairIsCompleteListingFailure:
+    def test_a_listing_that_fails_after_its_rows_is_incomplete(self, tmp_path, monkeypatch):
+        class Adapter:
+            def iter_samples(self, dataset, lang, revision, max_samples):
+                yield from (("s0", {}), ("s1", {}))
+                raise OSError("pooled negatives failed")
+
+        monkeypatch.setattr(autorun_module, "adapter_factories", lambda: {"wake_word": Adapter})
+        monkeypatch.setattr(autorun_module, "_revision_for", lambda d: "main")
+        monkeypatch.setattr(autorun_module.mb, "done_samples", lambda path, rev: {"s0", "s1"})
+        runner = AutoRunner(AutoRunConfig(output_dir=tmp_path, upload=False, seed_from_hf=False))
+        ds = SimpleNamespace(dataset_id="d", source=SimpleNamespace(revision="main"))
+        assert runner.pair_is_complete("wake_word", _comp("A"), ds, "en-US") is False
+
+
 class TestAutoRunnerRoundRobin:
     def test_alternates_between_pairs_batch_2(self, tmp_path):
         a_comp, b_comp = _comp("A"), _comp("B")

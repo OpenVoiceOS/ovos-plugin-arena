@@ -858,12 +858,17 @@ class AutoRunner:
         if not done:
             return False
         total = 0
-        for sample_id, _sample in adapter.iter_samples(dataset, lang, revision, 0):
-            if deadline is not None and time.monotonic() >= deadline:
-                return False
-            total += 1
-            if sample_id not in done:
-                return False
+        try:
+            for sample_id, _sample in adapter.iter_samples(dataset, lang, revision, 0):
+                if deadline is not None and time.monotonic() >= deadline:
+                    return False
+                total += 1
+                if sample_id not in done:
+                    return False
+        except Exception as exc:
+            log.warning("sample listing failed for %s/%s/%s: %s — treating as incomplete",
+                        competitor.competitor_id, dataset.dataset_id, lang, exc)
+            return False
         return total > 0
 
     def _call_process_fn(self, modality, competitor, dataset, lang, batch,
