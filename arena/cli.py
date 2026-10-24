@@ -1426,14 +1426,14 @@ def _attach_model_sizes(board, modality: str) -> None:
     registry entry can't be resolved at all — get ``model_mb = None``,
     never a fabricated 0."""
     try:
-        from registry.loaders import list_competitors
+        from registry.loaders import fighter_pool, list_competitors
     except ImportError:
         return
     from arena.model_size import likely_hf_repo_id, model_repo_size_mb
 
     repos: dict[str, str | None] = {}
     try:
-        for comp in list_competitors(modality):
+        for comp in list_competitors(fighter_pool(modality)):
             repo_id = getattr(comp, "model_hf_repo", None)
             if not repo_id:
                 model = getattr(comp, "model", None)

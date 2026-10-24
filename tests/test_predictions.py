@@ -601,3 +601,45 @@ class TestHfFetchMissingRepo:
         assert len(attempts) == 1
         assert any("Org/private-bench" in r.getMessage()
                    for r in caplog.records if r.levelname == "WARNING")
+
+
+def _stream_row(competitor_id: str, dataset_id: str = "ww_stream_synthetic-wakewords-hey_mycroft"):
+    return {
+        "competitor_id": competitor_id, "sample_id": "hey_mycroft/audio/ww_stream_00000.wav",
+        "dataset_id": dataset_id, "lang": "en-US", "modality": "ww_stream",
+        "plugin_id": "ovos-ww-plugin-precise-onnx", "label": "positive",
+        "prediction": "WW_STREAM", "extras": {"events": [[1.0, 1.0]]},
+    }
+
+
+class TestStreamRowsUseTheWakeWordPool:
+    """A ww_stream row is scored against the wake_word fighters (the real registry)."""
+
+    def test_a_wake_word_fighter_reaches_the_stream_board(self):
+        unregistered: dict[str, int] = {}
+        grouped = group_rows(
+            [parse_row(_stream_row("precise-onnx-hey-mycroft"), "x")], unregistered=unregistered
+        )
+        key = ("ww_stream", "ww_stream_synthetic-wakewords-hey_mycroft", "en-US")
+        assert set(grouped[key]["hey_mycroft/audio/ww_stream_00000.wav"]) == {
+            "precise-onnx-hey-mycroft"
+        }
+        assert unregistered == {}
+
+    def test_a_fighter_trained_on_the_stream_set_is_dropped(self):
+        dropped: dict[str, int] = {}
+        grouped = group_rows(
+            [parse_row(_stream_row("wakeforge-hey-mycroft-streaming"), "x")],
+            trained_on_dropped=dropped,
+        )
+        assert grouped == {}
+        assert dropped == {
+            "wakeforge-hey-mycroft-streaming/ww_stream_synthetic-wakewords-hey_mycroft": 1
+        }
+
+    def test_fighter_pool(self):
+        from registry.loaders import fighter_pool
+
+        assert fighter_pool("ww_stream") == "wake_word"
+        assert fighter_pool("wake_word") == "wake_word"
+        assert fighter_pool("tts") == "tts"

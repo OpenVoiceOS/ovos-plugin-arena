@@ -143,7 +143,7 @@ class TestScoreWwStream:
         rows = [_stream_row(events=[[100.0, 1.0]], truth_onsets=[],
                             duration_s=3600.0)]
         m = score_ww_stream(rows)
-        assert m["frr"] == 0.0
+        assert "frr" not in m  # no wake word to miss
         assert m["fa_per_hour"] == pytest.approx(1.0)
 
     def test_boundary_at_exact_tolerance_is_a_true_positive(self):
@@ -814,3 +814,125 @@ def test_positives_dir_names_the_folder_with_the_phrase(monkeypatch):
                     source={"type": "huggingface", "hf_id": "org/sam", "revision": "r"})
     assert audio_io.ww_positive_files(ds, "r") == [("org/sam", f, "r") for f in files[:3]]
     assert audio_io._ww_split(ds, "r")[1] == [("org/sam", f, "r") for f in files[3:]]
+
+
+class TestStreamBoardRanksOnWakeWords:
+    """A stream set is a few long recordings; the board floor counts its wake words."""
+
+    def _rows(self, cid, onsets, hit):
+        positive = _stream_row(
+            [[t + 0.3, 1.0] for t in onsets[:hit]], onsets, 600.0
+        ).model_copy(update={"competitor_id": cid, "sample_id": "pos", "modality": "ww_stream"})
+        negatives = [
+            _stream_row([], [], 1800.0).model_copy(
+                update={"competitor_id": cid, "sample_id": f"neg{i}", "modality": "ww_stream"})
+            for i in range(4)
+        ]
+        return [positive, *negatives]
+
+    def test_five_recordings_with_forty_wake_words_are_ranked(self):
+        from arena.metrics import build_benchmark_board
+
+        onsets = [10.0 + 12 * i for i in range(40)]
+        board = build_benchmark_board(
+            "ww_stream", "d", "en-US",
+            {"good": self._rows("good", onsets, 36), "bad": self._rows("bad", onsets, 20)},
+            generated_at="2026-01-01T00:00:00+00:00",
+        )
+        by_id = {e.competitor_id: e for e in board.entries}
+        assert by_id["good"].samples == 5
+        assert not by_id["good"].unranked, by_id["good"].unranked_reason
+        assert (by_id["good"].rank, by_id["bad"].rank) == (1, 2)
+        assert by_id["good"].metrics["error_at_1fa_per_hour"] == pytest.approx(0.1)
+
+    def test_negatives_only_never_rank_above_a_complete_entry(self):
+        from arena.metrics import build_benchmark_board
+
+        onsets = [10.0 + 12 * i for i in range(40)]
+        complete = self._rows("complete", onsets, 20)
+        no_positives = self._rows("no-positives", onsets, 40)[1:]
+        board = build_benchmark_board(
+            "ww_stream", "d", "en-US", {"complete": complete, "no-positives": no_positives},
+            generated_at="2026-01-01T00:00:00+00:00",
+        )
+        by_id = {e.competitor_id: e for e in board.entries}
+        assert by_id["complete"].rank == 1
+        assert by_id["no-positives"].unranked
+        assert "frr" not in by_id["no-positives"].metrics
+        assert by_id["no-positives"].metrics["fa_per_hour"] == 0.0
+
+    def test_a_positive_recording_alone_cannot_rank_at_one_fa_per_hour(self):
+        from arena.metrics import build_benchmark_board
+
+        onsets = [10.0 + 12 * i for i in range(40)]
+        positive_only = self._rows("positive-only", onsets, 40)[:1]  # 600 s, under an hour
+        board = build_benchmark_board(
+            "ww_stream", "d", "en-US", {"positive-only": positive_only},
+            generated_at="2026-01-01T00:00:00+00:00",
+        )
+        entry = board.entries[0]
+        assert entry.unranked
+        assert "error_at_1fa_per_hour" not in entry.metrics
+        assert entry.metrics["frr"] == 0.0
+
+    def test_a_fighter_that_never_meets_the_budget_is_unranked(self):
+        from arena.metrics import build_benchmark_board
+
+        onsets = [10.0 + 12 * i for i in range(40)]
+        noisy = self._rows("noisy", onsets, 40)
+        for row in noisy[1:]:  # 10 false wake-ups in each 30-minute negative
+            row.extras["events"] = [[60.0 * k, 1.0] for k in range(1, 11)]
+        board = build_benchmark_board(
+            "ww_stream", "d", "en-US", {"noisy": noisy, "quiet": self._rows("quiet", onsets, 30)},
+            generated_at="2026-01-01T00:00:00+00:00",
+        )
+        by_id = {e.competitor_id: e for e in board.entries}
+        assert by_id["noisy"].metrics["error_at_1fa_per_hour"] == 1.0
+        assert by_id["noisy"].unranked
+        assert by_id["noisy"].unranked_reason.startswith("over_budget")
+        assert by_id["quiet"].rank == 1
+
+    def test_equal_errors_share_a_rank(self):
+        from arena.metrics import build_benchmark_board
+
+        onsets = [10.0 + 12 * i for i in range(40)]
+        board = build_benchmark_board(
+            "ww_stream", "d", "en-US",
+            {cid: self._rows(cid, onsets, hit) for cid, hit in (("b", 36), ("a", 36), ("c", 20))},
+            generated_at="2026-01-01T00:00:00+00:00",
+        )
+        assert {e.competitor_id: e.rank for e in board.entries} == {"a": 1, "b": 1, "c": 3}
+
+    def test_a_stream_set_with_few_wake_words_stays_unranked(self):
+        from arena.metrics import build_benchmark_board
+
+        board = build_benchmark_board(
+            "ww_stream", "d", "en-US", {"c": self._rows("c", [10.0, 30.0, 50.0], 3)},
+            generated_at="2026-01-01T00:00:00+00:00",
+        )
+        assert board.entries[0].unranked
+        assert "too_few_samples — 3 row(s)" in board.entries[0].unranked_reason
+
+
+class _ScoreMethodEngine(_TimedEngine):
+    """Like the vosk plugin: ``score`` is a classmethod, not a confidence."""
+
+    @classmethod
+    def score(cls, transcript, samples, rule=None):
+        return 0.0
+
+
+class _ConfidenceEngine(_TimedEngine):
+    confidence = 0.0
+
+
+class TestStreamEventScore:
+    def test_a_score_method_is_not_a_confidence(self):
+        stack = WWStack(ww=_ScoreMethodEngine([2.0]))
+        events = _detect_stream(stack, np.zeros(SAMPLE_RATE * 4, dtype="float32"))
+        assert [(round(t), s) for t, s in events] == [(2, 1.0)]
+
+    def test_a_zero_confidence_is_kept(self):
+        stack = WWStack(ww=_ConfidenceEngine([2.0]))
+        events = _detect_stream(stack, np.zeros(SAMPLE_RATE * 4, dtype="float32"))
+        assert [(round(t), s) for t, s in events] == [(2, 0.0)]

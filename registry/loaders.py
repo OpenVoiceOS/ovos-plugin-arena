@@ -22,6 +22,11 @@ _DATASETS_DIR = REGISTRY_ROOT / "datasets"
 _SCORED_ON = {"wake_word": {"wake_word", "ww_stream"}}
 
 
+def fighter_pool(modality: str) -> str:
+    """The competitor modality whose fighters are scored in the *modality* league."""
+    return next((pool for pool, leagues in _SCORED_ON.items() if modality in leagues), modality)
+
+
 # ---------------------------------------------------------------------------
 # Competitors
 # ---------------------------------------------------------------------------

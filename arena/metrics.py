@@ -213,6 +213,8 @@ _HIGHER_BETTER = {
 _PRIMARY_METRIC_DENOMINATOR = {
     "generalization_accuracy": "generalization_n",
     "utmos": "n_scored",
+    # a stream set is a few long recordings; its rank rests on the wake words in them
+    "error_at_1fa_per_hour": "n_onsets",
 }
 
 
@@ -975,6 +977,9 @@ TARGET_FA_PER_HOUR = 1.0  # operating point for the primary metric
 #: False-accept budgets reported as secondary operating points
 #: (``error_at_<n>fa_per_hour`` / ``recall_at_<n>fa_per_hour``).
 FA_BUDGETS_PER_HOUR = (0.5, 1.0, 2.0)
+#: A per-hour budget measured on less audio than this rests on a fraction of
+#: the hour it names, so no operating point (and no rank) comes from it.
+MIN_STREAM_HOURS = 1.0
 _DET_THRESHOLDS = [round(0.1 * i, 2) for i in range(1, 10)]  # 0.1 .. 0.9
 
 #: One truth onset: (start_s, end_s). ``end_s`` is None when the manifest
@@ -1124,19 +1129,27 @@ def score_ww_stream(rows: list[PredictionRow]) -> dict[str, float]:
 
     base = _stream_stats_at_threshold(clips, 0.5)
     metrics: dict[str, float] = {
-        "frr": base["frr"],
         "fa_per_hour": base["fa_per_hour"],
         "negative_hours": round(base["hours"], 3),
         "n_onsets": float(base["total_onsets"]),
     }
+    # with no wake word to miss there is no error rate, and the entry stays unranked
+    has_onsets = bool(base["total_onsets"])
+    if has_onsets:
+        metrics["frr"] = base["frr"]
     if base["latencies"]:
         metrics["latency_s_median"] = round(median(base["latencies"]), 3)
 
     for thr in _DET_THRESHOLDS:
         stats = _stream_stats_at_threshold(clips, thr)
-        metrics[f"det_frr@{thr}"] = stats["frr"]
+        if has_onsets:
+            metrics[f"det_frr@{thr}"] = stats["frr"]
         metrics[f"det_fa_per_hour@{thr}"] = stats["fa_per_hour"]
+    if not has_onsets:
+        return metrics
 
+    if base["hours"] < MIN_STREAM_HOURS:
+        return metrics
     for budget in FA_BUDGETS_PER_HOUR:
         thr = _operating_threshold(clips, budget)
         frr = _stream_stats_at_threshold(clips, thr)["frr"]
@@ -1695,6 +1708,10 @@ def build_benchmark_board(
     thin = [e for e in scoreable if _scored_any(e) and _too_few(e)]
     scoreable = [e for e in scoreable if e not in thin]
     ranked = [e for e in scoreable if _has_signal(e) and not _partial_coverage(e)]
+    # A stream fighter that misses every wake word at the budget never meets
+    # it at any threshold; a rank among such fighters would be input order.
+    over_budget = [e for e in ranked if modality == "ww_stream" and e.metrics[primary] == 1.0]
+    ranked = [e for e in ranked if e not in over_budget]
     partial = [e for e in scoreable if _has_signal(e) and _partial_coverage(e)]
     off_metric = [e for e in scoreable if not _has_signal(e) and _scored_any(e)]
     failed = [e for e in scoreable if not _scored_any(e)]
@@ -1707,7 +1724,16 @@ def build_benchmark_board(
     reverse = primary in _HIGHER_BETTER
     ranked.sort(key=_primary_metric, reverse=reverse)
     for i, entry in enumerate(ranked, 1):
-        entry.rank = i
+        # equal values share a rank, so a tie never reads as an order
+        tied = i > 1 and _primary_metric(entry) == _primary_metric(ranked[i - 2])
+        entry.rank = ranked[i - 2].rank if tied else i
+    for entry in over_budget:
+        entry.rank = 0
+        entry.unranked = True
+        entry.unranked_reason = (
+            f"over_budget — at no threshold within {TARGET_FA_PER_HOUR:g} false "
+            f"wake-up per hour does it catch a wake word, so {primary} is 1.0"
+        )
     for entry in partial:
         entry.rank = 0
         entry.unranked = True
@@ -1750,7 +1776,7 @@ def build_benchmark_board(
             f"{entry.rows_other_revision} row(s) from another revision were "
             "dropped; the fighter needs a re-sweep"
         )
-    entries = ranked + partial + thin + one_class + off_metric + failed + stale
+    entries = ranked + over_budget + partial + thin + one_class + off_metric + failed + stale
 
     if ranked:
         leader_ci = cis.get(ranked[0].competitor_id)
