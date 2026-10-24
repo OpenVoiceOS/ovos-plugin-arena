@@ -20,9 +20,14 @@ from __future__ import annotations
 
 import inspect
 import logging
+import os
+import shutil
+import tempfile
 import time
 from collections.abc import Iterator
 from dataclasses import dataclass
+from itertools import islice
+from pathlib import Path
 from typing import Any
 
 from runner.audio_io import (
@@ -49,6 +54,10 @@ log = logging.getLogger("ww-bench")
 # actually drive an engine.
 FRAME_SAMPLES = 1280  # 80 ms @ 16 kHz, the OVOS listener chunk size
 SAMPLE_RATE = 16000
+# Reference clips of few-shot fighters (`samples_from`), one folder per
+# dataset revision and clip count.
+REFERENCE_CACHE = (Path(os.environ.get("ARENA_CACHE", "~/.cache/ovos-plugin-arena")).expanduser()
+                   / "ww-references")
 
 
 @dataclass
@@ -110,6 +119,10 @@ class WakeWordBench(MediaBenchAdapter):
         # (underscored), which engines like openWakeWord match against their
         # pretrained model filenames — pass it through unchanged.
         key_phrase, hw_cfg = next(iter(hotwords.items()), ("hey_mycroft", {}))
+        hw_cfg = dict(hw_cfg)
+        if "samples_from" in hw_cfg:
+            ref = hw_cfg.pop("samples_from")
+            hw_cfg["samples"] = reference_clips(ref["dataset_id"], ref["count"])
         module = hw_cfg.get("module") or competitor.plugin
         clazz = load_plugin_class(load_wake_word_plugin, module)
         # ovoscope.wakeword_probe.hotword_compat(): scoped shim so a newer
@@ -117,7 +130,7 @@ class WakeWordBench(MediaBenchAdapter):
         # against an older `HotWordEngine` base — and stays scoped to this
         # construction, unlike a process-wide monkeypatch.
         with hotword_compat():
-            ww = clazz(key_phrase, dict(hw_cfg))
+            ww = clazz(key_phrase, hw_cfg)
         return WWStack(ww,
                        vad=_load_vad(competitor.config),
                        verifier=_load_verifier(competitor.config))
@@ -134,6 +147,45 @@ class WakeWordBench(MediaBenchAdapter):
             # input clip duration (RTF = elapsed_ms / 1000 / audio_secs, §M1)
             "audio_secs": round(len(sample["array"]) / SAMPLE_RATE, 3),
         }
+
+
+def reference_clips(dataset_id: str, count: int) -> str:
+    """A folder of *count* positive clips of a registry dataset, in its sampling order.
+
+    A few-shot fighter names its references as ``samples_from``, so the
+    registry entry stays portable. The fighter must list the dataset in
+    ``trained_on`` (``validate_registry`` enforces it), so it is never scored
+    on its own references.
+    """
+    import soundfile as sf
+
+    from registry.loaders import load_dataset
+    from runner.intent_bench import resolve_revision
+
+    dataset = load_dataset("wake_word", dataset_id)
+    revision = resolve_revision(dataset.source.hf_id, dataset.source.revision)
+    folder = REFERENCE_CACHE / f"{dataset_id}@{revision}-{count}"
+    if not folder.is_dir():
+        # written beside the cache, then renamed: a killed load never leaves a
+        # folder that looks complete
+        REFERENCE_CACHE.mkdir(parents=True, exist_ok=True)
+        partial = Path(tempfile.mkdtemp(dir=REFERENCE_CACHE, prefix=f".{folder.name}-"))
+        positives = (s for _, s in stream_ww(dataset, revision, max_per_class=count)
+                     if s["label"] == "positive")
+        for k, sample in enumerate(islice(positives, count)):
+            sf.write(partial / f"ref_{k}.wav", sample["array"], sample["sr"], subtype="PCM_16")
+        written = len(list(partial.glob("*.wav")))
+        if written < count:
+            # a clip that failed to download is skipped; a short set is never cached
+            shutil.rmtree(partial)
+            raise RuntimeError(f"{dataset_id} gave {written} of {count} reference clips")
+        try:
+            os.replace(partial, folder)
+        except OSError:
+            if not folder.is_dir():
+                raise
+            shutil.rmtree(partial)  # another load built the same folder first
+    return str(folder)
 
 
 def _load_vad(config: dict):

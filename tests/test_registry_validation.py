@@ -302,3 +302,43 @@ class TestTrainedOn:
             self._ww_dataset("community-fake"),
         )
         assert validate_registry(registry_root=tmp_path) == []
+
+
+class TestSamplesFrom(TestTrainedOn):
+    def _fewshot(self, trained_on, dataset_id="community-fake", count=4):
+        payload = self._ww_competitor("fighter", trained_on=trained_on)
+        payload["config"] = {"hotwords": {"hey_fake": {
+            "module": "ovos-ww-plugin-x",
+            "samples_from": {"dataset_id": dataset_id, "count": count}}}}
+        return payload
+
+    def _errors(self, tmp_path, competitor):
+        self._write(tmp_path / "competitors" / "wake_word" / "fighter.json", competitor)
+        self._write(tmp_path / "datasets" / "wake_word" / "community-fake.json",
+                    self._ww_dataset("community-fake"))
+        return validate_registry(registry_root=tmp_path)
+
+    def test_references_listed_in_trained_on_validate(self, tmp_path):
+        assert self._errors(tmp_path, self._fewshot(["community-fake"])) == []
+
+    def test_references_missing_from_trained_on_are_caught(self, tmp_path):
+        errors = self._errors(tmp_path, self._fewshot(None))
+        assert len(errors) == 1 and "community-fake" in errors[0] and "trained_on" in errors[0]
+
+    def test_unknown_reference_dataset_is_caught(self, tmp_path):
+        errors = self._errors(tmp_path, self._fewshot(["community-fake"], dataset_id="nope"))
+        assert len(errors) == 1 and "'nope'" in errors[0]
+
+    def test_a_count_below_one_is_caught(self, tmp_path):
+        errors = self._errors(tmp_path, self._fewshot(["community-fake"], count=0))
+        assert len(errors) == 1 and "count" in errors[0]
+
+    def test_a_samples_from_that_is_not_a_mapping_is_caught(self, tmp_path):
+        competitor = self._fewshot(["community-fake"])
+        competitor["config"]["hotwords"]["hey_fake"]["samples_from"] = "community-fake"
+        errors = self._errors(tmp_path, competitor)
+        assert len(errors) == 1 and "samples_from" in errors[0]
+
+    def test_a_boolean_count_is_caught(self, tmp_path):
+        errors = self._errors(tmp_path, self._fewshot(["community-fake"], count=True))
+        assert len(errors) == 1 and "count" in errors[0]
