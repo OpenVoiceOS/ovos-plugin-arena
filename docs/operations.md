@@ -168,9 +168,9 @@ proof.
 
 ## Alarms
 
-Six workflows write or verify the committed data:
+Five workflows write or verify the committed data:
 `.github/workflows/assemble.yml`, `tally.yml`, `replay-proof.yml`,
-`pages.yml`, `hourly-predictions.yml` and `publish-sample-sets.yml`. Each opens a tracking issue the
+`pages.yml` and `publish-sample-sets.yml`. Each opens a tracking issue the
 first time a run fails, and closes it again on the next run that succeeds
 (`.github/actions/notify-failure`, a composite action every one of them
 calls). The issue carries the `ci-failure` label and a title of the form
