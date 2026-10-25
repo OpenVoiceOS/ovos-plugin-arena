@@ -183,16 +183,31 @@ def make_row(
 
 
 def _plugin_version(competitor) -> str:
-    """``<plugin>==<installed version>`` for §3.2 reproducibility, best-effort."""
-    import importlib.metadata
-
+    """``<distribution>==<installed version>`` for §3.2 reproducibility, best-effort."""
     plugin = competitor.plugin
     if not plugin:
         return ""
+    dist = plugin_distribution(plugin)
+    return f"{dist[0]}=={dist[1]}" if dist else plugin
+
+
+def plugin_distribution(plugin: str) -> tuple[str, str] | None:
+    """The installed distribution that provides *plugin*, and its version.
+
+    A plugin id is usually its distribution's name, but one distribution can
+    register several entry points (``ovos-ww-plugin-wakeforge`` also provides
+    ``ovos-ww-plugin-wakeforge-zeroshot``).
+    """
+    import importlib.metadata
+
     try:
-        return f"{plugin}=={importlib.metadata.version(plugin)}"
+        return plugin, importlib.metadata.version(plugin)
     except importlib.metadata.PackageNotFoundError:
-        return plugin
+        pass
+    for dist in importlib.metadata.distributions():
+        if any(ep.name == plugin for ep in dist.entry_points):
+            return dist.metadata["Name"], dist.version
+    return None
 
 
 # ---------------------------------------------------------------------------

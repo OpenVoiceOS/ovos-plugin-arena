@@ -42,6 +42,7 @@ from runner.media_bench import (
     MediaBenchAdapter,
     PredictContext,
     load_plugin_class,
+    plugin_distribution,
 )
 
 log = logging.getLogger("ww-bench")
@@ -353,9 +354,10 @@ def _cached_events(
         return _detect_stream(stack, sample["array"])
     competitor = ctx.competitor
     gates = [_distribution_versions(g) for g in (stack.vad, stack.verifier) if g is not None]
+    plugin_version = (plugin_distribution(competitor.plugin) or (None, None))[1]
     config = json.dumps(
         [STREAM_EVENTS_VERSION, GATE_WINDOW_S, competitor.plugin,
-         _plugin_version(competitor.plugin), competitor.config, stack.config, gates],
+         plugin_version, competitor.config, stack.config, gates],
         sort_keys=True, default=str)
     key = hashlib.sha256(config.encode()).hexdigest()[:16]
     path = STREAM_EVENT_CACHE / f"{competitor.competitor_id}-{key}" / (
