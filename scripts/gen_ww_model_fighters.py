@@ -3,8 +3,15 @@
 
 - ``wakeforge-<word>[-streaming]``: every WakeHuBERT model in
   ``OpenVoiceOS/wakehubert-wakewords`` ``models.json``, at ``MODELS_REVISION``.
-  A model trained on synthetic speech of its phrase lists the synthetic test
-  set of that phrase in ``trained_on``.
+  Its ``trained_on`` follows the model's ``training_data``: every English model
+  trained on clips from the TigreGotico repo of its phrase, so it skips
+  ``tigregotico-<word>``. A model whose training data names that whole repo
+  (``TigreGotico/synthetic-wakeword-<word>`` and not only its training split)
+  also skips ``synthetic-wakewords-<word>``, the source of one of the repo's
+  folders. A streaming model trained on "the shipped heads' positive sources"
+  skips what its head skips. The held-out ``test/`` sets of the localised
+  repos are no model's training data. This field is rewritten in files that
+  already exist.
 - ``precise-onnx-<model>``: every wake-word model in
   ``OpenVoiceOS/precise-lite-models``.
 - ``microwakeword-<word>[-v2]``: every model of the ESPHome
@@ -136,15 +143,38 @@ def wakehubert_models() -> list[dict]:
         return json.load(response)["models"]
 
 
-def wakeforge_fighters(synthetic_sets: set[str]) -> list[dict]:
+# models.json phrase -> the word in the TigreGotico repo name, where the two differ
+TIGREGOTICO_SPELLING = {"okay_nabu": "ok_nabu"}
+
+
+def wakehubert_trained_on(model: dict, word: str, eval_sets: set[str]) -> list[str]:
+    """The registry test sets whose clips the model's ``training_data`` names."""
+    if model["language"] != "en":
+        return []
+    text = model.get("training_data", "")
+    word = TIGREGOTICO_SPELLING.get(word, word)
+    repo = f"TigreGotico/synthetic-wakeword-{word}"
+    whole_repo = repo in text and f"clips of {repo}" not in text
+    candidates = [f"tigregotico-{word}"]
+    if whole_repo or "the shipped heads' positive sources" in text:
+        candidates.append(f"synthetic-wakewords-{word}")
+    return [s for s in candidates if s in eval_sets]
+
+
+def wakeforge_fighters(eval_sets: set[str]) -> list[dict]:
     entries = []
-    for m in wakehubert_models():
+    models = wakehubert_models()
+    heads = {m["name"]: m for m in models}
+    for m in models:
         streaming = m["name"].endswith("_streaming")
         # models.json spells some phrases with a space; hotword keys are snake case
         word = m["word"].replace(" ", "_")
         phrase = word.replace("_", " ")
         kind = "streaming " if streaming else ""
-        trained = f"synthetic-wakewords-{word}"
+        head = heads.get(m["name"].removesuffix("_streaming"), m)
+        trained = (wakehubert_trained_on(head, word, eval_sets)
+                   if "the shipped heads' positive sources" in m.get("training_data", "")
+                   else wakehubert_trained_on(m, word, eval_sets))
         entries.append(
             fighter(
                 f"wakeforge-{slug(word)}{'-streaming' if streaming else ''}",
@@ -165,7 +195,7 @@ def wakeforge_fighters(synthetic_sets: set[str]) -> list[dict]:
                     "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge",
                     "model": f"https://huggingface.co/{WAKEHUBERT_REPO}",
                 },
-                trained_on=[trained] if trained in synthetic_sets else None,
+                trained_on=trained or None,
             )
         )
     return entries
@@ -288,14 +318,21 @@ def stream_capable(entry: dict, stream_sets: set[str]) -> dict:
 
 
 def main() -> None:
-    synthetic_sets = {
-        d.dataset_id
-        for d in list_datasets("wake_word")
-        if d.dataset_id.startswith("synthetic-wakewords-")
-    }
+    eval_sets = {d.dataset_id for d in list_datasets("wake_word") if d.role == "eval"}
     stream_sets = {p.stem for p in STREAM_SETS.glob("*.json")}
+    wakeforge = wakeforge_fighters(eval_sets)
+    for entry in wakeforge:
+        path = OUT / f"{entry['competitor_id']}.json"
+        if path.exists():
+            existing = json.loads(path.read_text(encoding="utf-8"))
+            if entry.get("trained_on"):
+                existing["trained_on"] = entry["trained_on"]
+            else:
+                existing.pop("trained_on", None)
+            path.write_text(
+                json.dumps(existing, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     generated = [
-        *wakeforge_fighters(synthetic_sets),
+        *wakeforge,
         *precise_fighters(),
         *microwakeword_fighters(),
         *openwakeword_fighters(),

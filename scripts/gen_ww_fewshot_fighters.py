@@ -4,14 +4,17 @@
 - ``wakeforge-zeroshot-<phrase>``: ovos-ww-plugin-wakeforge-zeroshot, given the
   phrase as phones. The phones come from ``espeak-ng -q -v en-us --ipa`` with
   the stress marks removed, or from PHONE_OVERRIDES where espeak-ng misreads
-  a name. One fighter per en-US phrase that has a test set.
+  a name. One fighter per en-US phrase that has a test set. A phrase of
+  another language uses that language's espeak-ng voice (ESPEAK_VOICES) and the
+  spoken text in its test set's display name, and its id ends in the language.
 - ``efficientword-net-<phrase>``: ovos-ww-plugin-efficientword-net with its
   bundled references, one per bundled phrase.
 - ``local-wake-<phrase>``: ovos-ww-plugin-local-wake, given four clips of the
   phrase from one registry dataset (``samples_from``). That dataset is in
   ``trained_on``, so the fighter is scored only on the other sets.
 - ``vosk-ww-<phrase>``: ovos-ww-plugin-vosk matching the transcript against the
-  phrase, for each en-US test-set phrase that has no vosk fighter yet.
+  phrase, for each test-set phrase that has no vosk fighter yet, in every
+  language with a small Vosk model (VOSK_MODELS).
 
 Output is deterministic and idempotent. Run from the repository root.
 """
@@ -35,7 +38,21 @@ EFFICIENTWORD_BUNDLED = [
     "mobile",
     "mycroft",
 ]
-VOSK_MODEL = "http://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip"
+VOSK_MODELS = {
+    "en-US": "http://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip",
+    "pt-PT": "https://alphacephei.com/vosk/models/vosk-model-small-pt-0.3.zip",
+    "de-DE": "https://alphacephei.com/vosk/models/vosk-model-small-de-0.15.zip",
+    "es-ES": "https://alphacephei.com/vosk/models/vosk-model-small-es-0.3.zip",
+    "it-IT": "https://alphacephei.com/vosk/models/vosk-model-small-it-0.22.zip",
+    "nl-NL": "https://alphacephei.com/vosk/models/vosk-model-small-nl-0.22.zip",
+    "ca-ES": "https://alphacephei.com/vosk/models/vosk-model-small-ca-0.4.zip",
+    "fr-FR": "https://alphacephei.com/vosk/models/vosk-model-small-fr-0.22.zip",
+}
+# arena lang -> espeak-ng voice; a language with no voice gets no zero-shot fighter
+ESPEAK_VOICES = {
+    "en-US": "en-us", "pt-PT": "pt", "de-DE": "de", "es-ES": "es", "an-ES": "an",
+    "ca-ES": "ca", "eu-ES": "eu", "it-IT": "it", "da-DK": "da", "nl-NL": "nl", "fr-FR": "fr-fr",
+}
 # phrases whose vosk fighter is written by hand, with alternate spellings as samples
 VOSK_HAND_WRITTEN = {
     "alexa",
@@ -59,6 +76,18 @@ VOSK_HAND_WRITTEN = {
     "smart_mirror",
     "snowboy",
     "view_glass",
+    "ey_ordenador",
+}
+# the small Vosk model of the language lacks a word of the phrase, so the grammar
+# can never produce it and the fighter would never wake
+VOSK_OUT_OF_VOCABULARY = {
+    ("afonsinho", "pt-PT"),
+    ("gervasio", "pt-PT"),
+    ("o_flor", "pt-PT"),
+    ("hello_nabu", "en-US"),
+    ("okay_nabu", "en-US"),
+    ("hey_jarbas", "en-US"),
+    ("hey_rhasspy", "en-US"),
 }
 # phrase -> the dataset its local-wake references come from. A reference must
 # hold only the phrase: the community clips carry seconds of room sound, and
@@ -73,9 +102,9 @@ PHONE_OVERRIDES = {"hey_mycroft": "h eɪ m aɪ k ɹ ɔ f t"}
 LANGS = ["en-US", "en-GB", "en-AU"]
 
 
-def phones(phrase: str) -> str:
+def phones(phrase: str, voice: str = "en-us") -> str:
     out = subprocess.run(
-        ["espeak-ng", "-q", "-v", "en-us", "--ipa", "--sep= ", phrase],
+        ["espeak-ng", "-q", "-v", voice, "--ipa", "--sep= ", phrase],
         capture_output=True,
         text=True,
         check=True,
@@ -95,6 +124,7 @@ def fighter(
     notes,
     links,
     trained_on=None,
+    langs=None,
 ):
     entry = {
         "competitor_id": competitor_id,
@@ -104,7 +134,7 @@ def fighter(
             "listener": {"wake_word": key},
             "hotwords": {key: {"module": plugin, "listen": True, **hotword}},
         },
-        "langs": LANGS,
+        "langs": langs or LANGS,
         "display_name": display_name,
         "species": species,
         "types": types,
@@ -119,22 +149,30 @@ def fighter(
 
 
 def main() -> None:
-    keys = sorted(
-        {
-            d.wakeword.replace(" ", "_")
-            for d in list_datasets("wake_word")
-            if d.wakeword and d.lang == "en-US" and d.role == "eval"
-        }
-    )
+    spoken = {}
+    for d in list_datasets("wake_word"):
+        if d.wakeword and d.role == "eval":
+            key = d.wakeword.replace(" ", "_")
+            shown = re.search(r"“(.+?)”", d.display_name or "")
+            text = key.replace("_", " ") if d.lang == "en-US" or not shown else shown.group(1)
+            spoken.setdefault((key, d.lang), text)
+    pairs = sorted(spoken)
     entries = []
-    for key in keys:
-        phrase = key.replace("_", " ")
+    for key, lang in pairs:
+        phrase = spoken[(key, lang)]
+        english = lang == "en-US"
         slug = key.replace("_", "-").replace(" ", "-")
-        ipa = PHONE_OVERRIDES.get(key) or phones(phrase)
+        if not english:
+            slug += f"-{lang.split('-')[0]}"
+        langs = None if english else [lang]
+        voice = ESPEAK_VOICES.get(lang)
+        if voice is None:
+            continue
+        ipa = (english and PHONE_OVERRIDES.get(key)) or phones(phrase, voice)
         source = (
             "written by hand, because espeak-ng reads the name with the vowel of 'mick'"
-            if key in PHONE_OVERRIDES
-            else "from espeak-ng (en-us), stress marks removed"
+            if english and key in PHONE_OVERRIDES
+            else f"from espeak-ng ({voice}), stress marks removed"
         )
         entries.append(
             fighter(
@@ -153,17 +191,22 @@ def main() -> None:
                     "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-wakeforge",
                     "model": "https://huggingface.co/TigreGotico/wakephonehubert",
                 },
+                langs=langs,
             )
         )
-        if key not in VOSK_HAND_WRITTEN:
+        if (
+            key not in VOSK_HAND_WRITTEN
+            and (key, lang) not in VOSK_OUT_OF_VOCABULARY
+            and lang in VOSK_MODELS
+        ):
             entries.append(
                 fighter(
                     f"vosk-ww-{slug}",
                     "ovos-ww-plugin-vosk",
                     key,
                     {
-                        "model": VOSK_MODEL,
-                        "lang": "en-US",
+                        "model": VOSK_MODELS[lang],
+                        "lang": lang,
                         "samples": [phrase],
                         "full_vocab": False,
                         "rule": "equals",
@@ -179,9 +222,10 @@ def main() -> None:
                     f"Transcript-match samples: ['{phrase}']. "
                     "The language model is auto-downloaded.",
                     {"source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-vosk"},
+                    langs=langs,
                 )
             )
-        if key in LOCAL_WAKE_REFERENCES:
+        if english and key in LOCAL_WAKE_REFERENCES:
             ref = LOCAL_WAKE_REFERENCES[key]
             entries.append(
                 fighter(
@@ -221,7 +265,7 @@ def main() -> None:
         (OUT / f"{entry['competitor_id']}.json").write_text(
             json.dumps(entry, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
         )
-    print(f"{len(keys)} phrases in, {len(entries)} fighters out")
+    print(f"{len(pairs)} phrases in, {len(entries)} fighters out")
 
 
 if __name__ == "__main__":

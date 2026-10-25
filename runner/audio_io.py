@@ -583,8 +583,9 @@ def _ww_split(dataset_def, revision: str):
         where = dataset_def.positives_filter
         folder = (src.subset.rstrip("/") + "/" if src.subset else "") + ww
         rows = _jsonl_rows(hf, f"{folder}/metadata.jsonl", revision)
+        allowed = {k: [v] if isinstance(v, str) else v for k, v in where.items()}
         keep = {f"{folder}/{r['file_name']}" for r in rows
-                if all(str(r.get(k)) == v for k, v in where.items())}
+                if all(str(r.get(k)) in vs for k, vs in allowed.items())}
         pos = [c for c in pos if c[1] in keep]
     if dataset_def.exclude_dirs:
         skip = tuple(d.rstrip("/") + "/" for d in dataset_def.exclude_dirs)

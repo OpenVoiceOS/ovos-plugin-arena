@@ -1,0 +1,33 @@
+{
+  "dataset_id": "tigregotico-acorda-pt",
+  "display_name": "TigreGotico synthetic wake word — “acorda” (Portuguese)",
+  "summary": "Clips of “acorda” in Portuguese from the held-out test split of the TigreGotico synthetic wake-up collection, spoken by OmniVoice voices whose seeds the train split never uses, used as the audio a detector must wake on; the clips it must ignore are pooled from a shared not-wake-word collection of English speech, public-domain sounds, environmental audio, music and ambient noise. One row is one clip with its label. Synthetic clips carry no room acoustics and no microphone variation, so this board does not exercise either. Runs on this corpus are capped at 100 clips per class, drawn the same way for every fighter and 100 more spoken-word clips in the language join the negatives.",
+  "modality": "wake_word",
+  "source": {
+    "type": "huggingface",
+    "hf_id": "TigreGotico/synthetic-wakeword-acorda",
+    "revision": "185c22888595493389afa172b9497d4b40904c7e"
+  },
+  "reference_fields": {},
+  "wakeword": "acorda",
+  "positives_dir": "test",
+  "negatives_sources": [
+    "TigreGotico/not-wake-words-speech-en/not_wake_word_subset",
+    "TigreGotico/public_domain_sounds_3secs/pd_3sec",
+    "TigreGotico/ESC-50",
+    "TigreGotico/FMA_3secs",
+    "TigreGotico/ambient_noises"
+  ],
+  "lang": "pt-PT",
+  "license": "cc-by-4.0",
+  "role": "eval",
+  "predictions_hf": "OpenVoiceOS/ovos-wake-word-bench-tigregotico-acorda-pt",
+  "notes": "TigreGotico/synthetic-wakeword-acorda@185c2288: 360 clips with the phrase in test/, from the folders omnivoice-single. The spoken text is 'acorda'.",
+  "negatives_dataset_ids": [
+    "mlsw-negatives-pt-PT"
+  ],
+  "sample_policy": {
+    "max_samples": 100,
+    "seed": 1337
+  }
+}

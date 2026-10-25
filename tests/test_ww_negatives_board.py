@@ -179,6 +179,29 @@ def test_positives_filter_keeps_the_clips_whose_metadata_matches(monkeypatch):
     assert audio_io.ww_positive_files(ds, "r") == [("org/desperta", f, "r") for f in files[3:]]
 
 
+
+def test_a_list_in_positives_filter_allows_any_of_its_values(monkeypatch):
+    voices = ("Amy", "Brian", "Cristiano", "Ines")
+    files = [f"train/polly/Hey_Jarbas-{v}-{i}.wav" for v in voices for i in range(2)]
+    metadata = [{"file_name": f.removeprefix("train/"), "voice": f.split("-")[1]} for f in files]
+    monkeypatch.setattr(audio_io, "_repo_audio", lambda hf, rev: files)
+    monkeypatch.setattr(
+        audio_io,
+        "_jsonl_rows",
+        lambda hf, path, rev: metadata if path == "train/metadata.jsonl" else [],
+    )
+    ds = DatasetDef(
+        dataset_id="tg-hey_jarbas",
+        modality="wake_word",
+        wakeword="hey_jarbas",
+        positives_dir="train",
+        positives_filter={"voice": ["Amy", "Brian"]},
+        lang="en-US",
+        source={"type": "huggingface", "hf_id": "org/hey_jarbas", "revision": "r"},
+    )
+    assert audio_io.ww_positive_files(ds, "r") == [("org/hey_jarbas", f, "r") for f in files[:4]]
+
+
 class TestHoursFloor:
     def _entry(self, hours: float):
         rows = [_negative("c", "only", [], hours * 3600.0)]

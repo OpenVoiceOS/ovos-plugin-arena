@@ -1,0 +1,33 @@
+{
+  "dataset_id": "tigregotico-despierta-an",
+  "display_name": "TigreGotico synthetic wake word — “dispierta” (Aragonese)",
+  "summary": "Clips of “dispierta” in Aragonese from the held-out test split of the TigreGotico synthetic wake-up collection, spoken by OmniVoice voices whose seeds the train split never uses, used as the audio a detector must wake on; the clips it must ignore are pooled from a shared not-wake-word collection of English speech, public-domain sounds, environmental audio, music and ambient noise. One row is one clip with its label. Synthetic clips carry no room acoustics and no microphone variation, so this board does not exercise either. Runs on this corpus are capped at 100 clips per class, drawn the same way for every fighter.",
+  "modality": "wake_word",
+  "source": {
+    "type": "huggingface",
+    "hf_id": "TigreGotico/synthetic-wakeword-despierta",
+    "revision": "ca54d284b5fd7c60f728bf2cf6bba7f06393affa"
+  },
+  "reference_fields": {},
+  "wakeword": "despierta",
+  "positives_dir": "test",
+  "positives_filter": {
+    "lang": "an"
+  },
+  "negatives_sources": [
+    "TigreGotico/not-wake-words-speech-en/not_wake_word_subset",
+    "TigreGotico/public_domain_sounds_3secs/pd_3sec",
+    "TigreGotico/ESC-50",
+    "TigreGotico/FMA_3secs",
+    "TigreGotico/ambient_noises"
+  ],
+  "lang": "an-ES",
+  "license": "cc-by-4.0",
+  "role": "eval",
+  "predictions_hf": "OpenVoiceOS/ovos-wake-word-bench-tigregotico-despierta-an",
+  "notes": "TigreGotico/synthetic-wakeword-despierta@ca54d284: 267 clips with the phrase in test/ whose metadata lang is 'an', from the folders omnivoice-single. The spoken text is 'dispierta'.",
+  "sample_policy": {
+    "max_samples": 100,
+    "seed": 1337
+  }
+}

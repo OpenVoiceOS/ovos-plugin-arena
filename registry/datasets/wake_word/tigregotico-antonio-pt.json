@@ -1,0 +1,33 @@
+{
+  "dataset_id": "tigregotico-antonio-pt",
+  "display_name": "TigreGotico synthetic wake word — “antónio” (Portuguese)",
+  "summary": "Clips of “antónio” in Portuguese from the TigreGotico synthetic wake-word collection, made with several text-to-speech engines and converted voices, used as the audio a detector must wake on; the clips it must ignore are pooled from a shared not-wake-word collection of English speech, public-domain sounds, environmental audio, music and ambient noise. One row is one clip with its label. Synthetic clips carry no room acoustics and no microphone variation, so this board does not exercise either. Runs on this corpus are capped at 100 clips per class, drawn the same way for every fighter and 100 more spoken-word clips in the language join the negatives.",
+  "modality": "wake_word",
+  "source": {
+    "type": "huggingface",
+    "hf_id": "TigreGotico/synthetic-wakeword-antonio",
+    "revision": "abc0e62a34a10d310fe5b323ae1154cdba685dce"
+  },
+  "reference_fields": {},
+  "wakeword": "antonio",
+  "positives_dir": "train",
+  "negatives_sources": [
+    "TigreGotico/not-wake-words-speech-en/not_wake_word_subset",
+    "TigreGotico/public_domain_sounds_3secs/pd_3sec",
+    "TigreGotico/ESC-50",
+    "TigreGotico/FMA_3secs",
+    "TigreGotico/ambient_noises"
+  ],
+  "lang": "pt-PT",
+  "license": "cc-by-4.0",
+  "role": "eval",
+  "predictions_hf": "OpenVoiceOS/ovos-wake-word-bench-tigregotico-antonio-pt",
+  "notes": "TigreGotico/synthetic-wakeword-antonio@abc0e62a: 133 clips with the phrase in train/, from the folders legacy-tts. The spoken text is 'antónio'.",
+  "negatives_dataset_ids": [
+    "mlsw-negatives-pt-PT"
+  ],
+  "sample_policy": {
+    "max_samples": 100,
+    "seed": 1337
+  }
+}

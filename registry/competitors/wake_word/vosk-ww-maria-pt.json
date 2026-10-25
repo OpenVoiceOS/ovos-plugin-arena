@@ -1,0 +1,44 @@
+{
+  "competitor_id": "vosk-ww-maria-pt",
+  "modality": "wake_word",
+  "plugin": "ovos-ww-plugin-vosk",
+  "config": {
+    "listener": {
+      "wake_word": "maria"
+    },
+    "hotwords": {
+      "maria": {
+        "module": "ovos-ww-plugin-vosk",
+        "listen": true,
+        "model": "https://alphacephei.com/vosk/models/vosk-model-small-pt-0.3.zip",
+        "lang": "pt-PT",
+        "samples": [
+          "maria"
+        ],
+        "full_vocab": false,
+        "rule": "equals",
+        "threshold": 0.75,
+        "time_between_checks": 1.0,
+        "debug": false
+      }
+    }
+  },
+  "langs": [
+    "pt-PT"
+  ],
+  "display_name": "Vosk wake word (maria)",
+  "species": "VoskWakeWordPlugin",
+  "types": [
+    "neural-net",
+    "keyword-match"
+  ],
+  "description": "Detects wake words by running the Vosk Kaldi recognizer in keyword mode and matching the transcript against configured samples.",
+  "links": {
+    "source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-vosk"
+  },
+  "notes": "Transcript-match samples: ['maria']. The language model is auto-downloaded.",
+  "capabilities": [
+    "clip",
+    "stream"
+  ]
+}

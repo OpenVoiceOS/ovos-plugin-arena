@@ -1,0 +1,33 @@
+{
+  "dataset_id": "tigregotico-marvin",
+  "display_name": "TigreGotico synthetic wake word — “marvin” (English)",
+  "summary": "Clips of “marvin” in English from the TigreGotico synthetic wake-word collection, made with several text-to-speech engines and converted voices, used as the audio a detector must wake on; the clips it must ignore are pooled from a shared not-wake-word collection of English speech, public-domain sounds, environmental audio, music and ambient noise. One row is one clip with its label. Synthetic clips carry no room acoustics and no microphone variation, so this board does not exercise either. Runs on this corpus are capped at 100 clips per class, drawn the same way for every fighter and 100 more spoken-word clips in the language join the negatives.",
+  "modality": "wake_word",
+  "source": {
+    "type": "huggingface",
+    "hf_id": "TigreGotico/synthetic-wakeword-marvin",
+    "revision": "19c1fdece78a23b0d47abbab18a8ffb98419b6c1"
+  },
+  "reference_fields": {},
+  "wakeword": "marvin",
+  "positives_dir": "train",
+  "negatives_sources": [
+    "TigreGotico/not-wake-words-speech-en/not_wake_word_subset",
+    "TigreGotico/public_domain_sounds_3secs/pd_3sec",
+    "TigreGotico/ESC-50",
+    "TigreGotico/FMA_3secs",
+    "TigreGotico/ambient_noises"
+  ],
+  "lang": "en-US",
+  "license": "cc-by-4.0",
+  "role": "eval",
+  "predictions_hf": "OpenVoiceOS/ovos-wake-word-bench-tigregotico-marvin",
+  "notes": "TigreGotico/synthetic-wakeword-marvin@19c1fdec: 3844 clips with the phrase in train/, from the folders chatterbox-vc, edge-tts-grid, legacy-tts, omnivoice, voice-clone. The spoken text is 'marvin'.",
+  "negatives_dataset_ids": [
+    "mlsw-negatives-en-US"
+  ],
+  "sample_policy": {
+    "max_samples": 100,
+    "seed": 1337
+  }
+}

@@ -559,12 +559,13 @@ class DatasetDef(BaseModel):
             "already holds."
         ),
     )
-    positives_filter: dict[str, str] | None = Field(
+    positives_filter: dict[str, str | list[str]] | None = Field(
         None,
         description=(
             "Wake word: keep only the positive clips whose row in the "
             "positives folder's ``metadata.jsonl`` holds every listed value, "
-            "e.g. {'lang': 'ca'} for a folder that mixes two languages."
+            "e.g. {'lang': 'ca'} for a folder that mixes two languages. A "
+            "list allows any of its values, e.g. {'voice': ['Amy', 'Brian']}."
         ),
     )
     primary_metric: str | None = Field(

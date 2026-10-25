@@ -1,0 +1,36 @@
+{
+  "dataset_id": "tigregotico-hey_neon",
+  "display_name": "TigreGotico synthetic wake word — “hey neon” (English)",
+  "summary": "Clips of “hey neon” in English from the TigreGotico synthetic wake-word collection, made with several text-to-speech engines and converted voices, used as the audio a detector must wake on; the clips it must ignore are pooled from a shared not-wake-word collection of English speech, public-domain sounds, environmental audio, music and ambient noise. One row is one clip with its label. Synthetic clips carry no room acoustics and no microphone variation, so this board does not exercise either. Runs on this corpus are capped at 100 clips per class, drawn the same way for every fighter and 100 more spoken-word clips in the language join the negatives.",
+  "modality": "wake_word",
+  "source": {
+    "type": "huggingface",
+    "hf_id": "TigreGotico/synthetic-wakeword-hey_neon",
+    "revision": "cf3c60164b5960eab43efa7dfbc759c13366e3c8"
+  },
+  "reference_fields": {},
+  "wakeword": "hey_neon",
+  "positives_dir": "train",
+  "exclude_dirs": [
+    "train/openvoiceos-synthetic-wakewords"
+  ],
+  "negatives_sources": [
+    "TigreGotico/not-wake-words-speech-en/not_wake_word_subset",
+    "TigreGotico/public_domain_sounds_3secs/pd_3sec",
+    "TigreGotico/ESC-50",
+    "TigreGotico/FMA_3secs",
+    "TigreGotico/ambient_noises"
+  ],
+  "lang": "en-US",
+  "license": "cc-by-4.0",
+  "role": "eval",
+  "predictions_hf": "OpenVoiceOS/ovos-wake-word-bench-tigregotico-hey_neon",
+  "notes": "TigreGotico/synthetic-wakeword-hey_neon@cf3c6016: 899 clips with the phrase in train/, leaving out train/openvoiceos-synthetic-wakewords/, from the folders legacy-tts, voice-clone. The spoken text is 'hey neon'.",
+  "negatives_dataset_ids": [
+    "mlsw-negatives-en-US"
+  ],
+  "sample_policy": {
+    "max_samples": 100,
+    "seed": 1337
+  }
+}

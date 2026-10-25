@@ -1,0 +1,36 @@
+{
+  "dataset_id": "tigregotico-home_assistant",
+  "display_name": "TigreGotico synthetic wake word — “home assistant” (English)",
+  "summary": "Clips of “home assistant” in English from the TigreGotico synthetic wake-word collection, made with several text-to-speech engines and converted voices, used as the audio a detector must wake on; the clips it must ignore are pooled from a shared not-wake-word collection of English speech, public-domain sounds, environmental audio, music and ambient noise. One row is one clip with its label. Synthetic clips carry no room acoustics and no microphone variation, so this board does not exercise either. Runs on this corpus are capped at 100 clips per class, drawn the same way for every fighter and 100 more spoken-word clips in the language join the negatives.",
+  "modality": "wake_word",
+  "source": {
+    "type": "huggingface",
+    "hf_id": "TigreGotico/synthetic-wakeword-home_assistant",
+    "revision": "e89416c927d56627ff9112928db88a8e86d11348"
+  },
+  "reference_fields": {},
+  "wakeword": "home_assistant",
+  "positives_dir": "train",
+  "exclude_dirs": [
+    "train/original"
+  ],
+  "negatives_sources": [
+    "TigreGotico/not-wake-words-speech-en/not_wake_word_subset",
+    "TigreGotico/public_domain_sounds_3secs/pd_3sec",
+    "TigreGotico/ESC-50",
+    "TigreGotico/FMA_3secs",
+    "TigreGotico/ambient_noises"
+  ],
+  "lang": "en-US",
+  "license": "cc-by-4.0",
+  "role": "eval",
+  "predictions_hf": "OpenVoiceOS/ovos-wake-word-bench-tigregotico-home_assistant",
+  "notes": "TigreGotico/synthetic-wakeword-home_assistant@e89416c9: 10304 clips with the phrase in train/, leaving out train/original/, from the folders edge-tts-grid, edge-tts-multivoice, google-tts, omnivoice, piper-libritts. The spoken text is 'home assistant'.",
+  "negatives_dataset_ids": [
+    "mlsw-negatives-en-US"
+  ],
+  "sample_policy": {
+    "max_samples": 100,
+    "seed": 1337
+  }
+}

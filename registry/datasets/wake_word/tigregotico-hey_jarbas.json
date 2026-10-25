@@ -1,0 +1,51 @@
+{
+  "dataset_id": "tigregotico-hey_jarbas",
+  "display_name": "TigreGotico synthetic wake word — “hey jarbas” (English)",
+  "summary": "Clips of “hey jarbas” in English from the TigreGotico synthetic wake-word collection, made with several text-to-speech engines and converted voices, used as the audio a detector must wake on; the clips it must ignore are pooled from a shared not-wake-word collection of English speech, public-domain sounds, environmental audio, music and ambient noise. One row is one clip with its label. Synthetic clips carry no room acoustics and no microphone variation, so this board does not exercise either. Runs on this corpus are capped at 100 clips per class, drawn the same way for every fighter and 100 more spoken-word clips in the language join the negatives.",
+  "modality": "wake_word",
+  "source": {
+    "type": "huggingface",
+    "hf_id": "TigreGotico/synthetic-wakeword-hey_jarbas",
+    "revision": "4d2f80eb6b4c4f1037a2c4ff9eaf91cbf6065b78"
+  },
+  "reference_fields": {},
+  "wakeword": "hey_jarbas",
+  "positives_dir": "train",
+  "positives_filter": {
+    "voice": [
+      "Amy",
+      "Brian",
+      "Emma",
+      "Geraint",
+      "Ivy",
+      "Joanna",
+      "Joey",
+      "Justin",
+      "Kendra",
+      "Kimberly",
+      "Matthew",
+      "Nicole",
+      "Russell",
+      "Salli"
+    ]
+  },
+  "negatives_sources": [
+    "TigreGotico/not-wake-words-speech-en/not_wake_word_subset",
+    "TigreGotico/public_domain_sounds_3secs/pd_3sec",
+    "TigreGotico/ESC-50",
+    "TigreGotico/FMA_3secs",
+    "TigreGotico/ambient_noises"
+  ],
+  "lang": "en-US",
+  "license": "cc-by-4.0",
+  "role": "eval",
+  "predictions_hf": "OpenVoiceOS/ovos-wake-word-bench-tigregotico-hey_jarbas",
+  "notes": "TigreGotico/synthetic-wakeword-hey_jarbas@4d2f80eb: 266 clips with the phrase in train/, leaving out the voices Cristiano, Ines, Ricardo, Vitoria, whose clips are copies of Portuguese clips of another phrase, from the folders polly. The spoken text is 'hey jarbas'.",
+  "negatives_dataset_ids": [
+    "mlsw-negatives-en-US"
+  ],
+  "sample_policy": {
+    "max_samples": 100,
+    "seed": 1337
+  }
+}
