@@ -11,7 +11,7 @@ from __future__ import annotations
 import logging
 import random
 from collections.abc import Iterable, Iterator
-from itertools import zip_longest
+from itertools import islice, zip_longest
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -251,6 +251,24 @@ def _pool_negatives(sources, max_per_class):
     return out
 
 
+def _pooled_negative_draws(dataset_ids: list[str], max_per_class: int
+                           ) -> Iterator[tuple[str, Any, str, int, int | None]]:
+    """``(dataset_id, dataset_def, audio_key, max_samples, seed)`` per pooled
+    negatives source: each gets an even share of ``max_per_class``, capped
+    again by the source's own ``sample_policy``."""
+    from registry.loaders import load_dataset
+
+    per = max(1, -(-max_per_class // len(dataset_ids))) if max_per_class else 0
+    for did in dataset_ids:
+        neg_def = load_dataset("wake_word", did)
+        fields = neg_def.reference_fields or {}
+        # each pooled negatives source uses ITS OWN sample_policy — a big
+        # unrestricted corpus (e.g. ml_spoken_words) stays capped even when
+        # the parent wake-word dataset's own share (`per`) would ask for more.
+        effective_per, seed = resolve_sample_cap(neg_def, per)
+        yield did, neg_def, fields.get("audio", "audio"), effective_per, seed
+
+
 def _pooled_dataset_negatives(dataset_ids: list[str], max_per_class: int,
                               failures: list[Exception]) -> Iterator[tuple[str, dict]]:
     """Wake-word negatives pooled from other *registry* datasets, resolved via
@@ -264,17 +282,8 @@ def _pooled_dataset_negatives(dataset_ids: list[str], max_per_class: int,
     ``max_per_class`` so one big corpus does not dominate the pool. A source
     that fails is appended to ``failures`` and the other sources go on.
     """
-    from registry.loaders import load_dataset
-
-    per = max(1, -(-max_per_class // len(dataset_ids))) if max_per_class else 0
-    for did in dataset_ids:
-        neg_def = load_dataset("wake_word", did)
-        fields = neg_def.reference_fields or {}
-        audio_key = fields.get("audio", "audio")
-        # each pooled negatives source uses ITS OWN sample_policy — a big
-        # unrestricted corpus (e.g. ml_spoken_words) stays capped even when
-        # the parent wake-word dataset's own share (`per`) would ask for more.
-        effective_per, seed = resolve_sample_cap(neg_def, per)
+    for did, neg_def, audio_key, effective_per, seed in _pooled_negative_draws(
+            dataset_ids, max_per_class):
         # The stream interleaves this channel from its first sample, so a
         # source that cannot load must not end the other channels early.
         try:
@@ -444,10 +453,82 @@ def stream_ww(dataset_def, revision: str, max_per_class: int = 0
     folder, or rows of a ``metadata.csv`` whose label is the wakeword).
     Negatives come from a separate not-wake-word corpus when ``negatives_hf``
     is set (general speech/noise that must never fire — the proper false-accept
-    test), otherwise from the same corpus's other phrases.
+    test), otherwise from the same corpus's other phrases. Pooled
+    ``negatives_dataset_ids`` add a second negatives channel with its own
+    ``max_per_class`` share, so a capped sweep holds up to ``max_per_class``
+    positives and twice that many negatives.
+    """
+    pos, neg = ww_clip_selection(dataset_def, revision, max_per_class)
+    # the clips are already picked down to the cap; _emit_ww must not pick again
+    negatives = _emit_ww([], neg, 0)
+    pooled_failures: list[Exception] = []
+    if dataset_def.negatives_dataset_ids:
+        negatives = _alternate(negatives, _pooled_dataset_negatives(
+            dataset_def.negatives_dataset_ids, max_per_class, pooled_failures))
+    yield from _alternate(_emit_ww(pos, [], 0), negatives)
+    # Raised after the last row, so a short sweep is not read as complete.
+    if pooled_failures:
+        raise pooled_failures[0]
+
+
+def ww_sample_ids(dataset_def, revision: str, max_per_class: int = 0) -> list[str]:
+    """The sample ids :func:`stream_ww` yields, in its order, without
+    downloading or decoding a clip.
+
+    Clip ids come from the repo listings; pooled negatives ids come from the
+    parquet row walk. A clip that fails to download during a sweep is missing
+    from its rows but stays in this list. A pooled source that cannot load
+    raises here, where the sweep only logs it.
+    """
+    pos, neg = ww_clip_selection(dataset_def, revision, max_per_class)
+    negatives: Iterator[str] = (rel for _, rel, _ in neg)
+    if dataset_def.negatives_dataset_ids:
+        pooled = []
+        for did, neg_def, audio_key, effective_per, seed in _pooled_negative_draws(
+                dataset_def.negatives_dataset_ids, max_per_class):
+            locals_ = resolve_parquet_locals(neg_def.source, neg_def.source.revision)
+            rows = _select_parquet_rows(locals_, audio_key, effective_per, seed)
+            if effective_per and seed is None:
+                rows = islice(rows, effective_per)
+            pooled.extend(f"{did}/{_sample_id(row, cell, audio_key, None, n)}"
+                          for n, row, cell in rows)
+        negatives = _alternate(negatives, iter(pooled))
+    return list(_alternate((rel for _, rel, _ in pos), negatives))
+
+
+def ww_clip_selection(dataset_def, revision: str, max_per_class: int = 0
+                      ) -> tuple[list[tuple[str, str, str]], list[tuple[str, str, str]]]:
+    """The ``(hf_id, path, revision)`` clips a wake-word sweep draws: positives
+    and the listed negatives, each evenly picked down to ``max_per_class``.
+
+    Pooled ``negatives_dataset_ids`` are not part of this list.
     """
     pos, same_neg = _ww_split(dataset_def, revision)
-    yield from _stream_ww_split(dataset_def, pos, same_neg, max_per_class)
+    if dataset_def.negatives_sources:
+        # pool negatives across several not-wake-word corpora (speech, music,
+        # noise, household sounds) so false-accept rate spans many scenarios;
+        # take an even share from each so a big corpus does not dominate.
+        srcs = dataset_def.negatives_sources
+        per = max(1, -(-max_per_class // len(srcs))) if max_per_class else 0
+        neg = []
+        for spec in srcs:
+            # an hf id is ``org/name``; anything after the second / is a subdir
+            parts = spec.split("/")
+            nhf = "/".join(parts[:2])
+            sub = "/".join(parts[2:]) or None
+            files = sorted(_all_audio(nhf, "main", sub or None))
+            for rel in (_even(files, per) if per else files):
+                neg.append((nhf, rel, "main"))
+    elif dataset_def.negatives_hf:
+        nhf, ndir = dataset_def.negatives_hf, dataset_def.negatives_dir
+        nfiles = _all_audio(nhf, "main", ndir)
+        neg = [(nhf, f, "main") for f in nfiles]
+    else:
+        neg = same_neg
+    if max_per_class:
+        pos = _even(sorted(pos), max_per_class)
+        neg = _even(sorted(neg), max_per_class)
+    return pos, neg
 
 
 def ww_positive_files(dataset_def, revision: str) -> list[tuple[str, str, str]]:
@@ -488,43 +569,6 @@ def _ww_split(dataset_def, revision: str):
                     if _phrase(f) not in (ww, None)
                     and (negset is None or _phrase(f) in negset)]
     return pos, same_neg
-
-
-def _stream_ww_split(dataset_def, pos, same_neg, max_per_class):
-    if dataset_def.negatives_sources:
-        # pool negatives across several not-wake-word corpora (speech, music,
-        # noise, household sounds) so false-accept rate spans many scenarios;
-        # take an even share from each so a big corpus does not dominate.
-        srcs = dataset_def.negatives_sources
-        per = max(1, -(-max_per_class // len(srcs))) if max_per_class else 0
-        neg = []
-        for spec in srcs:
-            # an hf id is ``org/name``; anything after the second / is a subdir
-            parts = spec.split("/")
-            nhf = "/".join(parts[:2])
-            sub = "/".join(parts[2:]) or None
-            files = sorted(_all_audio(nhf, "main", sub or None))
-            for rel in (_even(files, per) if per else files):
-                neg.append((nhf, rel, "main"))
-    elif dataset_def.negatives_hf:
-        nhf, ndir = dataset_def.negatives_hf, dataset_def.negatives_dir
-        nfiles = _all_audio(nhf, "main", ndir)
-        neg = [(nhf, f, "main") for f in nfiles]
-    else:
-        neg = same_neg
-
-    negatives = _emit_ww([], neg, max_per_class)
-    pooled_failures: list[Exception] = []
-    if dataset_def.negatives_dataset_ids:
-        # additional, independent negatives channel — pooled from other
-        # registry datasets (parquet-shaped corpora) on top of whichever of
-        # the above (negatives_sources/negatives_hf/same-corpus) applied.
-        negatives = _alternate(negatives, _pooled_dataset_negatives(
-            dataset_def.negatives_dataset_ids, max_per_class, pooled_failures))
-    yield from _alternate(_emit_ww(pos, [], max_per_class), negatives)
-    # Raised after the last row, so a short sweep is not read as complete.
-    if pooled_failures:
-        raise pooled_failures[0]
 
 
 def stream_manifest_audio(
@@ -668,6 +712,21 @@ def _iter_parquet_rows(
                 position += 1
 
 
+def _select_parquet_rows(
+    locals_: list[str], audio_key: str, max_samples: int, seed: int | None,
+) -> Iterator[tuple[int, dict, Any]]:
+    """The :func:`_iter_parquet_rows` rows a ``(max_samples, seed)`` policy
+    selects that carry audio. Without a seed the head-of-stream cap is the
+    caller's, since it counts only the rows that decode."""
+    selected = resolve_selected_positions(locals_, max_samples, seed)
+    for pos, row, audio_cell in _iter_parquet_rows(locals_, audio_key):
+        if selected is not None and pos not in selected:
+            continue
+        if audio_cell is None:
+            continue
+        yield pos, row, audio_cell
+
+
 def stream_audio_dataset(
     source,
     audio_key: str,
@@ -694,16 +753,11 @@ def stream_audio_dataset(
     import numpy as np
 
     locals_ = resolve_parquet_locals(source, revision)
-    selected = resolve_selected_positions(locals_, max_samples, seed)
 
     count = 0
-    for pos, row, audio_cell in _iter_parquet_rows(locals_, audio_key):
-        if selected is not None and pos not in selected:
-            continue
+    for pos, row, audio_cell in _select_parquet_rows(locals_, audio_key, max_samples, seed):
         if max_samples and count >= max_samples:
             return
-        if audio_cell is None:
-            continue
         array = sr = None
         if isinstance(audio_cell, dict):
             if audio_cell.get("array") is not None:

@@ -72,6 +72,9 @@ closes that gap: it recomputes a dataset's policy-selected sample ids
 directly from the source corpus (no audio decoding, just the id-bearing
 columns) and publishes them as `sample_sets/<lang>.json` inside the
 dataset's predictions repo, right next to `predictions/<lang>/*.jsonl`.
+A wake-word clip set has no parquet rows: its manifest is the clip
+selection the sweep draws, read from the repo file listings and the pooled
+negatives' parquet rows, with `max_samples` as the depth of each class.
 
 ```bash
 python -m runner.publish_sample_set --upload

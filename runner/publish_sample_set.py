@@ -23,7 +23,11 @@ Sample-id derivation is byte-identical to a real sweep: this module calls
 the exact same :func:`runner.audio_io._sample_id` function
 :func:`runner.audio_io.stream_audio_dataset` uses, over the exact same
 :func:`runner.audio_io._iter_parquet_rows` row-walk, so a manifest's ids
-always match what streaming that dataset would actually produce.
+always match what streaming that dataset would actually produce. A
+wake-word clip dataset (one with a ``wakeword``) is not a parquet corpus:
+its manifest is :func:`runner.audio_io.ww_sample_ids`, built on the same
+clip selection :func:`runner.audio_io.stream_ww` draws from, positives and
+negatives at a per-class depth of ``max_samples``.
 
 A hung per-shard HTTP request against a source corpus (mid-listing, the log
 goes silent for 25+ minutes even with the HF_HUB_ETAG_TIMEOUT/
@@ -73,6 +77,20 @@ def compute_sample_set(
         raise ValueError(
             f"{dataset_def.dataset_id}: no sample_policy — nothing to publish"
         )
+
+    if getattr(dataset_def, "wakeword", None):
+        from runner.audio_io import ww_sample_ids
+
+        # max_samples is a per-class depth here (see WakeWordBench.iter_samples)
+        sample_ids = ww_sample_ids(dataset_def, revision, policy.max_samples or 0)
+        return {
+            "dataset_id": dataset_def.dataset_id,
+            "lang": dataset_def.lang,
+            "seed": policy.seed,
+            "max_samples": policy.max_samples,
+            "total_rows": len(sample_ids),
+            "sample_ids": sample_ids,
+        }
 
     fields = dataset_def.reference_fields or {}
     audio_key = fields.get("audio", "audio")
