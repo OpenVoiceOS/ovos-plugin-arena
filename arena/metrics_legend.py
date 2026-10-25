@@ -15,6 +15,8 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
+from arena.metrics import _DET_THRESHOLDS, FA_BUDGETS_PER_HOUR
+
 Direction = Literal["higher", "lower", "neutral"]
 
 # One paragraph per league: the task, what the fighter is handed, what it
@@ -274,6 +276,73 @@ METRICS: dict[str, dict[str, Any]] = {
         "Coverage, not performance — it is here so a board never implies more "
         "evidence than it has.",
     ),
+    # ---- detection: continuous audio (ww_stream) ----
+    **{
+        f"error_at_{budget:g}fa_per_hour": _metric(
+            f"Misses at {budget:g} false alarm{'' if budget == 1 else 's'} per hour",
+            "Share of spoken wake words the detector missed at the strictest "
+            f"setting that keeps its false alarms within {budget:g} per hour of "
+            "streamed audio.",
+            "lower", "share of wake words, 0–100%",
+            "A detector that reports no confidence has one setting only; when "
+            "it wakes more often than the budget allows, this is 100% and the "
+            "board does not rank it.",
+        )
+        for budget in FA_BUDGETS_PER_HOUR
+    },
+    **{
+        f"recall_at_{budget:g}fa_per_hour": _metric(
+            f"Caught at {budget:g} false alarm{'' if budget == 1 else 's'} per hour",
+            "Share of spoken wake words the detector caught at the same "
+            "setting as the matching misses column.",
+            "higher", "share of wake words, 0–100%",
+        )
+        for budget in FA_BUDGETS_PER_HOUR
+    },
+    "frr": _metric(
+        "Misses",
+        "Share of spoken wake words in the recordings that the detector did "
+        "not catch, at a score threshold of 0.5.",
+        "lower", "share of wake words, 0–100%",
+    ),
+    "n_onsets": _metric(
+        "Wake words spoken",
+        "How many wake words the recordings hold.",
+        "neutral", "count",
+        "Coverage, not performance: a board ranks a fighter only when this "
+        "is 30 or more.",
+    ),
+    "negative_hours": _metric(
+        "Audio streamed",
+        "Hours of recordings behind the false-alarms-per-hour figure.",
+        "neutral", "hours",
+    ),
+    "latency_s_median": _metric(
+        "Detection delay",
+        "Median time from the start of a spoken wake word to the detection "
+        "that caught it.",
+        "lower", "seconds",
+        "A detector fires at the end of the phrase, so a long phrase has a "
+        "longer delay.",
+    ),
+    **{
+        f"det_frr@{threshold}": _metric(
+            f"Misses at threshold {threshold}",
+            f"Share of spoken wake words missed when only detections scored "
+            f"{threshold} or more count.",
+            "lower", "share of wake words, 0–100%",
+        )
+        for threshold in _DET_THRESHOLDS
+    },
+    **{
+        f"det_fa_per_hour@{threshold}": _metric(
+            f"False alarms per hour at threshold {threshold}",
+            f"False alarms per hour of streamed audio when only detections "
+            f"scored {threshold} or more count.",
+            "lower", "count per hour",
+        )
+        for threshold in _DET_THRESHOLDS
+    },
     # ---- tts ----
     "utmos": _metric(
         "Naturalness",
