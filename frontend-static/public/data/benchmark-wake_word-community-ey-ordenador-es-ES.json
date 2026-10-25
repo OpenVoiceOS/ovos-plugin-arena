@@ -2,11 +2,11 @@
   "modality": "wake_word",
   "dataset_id": "community-ey-ordenador",
   "lang": "es-ES",
-  "generated_at": "2026-10-24T16:50:26.790465+00:00",
+  "generated_at": "2026-10-25T06:31:05.140420+00:00",
   "primary_metric": "error_rate",
   "dataset_info": {
     "display_name": "Community recordings — “hey ordenador” (Spanish)",
-    "summary": "Recordings of people saying “hey ordenador (Spanish)” to their own microphones, contributed by the OVOS community, used as the clips a detector must wake on. The clips it must ignore are pooled from a shared not-wake-word collection of speech, music, environmental sounds and ambient noise, so the false-alarm figure spans many scenarios. The clips carry real room acoustics and real microphone variation rather than synthesis, though the number of contributors is small.",
+    "summary": "Recordings of people saying “hey ordenador (Spanish)” to their own microphones, contributed by the OVOS community, used as the clips a detector must wake on. The clips it must ignore are pooled from a shared not-wake-word collection of speech, music, environmental sounds and ambient noise, so the false-alarm figure spans many scenarios. The clips carry real room acoustics and real microphone variation rather than synthesis, though the number of contributors is small. Runs on this corpus are capped at 100 clips per class, drawn the same way for every fighter, and 100 more spoken-word clips join the negatives.",
     "url": "https://huggingface.co/datasets/OpenVoiceOS/ovos-community-wakewords-dataset",
     "license": "CC-BY-4.0",
     "notes": "Real community recordings of the 'hey ordenador (Spanish)' wake word as positives; negatives pooled across the not-wake-word collection so the false-accept rate spans many scenarios.",
@@ -17,25 +17,60 @@
   },
   "dataset_revision": null,
   "predictions_revisions": {
-    "OpenVoiceOS/ovos-wake-word-bench-community-ey-ordenador": "f6b0f3f2e07aa4feac72f0a63bf507803fc2a676"
+    "OpenVoiceOS/ovos-wake-word-bench-community-ey-ordenador": "68bcc1eb1af37ebd421670ee49ace54fda632b8e"
   },
   "wer_normalizer_version": null,
   "entries": [
     {
       "rank": 1,
+      "competitor_id": "precise-onnx-ey-ordenador-0-2",
+      "plugin_id": "ovos-ww-plugin-precise-onnx",
+      "samples": 248,
+      "metrics": {
+        "error_rate": 0.1895,
+        "accuracy": 0.8105,
+        "false_accept_rate": 0.0,
+        "false_reject_rate": 0.9792,
+        "latency_ms_median": 45.82,
+        "fa_per_hour_hours": 0.105
+      },
+      "primary_metric_ci_lower": 0.14112903225806453,
+      "primary_metric_ci_upper": 0.23790322580645162,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-ww-plugin-precise-onnx==0.1.2a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": {
+        "gpu": {
+          "rtf": 0.0318,
+          "rtf_n": 248.0,
+          "peak_rss_mb": 1989.57,
+          "peak_rss_mb_n": 248.0
+        }
+      },
+      "model_mb": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 1.0,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 2,
       "competitor_id": "vosk-ww-ey-ordenador",
       "plugin_id": "ovos-ww-plugin-vosk",
-      "samples": 289,
+      "samples": 248,
       "metrics": {
-        "error_rate": 0.1661,
-        "accuracy": 0.8339,
+        "error_rate": 0.1935,
+        "accuracy": 0.8065,
         "false_accept_rate": 0.0,
         "false_reject_rate": 1.0,
-        "latency_ms_median": 106.7,
-        "fa_per_hour_hours": 0.1164
+        "latency_ms_median": 111.25,
+        "fa_per_hour_hours": 0.105
       },
-      "primary_metric_ci_lower": 0.1245674740484429,
-      "primary_metric_ci_upper": 0.20769896193771617,
+      "primary_metric_ci_lower": 0.14516129032258068,
+      "primary_metric_ci_upper": 0.24193548387096775,
       "tied_with_leader": true,
       "plugin_versions": [
         "ovos-ww-plugin-vosk==0.1.11a3"
@@ -45,20 +80,20 @@
       "unranked_reason": null,
       "perf": {
         "gpu": {
-          "rtf": 0.0805,
-          "rtf_n": 289.0,
+          "rtf": 0.0785,
+          "rtf_n": 248.0,
           "peak_rss_mb": 2186.26,
-          "peak_rss_mb_n": 289.0
+          "peak_rss_mb_n": 248.0
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 1.0,
       "rows_other_revision": 0
     }
   ],
-  "entries_hash": "21616e681d96f6a3bbc29419e7da6fd7f7151c35d6d391465586b4fc5d2620fe",
-  "input_hash": "d2efb0dc1169783298f4369899d49514e40d3d8f0c733b39741f41c74968f3bc",
+  "entries_hash": "25217622b45c5efa68504b21a43c3c8f349ef58f264c0b0d2b6d7f6f022a501d",
+  "input_hash": "d292e11d245efcaf136beaaca1c92c3f6ff81d7cdb658bf231051491a9a0edcd",
   "judge_agreement": null,
   "intelligibility_judges": [],
   "intelligibility_judge_mismatched_pairs": 0,

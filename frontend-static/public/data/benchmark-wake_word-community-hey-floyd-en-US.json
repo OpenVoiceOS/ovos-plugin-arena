@@ -2,11 +2,11 @@
   "modality": "wake_word",
   "dataset_id": "community-hey-floyd",
   "lang": "en-US",
-  "generated_at": "2026-10-24T16:50:26.790465+00:00",
+  "generated_at": "2026-10-25T06:31:05.140420+00:00",
   "primary_metric": "error_rate",
   "dataset_info": {
     "display_name": "Community recordings — “hey floyd”",
-    "summary": "Recordings of people saying “hey floyd” to their own microphones, contributed by the OVOS community, used as the clips a detector must wake on. The clips it must ignore are pooled from a shared not-wake-word collection of speech, music, environmental sounds and ambient noise, so the false-alarm figure spans many scenarios. The clips carry real room acoustics and real microphone variation rather than synthesis, though the number of contributors is small.",
+    "summary": "Recordings of people saying “hey floyd” to their own microphones, contributed by the OVOS community, used as the clips a detector must wake on. The clips it must ignore are pooled from a shared not-wake-word collection of speech, music, environmental sounds and ambient noise, so the false-alarm figure spans many scenarios. The clips carry real room acoustics and real microphone variation rather than synthesis, though the number of contributors is small. Runs on this corpus are capped at 100 clips per class, drawn the same way for every fighter, and 100 more spoken-word clips join the negatives.",
     "url": "https://huggingface.co/datasets/OpenVoiceOS/ovos-community-wakewords-dataset",
     "license": "CC-BY-4.0",
     "notes": "Real community recordings of the 'hey floyd' wake word as positives; negatives pooled across the not-wake-word collection so the false-accept rate spans many scenarios.",
@@ -17,12 +17,47 @@
   },
   "dataset_revision": null,
   "predictions_revisions": {
-    "OpenVoiceOS/ovos-wake-word-bench-community-hey-floyd": "91e0ec1eae534f8ae68efae1be74e7a702472034"
+    "OpenVoiceOS/ovos-wake-word-bench-community-hey-floyd": "38707852f88b3e3b5a75b13394b3ee43987edb8b"
   },
   "wer_normalizer_version": null,
   "entries": [
     {
       "rank": 1,
+      "competitor_id": "wakeforge-hey-floyd-streaming",
+      "plugin_id": "ovos-ww-plugin-wakeforge",
+      "samples": 296,
+      "metrics": {
+        "error_rate": 0.0101,
+        "accuracy": 0.9899,
+        "false_accept_rate": 0.005,
+        "false_reject_rate": 0.0208,
+        "latency_ms_median": 42.23,
+        "fa_per_hour_hours": 0.105
+      },
+      "primary_metric_ci_lower": 0.0,
+      "primary_metric_ci_upper": 0.02364864864864865,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-ww-plugin-wakeforge==0.18.0a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": {
+        "gpu": {
+          "rtf": 0.0348,
+          "rtf_n": 296.0,
+          "peak_rss_mb": 2011.7,
+          "peak_rss_mb_n": 296.0
+        }
+      },
+      "model_mb": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 1.0,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 2,
       "competitor_id": "wakeforge-hey-floyd",
       "plugin_id": "ovos-ww-plugin-wakeforge",
       "samples": 296,
@@ -52,12 +87,47 @@
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 1.0,
       "rows_other_revision": 0
     },
     {
-      "rank": 2,
+      "rank": 3,
+      "competitor_id": "local-wake-hey-floyd",
+      "plugin_id": "ovos-ww-plugin-local-wake",
+      "samples": 296,
+      "metrics": {
+        "error_rate": 0.1115,
+        "accuracy": 0.8885,
+        "false_accept_rate": 0.0,
+        "false_reject_rate": 0.3438,
+        "latency_ms_median": 18.47,
+        "fa_per_hour_hours": 0.105
+      },
+      "primary_metric_ci_lower": 0.0777027027027027,
+      "primary_metric_ci_upper": 0.14527027027027026,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-ww-plugin-local-wake==0.0.1a2"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": {
+        "gpu": {
+          "rtf": 0.0139,
+          "rtf_n": 296.0,
+          "peak_rss_mb": 2543.71,
+          "peak_rss_mb_n": 296.0
+        }
+      },
+      "model_mb": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 1.0,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 4,
       "competitor_id": "wakeforge-zeroshot-hey-floyd",
       "plugin_id": "ovos-ww-plugin-wakeforge-zeroshot",
       "samples": 296,
@@ -87,12 +157,12 @@
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 1.0,
       "rows_other_revision": 0
     },
     {
-      "rank": 3,
+      "rank": 5,
       "competitor_id": "vosk-ww-hey-floyd",
       "plugin_id": "ovos-ww-plugin-vosk",
       "samples": 296,
@@ -104,8 +174,8 @@
         "latency_ms_median": 105.63,
         "fa_per_hour_hours": 0.105
       },
-      "primary_metric_ci_lower": 0.26013513513513514,
-      "primary_metric_ci_upper": 0.3682432432432433,
+      "primary_metric_ci_lower": 0.2668918918918919,
+      "primary_metric_ci_upper": 0.36486486486486486,
       "tied_with_leader": false,
       "plugin_versions": [
         "ovos-ww-plugin-vosk==0.1.11a3"
@@ -122,8 +192,8 @@
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 1.0,
       "rows_other_revision": 0
     },
     {
@@ -155,8 +225,8 @@
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.10135135135135136,
       "rows_other_revision": 0
     },
     {
@@ -188,8 +258,8 @@
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.10135135135135136,
       "rows_other_revision": 0
     },
     {
@@ -221,8 +291,8 @@
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.10135135135135136,
       "rows_other_revision": 0
     },
     {
@@ -254,8 +324,8 @@
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.10135135135135136,
       "rows_other_revision": 0
     },
     {
@@ -287,8 +357,8 @@
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.10135135135135136,
       "rows_other_revision": 0
     },
     {
@@ -320,8 +390,8 @@
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.10135135135135136,
       "rows_other_revision": 0
     },
     {
@@ -353,8 +423,8 @@
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.10135135135135136,
       "rows_other_revision": 0
     },
     {
@@ -386,8 +456,8 @@
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.10135135135135136,
       "rows_other_revision": 0
     },
     {
@@ -419,8 +489,8 @@
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.10135135135135136,
       "rows_other_revision": 0
     },
     {
@@ -452,8 +522,8 @@
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.10135135135135136,
       "rows_other_revision": 0
     },
     {
@@ -485,8 +555,8 @@
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.10135135135135136,
       "rows_other_revision": 0
     },
     {
@@ -518,8 +588,8 @@
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.10135135135135136,
       "rows_other_revision": 0
     },
     {
@@ -551,8 +621,8 @@
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.10135135135135136,
       "rows_other_revision": 0
     },
     {
@@ -584,8 +654,8 @@
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.10135135135135136,
       "rows_other_revision": 0
     },
     {
@@ -617,8 +687,8 @@
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.10135135135135136,
       "rows_other_revision": 0
     },
     {
@@ -650,8 +720,8 @@
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.10135135135135136,
       "rows_other_revision": 0
     },
     {
@@ -683,8 +753,8 @@
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.10135135135135136,
       "rows_other_revision": 0
     },
     {
@@ -716,8 +786,8 @@
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.10135135135135136,
       "rows_other_revision": 0
     },
     {
@@ -749,8 +819,8 @@
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.10135135135135136,
       "rows_other_revision": 0
     },
     {
@@ -782,8 +852,8 @@
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.10135135135135136,
       "rows_other_revision": 0
     },
     {
@@ -815,8 +885,8 @@
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.10135135135135136,
       "rows_other_revision": 0
     },
     {
@@ -848,8 +918,8 @@
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.10135135135135136,
       "rows_other_revision": 0
     },
     {
@@ -881,8 +951,8 @@
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.10135135135135136,
       "rows_other_revision": 0
     },
     {
@@ -914,8 +984,8 @@
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.10135135135135136,
       "rows_other_revision": 0
     },
     {
@@ -947,8 +1017,8 @@
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.10135135135135136,
       "rows_other_revision": 0
     },
     {
@@ -980,8 +1050,8 @@
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.10135135135135136,
       "rows_other_revision": 0
     },
     {
@@ -1013,8 +1083,8 @@
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.10135135135135136,
       "rows_other_revision": 0
     },
     {
@@ -1046,8 +1116,8 @@
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.10135135135135136,
       "rows_other_revision": 0
     },
     {
@@ -1079,8 +1149,8 @@
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.10135135135135136,
       "rows_other_revision": 0
     },
     {
@@ -1112,8 +1182,8 @@
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.10135135135135136,
       "rows_other_revision": 0
     },
     {
@@ -1145,8 +1215,8 @@
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.10135135135135136,
       "rows_other_revision": 0
     },
     {
@@ -1178,8 +1248,8 @@
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.10135135135135136,
       "rows_other_revision": 0
     },
     {
@@ -1211,8 +1281,8 @@
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.10135135135135136,
       "rows_other_revision": 0
     },
     {
@@ -1244,8 +1314,8 @@
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.10135135135135136,
       "rows_other_revision": 0
     },
     {
@@ -1277,8 +1347,8 @@
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.10135135135135136,
       "rows_other_revision": 0
     },
     {
@@ -1310,8 +1380,8 @@
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.10135135135135136,
       "rows_other_revision": 0
     },
     {
@@ -1343,8 +1413,8 @@
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.10135135135135136,
       "rows_other_revision": 0
     },
     {
@@ -1376,8 +1446,8 @@
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.10135135135135136,
       "rows_other_revision": 0
     },
     {
@@ -1409,13 +1479,13 @@
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.10135135135135136,
       "rows_other_revision": 0
     }
   ],
-  "entries_hash": "665572080dbb2c45a91659570bdc5632d2fddc8bb7c62d42fba0c52365343184",
-  "input_hash": "5c1c038b6faf1c06f09e9b1c7d3a34f873df8b1ab7c162228c3e51b7ea7b0446",
+  "entries_hash": "bd58e3c594099c3c44d7a84a14441ed2cc874387958027a0df6ff8cc0a9d4214",
+  "input_hash": "64a089954b5db87be48f7bd04c793973cff85c271df58c3f8e7d6ead4c75c27d",
   "judge_agreement": null,
   "intelligibility_judges": [],
   "intelligibility_judge_mismatched_pairs": 0,

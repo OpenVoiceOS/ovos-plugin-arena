@@ -2,11 +2,11 @@
   "modality": "wake_word",
   "dataset_id": "picovoice-alexa",
   "lang": "en-US",
-  "generated_at": "2026-10-24T16:50:26.790465+00:00",
+  "generated_at": "2026-10-25T06:31:05.140420+00:00",
   "primary_metric": "error_rate",
   "dataset_info": {
     "display_name": "Picovoice benchmark — “alexa”",
-    "summary": "Recordings of people saying “alexa” from Picovoice's public wake-word benchmark, used as the clips a detector must wake on, against negatives pooled from the shared not-wake-word collection. One row is one clip with its label. This is an independently collected set, which makes it a useful check on engines tuned against their own vendor's data.",
+    "summary": "Recordings of people saying “alexa” from Picovoice's public wake-word benchmark, used as the clips a detector must wake on, against negatives pooled from the shared not-wake-word collection. One row is one clip with its label. This is an independently collected set, which makes it a useful check on engines tuned against their own vendor's data. Runs on this corpus are capped at 100 clips per class, drawn the same way for every fighter, and 100 more spoken-word clips join the negatives.",
     "url": "https://huggingface.co/datasets/Picovoice/wake-word-benchmark",
     "license": "apache-2.0",
     "notes": "Picovoice wake-word benchmark — real 'alexa' recordings (data/alexa/) as positives; negatives pooled across the not-wake-word collection.",
@@ -17,12 +17,47 @@
   },
   "dataset_revision": null,
   "predictions_revisions": {
-    "OpenVoiceOS/ovos-wake-word-bench-picovoice-alexa": "045a76bdd968a4d5ecace599c5c9b1aac4a8f67d"
+    "OpenVoiceOS/ovos-wake-word-bench-picovoice-alexa": "694df59b0ac07f409bceccf2f6e5164793519e12"
   },
   "wer_normalizer_version": null,
   "entries": [
     {
       "rank": 1,
+      "competitor_id": "wakeforge-alexa-streaming",
+      "plugin_id": "ovos-ww-plugin-wakeforge",
+      "samples": 300,
+      "metrics": {
+        "error_rate": 0.0,
+        "accuracy": 1.0,
+        "false_accept_rate": 0.0,
+        "false_reject_rate": 0.0,
+        "latency_ms_median": 38.11,
+        "fa_per_hour_hours": 0.105
+      },
+      "primary_metric_ci_lower": 0.0,
+      "primary_metric_ci_upper": 0.0,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-ww-plugin-wakeforge==0.18.0a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": {
+        "gpu": {
+          "rtf": 0.0267,
+          "rtf_n": 300.0,
+          "peak_rss_mb": 1943.13,
+          "peak_rss_mb_n": 300.0
+        }
+      },
+      "model_mb": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 1.0,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 2,
       "competitor_id": "efficientword-net-alexa",
       "plugin_id": "ovos-ww-plugin-efficientword-net",
       "samples": 300,
@@ -52,8 +87,43 @@
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 1.0,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 2,
+      "competitor_id": "microwakeword-alexa-v2",
+      "plugin_id": "ovos-ww-plugin-microwakeword",
+      "samples": 300,
+      "metrics": {
+        "error_rate": 0.0067,
+        "accuracy": 0.9933,
+        "false_accept_rate": 0.0,
+        "false_reject_rate": 0.02,
+        "latency_ms_median": 8.61,
+        "fa_per_hour_hours": 0.105
+      },
+      "primary_metric_ci_lower": 0.0,
+      "primary_metric_ci_upper": 0.016666666666666666,
+      "tied_with_leader": true,
+      "plugin_versions": [
+        "ovos-ww-plugin-microwakeword==0.0.3a1"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": {
+        "gpu": {
+          "rtf": 0.0051,
+          "rtf_n": 300.0,
+          "peak_rss_mb": 1886.39,
+          "peak_rss_mb_n": 300.0
+        }
+      },
+      "model_mb": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 1.0,
       "rows_other_revision": 0
     },
     {
@@ -87,48 +157,47 @@
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 1.0,
       "rows_other_revision": 0
     },
     {
-      "rank": 3,
+      "rank": 5,
       "competitor_id": "openwakeword-alexa",
       "plugin_id": "ovos-ww-plugin-openwakeword",
-      "samples": 320,
+      "samples": 300,
       "metrics": {
-        "error_rate": 0.0094,
-        "accuracy": 0.9906,
+        "error_rate": 0.01,
+        "accuracy": 0.99,
         "false_accept_rate": 0.005,
-        "false_reject_rate": 0.0167,
-        "latency_ms_median": 155.16,
+        "false_reject_rate": 0.02,
+        "latency_ms_median": 156.41,
         "fa_per_hour_hours": 0.105
       },
       "primary_metric_ci_lower": 0.0,
-      "primary_metric_ci_upper": 0.021875,
+      "primary_metric_ci_upper": 0.023333333333333334,
       "tied_with_leader": true,
       "plugin_versions": [
-        "ovos-ww-plugin-openwakeword==0.3.0",
         "ovos-ww-plugin-openwakeword==0.4.6"
       ],
-      "version_blended": true,
+      "version_blended": false,
       "unranked": false,
       "unranked_reason": null,
       "perf": {
         "gpu": {
-          "rtf": 0.0928,
-          "rtf_n": 320.0,
+          "rtf": 0.0943,
+          "rtf_n": 300.0,
           "peak_rss_mb": 2099.6,
-          "peak_rss_mb_n": 320.0
+          "peak_rss_mb_n": 300.0
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 1.0,
       "rows_other_revision": 0
     },
     {
-      "rank": 4,
+      "rank": 5,
       "competitor_id": "wakeforge-zeroshot-alexa",
       "plugin_id": "ovos-ww-plugin-wakeforge-zeroshot",
       "samples": 300,
@@ -158,12 +227,12 @@
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 1.0,
       "rows_other_revision": 0
     },
     {
-      "rank": 5,
+      "rank": 7,
       "competitor_id": "local-wake-alexa",
       "plugin_id": "ovos-ww-plugin-local-wake",
       "samples": 300,
@@ -193,25 +262,60 @@
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 1.0,
       "rows_other_revision": 0
     },
     {
-      "rank": 6,
-      "competitor_id": "vosk-ww-alexa",
-      "plugin_id": "ovos-ww-plugin-vosk",
-      "samples": 320,
+      "rank": 8,
+      "competitor_id": "microwakeword-alexa",
+      "plugin_id": "ovos-ww-plugin-microwakeword",
+      "samples": 300,
       "metrics": {
-        "error_rate": 0.2906,
-        "accuracy": 0.7094,
-        "false_accept_rate": 0.0,
-        "false_reject_rate": 0.775,
-        "latency_ms_median": 90.6,
+        "error_rate": 0.2167,
+        "accuracy": 0.7833,
+        "false_accept_rate": 0.29,
+        "false_reject_rate": 0.07,
+        "latency_ms_median": 4.81,
         "fa_per_hour_hours": 0.105
       },
-      "primary_metric_ci_lower": 0.240625,
-      "primary_metric_ci_upper": 0.340625,
+      "primary_metric_ci_lower": 0.17,
+      "primary_metric_ci_upper": 0.2633333333333333,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-ww-plugin-microwakeword==0.0.1a4"
+      ],
+      "version_blended": false,
+      "unranked": false,
+      "unranked_reason": null,
+      "perf": {
+        "gpu": {
+          "rtf": 0.0023,
+          "rtf_n": 300.0,
+          "peak_rss_mb": 1923.01,
+          "peak_rss_mb_n": 300.0
+        }
+      },
+      "model_mb": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 1.0,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 9,
+      "competitor_id": "vosk-ww-alexa",
+      "plugin_id": "ovos-ww-plugin-vosk",
+      "samples": 300,
+      "metrics": {
+        "error_rate": 0.2667,
+        "accuracy": 0.7333,
+        "false_accept_rate": 0.0,
+        "false_reject_rate": 0.8,
+        "latency_ms_median": 90.25,
+        "fa_per_hour_hours": 0.105
+      },
+      "primary_metric_ci_lower": 0.21666666666666667,
+      "primary_metric_ci_upper": 0.31666666666666665,
       "tied_with_leader": false,
       "plugin_versions": [
         "ovos-ww-plugin-vosk==0.1.11a3"
@@ -221,27 +325,27 @@
       "unranked_reason": null,
       "perf": {
         "gpu": {
-          "rtf": 0.0511,
-          "rtf_n": 320.0,
+          "rtf": 0.0531,
+          "rtf_n": 300.0,
           "peak_rss_mb": 2128.81,
-          "peak_rss_mb_n": 320.0
+          "peak_rss_mb_n": 300.0
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 1.0,
       "rows_other_revision": 0
     },
     {
       "rank": 0,
       "competitor_id": "microwakeword-hey-jarvis-silero",
       "plugin_id": "ovos-ww-plugin-microwakeword",
-      "samples": 30,
+      "samples": 10,
       "metrics": {
         "error_rate": 1.0,
         "accuracy": 0.0,
         "false_reject_rate": 1.0,
-        "latency_ms_median": 10.96
+        "latency_ms_median": 10.48
       },
       "primary_metric_ci_lower": 1.0,
       "primary_metric_ci_upper": 1.0,
@@ -254,27 +358,27 @@
       "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
       "perf": {
         "gpu": {
-          "rtf": 0.0041,
-          "rtf_n": 30.0,
+          "rtf": 0.004,
+          "rtf_n": 10.0,
           "peak_rss_mb": 775.28,
-          "peak_rss_mb_n": 30.0
+          "peak_rss_mb_n": 10.0
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.03333333333333333,
       "rows_other_revision": 0
     },
     {
       "rank": 0,
       "competitor_id": "microwakeword-hey-jarvis-thr07",
       "plugin_id": "ovos-ww-plugin-microwakeword",
-      "samples": 30,
+      "samples": 10,
       "metrics": {
         "error_rate": 1.0,
         "accuracy": 0.0,
         "false_reject_rate": 1.0,
-        "latency_ms_median": 5.12
+        "latency_ms_median": 5.2
       },
       "primary_metric_ci_lower": 1.0,
       "primary_metric_ci_upper": 1.0,
@@ -288,26 +392,26 @@
       "perf": {
         "gpu": {
           "rtf": 0.002,
-          "rtf_n": 30.0,
+          "rtf_n": 10.0,
           "peak_rss_mb": 762.29,
-          "peak_rss_mb_n": 30.0
+          "peak_rss_mb_n": 10.0
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.03333333333333333,
       "rows_other_revision": 0
     },
     {
       "rank": 0,
       "competitor_id": "microwakeword-hey-jarvis",
       "plugin_id": "ovos-ww-plugin-microwakeword",
-      "samples": 30,
+      "samples": 10,
       "metrics": {
         "error_rate": 1.0,
         "accuracy": 0.0,
         "false_reject_rate": 1.0,
-        "latency_ms_median": 5.09
+        "latency_ms_median": 5.29
       },
       "primary_metric_ci_lower": 1.0,
       "primary_metric_ci_upper": 1.0,
@@ -320,27 +424,27 @@
       "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
       "perf": {
         "gpu": {
-          "rtf": 0.002,
-          "rtf_n": 30.0,
+          "rtf": 0.0019,
+          "rtf_n": 10.0,
           "peak_rss_mb": 761.89,
-          "peak_rss_mb_n": 30.0
+          "peak_rss_mb_n": 10.0
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.03333333333333333,
       "rows_other_revision": 0
     },
     {
       "rank": 0,
       "competitor_id": "openwakeword-hey-jarvis",
       "plugin_id": "ovos-ww-plugin-openwakeword",
-      "samples": 30,
+      "samples": 10,
       "metrics": {
         "error_rate": 1.0,
         "accuracy": 0.0,
         "false_reject_rate": 1.0,
-        "latency_ms_median": 120.7
+        "latency_ms_median": 137.1
       },
       "primary_metric_ci_lower": 1.0,
       "primary_metric_ci_upper": 1.0,
@@ -353,27 +457,27 @@
       "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
       "perf": {
         "gpu": {
-          "rtf": 0.0463,
-          "rtf_n": 30.0,
+          "rtf": 0.0477,
+          "rtf_n": 10.0,
           "peak_rss_mb": 897.34,
-          "peak_rss_mb_n": 30.0
+          "peak_rss_mb_n": 10.0
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.03333333333333333,
       "rows_other_revision": 0
     },
     {
       "rank": 0,
       "competitor_id": "openwakeword-hey-mycroft-silero",
       "plugin_id": "ovos-ww-plugin-openwakeword",
-      "samples": 30,
+      "samples": 10,
       "metrics": {
         "error_rate": 1.0,
         "accuracy": 0.0,
         "false_reject_rate": 1.0,
-        "latency_ms_median": 132.91
+        "latency_ms_median": 148.96
       },
       "primary_metric_ci_lower": 1.0,
       "primary_metric_ci_upper": 1.0,
@@ -386,27 +490,27 @@
       "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
       "perf": {
         "gpu": {
-          "rtf": 0.0506,
-          "rtf_n": 30.0,
+          "rtf": 0.0528,
+          "rtf_n": 10.0,
           "peak_rss_mb": 900.1,
-          "peak_rss_mb_n": 30.0
+          "peak_rss_mb_n": 10.0
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.03333333333333333,
       "rows_other_revision": 0
     },
     {
       "rank": 0,
       "competitor_id": "openwakeword-hey-mycroft-thr03",
       "plugin_id": "ovos-ww-plugin-openwakeword",
-      "samples": 30,
+      "samples": 10,
       "metrics": {
         "error_rate": 1.0,
         "accuracy": 0.0,
         "false_reject_rate": 1.0,
-        "latency_ms_median": 126.27
+        "latency_ms_median": 141.68
       },
       "primary_metric_ci_lower": 1.0,
       "primary_metric_ci_upper": 1.0,
@@ -419,27 +523,27 @@
       "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
       "perf": {
         "gpu": {
-          "rtf": 0.0475,
-          "rtf_n": 30.0,
+          "rtf": 0.05,
+          "rtf_n": 10.0,
           "peak_rss_mb": 896.77,
-          "peak_rss_mb_n": 30.0
+          "peak_rss_mb_n": 10.0
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.03333333333333333,
       "rows_other_revision": 0
     },
     {
       "rank": 0,
       "competitor_id": "openwakeword-hey-mycroft-thr07",
       "plugin_id": "ovos-ww-plugin-openwakeword",
-      "samples": 30,
+      "samples": 10,
       "metrics": {
         "error_rate": 1.0,
         "accuracy": 0.0,
         "false_reject_rate": 1.0,
-        "latency_ms_median": 125.94
+        "latency_ms_median": 138.56
       },
       "primary_metric_ci_lower": 1.0,
       "primary_metric_ci_upper": 1.0,
@@ -452,27 +556,27 @@
       "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
       "perf": {
         "gpu": {
-          "rtf": 0.0475,
-          "rtf_n": 30.0,
+          "rtf": 0.0491,
+          "rtf_n": 10.0,
           "peak_rss_mb": 896.8,
-          "peak_rss_mb_n": 30.0
+          "peak_rss_mb_n": 10.0
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.03333333333333333,
       "rows_other_revision": 0
     },
     {
       "rank": 0,
       "competitor_id": "openwakeword-hey-mycroft",
       "plugin_id": "ovos-ww-plugin-openwakeword",
-      "samples": 30,
+      "samples": 10,
       "metrics": {
         "error_rate": 1.0,
         "accuracy": 0.0,
         "false_reject_rate": 1.0,
-        "latency_ms_median": 125.35
+        "latency_ms_median": 139.45
       },
       "primary_metric_ci_lower": 1.0,
       "primary_metric_ci_upper": 1.0,
@@ -485,27 +589,159 @@
       "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
       "perf": {
         "gpu": {
-          "rtf": 0.0481,
-          "rtf_n": 30.0,
+          "rtf": 0.0497,
+          "rtf_n": 10.0,
           "peak_rss_mb": 897.55,
-          "peak_rss_mb_n": 30.0
+          "peak_rss_mb_n": 10.0
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.03333333333333333,
       "rows_other_revision": 0
     },
     {
       "rank": 0,
       "competitor_id": "precise-onnx-athena",
       "plugin_id": "ovos-ww-plugin-precise-onnx",
-      "samples": 30,
+      "samples": 10,
       "metrics": {
         "error_rate": 1.0,
         "accuracy": 0.0,
         "false_reject_rate": 1.0,
-        "latency_ms_median": 29.97
+        "latency_ms_median": 31.58
+      },
+      "primary_metric_ci_lower": 1.0,
+      "primary_metric_ci_upper": 1.0,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-ww-plugin-precise-onnx==0.1.1a8"
+      ],
+      "version_blended": false,
+      "unranked": true,
+      "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
+      "perf": {
+        "gpu": {
+          "rtf": 0.0117,
+          "rtf_n": 10.0,
+          "peak_rss_mb": 772.7,
+          "peak_rss_mb_n": 10.0
+        }
+      },
+      "model_mb": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.03333333333333333,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 0,
+      "competitor_id": "precise-onnx-computer",
+      "plugin_id": "ovos-ww-plugin-precise-onnx",
+      "samples": 10,
+      "metrics": {
+        "error_rate": 1.0,
+        "accuracy": 0.0,
+        "false_reject_rate": 1.0,
+        "latency_ms_median": 27.16
+      },
+      "primary_metric_ci_lower": 1.0,
+      "primary_metric_ci_upper": 1.0,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-ww-plugin-precise-onnx==0.1.1a8"
+      ],
+      "version_blended": false,
+      "unranked": true,
+      "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
+      "perf": {
+        "gpu": {
+          "rtf": 0.0101,
+          "rtf_n": 10.0,
+          "peak_rss_mb": 774.04,
+          "peak_rss_mb_n": 10.0
+        }
+      },
+      "model_mb": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.03333333333333333,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 0,
+      "competitor_id": "precise-onnx-hey-chatterbox",
+      "plugin_id": "ovos-ww-plugin-precise-onnx",
+      "samples": 10,
+      "metrics": {
+        "error_rate": 1.0,
+        "accuracy": 0.0,
+        "false_reject_rate": 1.0,
+        "latency_ms_median": 27.56
+      },
+      "primary_metric_ci_lower": 1.0,
+      "primary_metric_ci_upper": 1.0,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-ww-plugin-precise-onnx==0.1.1a8"
+      ],
+      "version_blended": false,
+      "unranked": true,
+      "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
+      "perf": {
+        "gpu": {
+          "rtf": 0.0102,
+          "rtf_n": 10.0,
+          "peak_rss_mb": 772.74,
+          "peak_rss_mb_n": 10.0
+        }
+      },
+      "model_mb": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.03333333333333333,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 0,
+      "competitor_id": "precise-onnx-hey-k9",
+      "plugin_id": "ovos-ww-plugin-precise-onnx",
+      "samples": 10,
+      "metrics": {
+        "error_rate": 1.0,
+        "accuracy": 0.0,
+        "false_reject_rate": 1.0,
+        "latency_ms_median": 27.09
+      },
+      "primary_metric_ci_lower": 1.0,
+      "primary_metric_ci_upper": 1.0,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-ww-plugin-precise-onnx==0.1.1a8"
+      ],
+      "version_blended": false,
+      "unranked": true,
+      "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
+      "perf": {
+        "gpu": {
+          "rtf": 0.01,
+          "rtf_n": 10.0,
+          "peak_rss_mb": 772.53,
+          "peak_rss_mb_n": 10.0
+        }
+      },
+      "model_mb": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.03333333333333333,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 0,
+      "competitor_id": "precise-onnx-hey-mycroft-silero",
+      "plugin_id": "ovos-ww-plugin-precise-onnx",
+      "samples": 10,
+      "metrics": {
+        "error_rate": 1.0,
+        "accuracy": 0.0,
+        "false_reject_rate": 1.0,
+        "latency_ms_median": 32.03
       },
       "primary_metric_ci_lower": 1.0,
       "primary_metric_ci_upper": 1.0,
@@ -519,158 +755,26 @@
       "perf": {
         "gpu": {
           "rtf": 0.0121,
-          "rtf_n": 30.0,
-          "peak_rss_mb": 772.7,
-          "peak_rss_mb_n": 30.0
-        }
-      },
-      "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
-      "rows_other_revision": 0
-    },
-    {
-      "rank": 0,
-      "competitor_id": "precise-onnx-computer",
-      "plugin_id": "ovos-ww-plugin-precise-onnx",
-      "samples": 30,
-      "metrics": {
-        "error_rate": 1.0,
-        "accuracy": 0.0,
-        "false_reject_rate": 1.0,
-        "latency_ms_median": 26.22
-      },
-      "primary_metric_ci_lower": 1.0,
-      "primary_metric_ci_upper": 1.0,
-      "tied_with_leader": false,
-      "plugin_versions": [
-        "ovos-ww-plugin-precise-onnx==0.1.1a8"
-      ],
-      "version_blended": false,
-      "unranked": true,
-      "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
-      "perf": {
-        "gpu": {
-          "rtf": 0.0104,
-          "rtf_n": 30.0,
-          "peak_rss_mb": 774.04,
-          "peak_rss_mb_n": 30.0
-        }
-      },
-      "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
-      "rows_other_revision": 0
-    },
-    {
-      "rank": 0,
-      "competitor_id": "precise-onnx-hey-chatterbox",
-      "plugin_id": "ovos-ww-plugin-precise-onnx",
-      "samples": 30,
-      "metrics": {
-        "error_rate": 1.0,
-        "accuracy": 0.0,
-        "false_reject_rate": 1.0,
-        "latency_ms_median": 26.23
-      },
-      "primary_metric_ci_lower": 1.0,
-      "primary_metric_ci_upper": 1.0,
-      "tied_with_leader": false,
-      "plugin_versions": [
-        "ovos-ww-plugin-precise-onnx==0.1.1a8"
-      ],
-      "version_blended": false,
-      "unranked": true,
-      "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
-      "perf": {
-        "gpu": {
-          "rtf": 0.0103,
-          "rtf_n": 30.0,
-          "peak_rss_mb": 772.74,
-          "peak_rss_mb_n": 30.0
-        }
-      },
-      "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
-      "rows_other_revision": 0
-    },
-    {
-      "rank": 0,
-      "competitor_id": "precise-onnx-hey-k9",
-      "plugin_id": "ovos-ww-plugin-precise-onnx",
-      "samples": 30,
-      "metrics": {
-        "error_rate": 1.0,
-        "accuracy": 0.0,
-        "false_reject_rate": 1.0,
-        "latency_ms_median": 26.21
-      },
-      "primary_metric_ci_lower": 1.0,
-      "primary_metric_ci_upper": 1.0,
-      "tied_with_leader": false,
-      "plugin_versions": [
-        "ovos-ww-plugin-precise-onnx==0.1.1a8"
-      ],
-      "version_blended": false,
-      "unranked": true,
-      "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
-      "perf": {
-        "gpu": {
-          "rtf": 0.0105,
-          "rtf_n": 30.0,
-          "peak_rss_mb": 772.53,
-          "peak_rss_mb_n": 30.0
-        }
-      },
-      "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
-      "rows_other_revision": 0
-    },
-    {
-      "rank": 0,
-      "competitor_id": "precise-onnx-hey-mycroft-silero",
-      "plugin_id": "ovos-ww-plugin-precise-onnx",
-      "samples": 30,
-      "metrics": {
-        "error_rate": 1.0,
-        "accuracy": 0.0,
-        "false_reject_rate": 1.0,
-        "latency_ms_median": 31.99
-      },
-      "primary_metric_ci_lower": 1.0,
-      "primary_metric_ci_upper": 1.0,
-      "tied_with_leader": false,
-      "plugin_versions": [
-        "ovos-ww-plugin-precise-onnx==0.1.1a8"
-      ],
-      "version_blended": false,
-      "unranked": true,
-      "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
-      "perf": {
-        "gpu": {
-          "rtf": 0.012,
-          "rtf_n": 30.0,
+          "rtf_n": 10.0,
           "peak_rss_mb": 776.47,
-          "peak_rss_mb_n": 30.0
+          "peak_rss_mb_n": 10.0
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.03333333333333333,
       "rows_other_revision": 0
     },
     {
       "rank": 0,
       "competitor_id": "precise-onnx-hey-mycroft",
       "plugin_id": "ovos-ww-plugin-precise-onnx",
-      "samples": 30,
+      "samples": 10,
       "metrics": {
         "error_rate": 1.0,
         "accuracy": 0.0,
         "false_reject_rate": 1.0,
-        "latency_ms_median": 25.94
+        "latency_ms_median": 26.94
       },
       "primary_metric_ci_lower": 1.0,
       "primary_metric_ci_upper": 1.0,
@@ -683,27 +787,27 @@
       "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
       "perf": {
         "gpu": {
-          "rtf": 0.0106,
-          "rtf_n": 30.0,
+          "rtf": 0.0102,
+          "rtf_n": 10.0,
           "peak_rss_mb": 772.35,
-          "peak_rss_mb_n": 30.0
+          "peak_rss_mb_n": 10.0
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.03333333333333333,
       "rows_other_revision": 0
     },
     {
       "rank": 0,
       "competitor_id": "precise-onnx-hey-robin",
       "plugin_id": "ovos-ww-plugin-precise-onnx",
-      "samples": 30,
+      "samples": 10,
       "metrics": {
         "error_rate": 1.0,
         "accuracy": 0.0,
         "false_reject_rate": 1.0,
-        "latency_ms_median": 30.39
+        "latency_ms_median": 31.56
       },
       "primary_metric_ci_lower": 1.0,
       "primary_metric_ci_upper": 1.0,
@@ -716,27 +820,27 @@
       "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
       "perf": {
         "gpu": {
-          "rtf": 0.0119,
-          "rtf_n": 30.0,
+          "rtf": 0.0116,
+          "rtf_n": 10.0,
           "peak_rss_mb": 772.57,
-          "peak_rss_mb_n": 30.0
+          "peak_rss_mb_n": 10.0
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.03333333333333333,
       "rows_other_revision": 0
     },
     {
       "rank": 0,
       "competitor_id": "precise-onnx-hey-scout",
       "plugin_id": "ovos-ww-plugin-precise-onnx",
-      "samples": 30,
+      "samples": 10,
       "metrics": {
         "error_rate": 1.0,
         "accuracy": 0.0,
         "false_reject_rate": 1.0,
-        "latency_ms_median": 26.09
+        "latency_ms_median": 27.83
       },
       "primary_metric_ci_lower": 1.0,
       "primary_metric_ci_upper": 1.0,
@@ -749,27 +853,27 @@
       "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
       "perf": {
         "gpu": {
-          "rtf": 0.0103,
-          "rtf_n": 30.0,
+          "rtf": 0.01,
+          "rtf_n": 10.0,
           "peak_rss_mb": 772.56,
-          "peak_rss_mb_n": 30.0
+          "peak_rss_mb_n": 10.0
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.03333333333333333,
       "rows_other_revision": 0
     },
     {
       "rank": 0,
       "competitor_id": "precise-onnx-jarvis",
       "plugin_id": "ovos-ww-plugin-precise-onnx",
-      "samples": 30,
+      "samples": 10,
       "metrics": {
         "error_rate": 1.0,
         "accuracy": 0.0,
         "false_reject_rate": 1.0,
-        "latency_ms_median": 28.14
+        "latency_ms_median": 29.58
       },
       "primary_metric_ci_lower": 1.0,
       "primary_metric_ci_upper": 1.0,
@@ -782,27 +886,27 @@
       "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
       "perf": {
         "gpu": {
-          "rtf": 0.0111,
-          "rtf_n": 30.0,
+          "rtf": 0.0109,
+          "rtf_n": 10.0,
           "peak_rss_mb": 772.53,
-          "peak_rss_mb_n": 30.0
+          "peak_rss_mb_n": 10.0
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.03333333333333333,
       "rows_other_revision": 0
     },
     {
       "rank": 0,
       "competitor_id": "precise-onnx-marvin",
       "plugin_id": "ovos-ww-plugin-precise-onnx",
-      "samples": 30,
+      "samples": 10,
       "metrics": {
         "error_rate": 1.0,
         "accuracy": 0.0,
         "false_reject_rate": 1.0,
-        "latency_ms_median": 26.52
+        "latency_ms_median": 27.47
       },
       "primary_metric_ci_lower": 1.0,
       "primary_metric_ci_upper": 1.0,
@@ -815,423 +919,27 @@
       "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
       "perf": {
         "gpu": {
-          "rtf": 0.0104,
-          "rtf_n": 30.0,
+          "rtf": 0.0101,
+          "rtf_n": 10.0,
           "peak_rss_mb": 772.82,
-          "peak_rss_mb_n": 30.0
+          "peak_rss_mb_n": 10.0
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.03333333333333333,
       "rows_other_revision": 0
     },
     {
       "rank": 0,
       "competitor_id": "vosk-ww-amelia",
       "plugin_id": "ovos-ww-plugin-vosk",
-      "samples": 30,
+      "samples": 10,
       "metrics": {
         "error_rate": 1.0,
         "accuracy": 0.0,
         "false_reject_rate": 1.0,
-        "latency_ms_median": 93.26
-      },
-      "primary_metric_ci_lower": 1.0,
-      "primary_metric_ci_upper": 1.0,
-      "tied_with_leader": false,
-      "plugin_versions": [
-        "ovos-ww-plugin-vosk==0.1.11a3"
-      ],
-      "version_blended": false,
-      "unranked": true,
-      "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
-      "perf": {
-        "gpu": {
-          "rtf": 0.0357,
-          "rtf_n": 30.0,
-          "peak_rss_mb": 896.99,
-          "peak_rss_mb_n": 30.0
-        }
-      },
-      "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
-      "rows_other_revision": 0
-    },
-    {
-      "rank": 0,
-      "competitor_id": "vosk-ww-athena",
-      "plugin_id": "ovos-ww-plugin-vosk",
-      "samples": 30,
-      "metrics": {
-        "error_rate": 1.0,
-        "accuracy": 0.0,
-        "false_reject_rate": 1.0,
-        "latency_ms_median": 94.99
-      },
-      "primary_metric_ci_lower": 1.0,
-      "primary_metric_ci_upper": 1.0,
-      "tied_with_leader": false,
-      "plugin_versions": [
-        "ovos-ww-plugin-vosk==0.1.11a3"
-      ],
-      "version_blended": false,
-      "unranked": true,
-      "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
-      "perf": {
-        "gpu": {
-          "rtf": 0.0359,
-          "rtf_n": 30.0,
-          "peak_rss_mb": 896.87,
-          "peak_rss_mb_n": 30.0
-        }
-      },
-      "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
-      "rows_other_revision": 0
-    },
-    {
-      "rank": 0,
-      "competitor_id": "vosk-ww-computer",
-      "plugin_id": "ovos-ww-plugin-vosk",
-      "samples": 30,
-      "metrics": {
-        "error_rate": 1.0,
-        "accuracy": 0.0,
-        "false_reject_rate": 1.0,
-        "latency_ms_median": 93.57
-      },
-      "primary_metric_ci_lower": 1.0,
-      "primary_metric_ci_upper": 1.0,
-      "tied_with_leader": false,
-      "plugin_versions": [
-        "ovos-ww-plugin-vosk==0.1.11a3"
-      ],
-      "version_blended": false,
-      "unranked": true,
-      "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
-      "perf": {
-        "gpu": {
-          "rtf": 0.0357,
-          "rtf_n": 30.0,
-          "peak_rss_mb": 898.73,
-          "peak_rss_mb_n": 30.0
-        }
-      },
-      "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
-      "rows_other_revision": 0
-    },
-    {
-      "rank": 0,
-      "competitor_id": "vosk-ww-hey-andromeda",
-      "plugin_id": "ovos-ww-plugin-vosk",
-      "samples": 30,
-      "metrics": {
-        "error_rate": 1.0,
-        "accuracy": 0.0,
-        "false_reject_rate": 1.0,
-        "latency_ms_median": 93.72
-      },
-      "primary_metric_ci_lower": 1.0,
-      "primary_metric_ci_upper": 1.0,
-      "tied_with_leader": false,
-      "plugin_versions": [
-        "ovos-ww-plugin-vosk==0.1.11a3"
-      ],
-      "version_blended": false,
-      "unranked": true,
-      "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
-      "perf": {
-        "gpu": {
-          "rtf": 0.0359,
-          "rtf_n": 30.0,
-          "peak_rss_mb": 899.25,
-          "peak_rss_mb_n": 30.0
-        }
-      },
-      "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
-      "rows_other_revision": 0
-    },
-    {
-      "rank": 0,
-      "competitor_id": "vosk-ww-hey-chatterbox",
-      "plugin_id": "ovos-ww-plugin-vosk",
-      "samples": 30,
-      "metrics": {
-        "error_rate": 1.0,
-        "accuracy": 0.0,
-        "false_reject_rate": 1.0,
-        "latency_ms_median": 96.55
-      },
-      "primary_metric_ci_lower": 1.0,
-      "primary_metric_ci_upper": 1.0,
-      "tied_with_leader": false,
-      "plugin_versions": [
-        "ovos-ww-plugin-vosk==0.1.11a3"
-      ],
-      "version_blended": false,
-      "unranked": true,
-      "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
-      "perf": {
-        "gpu": {
-          "rtf": 0.0369,
-          "rtf_n": 30.0,
-          "peak_rss_mb": 896.87,
-          "peak_rss_mb_n": 30.0
-        }
-      },
-      "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
-      "rows_other_revision": 0
-    },
-    {
-      "rank": 0,
-      "competitor_id": "vosk-ww-hey-computer",
-      "plugin_id": "ovos-ww-plugin-vosk",
-      "samples": 30,
-      "metrics": {
-        "error_rate": 1.0,
-        "accuracy": 0.0,
-        "false_reject_rate": 1.0,
-        "latency_ms_median": 96.04
-      },
-      "primary_metric_ci_lower": 1.0,
-      "primary_metric_ci_upper": 1.0,
-      "tied_with_leader": false,
-      "plugin_versions": [
-        "ovos-ww-plugin-vosk==0.1.11a3"
-      ],
-      "version_blended": false,
-      "unranked": true,
-      "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
-      "perf": {
-        "gpu": {
-          "rtf": 0.0364,
-          "rtf_n": 30.0,
-          "peak_rss_mb": 898.73,
-          "peak_rss_mb_n": 30.0
-        }
-      },
-      "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
-      "rows_other_revision": 0
-    },
-    {
-      "rank": 0,
-      "competitor_id": "vosk-ww-hey-eggbert",
-      "plugin_id": "ovos-ww-plugin-vosk",
-      "samples": 30,
-      "metrics": {
-        "error_rate": 1.0,
-        "accuracy": 0.0,
-        "false_reject_rate": 1.0,
-        "latency_ms_median": 94.45
-      },
-      "primary_metric_ci_lower": 1.0,
-      "primary_metric_ci_upper": 1.0,
-      "tied_with_leader": false,
-      "plugin_versions": [
-        "ovos-ww-plugin-vosk==0.1.11a3"
-      ],
-      "version_blended": false,
-      "unranked": true,
-      "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
-      "perf": {
-        "gpu": {
-          "rtf": 0.0361,
-          "rtf_n": 30.0,
-          "peak_rss_mb": 897.64,
-          "peak_rss_mb_n": 30.0
-        }
-      },
-      "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
-      "rows_other_revision": 0
-    },
-    {
-      "rank": 0,
-      "competitor_id": "vosk-ww-hey-floyd",
-      "plugin_id": "ovos-ww-plugin-vosk",
-      "samples": 30,
-      "metrics": {
-        "error_rate": 1.0,
-        "accuracy": 0.0,
-        "false_reject_rate": 1.0,
-        "latency_ms_median": 94.34
-      },
-      "primary_metric_ci_lower": 1.0,
-      "primary_metric_ci_upper": 1.0,
-      "tied_with_leader": false,
-      "plugin_versions": [
-        "ovos-ww-plugin-vosk==0.1.11a3"
-      ],
-      "version_blended": false,
-      "unranked": true,
-      "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
-      "perf": {
-        "gpu": {
-          "rtf": 0.036,
-          "rtf_n": 30.0,
-          "peak_rss_mb": 899.24,
-          "peak_rss_mb_n": 30.0
-        }
-      },
-      "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
-      "rows_other_revision": 0
-    },
-    {
-      "rank": 0,
-      "competitor_id": "vosk-ww-hey-k9",
-      "plugin_id": "ovos-ww-plugin-vosk",
-      "samples": 30,
-      "metrics": {
-        "error_rate": 1.0,
-        "accuracy": 0.0,
-        "false_reject_rate": 1.0,
-        "latency_ms_median": 97.05
-      },
-      "primary_metric_ci_lower": 1.0,
-      "primary_metric_ci_upper": 1.0,
-      "tied_with_leader": false,
-      "plugin_versions": [
-        "ovos-ww-plugin-vosk==0.1.11a3"
-      ],
-      "version_blended": false,
-      "unranked": true,
-      "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
-      "perf": {
-        "gpu": {
-          "rtf": 0.0365,
-          "rtf_n": 30.0,
-          "peak_rss_mb": 898.8,
-          "peak_rss_mb_n": 30.0
-        }
-      },
-      "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
-      "rows_other_revision": 0
-    },
-    {
-      "rank": 0,
-      "competitor_id": "vosk-ww-hey-marvin",
-      "plugin_id": "ovos-ww-plugin-vosk",
-      "samples": 30,
-      "metrics": {
-        "error_rate": 1.0,
-        "accuracy": 0.0,
-        "false_reject_rate": 1.0,
-        "latency_ms_median": 93.97
-      },
-      "primary_metric_ci_lower": 1.0,
-      "primary_metric_ci_upper": 1.0,
-      "tied_with_leader": false,
-      "plugin_versions": [
-        "ovos-ww-plugin-vosk==0.1.11a3"
-      ],
-      "version_blended": false,
-      "unranked": true,
-      "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
-      "perf": {
-        "gpu": {
-          "rtf": 0.0359,
-          "rtf_n": 30.0,
-          "peak_rss_mb": 940.5,
-          "peak_rss_mb_n": 30.0
-        }
-      },
-      "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
-      "rows_other_revision": 0
-    },
-    {
-      "rank": 0,
-      "competitor_id": "vosk-ww-hey-neon",
-      "plugin_id": "ovos-ww-plugin-vosk",
-      "samples": 30,
-      "metrics": {
-        "error_rate": 1.0,
-        "accuracy": 0.0,
-        "false_reject_rate": 1.0,
-        "latency_ms_median": 94.4
-      },
-      "primary_metric_ci_lower": 1.0,
-      "primary_metric_ci_upper": 1.0,
-      "tied_with_leader": false,
-      "plugin_versions": [
-        "ovos-ww-plugin-vosk==0.1.11a3"
-      ],
-      "version_blended": false,
-      "unranked": true,
-      "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
-      "perf": {
-        "gpu": {
-          "rtf": 0.0362,
-          "rtf_n": 30.0,
-          "peak_rss_mb": 898.7,
-          "peak_rss_mb_n": 30.0
-        }
-      },
-      "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
-      "rows_other_revision": 0
-    },
-    {
-      "rank": 0,
-      "competitor_id": "vosk-ww-hey-robin",
-      "plugin_id": "ovos-ww-plugin-vosk",
-      "samples": 30,
-      "metrics": {
-        "error_rate": 1.0,
-        "accuracy": 0.0,
-        "false_reject_rate": 1.0,
-        "latency_ms_median": 98.56
-      },
-      "primary_metric_ci_lower": 1.0,
-      "primary_metric_ci_upper": 1.0,
-      "tied_with_leader": false,
-      "plugin_versions": [
-        "ovos-ww-plugin-vosk==0.1.11a3"
-      ],
-      "version_blended": false,
-      "unranked": true,
-      "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
-      "perf": {
-        "gpu": {
-          "rtf": 0.0374,
-          "rtf_n": 30.0,
-          "peak_rss_mb": 896.72,
-          "peak_rss_mb_n": 30.0
-        }
-      },
-      "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
-      "rows_other_revision": 0
-    },
-    {
-      "rank": 0,
-      "competitor_id": "vosk-ww-hey-savant",
-      "plugin_id": "ovos-ww-plugin-vosk",
-      "samples": 30,
-      "metrics": {
-        "error_rate": 1.0,
-        "accuracy": 0.0,
-        "false_reject_rate": 1.0,
-        "latency_ms_median": 97.33
+        "latency_ms_median": 101.14
       },
       "primary_metric_ci_lower": 1.0,
       "primary_metric_ci_upper": 1.0,
@@ -1245,26 +953,26 @@
       "perf": {
         "gpu": {
           "rtf": 0.0372,
-          "rtf_n": 30.0,
-          "peak_rss_mb": 897.83,
-          "peak_rss_mb_n": 30.0
+          "rtf_n": 10.0,
+          "peak_rss_mb": 896.99,
+          "peak_rss_mb_n": 10.0
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.03333333333333333,
       "rows_other_revision": 0
     },
     {
       "rank": 0,
-      "competitor_id": "vosk-ww-hey-scout",
+      "competitor_id": "vosk-ww-athena",
       "plugin_id": "ovos-ww-plugin-vosk",
-      "samples": 30,
+      "samples": 10,
       "metrics": {
         "error_rate": 1.0,
         "accuracy": 0.0,
         "false_reject_rate": 1.0,
-        "latency_ms_median": 96.15
+        "latency_ms_median": 102.42
       },
       "primary_metric_ci_lower": 1.0,
       "primary_metric_ci_upper": 1.0,
@@ -1277,27 +985,27 @@
       "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
       "perf": {
         "gpu": {
-          "rtf": 0.037,
-          "rtf_n": 30.0,
-          "peak_rss_mb": 899.55,
-          "peak_rss_mb_n": 30.0
+          "rtf": 0.0375,
+          "rtf_n": 10.0,
+          "peak_rss_mb": 896.87,
+          "peak_rss_mb_n": 10.0
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.03333333333333333,
       "rows_other_revision": 0
     },
     {
       "rank": 0,
-      "competitor_id": "vosk-ww-hey-ziggy",
+      "competitor_id": "vosk-ww-computer",
       "plugin_id": "ovos-ww-plugin-vosk",
-      "samples": 30,
+      "samples": 10,
       "metrics": {
         "error_rate": 1.0,
         "accuracy": 0.0,
         "false_reject_rate": 1.0,
-        "latency_ms_median": 96.81
+        "latency_ms_median": 100.7
       },
       "primary_metric_ci_lower": 1.0,
       "primary_metric_ci_upper": 1.0,
@@ -1310,126 +1018,27 @@
       "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
       "perf": {
         "gpu": {
-          "rtf": 0.037,
-          "rtf_n": 30.0,
-          "peak_rss_mb": 900.52,
-          "peak_rss_mb_n": 30.0
+          "rtf": 0.0377,
+          "rtf_n": 10.0,
+          "peak_rss_mb": 898.73,
+          "peak_rss_mb_n": 10.0
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.03333333333333333,
       "rows_other_revision": 0
     },
     {
       "rank": 0,
-      "competitor_id": "vosk-ww-jarvis",
+      "competitor_id": "vosk-ww-hey-andromeda",
       "plugin_id": "ovos-ww-plugin-vosk",
-      "samples": 30,
+      "samples": 10,
       "metrics": {
         "error_rate": 1.0,
         "accuracy": 0.0,
         "false_reject_rate": 1.0,
-        "latency_ms_median": 96.98
-      },
-      "primary_metric_ci_lower": 1.0,
-      "primary_metric_ci_upper": 1.0,
-      "tied_with_leader": false,
-      "plugin_versions": [
-        "ovos-ww-plugin-vosk==0.1.11a3"
-      ],
-      "version_blended": false,
-      "unranked": true,
-      "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
-      "perf": {
-        "gpu": {
-          "rtf": 0.037,
-          "rtf_n": 30.0,
-          "peak_rss_mb": 899.43,
-          "peak_rss_mb_n": 30.0
-        }
-      },
-      "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
-      "rows_other_revision": 0
-    },
-    {
-      "rank": 0,
-      "competitor_id": "vosk-ww-sam",
-      "plugin_id": "ovos-ww-plugin-vosk",
-      "samples": 30,
-      "metrics": {
-        "error_rate": 1.0,
-        "accuracy": 0.0,
-        "false_reject_rate": 1.0,
-        "latency_ms_median": 96.53
-      },
-      "primary_metric_ci_lower": 1.0,
-      "primary_metric_ci_upper": 1.0,
-      "tied_with_leader": false,
-      "plugin_versions": [
-        "ovos-ww-plugin-vosk==0.1.11a3"
-      ],
-      "version_blended": false,
-      "unranked": true,
-      "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
-      "perf": {
-        "gpu": {
-          "rtf": 0.0366,
-          "rtf_n": 30.0,
-          "peak_rss_mb": 898.62,
-          "peak_rss_mb_n": 30.0
-        }
-      },
-      "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
-      "rows_other_revision": 0
-    },
-    {
-      "rank": 0,
-      "competitor_id": "vosk-ww-smart-mirror",
-      "plugin_id": "ovos-ww-plugin-vosk",
-      "samples": 30,
-      "metrics": {
-        "error_rate": 1.0,
-        "accuracy": 0.0,
-        "false_reject_rate": 1.0,
-        "latency_ms_median": 94.26
-      },
-      "primary_metric_ci_lower": 1.0,
-      "primary_metric_ci_upper": 1.0,
-      "tied_with_leader": false,
-      "plugin_versions": [
-        "ovos-ww-plugin-vosk==0.1.11a3"
-      ],
-      "version_blended": false,
-      "unranked": true,
-      "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
-      "perf": {
-        "gpu": {
-          "rtf": 0.0366,
-          "rtf_n": 30.0,
-          "peak_rss_mb": 938.31,
-          "peak_rss_mb_n": 30.0
-        }
-      },
-      "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
-      "rows_other_revision": 0
-    },
-    {
-      "rank": 0,
-      "competitor_id": "vosk-ww-snowboy",
-      "plugin_id": "ovos-ww-plugin-vosk",
-      "samples": 30,
-      "metrics": {
-        "error_rate": 1.0,
-        "accuracy": 0.0,
-        "false_reject_rate": 1.0,
-        "latency_ms_median": 97.06
+        "latency_ms_median": 101.72
       },
       "primary_metric_ci_lower": 1.0,
       "primary_metric_ci_upper": 1.0,
@@ -1443,26 +1052,26 @@
       "perf": {
         "gpu": {
           "rtf": 0.0374,
-          "rtf_n": 30.0,
-          "peak_rss_mb": 897.05,
-          "peak_rss_mb_n": 30.0
+          "rtf_n": 10.0,
+          "peak_rss_mb": 899.25,
+          "peak_rss_mb_n": 10.0
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.03333333333333333,
       "rows_other_revision": 0
     },
     {
       "rank": 0,
-      "competitor_id": "vosk-ww-view-glass",
+      "competitor_id": "vosk-ww-hey-chatterbox",
       "plugin_id": "ovos-ww-plugin-vosk",
-      "samples": 30,
+      "samples": 10,
       "metrics": {
         "error_rate": 1.0,
         "accuracy": 0.0,
         "false_reject_rate": 1.0,
-        "latency_ms_median": 93.14
+        "latency_ms_median": 102.2
       },
       "primary_metric_ci_lower": 1.0,
       "primary_metric_ci_upper": 1.0,
@@ -1475,20 +1084,515 @@
       "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
       "perf": {
         "gpu": {
-          "rtf": 0.0361,
-          "rtf_n": 30.0,
-          "peak_rss_mb": 899.15,
-          "peak_rss_mb_n": 30.0
+          "rtf": 0.0383,
+          "rtf_n": 10.0,
+          "peak_rss_mb": 896.87,
+          "peak_rss_mb_n": 10.0
         }
       },
       "model_mb": null,
-      "sample_set": "unmanaged",
-      "sample_set_coverage": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.03333333333333333,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 0,
+      "competitor_id": "vosk-ww-hey-computer",
+      "plugin_id": "ovos-ww-plugin-vosk",
+      "samples": 10,
+      "metrics": {
+        "error_rate": 1.0,
+        "accuracy": 0.0,
+        "false_reject_rate": 1.0,
+        "latency_ms_median": 104.35
+      },
+      "primary_metric_ci_lower": 1.0,
+      "primary_metric_ci_upper": 1.0,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-ww-plugin-vosk==0.1.11a3"
+      ],
+      "version_blended": false,
+      "unranked": true,
+      "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
+      "perf": {
+        "gpu": {
+          "rtf": 0.0377,
+          "rtf_n": 10.0,
+          "peak_rss_mb": 898.73,
+          "peak_rss_mb_n": 10.0
+        }
+      },
+      "model_mb": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.03333333333333333,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 0,
+      "competitor_id": "vosk-ww-hey-eggbert",
+      "plugin_id": "ovos-ww-plugin-vosk",
+      "samples": 10,
+      "metrics": {
+        "error_rate": 1.0,
+        "accuracy": 0.0,
+        "false_reject_rate": 1.0,
+        "latency_ms_median": 101.75
+      },
+      "primary_metric_ci_lower": 1.0,
+      "primary_metric_ci_upper": 1.0,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-ww-plugin-vosk==0.1.11a3"
+      ],
+      "version_blended": false,
+      "unranked": true,
+      "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
+      "perf": {
+        "gpu": {
+          "rtf": 0.0376,
+          "rtf_n": 10.0,
+          "peak_rss_mb": 897.64,
+          "peak_rss_mb_n": 10.0
+        }
+      },
+      "model_mb": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.03333333333333333,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 0,
+      "competitor_id": "vosk-ww-hey-floyd",
+      "plugin_id": "ovos-ww-plugin-vosk",
+      "samples": 10,
+      "metrics": {
+        "error_rate": 1.0,
+        "accuracy": 0.0,
+        "false_reject_rate": 1.0,
+        "latency_ms_median": 100.68
+      },
+      "primary_metric_ci_lower": 1.0,
+      "primary_metric_ci_upper": 1.0,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-ww-plugin-vosk==0.1.11a3"
+      ],
+      "version_blended": false,
+      "unranked": true,
+      "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
+      "perf": {
+        "gpu": {
+          "rtf": 0.0375,
+          "rtf_n": 10.0,
+          "peak_rss_mb": 899.24,
+          "peak_rss_mb_n": 10.0
+        }
+      },
+      "model_mb": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.03333333333333333,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 0,
+      "competitor_id": "vosk-ww-hey-k9",
+      "plugin_id": "ovos-ww-plugin-vosk",
+      "samples": 10,
+      "metrics": {
+        "error_rate": 1.0,
+        "accuracy": 0.0,
+        "false_reject_rate": 1.0,
+        "latency_ms_median": 102.7
+      },
+      "primary_metric_ci_lower": 1.0,
+      "primary_metric_ci_upper": 1.0,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-ww-plugin-vosk==0.1.11a3"
+      ],
+      "version_blended": false,
+      "unranked": true,
+      "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
+      "perf": {
+        "gpu": {
+          "rtf": 0.0378,
+          "rtf_n": 10.0,
+          "peak_rss_mb": 898.8,
+          "peak_rss_mb_n": 10.0
+        }
+      },
+      "model_mb": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.03333333333333333,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 0,
+      "competitor_id": "vosk-ww-hey-marvin",
+      "plugin_id": "ovos-ww-plugin-vosk",
+      "samples": 10,
+      "metrics": {
+        "error_rate": 1.0,
+        "accuracy": 0.0,
+        "false_reject_rate": 1.0,
+        "latency_ms_median": 101.69
+      },
+      "primary_metric_ci_lower": 1.0,
+      "primary_metric_ci_upper": 1.0,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-ww-plugin-vosk==0.1.11a3"
+      ],
+      "version_blended": false,
+      "unranked": true,
+      "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
+      "perf": {
+        "gpu": {
+          "rtf": 0.0373,
+          "rtf_n": 10.0,
+          "peak_rss_mb": 940.48,
+          "peak_rss_mb_n": 10.0
+        }
+      },
+      "model_mb": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.03333333333333333,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 0,
+      "competitor_id": "vosk-ww-hey-neon",
+      "plugin_id": "ovos-ww-plugin-vosk",
+      "samples": 10,
+      "metrics": {
+        "error_rate": 1.0,
+        "accuracy": 0.0,
+        "false_reject_rate": 1.0,
+        "latency_ms_median": 107.14
+      },
+      "primary_metric_ci_lower": 1.0,
+      "primary_metric_ci_upper": 1.0,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-ww-plugin-vosk==0.1.11a3"
+      ],
+      "version_blended": false,
+      "unranked": true,
+      "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
+      "perf": {
+        "gpu": {
+          "rtf": 0.0377,
+          "rtf_n": 10.0,
+          "peak_rss_mb": 898.7,
+          "peak_rss_mb_n": 10.0
+        }
+      },
+      "model_mb": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.03333333333333333,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 0,
+      "competitor_id": "vosk-ww-hey-robin",
+      "plugin_id": "ovos-ww-plugin-vosk",
+      "samples": 10,
+      "metrics": {
+        "error_rate": 1.0,
+        "accuracy": 0.0,
+        "false_reject_rate": 1.0,
+        "latency_ms_median": 101.68
+      },
+      "primary_metric_ci_lower": 1.0,
+      "primary_metric_ci_upper": 1.0,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-ww-plugin-vosk==0.1.11a3"
+      ],
+      "version_blended": false,
+      "unranked": true,
+      "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
+      "perf": {
+        "gpu": {
+          "rtf": 0.0387,
+          "rtf_n": 10.0,
+          "peak_rss_mb": 896.72,
+          "peak_rss_mb_n": 10.0
+        }
+      },
+      "model_mb": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.03333333333333333,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 0,
+      "competitor_id": "vosk-ww-hey-savant",
+      "plugin_id": "ovos-ww-plugin-vosk",
+      "samples": 10,
+      "metrics": {
+        "error_rate": 1.0,
+        "accuracy": 0.0,
+        "false_reject_rate": 1.0,
+        "latency_ms_median": 101.78
+      },
+      "primary_metric_ci_lower": 1.0,
+      "primary_metric_ci_upper": 1.0,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-ww-plugin-vosk==0.1.11a3"
+      ],
+      "version_blended": false,
+      "unranked": true,
+      "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
+      "perf": {
+        "gpu": {
+          "rtf": 0.0383,
+          "rtf_n": 10.0,
+          "peak_rss_mb": 897.83,
+          "peak_rss_mb_n": 10.0
+        }
+      },
+      "model_mb": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.03333333333333333,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 0,
+      "competitor_id": "vosk-ww-hey-scout",
+      "plugin_id": "ovos-ww-plugin-vosk",
+      "samples": 10,
+      "metrics": {
+        "error_rate": 1.0,
+        "accuracy": 0.0,
+        "false_reject_rate": 1.0,
+        "latency_ms_median": 102.11
+      },
+      "primary_metric_ci_lower": 1.0,
+      "primary_metric_ci_upper": 1.0,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-ww-plugin-vosk==0.1.11a3"
+      ],
+      "version_blended": false,
+      "unranked": true,
+      "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
+      "perf": {
+        "gpu": {
+          "rtf": 0.0383,
+          "rtf_n": 10.0,
+          "peak_rss_mb": 899.55,
+          "peak_rss_mb_n": 10.0
+        }
+      },
+      "model_mb": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.03333333333333333,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 0,
+      "competitor_id": "vosk-ww-hey-ziggy",
+      "plugin_id": "ovos-ww-plugin-vosk",
+      "samples": 10,
+      "metrics": {
+        "error_rate": 1.0,
+        "accuracy": 0.0,
+        "false_reject_rate": 1.0,
+        "latency_ms_median": 101.02
+      },
+      "primary_metric_ci_lower": 1.0,
+      "primary_metric_ci_upper": 1.0,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-ww-plugin-vosk==0.1.11a3"
+      ],
+      "version_blended": false,
+      "unranked": true,
+      "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
+      "perf": {
+        "gpu": {
+          "rtf": 0.0388,
+          "rtf_n": 10.0,
+          "peak_rss_mb": 900.52,
+          "peak_rss_mb_n": 10.0
+        }
+      },
+      "model_mb": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.03333333333333333,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 0,
+      "competitor_id": "vosk-ww-jarvis",
+      "plugin_id": "ovos-ww-plugin-vosk",
+      "samples": 10,
+      "metrics": {
+        "error_rate": 1.0,
+        "accuracy": 0.0,
+        "false_reject_rate": 1.0,
+        "latency_ms_median": 102.74
+      },
+      "primary_metric_ci_lower": 1.0,
+      "primary_metric_ci_upper": 1.0,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-ww-plugin-vosk==0.1.11a3"
+      ],
+      "version_blended": false,
+      "unranked": true,
+      "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
+      "perf": {
+        "gpu": {
+          "rtf": 0.0384,
+          "rtf_n": 10.0,
+          "peak_rss_mb": 899.43,
+          "peak_rss_mb_n": 10.0
+        }
+      },
+      "model_mb": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.03333333333333333,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 0,
+      "competitor_id": "vosk-ww-sam",
+      "plugin_id": "ovos-ww-plugin-vosk",
+      "samples": 10,
+      "metrics": {
+        "error_rate": 1.0,
+        "accuracy": 0.0,
+        "false_reject_rate": 1.0,
+        "latency_ms_median": 102.13
+      },
+      "primary_metric_ci_lower": 1.0,
+      "primary_metric_ci_upper": 1.0,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-ww-plugin-vosk==0.1.11a3"
+      ],
+      "version_blended": false,
+      "unranked": true,
+      "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
+      "perf": {
+        "gpu": {
+          "rtf": 0.0379,
+          "rtf_n": 10.0,
+          "peak_rss_mb": 898.62,
+          "peak_rss_mb_n": 10.0
+        }
+      },
+      "model_mb": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.03333333333333333,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 0,
+      "competitor_id": "vosk-ww-smart-mirror",
+      "plugin_id": "ovos-ww-plugin-vosk",
+      "samples": 10,
+      "metrics": {
+        "error_rate": 1.0,
+        "accuracy": 0.0,
+        "false_reject_rate": 1.0,
+        "latency_ms_median": 102.47
+      },
+      "primary_metric_ci_lower": 1.0,
+      "primary_metric_ci_upper": 1.0,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-ww-plugin-vosk==0.1.11a3"
+      ],
+      "version_blended": false,
+      "unranked": true,
+      "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
+      "perf": {
+        "gpu": {
+          "rtf": 0.039,
+          "rtf_n": 10.0,
+          "peak_rss_mb": 938.31,
+          "peak_rss_mb_n": 10.0
+        }
+      },
+      "model_mb": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.03333333333333333,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 0,
+      "competitor_id": "vosk-ww-snowboy",
+      "plugin_id": "ovos-ww-plugin-vosk",
+      "samples": 10,
+      "metrics": {
+        "error_rate": 1.0,
+        "accuracy": 0.0,
+        "false_reject_rate": 1.0,
+        "latency_ms_median": 103.15
+      },
+      "primary_metric_ci_lower": 1.0,
+      "primary_metric_ci_upper": 1.0,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-ww-plugin-vosk==0.1.11a3"
+      ],
+      "version_blended": false,
+      "unranked": true,
+      "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
+      "perf": {
+        "gpu": {
+          "rtf": 0.0391,
+          "rtf_n": 10.0,
+          "peak_rss_mb": 897.05,
+          "peak_rss_mb_n": 10.0
+        }
+      },
+      "model_mb": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.03333333333333333,
+      "rows_other_revision": 0
+    },
+    {
+      "rank": 0,
+      "competitor_id": "vosk-ww-view-glass",
+      "plugin_id": "ovos-ww-plugin-vosk",
+      "samples": 10,
+      "metrics": {
+        "error_rate": 1.0,
+        "accuracy": 0.0,
+        "false_reject_rate": 1.0,
+        "latency_ms_median": 101.6
+      },
+      "primary_metric_ci_lower": 1.0,
+      "primary_metric_ci_upper": 1.0,
+      "tied_with_leader": false,
+      "plugin_versions": [
+        "ovos-ww-plugin-vosk==0.1.11a3"
+      ],
+      "version_blended": false,
+      "unranked": true,
+      "unranked_reason": "one_class — no negatives were scored, so error_rate measures one error type only; the fighter needs a sweep over both classes",
+      "perf": {
+        "gpu": {
+          "rtf": 0.0377,
+          "rtf_n": 10.0,
+          "peak_rss_mb": 899.15,
+          "peak_rss_mb_n": 10.0
+        }
+      },
+      "model_mb": null,
+      "sample_set": "manifest",
+      "sample_set_coverage": 0.03333333333333333,
       "rows_other_revision": 0
     }
   ],
-  "entries_hash": "14ca2b6df11b4ce8b67b6898f61c0b6c7dd212b1d44dacbc4e386f78b6cc5b42",
-  "input_hash": "d0c02e66c0873dbf9c2f95739233635b96742e8f96eaad7c623a3c87ff8aedbb",
+  "entries_hash": "149834825a50a9b68d006f28397859838f1cc685b5771a0c47ee64a8c1151c20",
+  "input_hash": "57028a4e9f5e1c5e682b5268bcd7d07902c63fa1279bbbf20bcb08c864c5884b",
   "judge_agreement": null,
   "intelligibility_judges": [],
   "intelligibility_judge_mismatched_pairs": 0,
