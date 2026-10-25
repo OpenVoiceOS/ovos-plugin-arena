@@ -48,7 +48,8 @@ class _Def:
     def __init__(self, **kw):
         self.__dict__.update(dict(reference_fields={}, positives_dir=None, negative_dirs=None,
                                   negatives_sources=None, negatives_hf=None, negatives_dir=None,
-                                  negatives_dataset_ids=None,
+                                  negatives_dataset_ids=None, exclude_dirs=None,
+                                  positives_filter=None,
                                   wakeword="ww"), **kw)
 
 

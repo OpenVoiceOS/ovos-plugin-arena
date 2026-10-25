@@ -189,6 +189,16 @@ def _csv_rows(hf_id: str, csv_path: str, revision: str) -> list:
     return list(csv.DictReader(open(meta, encoding="utf-8")))
 
 
+def _jsonl_rows(hf_id: str, path: str, revision: str) -> list[dict]:
+    import json
+
+    from huggingface_hub import hf_hub_download
+
+    local = hf_hub_download(hf_id, path, repo_type="dataset", revision=revision)
+    with open(local, encoding="utf-8") as fh:
+        return [json.loads(line) for line in fh if line.strip()]
+
+
 def _emit_labelled(pos, neg, max_per_class, pos_label="positive",
                    neg_label="negative"):
     """Download + decode clip tuples ``(hf_id, rel, rev)`` → labelled samples.
@@ -569,6 +579,17 @@ def _ww_split(dataset_def, revision: str):
         same_neg = [(hf, f, revision) for f in files
                     if _phrase(f) not in (ww, None)
                     and (negset is None or _phrase(f) in negset)]
+    if dataset_def.positives_filter:
+        where = dataset_def.positives_filter
+        folder = (src.subset.rstrip("/") + "/" if src.subset else "") + ww
+        rows = _jsonl_rows(hf, f"{folder}/metadata.jsonl", revision)
+        keep = {f"{folder}/{r['file_name']}" for r in rows
+                if all(str(r.get(k)) == v for k, v in where.items())}
+        pos = [c for c in pos if c[1] in keep]
+    if dataset_def.exclude_dirs:
+        skip = tuple(d.rstrip("/") + "/" for d in dataset_def.exclude_dirs)
+        pos = [c for c in pos if not c[1].startswith(skip)]
+        same_neg = [c for c in same_neg if not c[1].startswith(skip)]
     return pos, same_neg
 
 

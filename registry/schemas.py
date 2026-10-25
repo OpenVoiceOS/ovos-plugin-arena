@@ -551,6 +551,30 @@ class DatasetDef(BaseModel):
             "negatives from (default: every folder except ``wakeword``)."
         ),
     )
+    exclude_dirs: list[str] | None = Field(
+        None,
+        description=(
+            "Wake word: repo-relative folders whose clips this benchmark "
+            "leaves out, e.g. a generator folder that another test set "
+            "already holds."
+        ),
+    )
+    positives_filter: dict[str, str] | None = Field(
+        None,
+        description=(
+            "Wake word: keep only the positive clips whose row in the "
+            "positives folder's ``metadata.jsonl`` holds every listed value, "
+            "e.g. {'lang': 'ca'} for a folder that mixes two languages."
+        ),
+    )
+    primary_metric: str | None = Field(
+        None,
+        description=(
+            "ww_stream: the metric the board ranks on instead of the "
+            "modality's own. A corpus with no wake word ranks on "
+            "'fa_per_hour'."
+        ),
+    )
     negatives_hf: str | None = Field(
         None,
         description=(
@@ -749,6 +773,29 @@ class DatasetDef(BaseModel):
             "on every prediction row's stt_config for provenance."
         ),
     )
+
+    @model_validator(mode="after")
+    def _validate_positives_filter(self) -> DatasetDef:
+        if self.positives_filter is None:
+            return self
+        csv = isinstance(self.source, HuggingFaceSource) and (
+            self.source.file_pattern or "").endswith(".csv")
+        if self.modality != "wake_word" or csv:
+            raise ValueError(
+                f"{self.dataset_id}: positives_filter reads the metadata.jsonl of an "
+                "audiofolder wake_word corpus, not a CSV manifest"
+            )
+        return self
+
+    @model_validator(mode="after")
+    def _validate_primary_metric(self) -> DatasetDef:
+        if self.primary_metric is not None and (
+                self.modality != "ww_stream" or self.primary_metric != "fa_per_hour"):
+            raise ValueError(
+                f"{self.dataset_id}: primary_metric is only defined as "
+                "'fa_per_hour' on a ww_stream dataset"
+            )
+        return self
 
     @model_validator(mode="after")
     def _validate_test_set_kind(self) -> DatasetDef:

@@ -310,6 +310,7 @@ class WakeWordStreamBench(WakeWordBench):
             extra_keys={
                 "truth_onsets": fields.get("onsets", "onsets"),
                 "truth_ends": fields.get("ends", "ends"),
+                "category": fields.get("category", "category"),
             },
             revision=revision,
             max_samples=max_samples,
@@ -332,6 +333,7 @@ class WakeWordStreamBench(WakeWordBench):
                 "truth_onsets": truth_onsets,
                 "truth_ends": truth_ends,
                 "duration_s": duration_s,
+                **({"category": sample["category"]} if sample.get("category") else {}),
             },
         }
 

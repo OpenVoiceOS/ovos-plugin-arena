@@ -245,6 +245,8 @@ the engine's configured threshold, and an engine that reports no score
 | `frr` | false-reject rate at threshold 0.5 | lower better |
 | `fa_per_hour` | false accepts per hour of streamed audio, at threshold 0.5 | lower better |
 | `negative_hours` | total streamed audio hours scored (FA/hour denominator) | — |
+| `n_false_accepts` | false accepts at threshold 0.5, the FA/hour numerator | lower better |
+| `fa_per_hour@<category>`, `negative_hours@<category>` | FA/hour and hours for each kind of audio a manifest row names in `category`: `read_speech`, `conversation`, `broadcast`, `music`, `noise`, `foreign_speech` | lower better / — |
 | `latency_s_median` | median detection latency vs. the matched onset, at threshold 0.5 | lower better |
 | `det_frr@<thr>` / `det_fa_per_hour@<thr>` | a small DET curve (thresholds 0.1–0.9), flattened into float metrics | — |
 
@@ -275,6 +277,19 @@ arena cache), so a fighter streams the shared recordings once for all its
 stream sets. `scripts/publish_ww_stream_bench.py` builds the corpus from
 pinned source revisions with a fixed seed, uploads it and writes the registry
 entries. `benchmarks/ww_stream.py --dataset ww_stream_<set>` runs it.
+
+**False-wake-up boards.** A `ww_stream` dataset with `primary_metric:
+"fa_per_hour"` holds recordings with no wake word only, and every fighter of
+its language runs on it. Its board ranks on `fa_per_hour`, so a fighter with
+no test set for its phrase still gets a ranked number for how often it wakes
+on its own. A fighter backed by less than `MIN_NEGATIVES_BOARD_HOURS` (4 h) is
+not ranked. The per-category columns show which kind of audio woke it.
+
+A wake-word clip set can leave folders out with `exclude_dirs`, for example a
+generator folder that another test set already holds, so that no clip is
+scored twice under two names. `positives_filter` keeps only the positive clips
+whose row in the folder's `metadata.jsonl` holds the listed values, so a folder
+that mixes two languages gives one test set per language.
 
 Every wake-word fighter declares `stream`, because every OVOS wake-word plugin
 runs on the live microphone stream. A configured pre-wake VAD and verifier

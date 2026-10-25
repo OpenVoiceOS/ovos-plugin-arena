@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from typing import Any, Literal
 
-from arena.metrics import _DET_THRESHOLDS, FA_BUDGETS_PER_HOUR
+from arena.metrics import _DET_THRESHOLDS, FA_BUDGETS_PER_HOUR, STREAM_NEGATIVE_CATEGORIES
 
 Direction = Literal["higher", "lower", "neutral"]
 
@@ -91,7 +91,8 @@ LEAGUE_INTROS: dict[str, str] = {
         "microphone. A fighter reports every activation with its timestamp, "
         "and an activation counts only when it lands close enough to a real "
         "spoken onset. Hours of continuous non-wake audio are what make the "
-        "false-alarm rate meaningful."
+        "false-alarm rate meaningful. A corpus with no wake word at all ranks "
+        "every fighter of its language on false alarms per hour alone."
     ),
 }
 
@@ -317,6 +318,30 @@ METRICS: dict[str, dict[str, Any]] = {
         "Hours of recordings behind the false-alarms-per-hour figure.",
         "neutral", "hours",
     ),
+    "n_false_accepts": _metric(
+        "False alarms",
+        "How many times the detector woke with no wake word spoken, at a score "
+        "threshold of 0.5.",
+        "lower", "count",
+        "Read it with the audio streamed: no false alarm in a few minutes says "
+        "little.",
+    ),
+    **{
+        f"fa_per_hour@{category}": _metric(
+            f"False alarms per hour, {name}",
+            f"False alarms per hour of streamed {name}, at a score threshold of 0.5.",
+            "lower", "count per hour",
+        )
+        for category, name in STREAM_NEGATIVE_CATEGORIES.items()
+    },
+    **{
+        f"negative_hours@{category}": _metric(
+            f"Audio streamed, {name}",
+            f"Hours of {name} behind the matching false-alarms-per-hour figure.",
+            "neutral", "hours",
+        )
+        for category, name in STREAM_NEGATIVE_CATEGORIES.items()
+    },
     "latency_s_median": _metric(
         "Detection delay",
         "Median time from the start of a spoken wake word to the detection "
