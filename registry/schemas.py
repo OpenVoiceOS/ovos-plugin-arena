@@ -428,6 +428,12 @@ class SamplePolicy(BaseModel):
     ``max_samples``) so every fighter and every run see the SAME rows. An
     operator ``--max-samples`` smaller than the policy's cap still wins, for
     smoke runs.
+
+    A wake-word clip set (a dataset with a ``wakeword``) reads the policy
+    differently: ``max_samples`` caps each class and each pooled negatives
+    channel, so a run holds about three times that many clips, and the
+    ``seed`` has no effect. The clips are picked at even steps through the
+    sorted listing, and the pooled negatives use their own source's policy.
     """
 
     model_config = ConfigDict(extra="forbid")

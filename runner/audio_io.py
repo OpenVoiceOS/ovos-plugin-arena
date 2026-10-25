@@ -476,9 +476,10 @@ def ww_sample_ids(dataset_def, revision: str, max_per_class: int = 0) -> list[st
     downloading or decoding a clip.
 
     Clip ids come from the repo listings; pooled negatives ids come from the
-    parquet row walk. A clip that fails to download during a sweep is missing
-    from its rows but stays in this list. A pooled source that cannot load
-    raises here, where the sweep only logs it.
+    parquet row walk. The list can hold ids the sweep does not yield: a clip
+    that fails to download, and a pooled row whose audio cell fails to
+    decode, are missing from the sweep's rows but stay in this list. A pooled
+    source that cannot load raises here, where the sweep only logs it.
     """
     pos, neg = ww_clip_selection(dataset_def, revision, max_per_class)
     negatives: Iterator[str] = (rel for _, rel, _ in neg)

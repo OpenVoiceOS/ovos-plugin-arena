@@ -16,6 +16,7 @@ from __future__ import annotations
 import csv
 import io
 import json
+import random
 
 import numpy as np
 import pyarrow as pa
@@ -27,6 +28,7 @@ from arena.metrics import build_benchmark_board
 from arena.models import PredictionRow
 from registry.loaders import list_datasets, load_dataset
 from registry.schemas import SamplePolicy
+from runner.audio_io import select_sample_positions
 from runner.publish_sample_set import compute_sample_set
 from runner.ww_bench import WakeWordBench
 
@@ -34,6 +36,10 @@ MLSW = "MLCommons/ml_spoken_words"
 # rows 3, 11 and 30 carry no audio: both the sweep and the manifest skip them
 MLSW_NULL_ROWS = {3, 11, 30}
 MLSW_SHARD_ROWS = (25, 15)
+# the pooled rows a per-class cap of 7 draws under the mlsw source's own seed
+MLSW_DRAWN_AT_7 = sorted(select_sample_positions(
+    sum(MLSW_SHARD_ROWS), 7,
+    load_dataset("wake_word", "mlsw-negatives-en-US").sample_policy.seed))
 
 LISTINGS = {
     "Picovoice/wake-word-benchmark": (
@@ -64,9 +70,26 @@ def _wav_bytes() -> bytes:
 
 
 @pytest.fixture
-def fake_hub(tmp_path, monkeypatch):
-    """Serve LISTINGS, a real csv, real parquet shards and a real wav."""
+def fake_hub(request, tmp_path, monkeypatch):
+    """Serve LISTINGS, a real csv, real parquet shards and a real wav.
+
+    Indirect parameters: ``null_rows`` replaces MLSW_NULL_ROWS, and
+    ``shuffled`` serves every listing and the csv rows in a fixed unsorted
+    order, as a real repo listing or metadata.csv may come.
+    """
     import huggingface_hub
+
+    param = getattr(request, "param", {})
+    null_rows = param.get("null_rows", MLSW_NULL_ROWS)
+    listings = {repo: list(files) for repo, files in LISTINGS.items()}
+    community_rows = list(COMMUNITY_ROWS)
+    if param.get("shuffled"):
+        rng = random.Random(7)
+        for files in (*listings.values(), community_rows):
+            rng.shuffle(files)
+        assert listings["Picovoice/wake-word-benchmark"] != sorted(
+            listings["Picovoice/wake-word-benchmark"])
+        assert community_rows != sorted(community_rows)
 
     wav = tmp_path / "clip.wav"
     wav.write_bytes(_wav_bytes())
@@ -74,14 +97,14 @@ def fake_hub(tmp_path, monkeypatch):
     with open(meta, "w", newline="", encoding="utf-8") as fh:
         writer = csv.writer(fh)
         writer.writerow(["file_name", "label"])
-        for label, rel in COMMUNITY_ROWS:
+        for label, rel in community_rows:
             writer.writerow([rel, label])
     shards = {}
     position = 0
     for k, n in enumerate(MLSW_SHARD_ROWS):
         audio = []
         for _ in range(n):
-            audio.append(None if position in MLSW_NULL_ROWS
+            audio.append(None if position in null_rows
                          else {"bytes": wav.read_bytes(), "path": f"en_{position:03d}.wav"})
             position += 1
         path = tmp_path / f"{k:04d}.parquet"
@@ -92,7 +115,7 @@ def fake_hub(tmp_path, monkeypatch):
 
     class FakeApi:
         def list_repo_files(self, repo_id, repo_type=None, revision=None):
-            return list(LISTINGS[repo_id])
+            return list(listings[repo_id])
 
     def fake_download(repo_id, filename, repo_type=None, revision=None, **kwargs):
         downloads.append((repo_id, filename))
@@ -100,7 +123,7 @@ def fake_hub(tmp_path, monkeypatch):
             return shards[filename]
         if filename == "metadata.csv":
             return str(meta)
-        assert filename in LISTINGS[repo_id] or repo_id in (
+        assert filename in listings[repo_id] or repo_id in (
             "OpenVoiceOS/ovos-community-wakewords-dataset",), (repo_id, filename)
         return str(wav)
 
@@ -224,13 +247,32 @@ class TestManifestIsTheSweepDraw:
         assert len(positives) == 7
         assert len(pooled) == 7
         assert len(ids) == 21
-        # positions drawn by the seeded shuffle over all 40 rows; the null
-        # rows are skipped, so fewer than 7 would mean a null was counted
-        assert not {f"mlsw-negatives-en-US/en_{n:03d}.wav" for n in MLSW_NULL_ROWS} & set(ids)
+
+    @pytest.mark.parametrize("fake_hub", [
+        {"null_rows": {MLSW_DRAWN_AT_7[1], MLSW_DRAWN_AT_7[4], 3}}], indirect=True)
+    def test_drawn_pooled_rows_without_audio_are_left_out(self, fake_hub):
+        """Two of the drawn pooled rows carry no audio. The sweep cannot
+        yield them, so the manifest must not list them either."""
+        dataset_def = _capped("picovoice-jarvis")
+        ids = compute_sample_set(dataset_def, "rev")["sample_ids"]
+        pooled = [i for i in ids if i.startswith("mlsw-negatives-en-US/")]
+        kept = [n for n in MLSW_DRAWN_AT_7 if n not in (MLSW_DRAWN_AT_7[1], MLSW_DRAWN_AT_7[4])]
+        assert pooled == [f"mlsw-negatives-en-US/en_{n:03d}.wav" for n in kept]
+        assert ids == [sid for sid, _ in _sweep(dataset_def)]
 
     @pytest.mark.parametrize("dataset_id", sorted(SWEEP_AT_7))
     def test_sweep_draw_is_unchanged(self, fake_hub, dataset_id):
         assert _sweep(_capped(dataset_id)) == SWEEP_AT_7[dataset_id]
+
+    @pytest.mark.parametrize("fake_hub", [{"shuffled": True}], indirect=True)
+    @pytest.mark.parametrize("dataset_id", sorted(SWEEP_AT_7))
+    def test_listing_order_does_not_change_the_draw(self, fake_hub, dataset_id):
+        """The clips are picked from the sorted listing, so an unsorted
+        listing draws the same clips, and the manifest follows it."""
+        dataset_def = _capped(dataset_id)
+        assert _sweep(dataset_def) == SWEEP_AT_7[dataset_id]
+        assert compute_sample_set(dataset_def, "rev")["sample_ids"] == [
+            sid for sid, _ in SWEEP_AT_7[dataset_id]]
 
 
 class TestBoardScoresOnlyTheManifest:
