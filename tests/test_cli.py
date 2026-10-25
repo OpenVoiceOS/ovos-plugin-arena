@@ -289,6 +289,12 @@ class TestAssembleAlarms:
     the workflow turns into ``::warning::`` annotations, never silently
     absorbed into a green run."""
 
+    @pytest.fixture(autouse=True)
+    def _no_published_manifest(self, monkeypatch):
+        # The fixture rows are not the clips of the sample-set manifest that
+        # the live results repo publishes, so the board must not filter on it.
+        monkeypatch.setattr(arena_cli, "_load_sample_set", lambda *args: None)
+
     def test_off_revision_board_listed_and_counted(self, tmp_path):
         preds = _write_predictions_off_revision(tmp_path)
         out = tmp_path / "data"
