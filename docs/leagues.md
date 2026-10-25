@@ -169,6 +169,27 @@ community recordings), each drawing negatives from a shared not-wake-word pool
 (speech, ESC-50, FMA music, ambient noise, public-domain sounds) so the
 false-accept rate spans realistic scenarios.
 
+The `tigregotico-*` sets come from the TigreGotico synthetic wake-word
+collections, one per phrase and language, each pinned to a repo commit.
+`scripts/gen_tigregotico_ww_sets.py` writes them:
+
+| Repos | Clips with the phrase | Languages |
+|---|---|---|
+| English phrase repos | `train/`, without `openvoiceos-synthetic-wakewords/` (the source of the `synthetic-wakewords-*` sets) and `original/` (no card section describes it); `unchecked/` is never read | en-US |
+| Localised wake-up repos with a `test/` split | the held-out `test/` clips, one set per `lang` of its `metadata.jsonl` (`positives_filter`) | pt-PT, de-DE, ca-ES, es-ES, an-ES, eu-ES, it-IT, da-DK, nl-NL |
+| Train-only localised and Portuguese repos | `train/` | ca-ES, fr-FR, es-ES, pt-PT |
+
+A repo whose clips say several phrases gives one set per phrase, selected by
+the `text` of its `metadata.jsonl`: `jarbas` and `computador` give the "ei",
+"oi" and "ó" sets. `tigregotico-hey_jarbas` leaves out four Portuguese voices,
+whose clips are copies of Portuguese clips of another phrase. Galician,
+Asturian and Kabyle have no set, because no fighter runs in those languages.
+
+The negatives are the shared pool above and the spoken-words set of the
+language where one exists (`mlsw-negatives-<lang>`). Zero-shot and Vosk fighters
+exist for every phrase whose language has an espeak-ng voice or a small Vosk
+model (`scripts/gen_ww_fewshot_fighters.py`).
+
 **A fighter is never scored on the corpus it was trained on.** A registry
 competitor's `trained_on` field lists the dataset ids whose recordings were
 in its training data. The bench skips a `(fighter, dataset)` pair on that
@@ -179,7 +200,13 @@ The community precise-lite models (`precise-onnx-athena`, `-computer`,
 `-ey-ordenador`, `-hey-chatterbox`, `-hey-k9`, `-hey-scout`) each list the
 matching `community-*` dataset; `hey_mycroft`, `hey_robin` and `marvin`
 carry no exclusion because their training data is not one of the arena's
-registered eval corpora.
+registered eval corpora. Every English WakeHuBERT fighter (`wakeforge-*`)
+lists the `tigregotico-*` set of its phrase, because its card names that
+repo's folders as training data. A card that names the whole repo (alexa,
+computer, hey mycroft) also lists the `synthetic-wakewords-*` set of the
+phrase, and a streaming model lists what its head lists. The localised
+WakeHuBERT models trained on the `train/` split only, so they run on the
+held-out `test/` sets (`scripts/gen_ww_model_fighters.py`).
 
 **Stacked fighters.** A wake-word competitor is not only a bare engine, it is
 the engine *as the listener actually stacks it*. A fighter config MAY add a

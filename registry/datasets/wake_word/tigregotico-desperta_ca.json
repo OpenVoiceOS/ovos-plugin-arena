@@ -1,0 +1,33 @@
+{
+  "dataset_id": "tigregotico-desperta_ca",
+  "display_name": "TigreGotico synthetic wake word — “desperta” (Catalan)",
+  "summary": "Clips of “desperta” in Catalan from the TigreGotico synthetic wake-word collection, made with several text-to-speech engines and converted voices, used as the audio a detector must wake on; the clips it must ignore are pooled from a shared not-wake-word collection of English speech, public-domain sounds, environmental audio, music and ambient noise. One row is one clip with its label. Synthetic clips carry no room acoustics and no microphone variation, so this board does not exercise either. Runs on this corpus are capped at 100 clips per class, drawn the same way for every fighter and 100 more spoken-word clips in the language join the negatives.",
+  "modality": "wake_word",
+  "source": {
+    "type": "huggingface",
+    "hf_id": "TigreGotico/synthetic-wakeword-desperta_ca",
+    "revision": "985495d5f873681b28cd24d455df46384d44481e"
+  },
+  "reference_fields": {},
+  "wakeword": "desperta",
+  "positives_dir": "train",
+  "negatives_sources": [
+    "TigreGotico/not-wake-words-speech-en/not_wake_word_subset",
+    "TigreGotico/public_domain_sounds_3secs/pd_3sec",
+    "TigreGotico/ESC-50",
+    "TigreGotico/FMA_3secs",
+    "TigreGotico/ambient_noises"
+  ],
+  "lang": "ca-ES",
+  "license": "cc-by-4.0",
+  "role": "eval",
+  "predictions_hf": "OpenVoiceOS/ovos-wake-word-bench-tigregotico-desperta_ca",
+  "notes": "TigreGotico/synthetic-wakeword-desperta_ca@985495d5: 179 clips with the phrase in train/, from the folders omnivoice. The spoken text is 'desperta'.",
+  "negatives_dataset_ids": [
+    "mlsw-negatives-ca-ES"
+  ],
+  "sample_policy": {
+    "max_samples": 100,
+    "seed": 1337
+  }
+}

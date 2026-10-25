@@ -1,0 +1,33 @@
+{
+  "dataset_id": "tigregotico-sveglia-it",
+  "display_name": "TigreGotico synthetic wake word — “sveglia” (Italian)",
+  "summary": "Clips of “sveglia” in Italian from the held-out test split of the TigreGotico synthetic wake-up collection, spoken by OmniVoice voices whose seeds the train split never uses, used as the audio a detector must wake on; the clips it must ignore are pooled from a shared not-wake-word collection of English speech, public-domain sounds, environmental audio, music and ambient noise. One row is one clip with its label. Synthetic clips carry no room acoustics and no microphone variation, so this board does not exercise either. Runs on this corpus are capped at 100 clips per class, drawn the same way for every fighter and 100 more spoken-word clips in the language join the negatives.",
+  "modality": "wake_word",
+  "source": {
+    "type": "huggingface",
+    "hf_id": "TigreGotico/synthetic-wakeword-sveglia",
+    "revision": "e2f0b6282515b5124f499102b0bdc5aefa56ba47"
+  },
+  "reference_fields": {},
+  "wakeword": "sveglia",
+  "positives_dir": "test",
+  "negatives_sources": [
+    "TigreGotico/not-wake-words-speech-en/not_wake_word_subset",
+    "TigreGotico/public_domain_sounds_3secs/pd_3sec",
+    "TigreGotico/ESC-50",
+    "TigreGotico/FMA_3secs",
+    "TigreGotico/ambient_noises"
+  ],
+  "lang": "it-IT",
+  "license": "cc-by-4.0",
+  "role": "eval",
+  "predictions_hf": "OpenVoiceOS/ovos-wake-word-bench-tigregotico-sveglia-it",
+  "notes": "TigreGotico/synthetic-wakeword-sveglia@e2f0b628: 222 clips with the phrase in test/, from the folders omnivoice-single. The spoken text is 'sveglia'.",
+  "negatives_dataset_ids": [
+    "mlsw-negatives-it-IT"
+  ],
+  "sample_policy": {
+    "max_samples": 100,
+    "seed": 1337
+  }
+}

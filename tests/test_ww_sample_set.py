@@ -319,7 +319,7 @@ CLIP_SETS = [d for d in list_datasets(modality="wake_word")
 
 
 def test_every_eval_clip_set_carries_the_per_class_policy():
-    assert len(CLIP_SETS) == 34
+    assert len(CLIP_SETS) == 117
     off = {d.dataset_id: d.sample_policy for d in CLIP_SETS
            if d.sample_policy != SamplePolicy(max_samples=100, seed=1337)}
     assert off == {}
@@ -328,6 +328,6 @@ def test_every_eval_clip_set_carries_the_per_class_policy():
 def test_pooled_negatives_sources_keep_their_own_policy():
     pools = [d for d in list_datasets(modality="wake_word")
              if d.dataset_id.startswith("mlsw-negatives-")]
-    assert len(pools) == 10
+    assert len(pools) == 12
     assert {json.dumps(d.sample_policy.model_dump()) for d in pools} == {
         json.dumps({"max_samples": 5000, "seed": 1337})}
