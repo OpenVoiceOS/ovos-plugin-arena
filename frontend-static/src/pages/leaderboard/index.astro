@@ -263,6 +263,11 @@ import Base from '../../layouts/Base.astro';
       // MIN_FA_HOURS (arena/metrics.py) of covered negative audio simply omit
       // this metric rather than print noise.
       ['fa_per_hour', 'FA/h', false],
+      // false-wake-up boards: the count behind FA/h and the rate per kind of audio
+      ['n_false_accepts', 'False alarms', false], ['negative_hours', 'Hours', false],
+      ['fa_per_hour@read_speech', 'FA/h read', false], ['fa_per_hour@conversation', 'FA/h talk', false],
+      ['fa_per_hour@broadcast', 'FA/h TV', false], ['fa_per_hour@music', 'FA/h music', false],
+      ['fa_per_hour@noise', 'FA/h noise', false], ['fa_per_hour@foreign_speech', 'FA/h other lang.', false],
       ['latency_ms_median', 'Latency ms', false],
       ['utmos', 'UTMOS', false], ['intelligibility_wer', 'Intellig. WER', true],
       // SIGMOS/DNSMOS quality dimensions (§4 R14 extension) — headline picks
@@ -896,7 +901,9 @@ import Base from '../../layouts/Base.astro';
       // better metric into a fill fraction. UTMOS/SIGMOS/DNSMOS/NISQA are
       // MOS scales (1..5, higher is better) — normalize by /5 instead.
       const scale = (primary === 'utmos' || primary.includes('.')) ? 5 : 1;
-      const score = v => v == null ? 0 : Math.max(0, Math.min(1, higher ? v / scale : 1 - v / scale));
+      // a rate per hour has no upper end, so 1/(1 + v) keeps 1/h and 10/h apart
+      const score = v => v == null ? 0 : primary === 'fa_per_hour' ? 1 / (1 + v)
+        : Math.max(0, Math.min(1, higher ? v / scale : 1 - v / scale));
       const sortedEntries = wantsMetric
         ? [...board.entries].sort((a, b) => {
             const av = a.metrics?.[primary], bv = b.metrics?.[primary];

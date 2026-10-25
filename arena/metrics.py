@@ -51,7 +51,7 @@ BOOTSTRAP_SEED = 0
 # ``input_hash`` never survives a scoring-logic change — the whole point of
 # the signature is "same input AND same logic produces the same output",
 # not just "same input".
-BOARD_LOGIC_VERSION = 4
+BOARD_LOGIC_VERSION = 5
 
 #: Test buckets phrased close to the training data: ``template`` rows are
 #: expansions of held-out phrase templates (a template-paradigm fighter
@@ -980,6 +980,17 @@ FA_BUDGETS_PER_HOUR = (0.5, 1.0, 2.0)
 #: A per-hour budget measured on less audio than this rests on a fraction of
 #: the hour it names, so no operating point (and no rank) comes from it.
 MIN_STREAM_HOURS = 1.0
+#: A board ranked on false wake-ups per hour needs this much audio per fighter.
+MIN_NEGATIVES_BOARD_HOURS = 4.0
+#: What a recording with no wake word holds, as a stream manifest's ``category``.
+STREAM_NEGATIVE_CATEGORIES = {
+    "read_speech": "read speech",
+    "conversation": "conversation",
+    "broadcast": "radio, TV and podcasts",
+    "music": "music",
+    "noise": "household and outdoor sounds",
+    "foreign_speech": "speech in other languages",
+}
 _DET_THRESHOLDS = [round(0.1 * i, 2) for i in range(1, 10)]  # 0.1 .. 0.9
 
 #: One truth onset: (start_s, end_s). ``end_s`` is None when the manifest
@@ -1132,7 +1143,17 @@ def score_ww_stream(rows: list[PredictionRow]) -> dict[str, float]:
         "fa_per_hour": base["fa_per_hour"],
         "negative_hours": round(base["hours"], 3),
         "n_onsets": float(base["total_onsets"]),
+        "n_false_accepts": float(base["false_accepts"]),
     }
+    by_category: dict[str, list[PredictionRow]] = {}
+    for row in rows:
+        category = (row.extras or {}).get("category")
+        if category in STREAM_NEGATIVE_CATEGORIES:
+            by_category.setdefault(category, []).append(row)
+    for category, category_rows in sorted(by_category.items()):
+        stats = _stream_stats_at_threshold(_stream_clips(category_rows), 0.5)
+        metrics[f"fa_per_hour@{category}"] = stats["fa_per_hour"]
+        metrics[f"negative_hours@{category}"] = round(stats["hours"], 3)
     # with no wake word to miss there is no error rate, and the entry stays unranked
     has_onsets = bool(base["total_onsets"])
     if has_onsets:
@@ -1390,6 +1411,7 @@ def pair_metric_significant(
 def benchmark_board_input_signature(
     by_competitor: dict[str, list[PredictionRow]],
     sample_set_ids: set[str] | None = None,
+    primary_metric: str | None = None,
 ) -> str:
     """Stable hash of everything that determines a benchmark board's
     scored output: every competitor's rows, ``BOARD_LOGIC_VERSION``, and
@@ -1408,6 +1430,9 @@ def benchmark_board_input_signature(
     so without this the unchanged-input skip above would never notice a
     republished manifest and the board would keep stale coverage/ranking
     forever instead of "republish and the board re-filters automatically".
+
+    ``primary_metric`` is the dataset's registry override, which re-ranks
+    the board without touching a row.
     """
     # Sort each competitor's own rows by sample_id/plugin_id, so row ORDER
     # never affects the hash — only row CONTENT does — then sort competitors.
@@ -1426,6 +1451,7 @@ def benchmark_board_input_signature(
             "logic_version": BOARD_LOGIC_VERSION,
             "rows": rows_repr,
             "sample_set_ids": sorted(sample_set_ids) if sample_set_ids is not None else None,
+            "primary_metric": primary_metric,
         },
         sort_keys=True,
         default=str,
@@ -1565,6 +1591,7 @@ def build_benchmark_board(
     sample_set_ids: set[str] | None = None,
     dataset_revision: str | None = None,
     min_samples: int = MIN_BOARD_SAMPLES,
+    primary_metric: str | None = None,
 ) -> BenchmarkBoard:
     """Build one benchmark board from per-competitor row lists.
 
@@ -1589,9 +1616,13 @@ def build_benchmark_board(
     corpus are dropped before scoring (see
     ``drop_rows_off_pinned_revision``) and counted per entry as
     ``rows_other_revision``; a competitor left with nothing is unranked.
+
+    *primary_metric* is the dataset's registry override of the modality's
+    ranking metric (a ``ww_stream`` corpus with no wake word ranks on
+    ``fa_per_hour``).
     """
     scorer = _SCORERS.get(modality)
-    primary = PRIMARY_METRIC.get(modality, "accuracy")
+    primary = primary_metric or PRIMARY_METRIC.get(modality, "accuracy")
     entries: list[BenchmarkEntry] = []
     cis: dict[str, tuple[float, float] | None] = {}
     scored_rows: dict[str, list[PredictionRow]] = {}
@@ -1681,6 +1712,8 @@ def build_benchmark_board(
     _MIN_COVERAGE = 0.9
 
     def _too_few(entry: BenchmarkEntry) -> bool:
+        if primary == "fa_per_hour":
+            return entry.metrics.get("negative_hours", 0.0) < MIN_NEGATIVES_BOARD_HOURS
         return 0 < _ranked_population(entry, primary) < min_samples
 
     def _partial_coverage(entry: BenchmarkEntry) -> bool:
@@ -1710,7 +1743,8 @@ def build_benchmark_board(
     ranked = [e for e in scoreable if _has_signal(e) and not _partial_coverage(e)]
     # A stream fighter that misses every wake word at the budget never meets
     # it at any threshold; a rank among such fighters would be input order.
-    over_budget = [e for e in ranked if modality == "ww_stream" and e.metrics[primary] == 1.0]
+    over_budget = [e for e in ranked
+                   if primary.startswith("error_at_") and e.metrics[primary] == 1.0]
     ranked = [e for e in ranked if e not in over_budget]
     partial = [e for e in scoreable if _has_signal(e) and _partial_coverage(e)]
     off_metric = [e for e in scoreable if not _has_signal(e) and _scored_any(e)]
@@ -1752,6 +1786,10 @@ def build_benchmark_board(
         entry.rank = 0
         entry.unranked = True
         entry.unranked_reason = (
+            f"too_few_samples — {entry.metrics.get('negative_hours', 0.0):g} h of "
+            f"audio, below the {MIN_NEGATIVES_BOARD_HOURS:g} h a false-wake-up "
+            "board needs to say anything"
+        ) if primary == "fa_per_hour" else (
             f"too_few_samples — {_ranked_population(entry, primary)} row(s) "
             f"under {primary}, below the {min_samples} a board needs to say "
             "anything"

@@ -191,6 +191,85 @@
       "direction": "neutral",
       "unit": "hours"
     },
+    "n_false_accepts": {
+      "label": "False alarms",
+      "meaning": "How many times the detector woke with no wake word spoken, at a score threshold of 0.5.",
+      "direction": "lower",
+      "unit": "count",
+      "caveat": "Read it with the audio streamed: no false alarm in a few minutes says little."
+    },
+    "fa_per_hour@read_speech": {
+      "label": "False alarms per hour, read speech",
+      "meaning": "False alarms per hour of streamed read speech, at a score threshold of 0.5.",
+      "direction": "lower",
+      "unit": "count per hour"
+    },
+    "fa_per_hour@conversation": {
+      "label": "False alarms per hour, conversation",
+      "meaning": "False alarms per hour of streamed conversation, at a score threshold of 0.5.",
+      "direction": "lower",
+      "unit": "count per hour"
+    },
+    "fa_per_hour@broadcast": {
+      "label": "False alarms per hour, radio, TV and podcasts",
+      "meaning": "False alarms per hour of streamed radio, TV and podcasts, at a score threshold of 0.5.",
+      "direction": "lower",
+      "unit": "count per hour"
+    },
+    "fa_per_hour@music": {
+      "label": "False alarms per hour, music",
+      "meaning": "False alarms per hour of streamed music, at a score threshold of 0.5.",
+      "direction": "lower",
+      "unit": "count per hour"
+    },
+    "fa_per_hour@noise": {
+      "label": "False alarms per hour, household and outdoor sounds",
+      "meaning": "False alarms per hour of streamed household and outdoor sounds, at a score threshold of 0.5.",
+      "direction": "lower",
+      "unit": "count per hour"
+    },
+    "fa_per_hour@foreign_speech": {
+      "label": "False alarms per hour, speech in other languages",
+      "meaning": "False alarms per hour of streamed speech in other languages, at a score threshold of 0.5.",
+      "direction": "lower",
+      "unit": "count per hour"
+    },
+    "negative_hours@read_speech": {
+      "label": "Audio streamed, read speech",
+      "meaning": "Hours of read speech behind the matching false-alarms-per-hour figure.",
+      "direction": "neutral",
+      "unit": "hours"
+    },
+    "negative_hours@conversation": {
+      "label": "Audio streamed, conversation",
+      "meaning": "Hours of conversation behind the matching false-alarms-per-hour figure.",
+      "direction": "neutral",
+      "unit": "hours"
+    },
+    "negative_hours@broadcast": {
+      "label": "Audio streamed, radio, TV and podcasts",
+      "meaning": "Hours of radio, TV and podcasts behind the matching false-alarms-per-hour figure.",
+      "direction": "neutral",
+      "unit": "hours"
+    },
+    "negative_hours@music": {
+      "label": "Audio streamed, music",
+      "meaning": "Hours of music behind the matching false-alarms-per-hour figure.",
+      "direction": "neutral",
+      "unit": "hours"
+    },
+    "negative_hours@noise": {
+      "label": "Audio streamed, household and outdoor sounds",
+      "meaning": "Hours of household and outdoor sounds behind the matching false-alarms-per-hour figure.",
+      "direction": "neutral",
+      "unit": "hours"
+    },
+    "negative_hours@foreign_speech": {
+      "label": "Audio streamed, speech in other languages",
+      "meaning": "Hours of speech in other languages behind the matching false-alarms-per-hour figure.",
+      "direction": "neutral",
+      "unit": "hours"
+    },
     "latency_s_median": {
       "label": "Detection delay",
       "meaning": "Median time from the start of a spoken wake word to the detection that caught it.",
@@ -476,6 +555,6 @@
     "tts": "Text-to-speech voices read a sentence aloud. A fighter receives the text and returns synthesised audio, which is scored two ways: how natural it sounds and how accurately a panel of listeners-by-machine can transcribe it back. Human ears are the primary signal here \u2014 voters hear two clips of the same sentence and pick the better one.",
     "wake_word": "Wake-word detectors listen for the phrase that starts a conversation. A fighter is fed one labelled clip at a time, frame by frame exactly as a live microphone would drive it, and must decide whether the phrase was spoken. Missing the phrase and waking up on the wrong sound are both failures, and the engine owns its own threshold. Voters compare how two detectors behaved on the same clip.",
     "vad": "Voice-activity detectors decide whether a clip contains speech at all. A fighter is fed the clip frame by frame and the clip counts as speech when any frame is voiced. Both mistakes matter: calling music or noise speech wakes the pipeline for nothing, and missing real speech drops the user's words. Voters compare the two decisions on the same clip.",
-    "ww_stream": "Streaming wake-word detectors run continuously over hours of audio instead of isolated clips, the way they run against a live microphone. A fighter reports every activation with its timestamp, and an activation counts only when it lands close enough to a real spoken onset. Hours of continuous non-wake audio are what make the false-alarm rate meaningful."
+    "ww_stream": "Streaming wake-word detectors run continuously over hours of audio instead of isolated clips, the way they run against a live microphone. A fighter reports every activation with its timestamp, and an activation counts only when it lands close enough to a real spoken onset. Hours of continuous non-wake audio are what make the false-alarm rate meaningful. A corpus with no wake word at all ranks every fighter of its language on false alarms per hour alone."
   }
 }

@@ -1011,6 +1011,7 @@ def cmd_assemble(args: argparse.Namespace) -> int:
     now = _now_iso()
     registry_dataset_langs = _registry_dataset_langs()
     registry_dataset_revisions = _registry_dataset_revisions()
+    registry_primary_metrics = _registry_primary_metrics()
     ww_phrases = _wakeword_phrases()
     unregistered_competitors: dict[str, int] = {}
     trained_on_dropped: dict[str, int] = {}
@@ -1147,7 +1148,9 @@ def cmd_assemble(args: argparse.Namespace) -> int:
             sample_set_ids = _load_sample_set(modality, dataset_id, lang)
             if (modality, dataset_id, lang) in _SAMPLE_SET_LOAD_ERRORS:
                 boards_unmanaged_on_error.append(board_file)
-            input_hash = benchmark_board_input_signature(by_competitor, sample_set_ids)
+            primary_metric = registry_primary_metrics.get(dataset_id)
+            input_hash = benchmark_board_input_signature(
+                by_competitor, sample_set_ids, primary_metric)
             # Skip the O(rounds * samples) bootstrap CI entirely when this
             # board's prediction rows (+ scoring logic) are byte-identical to
             # the last assemble run — same input, same logic, same output, so
@@ -1166,6 +1169,7 @@ def cmd_assemble(args: argparse.Namespace) -> int:
                     modality, dataset_id, lang, by_competitor, now, input_hash=input_hash,
                     sample_set_ids=sample_set_ids,
                     dataset_revision=registry_dataset_revisions.get(dataset_id),
+                    primary_metric=primary_metric,
                 )
                 _attach_model_sizes(board, modality)
                 board.dataset_info = dataset_info.get(dataset_id)
@@ -1516,6 +1520,13 @@ def _registry_dataset_revisions() -> dict[str, str | None]:
         d.dataset_id: d.source.revision if isinstance(d.source, HuggingFaceSource) else None
         for d in list_datasets()
     }
+
+
+def _registry_primary_metrics() -> dict[str, str]:
+    """``dataset_id -> primary_metric`` for every dataset that overrides its modality's."""
+    from registry.loaders import list_datasets
+
+    return {d.dataset_id: d.primary_metric for d in list_datasets() if d.primary_metric}
 
 
 def _registry_battle_groups() -> set[str]:
