@@ -1,0 +1,31 @@
+{
+  "dataset_id": "ww-negatives-en-US",
+  "display_name": "False wake-ups — English",
+  "summary": "20 hours of read speech, meeting conversation, radio, parliament and talk recordings, music, household and outdoor sounds and speech in other languages, with no wake word, for every English wake-word detector. A detector streams every recording, and the board ranks it on how often per hour it woke, with a column for each kind of audio.",
+  "modality": "ww_stream",
+  "source": {
+    "type": "huggingface",
+    "hf_id": "OpenVoiceOS/ww-stream-bench",
+    "revision": "fae1377209b9fc083b4a1dad815d58cbea3399e3",
+    "file_pattern": "manifest-negatives-en-US.jsonl"
+  },
+  "reference_fields": {
+    "audio": "audio",
+    "onsets": "onsets",
+    "ends": "ends"
+  },
+  "license": "other",
+  "role": "eval",
+  "sample_rate_hz": 16000,
+  "event_manifest_fields": {
+    "audio": "audio",
+    "onsets": "onsets",
+    "duration_s": "duration_s"
+  },
+  "min_negative_hours": 20.0,
+  "predictions_hf": "OpenVoiceOS/ovos-ww-stream-bench-ww-negatives-en-US",
+  "event_tolerance_s": 1.5,
+  "lang": "en-US",
+  "primary_metric": "fa_per_hour",
+  "notes": "Built by scripts/publish_ww_stream_bench.py: the `negatives-en-US` part of OpenVoiceOS/ww-stream-bench. The negatives hold 6 h of read speech, 4 h of meeting conversation, 4 h of radio, parliament and talk recordings, 2 h of music, 2 h of household and outdoor sounds, 2 h of speech in other languages: 20 hours in all. Its sources and their licences are in the dataset card."
+}

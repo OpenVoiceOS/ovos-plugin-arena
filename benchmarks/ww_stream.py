@@ -9,11 +9,13 @@ detection-event rows to ``OpenVoiceOS/ovos-ww-stream-bench-<dataset_id>``; the
 arena's ``assemble`` workflow turns them into a false-reject /
 false-accept-per-hour board separate from the isolated-clip `wake_word` league.
 Each ``ww_stream_<set>`` dataset is the stream version of the clip test set
-``<set>``: its recording of the set's phrase, then the shared recordings with
-no wake word (``scripts/publish_ww_stream_bench.py`` builds the corpus).
+``<set>``: its recording of the set's phrase, then the recordings with no wake
+word of the set's language (``scripts/publish_ww_stream_bench.py`` builds the
+corpus). A ``ww-negatives-<lang>`` dataset holds only those recordings, and its
+board ranks every fighter of the language on false wake-ups per hour.
 
 Every fighter streams every recording, so name the fighters of the set's
-phrase with ``--competitors``.
+phrase, or of the language for ``ww-negatives-<lang>``, with ``--competitors``.
 
 Usage::
 

@@ -1,12 +1,12 @@
 {
   "dataset_id": "ww_stream_community-hey-floyd",
   "display_name": "Streaming wake word — community-hey-floyd",
-  "summary": "The clips of “hey floyd” from the `community-hey-floyd` test set, placed between seconds of read speech, followed by hours of audio with no wake word. A detector streams every recording and is scored on the wake words it caught and on how often per hour it woke with no wake word.",
+  "summary": "The clips of “hey floyd” from the `community-hey-floyd` test set, placed between seconds of English speech, followed by 20 hours of read speech, meeting conversation, radio, parliament and talk recordings, music, household and outdoor sounds and speech in other languages with no wake word. A detector streams every recording and is scored on the wake words it caught and on how often per hour it woke with no wake word.",
   "modality": "ww_stream",
   "source": {
     "type": "huggingface",
     "hf_id": "OpenVoiceOS/ww-stream-bench",
-    "revision": "b6445e6f6bf5f3aaf63c92942281b3ec959c46ac",
+    "revision": "fae1377209b9fc083b4a1dad815d58cbea3399e3",
     "file_pattern": "manifest-community-hey-floyd.jsonl"
   },
   "reference_fields": {
@@ -14,9 +14,7 @@
     "onsets": "onsets",
     "ends": "ends"
   },
-  "wakeword": "hey_floyd",
-  "lang": "en-US",
-  "license": "CC-BY-4.0",
+  "license": "other",
   "role": "eval",
   "sample_rate_hz": 16000,
   "event_manifest_fields": {
@@ -24,9 +22,11 @@
     "onsets": "onsets",
     "duration_s": "duration_s"
   },
-  "min_negative_hours": 10.0,
+  "min_negative_hours": 20.0,
   "predictions_hf": "OpenVoiceOS/ovos-ww-stream-bench-ww_stream_community-hey-floyd",
   "event_tolerance_s": 1.5,
+  "wakeword": "hey_floyd",
+  "lang": "en-US",
   "test_set_kind": "real",
-  "notes": "Built by scripts/publish_ww_stream_bench.py from `community-hey-floyd` at OpenVoiceOS/ovos-community-wakewords-dataset@1a3ad631 (96 of 96 clips with the phrase) and the shared negative recordings."
+  "notes": "Built by scripts/publish_ww_stream_bench.py from `community-hey-floyd` at OpenVoiceOS/ovos-community-wakewords-dataset@1a3ad631 (96 of 96 clips with the phrase) and the negatives of `en-US`. The negatives hold 6 h of read speech, 4 h of meeting conversation, 4 h of radio, parliament and talk recordings, 2 h of music, 2 h of household and outdoor sounds, 2 h of speech in other languages: 20 hours in all."
 }

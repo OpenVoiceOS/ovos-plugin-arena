@@ -293,11 +293,21 @@ is capped so human votes can outweigh the seed.
 **Datasets**: one `ww_stream_<set>` entry per clip test set with a phrase
 (`registry/datasets/ww_stream/`), all from one corpus,
 [`OpenVoiceOS/ww-stream-bench`](https://huggingface.co/datasets/OpenVoiceOS/ww-stream-bench).
-Each entry streams the recording of its clip set's phrase, then the shared
-recordings with no wake word: about 12 hours of LibriSpeech test speech
-(CC BY 4.0) and public-domain sounds. The phrase recording holds every clip of
-the set, each between 3 and 6 s of LibriSpeech dev speech; its manifest row
-gives the onset and end of every clip. A fighter trained on the clip set is
+Each entry streams the recording of its clip set's phrase, then the
+recordings with no wake word of the set's language. For English that is about
+20 hours: read speech, meetings, broadcasts, music, household sounds and speech
+in other languages. Each other language has about 7 hours: 4 hours of its own
+read speech, plus the first hour of the shared music, of the shared sounds and
+of the English read speech. Basque has 3 hours of read speech and 1.5 hours of
+parliament recordings. Aragonese has no open speech set of its own, so it takes
+the Spanish speech and counts it as speech in another language. The Portuguese
+read speech is half MASSIVE pt-PT and half Common Voice `pt`. Most Common Voice
+`pt` speakers who give an accent are Brazilian, so that half is mostly Brazilian
+Portuguese. Every negative row of a manifest names its `category`. The phrase
+recording holds every clip of the set, each between 3 and 6 s of speech in the
+set's language; its manifest row gives the onset and end of every clip. The
+dataset card of the corpus lists every source with its revision, its licence
+and its hours, and the sources it leaves out. A fighter trained on the clip set is
 also trained on its stream set, so `trained_on` lists both. The runner keeps
 the events of each recording per fighter config (`ww-stream-events` in the
 arena cache), so a fighter streams the shared recordings once for all its
@@ -307,7 +317,10 @@ entries. `benchmarks/ww_stream.py --dataset ww_stream_<set>` runs it.
 
 **False-wake-up boards.** A `ww_stream` dataset with `primary_metric:
 "fa_per_hour"` holds recordings with no wake word only, and every fighter of
-its language runs on it. Its board ranks on `fa_per_hour`, so a fighter with
+its language runs on it. There is one per language,
+`ww-negatives-<lang>`, built from the same recordings as the negatives of the
+language's `ww_stream_<set>` entries, so its rows come from the events cache
+when a fighter has streamed a set of its language. Its board ranks on `fa_per_hour`, so a fighter with
 no test set for its phrase still gets a ranked number for how often it wakes
 on its own. A fighter backed by less than `MIN_NEGATIVES_BOARD_HOURS` (4 h) is
 not ranked. The per-category columns show which kind of audio woke it.
