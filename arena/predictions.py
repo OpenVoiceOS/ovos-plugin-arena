@@ -60,6 +60,8 @@ _STT_FIELDS = {"reference_text", "wer"}
 # VAD rows label clips speech vs non-speech and decide speech vs silence
 # (see runner.vad_bench); wake-word rows use positive/detected vocabulary.
 _VAD_VALUES = {"speech", "silence", "non_speech"}
+#: Leagues whose datasets name the wake word their positives speak.
+PHRASE_MODALITIES = ("wake_word", "ww_stream")
 
 
 def infer_modality(row: dict) -> str:
@@ -418,6 +420,7 @@ def group_rows(
     rows: list[PredictionRow],
     unregistered: dict[str, int] | None = None,
     trained_on_dropped: dict[str, int] | None = None,
+    cross_phrase_dropped: dict[str, int] | None = None,
 ) -> dict[tuple[str, str, str], dict[str, dict[str, PredictionRow]]]:
     """Group rows as (modality, dataset_id, lang) → sample_id → competitor → row.
 
@@ -440,14 +443,27 @@ def group_rows(
     training-contaminated score onto a published board. Dropped counts
     are aggregated into *trained_on_dropped* (keyed ``"<competitor_id>
     /<dataset_id>"``) when given.
+
+    On a wake-word or stream dataset with a ``wakeword``, rows of a fighter
+    whose hotword is another phrase are dropped too (``is_same_phrase``):
+    a detector that fires on another phrase's positives scores a correct
+    detection, which measures nothing. Dropped counts are aggregated into
+    *cross_phrase_dropped*, keyed the same way.
     """
-    from registry.loaders import fighter_pool, list_competitors
-    from registry.schemas import INTENT_MODALITIES
+    from registry.loaders import (
+        fighter_pool,
+        is_same_phrase,
+        list_competitors,
+        list_datasets,
+    )
+    from registry.schemas import INTENT_MODALITIES, CompetitorDef, DatasetDef
 
     registered_by_modality: dict[str, set[str]] = {}
     intent_leagues: dict[str, str] = {}
     label_sets: dict[str, list[str]] = {}
     trained_on_by_modality: dict[str, dict[str, set[str]]] = {}
+    competitors_by_modality: dict[str, dict[str, CompetitorDef]] = {}
+    phrase_datasets: dict[str, DatasetDef] = {}
 
     def _competitors(modality: str) -> list:
         try:
@@ -489,6 +505,23 @@ def group_rows(
             }
         return trained_on_by_modality[modality].get(competitor_id, set())
 
+    def _other_phrase(modality: str, row: PredictionRow) -> bool:
+        if modality not in PHRASE_MODALITIES:
+            return False
+        if not phrase_datasets:
+            phrase_datasets.update(
+                (d.dataset_id, d) for m in PHRASE_MODALITIES
+                for d in list_datasets(m) if d.wakeword
+            )
+        dataset = phrase_datasets.get(row.dataset_id)
+        if dataset is None:
+            return False
+        if modality not in competitors_by_modality:
+            competitors_by_modality[modality] = {
+                c.competitor_id: c for c in _competitors(modality)}
+        competitor = competitors_by_modality[modality][row.competitor_id]
+        return not is_same_phrase(competitor, dataset)
+
     grouped: dict[tuple[str, str, str], dict[str, dict[str, PredictionRow]]] = (
         defaultdict(lambda: defaultdict(dict))
     )
@@ -496,6 +529,7 @@ def group_rows(
     unregistered_counts: dict[str, int] = defaultdict(int)
     off_label_set: dict[str, int] = defaultdict(int)
     trained_on_counts: dict[str, int] = defaultdict(int)
+    cross_phrase_counts: dict[str, int] = defaultdict(int)
     for row in rows:
         modality = infer_modality(row.model_dump(exclude_none=True))
         if modality == "unknown":
@@ -520,6 +554,9 @@ def group_rows(
         if row.dataset_id in _trained_on(modality, row.competitor_id):
             trained_on_counts[f"{row.competitor_id}/{row.dataset_id}"] += 1
             continue
+        if _other_phrase(modality, row):
+            cross_phrase_counts[f"{row.competitor_id}/{row.dataset_id}"] += 1
+            continue
         key = (modality, row.dataset_id, row.lang)
         grouped[key][row.sample_id][row.competitor_id] = row
     if dropped:
@@ -540,10 +577,18 @@ def group_rows(
             "Excluded %d prediction row(s) for %s — fighter trained on this "
             "corpus, not scored", count, pair,
         )
+    for pair, count in sorted(cross_phrase_counts.items()):
+        logger.info(
+            "Excluded %d prediction row(s) for %s — fighter trained for "
+            "another wake word, not scored", count, pair,
+        )
     if unregistered is not None:
         for competitor_id, count in unregistered_counts.items():
             unregistered[competitor_id] = unregistered.get(competitor_id, 0) + count
     if trained_on_dropped is not None:
         for pair, count in trained_on_counts.items():
             trained_on_dropped[pair] = trained_on_dropped.get(pair, 0) + count
+    if cross_phrase_dropped is not None:
+        for pair, count in cross_phrase_counts.items():
+            cross_phrase_dropped[pair] = cross_phrase_dropped.get(pair, 0) + count
     return {k: dict(v) for k, v in grouped.items()}

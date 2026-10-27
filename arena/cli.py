@@ -577,6 +577,19 @@ def _board_alarm_signals(path: Path, modality: str) -> tuple[bool, bool, int]:
     return all_unranked, no_negatives, rows_dropped
 
 
+def _board_ranked_competitors(path: Path) -> set[str]:
+    """Competitor ids the benchmark board at *path* ranks, read off the
+    published JSON for the same reason as :func:`_board_alarm_signals`."""
+    try:
+        payload = json.loads(path.read_text())
+    except (OSError, json.JSONDecodeError):
+        return set()
+    return {
+        e["competitor_id"] for e in payload.get("entries") or []
+        if not e.get("unranked")
+    }
+
+
 def _write_json_payload(path: Path, payload: dict[str, Any]) -> None:
     if _unchanged(path, payload):
         log.info("Unchanged %s", path)
@@ -842,6 +855,7 @@ def _predictions_revision_for(source: str, default_revision: str) -> tuple[str, 
 
 def cmd_assemble(args: argparse.Namespace) -> int:
     from arena.predictions import (
+        PHRASE_MODALITIES,
         fetch_hf_predictions,
         group_rows,
         iter_predictions,
@@ -1015,6 +1029,7 @@ def cmd_assemble(args: argparse.Namespace) -> int:
     ww_phrases = _wakeword_phrases()
     unregistered_competitors: dict[str, int] = {}
     trained_on_dropped: dict[str, int] = {}
+    cross_phrase_dropped: dict[str, int] = {}
     all_seen_modalities: set[str] = set()
     any_data = False
     # §alarms — surfaced in assemble-summary.json (docs/operations.md
@@ -1057,6 +1072,7 @@ def cmd_assemble(args: argparse.Namespace) -> int:
                     chunk_grouped = group_rows(
                         chunk, unregistered=unregistered_competitors,
                         trained_on_dropped=trained_on_dropped,
+                        cross_phrase_dropped=cross_phrase_dropped,
                     )
                     del chunk
                     for key, samples in chunk_grouped.items():
@@ -1136,6 +1152,7 @@ def cmd_assemble(args: argparse.Namespace) -> int:
 
         # Benchmark boards stay per (modality, dataset, lang) — paradigm-pure, so a
         # template engine is never ranked against a keyword engine on metrics.
+        ranked_competitors: dict[tuple[str, str, str], set[str]] = {}
         for (modality, dataset_id, lang), samples in sorted(grouped.items()):
             if modality_scope and modality not in modality_scope:
                 continue
@@ -1202,6 +1219,8 @@ def cmd_assemble(args: argparse.Namespace) -> int:
                 boards_without_ranked_fighters.append(board_file)
             if no_negatives:
                 boards_without_negatives.append(board_file)
+            ranked_competitors[(modality, dataset_id, lang)] = (
+                _board_ranked_competitors(board_path))
 
         # Battles + ELO pool by battle group: every plugin that answered the same
         # stimulus in a language competes, so the intent paradigm leagues merge into
@@ -1215,7 +1234,18 @@ def cmd_assemble(args: argparse.Namespace) -> int:
                 # Vote-less leagues get benchmark boards only, no
                 # battles/elo-seed/leaderboard artifacts at all.
                 continue
-            if len(samples) < MIN_BOARD_SAMPLES:
+            ranked: set[str] | None = None
+            if modality in PHRASE_MODALITIES:
+                # On the wake-word ladder only fighters the board ranks battle
+                # or seed a rating: a fighter the board leaves unranked (too
+                # few rows, one class only, a failed run) has no standing on
+                # this phrase to vote on.
+                ranked = ranked_competitors.get((modality, dataset_id, lang), set())
+                if not ranked:
+                    log.info("%s/%s/%s: no ranked fighter — no battles or ELO seed",
+                             modality, dataset_id, lang)
+                    continue
+            elif len(samples) < MIN_BOARD_SAMPLES:
                 # Too little data to rank on is too little to vote on: the
                 # board entries are unranked for the same reason, and a
                 # ladder seeded from a handful of utterances would publish
@@ -1245,7 +1275,8 @@ def cmd_assemble(args: argparse.Namespace) -> int:
                 on_pin = {
                     competitor_id: row
                     for competitor_id, row in comp_rows.items()
-                    if row_on_pinned_revision(row, pinned_revision)
+                    if (ranked is None or competitor_id in ranked)
+                    and row_on_pinned_revision(row, pinned_revision)
                 }
                 if not on_pin:
                     continue
@@ -1346,7 +1377,8 @@ def cmd_assemble(args: argparse.Namespace) -> int:
 
     if (unregistered_competitors or boards_without_ranked_fighters
             or boards_without_negatives or boards_unmanaged_on_error
-            or rows_dropped_off_revision or trained_on_dropped):
+            or rows_dropped_off_revision or trained_on_dropped
+            or cross_phrase_dropped):
         # Named per modality, like every other artifact this run writes
         # (§assemble scalability — see the matrix-sharding comment on the
         # assemble.yml job), when this run is scoped to one: a sharded
@@ -1373,6 +1405,7 @@ def cmd_assemble(args: argparse.Namespace) -> int:
                 "boards_unmanaged_on_error": sorted(boards_unmanaged_on_error),
                 "rows_dropped_off_revision": rows_dropped_off_revision,
                 "trained_on_rows_excluded": dict(sorted(trained_on_dropped.items())),
+                "cross_phrase_rows_excluded": dict(sorted(cross_phrase_dropped.items())),
             },
         )
 
@@ -1770,7 +1803,8 @@ def merge_assemble_summaries(payloads: list[dict[str, Any]]) -> dict[str, Any]:
     step reads (§alarms, docs/operations.md "Alarms").
 
     Every field is combined, never overwritten: ``unregistered_competitors_
-    excluded`` and ``trained_on_rows_excluded`` counts are summed per key,
+    excluded``, ``trained_on_rows_excluded`` and ``cross_phrase_rows_
+    excluded`` counts are summed per key,
     ``boards_without_ranked_fighters``/``boards_unmanaged_on_error`` are
     unions, and ``rows_dropped_off_revision`` is a total across every leg.
     A leg with nothing to report never uploads a summary at all
@@ -1779,6 +1813,7 @@ def merge_assemble_summaries(payloads: list[dict[str, Any]]) -> dict[str, Any]:
     """
     unregistered: dict[str, int] = {}
     trained_on: dict[str, int] = {}
+    cross_phrase: dict[str, int] = {}
     boards: set[str] = set()
     boards_no_negatives: set[str] = set()
     boards_error: set[str] = set()
@@ -1789,6 +1824,8 @@ def merge_assemble_summaries(payloads: list[dict[str, Any]]) -> dict[str, Any]:
             unregistered[competitor_id] = unregistered.get(competitor_id, 0) + count
         for pair, count in (payload.get("trained_on_rows_excluded") or {}).items():
             trained_on[pair] = trained_on.get(pair, 0) + count
+        for pair, count in (payload.get("cross_phrase_rows_excluded") or {}).items():
+            cross_phrase[pair] = cross_phrase.get(pair, 0) + count
         boards.update(payload.get("boards_without_ranked_fighters") or [])
         boards_no_negatives.update(payload.get("boards_without_negatives") or [])
         boards_error.update(payload.get("boards_unmanaged_on_error") or [])
@@ -1801,6 +1838,7 @@ def merge_assemble_summaries(payloads: list[dict[str, Any]]) -> dict[str, Any]:
         "boards_unmanaged_on_error": sorted(boards_error),
         "rows_dropped_off_revision": rows_dropped,
         "trained_on_rows_excluded": dict(sorted(trained_on.items())),
+        "cross_phrase_rows_excluded": dict(sorted(cross_phrase.items())),
     }
 
 

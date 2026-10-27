@@ -22,10 +22,10 @@ from arena.models import EloSeed, Modality
 
 
 class _StubCompetitor:
-    def __init__(self, competitor_id, label_set=None):
+    def __init__(self, competitor_id, label_set=None, config=None):
         self.competitor_id = competitor_id
         self.label_set = label_set
-        self.config = {}
+        self.config = config or {}
         self.trained_on = []
 
 
@@ -51,7 +51,10 @@ def _permissive_registry(monkeypatch):
 
     def fake_list_competitors(modality=None):
         ids = _LEGACY_TEST_COMPETITOR_IDS.get(modality, set())
-        return [_StubCompetitor(cid) for cid in ids]
+        # The wake-word fixtures sweep the "hey mycroft" set, and a fighter
+        # is scored only on its own phrase.
+        config = {"hotwords": {"hey_mycroft": {}}} if modality == "wake_word" else None
+        return [_StubCompetitor(cid, config=config) for cid in ids]
 
     monkeypatch.setattr(loaders_mod, "list_competitors", fake_list_competitors)
 
@@ -1473,15 +1476,13 @@ class TestAssemblePerSourceMemoryBound:
         real_group_rows = predictions_mod.group_rows
         call_row_counts: list[int] = []
 
-        def counting_group_rows(rows, unregistered=None, trained_on_dropped=None):
+        def counting_group_rows(rows, **kwargs):
             # Each call must see only ONE source's rows (12 = 2 competitors
             # x 6 samples) — never the two sources' rows concatenated (24),
             # which is what the pre-fix single accumulate-then-group call
             # would have passed.
             call_row_counts.append(len(rows))
-            return real_group_rows(
-                rows, unregistered=unregistered, trained_on_dropped=trained_on_dropped,
-            )
+            return real_group_rows(rows, **kwargs)
 
         monkeypatch.setattr(predictions_mod, "group_rows", counting_group_rows)
 
