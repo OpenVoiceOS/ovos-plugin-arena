@@ -29,7 +29,12 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Protocol
 
-from registry.loaders import load_all_competitors, load_all_datasets, resolved_dataset_lang
+from registry.loaders import (
+    is_same_phrase,
+    load_all_competitors,
+    load_all_datasets,
+    resolved_dataset_lang,
+)
 from registry.schemas import CompetitorDef, DatasetDef
 
 MODALITIES = ("stt", "wake_word", "tts", "vad")
@@ -166,6 +171,8 @@ def is_compatible(competitor: CompetitorDef, dataset: DatasetDef) -> bool:
     agree on what "compatible" means."""
     from runner.media_bench import _lang_matches
 
+    if not is_same_phrase(competitor, dataset):
+        return False
     if not competitor.langs:
         return True
     return any(

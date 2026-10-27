@@ -358,6 +358,29 @@ def resolved_dataset_lang(dataset: DatasetDef) -> str | None:
     return None
 
 
+def wakeword_key(phrase: str) -> str:
+    """Comparable form of a wake-word phrase.
+
+    Datasets spell a phrase as text (``"smart mirror"``) and fighters key
+    their hotword config by an identifier (``"smart_mirror"``).
+    """
+    return re.sub(r"[\s-]+", "_", phrase.strip().lower())
+
+
+def is_same_phrase(competitor: CompetitorDef, dataset: DatasetDef) -> bool:
+    """A wake-word fighter is scored only on clips of its own phrase.
+
+    A detector for one phrase that fires on another phrase's positives
+    scores a correct detection, so that run measures nothing about either
+    phrase. A dataset with no ``wakeword`` (a negatives-only corpus)
+    accepts every fighter.
+    """
+    if not dataset.wakeword:
+        return True
+    hotwords = (competitor.config or {}).get("hotwords") or {}
+    return wakeword_key(dataset.wakeword) in {wakeword_key(h) for h in hotwords}
+
+
 def paradigm_league_repo(dataset: DatasetDef, paradigm: str) -> str:
     """The real HF repo backing *dataset*'s ``<paradigm>``-supervised
     predictions: ``<owner>/ovos-intent-<paradigm>-bench-<dataset_id>`` (the
