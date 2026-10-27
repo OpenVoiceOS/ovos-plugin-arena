@@ -79,6 +79,11 @@ def load_audio(path: Path, sample_rate: int = SAMPLE_RATE) -> np.ndarray:
     """Decode *path* to mono float32 at *sample_rate* (linear-interpolation
     resampling, with a box low-pass first when downsampling)."""
     data, sr = sf.read(str(path), dtype="float32", always_2d=False)
+    return resample(data, sr, sample_rate)
+
+
+def resample(data: np.ndarray, sr: int, sample_rate: int = SAMPLE_RATE) -> np.ndarray:
+    """*data* as mono float32 at *sample_rate*, resampled the way ``load_audio`` does."""
     if data.ndim > 1:
         data = data.mean(axis=1)
     if sr != sample_rate and len(data):
@@ -174,6 +179,7 @@ def build_corpus(
     sample_rate: int = SAMPLE_RATE,
     file_column: str = "file_name",
     min_level_dbfs: float = MIN_LEVEL_DBFS,
+    suffix: str = ".wav",
 ) -> list[dict]:
     """Write the recordings and ``manifest.jsonl`` under *out_dir*; returns
     the manifest rows. With no *positives_dir* every recording is negative
@@ -258,7 +264,7 @@ def build_corpus(
         pieces.append(neg[cursor:])
         recording = np.clip(np.concatenate(pieces), -1.0, 1.0)
 
-        rel = f"audio/ww_stream_{index:05d}.wav"
+        rel = f"audio/ww_stream_{index:05d}{suffix}"
         sf.write(str(out_dir / rel), recording, sample_rate, subtype="PCM_16")
         rows.append({
             "audio": rel,
