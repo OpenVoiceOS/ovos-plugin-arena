@@ -51,7 +51,7 @@ BOOTSTRAP_SEED = 0
 # ``input_hash`` never survives a scoring-logic change — the whole point of
 # the signature is "same input AND same logic produces the same output",
 # not just "same input".
-BOARD_LOGIC_VERSION = 5
+BOARD_LOGIC_VERSION = 6
 
 #: Test buckets phrased close to the training data: ``template`` rows are
 #: expansions of held-out phrase templates (a template-paradigm fighter
@@ -1583,6 +1583,14 @@ def _tts_judge_agreement(entries: list[BenchmarkEntry]) -> JudgeAgreement:
     return JudgeAgreement(n_fighters=len(fighters), matrix=matrix, top5=top5)
 
 
+def _positive_clips(rows_by_competitor: dict[str, list[PredictionRow]]) -> int:
+    """Positive clips in a wake-word test set: the most any one fighter scored."""
+    return max(
+        (sum(1 for row in rows if ww_reference(row)) for rows in rows_by_competitor.values()),
+        default=0,
+    )
+
+
 def build_benchmark_board(
     modality: str,
     dataset_id: str,
@@ -1841,6 +1849,7 @@ def build_benchmark_board(
         dataset_revision=pinned,
         wer_normalizer_version=WER_NORMALIZER_VERSION if modality == "stt" else None,
         entries=entries,
+        positives=_positive_clips(scored_rows) if modality == "wake_word" else None,
         input_hash=input_hash,
         judge_agreement=_tts_judge_agreement(entries) if modality == "tts" else None,
         intelligibility_judges=judges,
