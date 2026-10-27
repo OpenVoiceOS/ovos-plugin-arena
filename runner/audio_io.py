@@ -243,21 +243,32 @@ def _emit_ww(pos, neg, max_per_class):
     yield from _emit_labelled(pos, neg, max_per_class, "positive", "negative")
 
 
+def negatives_source(spec: str) -> tuple[str, str, str | None]:
+    """``(hf_id, revision, subdir)`` of a ``negatives_sources`` entry.
+
+    An entry is ``org/name``, optionally pinned with ``@<revision>`` after the
+    repo name and followed by a subdir: ``org/name@<sha>/subdir``, the form
+    ``huggingface_hub.HfFileSystem`` paths use. An entry without a revision
+    reads the ``main`` branch.
+    """
+    org, name, *rest = spec.split("/")
+    name, _, revision = name.partition("@")
+    return f"{org}/{name}", revision or "main", "/".join(rest) or None
+
+
 def _pool_negatives(sources, max_per_class):
     """Even share of audio across several corpora → ``(hf_id, rel, rev)`` tuples.
 
-    An entry is ``org/name`` optionally followed by a subdir
-    (``org/name/subdir``); a big corpus never dominates the pool.
+    Each entry is parsed by :func:`negatives_source`; a big corpus never
+    dominates the pool.
     """
     per = max(1, -(-max_per_class // len(sources))) if max_per_class else 0
     out = []
     for spec in sources:
-        parts = spec.split("/")
-        nhf = "/".join(parts[:2])
-        sub = "/".join(parts[2:]) or None
-        files = sorted(_all_audio(nhf, "main", sub))
+        nhf, rev, sub = negatives_source(spec)
+        files = sorted(_all_audio(nhf, rev, sub))
         for rel in (_even(files, per) if per else files):
-            out.append((nhf, rel, "main"))
+            out.append((nhf, rel, rev))
     return out
 
 
@@ -519,21 +530,11 @@ def ww_clip_selection(dataset_def, revision: str, max_per_class: int = 0
         # pool negatives across several not-wake-word corpora (speech, music,
         # noise, household sounds) so false-accept rate spans many scenarios;
         # take an even share from each so a big corpus does not dominate.
-        srcs = dataset_def.negatives_sources
-        per = max(1, -(-max_per_class // len(srcs))) if max_per_class else 0
-        neg = []
-        for spec in srcs:
-            # an hf id is ``org/name``; anything after the second / is a subdir
-            parts = spec.split("/")
-            nhf = "/".join(parts[:2])
-            sub = "/".join(parts[2:]) or None
-            files = sorted(_all_audio(nhf, "main", sub or None))
-            for rel in (_even(files, per) if per else files):
-                neg.append((nhf, rel, "main"))
+        neg = _pool_negatives(dataset_def.negatives_sources, max_per_class)
     elif dataset_def.negatives_hf:
-        nhf, ndir = dataset_def.negatives_hf, dataset_def.negatives_dir
-        nfiles = _all_audio(nhf, "main", ndir)
-        neg = [(nhf, f, "main") for f in nfiles]
+        nhf, rev, _ = negatives_source(dataset_def.negatives_hf)
+        nfiles = _all_audio(nhf, rev, dataset_def.negatives_dir)
+        neg = [(nhf, f, rev) for f in nfiles]
     else:
         neg = same_neg
     if max_per_class:

@@ -581,8 +581,8 @@ class DatasetDef(BaseModel):
         description=(
             "Wake word: a separate HF dataset to draw negatives from — a "
             "'not-wake-word' corpus of general speech/noise that must never "
-            "trigger detection (the proper false-accept test). Overrides "
-            "same-corpus negatives."
+            "trigger detection (the proper false-accept test), optionally "
+            "pinned as ``org/name@<sha>``. Overrides same-corpus negatives."
         ),
     )
     negatives_dir: str | None = Field(
@@ -595,6 +595,8 @@ class DatasetDef(BaseModel):
             "Wake word: several not-wake-word corpora to pool negatives from, "
             "each ``hf_id`` or ``hf_id/subdir`` — speech, music, ambient noise, "
             "household sounds — so false-accept rate reflects many scenarios. "
+            "Pin a corpus with ``@<sha>`` after its repo name, e.g. "
+            "``org/name@<sha>/subdir``; an entry without one reads ``main``. "
             "Overrides ``negatives_hf``."
         ),
     )
