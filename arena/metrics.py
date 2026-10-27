@@ -1246,8 +1246,10 @@ def _tts_utmos_values(rows: list[PredictionRow]) -> list[float]:
 
 
 # modality -> "mean" extractor (returns per-row 0/1 indicators, or raw values
-# for tts's UTMOS mean)
+# for tts's UTMOS mean). ``intent`` is the battle group every intent league
+# seeds its shared ladder under (``arena.models.battle_group``).
 _CI_MEAN_EXTRACTORS = {
+    "intent": _intent_generalization_indicators,
     "intent_zero_shot": _intent_generalization_indicators,
     "intent_online": _intent_generalization_indicators,
     "intent_offline": _intent_generalization_indicators,
