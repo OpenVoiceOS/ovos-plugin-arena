@@ -10,7 +10,9 @@ from arena.assembler import (
     seed_elo,
 )
 from arena.elo import INITIAL_ELO
-from arena.models import PredictionRow, VoteOutcome
+from arena.metrics import _CI_MEAN_EXTRACTORS, _CI_RATIO_EXTRACTORS, primary_metric_ci
+from arena.models import PredictionRow, VoteOutcome, battle_group
+from registry.schemas import INTENT_LEAGUES, Modality
 
 
 def _row(competitor, prediction, reference="media:play_song", **over):
@@ -534,6 +536,41 @@ class TestSeedEloBiasAudit:
         assert seed.pairwise_games == {}
         # still listed on the board at baseline
         assert seed.ratings == {"x": INITIAL_ELO, "y": INITIAL_ELO}
+
+    @pytest.mark.parametrize(
+        "group", ["intent", *(m.value for m in INTENT_LEAGUES)]
+    )
+    def test_intent_battle_group_gates_on_overlapping_cis(self, group):
+        # cmd_assemble seeds every intent league under the one battle group
+        # "intent". x is right on even samples, y on odd ones: each scores
+        # 50/100, so their CIs overlap and no sample may seed a vote, even
+        # though every sample has exactly one correct fighter.
+        samples = _samples(*[
+            [_row("x", "media:play_song" if i % 2 == 0 else "wrong"),
+             _row("y", "media:play_song" if i % 2 == 1 else "wrong")]
+            for i in range(100)
+        ])
+        seed = seed_elo(group, "en-US", {"d": samples}, "t")
+        assert seed.auto_vote_count == 0
+        assert seed.pairwise_games == {}
+
+    @pytest.mark.parametrize("league", [m.value for m in INTENT_LEAGUES])
+    def test_intent_battle_group_ci_matches_league_ci(self, league):
+        # The seed gate must score the rows the board ranks: in-distribution
+        # rows are all right and the rest all wrong, so only the
+        # generalization rows give a CI of exactly zero.
+        rows = [_row("x", "media:play_song", bucket="template") for _ in range(30)]
+        rows += [_row("x", "wrong") for _ in range(30)]
+        assert primary_metric_ci("intent", rows) == primary_metric_ci(league, rows)
+        assert primary_metric_ci("intent", rows) == (0.0, 0.0)
+
+    def test_every_battle_group_has_a_ci_strategy(self):
+        # A group without one defaults every pair to significant, which
+        # silently turns the overlap gate off for its whole ladder.
+        leagues = {m.value for m in Modality} - {"intent", "intent_template"}
+        groups = {battle_group(m) for m in leagues}
+        covered = {"ww_stream", *_CI_MEAN_EXTRACTORS, *_CI_RATIO_EXTRACTORS}
+        assert groups - covered == set()
 
     def test_clear_signal_pair_still_seeds(self):
         # x is correct on every sample, y never is — an unambiguous,
