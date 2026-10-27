@@ -436,6 +436,15 @@ class BenchmarkBoard(BaseModel):
         ),
     )
     entries: list[BenchmarkEntry] = Field(default_factory=list)
+    positives: int | None = Field(
+        None,
+        description=(
+            "``wake_word`` boards only: the number of positive clips (the wake "
+            "word was spoken) the board's test set holds, counted on the most "
+            "complete fighter's scored rows. The site lists a wake-word board "
+            "only when this reaches ``arena.ww_listing.MIN_POSITIVES``."
+        ),
+    )
     entries_hash: str | None = Field(
         None,
         description=(

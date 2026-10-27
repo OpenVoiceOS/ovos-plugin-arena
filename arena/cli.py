@@ -84,6 +84,7 @@ from arena.rating import (
     fit_bradley_terry,
     to_rating_scale,
 )
+from arena.ww_listing import WakeWordListing, load_listing
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s  %(message)s")
 log = logging.getLogger(__name__)
@@ -1501,6 +1502,13 @@ def _wakeword_phrases() -> dict[str, str]:
     return phrases
 
 
+def _ww_negatives_dataset_ids() -> set[str]:
+    """Ids of the false-wake-up corpora: ``ww_stream`` datasets with no wake word."""
+    from registry.loaders import list_datasets
+
+    return {d.dataset_id for d in list_datasets("ww_stream") if not d.wakeword}
+
+
 def _clean_merged_artifacts(data_dir: Path, modalities: set) -> None:
     """Remove battle/ELO files of sub-leagues that now merge into a group.
 
@@ -2364,8 +2372,27 @@ def _index_entry(path: Path, count_key: str) -> dict[str, Any]:
     return entry
 
 
+def _hidden_wake_word_board(
+    listing: WakeWordListing, negatives_ids: set[str], entry: dict[str, Any],
+) -> bool:
+    """Whether an index entry is a wake-word board the site leaves out: a clip
+    board or streaming board that compares no real models, or a false-wake-up
+    board with no fighter left on it."""
+    modality, dataset_id, lang = entry["modality"], entry["dataset_id"], entry["lang"]
+    if modality == "ww_stream" and dataset_id in negatives_ids:
+        return entry["count"] == 0
+    return listing.is_hidden(modality, dataset_id, lang)
+
+
 def cmd_export_index(args: argparse.Namespace) -> int:
+    registry_root = Path(args.registry).resolve()
+    if str(registry_root.parent) not in sys.path:
+        sys.path.insert(0, str(registry_root.parent))
+    from registry.loaders import list_competitors
+
     data_dir = Path(args.data_dir)
+    listing = load_listing(data_dir, list_competitors("wake_word"))
+    negatives_ids = _ww_negatives_dataset_ids()
     index: dict[str, Any] = {"generated_at": _now_iso()}
     for key in ("leaderboards", "benchmarks", "battles_pools", "freeform_pools"):
         index[key] = []
@@ -2373,7 +2400,10 @@ def cmd_export_index(args: argparse.Namespace) -> int:
         index["leaderboards"].append(_index_entry(path, "leaderboards"))
     predictions_revisions: dict[str, str] = {}
     for path in sorted(data_dir.glob("benchmark-*.json")):
-        index["benchmarks"].append(_index_entry(path, "benchmarks"))
+        entry = _index_entry(path, "benchmarks")
+        if _hidden_wake_word_board(listing, negatives_ids, entry):
+            continue
+        index["benchmarks"].append(entry)
         payload = json.loads(path.read_text())
         predictions_revisions.update(payload.get("predictions_revisions") or {})
     if predictions_revisions:
@@ -2387,7 +2417,9 @@ def cmd_export_index(args: argparse.Namespace) -> int:
         if "-freeform-" in path.name:
             index["freeform_pools"].append(_index_entry(path, "freeform_pools"))
         else:
-            index["battles_pools"].append(_index_entry(path, "battles_pools"))
+            entry = _index_entry(path, "battles_pools")
+            if not _hidden_wake_word_board(listing, negatives_ids, entry):
+                index["battles_pools"].append(entry)
     index["has_bestiary"] = (data_dir / "competitors.json").exists()
     # Only leagues with a ranked board are offered as tabs — a league whose
     # fighters nobody has swept yet has nothing to show, and the site should
@@ -2797,6 +2829,7 @@ def main(argv=None):
                         "committed one (offline fixture/snapshot)")
 
     p = sub.add_parser("export-index", help="Regenerate data/index.json")
+    p.add_argument("--registry", default="registry")
     p.add_argument("--data-dir", default="frontend-static/public/data")
     p.add_argument("--output", default="frontend-static/public/data/index.json")
 
