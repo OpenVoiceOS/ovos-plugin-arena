@@ -105,6 +105,9 @@ class MediaBenchAdapter:
         """Instantiate the competitor's OVOS plugin for one language."""
         raise NotImplementedError
 
+    def prepare(self, engine, sample: dict) -> None:
+        """Untimed work before :meth:`predict` of *sample*; nothing by default."""
+
     def predict(self, engine, sample: dict, ctx: PredictContext) -> dict:
         """Run one sample → modality-specific §3.2 row fields.
 
@@ -423,6 +426,7 @@ def run_competitor_lang(
                 deadline_hit = True
                 break
             try:
+                adapter.prepare(engine, sample)
                 fields, elapsed_ms, peak_rss_mb = measure_call(
                     lambda engine=engine, sample=sample: adapter.predict(engine, sample, ctx)
                 )

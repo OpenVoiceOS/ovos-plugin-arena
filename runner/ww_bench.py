@@ -22,11 +22,12 @@ import hashlib
 import inspect
 import json
 import logging
+import math
 import os
 import shutil
 import tempfile
 import time
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from dataclasses import dataclass, field
 from itertools import islice
 from pathlib import Path
@@ -55,8 +56,11 @@ log = logging.getLogger("ww-bench")
 # extra needs them; see the module docstring in runner/media_bench.py). The
 # WakeWordProbe class itself is imported lazily, inside the functions that
 # actually drive an engine.
-FRAME_SAMPLES = 1280  # 80 ms @ 16 kHz, the OVOS listener chunk size
+FRAME_SAMPLES = 1280  # 80 ms @ 16 kHz; the listener's chunk is LISTENER_CHUNK_SAMPLES
 SAMPLE_RATE = 16000
+# The microphone chunk of ovos-dinkum-listener: OPM Microphone.chunk_size is
+# 4096 bytes, i.e. 2048 16-bit samples, one found_wake_word() call each.
+LISTENER_CHUNK_SAMPLES = 2048
 # Reference clips of few-shot fighters (`samples_from`), one folder per
 # dataset revision and clip count.
 REFERENCE_CACHE = (Path(os.environ.get("ARENA_CACHE", "~/.cache/ovos-plugin-arena")).expanduser()
@@ -67,7 +71,60 @@ STREAM_EVENT_CACHE = REFERENCE_CACHE.parent / "ww-stream-events"
 GATE_WINDOW_S = 2.0
 # Part of every stream event cache key: bump it when _detect_stream or
 # _gate_window changes the events a recording gives.
-STREAM_EVENTS_VERSION = 1
+STREAM_EVENTS_VERSION = 2
+
+
+def _check_interval(engine) -> float | None:
+    """Seconds between recogniser checks, if *engine* works on windows of audio.
+
+    The vosk plugin buffers audio and transcribes it once per
+    ``time_between_checks``. No other registry plugin has the attribute.
+    """
+    return getattr(engine, "time_between_checks", None)
+
+
+def _frame_samples(engine) -> int:
+    """Samples per ``update()`` / ``found_wake_word()`` call for *engine*.
+
+    A windowed engine gets the chunk the listener feeds it. Every other engine
+    keeps FRAME_SAMPLES.
+    """
+    return LISTENER_CHUNK_SAMPLES if _check_interval(engine) else FRAME_SAMPLES
+
+
+def _check_window(engine) -> float:
+    """Seconds of audio between two checks of a windowed *engine*, 0 for any other.
+
+    An engine that counts calls (it declares ``SEC_BETWEEN_WW_CHECKS``) checks
+    every ``time_between_checks / SEC_BETWEEN_WW_CHECKS`` chunks; one that
+    counts audio checks once its chunks add up to ``time_between_checks``.
+    """
+    interval = _check_interval(engine)
+    if not interval:
+        return 0.0
+    per_call = getattr(engine, "SEC_BETWEEN_WW_CHECKS", None)
+    chunk_s = LISTENER_CHUNK_SAMPLES / SAMPLE_RATE
+    return math.ceil(interval / (per_call or chunk_s) - 1e-9) * chunk_s
+
+
+def _check_phase(engine, key: str) -> float:
+    """Seconds of extra leading silence that put a clip at a random point of the check window.
+
+    A fresh windowed engine starts its check clock at zero, and the probe's
+    leading silence is a whole number of windows, so every clip would start on
+    a window edge. A listener's clock runs on while the user is silent. The
+    offset is a stable hash of *key* spread evenly over one window.
+    """
+    unit = int.from_bytes(hashlib.sha256(key.encode()).digest()[:8], "big") / 2**64
+    return unit * _check_window(engine)
+
+
+def _phase_key(sample: dict) -> str:
+    """A stable per-clip key: the clip URL, else a hash of its samples."""
+    import numpy as np
+
+    return sample.get("audio_url") or hashlib.sha256(
+        np.asarray(sample["array"], dtype="float32").tobytes()).hexdigest()
 
 
 @dataclass
@@ -87,6 +144,12 @@ class WWStack:
     verifier: Any | None = None
     # the hotword config the engine was built with, ``samples_from`` resolved
     config: dict = field(default_factory=dict)
+    # the next clip's fresh engine, built by WakeWordBench.prepare outside the timed call
+    spare: Any = None
+    # builds a fresh engine for a clip. Set for a windowed engine: its
+    # reset() leaves the check clock and the unread audio of the previous clip
+    # in place, so the clip's windows would start wherever that clip ended.
+    rebuild: Callable[[], Any] | None = None
 
 
 class WakeWordBench(MediaBenchAdapter):
@@ -141,16 +204,24 @@ class WakeWordBench(MediaBenchAdapter):
         # plugin's `super().__init__(key_phrase, config, lang)` still loads
         # against an older `HotWordEngine` base — and stays scoped to this
         # construction, unlike a process-wide monkeypatch.
-        with hotword_compat():
-            ww = clazz(key_phrase, hw_cfg)
+        def build():
+            with hotword_compat():
+                return clazz(key_phrase, hw_cfg)
+
+        ww = build()
         return WWStack(ww,
                        vad=_load_vad(competitor.config),
                        verifier=_load_verifier(competitor.config),
-                       config=hw_cfg)
+                       config=hw_cfg,
+                       rebuild=build if _check_interval(ww) else None)
+
+    def prepare(self, stack: WWStack, sample: dict) -> None:
+        if stack.rebuild:
+            stack.spare = stack.rebuild()
 
     def predict(self, stack, sample: dict, ctx: PredictContext) -> dict:
         start = time.perf_counter()
-        detected = _detect_stack(stack, sample["array"])
+        detected = _detect_stack(stack, sample["array"], _phase_key(sample))
         latency_ms = (time.perf_counter() - start) * 1000
         return {
             "label": _norm_label(sample.get("label")),
@@ -225,7 +296,13 @@ def _load_verifier(config: dict):
     return clazz(dict(ver_cfg))
 
 
-def _detect_stack(stack: WWStack, array) -> bool:
+def _fresh_engine(stack: WWStack):
+    """The prepared spare engine, else a new build, else the loaded engine."""
+    spare, stack.spare = stack.spare, None
+    return spare or (stack.rebuild() if stack.rebuild else stack.ww)
+
+
+def _detect_stack(stack: WWStack, array, key: str = "") -> bool:
     """Run a clip through the full pre-VAD → wake-word → verifier stack.
 
     Pre-wake VAD gates the clip: if the VAD hears no speech, the detector never
@@ -240,9 +317,14 @@ def _detect_stack(stack: WWStack, array) -> bool:
 
         if not _has_speech(stack.vad, array):
             return False
-    from ovoscope.wakeword_probe import WakeWordProbe
+    from ovoscope.wakeword_probe import PRIME_SECONDS, TAIL_SECONDS, WakeWordProbe
 
-    detected = WakeWordProbe(stack.ww).detect(array).detected
+    engine = _fresh_engine(stack)
+    # a listener keeps feeding audio, so the check after the phrase always runs
+    probe = WakeWordProbe(engine, frame_samples=_frame_samples(engine),
+                          prime_seconds=PRIME_SECONDS + _check_phase(engine, key),
+                          tail_seconds=TAIL_SECONDS + _check_window(engine))
+    detected = probe.detect(array).detected
     if detected and stack.verifier is not None:
         detected = _verify(stack.verifier, array)
     return detected
@@ -422,7 +504,7 @@ def _detect_stream(stack: WWStack, array) -> list[tuple[float, float]]:
     degenerate single-point one.
     """
     events: list[tuple[float, float]] = []
-    engine = stack.ww
+    engine = _fresh_engine(stack)
     if hasattr(engine, "reset"):
         try:
             engine.reset()
@@ -432,10 +514,11 @@ def _detect_stream(stack: WWStack, array) -> list[tuple[float, float]]:
     fww_takes_arg = len(inspect.signature(fww).parameters) >= 1
     has_update = hasattr(engine, "update")
     pcm = _to_pcm16(array)
-    frame_dur = FRAME_SAMPLES / SAMPLE_RATE
+    frame_samples = _frame_samples(engine)
+    frame_dur = frame_samples / SAMPLE_RATE
     t = 0.0
-    for off in range(0, len(pcm), FRAME_SAMPLES * 2):
-        chunk = pcm[off:off + FRAME_SAMPLES * 2]
+    for off in range(0, len(pcm), frame_samples * 2):
+        chunk = pcm[off:off + frame_samples * 2]
         if has_update:
             engine.update(chunk)
         fired = fww(chunk) if fww_takes_arg else fww()
