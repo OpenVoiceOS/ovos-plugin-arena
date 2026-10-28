@@ -13,8 +13,8 @@
   phrase from one registry dataset (``samples_from``). That dataset is in
   ``trained_on``, so the fighter is scored only on the other sets.
 - ``vosk-ww-<phrase>``: ovos-ww-plugin-vosk matching the transcript against the
-  phrase, for each test-set phrase that has no vosk fighter yet, in every
-  language with a small Vosk model (VOSK_MODELS).
+  phrase, for each test-set phrase in every language with a small Vosk model
+  (VOSK_MODELS). VOSK_SAMPLES lists the phrases that need other samples.
 
 Output is deterministic and idempotent. Run from the repository root.
 """
@@ -53,31 +53,41 @@ ESPEAK_VOICES = {
     "en-US": "en-us", "pt-PT": "pt", "de-DE": "de", "es-ES": "es", "an-ES": "an",
     "ca-ES": "ca", "eu-ES": "eu", "it-IT": "it", "da-DK": "da", "nl-NL": "nl", "fr-FR": "fr-fr",
 }
-# phrases whose vosk fighter is written by hand, with alternate spellings as samples
-VOSK_HAND_WRITTEN = {
-    "alexa",
-    "amelia",
-    "athena",
-    "computer",
-    "hey_andromeda",
-    "hey_chatterbox",
-    "hey_computer",
-    "hey_eggbert",
-    "hey_floyd",
-    "hey_k9",
-    "hey_marvin",
-    "hey_neon",
-    "hey_robin",
-    "hey_savant",
-    "hey_scout",
-    "hey_ziggy",
-    "jarvis",
-    "sam",
-    "smart_mirror",
-    "snowboy",
-    "view_glass",
-    "ey_ordenador",
+# A phrase with a word the small Vosk model lacks cannot be produced by its grammar,
+# so it lists sound-alike samples here and matches them with the fuzzy rule. Every
+# other phrase matches itself with the equals rule. The samples are picked without
+# looking at any test clip: from the shipped OVOS default, or from model vocabulary
+# words (looked up with the model's own word table) chosen by spelling or sound.
+VOSK_SAMPLES = {
+    ("hey_mycroft", "en-US"): (
+        ["hey mycroft", "hey microsoft", "hey mike roft", "hey minecraft"],
+        "fuzzy",
+        "the hey_mycroft_vosk fallback that ovos-config ships (ovos_config/mycroft.conf)",
+    ),
+    ("hey_eggbert", "en-US"): (
+        ["hey egbert", "hey egg bert"],
+        "fuzzy",
+        "vocabulary words closest in spelling to 'eggbert', which the model lacks",
+    ),
+    ("hey_k9", "en-US"): (
+        ["hey k nine", "hey kay nine", "hey canine"],
+        "fuzzy",
+        "the spoken form of 'k9', which the model lacks; 'canine' is the vocabulary "
+        "word with the same sounds (espeak-ng reads 'k nine' and 'canine' alike)",
+    ),
+    ("snowboy", "en-US"): (
+        ["snow boy"],
+        "fuzzy",
+        "the two vocabulary words that spell 'snowboy', which the model lacks",
+    ),
+    ("ey_ordenador", "es-ES"): (
+        ["ey ordenador", "hey ordenador"],
+        "equals",
+        "the wake word name and the text spoken in its test set, both made of vocabulary words",
+    ),
 }
+# fighters whose id keeps no language suffix
+VOSK_IDS = {("ey_ordenador", "es-ES"): "vosk-ww-ey-ordenador"}
 # the small Vosk model of the language lacks a word of the phrase, so the grammar
 # can never produce it and the fighter would never wake
 VOSK_OUT_OF_VOCABULARY = {
@@ -194,22 +204,27 @@ def main() -> None:
                 langs=langs,
             )
         )
-        if (
-            key not in VOSK_HAND_WRITTEN
-            and (key, lang) not in VOSK_OUT_OF_VOCABULARY
-            and lang in VOSK_MODELS
-        ):
+        if (key, lang) not in VOSK_OUT_OF_VOCABULARY and lang in VOSK_MODELS:
+            if (key, lang) in VOSK_SAMPLES:
+                samples, rule, origin = VOSK_SAMPLES[(key, lang)]
+                note = f"Samples {samples} with the {rule} rule: {origin}."
+            else:
+                samples, rule = [phrase], "equals"
+                note = (
+                    f"Samples {samples} with the equals rule: the phrase itself, "
+                    "every word of which is in the model vocabulary."
+                )
             entries.append(
                 fighter(
-                    f"vosk-ww-{slug}",
+                    VOSK_IDS.get((key, lang), f"vosk-ww-{slug}"),
                     "ovos-ww-plugin-vosk",
                     key,
                     {
                         "model": VOSK_MODELS[lang],
                         "lang": lang,
-                        "samples": [phrase],
+                        "samples": samples,
                         "full_vocab": False,
-                        "rule": "equals",
+                        "rule": rule,
                         "threshold": 0.75,
                         "time_between_checks": 1.0,
                         "debug": False,
@@ -219,8 +234,7 @@ def main() -> None:
                     ["neural-net", "keyword-match"],
                     "Detects wake words by running the Vosk Kaldi recognizer in keyword mode and "
                     "matching the transcript against configured samples.",
-                    f"Transcript-match samples: ['{phrase}']. "
-                    "The language model is auto-downloaded.",
+                    f"{note} The language model is auto-downloaded.",
                     {"source": "https://github.com/OpenVoiceOS/ovos-ww-plugin-vosk"},
                     langs=langs,
                 )
