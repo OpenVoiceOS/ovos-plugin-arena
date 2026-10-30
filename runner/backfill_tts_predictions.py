@@ -56,6 +56,7 @@ from pathlib import Path
 
 from registry.loaders import load_competitor, load_dataset
 from runner.asr_judges import judge_available, resolve_judge_model
+from runner.dataset_cards import check_redistributable
 from runner.intent_bench import HF_OWNER, done_samples, resolve_revision, results_repo_for
 from runner.media_bench import make_row
 from runner.tts_bench import (
@@ -244,10 +245,11 @@ def write_merged(existing_lines: list[str], new_rows: list[dict],
             fh.write(json.dumps(row, ensure_ascii=False) + "\n")
 
 
-def upload_pair(repo_id: str, jsonl_path: Path, lang: str,
+def upload_pair(dataset_def, repo_id: str, jsonl_path: Path, lang: str,
                  competitor_id: str) -> None:
     from huggingface_hub import HfApi
 
+    check_redistributable(dataset_def, [jsonl_path], repo_id)
     HfApi().upload_file(
         path_or_fileobj=str(jsonl_path),
         path_in_repo=f"predictions/{lang}/{competitor_id}.jsonl",
@@ -310,7 +312,7 @@ def main() -> None:
         log.info("  %s/%s: wrote %d existing + %d new rows to %s", lang,
                   competitor_id, len(existing_lines), len(new_rows), jsonl_path)
         if args.upload:
-            upload_pair(repo_id, jsonl_path, lang, competitor_id)
+            upload_pair(dataset_def, repo_id, jsonl_path, lang, competitor_id)
             log.info("  %s/%s: uploaded", lang, competitor_id)
 
 

@@ -56,6 +56,7 @@ from pathlib import Path
 from arena.metrics import is_pinned_revision
 from registry.loaders import load_all_competitors, load_all_datasets
 from runner import media_bench as mb
+from runner.dataset_cards import TEXT_LEAGUES, RestrictedLicence, forbids_derivatives
 from runner.intent_bench import HF_OWNER, resolve_revision, results_repo_for
 from runner.publish_sample_set import run_with_timeout
 from runner.queue_tools import (
@@ -223,6 +224,11 @@ def enumerate_all_pairs(
         adapter = factories[modality]()
         competitors = adapter.filter_competitors(competitors)
         for dataset in datasets:
+            if modality in TEXT_LEAGUES and forbids_derivatives(dataset.license):
+                log.warning("skipping %s/%s: its licence %s forbids derivatives, "
+                            "so its rows could never be published", modality,
+                            dataset.dataset_id, dataset.license)
+                continue
             langs = dataset_langs(dataset)
             for competitor in competitors:
                 if not is_compatible(competitor, dataset):
@@ -678,6 +684,8 @@ class AutoRunner:
         # -> rows newly written. Defaults to the real bench engine.
         self.process_fn = process_fn or self._run_pair_batch
         self._dirty: set[tuple[str, str]] = set()
+        # (modality, dataset_id) pairs whose upload the licence check refused.
+        self._refused: set[tuple[str, str]] = set()
         self._dataset_cache: dict[tuple[str, str], object] = {}
         self._last_flush = time.monotonic()
         self._stop = False
@@ -909,7 +917,7 @@ class AutoRunner:
         last_error = getattr(result, "last_error", None)
         deadline_hit = getattr(result, "deadline_hit", False)
 
-        if written:
+        if written and (modality, dataset.dataset_id) not in self._refused:
             self._dirty.add((modality, dataset.dataset_id))
             log.info("%s: +%d rows (%d errored)", pair, written, errored)
 
@@ -946,6 +954,13 @@ class AutoRunner:
             bench_dir = self.config.output_dir / dataset_id
             mb.upload_predictions(adapter, bench_dir, dataset_id, dataset,
                                   owner=self.config.hf_owner)
+        except RestrictedLicence as exc:
+            # A retry cannot change the licence: drop the pair from the
+            # upload set instead of failing on every flush.
+            log.error("%s", exc)
+            self._refused.add(key)
+            self._dirty.discard(key)
+            return
         except Exception:
             log.exception("upload failed for %s/%s — will retry next flush",
                           modality, dataset_id)

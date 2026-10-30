@@ -47,7 +47,8 @@ def _competitor():
 
 def _eval_def():
     return SimpleNamespace(
-        source=SimpleNamespace(hf_id="PolyAI/minds14", revision="main"))
+        source=SimpleNamespace(hf_id="PolyAI/minds14", revision="main"),
+        dataset_id="minds14-pt-PT", display_name="MInDS-14", license="cc-by-4.0")
 
 
 # ---------------------------------------------------------------------------

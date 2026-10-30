@@ -35,7 +35,13 @@ from pathlib import Path
 
 from arena.version import __version__ as ARENA_VERSION
 from registry.loaders import list_competitors, load_dataset
-from runner.dataset_cards import FUNDING_BLOCK, check_funding_block
+from runner.dataset_cards import (
+    FUNDING_BLOCK,
+    check_funding_block,
+    check_redistributable,
+    hf_licence,
+    licence_section,
+)
 from runner.intent_bench import (
     HF_OWNER,
     _now_iso,
@@ -477,7 +483,7 @@ def dataset_card(
     tags = "\n".join(f"  - {t}" for t in
                      ("openvoiceos", "benchmark", "predictions", *adapter.card_tags))
     return f"""---
-license: apache-2.0
+license: {hf_licence(eval_def.license)}
 tags:
 {tags}
 pretty_name: OVOS {adapter.modality} bench — {dataset_id}
@@ -501,6 +507,8 @@ the arena §3.2 contract (pinned `dataset_revision`, `plugin_version`,
 the arena's `assemble` workflow turns these rows into benchmark boards, blind
 battle pools and a benchmark-seeded ELO ladder.
 
+{licence_section(eval_def)}
+
 {FUNDING_BLOCK}
 """
 
@@ -523,6 +531,7 @@ def upload_predictions(
     repo = results_repo_for(adapter.modality, dataset_id, owner)
     langs = sorted(d.name for d in (modality_dir / "predictions").iterdir()
                    if d.is_dir()) if (modality_dir / "predictions").is_dir() else []
+    check_redistributable(eval_def, modality_dir, repo)
     try:
         api.create_repo(repo, repo_type="dataset", exist_ok=True)
     except Exception as exc:
