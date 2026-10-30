@@ -84,7 +84,7 @@ from arena.rating import (
     fit_bradley_terry,
     to_rating_scale,
 )
-from arena.ww_listing import WakeWordListing, load_listing
+from arena.ww_listing import WakeWordListing, is_false_wake_set, load_listing
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s  %(message)s")
 log = logging.getLogger(__name__)
@@ -863,6 +863,7 @@ def cmd_assemble(args: argparse.Namespace) -> int:
         iter_predictions_dir,
         read_jsonl,
     )
+    from registry.loaders import list_competitors
     from registry.schemas import INTENT_LEAGUES, Modality
 
     data_dir = Path(args.output)
@@ -1028,6 +1029,10 @@ def cmd_assemble(args: argparse.Namespace) -> int:
     registry_dataset_revisions = _registry_dataset_revisions()
     registry_primary_metrics = _registry_primary_metrics()
     ww_phrases = _wakeword_phrases()
+    false_wake_datasets = _false_wake_datasets()
+    false_wake_ids = {d.dataset_id for d in false_wake_datasets}
+    ww_competitors = list_competitors("wake_word")
+    ww_competitors_by_id = {c.competitor_id: c for c in ww_competitors}
     unregistered_competitors: dict[str, int] = {}
     trained_on_dropped: dict[str, int] = {}
     cross_phrase_dropped: dict[str, int] = {}
@@ -1153,14 +1158,26 @@ def cmd_assemble(args: argparse.Namespace) -> int:
 
         # Benchmark boards stay per (modality, dataset, lang) — paradigm-pure, so a
         # template engine is never ranked against a keyword engine on metrics.
+        # A false wake-up corpus ranks only the fighters of featured phrases, read
+        # off the clip boards, so its boards come after every clip board of the lang.
         ranked_competitors: dict[tuple[str, str, str], set[str]] = {}
-        for (modality, dataset_id, lang), samples in sorted(grouped.items()):
+        listing: WakeWordListing | None = None
+        for (modality, dataset_id, lang), samples in sorted(
+                grouped.items(), key=lambda item: (item[0][1] in false_wake_ids, item[0])):
             if modality_scope and modality not in modality_scope:
                 continue
             by_competitor: dict[str, list] = {}
             for sample_rows in samples.values():
                 for competitor_id, row in sample_rows.items():
                     by_competitor.setdefault(competitor_id, []).append(row)
+            if modality == "ww_stream" and dataset_id in false_wake_ids:
+                if listing is None:
+                    listing = load_listing(data_dir, ww_competitors, false_wake_datasets)
+                by_competitor = {
+                    cid: rows for cid, rows in by_competitor.items()
+                    if cid in ww_competitors_by_id
+                    and listing.ranks_on_false_wake_set(ww_competitors_by_id[cid])
+                }
             board_file = f"benchmark-{modality}-{dataset_id}-{lang}.json"
             board_path = data_dir / board_file
             sample_set_ids = _load_sample_set(modality, dataset_id, lang)
@@ -1502,11 +1519,11 @@ def _wakeword_phrases() -> dict[str, str]:
     return phrases
 
 
-def _ww_negatives_dataset_ids() -> set[str]:
-    """Ids of the false-wake-up corpora: ``ww_stream`` datasets with no wake word."""
+def _false_wake_datasets() -> list:
+    """The false wake-up corpora: stream sets with no wake word."""
     from registry.loaders import list_datasets
 
-    return {d.dataset_id for d in list_datasets("ww_stream") if not d.wakeword}
+    return [d for d in list_datasets("ww_stream") if is_false_wake_set(d)]
 
 
 def _clean_merged_artifacts(data_dir: Path, modalities: set) -> None:
@@ -2372,15 +2389,14 @@ def _index_entry(path: Path, count_key: str) -> dict[str, Any]:
     return entry
 
 
-def _hidden_wake_word_board(
-    listing: WakeWordListing, negatives_ids: set[str], entry: dict[str, Any],
-) -> bool:
+def _hidden_wake_word_board(listing: WakeWordListing, entry: dict[str, Any]) -> bool:
     """Whether an index entry is a wake-word board the site leaves out: a clip
-    board or streaming board that compares no real models, or a false-wake-up
-    board with no fighter left on it."""
+    board that compares no real models, a stream board of a set that is not a
+    registered false wake-up set, or a false wake-up board of a language with no
+    listed clip board or with no fighter left on it."""
     modality, dataset_id, lang = entry["modality"], entry["dataset_id"], entry["lang"]
-    if modality == "ww_stream" and dataset_id in negatives_ids:
-        return entry["count"] == 0
+    if dataset_id in listing.false_wake_sets and entry["count"] == 0:
+        return True
     return listing.is_hidden(modality, dataset_id, lang)
 
 
@@ -2391,8 +2407,7 @@ def cmd_export_index(args: argparse.Namespace) -> int:
     from registry.loaders import list_competitors
 
     data_dir = Path(args.data_dir)
-    listing = load_listing(data_dir, list_competitors("wake_word"))
-    negatives_ids = _ww_negatives_dataset_ids()
+    listing = load_listing(data_dir, list_competitors("wake_word"), _false_wake_datasets())
     index: dict[str, Any] = {"generated_at": _now_iso()}
     for key in ("leaderboards", "benchmarks", "battles_pools", "freeform_pools"):
         index[key] = []
@@ -2401,7 +2416,7 @@ def cmd_export_index(args: argparse.Namespace) -> int:
     predictions_revisions: dict[str, str] = {}
     for path in sorted(data_dir.glob("benchmark-*.json")):
         entry = _index_entry(path, "benchmarks")
-        if _hidden_wake_word_board(listing, negatives_ids, entry):
+        if _hidden_wake_word_board(listing, entry):
             continue
         index["benchmarks"].append(entry)
         payload = json.loads(path.read_text())
@@ -2418,7 +2433,7 @@ def cmd_export_index(args: argparse.Namespace) -> int:
             index["freeform_pools"].append(_index_entry(path, "freeform_pools"))
         else:
             entry = _index_entry(path, "battles_pools")
-            if not _hidden_wake_word_board(listing, negatives_ids, entry):
+            if not _hidden_wake_word_board(listing, entry):
                 index["battles_pools"].append(entry)
     index["has_bestiary"] = (data_dir / "competitors.json").exists()
     # Only leagues with a ranked board are offered as tabs — a league whose

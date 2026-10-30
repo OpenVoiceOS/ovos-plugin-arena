@@ -16,6 +16,11 @@
   phrase, for each test-set phrase in every language with a small Vosk model
   (VOSK_MODELS). VOSK_SAMPLES lists the phrases that need other samples.
 
+Every family is written only for the featured phrases, which
+``arena.ww_listing.registry_featured_phrases`` reads off the registry and the
+assembled clip boards: a phrase the site hides gets no generic fighter, and the
+files of the phrases that drop out are removed.
+
 Output is deterministic and idempotent. Run from the repository root.
 """
 
@@ -26,9 +31,12 @@ import re
 import subprocess
 from pathlib import Path
 
-from registry.loaders import list_datasets
+from arena.ww_listing import board_positives, registry_featured_phrases
+from registry.loaders import list_competitors, list_datasets, wakeword_key
 
 OUT = Path("registry/competitors/wake_word")
+BOARDS = Path("frontend-static/public/data")
+FAMILIES = ("wakeforge-zeroshot-", "efficientword-net-", "local-wake-", "vosk-ww-")
 EFFICIENTWORD_BUNDLED = [
     "alexa",
     "balloon",
@@ -159,9 +167,12 @@ def fighter(
 
 
 def main() -> None:
+    datasets = list_datasets("wake_word")
+    featured = registry_featured_phrases(
+        datasets, list_competitors("wake_word"), board_positives(BOARDS))
     spoken = {}
-    for d in list_datasets("wake_word"):
-        if d.wakeword and d.role == "eval":
+    for d in datasets:
+        if d.wakeword and d.role == "eval" and wakeword_key(d.wakeword) in featured:
             key = d.wakeword.replace(" ", "_")
             shown = re.search(r"“(.+?)”", d.display_name or "")
             text = key.replace("_", " ") if d.lang == "en-US" or not shown else shown.group(1)
@@ -259,6 +270,8 @@ def main() -> None:
                 )
             )
     for key in EFFICIENTWORD_BUNDLED:
+        if key not in featured:
+            continue
         phrase = key.replace("_", " ")
         entries.append(
             fighter(
@@ -279,7 +292,13 @@ def main() -> None:
         (OUT / f"{entry['competitor_id']}.json").write_text(
             json.dumps(entry, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
         )
-    print(f"{len(pairs)} phrases in, {len(entries)} fighters out")
+    written = {f"{entry['competitor_id']}.json" for entry in entries}
+    stale = [p for p in sorted(OUT.glob("*.json"))
+             if p.name.startswith(FAMILIES) and p.name not in written]
+    for path in stale:
+        path.unlink()
+    print(f"{len(featured)} featured phrases, {len(pairs)} phrase sets in, "
+          f"{len(entries)} fighters out, {len(stale)} removed")
 
 
 if __name__ == "__main__":

@@ -41,3 +41,19 @@ export function datasetPhrase(board, knownPhrases) {
 
 // URL-safe key for a phrase ("hey mycroft" -> "hey_mycroft").
 export const phraseKey = p => normPhrase(p).replace(/ /g, '_');
+
+// A stream board with no wake word counts false wake-ups per hour only. It
+// tests no phrase, so it gets its own section instead of a phrase league.
+export const isFalseWakeBoard = board =>
+  board?.modality === 'ww_stream' && !normPhrase(board?.dataset_info?.wakeword);
+
+// The board's ranked fighters, fewest false wake-ups per hour first.
+export function rankByFalseWakes(board) {
+  const rate = e => e.metrics?.fa_per_hour ?? Infinity;
+  const ranked = (board.entries || []).filter(e => !e.unranked && e.metrics?.fa_per_hour != null)
+    .sort((a, b) => rate(a) - rate(b))
+    .map((e, i) => ({ ...e, rank: i + 1 }));
+  const rest = (board.entries || []).filter(e => !ranked.some(r => r.competitor_id === e.competitor_id))
+    .map(e => ({ ...e, unranked: true }));
+  return { ...board, primary_metric: 'fa_per_hour', entries: [...ranked, ...rest] };
+}

@@ -196,9 +196,7 @@ in its training data. The bench skips a `(fighter, dataset)` pair on that
 list instead of running it, the assembler drops any already-published rows
 for the pair, and the autorun scheduler never picks it — a fighter that
 never registers `trained_on` for a corpus still competes on it normally.
-The community precise-lite models (`precise-onnx-athena`, `-computer`,
-`-ey-ordenador`, `-hey-chatterbox`, `-hey-k9`, `-hey-scout`) each list the
-matching `community-*` dataset; `hey_mycroft`, `hey_robin` and `marvin`
+The precise-lite models (`hey_mycroft`, `hey_robin`, `marvin`, `sheila`)
 carry no exclusion because their training data is not one of the arena's
 registered eval corpora. Every English WakeHuBERT fighter (`wakeforge-*`)
 lists the `tigregotico-*` set of its phrase, because its card names that
@@ -219,11 +217,10 @@ trade-off, `openwakeword-hey-mycroft`, `openwakeword-hey-mycroft-silero`,
 `openwakeword-hey-mycroft-speaker` and `openwakeword-hey-mycroft-silero-speaker`
 are four different fighters in the same league.
 
-**Threshold / config variants are distinct fighters too.** The same engine at a
-different activation threshold lands a different point on the false-accept /
-false-reject curve, so each threshold is its own competitor and its own battle
-entry, `openwakeword-hey-mycroft-thr03` (sensitive) and `-thr07` (strict)
-compete alongside the 0.5 default. The VAD league registers each engine once:
+**A wake-word threshold is not a fighter.** A different activation threshold
+is one more point on the same model's false-accept / false-reject curve, so a
+threshold variant would count one model twice. Each wake-word model runs at
+its own reference threshold. The VAD league registers each engine once:
 silero-vad threshold and webrtcvad aggressiveness variants agreed with their
 default on 91 to 98 percent of clips and answered no separate question.
 
@@ -291,40 +288,31 @@ detected are no battle. As in the clip leagues, a pair contributes battles
 only when the two primary-metric CIs do not overlap, and the per-pair weight
 is capped so human votes can outweigh the seed.
 
-**Datasets**: one `ww_stream_<set>` entry per clip test set with a phrase
-(`registry/datasets/ww_stream/`), all from one corpus,
+**Datasets**: the league runs only false wake-up sets, one `ww-negatives-<lang>`
+entry (`registry/datasets/ww_stream/`) per language with a featured phrase
+(`arena/ww_listing.py`). All come from one corpus,
 [`OpenVoiceOS/ww-stream-bench`](https://huggingface.co/datasets/OpenVoiceOS/ww-stream-bench).
-Each entry streams the recording of its clip set's phrase, then the
-recordings with no wake word of the set's language. For English that is about
-20 hours: read speech, meetings, broadcasts, music, household sounds and speech
-in other languages. Each other language has about 7 hours: 4 hours of its own
-read speech, plus the first hour of the shared music, of the shared sounds and
-of the English read speech. Basque has 3 hours of read speech and 1.5 hours of
-parliament recordings. Aragonese has no open speech set of its own, so it takes
-the Spanish speech and counts it as speech in another language. The Portuguese
-read speech is half MASSIVE pt-PT and half Common Voice `pt`. Most Common Voice
-`pt` speakers who give an accent are Brazilian, so that half is mostly Brazilian
-Portuguese. Every negative row of a manifest names its `category`. The phrase
-recording holds every clip of the set, each between 3 and 6 s of speech in the
-set's language; its manifest row gives the onset and end of every clip. The
-dataset card of the corpus lists every source with its revision, its licence
-and its hours, and the sources it leaves out. A fighter trained on the clip set is
-also trained on its stream set, so `trained_on` lists both. The runner keeps
-the events of each recording per fighter config (`ww-stream-events` in the
-arena cache), so a fighter streams the shared recordings once for all its
-stream sets. `scripts/publish_ww_stream_bench.py` builds the corpus from
-pinned source revisions with a fixed seed, uploads it and writes the registry
-entries. `benchmarks/ww_stream.py --dataset ww_stream_<set>` runs it.
+Each entry holds recordings with no wake word, and its `primary_metric` is
+`fa_per_hour`. For English that is about 20 hours: read speech, meetings,
+broadcasts, music, household sounds and speech in other languages. The corpus
+also holds negatives for other languages, about 7 hours each, and a recording of
+the clips of each clip test set. Those get no registry entry. Every negative row
+of a manifest names its `category`. The dataset card of the corpus lists every
+source with its revision, its licence and its hours, and the sources it leaves
+out. The runner keeps the events of each recording per fighter config
+(`ww-stream-events` in the arena cache). `scripts/publish_ww_stream_bench.py`
+builds the corpus from pinned source revisions with a fixed seed, uploads it and
+writes the registry entries. `benchmarks/ww_stream.py --dataset ww-negatives-<lang>`
+runs it.
 
-**False-wake-up boards.** A `ww_stream` dataset with `primary_metric:
-"fa_per_hour"` holds recordings with no wake word only, and every fighter of
-its language runs on it. There is one per language,
-`ww-negatives-<lang>`, built from the same recordings as the negatives of the
-language's `ww_stream_<set>` entries, so its rows come from the events cache
-when a fighter has streamed a set of its language. Its board ranks on `fa_per_hour`, so a fighter with
-no test set for its phrase still gets a ranked number for how often it wakes
-on its own. A fighter backed by less than `MIN_NEGATIVES_BOARD_HOURS` (4 h) is
-not ranked. The per-category columns show which kind of audio woke it.
+**False-wake-up boards.** Every stream-capable fighter of the language runs on a
+`ww-negatives-<lang>` set. Its board ranks on `fa_per_hour` and holds only the
+fighters of featured phrases. The site lists it only when a listed clip board has
+the same language. Any other `ww_stream` board is hidden. The
+`mlsw-negatives-<lang>` clip sets are pools of negatives for the clip boards,
+not boards, and the site never lists them. A fighter backed by less than
+`MIN_NEGATIVES_BOARD_HOURS` (4 h) is not ranked. The per-category columns show
+which kind of audio woke it.
 
 A wake-word clip set can leave folders out with `exclude_dirs`, for example a
 generator folder that another test set already holds, so that no clip is

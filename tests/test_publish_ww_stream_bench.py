@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import importlib.util
 import io
-import json
 import sys
 from pathlib import Path
 
@@ -67,12 +66,11 @@ def test_every_set_and_fighter_phrase_is_filtered():
         "stop",
         "sam",
         "wake up",
-        "weather",
         "hey mycroft",
         "acorda",
         "liga a luz",
         "wakker worden",
-        "joao",
+        "gloria",
     ):
         assert phrase in phrases
     assert all(p == pwb.normalise(p) for p in phrases)
@@ -194,21 +192,21 @@ def test_registry_entries_are_valid_datasets():
     assert negatives.source.file_pattern == "manifest-negatives-pt-PT.jsonl"
     assert negatives.min_negative_hours == 7.0
     assert negatives.wakeword is None
-    s = {
-        "wakeword": "acorda",
-        "group": "pt-PT",
-        "lang": "pt-PT",
-        "source": "TigreGotico/x",
-        "revision": "b" * 40,
-        "onsets": 400,
-        "available": 900,
-    }
-    stream = DatasetDef(**pwb.registry_entry("tigregotico-acorda-pt", s, "a" * 40, hours))
-    assert stream.dataset_id == "ww_stream_tigregotico-acorda-pt"
-    assert stream.wakeword == "acorda" and stream.primary_metric is None
-    assert stream.test_set_kind == "synthetic"
-    assert "Portuguese speech" in stream.summary
-    assert json.dumps(pwb.registry_entry("tigregotico-acorda-pt", s, "a" * 40, hours))
+
+
+def test_the_registry_gets_the_negatives_of_featured_languages_only(tmp_path, monkeypatch):
+    monkeypatch.setattr(pwb, "ROOT", tmp_path)
+    monkeypatch.setattr(pwb, "featured_groups", lambda: {"en-US"})
+    hours = {"read_speech": 4.0, "music": 1.0}
+    pwb.write_registry(
+        {"negatives": {"en-US": hours, "pt-PT": hours}, "sets": {"tigregotico-acorda-pt": {}}},
+        "a" * 40)
+    written = sorted(p.name for p in (tmp_path / "registry/datasets/ww_stream").iterdir())
+    assert written == ["ww-negatives-en-US.json"]
+
+
+def test_the_featured_languages_derive_from_the_registry():
+    assert pwb.featured_groups() == {"en-US"}
 
 
 def test_estimates_that_run_long_load_more_rows(tmp_path, monkeypatch):
@@ -280,24 +278,10 @@ def test_upload_calls_only_what_the_installed_hub_has_and_removes_stale_files(tm
     assert deleted == [CommitOperationDelete("old/set.flac")]
 
 
-def test_entry_texts_name_the_speech_used_and_the_exact_hours():
+def test_entry_texts_name_the_exact_hours():
     eu = {"read_speech": 3.0, "broadcast": 1.5, "music": 1.0, "noise": 1.0, "foreign_speech": 1.0}
-    an = {"music": 1.0, "noise": 1.0, "foreign_speech": 5.0}
-    aragonese = {
-        "wakeword": "despierta",
-        "group": "an-ES",
-        "lang": "an-ES",
-        "source": "TigreGotico/synthetic-wakeword-despierta",
-        "revision": "0" * 40,
-        "onsets": 267,
-        "available": 267,
-    }
-
-    entry = pwb.registry_entry("tigregotico-despierta-an", aragonese, "abc", an)
     negatives = pwb.negatives_entry("eu-ES", "abc", eu)
 
-    assert "between seconds of Spanish speech" in entry["summary"]
-    assert "Aragonese speech" not in entry["summary"]
     assert negatives["summary"].startswith(f"{sum(eu.values())} hours of ")
     assert f"{sum(eu.values())} hours in all" in negatives["notes"]
     assert pwb._negatives_text({"music": 2.0}) == "2 hours of music"

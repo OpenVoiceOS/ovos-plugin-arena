@@ -63,8 +63,16 @@ const files = {
     'Picovoice benchmark — “jarvis”', wwEntries()),
   'benchmark-wake_word-sam-wake-word-en-US.json': board('wake_word', 'sam-wake-word',
     'Sam wake word', wwEntries(), { wakeword: 'positive' }),
-  'benchmark-ww_stream-ww_stream_hey_mycroft-en-US.json': board('ww_stream', 'ww_stream_hey_mycroft',
-    'Streaming wake word — “hey mycroft”', wwEntries()),
+  // A false wake-up board: no wake word, ranked by false wake-ups per hour.
+  // The entries arrive out of order so the check sees the page rank them.
+  'benchmark-ww_stream-ww-negatives-en-US.json': {
+    ...board('ww_stream', 'ww-negatives', 'False wake-ups — English', [
+      entry(1, 'myc-precise', null, { metrics: { fa_per_hour: 3.0 } }),
+      entry(2, 'jar-oww', null, { metrics: { fa_per_hour: 0.5 } }),
+      entry(3, 'myc-oww', null, { metrics: { fa_per_hour: 1.2 } }),
+    ]),
+    primary_metric: 'fa_per_hour',
+  },
   'benchmark-stt-ds-a-en-US.json': board('stt', 'ds-a', 'Dataset A', [
     entry(1, 'stt-a', 0.1, { perf: perf(0.2, 900) }), entry(2, 'stt-b', 0.3, { perf: perf(0.05, 300, 'cpu-x86') })]),
   'benchmark-stt-ds-b-en-US.json': board('stt', 'ds-b', 'Dataset B', [

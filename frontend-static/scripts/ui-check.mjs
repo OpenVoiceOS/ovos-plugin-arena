@@ -79,15 +79,29 @@ const checks = {
     expect(JSON.stringify([...words].sort()) === JSON.stringify(['hey jarvis', 'hey mycroft', 'jarvis', 'sam']),
       `wake words ${JSON.stringify(words)}`);
     const mycroft = rows.find(r => r.startsWith('“hey mycroft”'));
-    expect(/^“hey mycroft” 2 2 myc-precise/.test(mycroft), `hey mycroft row: ${mycroft}`);
-    expect(!(await page.locator('.bench').count()), 'overview still renders benchmark boards');
+    expect(/^“hey mycroft” 2 1 myc-precise/.test(mycroft), `hey mycroft row: ${mycroft}`);
+    expect(await page.locator('.bench').count() === await page.locator('.ww-false-wakes .bench').count(),
+      'overview renders a phrase benchmark board');
   },
 
-  async 'wake word page shows only that phrase, clip and stream boards'(page) {
+  async 'false wake-up board ranks every phrase by false wake-ups per hour'(page) {
+    await page.goto(`${ROOT}/leaderboard/?league=wake_word&lang=en-US`);
+    await page.waitForSelector('.ww-false-wakes .bench', { timeout: 5000 });
+    const head = await text(page, '.ww-false-wakes h2');
+    expect(head.includes('False wake-ups per hour'), `section heading "${head}"`);
+    const order = await page.$$eval('.ww-false-wakes .bench tbody tr', rows => rows.map(r =>
+      `${r.querySelector('.rank-cell').textContent.trim()} ${r.querySelector('.nm').textContent.trim()}`));
+    expect(JSON.stringify(order) === JSON.stringify(['1 jar-oww', '2 myc-oww', '3 myc-precise']),
+      `false wake-up order ${JSON.stringify(order)}`);
+    const words = await rowsOf(page, '.ww-overview tbody tr');
+    expect(!words.some(r => /negatives/.test(r)), `false wake-up board became a phrase: ${JSON.stringify(words)}`);
+  },
+
+  async 'wake word page shows only the boards of that phrase'(page) {
     await page.goto(`${ROOT}/leaderboard/?league=wake_word&lang=en-US&word=hey_mycroft`);
     await page.waitForSelector('.ds-intro', { timeout: 5000 });
     const boards = await page.$$eval('.ds-intro .ds-id', e => e.map(x => x.textContent));
-    expect(JSON.stringify(boards) === JSON.stringify(['synthetic-hey_mycroft', 'ww_stream_hey_mycroft']),
+    expect(JSON.stringify(boards) === JSON.stringify(['synthetic-hey_mycroft']),
       `boards ${JSON.stringify(boards)}`);
     const names = await page.$$eval('#lb-panels .nm a', a => [...new Set(a.map(x => x.textContent))].sort());
     expect(JSON.stringify(names) === JSON.stringify(['myc-oww', 'myc-precise']), `fighters ${JSON.stringify(names)}`);

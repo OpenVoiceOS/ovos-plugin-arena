@@ -22,7 +22,7 @@ SPELLING = {"okay_nabu": "ok_nabu"}
 
 
 def test_the_sets_loaded():
-    assert len(SETS) == 83
+    assert len(SETS) == 78
 
 
 @pytest.mark.parametrize("fighter", WAKEHUBERT, ids=lambda c: c.competitor_id)

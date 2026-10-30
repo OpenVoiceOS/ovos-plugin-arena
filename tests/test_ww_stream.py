@@ -89,7 +89,7 @@ class TestStreamDatasetEntry:
     def test_loads_and_pins_sample_rate(self):
         from registry.loaders import load_dataset
 
-        d = load_dataset("ww_stream", "ww_stream_synthetic-wakewords-hey_mycroft")
+        d = load_dataset("ww_stream", "ww-negatives-en-US")
         assert isinstance(d, DatasetDef)
         assert d.sample_rate_hz == 16000
         assert d.event_tolerance_s == EVENT_TOLERANCE_S

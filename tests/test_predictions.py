@@ -603,7 +603,7 @@ class TestHfFetchMissingRepo:
                    for r in caplog.records if r.levelname == "WARNING")
 
 
-def _stream_row(competitor_id: str, dataset_id: str = "ww_stream_synthetic-wakewords-hey_mycroft"):
+def _stream_row(competitor_id: str, dataset_id: str = "ww-negatives-en-US"):
     return {
         "competitor_id": competitor_id, "sample_id": "hey_mycroft/audio/ww_stream_00000.wav",
         "dataset_id": dataset_id, "lang": "en-US", "modality": "ww_stream",
@@ -620,22 +620,11 @@ class TestStreamRowsUseTheWakeWordPool:
         grouped = group_rows(
             [parse_row(_stream_row("precise-onnx-hey-mycroft"), "x")], unregistered=unregistered
         )
-        key = ("ww_stream", "ww_stream_synthetic-wakewords-hey_mycroft", "en-US")
+        key = ("ww_stream", "ww-negatives-en-US", "en-US")
         assert set(grouped[key]["hey_mycroft/audio/ww_stream_00000.wav"]) == {
             "precise-onnx-hey-mycroft"
         }
         assert unregistered == {}
-
-    def test_a_fighter_trained_on_the_stream_set_is_dropped(self):
-        dropped: dict[str, int] = {}
-        grouped = group_rows(
-            [parse_row(_stream_row("wakeforge-hey-mycroft-streaming"), "x")],
-            trained_on_dropped=dropped,
-        )
-        assert grouped == {}
-        assert dropped == {
-            "wakeforge-hey-mycroft-streaming/ww_stream_synthetic-wakewords-hey_mycroft": 1
-        }
 
     def test_fighter_pool(self):
         from registry.loaders import fighter_pool

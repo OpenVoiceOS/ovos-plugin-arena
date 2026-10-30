@@ -319,7 +319,7 @@ CLIP_SETS = [d for d in list_datasets(modality="wake_word")
 
 
 def test_every_eval_clip_set_carries_the_per_class_policy():
-    assert len(CLIP_SETS) == 117
+    assert len(CLIP_SETS) == 112
     off = {d.dataset_id: d.sample_policy for d in CLIP_SETS
            if d.sample_policy != SamplePolicy(max_samples=100, seed=1337)}
     assert off == {}
