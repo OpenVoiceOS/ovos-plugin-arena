@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import importlib
 import importlib.metadata
+import inspect
 import logging
 import time
 from dataclasses import dataclass
@@ -59,6 +60,11 @@ class EngineSpec:
     import_path: str  # "module:ClassName"
     train_message: str | None  # bus message that triggers training
     dist: str  # python distribution name, for plugin_version
+
+
+#: Wall-clock budget for training one fighter. Padatious needs more than 20
+#: minutes on snips and banking77.
+DEFAULT_TRAIN_TIMEOUT_SECS = 3600.0
 
 
 ENGINE_REGISTRY: dict[str, EngineSpec] = {
@@ -163,9 +169,13 @@ class IntentPipeline:
         ``{"pipeline": ["<plugin>-<tier>", …], "<plugin>": {…}, …}``.
     lang:
         BCP-47 language to train and match in.
+    train_timeout:
+        Seconds ``train()`` waits for an engine that trains in the background
+        to report itself trained before it raises.
     """
 
-    def __init__(self, intents_config: dict[str, Any], lang: str = "en-US"):
+    def __init__(self, intents_config: dict[str, Any], lang: str = "en-US",
+                 train_timeout: float = DEFAULT_TRAIN_TIMEOUT_SECS):
         # Validate the pipeline before touching the OVOS runtime so config
         # errors raise even where the engines are not installed.
         pipeline = intents_config.get("pipeline") or []
@@ -173,6 +183,7 @@ class IntentPipeline:
             raise ValueError("intents config carries no pipeline stages")
 
         self.lang = lang
+        self.train_timeout = train_timeout
         self.stages: list[tuple[str, str]] = []  # (plugin_id, tier), ordered
         for stage in pipeline:
             plugin_id, tier = split_pipeline_stage(stage)
@@ -269,6 +280,21 @@ class IntentPipeline:
                     plugin.train()
                 except TypeError:
                     pass  # train() signatures vary; bus message already fired
+            # Padatious trains on a background thread and answers "no match"
+            # until that pass lands. A deployed assistant takes its first
+            # utterance long after boot training ends, so the arena matches
+            # only once the engine reports itself trained.
+            wait_until_trained = getattr(plugin, "wait_until_trained", None)
+            if wait_until_trained is None:
+                continue
+            if "timeout" in inspect.signature(wait_until_trained).parameters:
+                trained = wait_until_trained(timeout=self.train_timeout)
+            else:
+                trained = wait_until_trained()
+            if not trained:
+                raise RuntimeError(
+                    f"{plugin_id} did not finish training within "
+                    f"{self.train_timeout}s")
 
     def _register_templates(self, bus, rows: list[dict], extra_bus=None) -> None:
         from ovos_bus_client.message import Message

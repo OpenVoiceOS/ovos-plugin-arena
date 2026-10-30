@@ -42,7 +42,11 @@ from registry.schemas import (
 )
 from runner.audio_io import resolve_sample_cap, stream_audio_dataset, stream_manifest_audio
 from runner.dataset_cards import FUNDING_BLOCK, check_funding_block
-from runner.intent_pipeline import IntentPipeline, plugin_version
+from runner.intent_pipeline import (
+    DEFAULT_TRAIN_TIMEOUT_SECS,
+    IntentPipeline,
+    plugin_version,
+)
 from runner.perf import hw_fingerprint, measure_call
 from runner.queue_tools import is_trained_on
 
@@ -87,14 +91,13 @@ def fetch_rows(dataset_def, lang: str, revision: str) -> list:
     """Fetch one language's rows for this dataset.
 
     Two source shapes exist. ``source.file_pattern`` datasets are plain
-    JSONL files under the HF repo (one per language) whose rows already
-    carry the canonical row shape (``utterance``/``expected_intent`` for
-    eval, ``intent_id``/``template`` for train) — used by datasets the
-    arena curated itself (e.g. massive-templates). Datasets absorbed
-    straight from a public HF *classification* dataset (SNIPS, BANKING77,
-    CLINC150) have no such file and are read through :mod:`datasets`
-    instead, with ``reference_fields`` mapping the source columns onto
-    the same canonical row shape.
+    JSONL files under the HF repo (one per language), read as they are and
+    renamed onto the canonical row shape (``utterance``/``expected_intent``
+    for eval, ``intent_id``/``template`` for train) through
+    ``reference_fields``. Datasets absorbed straight from a public HF
+    *classification* dataset (SNIPS, BANKING77, CLINC150) have no such file
+    and are read through :mod:`datasets` instead, with ``reference_fields``
+    mapping the source columns onto the same canonical row shape.
     """
     pattern = dataset_def.source.file_pattern
     if pattern:
@@ -106,13 +109,58 @@ def fetch_rows(dataset_def, lang: str, revision: str) -> list:
             repo_type="dataset",
             revision=revision,
         )
-        rows = [json.loads(line) for line in Path(path).read_text().splitlines()
-                if line.strip()]
+        rows = canonical_rows(dataset_def, [
+            json.loads(line) for line in Path(path).read_text().splitlines()
+            if line.strip()
+        ])
     else:
         rows = fetch_hf_classification_rows(dataset_def, lang, revision)
     if dataset_def.role == "eval":
         reject_unexpanded_utterances(dataset_def, lang, rows)
     return rows
+
+
+#: The canonical row field each ``reference_fields`` role lands in, by
+#: dataset role. The runner and the engines read only these names.
+CANONICAL_FIELDS = {
+    "eval": {
+        "utterance": "utterance",
+        "intent": "expected_intent",
+        "slots": "expected_slots",
+        "bucket": "split",
+    },
+    "train": {
+        "intent": "intent_id",
+        "template": "template",
+        "slots": "slots",
+        "domain": "domain",
+        "required_vocab": "required_vocab",
+        "optional_vocab": "optional_vocab",
+    },
+}
+
+
+def canonical_rows(dataset_def, rows: list) -> list:
+    """Rename a file-pattern corpus's columns onto the canonical row shape.
+
+    ``reference_fields`` is the registry's datashape contract: it names the
+    source column that holds each role. A corpus whose test split labels its
+    rows ``label`` would otherwise reach the scorer with no
+    ``expected_intent``, and every row would score as out-of-scope.
+    """
+    canonical = CANONICAL_FIELDS.get(dataset_def.role, {})
+    renames = {
+        source: canonical[role]
+        for role, source in dataset_def.reference_fields.items()
+        if role in canonical and source != canonical[role]
+    }
+    if not renames:
+        return rows
+    return [
+        {**row, **{target: row[source] for source, target in renames.items()
+                   if source in row}}
+        for row in rows
+    ]
 
 
 #: Template markup an OVOS intent file may carry: alternation ``(a|b)``,
@@ -466,7 +514,7 @@ def make_row(
     ``granularity`` mirrors the eval dataset's ``reference_granularity``:
     'intent' (default) requires an exact string match; 'domain' compares
     only the text before the first ':' on both sides, for corpora that
-    only carry a domain-level reference (e.g. meteocat).
+    only carry a domain-level reference.
 
     ``stt_provenance`` (audio-input datasets only) carries
     ``{"stt_plugin", "stt_config", "stt_revision"}`` — which pinned STT
@@ -700,6 +748,7 @@ def _train_and_predict(
     stt_provenance: dict | None,
     model_revision: str | None = None,
     reference_labels: set | None = None,
+    train_timeout: float = DEFAULT_TRAIN_TIMEOUT_SECS,
 ) -> int:
     """Train one fighter and predict its eval rows, appending them to ``out_path``.
 
@@ -707,7 +756,7 @@ def _train_and_predict(
     in-process (guard disabled) or as the target of a child process the
     parent's watchdog can kill outright (guard enabled).
     """
-    pipeline = IntentPipeline(intents_config, lang=lang)
+    pipeline = IntentPipeline(intents_config, lang=lang, train_timeout=train_timeout)
     log.info("  training %s for %s (stages: %s)",
              competitor.competitor_id, lang, ", ".join(pipeline.stage_names))
     pipeline.train(train_data)
@@ -880,7 +929,7 @@ def run_competitor_lang(
 
     needed = needed_paradigms(competitor)
     # The eval revision sha belongs to the EVAL repo. Train corpora may live
-    # in a different HF repo (meteocat trains from intents-for-eval), so each
+    # in a different HF repo than the eval split, so each
     # train dataset pins its own branch to its own repo's sha.
     train_data = {
         paradigm: fetch_rows(
@@ -914,6 +963,7 @@ def run_competitor_lang(
         competitor, train_data, intents_config, lang, todo, out_path,
         dataset_id, revision, eval_def.reference_granularity, stt_provenance,
         model_revision, reference_labels,
+        train_timeout_secs or DEFAULT_TRAIN_TIMEOUT_SECS,
     )
 
     if not train_timeout_secs and not train_max_rss_mb:
@@ -1077,10 +1127,10 @@ def run_benchmark(dataset_id: str, description: str, argv=None) -> int:
                         help="Upload predictions to the per-modality HF repos")
     parser.add_argument("--hf-owner", default=HF_OWNER)
     parser.add_argument(
-        "--train-timeout-secs", type=float, default=1200,
+        "--train-timeout-secs", type=float, default=DEFAULT_TRAIN_TIMEOUT_SECS,
         help=(
             "Kill a fighter's train+predict cell if it runs longer than "
-            "this many wall-clock seconds (default 20 minutes); 0 disables "
+            "this many wall-clock seconds (default 60 minutes); 0 disables "
             "the timeout guard."
         ),
     )

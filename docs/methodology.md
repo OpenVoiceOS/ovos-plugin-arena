@@ -251,8 +251,8 @@ predates `DatasetDef.bucket_roles`, whose bucket is `template`,
 
 A corpus whose buckets are all scored in therefore has nothing excluded, and its
 `generalization_accuracy` equals its `accuracy`. This is not a rare case. Every
-one of the 453 published board entries outside `intents-for-eval` is in it:
-`massive-templates` across its languages, `meteocat`, `snips`, `mtop`,
+published board entry outside `intents-for-eval` is in it:
+`massive-templates` across its languages, `snips`, `mtop`,
 `banking77` and `clinc150`, whose rows carry a plain `test` bucket, and
 `clinc150` additionally a `far_ood` one that is scored in as well. For those
 corpora the guarantee behind the ranked number is the train/test split of the

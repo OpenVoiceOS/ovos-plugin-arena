@@ -48,7 +48,7 @@ class TestRegimeDerivation:
         assert expected_league(
             ["ovos-m2v-pipeline", "ovos-padatious-pipeline-plugin"]
         ) is Modality.INTENT_OFFLINE
-        assert stages  # the same pair as the shipped m2v-first fighter
+        assert stages
 
     def test_zero_shot_stage_does_not_lift_an_online_fusion(self):
         plugins = ["ovos-m2v-prototype-pipeline", "ovos-nebulento-pipeline-plugin"]

@@ -175,7 +175,7 @@ across tiers help" from "does a strictness gradient across tiers help."
 otherwise duplicate whatever exact/near-exact matching the stage ahead of it (Padatious,
 Adapt) already provides, the same subset-duplication trap padatioso fell into below.
 
-### m2v-first, KEEP (new family: embedding-fronted)
+### m2v-first, DROP (embedding-fronted)
 
 **Composition:** `m2v-first` = `m2v-high → padatious-medium`.
 
@@ -188,7 +188,12 @@ vector distance rather than exact template/keyword structure.
 **What it measures:** `m2v-first` leads with Model2Vec dense sentence embeddings, a
 single learned similarity boundary, ahead of the Padatious backup.
 
-### kw-slot-palavreado & tmpl-slot-{nebulento,linhafina,jurebes}, KEEP (new family: replacement studies)
+**Why it is dropped:** its m2v stage loads a head with an empty `label_set`, so the
+stage can answer no corpus. It gives the same prediction as `padatious-medium` on 98.3%
+of `intents-for-eval` en-US rows. The embedding-fronted question returns with a head
+that shares labels with a registered corpus.
+
+### kw-slot-palavreado & tmpl-slot-{nebulento,linhafina,jurebes}, DROP (replacement studies)
 
 **Compositions:** `kw-slot-palavreado` = `palavreado-high → padatious-medium`;
 `tmpl-slot-{nebulento,linhafina,jurebes}` = `adapt-high → {X}-medium` for each of three
@@ -212,6 +217,13 @@ isolates the template-engine choice specifically, across all four template-parad
 engines in `ENGINE_REGISTRY`: `mycroft-classic` (Padatious) vs.
 `tmpl-slot-{nebulento,linhafina,jurebes}` (Nebulento, Linha-Fina, Jurebes with
 `mlp_shallow`, `exact_match: false`).
+
+**Why they are dropped:** the measured rows cannot tell the grid members apart from
+fighters that stay. `tmpl-slot-nebulento` is `nebulapt` without its last stage and
+scores lower. `tmpl-slot-linhafina` and `tmpl-slot-jurebes` give the same prediction as
+`linha-fina-medium` and `jurebes-mlp-shallow` on 94.3% and 92.7% of rows. The published
+`kw-slot-palavreado` rows equal `padatious-medium` on every row. `mycroft-classic` and
+`nebulapt` keep the Adapt-front question.
 
 **1 fighter per config, no kw-slot-adapt or tmpl-slot-padatious:** the "keyword engine =
 adapt" / "template engine = padatious" cell that both crossed grids need
@@ -269,15 +281,15 @@ names. **Removed** (`git rm registry/competitors/intent/padatioso.json`).
 | nebulapt | adapt-high, nebulento-medium, adapt-medium | KEEP | does strict keyword rules + fuzzy keyword matching beat either alone on noise |
 | padatioso | padacioso-high, padatious-medium | **DROP** | none, Padatious already runs padaos internally with conf=1.0 on perfect match; padacioso tests nothing padatious doesn't already do |
 | nebulacioso | padacioso-high, nebulento-low | KEEP | does a training-free exact-match + fuzzy-match fusion stand in for Padatious |
-| ovos-stock | padatious-high, adapt-high, m2v-high, adapt-medium | KEEP | faithful reproduction of the shipped ovos-core default, arena-runnable subset |
-| mycroft-classic | adapt-high, padatious-medium | KEEP | historical adapt-first/padatious-fallback order; also the shared baseline for both kw-slot and tmpl-slot replacement grids |
+| ovos-stock | padatious-high, adapt-high, m2v-high, padatious-medium, adapt-medium | KEEP | the shipped ovos-core default, reduced to its intent-classifier stages |
+| mycroft-classic | adapt-high, padatious-medium | KEEP | historical adapt-first/padatious-fallback order; the reference for an Adapt-front stage |
 | trident | padatious-high, jurebes(mlp_shallow)-medium, nebulento-low | KEEP | does an architecture-diverse 3-tier confidence cascade beat 2-engine fusions |
 | cascade-soft | linha-fina-high, palavreado-medium, nebulento-low | KEEP | does a strictness-descending (not architecture-diverse) 3-tier cascade help |
-| m2v-first | m2v-high, padatious-medium | KEEP | does a dense-embedding front door beat a template-first front door |
-| kw-slot-palavreado | palavreado-high, padatious-medium | KEEP | keyword-engine A/B: mycroft-classic (Adapt) vs Palavreado, backup+shape fixed |
-| tmpl-slot-nebulento | adapt-high, nebulento-medium | KEEP | template-engine 4-way: which backup engine recovers most, front+shape fixed |
-| tmpl-slot-linhafina | adapt-high, linha-fina-medium | KEEP | template-engine 4-way: which backup engine recovers most, front+shape fixed |
-| tmpl-slot-jurebes | adapt-high, jurebes(mlp_shallow)-medium | KEEP | template-engine 4-way: which backup engine recovers most, front+shape fixed |
+| m2v-first | m2v-high, padatious-medium | **DROP** | none, the m2v head has an empty label set; same prediction as padatious-medium on 98.3% of rows |
+| kw-slot-palavreado | palavreado-high, padatious-medium | **DROP** | none, the published rows equal padatious-medium on every row; mycroft-classic keeps the keyword-front question |
+| tmpl-slot-nebulento | adapt-high, nebulento-medium | **DROP** | none, nebulapt without its last stage, and it scores lower |
+| tmpl-slot-linhafina | adapt-high, linha-fina-medium | **DROP** | none, same prediction as linha-fina-medium on 94.3% of rows |
+| tmpl-slot-jurebes | adapt-high, jurebes(mlp_shallow)-medium | **DROP** | none, same prediction as jurebes-mlp-shallow on 92.7% of rows |
 
 ---
 [← Visual site tour](site-tour.md) · [Home](index.md)

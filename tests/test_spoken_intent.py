@@ -1,7 +1,7 @@
 """Unit tests for the spoken-intent (audio-input) datasets and runner path.
 
-No network: HF/STT calls are stubbed. Proves (1) every registered
-Speech-MASSIVE dataset def validates and carries a full STT pin, (2) the
+No network: HF/STT calls are stubbed. Proves (1) no registered intent
+dataset reads the gated Speech-MASSIVE source, (2) the
 schema rejects malformed audio-input defs, and (3) the runner transcribes
 each clip ONCE per (dataset, lang) and reuses that SAME cached transcript
 across fighters, stamping STT provenance on every row.
@@ -15,42 +15,20 @@ import pytest
 from pydantic import ValidationError
 
 import runner.intent_bench as intent_bench
-from registry.loaders import REGISTRY_ROOT, load_all_datasets, load_dataset
+from registry.loaders import load_all_datasets
 from registry.schemas import DatasetDef
-
-SPEECH_MASSIVE_LANGS = (
-    "ar-SA", "de-DE", "es-ES", "fr-FR", "hu-HU", "ko-KR",
-    "nl-NL", "pl-PL", "pt-PT", "ru-RU", "vi-VN",
-)
 
 
 class TestDatasetDefs:
-    @pytest.mark.parametrize("lang", SPEECH_MASSIVE_LANGS)
-    def test_registered_dataset_validates(self, lang):
-        d = load_dataset("intent", f"speech-massive-{lang}")
-        assert d.input == "audio"
-        assert d.stt_plugin == "ovos-stt-plugin-onnx-asr"
-        assert d.stt_config and "model" in d.stt_config
-        assert d.reference_fields["audio"] == "audio"
-        assert d.reference_fields["intent"] == "intent_str"
-        assert d.source.hf_id == "FBK-MT/Speech-MASSIVE-test"
-        assert d.source.subset == lang
-        assert d.train_datasets == {"template": "massive-templates-train"}
-        assert d.predictions_hf == (
-            f"OpenVoiceOS/ovos-intent-bench-speech-massive-{lang}"
-        )
-
-    def test_tr_tr_not_registered_v1(self):
-        path = REGISTRY_ROOT / "datasets" / "intent" / "speech-massive-tr-TR.json"
-        assert not path.exists(), (
-            "tr-TR has no pinned onnx-asr default in the STT league yet — "
-            "must stay unregistered until one exists"
-        )
-
-    def test_all_speech_massive_defs_present_in_full_registry_load(self):
-        ids = {d.dataset_id for d in load_all_datasets()}
-        for lang in SPEECH_MASSIVE_LANGS:
-            assert f"speech-massive-{lang}" in ids
+    def test_no_intent_dataset_reads_a_gated_source(self):
+        # FBK-MT/Speech-MASSIVE-test is gated: an anonymous run cannot read
+        # it, so a dataset built on it never produces a prediction.
+        gated = {
+            d.dataset_id for d in load_all_datasets()
+            if d.modality.value == "intent"
+            and d.source.hf_id == "FBK-MT/Speech-MASSIVE-test"
+        }
+        assert gated == set()
 
 
 class TestAudioInputValidator:
