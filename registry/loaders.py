@@ -386,12 +386,10 @@ def paradigm_league_repo(dataset: DatasetDef, paradigm: str) -> str:
     predictions: ``<owner>/ovos-intent-<paradigm>-bench-<dataset_id>`` (the
     ``results_repo_for`` convention).
 
-    *dataset* is the eval corpus (e.g. ``banking77``, or ``meteocat`` which
-    borrows another corpus's training data); the repo is always keyed by
-    *this* eval dataset's own id, never the training corpus's — several eval
-    datasets can share one ``intent_<paradigm>/`` training corpus (meteocat
-    and intents-for-eval both train from ``intents-for-eval-templates``) and
-    each still publishes its own predictions repo. This only confirms the
+    *dataset* is the eval corpus (e.g. ``banking77``); the repo is always
+    keyed by *this* eval dataset's own id, never the training corpus's —
+    several eval datasets can share one ``intent_<paradigm>/`` training
+    corpus and each still publishes its own predictions repo. This only confirms the
     training corpus is genuinely registered under ``intent_<paradigm>/`` —
     the directory that makes the league real — before naming the repo.
     """

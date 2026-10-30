@@ -270,7 +270,7 @@ class TestLoaders:
         zero_shot = {c.competitor_id for c in list_competitors("intent_zero_shot")}
         assert {"padatious-medium", "padacioso-medium", "nebulento-medium"} <= online
         assert {"adapt-medium", "palavreado-medium"} <= keyword
-        assert "m2v-medium" in offline
+        assert {"m2v-v5-en-2m", "ovos-stock"} <= offline
         assert "m2v-prototype" in zero_shot
 
     def test_intent_competitor_requires_pipeline(self):

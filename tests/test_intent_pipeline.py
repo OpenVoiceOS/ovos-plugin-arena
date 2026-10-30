@@ -294,3 +294,156 @@ class TestIntentTransformers:
         assert intent_id == "play_song"
         assert stage == "toy-label-pipeline-high"
         assert slots == {}
+
+
+class TestTrainingCompletes:
+    def test_padatious_matches_on_first_query_after_train(self, tmp_path, monkeypatch):
+        # Padatious compiles on a background thread and serves "no match"
+        # until the first pass lands; a query waits at most
+        # FIRST_COMPILE_WAIT_S for it. On a corpus that takes longer to
+        # train than that wait (snips, banking77), every row predicted
+        # before the pass landed scored as an abstention. Setting the wait
+        # to zero reproduces that on a corpus small enough for a unit test,
+        # and a fresh intent cache keeps the engine from loading a model a
+        # previous run trained.
+        from ovos_padatious.intent_container import IntentContainer
+
+        monkeypatch.setattr(IntentContainer, "FIRST_COMPILE_WAIT_S", 0.0)
+        pipeline = IntentPipeline(
+            {
+                "pipeline": ["ovos-padatious-pipeline-plugin-medium"],
+                "ovos-padatious-pipeline-plugin": {
+                    "intent_cache": str(tmp_path / "intent_cache"),
+                },
+            },
+            lang="en-US",
+        )
+        pipeline.train({"template": [
+            {"intent_id": "clock:time", "template": "what time is it"},
+            {"intent_id": "clock:time", "template": "tell me the time"},
+            {"intent_id": "fun:joke", "template": "tell me a joke"},
+            {"intent_id": "fun:joke", "template": "make me laugh"},
+        ]})
+
+        intent_id, _slots, _conf, _latency, stage = pipeline.predict("what time is it")
+
+        assert intent_id == "clock:time"
+        assert stage == "ovos-padatious-pipeline-plugin-medium"
+
+
+class _NeverTrains:
+    """An engine whose background training never lands."""
+
+    def __init__(self, bus, config):
+        self.trained = __import__("threading").Event()
+
+    def wait_until_trained(self, timeout=None):
+        return self.trained.wait(timeout)
+
+    def match_high(self, utterances, lang, message):
+        return None
+
+
+class _NoTimeoutWait(_NeverTrains):
+    """A wait helper that takes no timeout argument and reports success."""
+
+    def wait_until_trained(self):
+        return True
+
+
+class TestTrainingWaitTimeout:
+    @pytest.fixture
+    def engine(self, monkeypatch):
+        from registry import schemas
+        from runner import intent_pipeline as ip_mod
+
+        def register(cls_name):
+            monkeypatch.setitem(ip_mod.ENGINE_REGISTRY, "toy-train-pipeline",
+                                ip_mod.EngineSpec(f"{__name__}:{cls_name}", None, "toy"))
+            monkeypatch.setitem(schemas.ENGINE_TRAITS, "toy-train-pipeline",
+                                schemas.EngineTraits(paradigm="template",
+                                                     regime=schemas.TrainingRegime.ONLINE,
+                                                     short_name="toy"))
+            return IntentPipeline({"pipeline": ["toy-train-pipeline-high"]},
+                                  lang="en-US", train_timeout=0.2)
+        return register
+
+    def test_training_that_never_lands_raises_within_the_timeout(self, engine):
+        import time
+
+        pipeline = engine("_NeverTrains")
+        start = time.monotonic()
+        with pytest.raises(RuntimeError, match="did not finish training within 0.2s"):
+            pipeline.train(TRAIN_ROWS)
+        assert time.monotonic() - start < 2
+
+    def test_wait_helper_without_timeout_argument_is_called(self, engine):
+        pipeline = engine("_NoTimeoutWait")
+        pipeline.train(TRAIN_ROWS)  # no TypeError, no RuntimeError
+        assert pipeline.predict("play africa")[0] is None
+
+
+class _SlowLoadingM2V:
+    """Mirrors ovos-m2v-pipeline's cold start (``_ensure_model``): the model
+    loads on a background thread and a match waits ``model_load_budget``
+    (default 0.5 s) before it skips the utterance, unless ``preload_model``
+    loads it synchronously at construction."""
+
+    LOAD_SECS = 0.8
+
+    def __init__(self, bus, config):
+        import threading
+        import time
+
+        self.budget = float(config.get("model_load_budget", 0.5))
+        self.loaded = threading.Event()
+
+        def load():
+            time.sleep(self.LOAD_SECS)
+            self.loaded.set()
+
+        if config.get("preload_model", False):
+            load()
+        else:
+            threading.Thread(target=load, daemon=True).start()
+
+    def _match(self, utterances, lang, message):
+        from ovos_plugin_manager.templates.pipeline import IntentHandlerMatch
+
+        if not self.loaded.wait(self.budget):
+            return None
+        return IntentHandlerMatch(match_type="play_song", match_data={"conf": 1.0},
+                                  skill_id="arena", utterance=utterances[0])
+
+    match_high = match_medium = match_low = _match
+
+
+def _m2v_fighter_blocks():
+    from registry.loaders import load_all_competitors
+
+    for comp in load_all_competitors():
+        intents = comp.config.get("intents") or {}
+        for plugin_id in ("ovos-m2v-pipeline", "ovos-m2v-prototype-pipeline"):
+            if any(stage.startswith(f"{plugin_id}-") for stage in intents.get("pipeline", [])):
+                yield pytest.param(plugin_id, dict(intents.get(plugin_id) or {}),
+                                   id=f"{comp.competitor_id}:{plugin_id}")
+
+
+class TestM2VColdStart:
+    @pytest.mark.parametrize("plugin_id,block", list(_m2v_fighter_blocks()))
+    def test_first_query_after_train_is_answered(self, monkeypatch, plugin_id, block):
+        # A fighter's m2v block must load its model before the first query,
+        # or the first rows of a cold run score as abstentions.
+        from runner import intent_pipeline as ip_mod
+
+        monkeypatch.setitem(ip_mod.ENGINE_REGISTRY, plugin_id,
+                            ip_mod.EngineSpec(f"{__name__}:_SlowLoadingM2V", None, "toy"))
+        pipeline = IntentPipeline({"pipeline": [f"{plugin_id}-high"], plugin_id: block},
+                                  lang="en-US")
+        pipeline.train(TRAIN_ROWS)
+
+        assert pipeline.predict("play africa")[0] == "play_song"
+
+    def test_the_m2v_fighters_are_collected(self):
+        ids = {param.id.split(":")[0] for param in _m2v_fighter_blocks()}
+        assert {"ovos-stock", "m2v-prototype", "m2v-v5-en-2m"} <= ids

@@ -101,7 +101,7 @@ class TestMakeRow:
 
 
 class TestMakeRowDomainGranularity:
-    """meteocat and other domain-only corpora set granularity='domain':
+    """Domain-only corpora set granularity='domain':
     a prediction is correct as long as its domain (text before the first
     ':') matches the bare domain reference — the full intent name is
     unconstrained since these corpora carry no per-intent label."""
@@ -120,7 +120,7 @@ class TestMakeRowDomainGranularity:
     def test_domain_prediction_scores_correct(self):
         # a domain/hierarchical fighter's fired intent still carries the
         # sub-intent after the domain — e.g. "weather:current" — but
-        # meteocat only asserts the domain part.
+        # the corpus asserts only the domain part.
         row = self._row("weather:current")
         assert row["exact_match"] is True
 
@@ -176,6 +176,57 @@ class _FakeHFDataset:
         return _FakeHFDataset(
             [r for r in self._rows if predicate(r)], self.features
         )
+
+
+def _domain_only_corpus() -> DatasetDef:
+    """A classification source with no intent column, scored by domain."""
+    ds_def = load_dataset_def("intent", "banking77").model_copy(deep=True)
+    ds_def.reference_fields = {"utterance": "instruction"}
+    ds_def.domain_label = "weather"
+    return ds_def
+
+
+class TestFilePatternRows:
+    """``reference_fields`` is the registry's datashape contract, so a JSONL
+    corpus whose columns carry other names must still reach the scorer and
+    the engines under the canonical ones."""
+
+    def _fetch(self, tmp_path, ds_def, rows):
+        path = tmp_path / "rows.jsonl"
+        path.write_text("".join(json.dumps(r) + "\n" for r in rows))
+        with patch("huggingface_hub.hf_hub_download", return_value=str(path)):
+            return fetch_rows(ds_def, "en-US", "rev123")
+
+    def test_eval_label_column_becomes_expected_intent(self, tmp_path):
+        ds_def = load_dataset_def("intent", "ovos-intents-v5")
+        label = "ovos-skill-weather.openvoiceos:weather"
+        rows = self._fetch(tmp_path, ds_def, [
+            {"lang": "en-US", "label": label, "utterance": "is it raining"},
+        ])
+        assert rows[0]["expected_intent"] == label
+        # The row a fighter answers correctly scores as a hit, and an
+        # abstention scores as a miss rather than as a correct rejection.
+        comp = load_competitor("intent_online", "padatious-medium")
+        hit = make_row(comp, "ovos-intents-v5", "en-US", 0, rows[0], label,
+                       {}, None, 1.0, None, "rev123")
+        silent = make_row(comp, "ovos-intents-v5", "en-US", 0, rows[0], None,
+                          {}, None, 1.0, None, "rev123")
+        assert (hit["exact_match"], silent["exact_match"]) == (True, False)
+
+    def test_train_label_column_becomes_intent_id(self, tmp_path):
+        ds_def = load_dataset_def("intent_template", "ovos-intents-v5-templates-train")
+        label = "ovos-skill-news.openvoiceos:news"
+        rows = self._fetch(tmp_path, ds_def, [
+            {"lang": "en-US", "label": label, "template": "play the news",
+             "utterance": "play the news"},
+        ])
+        assert (rows[0]["intent_id"], rows[0]["template"]) == (label, "play the news")
+
+    def test_canonical_corpus_rows_untouched(self, tmp_path):
+        ds_def = load_dataset_def("intent", "intents-for-eval")
+        row = {"utterance": "play a song", "expected_intent": "media:play_song",
+               "expected_slots": {}, "split": "template"}
+        assert self._fetch(tmp_path, ds_def, [row]) == [row]
 
 
 class TestFetchHFClassificationRows:
@@ -282,10 +333,10 @@ class TestFetchHFClassificationRows:
                 raise AssertionError("expected ValueError")
 
     def test_domain_label_supplies_constant_reference_when_no_intent_column(self):
-        """meteocat has no per-intent label column at all — every row's
-        reference comes from domain_label instead of reference_fields['intent']."""
-        ds_def = load_dataset_def("intent", "meteocat")
-        assert ds_def.reference_fields.get("intent") is None
+        """A domain-only corpus has no per-intent label column at all — every
+        row's reference comes from domain_label instead of
+        reference_fields['intent']."""
+        ds_def = _domain_only_corpus()
         rows = [
             {"instruction": "Quin temps farà demà a Girona?"},
             {"instruction": "Plourà aquesta tarda a Vic?"},
@@ -303,7 +354,7 @@ class TestFetchHFClassificationRows:
     def test_missing_intent_and_domain_label_still_raises(self):
         """Without an intent column AND without domain_label set, the
         source genuinely has no usable reference — still an error."""
-        ds_def = load_dataset_def("intent", "meteocat").model_copy(deep=True)
+        ds_def = _domain_only_corpus()
         ds_def.domain_label = None
         with patch("datasets.load_dataset"):
             try:

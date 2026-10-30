@@ -49,7 +49,6 @@ PIPELINE_TO_COMPETITOR: dict[str, str] = {
     "jurebes_only": "jurebes-medium",
     "adapt_only": "adapt-medium",
     "palavreado_only": "palavreado-medium",
-    "m2v_only": "m2v-medium",
 }
 
 # Legacy dataset dir name -> arena dataset_id.
