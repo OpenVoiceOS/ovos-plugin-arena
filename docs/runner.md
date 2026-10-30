@@ -48,7 +48,7 @@ its `registry/datasets/<modality>/<id>.json` entry caps the row count and
 pins a deterministic subset — the corpus rows are shuffled with that seed and
 truncated to `max_samples`, so every fighter and every run draw the exact
 same rows for that dataset. Large corpora that would otherwise stream
-whole-corpus sweeps (VoxPopuli, MLS, mTEDx, Speech-MASSIVE, and the pooled
+whole-corpus sweeps (VoxPopuli, MLS, Speech-MASSIVE, and the pooled
 `ml_spoken_words` wake-word negatives) carry a policy; small curated eval
 sets are left uncapped and stream in full.
 

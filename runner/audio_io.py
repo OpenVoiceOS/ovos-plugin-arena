@@ -113,22 +113,28 @@ def decode_audio_bytes(raw_bytes: bytes, target_sr: int = TARGET_SR):
 
 def _parquet_files(hf_repo: str, subset: str | None, split: str,
                    revision: str) -> list[str]:
+    """Return the parquet shards of one *split* of one *subset*, sorted.
+
+    Every candidate prefix names the split, so shards of another split or
+    another subset are never read. A listing with no match raises instead
+    of falling back to every parquet file of the repo.
+    """
     from huggingface_hub import HfApi
 
     files = list(HfApi().list_repo_files(hf_repo, repo_type="dataset",
                                          revision=revision))
-    for prefix in (f"{subset}/{split}-" if subset else f"{split}-",
-                   # directory-per-split layout, e.g. HF's own
-                   # refs/convert/parquet auto-conversion of a loading-script
-                   # dataset: "<subset>/<split>/0000.parquet" rather than the
-                   # flat "<subset>/<split>-0000.parquet" default naming.
-                   f"{subset}/{split}/" if subset else f"{split}/",
-                   f"data/{subset}/" if subset else "data/",
-                   f"data/{split}-", f"{split}-"):
+    base = f"{subset}/" if subset else ""
+    # Flat "<subset>/<split>-0000.parquet" is the default naming. The
+    # directory-per-split layout "<subset>/<split>/0000.parquet" is HF's own
+    # refs/convert/parquet auto-conversion of a loading-script dataset.
+    for prefix in (f"{base}{split}-", f"{base}{split}/",
+                   f"data/{base}{split}-", f"data/{base}{split}/"):
         hits = [f for f in files if f.startswith(prefix) and f.endswith(".parquet")]
         if hits:
             return sorted(hits)
-    return sorted(f for f in files if f.endswith(".parquet"))
+    raise RuntimeError(
+        f"no parquet files for {hf_repo}@{revision} subset={subset} split={split}"
+    )
 
 
 def _sample_id(sample: dict, audio_cell, audio_key: str,
@@ -684,11 +690,6 @@ def resolve_parquet_locals(
     from huggingface_hub import hf_hub_download
 
     files = _parquet_files(source.hf_id, source.subset, source.split, revision)
-    if not files:
-        raise RuntimeError(
-            f"no parquet files for {source.hf_id} "
-            f"subset={source.subset} split={source.split}"
-        )
     kwargs = {} if etag_timeout is None else {"etag_timeout": etag_timeout}
     return [hf_hub_download(source.hf_id, pfile, repo_type="dataset",
                             revision=revision, **kwargs) for pfile in files]

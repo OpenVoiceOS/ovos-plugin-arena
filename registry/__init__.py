@@ -8,7 +8,7 @@ Usage::
 
     from registry import load_competitor, load_dataset, list_competitors
 
-    comp = load_competitor("stt", "fasterwhisper-small-pt")
+    comp = load_competitor("stt", "fasterwhisper-small-en")
     ds   = load_dataset("stt", "minds14-pt-PT")
     all_stt = list_competitors("stt")
 """
