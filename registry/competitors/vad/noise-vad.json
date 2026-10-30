@@ -6,13 +6,11 @@
     "listener": {
       "VAD": {
         "module": "ovos-vad-plugin-noise",
-        "max_current_ratio_threshold": 2.0,
         "energy_threshold": 1000.0,
-        "method": "all",
+        "method": "threshold",
         "ovos-vad-plugin-noise": {
-          "max_current_ratio_threshold": 2.0,
           "energy_threshold": 1000.0,
-          "method": "all"
+          "method": "threshold"
         }
       }
     }
@@ -23,10 +21,10 @@
   "types": [
     "GOFAI"
   ],
-  "description": "The classic energy/denoise VAD extracted from the old ovos-listener: speech is audio whose max/current energy ratio falls below a threshold. No model, CPU-only.",
-  "model": "energy ratio (max_current_ratio_threshold 2.0)",
+  "description": "The classic energy/denoise VAD extracted from the old ovos-listener: speech is a frame whose debiased RMS energy reaches a fixed threshold. No model, CPU-only.",
+  "model": "energy threshold (energy_threshold 1000)",
   "links": {
     "source": "https://github.com/OpenVoiceOS/ovos-vad-plugin-noise"
   },
-  "notes": "Energy-based VAD; the ratio/energy thresholds are config. A different threshold is a different competitor on the false-accept / false-reject curve."
+  "notes": "Runs the plugin's threshold method. The shipped all method compares each frame with the loudest frame since reset(); the bench resets the engine before every clip, so under that method the first frame of every clip is speech."
 }

@@ -2,43 +2,59 @@
 """Generate arena TTS fighter files for every voice in the phoonnx voice_index.
 
 Source of truth: ``phoonnx/voice_index/*.json`` (one file per engine family,
-mapping voice_id -> voice metadata). This script covers the installed
-phoonnx package if it ships a ``voice_index/`` dir; otherwise falls back to
-the phoonnx dev checkout at
-``/home/miro/AgentWorkspaces/ovos/phoonnx/phoonnx/voice_index``.
+mapping voice_id -> voice metadata). ``--voice-index DIR`` names the
+directory to read; without it the script reads the installed phoonnx
+package if it ships a ``voice_index/`` dir, otherwise the phoonnx dev
+checkout at ``/home/miro/AgentWorkspaces/ovos/phoonnx/phoonnx/voice_index``.
 
 22 fighters for OpenVoiceOS/phoonnx_* voices (the OVOS.json family) already
 exist by hand in registry/competitors/tts/ — those are left untouched and
 matching voice_index entries are skipped (matched by ``model``/``voice_id``).
 
+One voice becomes one fighter. The index lists some model files under more
+than one voice_id (a curated community entry, a stock piper entry and a
+mechanical ``hf_community`` scrape of the same upload). Voices are keyed on
+the Hugging Face LFS sha256 of their ``model_url`` plus their languages and
+voice-selection fields, and only the preferred voice_id of each key becomes a
+fighter (see ``voice_rank``). A voice whose model file cannot be resolved
+anonymously on the Hub can never run, so it gets no fighter. Neither does a
+voice whose languages no registered TTS prompt set holds: the bench has no
+text for it to read, and the voice returns once a prompt set covers its
+language (matched by ``runner.media_bench._lang_matches``). Generated files
+that the current index no longer produces are removed.
+
 Output is deterministic (sorted by competitor_id) and idempotent.
 """
 from __future__ import annotations
 
+import argparse
 import json
 import os
 import re
 import sys
-
-try:
-    import phoonnx  # type: ignore
-    _INSTALLED_DIR = os.path.join(os.path.dirname(phoonnx.__file__), "voice_index")
-except Exception:
-    _INSTALLED_DIR = None
+from collections.abc import Callable, Iterable
 
 _FALLBACK_DIR = "/home/miro/AgentWorkspaces/ovos/phoonnx/phoonnx/voice_index"
 
-if _INSTALLED_DIR and os.path.isdir(_INSTALLED_DIR):
-    VOICE_INDEX_DIR = _INSTALLED_DIR
-    SOURCE_NOTE = f"installed phoonnx package ({VOICE_INDEX_DIR})"
-elif os.path.isdir(_FALLBACK_DIR):
-    VOICE_INDEX_DIR = _FALLBACK_DIR
-    SOURCE_NOTE = f"phoonnx dev checkout fallback ({VOICE_INDEX_DIR})"
-else:
-    print("ERROR: no voice_index directory found (installed or dev checkout)", file=sys.stderr)
-    sys.exit(1)
+
+def resolve_voice_index_dir(override: str | None) -> str:
+    """The voice_index directory to read: the override, the package, the checkout."""
+    if override:
+        return override
+    try:
+        import phoonnx  # type: ignore
+
+        installed = os.path.join(os.path.dirname(phoonnx.__file__), "voice_index")
+        if os.path.isdir(installed):
+            return installed
+    except ImportError:
+        pass
+    return _FALLBACK_DIR
+
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if REPO_ROOT not in sys.path:
+    sys.path.insert(0, REPO_ROOT)
 TTS_DIR = os.path.join(REPO_ROOT, "registry", "competitors", "tts")
 
 FAMILY_SPECIES = {
@@ -132,6 +148,22 @@ def short_voice_name(voice_id: str) -> str:
 
 _lang_cache: dict[str, list[str]] = {}
 
+# Index tags that miss the language a voice reads. The prompt sets use the
+# written-standard code: Norwegian Bokmål for ``no``, Azerbaijani for the
+# Latin-script North Azerbaijani voice, Swahili for the ``swh`` voice.
+TAG_FIXES = {
+    "no-NO": "nb-NO",
+    "azj-Latn": "az-AZ",
+    "swh": "sw-TZ",
+    # CLDR aliases tl to fil; the prompt sets hold Tagalog as tl-PH.
+    "tl": "tl-PH",
+}
+
+# Voices the index tags ``mul``: the languages the checkpoint is trained on.
+VOICE_LANGS = {
+    "f5tts/v1-base": ["en-US", "zh-CN"],
+}
+
 
 def normalize_langs(lang_field) -> list[str]:
     """Expand bare language codes to full BCP-47 tags via langcodes.
@@ -151,7 +183,7 @@ def normalize_langs(lang_field) -> list[str]:
         part = part.strip()
         if not part:
             continue
-        out.append(_normalize_one(part))
+        out.append(TAG_FIXES.get(part) or _normalize_one(part))
     # dedupe, preserve order
     seen = set()
     result = []
@@ -246,103 +278,256 @@ def load_existing_models() -> set[str]:
     return existing
 
 
-def main() -> None:
+# A curated community upload is the original; a stock ``piper/`` entry that
+# claims the same file comes next; a re-upload of another author's voice and
+# the mechanical ``hf_community`` scrape come last.
+REUPLOADERS = frozenset({"brycebeattie"})
+
+# Fields that name where a voice's files live or how it is labelled, not
+# which voice it is.
+_NON_IDENTITY_FIELDS = frozenset({"voice_id", "model_url", "config_url", "display_name", "lang"})
+
+_HF_RESOLVE = re.compile(r"^https://huggingface\.co/([^/]+/[^/]+)/resolve/([^/]+)/(.+)$")
+
+
+def voice_rank(voice_id: str) -> tuple[int, str]:
+    """Sort key among voice_ids that share one model file: lowest is kept."""
+    prefix, _, rest = voice_id.partition("/")
+    if prefix == "hf_community":
+        rank = 3
+    elif prefix == "piper_community" and rest.split("/")[0].lower() in REUPLOADERS:
+        rank = 2
+    elif prefix == "piper":
+        rank = 1
+    else:
+        rank = 0
+    return rank, voice_id
+
+
+def fetch_model_sha256(model_urls: Iterable[str]) -> dict[str, str | None]:
+    """LFS sha256 of each Hub ``resolve`` URL; None when it is not reachable anonymously.
+
+    Only a missing, private or gated repo counts as unreachable. Any other
+    error (a rate limit, a server error, no network) propagates, so a
+    transient failure stops the run before it removes any fighter.
+    """
+    from huggingface_hub import HfApi
+    from huggingface_hub.errors import (
+        HfHubHTTPError,
+        RepositoryNotFoundError,
+        RevisionNotFoundError,
+    )
+
+    api = HfApi(token=False)
+    wanted: dict[tuple[str, str], dict[str, str]] = {}
+    shas: dict[str, str | None] = {}
+    for url in model_urls:
+        shas[url] = None
+        match = _HF_RESOLVE.match(url)
+        if match:
+            repo, revision, path = match.groups()
+            wanted.setdefault((repo, revision), {})[path] = url
+    for (repo, revision), by_path in sorted(wanted.items()):
+        paths = sorted(by_path)
+        for start in range(0, len(paths), 100):
+            try:
+                infos = api.get_paths_info(repo, paths[start : start + 100], revision=revision)
+            except (RepositoryNotFoundError, RevisionNotFoundError) as exc:
+                print(f"  {repo}@{revision}: not reachable ({type(exc).__name__})")
+                break
+            except HfHubHTTPError as exc:
+                status = exc.response.status_code if exc.response is not None else None
+                if status not in (401, 403, 404):
+                    raise
+                print(f"  {repo}@{revision}: not reachable (HTTP {status})")
+                break
+            for info in infos:
+                lfs = getattr(info, "lfs", None)
+                shas[by_path[info.path]] = lfs.sha256 if lfs else info.blob_id
+    return shas
+
+
+def _primary_language(tag: str) -> str:
+    """Primary subtag after folding individual languages into their macrolanguage."""
+    import langcodes
+
+    return langcodes.standardize_tag(tag, macro=True).split("-")[0]
+
+
+def dedupe_voices(
+    voices: list[tuple[str, dict, list[str]]],
+    model_sha256: Callable[[str], str | None],
+) -> tuple[list[str], dict[str, str], list[str]]:
+    """Split ``(voice_id, meta, langs)`` entries into kept, duplicate and unreachable.
+
+    Two voices are one voice when their model file has the same sha256, they
+    read the same languages and every voice-selection field matches. A piper
+    model reads one language whatever its tag says, so piper voices compare
+    on the primary language; other engines take the tag as a model input
+    (one chatterbox model speaks ten Arabic dialects by region). Returns
+    the kept voice_ids, a map from each dropped duplicate to the voice_id
+    kept in its place, and the voice_ids whose model file is unreachable.
+    """
+    groups: dict[str, list[str]] = {}
+    unreachable = []
+    for voice_id, meta, langs in voices:
+        sha = model_sha256(meta.get("model_url") or "")
+        if sha is None:
+            unreachable.append(voice_id)
+            continue
+        if meta.get("engine") == "piper":
+            lang_key = sorted({_primary_language(tag) for tag in langs})
+        else:
+            lang_key = sorted(langs)
+        selection = {k: v for k, v in meta.items() if k not in _NON_IDENTITY_FIELDS}
+        key = json.dumps([sha, lang_key, selection], sort_keys=True)
+        groups.setdefault(key, []).append(voice_id)
+    kept, duplicates = [], {}
+    for ids in groups.values():
+        keep, *drops = sorted(ids, key=voice_rank)
+        kept.append(keep)
+        duplicates.update({drop: keep for drop in drops})
+    return sorted(kept), duplicates, sorted(unreachable)
+
+
+def prompt_languages() -> list[str]:
+    """Every language a registered TTS prompt set holds text for."""
+    from registry.loaders import list_datasets
+
+    return sorted({lang for dataset in list_datasets("tts") for lang in dataset.langs or []})
+
+
+def has_prompts(langs: list[str], prompt_langs: list[str]) -> bool:
+    """True if the bench would run a voice with these langs on some prompt set."""
+    from runner.media_bench import _lang_matches
+
+    return any(_lang_matches(lang, p) for lang in langs for p in prompt_langs)
+
+
+def build_fighter(family: str, voice_id: str, meta: dict, langs: list[str]) -> dict:
+    """The registry fighter for one voice_index entry."""
+    family_display = FAMILY_DISPLAY.get(family, family)
+    description_base = DESCRIPTIONS.get(
+        family,
+        _DESCRIPTION_PREFIX + f"a {family_display} voice.",
+    )
+    engine = meta.get("engine", family)
+    phoneme_type = meta.get("phoneme_type")
+    alphabet = meta.get("alphabet")
+    model_url = meta.get("model_url")
+    config_url = meta.get("config_url")
+
+    notes_bits = [f"Voice '{voice_id}' from the phoonnx voice_index ({family} family)."]
+    if phoneme_type:
+        notes_bits.append(f"phoneme_type={phoneme_type}.")
+    if alphabet:
+        notes_bits.append(f"alphabet={alphabet}.")
+
+    links = {"source": "https://github.com/TigreGotico/phoonnx"}
+    if model_url:
+        links["model"] = model_url
+    if config_url:
+        links["config"] = config_url
+
+    return {
+        "competitor_id": f"phoonnx-{slugify(family)}-{slugify(voice_id)}",
+        "modality": "tts",
+        "plugin": "ovos-tts-plugin-phoonnx",
+        "config": {
+            "tts": {
+                "module": "ovos-tts-plugin-phoonnx",
+                "ovos-tts-plugin-phoonnx": {
+                    "voice": voice_id,
+                },
+            }
+        },
+        "langs": langs,
+        "display_name": f"Phoonnx {family_display} ({short_voice_name(voice_id)})",
+        "species": FAMILY_SPECIES.get(family, f"Phoonnx{family.title().replace('_', '')}"),
+        "types": ["neural-net"],
+        "description": f"{description_base} Engine: {engine}.",
+        "model": voice_id,
+        "links": links,
+        "notes": " ".join(notes_bits),
+    }
+
+
+def main(argv: list[str] | None = None) -> None:
+    parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    parser.add_argument("--voice-index", help="phoonnx voice_index directory to read")
+    args = parser.parse_args(argv)
+
+    voice_index_dir = resolve_voice_index_dir(args.voice_index)
+    if not os.path.isdir(voice_index_dir):
+        print(f"ERROR: no voice_index directory at {voice_index_dir}", file=sys.stderr)
+        sys.exit(1)
+
     os.makedirs(TTS_DIR, exist_ok=True)
     existing_models = load_existing_models()
 
-    fighters: dict[str, dict] = {}
+    entries: dict[str, tuple[str, dict, list[str]]] = {}
     skipped = 0
-    per_family_count: dict[str, int] = {}
-    per_family_skipped: dict[str, int] = {}
-
-    for fname in sorted(os.listdir(VOICE_INDEX_DIR)):
+    for fname in sorted(os.listdir(voice_index_dir)):
         if not fname.endswith(".json"):
             continue
         family = fname[: -len(".json")]
-        path = os.path.join(VOICE_INDEX_DIR, fname)
-        with open(path) as f:
+        with open(os.path.join(voice_index_dir, fname)) as f:
             voices = json.load(f)
-
-        species = FAMILY_SPECIES.get(family, f"Phoonnx{family.title().replace('_', '')}")
-        family_display = FAMILY_DISPLAY.get(family, family)
-        description_base = DESCRIPTIONS.get(
-            family,
-            _DESCRIPTION_PREFIX + f"a {family_display} voice.",
-        )
-
         for voice_id, meta in voices.items():
             if voice_id in existing_models:
                 skipped += 1
-                per_family_skipped[family] = per_family_skipped.get(family, 0) + 1
                 continue
+            langs = VOICE_LANGS.get(voice_id) or normalize_langs(meta.get("lang"))
+            entries[voice_id] = (family, meta, langs)
 
-            competitor_id = f"phoonnx-{slugify(family)}-{slugify(voice_id)}"
-            langs = normalize_langs(meta.get("lang"))
-            short_name = short_voice_name(voice_id)
-            display_name = f"Phoonnx {family_display} ({short_name})"
+    shas = fetch_model_sha256(meta.get("model_url") or "" for _, meta, _ in entries.values())
+    kept, duplicates, unreachable = dedupe_voices(
+        [(voice_id, meta, langs) for voice_id, (_, meta, langs) in entries.items()],
+        shas.get,
+    )
 
-            engine = meta.get("engine", family)
-            phoneme_type = meta.get("phoneme_type")
-            alphabet = meta.get("alphabet")
-            model_url = meta.get("model_url")
-            config_url = meta.get("config_url")
+    prompt_langs = prompt_languages()
+    no_prompts = [v for v in kept if not has_prompts(entries[v][2], prompt_langs)]
 
-            notes_bits = [f"Voice '{voice_id}' from the phoonnx voice_index ({family} family)."]
-            if phoneme_type:
-                notes_bits.append(f"phoneme_type={phoneme_type}.")
-            if alphabet:
-                notes_bits.append(f"alphabet={alphabet}.")
-
-            links = {"source": "https://github.com/TigreGotico/phoonnx"}
-            if model_url:
-                links["model"] = model_url
-            if config_url:
-                links["config"] = config_url
-
-            fighter = {
-                "competitor_id": competitor_id,
-                "modality": "tts",
-                "plugin": "ovos-tts-plugin-phoonnx",
-                "config": {
-                    "tts": {
-                        "module": "ovos-tts-plugin-phoonnx",
-                        "ovos-tts-plugin-phoonnx": {
-                            "voice": voice_id,
-                        },
-                    }
-                },
-                "langs": langs,
-                "display_name": display_name,
-                "species": species,
-                "types": ["neural-net"],
-                "description": f"{description_base} Engine: {engine}.",
-                "model": voice_id,
-                "links": links,
-                "notes": " ".join(notes_bits),
-            }
-            fighters[competitor_id] = fighter
-            per_family_count[family] = per_family_count.get(family, 0) + 1
+    fighters = {}
+    for voice_id in sorted(set(kept) - set(no_prompts)):
+        family, meta, langs = entries[voice_id]
+        fighter = build_fighter(family, voice_id, meta, langs)
+        fighters[fighter["competitor_id"]] = fighter
 
     written = 0
     for competitor_id in sorted(fighters):
-        fighter = fighters[competitor_id]
         out_path = os.path.join(TTS_DIR, f"{competitor_id}.json")
-        new_content = json.dumps(fighter, indent=2, sort_keys=False) + "\n"
+        new_content = json.dumps(fighters[competitor_id], indent=2, sort_keys=False) + "\n"
         if os.path.exists(out_path):
             with open(out_path) as f:
-                old_content = f.read()
-            if old_content == new_content:
-                continue
+                if f.read() == new_content:
+                    continue
         with open(out_path, "w") as f:
             f.write(new_content)
         written += 1
 
-    print(f"voice_index source: {VOICE_INDEX_DIR} ({SOURCE_NOTE})")
-    print(f"Generated {len(fighters)} fighters, wrote/updated {written} files")
-    print(f"Skipped {skipped} entries already covered by existing fighters")
-    print("Per-family generated counts:")
-    for fam in sorted(per_family_count):
-        print(f"  {fam}: {per_family_count[fam]} (skipped {per_family_skipped.get(fam, 0)})")
+    removed = 0
+    for fn in sorted(os.listdir(TTS_DIR)):
+        if not fn.endswith(".json") or fn[: -len(".json")] in fighters:
+            continue
+        path = os.path.join(TTS_DIR, fn)
+        with open(path) as f:
+            data = json.load(f)
+        if GENERATED_NOTES_MARKER in (data.get("notes") or ""):
+            os.remove(path)
+            removed += 1
+
+    print(f"voice_index source: {voice_index_dir}")
+    print(f"Read {len(entries)} voices, skipped {skipped} covered by hand-authored fighters")
+    print(f"Dropped {len(duplicates)} duplicate voices (same model file, langs and selection):")
+    for drop in sorted(duplicates):
+        print(f"  {drop} -> {duplicates[drop]}")
+    print(f"Dropped {len(unreachable)} voices whose model file is not reachable anonymously:")
+    for voice_id in unreachable:
+        print(f"  {voice_id}")
+    print(f"Dropped {len(no_prompts)} voices whose languages no TTS prompt set holds")
+    print(f"Generated {len(fighters)} fighters, wrote/updated {written}, removed {removed} files")
 
 
 if __name__ == "__main__":
