@@ -68,7 +68,7 @@ const PAGES = [
   ['/pareto/', 'cost vs. quality'],
   ['/matchups/', 'matchup heatmap'],
   ['/battle/', 'battle (blind vote flow)'],
-  ['/fighter/chromium-stt-en/', 'fighter detail'],
+  ['/fighter/vosk-small-en/', 'fighter detail'],
   ['/fighters/', 'fighters bestiary'],
   ['/methodology/', 'methodology'],
   ['/patch-notes/', 'patch notes'],

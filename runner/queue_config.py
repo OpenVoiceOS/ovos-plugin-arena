@@ -27,8 +27,9 @@ Supported job shapes (all produce a ``JobSpec``):
    .. code-block:: yaml
 
        jobs:
-         - competitor: fasterwhisper-small-pt    # competitors/stt/<id>.json
+         - competitor: fasterwhisper-small-en    # competitors/stt/<id>.json
            dataset_ref: minds14-pt-PT            # datasets/stt/<id>.json
+           lang: pt-PT                           # the dataset's language
            hf_output_dataset: OpenVoiceOS/ovos-stt-bench-pt-PT
            max_samples: 200                       # optional cap
 

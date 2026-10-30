@@ -120,29 +120,9 @@ def _decode_audio_bytes(raw_bytes: bytes, target_sr: int = 16000):
 
 def _list_parquet_files(hf_repo: str, subset: str | None, split: str) -> list:
     """Return list of parquet file paths for a HF dataset split."""
-    from huggingface_hub import HfApi
-    api = HfApi()
-    try:
-        files = list(api.list_repo_files(hf_repo, repo_type="dataset"))
-    except Exception as e:
-        raise RuntimeError(f"Cannot list files in {hf_repo}: {e}") from e
+    from runner.audio_io import _parquet_files
 
-    # Try prefix patterns: subset/split-*.parquet or data/split-*.parquet
-    candidates = []
-    for pattern_prefix in [
-        f"{subset}/{split}-" if subset else f"{split}-",
-        f"data/{split}-",
-        f"{split}-",
-    ]:
-        candidates = [f for f in files if f.startswith(pattern_prefix) and f.endswith(".parquet")]
-        if candidates:
-            break
-
-    if not candidates:
-        # Fallback: any parquet file
-        candidates = [f for f in files if f.endswith(".parquet")]
-
-    return sorted(candidates)
+    return _parquet_files(hf_repo, subset, split, "main")
 
 
 def _stream_dataset(spec: DatasetSpec) -> Iterator[tuple[str, str, object, int]]:

@@ -229,14 +229,14 @@ class TestDatasetDefSchema:
 
 class TestLoaders:
     def test_load_competitor_stt(self):
-        comp = load_competitor("stt", "fasterwhisper-small-pt")
-        assert comp.competitor_id == "fasterwhisper-small-pt"
+        comp = load_competitor("stt", "fasterwhisper-small-en")
+        assert comp.competitor_id == "fasterwhisper-small-en"
         assert comp.modality == Modality.STT
         assert comp.plugin == "ovos-stt-plugin-fasterwhisper"
 
     def test_load_competitor_stt_base(self):
-        comp = load_competitor("stt", "fasterwhisper-base-pt")
-        assert comp.competitor_id == "fasterwhisper-base-pt"
+        comp = load_competitor("stt", "fasterwhisper-base-en")
+        assert comp.competitor_id == "fasterwhisper-base-en"
         assert "base" in comp.config.get("model", "")
 
     def test_load_competitor_intent(self):
@@ -317,8 +317,8 @@ class TestLoaders:
     def test_list_competitors_stt(self):
         comps = list_competitors("stt")
         ids = [c.competitor_id for c in comps]
-        assert "fasterwhisper-small-pt" in ids
-        assert "fasterwhisper-base-pt" in ids
+        assert "fasterwhisper-small-en" in ids
+        assert "fasterwhisper-base-en" in ids
 
     def test_list_competitors_all(self):
         all_comps = list_competitors()
@@ -515,19 +515,21 @@ class TestQueueConfigRegistry:
         q = tmp_path / "queue.yaml"
         q.write_text(textwrap.dedent("""\
             jobs:
-              - competitor: fasterwhisper-small-pt
+              - competitor: fasterwhisper-small-en
                 dataset_ref: minds14-pt-PT
+                lang: pt-PT
                 hf_output_dataset: OpenVoiceOS/ovos-stt-bench-pt-PT
                 max_samples: 50
         """))
         jobs = load_queue(q, registry_root=REGISTRY_ROOT)
         assert len(jobs) == 1
         j = jobs[0]
-        assert j.competitor_id == "fasterwhisper-small-pt"
+        assert j.competitor_id == "fasterwhisper-small-en"
         assert j.dataset_registry_id == "minds14-pt-PT"
         assert j.plugin.plugin_name == "ovos-stt-plugin-fasterwhisper"
         assert j.plugin.model_name == "small"
-        assert j.plugin.competitor_id == "fasterwhisper-small-pt"
+        assert j.plugin.competitor_id == "fasterwhisper-small-en"
+        assert j.plugin.lang == "pt-PT"
         assert j.dataset.hf_repo == "PolyAI/minds14"
         assert j.dataset.max_samples == 50
 
@@ -540,7 +542,7 @@ class TestQueueConfigRegistry:
         q = tmp_path / "queue.yaml"
         q.write_text(textwrap.dedent("""\
             jobs:
-              - competitor: fasterwhisper-base-pt
+              - competitor: fasterwhisper-base-en
                 dataset:
                   hf_repo: PolyAI/minds14
                   subset: pt-PT
