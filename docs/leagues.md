@@ -223,8 +223,9 @@ are four different fighters in the same league.
 different activation threshold lands a different point on the false-accept /
 false-reject curve, so each threshold is its own competitor and its own battle
 entry, `openwakeword-hey-mycroft-thr03` (sensitive) and `-thr07` (strict)
-compete alongside the 0.5 default. The same holds for VAD thresholds
-(`silero-vad-thr03` / `-thr07`) and webrtcvad aggressiveness (`webrtcvad-mode1`).
+compete alongside the 0.5 default. The VAD league registers each engine once:
+silero-vad threshold and webrtcvad aggressiveness variants agreed with their
+default on 91 to 98 percent of clips and answered no separate question.
 
 ## Streaming wake-word league (`ww_stream`), §A3.2 / R15
 

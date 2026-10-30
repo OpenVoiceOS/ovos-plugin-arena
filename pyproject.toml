@@ -100,6 +100,10 @@ test = [
     # requires the real module to be importable even though the corpus
     # itself is faked; datasets otherwise arrives only with the hf extra.
     "datasets>=2.20",
+    # test_noise_vad_fighter.py drives the noise-vad fighter config through
+    # the real plugin. The plugin imports audioop, which Python 3.13 removed.
+    "ovos-vad-plugin-noise>=0.1.3a8",
+    "audioop-lts; python_version >= '3.13'",
     # The sample-policy, manifest and collision tests build in-memory
     # parquet tables to drive runner/audio_io.py's parquet row walk;
     # pyarrow otherwise arrives only with the audio extra.
