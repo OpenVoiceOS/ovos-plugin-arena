@@ -12,17 +12,18 @@
   skips what its head skips. The held-out ``test/`` sets of the localised
   repos are no model's training data. This field is rewritten in files that
   already exist.
-- ``precise-onnx-<model>``: every wake-word model in
-  ``OpenVoiceOS/precise-lite-models``.
+- ``precise-onnx-<model>``: the hey mycroft, hey robin, marvin and sheila models
+  in ``OpenVoiceOS/precise-lite-models``.
 - ``microwakeword-<word>[-v2]``: every model of the ESPHome
   ``micro-wake-word-models`` repository.
 - ``openwakeword-<word>``: every pretrained openWakeWord model.
 
-A fighter file that already exists is left as it is, so the hand-written
-fighters and their variants keep their settings. Then every wake-word fighter
-gets the ``stream`` capability, because every OVOS wake-word plugin runs on the
-live microphone stream, and every ``trained_on`` test set brings its
-``ww_stream_<set>`` corpus with it.
+A model whose phrase has no wake-word test set gets no fighter, because it
+could never run. A fighter file that already exists is left as it is, so the
+hand-written fighters and their variants keep their settings. Then every
+wake-word fighter gets the ``stream`` capability, because every OVOS wake-word
+plugin runs on the live microphone stream, so it runs on the false wake-up
+boards.
 
 Output is deterministic and idempotent. Run from the repository root.
 """
@@ -33,43 +34,25 @@ import json
 import urllib.request
 from pathlib import Path
 
-from registry.loaders import list_datasets
+from registry.loaders import list_datasets, wakeword_key
 
 OUT = Path("registry/competitors/wake_word")
-STREAM_SETS = Path("registry/datasets/ww_stream")
 
 WAKEHUBERT_REPO = "OpenVoiceOS/wakehubert-wakewords"
 MODELS_REVISION = "2ac92d3bcf55f177a47049c3f810a78984a31ff9"
 PRECISE_BASE = "https://github.com/OpenVoiceOS/precise-lite-models/raw/master/wakewords"
-# (file stem under wakewords/<lang>/, phrase key, language)
+# (file stem under wakewords/<lang>/, phrase key, language). The other precise-lite
+# models are mostly single-speaker personal models that nobody uses.
 PRECISE_MODELS = [
-    ("android", "android", "en"),
-    ("athena-en-0.3.0-20190801-eltocino", "athena", "en"),
-    ("christopher", "christopher", "en"),
-    ("computer", "computer", "en"),
-    ("hey_chatterbox", "hey_chatterbox", "en"),
-    ("hey_firefox", "hey_firefox", "en"),
-    ("hey_k9", "hey_k9", "en"),
-    ("hey_kit", "hey_kit", "en"),
-    ("hey_moxie", "hey_moxie", "en"),
     ("hey_mycroft", "hey_mycroft", "en"),
     ("hey_mycroft_mk1", "hey_mycroft", "en"),
     ("hey_robin", "hey_robin", "en"),
-    ("hey_scout", "hey_scout", "en"),
-    ("jarvis", "jarvis", "en"),
-    ("marvin", "hey_marvin", "en"),
+    # trained on the google-speech-commands word "marvin" (precise-lite-models README)
+    ("marvin", "marvin", "en"),
     ("sheila", "sheila", "en"),
-    ("eyordenador-es-0.2.0-20190815-eltocino", "ey_ordenador", "es"),
-    ("eyordenador-es-0.3.0-20190815-eltocino", "ey_ordenador", "es"),
-    ("o_sauro", "o_sauro", "pt"),
 ]
 # precise-lite-models file stem -> the fighter id an earlier entry already uses
-PRECISE_IDS = {
-    "athena-en-0.3.0-20190801-eltocino": "precise-onnx-athena",
-    "eyordenador-es-0.3.0-20190815-eltocino": "precise-onnx-ey-ordenador",
-    "eyordenador-es-0.2.0-20190815-eltocino": "precise-onnx-ey-ordenador-0-2",
-    "hey_mycroft_mk1": "precise-onnx-hey-mycroft-mk1",
-}
+PRECISE_IDS = {"hey_mycroft_mk1": "precise-onnx-hey-mycroft-mk1"}
 MICROWAKEWORD_BASE = "https://github.com/esphome/micro-wake-word-models/raw/main/models"
 # (path under models/, phrase key, model version)
 MICROWAKEWORD_MODELS = [
@@ -306,20 +289,21 @@ def openwakeword_fighters() -> list[dict]:
     ]
 
 
-def stream_capable(entry: dict, stream_sets: set[str]) -> dict:
-    """Every fighter streams, and its training sets exclude their stream corpora too."""
+def stream_capable(entry: dict) -> dict:
+    """Every fighter streams, so it runs on the false wake-up boards."""
     caps = entry.get("capabilities") or ["clip"]
     entry["capabilities"] = sorted(set(caps) | {"stream"}, key=["clip", "stream"].index)
-    trained = entry.get("trained_on") or []
-    extra = [f"ww_stream_{t}" for t in trained if f"ww_stream_{t}" in stream_sets]
-    if extra:
-        entry["trained_on"] = list(dict.fromkeys([*trained, *extra]))
     return entry
 
 
+def phrase(entry: dict) -> str:
+    return wakeword_key(next(iter(entry["config"]["hotwords"])))
+
+
 def main() -> None:
-    eval_sets = {d.dataset_id for d in list_datasets("wake_word") if d.role == "eval"}
-    stream_sets = {p.stem for p in STREAM_SETS.glob("*.json")}
+    eval_datasets = [d for d in list_datasets("wake_word") if d.role == "eval"]
+    eval_sets = {d.dataset_id for d in eval_datasets}
+    tested = {wakeword_key(d.wakeword) for d in eval_datasets if d.wakeword}
     wakeforge = wakeforge_fighters(eval_sets)
     for entry in wakeforge:
         path = OUT / f"{entry['competitor_id']}.json"
@@ -332,24 +316,27 @@ def main() -> None:
             path.write_text(
                 json.dumps(existing, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     generated = [
-        *wakeforge,
-        *precise_fighters(),
-        *microwakeword_fighters(),
-        *openwakeword_fighters(),
+        entry for entry in [
+            *wakeforge,
+            *precise_fighters(),
+            *microwakeword_fighters(),
+            *openwakeword_fighters(),
+        ]
+        if phrase(entry) in tested
     ]
     written = 0
     for entry in generated:
         path = OUT / f"{entry['competitor_id']}.json"
         if not path.exists():
             path.write_text(
-                json.dumps(stream_capable(entry, stream_sets), indent=2, ensure_ascii=False) + "\n",
+                json.dumps(stream_capable(entry), indent=2, ensure_ascii=False) + "\n",
                 encoding="utf-8",
             )
             written += 1
     paths = sorted(OUT.glob("*.json"))
     for path in paths:
         entry = json.loads(path.read_text(encoding="utf-8"))
-        updated = stream_capable(dict(entry), stream_sets)
+        updated = stream_capable(dict(entry))
         if updated != entry:
             path.write_text(
                 json.dumps(updated, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"

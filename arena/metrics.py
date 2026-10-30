@@ -51,7 +51,7 @@ BOOTSTRAP_SEED = 0
 # ``input_hash`` never survives a scoring-logic change — the whole point of
 # the signature is "same input AND same logic produces the same output",
 # not just "same input".
-BOARD_LOGIC_VERSION = 6
+BOARD_LOGIC_VERSION = 7
 
 #: Test buckets phrased close to the training data: ``template`` rows are
 #: expansions of held-out phrase templates (a template-paradigm fighter

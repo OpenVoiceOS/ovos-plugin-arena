@@ -128,19 +128,15 @@ def _stream_row(competitor: str, dataset_id: str) -> PredictionRow:
     )
 
 
-def test_stream_set_keeps_only_its_phrase_and_negatives_keep_every_fighter():
-    phrase_set = "ww_stream_synthetic-wakewords-hey_mycroft"
+def test_a_negatives_set_keeps_every_fighter():
     negatives = "ww-negatives-en-US"
     dropped: dict[str, int] = {}
     grouped = group_rows(
-        [_stream_row(cid, ds) for ds in (phrase_set, negatives)
-         for cid in ("mycroft-a", "jarvis-x")],
+        [_stream_row(cid, negatives) for cid in ("mycroft-a", "jarvis-x")],
         cross_phrase_dropped=dropped,
     )
-    assert set(grouped[("ww_stream", phrase_set, "en-US")]["s0"]) == {"mycroft-a"}
-    assert set(grouped[("ww_stream", negatives, "en-US")]["s0"]) == {
-        "mycroft-a", "jarvis-x"}
-    assert dropped == {f"jarvis-x/{phrase_set}": 1}
+    assert set(grouped[("ww_stream", negatives, "en-US")]["s0"]) == {"mycroft-a", "jarvis-x"}
+    assert dropped == {}
 
 
 def test_fighter_the_board_leaves_unranked_never_battles_or_seeds(tmp_path):

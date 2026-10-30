@@ -14,7 +14,8 @@ One ``tigregotico-<phrase>[-<lang>]`` dataset per phrase and language:
   (no espeak-ng voice and no small Vosk model), so their boards would stay empty.
 
 Every repo is pinned to its head commit at generation time. A set with fewer than
-MIN_POSITIVES clips with the phrase is not written. Run from the repository root with a
+MIN_POSITIVES clips with the phrase is not written: the site lists no board under that
+floor (``arena.ww_listing``). Run from the repository root with a
 network connection; the output is the same for the same heads.
 """
 
@@ -28,13 +29,13 @@ from pathlib import Path
 
 from huggingface_hub import HfApi
 
+from arena.ww_listing import MIN_POSITIVES
 from registry.loaders import list_datasets
 from registry.schemas import DatasetDef
 from runner import audio_io
 
 OUT = Path("registry/datasets/wake_word")
 ORG = "TigreGotico/synthetic-wakeword-"
-MIN_POSITIVES = 30
 SAMPLE_POLICY = {"max_samples": 100, "seed": 1337}
 NEGATIVES_SOURCES = [
     "TigreGotico/not-wake-words-speech-en@92fbd476d578907558cd22694c199fdfbf94c1bf/not_wake_word_subset",

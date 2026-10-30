@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the ``ww_stream`` corpus of every wake-word test set and its registry entries.
+"""Build the ``ww_stream`` corpus and the registry entries of its false wake-up sets.
 
 The corpus is one Hugging Face dataset repo:
 
@@ -15,8 +15,9 @@ household and outdoor sounds, and speech in other languages. Each negative row
 names its ``category``, so a board can say which kind of audio woke a
 detector. Every source is pinned in SOURCES, and every recording comes from
 ``scripts/build_ww_stream_corpus.py``. The clip sets are read at the commit
-their ``main`` points at when the script runs, and the card and the registry
-entries record it.
+their ``main`` points at when the script runs, and the card records it. The
+registry gets one ``ww-negatives-<lang>`` entry per language with a featured
+phrase (``arena.ww_listing``); the recordings of the test sets get none.
 
 Usage::
 
@@ -57,7 +58,13 @@ from build_ww_stream_corpus import (  # noqa: E402
     trim_silence,
 )
 
-from registry.loaders import list_competitors, list_datasets, results_repo_for  # noqa: E402
+from arena.ww_listing import board_positives, registry_featured_phrases  # noqa: E402
+from registry.loaders import (  # noqa: E402
+    list_competitors,
+    list_datasets,
+    results_repo_for,
+    wakeword_key,
+)
 from runner.audio_io import _even, decode_audio_bytes, ww_positive_files  # noqa: E402
 from runner.dataset_cards import FUNDING_BLOCK, check_funding_block  # noqa: E402
 from runner.intent_bench import resolve_revision  # noqa: E402
@@ -65,6 +72,7 @@ from runner.intent_bench import resolve_revision  # noqa: E402
 log = logging.getLogger("publish_ww_stream_bench")
 
 REPO = "OpenVoiceOS/ww-stream-bench"
+BOARDS = ROOT / "frontend-static" / "public" / "data"
 SUFFIX = ".flac"
 RECORDING_S = 1800.0
 MAX_POSITIVES = 400
@@ -980,31 +988,6 @@ def _stream_entry(dataset_id: str, file_pattern: str, revision: str, hours: dict
     }
 
 
-def registry_entry(sid: str, s: dict, revision: str, hours: dict) -> dict:
-    phrase = s["wakeword"].replace("_", " ")
-    speech = LANGUAGES[BORROWED.get(s["group"], s["group"])]
-    dataset_id = f"ww_stream_{sid}"
-    return {
-        "dataset_id": dataset_id,
-        "display_name": f"Streaming wake word — {sid}",
-        "summary": (
-            f"The clips of “{phrase}” from the `{sid}` test set, placed between seconds of "
-            f"{speech} speech, followed by {_negatives_text(hours)} with no wake "
-            "word. A detector streams every recording and is scored on the wake words it caught "
-            "and on how often per hour it woke with no wake word."
-        ),
-        **_stream_entry(dataset_id, f"manifest-{sid}.jsonl", revision, hours),
-        "wakeword": s["wakeword"],
-        "lang": s["lang"],
-        "test_set_kind": "synthetic" if sid.startswith(("synthetic-", "tigregotico-")) else "real",
-        "notes": (
-            f"Built by scripts/publish_ww_stream_bench.py from `{sid}` at "
-            f"{s['source']}@{s['revision'][:8]} ({s['onsets']} of {s['available']} clips with the "
-            f"phrase) and the negatives of `{s['group']}`. {_hours_note(hours)}"
-        ),
-    }
-
-
 def negatives_entry(group: str, revision: str, hours: dict) -> dict:
     language = LANGUAGES[group]
     dataset_id = f"ww-negatives-{group}"
@@ -1027,16 +1010,28 @@ def negatives_entry(group: str, revision: str, hours: dict) -> dict:
     }
 
 
+def featured_groups() -> set[str]:
+    """The negatives groups of the languages with a featured phrase."""
+    featured = registry_featured_phrases(
+        list_datasets("wake_word"), list_competitors("wake_word"), board_positives(BOARDS))
+    return {
+        group for d in clip_sets()
+        if wakeword_key(d.wakeword) in featured and (group := group_of(d.lang))
+    }
+
+
 def write_registry(facts: dict, revision: str) -> None:
-    """Write the ``ww_stream`` registry entries of a build published at *revision*."""
+    """Write the ``ww-negatives-<lang>`` registry entries of a build published at
+    *revision*, for the languages with a featured phrase. The recordings of the
+    test sets stay in the corpus but get no registry entry: the arena runs only
+    the false wake-up boards."""
     out = ROOT / "registry" / "datasets" / "ww_stream"
     out.mkdir(parents=True, exist_ok=True)
+    groups = featured_groups()
     entries = [
-        registry_entry(sid, s, revision, facts["negatives"][s["group"]])
-        for sid, s in sorted(facts["sets"].items())
-    ] + [
         negatives_entry(group, revision, hours)
         for group, hours in sorted(facts["negatives"].items())
+        if group in groups
     ]
     for entry in entries:
         (out / f"{entry['dataset_id']}.json").write_text(

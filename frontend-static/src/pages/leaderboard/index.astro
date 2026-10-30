@@ -242,7 +242,7 @@ import Base from '../../layouts/Base.astro';
     import { spriteSvg } from '../../lib/sprite.js';
     import { groupedLangOptionsHtml, langDisplayName } from '../../lib/lang.js';
     import { boardVoteProvenance, provenanceHtml } from '../../lib/provenance.js';
-    import { WAKE_LEAGUES, datasetPhrase, fighterPhrase, normPhrase, phraseKey, phraseLabel } from '../../lib/wakeword.js';
+    import { WAKE_LEAGUES, datasetPhrase, fighterPhrase, isFalseWakeBoard, normPhrase, phraseKey, phraseLabel, rankByFalseWakes } from '../../lib/wakeword.js';
 
     const BASE = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : import.meta.env.BASE_URL + '/';
 
@@ -1126,6 +1126,20 @@ import Base from '../../layouts/Base.astro';
       </section>`;
     }
 
+    // The false wake-up boards: every recording holds no wake word, so the
+    // board ranks detectors of every phrase on one axis, false wake-ups per
+    // hour, lower is better.
+    function falseWakeHtml(boards, ladders) {
+      if (!boards.length) return '';
+      return `<section class="lb-section ww-false-wakes">
+        <div class="lb-section-head"><p class="eyebrow" style="color:var(--accent)">False wake-ups</p>
+          <h2>🔕 False wake-ups per hour</h2></div>
+        <p class="lb-note">Each detector streams hours of audio with no wake word. The board counts how often
+          it woke up anyway. Lower is better.</p>
+        ${foldBoards(boards.map(rankByFalseWakes), b => benchBoard(b, 'ww_stream', 'fa_per_hour', ladders))}
+      </section>`;
+    }
+
     function populateWords(words) {
       const sel = document.getElementById('sel-word');
       sel.innerHTML = '<option value="">All wake words (overview)</option>' + words.map(w =>
@@ -1179,7 +1193,10 @@ import Base from '../../layouts/Base.astro';
       prov.style.display = provHtml ? '' : 'none';
 
       const panels = document.getElementById('lb-panels');
+      let falseWakes = [];
       if (wake) {
+        falseWakes = benches.filter(isFalseWakeBoard);
+        benches = benches.filter(b => !isFalseWakeBoard(b));
         const words = wordLeagues(benches, elo);
         // A link from before the per-phrase split names only a dataset:
         // open the phrase that dataset tests.
@@ -1193,7 +1210,8 @@ import Base from '../../layouts/Base.astro';
           fillDatasets([]);
           syncUrl();
           document.getElementById('dataset-info').innerHTML = '';
-          panels.innerHTML = wordOverviewHtml(words);
+          panels.innerHTML = wordOverviewHtml(words) + falseWakeHtml(falseWakes, elo?.metric_ladders || {});
+          wireBenchGroups(panels);
           panels.querySelectorAll('a[data-word]').forEach(a => a.addEventListener('click', e => {
             e.preventDefault();
             selectWord(normPhrase(a.dataset.word));
@@ -1247,10 +1265,14 @@ import Base from '../../layouts/Base.astro';
           btn.textContent = hidden ? 'hide buckets' : 'show buckets';
         });
       });
+      wireBenchGroups(panels);
+    }
+
+    function wireBenchGroups(root) {
       // Expand/collapse a benchmark board's grouped family rows — mirrors
       // the ladder's <details> groups, but a <table> can't nest <details>
       // around <tr>s, so member rows toggle the `hidden` attribute instead.
-      panels.querySelectorAll('.bench-group-summary').forEach(row => {
+      root.querySelectorAll('.bench-group-summary').forEach(row => {
         row.addEventListener('click', () => {
           const key = row.dataset.groupToggle;
           const table = row.closest('table');

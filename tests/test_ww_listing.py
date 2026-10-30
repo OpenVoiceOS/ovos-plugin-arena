@@ -10,8 +10,8 @@ import pytest
 import arena.cli as arena_cli
 from arena.metrics import build_benchmark_board
 from arena.models import PredictionRow
-from arena.ww_listing import build_listing, is_trained_model
-from registry.schemas import CompetitorDef
+from arena.ww_listing import build_listing, is_trained_model, registry_featured_phrases
+from registry.schemas import CompetitorDef, DatasetDef
 
 WAKEHUBERT = "ovos-ww-plugin-wakeforge"
 
@@ -93,20 +93,16 @@ def test_a_phrase_is_featured_when_a_listed_board_ranks_a_non_wakehubert_model(l
     assert listing.featured_phrases == {"hey_jarvis"}
 
 
-def test_a_stream_board_follows_its_clip_board(listing):
+def test_only_an_unlisted_clip_board_is_hidden(listing):
     hidden = {
         (modality, dataset_id): listing.is_hidden(modality, dataset_id, "en-US")
         for modality, dataset_id in [
             ("wake_word", "jarvis-50"), ("wake_word", "jarvis-49"),
-            ("ww_stream", "ww_stream_jarvis-50"), ("ww_stream", "ww_stream_jarvis-49"),
-            ("ww_stream", "ww_stream_never-benched"), ("ww_stream", "ww-negatives-en-US"),
             ("wake_word", "freeform"), ("stt", "jarvis-49"),
         ]
     }
     assert hidden == {
         ("wake_word", "jarvis-50"): False, ("wake_word", "jarvis-49"): True,
-        ("ww_stream", "ww_stream_jarvis-50"): False, ("ww_stream", "ww_stream_jarvis-49"): True,
-        ("ww_stream", "ww_stream_never-benched"): True, ("ww_stream", "ww-negatives-en-US"): False,
         ("wake_word", "freeform"): False, ("stt", "jarvis-49"): False,
     }
 
@@ -144,9 +140,6 @@ def test_export_index_leaves_hidden_boards_out_and_keeps_their_files(tmp_path, m
     for board in BOARDS:
         _write(data / f"benchmark-wake_word-{board['dataset_id']}-en-US.json", board)
     for clip in ("jarvis-50", "jarvis-49"):
-        _write(data / f"benchmark-ww_stream-ww_stream_{clip}-en-US.json", {
-            "modality": "ww_stream", "dataset_id": f"ww_stream_{clip}", "lang": "en-US",
-            "entries": [{"competitor_id": "wf-jarvis-a"}]})
         _write(data / f"battles-wake_word-{clip}-en-US.json", {
             "modality": "wake_word", "dataset_id": clip, "lang": "en-US", "battles": []})
     _write(data / "battles-wake_word-freeform-en-US.json", {
@@ -157,10 +150,10 @@ def test_export_index_leaves_hidden_boards_out_and_keeps_their_files(tmp_path, m
     assert exit_info.value.code == 0
     index = json.loads(out.read_text())
     assert sorted((b["modality"], b["dataset_id"]) for b in index["benchmarks"]) == [
-        ("wake_word", "jarvis-50"), ("ww_stream", "ww_stream_jarvis-50")]
+        ("wake_word", "jarvis-50")]
     assert sorted(p["dataset_id"] for p in index["battles_pools"]) == ["jarvis-50"]
     assert [p["dataset_id"] for p in index["freeform_pools"]] == ["freeform"]
-    assert len(list(data.glob("benchmark-*.json"))) == len(BOARDS) + 2
+    assert len(list(data.glob("benchmark-*.json"))) == len(BOARDS)
 
 
 class _Stub:
@@ -175,7 +168,7 @@ class _Stub:
         self.trained_on: list[str] = []
 
 
-def test_assemble_ranks_every_fighter_on_a_negatives_board(
+def test_assemble_ranks_only_fighters_of_featured_phrases_on_a_negatives_board(
     tmp_path, monkeypatch,
 ):
     import registry.loaders as loaders_mod
@@ -209,5 +202,151 @@ def test_assemble_ranks_every_fighter_on_a_negatives_board(
         arena_cli.main(["assemble", "--predictions", str(preds), "--output", str(data)])
     assert exit_info.value.code == 0
     board = json.loads((data / f"benchmark-ww_stream-{dataset_id}-en-US.json").read_text())
-    assert sorted(e["competitor_id"] for e in board["entries"]) == [
-        "oww-computer", "vosk-jarvis", "wf-jarvis-a", "wf-k9-a"]
+    # hey_jarvis is the one featured phrase of BOARDS; hey_k9 and computer are hidden
+    assert sorted(e["competitor_id"] for e in board["entries"]) == ["vosk-jarvis", "wf-jarvis-a"]
+
+
+NEGATIVES = {"ww-negatives-en-US", "ww-negatives-de-DE"}
+
+
+def test_a_negatives_board_is_hidden_when_its_language_has_no_listed_clip_board():
+    listing = build_listing(BOARDS, FIGHTERS, NEGATIVES)
+    hidden = {
+        (dataset_id, lang): listing.is_hidden("ww_stream", dataset_id, lang)
+        for dataset_id, lang in [
+            ("ww-negatives-en-US", "en-US"),
+            ("ww-negatives-de-DE", "de-DE"),
+        ]
+    }
+    assert hidden == {("ww-negatives-en-US", "en-US"): False, ("ww-negatives-de-DE", "de-DE"): True}
+    # with no listed clip board at all, every negatives board is hidden
+    empty = build_listing([], FIGHTERS, NEGATIVES)
+    assert empty.is_hidden("ww_stream", "ww-negatives-en-US", "en-US")
+
+
+def test_a_stream_board_of_an_unregistered_set_is_hidden():
+    # a phrase stream left on disk, even one whose clip board is listed
+    listing = build_listing(BOARDS, FIGHTERS, NEGATIVES)
+    assert ("jarvis-50", "en-US") in listing.clip_boards
+    assert listing.is_hidden("ww_stream", "ww_stream_jarvis-50", "en-US")
+    assert listing.is_hidden("ww_stream", "ww_stream_never-benched", "en-US")
+
+
+def test_a_negatives_clip_pool_is_never_listed():
+    # mlsw-negatives sets hold no positives: a pool of negatives, not a board
+    pool = _board("mlsw-negatives-en-US", None, ["oww-alexa", "mww-alexa"])
+    listing = build_listing([*BOARDS, pool], FIGHTERS, NEGATIVES)
+    assert listing.is_hidden("wake_word", "mlsw-negatives-en-US", "en-US")
+    assert listing.featured_phrases == {"hey_jarvis"}
+
+
+def test_a_negatives_board_ranks_only_fighters_of_featured_phrases():
+    listing = build_listing(BOARDS, FIGHTERS, NEGATIVES)
+    assert {f.competitor_id for f in FIGHTERS if listing.ranks_on_false_wake_set(f)} == {
+        "wf-jarvis-a", "wf-jarvis-b", "mww-jarvis", "vosk-jarvis", "zs-jarvis", "lw-jarvis"}
+
+
+def test_export_index_lists_only_the_negatives_board_of_a_listed_language(
+    tmp_path, monkeypatch,
+):
+    import registry.loaders as loaders_mod
+
+    datasets = [
+        DatasetDef(dataset_id=f"ww-negatives-{lang}", modality="ww_stream", lang=lang,
+                   source={"type": "path", "path": "x"}, primary_metric="fa_per_hour")
+        for lang in ("en-US", "de-DE")
+    ]
+    monkeypatch.setattr(loaders_mod, "list_competitors", lambda modality=None: FIGHTERS)
+    monkeypatch.setattr(
+        loaders_mod, "list_datasets",
+        lambda modality=None: datasets if modality == "ww_stream" else [])
+    data = tmp_path / "data"
+    data.mkdir()
+    for board in BOARDS:
+        _write(data / f"benchmark-wake_word-{board['dataset_id']}-en-US.json", board)
+    _write(data / "benchmark-wake_word-mlsw-negatives-en-US-en-US.json",
+           _board("mlsw-negatives-en-US", None, ["oww-alexa", "mww-alexa"]))
+    stream_boards = [("ww-negatives-en-US", "en-US"), ("ww-negatives-de-DE", "de-DE"),
+                     ("ww_stream_jarvis-50", "en-US")]
+    for dataset_id, lang in stream_boards:
+        _write(data / f"benchmark-ww_stream-{dataset_id}-{lang}.json", {
+            "modality": "ww_stream", "dataset_id": dataset_id, "lang": lang,
+            "entries": [{"competitor_id": "wf-jarvis-a"}]})
+    out = tmp_path / "index.json"
+    with pytest.raises(SystemExit) as exit_info:
+        arena_cli.main(["export-index", "--data-dir", str(data), "--output", str(out)])
+    assert exit_info.value.code == 0
+    index = json.loads(out.read_text())
+    assert sorted((b["modality"], b["dataset_id"]) for b in index["benchmarks"]) == [
+        ("wake_word", "jarvis-50"), ("ww_stream", "ww-negatives-en-US")]
+
+
+def _set(dataset_id: str, phrase: str | None, lang: str = "en-US", cap: int = 100) -> DatasetDef:
+    return DatasetDef(
+        dataset_id=dataset_id, modality="wake_word", lang=lang, role="eval",
+        source={"type": "path", "path": "x"}, wakeword=phrase,
+        sample_policy={"max_samples": cap})
+
+
+def _trained(cid: str, phrase: str, plugin: str, trained_on=(), langs=("en-US",)):
+    return CompetitorDef(
+        competitor_id=cid, modality="wake_word", plugin=plugin, langs=list(langs),
+        config={"hotwords": {phrase: {"module": plugin}}}, types=["neural-net"],
+        trained_on=list(trained_on))
+
+
+def test_the_registry_predicts_the_featured_phrases_before_any_board_exists():
+    oww, mww = "ovos-ww-plugin-openwakeword", "ovos-ww-plugin-microwakeword"
+    sets = [
+        _set("alexa-set", "alexa"),
+        _set("k9-set", "hey k9"),
+        _set("nabu-set", "okay_nabu"),
+        _set("small-set", "computer", cap=30),
+        _set("de-set", "hallo", lang="de-DE"),
+        _set("negatives", None),
+    ]
+    fighters = [
+        # alexa: two trained models, one not WakeHuBERT: featured
+        _trained("oww-alexa", "alexa", oww),
+        _trained("wf-alexa", "alexa", WAKEHUBERT),
+        # hey_k9: two WakeHuBERT models only
+        _trained("wf-k9-a", "hey_k9", WAKEHUBERT),
+        _trained("wf-k9-b", "hey_k9", WAKEHUBERT),
+        # okay_nabu: the second model is trained on the only set
+        _trained("mww-nabu", "okay_nabu", mww),
+        _trained("wf-nabu", "okay_nabu", WAKEHUBERT, trained_on=["nabu-set"]),
+        # computer: two models, but the set caps at 30 clips
+        _trained("oww-computer", "computer", oww),
+        _trained("mww-computer", "computer", mww),
+        # hallo: two models of another language than the set's
+        _trained("oww-hallo", "hallo", oww, langs=["nl-NL"]),
+        _trained("mww-hallo", "hallo", mww, langs=["nl-NL"]),
+        *[f for f in FIGHTERS if not is_trained_model(f)],
+    ]
+    assert registry_featured_phrases(sets, fighters, {}) == {"alexa"}
+    # a board's own positive count overrides the sample cap
+    assert registry_featured_phrases(
+        sets, fighters, {("small-set", "en-US"): 60, ("alexa-set", "en-US"): 49}) == {"computer"}
+
+
+def test_the_registry_holds_generic_fighters_of_featured_phrases_only():
+    from arena.ww_listing import board_positives, phrase_of
+    from registry.loaders import list_competitors, list_datasets
+
+    fighters = list_competitors("wake_word")
+    featured = registry_featured_phrases(
+        list_datasets("wake_word"), fighters,
+        board_positives(Path(__file__).parent.parent / "frontend-static/public/data"))
+    generic = [c for c in fighters if not is_trained_model(c)]
+    assert featured and generic
+    assert sorted(c.competitor_id for c in generic if phrase_of(c) not in featured) == []
+
+
+def test_every_wake_word_fighter_has_a_test_set_of_its_phrase():
+    from arena.ww_listing import phrase_of
+    from registry.loaders import list_competitors, list_datasets, wakeword_key
+
+    tested = {wakeword_key(d.wakeword) for d in list_datasets("wake_word")
+              if d.wakeword and d.role == "eval"}
+    assert sorted(c.competitor_id for c in list_competitors("wake_word")
+                  if phrase_of(c) not in tested) == []

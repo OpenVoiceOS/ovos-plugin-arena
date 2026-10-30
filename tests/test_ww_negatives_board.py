@@ -265,11 +265,11 @@ def test_assemble_ranks_a_registry_negatives_set_on_fa_per_hour(tmp_path, monkey
     from arena import cli as arena_cli
     from registry.loaders import load_dataset
 
-    dataset_id = "ww_stream_community-amelia"
+    dataset_id = "ww-negatives-en-US"
     revision = load_dataset("ww_stream", dataset_id).source.revision
     preds = tmp_path / "predictions"
     preds.mkdir()
-    for cid, per_hour in (("vosk-ww-amelia", 0), ("wakeforge-zeroshot-amelia", 2)):
+    for cid, per_hour in (("vosk-ww-alexa", 0), ("wakeforge-zeroshot-alexa", 2)):
         rows = [
             _negative(cid, f"neg{h}", [0.9] * per_hour, 3600.0).model_copy(
                 update={"dataset_id": dataset_id, "dataset_revision": revision}
@@ -279,6 +279,12 @@ def test_assemble_ranks_a_registry_negatives_set_on_fa_per_hour(tmp_path, monkey
         (preds / f"{cid}.jsonl").write_text("\n".join(r.model_dump_json() for r in rows) + "\n")
     monkeypatch.setattr(arena_cli, "_load_sample_set", lambda *args: None)
     out = tmp_path / "data"
+    out.mkdir()
+    # a listed alexa clip board makes alexa featured, so the negatives board ranks its fighters
+    (out / "benchmark-wake_word-picovoice-alexa-en-US.json").write_text(json.dumps({
+        "modality": "wake_word", "dataset_id": "picovoice-alexa", "lang": "en-US",
+        "positives": 100, "entries": [{"competitor_id": "openwakeword-alexa"},
+                                      {"competitor_id": "microwakeword-alexa"}]}))
     board_file = out / f"benchmark-ww_stream-{dataset_id}-en-US.json"
 
     def assemble():
@@ -292,8 +298,8 @@ def test_assemble_ranks_a_registry_negatives_set_on_fa_per_hour(tmp_path, monkey
     board = assemble()
     assert board["primary_metric"] == "fa_per_hour"
     assert [(e["competitor_id"], e["rank"]) for e in board["entries"]] == [
-        ("vosk-ww-amelia", 1),
-        ("wakeforge-zeroshot-amelia", 2),
+        ("vosk-ww-alexa", 1),
+        ("wakeforge-zeroshot-alexa", 2),
     ]
     # the same rows under the modality's own metric: the override is part of the cache key
     monkeypatch.setattr(arena_cli, "_registry_primary_metrics", lambda: {})
