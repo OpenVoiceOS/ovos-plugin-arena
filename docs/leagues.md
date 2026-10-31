@@ -1,405 +1,98 @@
-# Leagues, tasks & metrics
+# Leagues
 
-A **league** is one `(modality)` competition with its own benchmark datasets,
-prediction rows and benchmark board (separate per language). Battles and ELO
-are pooled per *battle group*, which is the league itself everywhere except
-the intent leagues: those share one `intent` pool, because a blind vote judges
-two outputs on the same stimulus and cannot see how either engine was
-prepared. This page is the canonical definition of *what task each league
-scores and how*, the metric formulas here are exactly what
-[`arena/metrics.py`](../arena/metrics.py) computes and what
-[`arena/assembler.py`](../arena/assembler.py) turns into the ELO seed.
+A league is one competition. It has its own datasets, its own prediction rows
+and its own benchmark board for each dataset and language. Each league has a
+page that defines its task and its metrics exactly as
+[`arena/metrics.py`](../arena/metrics.py) computes them.
 
-The arena ranks competitors with two signals (see [SPECIFICATION.md](SPECIFICATION.md)):
-a **benchmark board** (objective metric straight from predictions) and an **ELO
-ladder** (benchmark-seeded, then refined by human blind-A/B votes. Ranked by
-`bt_rating`, a batch Bradley-Terry fit with bootstrap confidence intervals, see [methodology.md](methodology.md)). The
-*primary metric* of a league is the number that (a) sorts its benchmark board
-and (b) decides the auto-vote outcome that seeds ELO (§4 R5).
+| League | Task | Primary metric | Page |
+|---|---|---|---|
+| `intent_zero_shot`, `intent_online`, `intent_offline`, `intent_keyword` | Name the intent of a written utterance, or none when it is out of scope. | `generalization_accuracy`, higher is better | [Intent](leagues/intent.md) |
+| `wake_word` | Decide per clip whether the wake phrase is present. | `error_rate`, lower is better | [Wake word](leagues/wake_word.md) |
+| `ww_stream` | Stream hours of audio with no wake word, and do not wake up. | `fa_per_hour`, lower is better | [False wake-ups](leagues/ww_stream.md) |
+| `stt` | Transcribe a spoken clip. | `wer_mean`, lower is better | [STT](leagues/stt.md) |
+| `tts` | Speak a prompt. | `utmos`, higher is better; human votes rank the ladder | [TTS](leagues/tts.md) |
+| `vad` | Decide per clip whether it holds speech. | `error_rate`, lower is better | [VAD](leagues/vad.md) |
 
-## Intent leagues
+The arena ranks fighters with two signals (see
+[SPECIFICATION.md](SPECIFICATION.md)):
 
-Every intent league shares one **task**: map a written utterance to an intent
-id (and, where annotated, fill its slots). The arena owns no confidence
-numbers, each engine fires through its own `match_high/medium/low` gate, first
-stage to fire wins (exactly as `ovos-core` dispatches its pipeline). A sample
-whose `reference_intent` is `null` is **out-of-scope (OOD)**: the correct
-behaviour is to predict nothing.
+- A **benchmark board** ranks on the primary metric, computed from the
+  published prediction rows.
+- An **ELO ladder** starts from auto-battles derived from the same rows, and
+  human blind A/B votes then refine it. It ranks on `bt_rating`, a batch
+  Bradley-Terry fit with bootstrap confidence intervals (see
+  [methodology.md](methodology.md)).
 
-Leagues differ in what a fighter needs before it can answer at all. That is
-the axis that decides whether a comparison means anything: an engine handed
-the skill's phrasings and expected to answer immediately is doing a different
-job from one that trains on them at boot, which is doing a different job again
-from one shipping a model trained elsewhere. Keyword supervision is its own
-league on top of that, because hand-written vocabulary rules are a different
-kind of supervision and need their own corpora.
+The primary metric of a league sorts its benchmark board and decides the
+auto-battles that seed its ladder (§4 R5).
 
-| League | What the fighter needs | Eligible engines |
-|---|---|---|
-| `intent_zero_shot` | nothing but the templates a skill registers, consumed as they arrive | prototype-mode embedding matchers |
-| `intent_online` | a training pass over those templates when the device boots | Padatious, Padacioso, Nebulento, Jurebes, Linha Fina, Markov, and fusions of them |
-| `intent_offline` | a pretrained artefact, shipped as a model id, that never sees the device's templates | classifier-mode embedding models |
-| `intent_keyword` | Adapt-style `required_vocab` / `optional_vocab` rules | Adapt, Palavreado |
+Battles and ladders are pooled per battle group. The battle group is the
+league itself, except for the four intent leagues. They share one `intent`
+pool, because a blind vote judges two answers to the same utterance and
+cannot see how each engine was prepared.
 
-A fighter's league follows from its stages, and the registry rejects it
-anywhere else. A fusion is filed by its heaviest stage: a cascade whose first
-stage carries a pretrained head competes as `intent_offline`, however light
-its later stages. A fighter built only from keyword engines is a keyword
-fighter whatever its regime.
+A board ranks an entry only when the primary metric rests on 30 or more
+rows (`arena.metrics.MIN_BOARD_SAMPLES`). Under that, the entry is unranked
+with the reason `too_few_samples`.
 
-Benchmark boards are per league, but every intent fighter votes in the same
-battle pool: `battles-intent-<dataset>-<lang>`, `elo-seed-intent-<lang>` and
-`leaderboard-intent-<lang>` are shared, while `benchmark-<league>-…` is not.
+Battles have their own floor of the same size, except in the wake word
+leagues. In the `intent`, `stt`, `tts` and `vad` groups, `assemble` makes
+battles and an ELO seed for a `(league, dataset, lang)` only when the rows of
+all its fighters together hold 30 or more distinct samples. The floor counts
+the samples of the whole set, not of one entry, so a set can give battles
+while some of its entries are unranked. In `wake_word` and `ww_stream`
+there is no sample floor. Only the fighters that the board ranks take part
+in battles and the seed, and a board with no ranked fighter gives neither.
 
-A board needs at least 30 scored rows per fighter
-(`arena.metrics.MIN_BOARD_SAMPLES`) before anyone is ranked on it. Under that,
-every entry is unranked with the reason `too_few_samples`, and the language
-seeds no battles and no ELO: a handful of utterances cannot separate two
-engines, and a rank published from them reads as a result. A language with too
-little data is a gap to fill, not a contest to hold.
+A league appears on the site once `data/index.json` lists a benchmark board
+of it with at least one entry, ranked or not. `export-index` lists every
+`benchmark-*.json` file with its entry count, and the site builds its tabs
+from that list. It leaves out two kinds of board: a wake word board that
+`arena/ww_listing.py` hides, and a false wake-up board with no entry. The
+files stay on disk.
 
-A league appears on the site once it has at least one ranked board, and not
-before: the tab list in `data/index.json` is built from the boards on disk, so
-a league whose fighters nobody has swept yet is never offered as an empty
-page.
+The [front page](index.md#how-to-read-a-board) tells how to read a board and
+lists every reason an entry can be unranked.
 
-An offline fighter carries a `label_set`: the corpora whose labels its
-artefact can emit. It is benchmarked on those and skipped everywhere else,
-where every answer would be wrong for a reason that says nothing about the
-engine. A fighter whose `label_set` matches no registered corpus is unranked
-until one exists. The claim is checked, not trusted: before scoring, the
-runner intersects the loaded model's own class list with the corpus's labels
-and refuses the sweep outright when nothing overlaps, so a mislabelled
-`label_set` cannot publish a board of zeros. An offline fighter also pins the
-exact model commit it runs (`model_revision`), which the runner downloads and
-stamps on every row.
+## ELO seeding
 
-The `ovos-intents-v5` `label_set` carries a matrix of Model2Vec classifier
-heads trained on the same 208-intent corpus with different base encoders,
-registered as separate `intent_offline` fighters so the board answers
-"which encoder generalizes best on this corpus" rather than folding every
-model size and language into one entry. English-only heads range from a 2M
-tiny embedding up to a 32M base one; multilingual heads swap in e5-small,
-LaBSE, DistilUSE, MiniLM and Granite as the base encoder, each trained over
-every locale the corpus covers; and single-locale heads pair a
-language-specific encoder (RoBERTa, Bertinho, BNE RoBERTa, XLM-R, Albertina,
-Danish BERT) with the intents that locale's test rows exercise. Every entry's
-`notes` records how many of the corpus's 208 labels the pinned commit's head
-actually emits, measured the same way the runner checks it at sweep time.
+`assemble` derives an auto-battle for every `(sample, fighter pair)` where the
+primary metric separates the two fighters. The better one wins. The battles
+replay in a fixed order at a quarter of the K-factor and seed the ladder
+before any human vote (§4 R5).
 
-**Metrics** (`score_intent`), per `(league, dataset, lang)`:
+| Battle group | The winner of a sample |
+|---|---|
+| `intent` | The correct answer, OOD rejection included. Rows in an in-distribution bucket give no battle. |
+| `wake_word`, `vad` | The correct decision. |
+| `stt` | The lower WER. |
+| `tts` | The higher UTMOS × intelligibility × judge agreement composite. When both rows have no intelligibility score, the higher UTMOS wins. When one row has it and the other does not, no battle. |
+| `ww_stream` | No auto-battle. The recordings hold no wake word, so no fighter catches an onset that the other misses. |
 
-| Metric | Meaning | Direction |
-|---|---|---|
-| **`generalization_accuracy`** *(primary → ELO seed)* | accuracy averaged over the `paraphrase` / `far_ood` / `asr_noise` / `typos` buckets — phrasings unlike the training templates | higher better |
-| `accuracy` | share of **all** samples answered correctly, **including correct OOD rejections** and the `template` / `in_distribution` buckets | higher better |
-| `macro_f1` | unweighted mean per-intent F1 (OOD false-positives hurt the wrongly-fired intent's precision) | higher better |
-| `ood_fpr` | false-positive rate on OOD samples, how often the engine hallucinates an intent on out-of-scope input | lower better |
-| `slot_exact_match` | exact match over the whole gold slot dict, on rows where the intent was correct and gold slots exist | higher better |
-| `latency_ms_median` | median per-utterance match latency | lower better |
-| `acc_<bucket>` | accuracy within each test bucket (`template` / `paraphrase` / `in_distribution` / `far_ood` / `asr_noise` / `typos`) | higher better |
+In every battle group, a pair of fighters whose confidence intervals on the
+primary metric overlap gets no auto-battles on that dataset (R5a). The
+weight of the auto-battles of one pair is capped at 5 human votes (R5b).
+Human votes stay the primary signal of the TTS ladder, and the composite
+seed is an objective cross-check beside them.
 
-Per-row scoring lives in the §3.2 `exact_match` field (`reference_intent is
-None → prediction is None`). `accuracy` counts those correct rejections.
+[Rating](rating.md) gives every rule and parameter.
+[Methodology](methodology.md#how-auto-battles-are-decided) tells why.
 
-`generalization_accuracy` averages the `paraphrase`, `far_ood`, `asr_noise`
-and `typos` buckets only. `intents-for-eval` separates train and test at
-the template level, so no test row is a training expansion, but `template`
-and `in_distribution` are still reported per bucket and enter overall
-`accuracy` only, not the ranked metric: `template` tests recall of a
-held-out template rather than free-form phrasing, and `in_distribution`
-holds in-domain paraphrase-adjacent utterances, both narrower kinds of
-generalization than the free-form buckets. Plain `accuracy` and every
-per-bucket column, including `acc_template` and `acc_in_distribution`,
-stay published; see docs/methodology.md for the dataset's train/test
-separation.
-
-**Datasets**: `ovos-intents-v5` (40 locales, 221 intents, the OVOS skill
-fleet's own corpus), `intents-for-eval` (12 langs, 50 intents, 6 buckets) and
-`massive-templates` (52 langs, template-only). Eval corpora live under
-`registry/datasets/intent/` and link their training sets by supervision
-paradigm via `train_datasets`; prediction repos are keyed by that paradigm
-too, since a repo holds the rows of every fighter that consumed the same
-training datashape whatever league it competes in.
-
-## STT league (`stt`)
-
-**Task**: transcribe a spoken clip. Scored against the gold `reference_text`
-by word error rate (word-level Levenshtein over word tokens).
-
-| Metric | Definition | Direction |
-|---|---|---|
-| **`wer_mean`** *(primary → ELO seed)* | mean WER across scored rows | lower better |
-| `wer_median` | median WER across scored rows | lower better |
-| `latency_ms_median` | median per-utterance transcription latency | lower better |
-
-Before tokenizing, both the reference and the hypothesis pass through
-`arena.metrics.normalize_transcript` (`WER_NORMALIZER_VERSION`), Unicode
-NFKC normalization, casefolding, punctuation stripping, digit runs spelled
-out digit-by-digit (`"7"` → `"seven"`), whitespace collapsing, so WER is
-comparable across runners regardless of raw formatting differences, and
-scored deterministically without mutating the stored prediction rows. See
-[SPECIFICATION.md §5 R14](SPECIFICATION.md#5-rating-system) for the full
-convention. `row_wer` prefers recomputing from `reference_text`/`prediction`
-over a row's stored `wer`, falling back to the stored value only when raw
-text is unavailable.
-
-## Wake-word league (`wake_word`)
-
-**Task**: per-clip detection. Each fighter's real OVOS `HotWordEngine` is fed
-one labelled clip, wake word present (`positive`) or absent (`negative`), streamed frame-by-frame (1280 samples = 80 ms @ 16 kHz) through `update()` /
-`found_wake_word()`, wrapped in leading + trailing silence so streaming feature
-buffers warm exactly as a live mic would drive them
-(`runner/ww_bench.py`). The engine owns its own threshold. The arena records
-only the binary decision and latency.
-
-**Metrics** (`score_wake_word`), per `(dataset, lang)`:
-
-| Metric | Meaning | Direction |
-|---|---|---|
-| **`error_rate`** *(primary → ELO seed)* | share of all scored clips decided wrong (`false_accepts + false_rejects` over scored) | lower better |
-| `accuracy` | `1 − error_rate` | higher better |
-| `false_accept_rate` | fires on a negative, noise/other speech wrongly wakes the assistant (over all negatives) | lower better |
-| `false_reject_rate` | misses a positive, user says the wake word and nothing happens (over all positives) | lower better |
-| `latency_ms_median` | median per-clip detection latency | lower better |
-
-**Datasets**: per wake phrase, `synthetic-wakewords-hey_mycroft`,
-`synthetic-wakewords-hey_jarvis` (TTS positives) and `community-computer` (real
-community recordings), each drawing negatives from a shared not-wake-word pool
-(speech, ESC-50, FMA music, ambient noise, public-domain sounds) so the
-false-accept rate spans realistic scenarios.
-
-The `tigregotico-*` sets come from the TigreGotico synthetic wake-word
-collections, one per phrase and language, each pinned to a repo commit.
-`scripts/gen_tigregotico_ww_sets.py` writes them:
-
-| Repos | Clips with the phrase | Languages |
-|---|---|---|
-| English phrase repos | `train/`, without `openvoiceos-synthetic-wakewords/` (the source of the `synthetic-wakewords-*` sets) and `original/` (no card section describes it); `unchecked/` is never read | en-US |
-| Localised wake-up repos with a `test/` split | the held-out `test/` clips, one set per `lang` of its `metadata.jsonl` (`positives_filter`) | pt-PT, de-DE, ca-ES, es-ES, an-ES, eu-ES, it-IT, da-DK, nl-NL |
-| Train-only localised and Portuguese repos | `train/` | ca-ES, fr-FR, es-ES, pt-PT |
-
-A repo whose clips say several phrases gives one set per phrase, selected by
-the `text` of its `metadata.jsonl`: `jarbas` and `computador` give the "ei",
-"oi" and "ó" sets. `tigregotico-hey_jarbas` leaves out four Portuguese voices,
-whose clips are copies of Portuguese clips of another phrase. Galician,
-Asturian and Kabyle have no set, because no fighter runs in those languages.
-
-The negatives are the shared pool above and the spoken-words set of the
-language where one exists (`mlsw-negatives-<lang>`). Zero-shot and Vosk fighters
-exist for every phrase whose language has an espeak-ng voice or a small Vosk
-model (`scripts/gen_ww_fewshot_fighters.py`).
-
-**A fighter is never scored on the corpus it was trained on.** A registry
-competitor's `trained_on` field lists the dataset ids whose recordings were
-in its training data. The bench skips a `(fighter, dataset)` pair on that
-list instead of running it, the assembler drops any already-published rows
-for the pair, and the autorun scheduler never picks it — a fighter that
-never registers `trained_on` for a corpus still competes on it normally.
-The precise-lite models (`hey_mycroft`, `hey_robin`, `marvin`, `sheila`)
-carry no exclusion because their training data is not one of the arena's
-registered eval corpora. Every English WakeHuBERT fighter (`wakeforge-*`)
-lists the `tigregotico-*` set of its phrase, because its card names that
-repo's folders as training data. A card that names the whole repo (alexa,
-computer, hey mycroft) also lists the `synthetic-wakewords-*` set of the
-phrase, and a streaming model lists what its head lists. The localised
-WakeHuBERT models trained on the `train/` split only, so they run on the
-held-out `test/` sets (`scripts/gen_ww_model_fighters.py`).
-
-**Stacked fighters.** A wake-word competitor is not only a bare engine, it is
-the engine *as the listener actually stacks it*. A fighter config MAY add a
-**pre-wake VAD** gate (`config.VAD`: the detector only runs on clips the VAD
-calls speech, suppressing false-accepts on non-speech) and/or a **verifier**
-(`config.hotword_verifier`: an activation only counts when the verifier, e.g. a
-speaker check, confirms it). **Each distinct `(engine, VAD, verifier)`
-combination is its own competitor** with its own false-accept / false-reject
-trade-off, `openwakeword-hey-mycroft`, `openwakeword-hey-mycroft-silero`,
-`openwakeword-hey-mycroft-speaker` and `openwakeword-hey-mycroft-silero-speaker`
-are four different fighters in the same league.
-
-**A wake-word threshold is not a fighter.** A different activation threshold
-is one more point on the same model's false-accept / false-reject curve, so a
-threshold variant would count one model twice. Each wake-word model runs at
-its own reference threshold. The VAD league registers each engine once:
-silero-vad threshold and webrtcvad aggressiveness variants agreed with their
-default on 91 to 98 percent of clips and answered no separate question.
-
-## Streaming wake-word league (`ww_stream`), §A3.2 / R15
-
-Isolated-clip benchmarking (above) structurally favors clip-shaped detectors:
-a streaming detector never gets to fire the way it does against a live mic, its rolling feature buffer, temporal smoothing and re-arming behaviour only
-show up over continuous audio, and a false-accept rate needs **hours** of
-continuous negative audio, not seconds-long clips. `ww_stream` is a separate
-board for that: fighters run continuously over long ground-truth-event clips
-(`runner/ww_bench.py:WakeWordStreamBench`), and every activation is recorded
-as a `(timestamp_s, score)` event instead of one binary per-clip decision
-(`prediction: "WW_STREAM"`, `extras.events` / `extras.truth_onsets` /
-`extras.duration_s`). This is intended to become the **primary** WW board
-once the corpus ships. The clip board is retained for engines that can't run
-this way and as a regression guard on per-clip behaviour.
-
-**Eligibility, `capabilities`.** A wake-word competitor's registry entry
-carries `capabilities: ["clip"]` (the default) or `["clip", "stream"]`.
-Only `"stream"` fighters ever run here
-(`WakeWordStreamBench.filter_competitors`), a clip-only fighter is excluded
-outright, never zero-scored, so it neither pollutes nor is unfairly penalised
-on a board it structurally can't compete on. Today that's openWakeWord,
-microWakeWord and the precise-onnx family, engines built on rolling
-streaming feature buffers. Everything else defaults to clip-only until
-verified otherwise.
-
-**Metrics** (`score_ww_stream`), per `(dataset, lang)`, an event within
-a truth onset is a true positive when it falls in `[onset, end + EVENT_TOLERANCE_S]`
-(1.5 s), because a detector fires at the end of the phrase; a manifest with no
-`ends` falls back to `[onset - 1.5 s, onset + 1.5 s]` (rows carry the ends as
-`extras.truth_ends`). An unmatched
-onset is a false reject. An unmatched fired event is a false accept. An
-operating point is the lowest threshold whose FA/hour stays within a budget;
-candidate thresholds are the distinct event scores the engine produced (plus
-"nothing fires"), not a fixed grid, so an engine whose scores saturate near 1
-(0.998 against 0.9995) still gets a separating threshold. An operating
-point is the engine's own activations filtered by score: it cannot go below
-the engine's configured threshold, and an engine that reports no score
-(every activation scores 1.0) gets only one point:
-
-| Metric | Meaning | Direction |
-|---|---|---|
-| **`error_at_1fa_per_hour`** *(primary)* | FRR at the operating point keeping FA/hour ≤ `TARGET_FA_PER_HOUR` (1/hour) | lower better |
-| `error_at_0.5fa_per_hour`, `error_at_2fa_per_hour` | the same at 0.5 and 2 FA/hour | lower better |
-| `recall_at_0.5fa_per_hour`, `recall_at_1fa_per_hour`, `recall_at_2fa_per_hour` | detected share of onsets (1 − FRR) at each budget | higher better |
-| `frr` | false-reject rate at threshold 0.5 | lower better |
-| `fa_per_hour` | false accepts per hour of streamed audio, at threshold 0.5 | lower better |
-| `negative_hours` | total streamed audio hours scored (FA/hour denominator) | — |
-| `n_false_accepts` | false accepts at threshold 0.5, the FA/hour numerator | lower better |
-| `fa_per_hour@<category>`, `negative_hours@<category>` | FA/hour and hours for each kind of audio a manifest row names in `category`: `read_speech`, `conversation`, `broadcast`, `music`, `noise`, `foreign_speech` | lower better / — |
-| `latency_s_median` | median detection latency vs. the matched onset, at threshold 0.5 | lower better |
-| `det_frr@<thr>` / `det_fa_per_hour@<thr>` | a small DET curve (thresholds 0.1–0.9), flattened into float metrics | — |
-
-The primary metric carries a seeded bootstrap 95% CI that resamples whole
-recordings and re-searches the operating threshold in every round.
-
-**Ladder.** The league seeds an ELO ladder (`elo-seed-ww_stream-<lang>.json`,
-same shape as every other league) from per-onset auto-battles within each
-`(dataset, lang)` pool. Every competitor is pinned to its own 1 FA/hour
-operating point over the dataset. For each recording and each pair of
-competitors, a truth onset detected within tolerance by one and missed by the
-other is a battle won by the one that detected it; onsets both or neither
-detected are no battle. As in the clip leagues, a pair contributes battles
-only when the two primary-metric CIs do not overlap, and the per-pair weight
-is capped so human votes can outweigh the seed.
-
-**Datasets**: the league runs only false wake-up sets, one `ww-negatives-<lang>`
-entry (`registry/datasets/ww_stream/`) per language with a featured phrase
-(`arena/ww_listing.py`). All come from one corpus,
-[`OpenVoiceOS/ww-stream-bench`](https://huggingface.co/datasets/OpenVoiceOS/ww-stream-bench).
-Each entry holds recordings with no wake word, and its `primary_metric` is
-`fa_per_hour`. For English that is about 20 hours: read speech, meetings,
-broadcasts, music, household sounds and speech in other languages. The corpus
-also holds negatives for other languages, about 7 hours each, and a recording of
-the clips of each clip test set. Those get no registry entry. Every negative row
-of a manifest names its `category`. The dataset card of the corpus lists every
-source with its revision, its licence and its hours, and the sources it leaves
-out. The runner keeps the events of each recording per fighter config
-(`ww-stream-events` in the arena cache). `scripts/publish_ww_stream_bench.py`
-builds the corpus from pinned source revisions with a fixed seed, uploads it and
-writes the registry entries. `benchmarks/ww_stream.py --dataset ww-negatives-<lang>`
-runs it.
-
-**False-wake-up boards.** Every stream-capable fighter of the language runs on a
-`ww-negatives-<lang>` set. Its board ranks on `fa_per_hour` and holds only the
-fighters of featured phrases. The site lists it only when a listed clip board has
-the same language. Any other `ww_stream` board is hidden. The
-`mlsw-negatives-<lang>` clip sets are pools of negatives for the clip boards,
-not boards, and the site never lists them. A fighter backed by less than
-`MIN_NEGATIVES_BOARD_HOURS` (4 h) is not ranked. The per-category columns show
-which kind of audio woke it.
-
-A wake-word clip set can leave folders out with `exclude_dirs`, for example a
-generator folder that another test set already holds, so that no clip is
-scored twice under two names. `positives_filter` keeps only the positive clips
-whose row in the folder's `metadata.jsonl` holds the listed values, so a folder
-that mixes two languages gives one test set per language.
-
-Every wake-word fighter declares `stream`, because every OVOS wake-word plugin
-runs on the live microphone stream. A configured pre-wake VAD and verifier
-judge the 2 s of audio before an activation, the way the listener hands them
-the buffered phrase.
-
-`scripts/build_ww_stream_corpus.py` builds such a corpus from a directory of
-positive clips (wav/flac plus `metadata.csv`) and local negative audio: it
-inserts the positives between negative audio at random, non-overlapping
-times at a configurable level relative to the recording's negative audio (never below -35 dBFS), and writes
-16 kHz mono recordings plus `manifest.jsonl` (`audio`, `onsets`,
-`duration_s`, `sources` naming the clip behind each onset, and `end_samples`,
-`spoken_s`, `level_dbfs` per onset). Positives are trimmed of leading and
-trailing silence, so the onset is where the phrase starts and `ends` where it
-ends; no positive is left out for being long, and one over 4 s is logged. The output is
-a pure function of the inputs and `--seed`.
-
-**Test-set kind.** A `ww_stream` dataset entry may set `test_set_kind` to
-`real` (positives are human recordings) or `synthetic` (synthesised
-positives). The value is copied into the benchmark board's `dataset_info`
-and the leaderboard shows it beside the dataset facts, so a board built on a
-synthetic test set is labelled as one.
-
-## VAD league (`vad`)
-
-**Task**: per-clip speech / non-speech detection, the same binary-detection
-task as wake word, so it shares the scorer. Each fighter's real OVOS
-`VADEngine` is fed a clip frame by frame through `is_silence()`. The clip counts
-as **speech** if any frame is voiced (`runner/vad_bench.py`).
-
-**Metrics** (`score_vad`), per `(dataset, lang)`, identical shape to wake word,
-and **both error directions matter**:
-
-| Metric | Meaning | Direction |
-|---|---|---|
-| **`error_rate`** *(primary → ELO seed)* | share of clips decided wrong | lower better |
-| `false_accept_rate` | fires **speech** on non-speech (music/noise) | lower better |
-| `false_reject_rate` | misses real **speech** | lower better |
-| `accuracy`, `latency_ms_median` | — | — |
-
-**Datasets**: `speech-vs-nonspeech` (English speech) plus a per-language
-`speech-vs-nonspeech-<lang>` for each MInDS-14 language (de, fr, it, es, pt, nl,
-pl, ru, cs, ko, zh, en-US/GB/AU), MInDS-14 telephone speech as positives vs the
-same non-speech pool, so VAD is benchmarked across many languages. VAD fighters
-are language-agnostic (run on every language's set). The same VAD plugins also
-appear as pre-wake gates in the wake-word league above.
-
-## ELO seeding (all leagues with an objective metric)
-
-`assemble` derives an auto-vote for every `(sample, competitor-pair)` where the
-primary metric separates the two fighters: the correct one "wins" that battle,
-replayed in deterministic order at **K/4** to seed the ladder before any human
-vote (§4 R5, §5). Intent uses per-row correctness (incl. OOD rejection). Wake-word uses per-clip correctness. Both reduce to "exactly one fighter right
-on this sample → it wins". TTS has no ground-truth reference, but it does have
-an objective, reference-free naturalness score (UTMOS, §4 R14) combined with
-ROVER-consensus intelligibility (§4 R16): the clip with the higher
-UTMOS x intelligibility x inter-judge-agreement composite score "wins" that
-battle (see [methodology.md, "How auto-battles are decided"](methodology.md#how-auto-battles-are-decided)
-for the formula), same shape as the others, gated by the same significance
-check (R5a) and per-pair weight cap (R5b). Legacy rows without an
-intelligibility score fall back to a plain UTMOS comparison. Human votes
-remain the TTS league's primary ranking signal, the composite board and its
-ELO seed are a secondary, objective cross-check alongside them.
-
-## Out of scope here
-
-`stt` (WER) and `tts` (human-vote primary, UTMOS objective board, §4 R14) are
-defined in [SPECIFICATION.md §7](SPECIFICATION.md). Media-classification and agent-plugin
-leagues are tracked for later absorption in
-[NGI0-Commons-Fund#14](https://github.com/OpenVoiceOS/NGI0-Commons-Fund/issues/14).
+Media-classification and agent-plugin leagues are planned for later.
 
 ## Rank badges
 
-Every `tally` run writes an embeddable SVG badge per fighter to
-`badges/<modality>/<competitor-id>.svg` (served from the same Pages site as the
-boards). The badge shows the fighter's league rank and rating and is
-byte-stable between rebuilds when nothing changed. Embed it in a plugin README:
+Every `tally` run writes an SVG badge per fighter to
+`data/badges/<group>/<competitor_id>.svg` on the Pages site. `<group>` is the
+battle group, so the four intent leagues share the `intent` folder. The
+badge shows the rank and rating of the fighter on its ladder. It stays
+byte-identical between runs when nothing changed. Embed it in a plugin
+README:
 
 ```markdown
-[![OVOS Arena](https://openvoiceos.github.io/ovos-plugin-arena/badges/stt/<competitor-id>.svg)](https://openvoiceos.github.io/ovos-plugin-arena/leaderboard/)
+[![OVOS Arena](https://openvoiceos.github.io/ovos-plugin-arena/data/badges/stt/<competitor_id>.svg)](https://openvoiceos.github.io/ovos-plugin-arena/leaderboard/)
 ```
 
 ---
-[← Runner](runner.md) · [Home](index.md) · [Methodology →](methodology.md)
+[← Front page](index.md) · [Home](index.md) · [Intent →](leagues/intent.md)

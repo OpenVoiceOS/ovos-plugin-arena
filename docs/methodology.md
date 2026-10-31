@@ -57,7 +57,7 @@ competitor `b` with score `1.0` (win), `0.5` (tie / both-wrong), or `0.0`
 The Bradley-Terry model assigns every competitor a strength `π > 0` such
 that the probability `i` beats `j` is `π_i / (π_i + π_j)`. The
 maximum-likelihood strengths are found by the classic
-[Zermelo/Hunter (2004)](https://sites.stat.washington.edu/fritz/DATAFILES2/MMAlgorithms.pdf)
+[Zermelo/Hunter (2004)](https://doi.org/10.1214/aos/1079120141)
 minorization-maximization iteration:
 
 ```
@@ -98,9 +98,9 @@ phantom's anchor (1200) rather than being undefined, see `tests/test_rating.py::
 
 Auto (benchmark-derived) votes carry `BT_AUTO_WEIGHT = 0.25`, the same §4 R5 intent as sequential
 ELO's `K/4`, expressed as a pairwise weight instead of a K-factor. This is capped
-further at the board level (§4, seed-battle bias audit) so a large benchmark
-dataset can never outweigh a modest number of real human votes. See that
-section once implemented for the cap mechanism.
+further per fighter pair (see [Seed-battle bias audit](#seed-battle-bias-audit))
+so a large benchmark dataset can never outweigh a modest number of real human
+votes.
 
 ## How auto-battles are decided
 
@@ -235,7 +235,7 @@ distinct hand-authored templates and are kept. Rows that fail the rule are
 dropped rather than replaced, which is why per-language test counts range from
 1,354 to 1,384 instead of landing on a round number.
 
-The intent boards rank on `generalization_accuracy`. On `intents-for-eval` that averages `paraphrase`, `far_ood`, `asr_noise` and `typos` only. `template`
+The intent boards rank on `generalization_accuracy`. On `intents-for-eval` it pools the rows of `paraphrase`, `far_ood`, `asr_noise` and `typos` only, so a bucket with more rows has more weight. `template`
 and `in_distribution` (the dataset's raw bucket name) are in-distribution buckets, not
 out-of-scope or memorized rows: `template` tests recall of a held-out template rather
 than free-form phrasing, and `in_distribution` holds in-domain paraphrase-adjacent utterances
@@ -254,13 +254,13 @@ A corpus whose buckets are all scored in therefore has nothing excluded, and its
 published board entry outside `intents-for-eval` is in it:
 `massive-templates` across its languages, `snips`, `mtop`,
 `banking77` and `clinc150`, whose rows carry a plain `test` bucket, and
-`clinc150` additionally a `far_ood` one that is scored in as well. For those
+`clinc150` also a `far_ood` one that is scored in as well. For those
 corpora the guarantee behind the ranked number is the train/test split of the
 corpus itself, not the arena's bucket exclusion.
 
 How many buckets feed the metric is a property of the corpus, not of the metric.
-`ovos-intents-v5` declares one generalization bucket, `ood`, against its
-in-distribution `id_test`. Compare boards through the `acc_*` columns published
+The pinned `ovos-intents-v5` test split has no bucket column and declares no
+`bucket_roles`, so it is also in the plain-test case. Compare boards through the `acc_*` columns published
 beside the headline number rather than assuming they rank on the same rows.
 
 ## Dataset sampling policy
@@ -281,7 +281,7 @@ dataset had a policy, one swept against the policy, and one swept with a
 smaller ad hoc `--max-samples` can each hold a different subset of the corpus's rows, and a
 board built straight from those predictions would rank them against each other
 anyway, silently mixing sample populations. Closing that gap is a separate,
-explicit step: publishing the policy's selected row ids as a manifest (`sample_sets/<lang>.json`,
+explicit step: publishing the policy's selected row ids as a manifest (`sample_sets/<ll_RR>.json`,
 alongside a dataset's predictions) that board assembly downloads and filters
 every fighter's rows against before scoring. A fighter is only ranked once its
 rows cover most of the manifest. One that covers too little is marked unranked
@@ -297,7 +297,7 @@ then `in_distribution`, then `paraphrase`, and only then `far_ood`, `asr_noise` 
 capped sweep whole leading buckets and nothing from the trailing ones, and `generalization_accuracy`
 would quietly become a paraphrase-only score. The cap is apportioned across
 buckets in proportion to their share of the corpus, with at least one row from
-each, so every bucket the ranked metric averages is represented. The draw is
+each, so every bucket the ranked metric pools is represented. The draw is
 seeded and therefore identical between runs, which is what lets a resumed sweep
 keep filling the same shard, and rows keep the index their `sample_id` is built from,
 so a capped sweep and a full sweep name the same row identically. A corpus with
@@ -418,15 +418,16 @@ in `intent_zero_shot`.
 minted in the intent group keeps resolving while both fighters are registered and still
 answer that sample — a fighter moving between intent leagues does not invalidate it.
 
-A vote counts toward the replay if and only if its battle id is present in the committed
-battles pool for its group. A vote whose battle is gone — a retired fighter, a re-swept
-sample — is handled by the tally pipeline's "battle not in the current pool" check
-(`arena/cli.py:cmd_tally`): it is discarded and reported in `vote-audit.json` rather than
-silently dropped or, worse, misattributed.
+`tally` resolves a vote against the battles pool once, when it first records the issue
+(`arena/cli.py:ingest_vote_issues`). A battle id that is not in the pool at that moment is
+recorded with the reason `battle_not_in_pool`. Otherwise the record keeps the fighter pair,
+dataset, language and sample of the battle. The replay reads that pair from the record and
+never reads the pool again, so a battle that later leaves the pool still replays. A vote
+whose fighter is no longer in the seed of its ladder is discarded as `competitor_retired`
+(`replay_boards`). Every discard is listed in `vote-audit.json`.
 
-The check is a pure function of the vote log plus the committed battles pools, which are
-themselves a pure function of the registry and published predictions (P5), so replay
-stays deterministic and network-free, exactly like the rest of `tally`.
+The replay reads only committed files: the vote record, the seeds and the voter age cache.
+It is thus deterministic and uses no network (P5).
 
 ## Benchmark boards: significance, beyond a point estimate
 
@@ -445,8 +446,9 @@ the metric is:
   `error_rate`), bootstrap the 0/1 indicator list directly and report the
   percentile interval of the resampled mean.
 
-- **Ratio of summed counts** (STT `wer_mean` = total word errors / total reference
-  words), a per-utterance WER is not directly comparable across utterances of
+- **Ratio of summed counts** (STT pooled WER = total word errors / total reference
+  words; the board itself ranks on `wer_mean`, the mean of per-row WER, so this
+  interval brackets the pooled WER and not the ranked number), a per-utterance WER is not directly comparable across utterances of
   different length, so this bootstraps **(errors, reference-word-count)
   pairs**, recomputing `sum(errors) / sum(ref_words)` each round, rather than averaging per-utterance WER
   values as if they were i.i.d., a one-word command with one error and a
@@ -551,8 +553,8 @@ human-vote list, it exists only in the `vote-audit.json` record.
 closed `vote`-labelled issues), so every tally run sees the complete log rather
 than only the issues opened since the last run, and anything missing from the
 record is recorded then. Already-closed issues are never re-commented-on or
-re-closed: `arena.cli.cmd_tally` comments and closes only issues it recorded on that run and
-which are still `OPEN` in the freshly-fetched list.
+re-closed: `arena.cli.cmd_tally` comments on and closes each recorded issue that is still
+`OPEN` in the freshly-fetched list, whichever run recorded it.
 
 **Blinding is honest-participant blinding.** The battles pool is a static JSON
 file the voting page fetches, so the competitor pair and the reference for
@@ -870,4 +872,4 @@ This is deliberately a plain ranked table, not a scatter-plot library, the
 quality/compute trade-off only needs two numbers per row to read.
 
 ---
-[← Leagues](leagues.md) · [Home](index.md) · [Operations →](operations.md)
+[← VAD](leagues/vad.md) · [Home](index.md) · [Rating →](rating.md)

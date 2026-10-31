@@ -123,7 +123,7 @@ documented per-stage in the fighter's `notes`). This is the true zero-effort bas
 If a curated fusion cannot beat ovos-stock, its curation added nothing over what ships
 by default.
 
-**Source:** `/home/miro/.venvs/ovos/lib/python3.12/site-packages/ovos_config/mycroft.conf`,
+**Source:** `ovos_config/mycroft.conf` in the `ovos-config` package,
 `intents.pipeline` key (verbatim order cited in the fighter's `notes`).
 
 ### mycroft-classic, KEEP (new family: historical-ordering reproduction)
@@ -265,8 +265,7 @@ Padacioso wraps, as a built-in matcher (`IntentContainer.padaos`, enabled by def
 and any perfect match there is assigned `conf=1.0`, the ceiling score, ahead of or
 alongside the neural score. Verified directly in
 `ovos_padatious/intent_container.py::IntentContainer.calc_intents()`
-(`/home/miro/.venvs/ovos/lib/python3.12/site-packages/ovos_padatious/intent_container.py`,
-lines ~280-303): `self.padaos.calc_intents(query)` results are folded into the return set
+(in the `ovos-padatious` package): `self.padaos.calc_intents(query)` results are folded into the return set
 with `conf=1.0` before the container returns. Putting Padacioso in front of Padatious in a
 pipeline therefore tests nothing Padatious was not already doing internally. It is not a
 paradigm mix. It is the same exact-match gate invoked twice under two different plugin
@@ -292,4 +291,4 @@ names. **Removed** (`git rm registry/competitors/intent/padatioso.json`).
 | tmpl-slot-jurebes | adapt-high, jurebes(mlp_shallow)-medium | **DROP** | none, same prediction as jurebes-mlp-shallow on 92.7% of rows |
 
 ---
-[← Visual site tour](site-tour.md) · [Home](index.md)
+[← Dataset gap fill](dataset-gapfill.md) · [Home](index.md) · [Site tour →](site-tour.md)
