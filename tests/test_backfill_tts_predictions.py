@@ -13,6 +13,7 @@ survive byte-for-byte in the merged output.
 from __future__ import annotations
 
 import json
+from types import SimpleNamespace
 
 import pytest
 
@@ -318,8 +319,9 @@ class TestUploadPair:
         import huggingface_hub
         monkeypatch.setattr(huggingface_hub, "HfApi", FakeApi)
 
-        backfill.upload_pair("OpenVoiceOS/ovos-tts-bench-d", jsonl_path,
-                              "en-US", "voice_a")
+        backfill.upload_pair(SimpleNamespace(dataset_id="d", license="cc-by-4.0"),
+                             "OpenVoiceOS/ovos-tts-bench-d", jsonl_path,
+                             "en-US", "voice_a")
         assert len(calls) == 1
         assert calls[0]["path_in_repo"] == "predictions/en-US/voice_a.jsonl"
         assert calls[0]["repo_id"] == "OpenVoiceOS/ovos-tts-bench-d"

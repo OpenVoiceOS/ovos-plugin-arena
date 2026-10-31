@@ -14,6 +14,9 @@ class _Source:
 
 class _EvalDef:
     source = _Source
+    dataset_id = "intents-for-eval"
+    display_name = None
+    license = "apache-2.0"
 
 
 class _Adapter:

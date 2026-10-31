@@ -41,11 +41,13 @@ import json
 import logging
 from pathlib import Path
 
+from registry.loaders import load_dataset
 from runner.asr_judges import (
     _UNIVERSAL_FALLBACK,
     judge_available,
     resolve_judge_model,
 )
+from runner.dataset_cards import check_redistributable
 from runner.intent_bench import HF_OWNER, results_repo_for
 from runner.tts_bench import (  # noqa: F401 (patchable at module level; optional-dep imports are inside tts_bench's own lazy judge getters)
     _score_intelligibility,
@@ -296,9 +298,10 @@ def rescore_repo(repo_id: str, revision: str = "main",
     return repo_dir
 
 
-def upload_rescored(repo_id: str, repo_dir: Path) -> None:
+def upload_rescored(dataset_def, repo_id: str, repo_dir: Path) -> None:
     from huggingface_hub import HfApi
 
+    check_redistributable(dataset_def, repo_dir / "predictions", repo_id)
     api = HfApi()
     api.upload_folder(
         folder_path=str(repo_dir / "predictions"),
@@ -335,7 +338,7 @@ def main() -> None:
     repo_dir = rescore_repo(repo_id, args.revision, args.rejudge_intelligibility,
                              args.langs)
     if args.upload:
-        upload_rescored(repo_id, repo_dir)
+        upload_rescored(load_dataset(MODALITY, args.dataset_id), repo_id, repo_dir)
         log.info("Uploaded rescored predictions to %s", repo_id)
 
 

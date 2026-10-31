@@ -41,7 +41,13 @@ from registry.schemas import (
     expected_league,
 )
 from runner.audio_io import resolve_sample_cap, stream_audio_dataset, stream_manifest_audio
-from runner.dataset_cards import FUNDING_BLOCK, check_funding_block
+from runner.dataset_cards import (
+    FUNDING_BLOCK,
+    check_funding_block,
+    check_redistributable,
+    hf_licence,
+    licence_section,
+)
 from runner.intent_pipeline import (
     DEFAULT_TRAIN_TIMEOUT_SECS,
     IntentPipeline,
@@ -1034,7 +1040,7 @@ def _dataset_card(modality: str, dataset_id: str, eval_def, langs: list[str]) ->
         "intent_keyword": "keyword-supervised",
     }.get(modality, modality)
     return f"""---
-license: apache-2.0
+license: {hf_licence(eval_def.license)}
 tags:
   - openvoiceos
   - intent-classification
@@ -1061,6 +1067,8 @@ semantics). Produced by the reproducible benchmark script in the arena repo;
 the arena's `assemble` workflow turns these rows into benchmark boards,
 blind battle pools and a benchmark-seeded ELO ladder.
 
+{licence_section(eval_def)}
+
 {FUNDING_BLOCK}
 """
 
@@ -1081,6 +1089,7 @@ def upload_predictions(
         langs = sorted(d.name for d in modality_dir.iterdir() if d.is_dir())
         if not langs:
             continue
+        check_redistributable(eval_def, modality_dir, repo)
         try:
             api.create_repo(repo, repo_type="dataset", exist_ok=True)
         except Exception as exc:

@@ -198,6 +198,9 @@ def push_migrated(repo_id: str, files: dict[str, Path], token: str | None = None
     """
     from huggingface_hub import HfApi
 
+    from runner.dataset_cards import check_repo_redistributable
+
+    check_repo_redistributable(repo_id, list(files.values()))
     api = HfApi(token=token)
     for name, local_path in files.items():
         api.upload_file(
