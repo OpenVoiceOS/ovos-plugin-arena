@@ -55,4 +55,4 @@ The only Spanish recording found, a 48-sample community set, is too small
 and not packaged the way the registry's wake-word datasets expect.
 
 ---
-[← Dataset review](dataset-review.md) · [Home](index.md) · [Visual site tour →](site-tour.md)
+[← Dataset review](dataset-review.md) · [Home](index.md) · [Ensemble rationale →](ensemble-rationale.md)

@@ -160,7 +160,6 @@ train set:
 | intents-for-eval-keywords | train (keyword) | n/a, train corpus |
 | massive-templates | eval | yes (`ovos-intent-template-bench-massive-templates`) |
 | massive-templates-train | train (template) | n/a, train corpus |
-| hass-intent-templates | train (template) | n/a, train corpus |
 | snips | eval | no |
 | snips-train | train (template) | n/a, train corpus |
 | banking77 | eval | no |
@@ -203,13 +202,9 @@ declares `train_datasets` pointing at its own template/keyword training
 corpora, and both have live boards driven by `benchmarks/intent_intents_for_eval.py`
 and `benchmarks/intent_massive_templates.py`.
 
-`hass-intent-templates` is an orphan. It is a large corpus, Home
-Assistant intents recast as phrase templates across 62 locales, but no
-eval dataset's `train_datasets` references it, and grepping the full
-`registry/datasets/intent/` tree confirms it is the only train-role entry
-with zero inbound references. It has a `predictions_hf` field
-(`OpenVoiceOS/ovos-intent-bench-hass-intent-templates`) as if it were
-meant to back a board, but no eval dataset drives predictions into it.
+`hass-intent-templates`, Home Assistant intents recast as phrase
+templates across 62 locales, has no registry entry. Proposal 9 describes
+how to add it with an eval set.
 
 ### `ovos-golden-utterances-bench`, regenerating from the skill fleet
 
@@ -218,7 +213,8 @@ intent eval set built from the `test/end2end/golden_utterances*.jsonl`
 suites shipped by the `ovos-skill-*` fleet, one JSONL file per language.
 It is not built from a static, hand-curated corpus: every skill repo owns
 its own golden-utterances file(s), so the dataset drifts out of date as
-skills gain or edit test rows.
+skills gain or edit test rows. The registry holds no entry for it, so no
+board scores it.
 
 `scripts/build_golden_utterances.py` reproduces the full pipeline:
 enumerate non-archived `ovos-skill-*` repos in the org, fetch every
@@ -364,19 +360,15 @@ distinct positive/negative material, both already draw from the same
 `TigreGotico/not-wake-words-speech-en` positives and the same negative
 pools.
 
-### 9. Retire or wire up `hass-intent-templates`
+### 9. Register `hass-intent-templates` with an eval set
 
-62-locale train corpus with zero eval datasets referencing it. Either:
-
-- **retire**: drop the registry entry and its `predictions_hf` field if
-  no eval dataset is planned to consume it, or
-- **wire up**: add an `intents-for-eval`-style eval dataset per locale (or
-  a `multi` eval set) with `train_datasets: {"template": "hass-intent-templates"}`,
-  giving intent-classification fighters an eval path through Home
-  Assistant-style commands distinct from the MASSIVE-derived sets already
-  in place. Given the corpus already spans 62 locales, this is the single
-  addition with the biggest payoff for intent-modality language coverage
-  if pursued.
+The 62-locale Home Assistant template corpus has no registry entry. To use
+it, add it as a train corpus together with an `intents-for-eval`-style
+eval dataset per locale (or a `multi` eval set) with
+`train_datasets: {"template": "hass-intent-templates"}`. This gives
+intent-classification fighters an eval path through Home Assistant-style
+commands, distinct from the MASSIVE-derived sets, and it is the addition
+with the biggest payoff for intent language coverage.
 
 ### 10. Candidate datasets on the `OpenVoiceOS` HF org not yet registered
 

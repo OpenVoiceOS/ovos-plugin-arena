@@ -5,7 +5,7 @@ against a public dataset, published as raw prediction rows on HuggingFace. You
 do not have to trust the board: install the plugin, run the same benchmark
 script against the same dataset with a small sample cap, and check that your
 number falls where the published row's confidence interval says it should.
-Five minutes and a laptop are enough for a CPU fighter; a GPU-free onnx-asr
+Five minutes and a laptop are enough for a CPU fighter. A GPU-free onnx-asr
 STT model takes a couple of minutes more the first time, mostly downloading
 the model.
 
@@ -23,9 +23,9 @@ uv pip install --python .venv/bin/python --prerelease=allow ovos-adapt-parser ov
 ```
 
 `padacioso` (installed transitively with the arena package) registers the
-`ovos-padacioso-pipeline-plugin` entry point used by the template and
-freeform leagues, and `ovos-adapt-parser` registers `ovos-adapt-pipeline-plugin`
-the same way for the keyword leagues — `ovos-core` itself only ships the
+`ovos-padacioso-pipeline-plugin` entry point used in the `intent_online`
+league, and `ovos-adapt-parser` registers `ovos-adapt-pipeline-plugin` the
+same way for the `intent_keyword` league. `ovos-core` itself only ships the
 converse/fallback/stop pipeline plugins. Either way, there is no separate
 `ovos-*-pipeline-plugin` package to install: the entry point comes with the
 library. The `.[hf,audio]` extra pulls in `onnx-asr`, `soundfile` and
@@ -43,7 +43,7 @@ It took under 10 seconds on a 12-thread box. Expected output:
 
 ```
 INFO    training padacioso-medium for en-US (stages: ovos-padacioso-pipeline-plugin-medium)
-INFO    padacioso-medium/en-US: wrote 5 rows
+INFO    padacioso-medium/en-US: wrote 5 rows (0 errored)
 ```
 
 ## 3. Run the STT fighter
@@ -66,7 +66,7 @@ INFO    onnx-asr-parakeet-tdt-ctc-110m/en-US: wrote 20 rows (0 errored)
 
 `assemble` needs the directory that directly contains the `<lang>/` shards,
 not the top-level `predictions/<dataset>/` directory a benchmark script logs
-you into — see the caveat at the bottom of this page.
+you into. See the caveat at the bottom of this page.
 
 ```bash
 python -m arena.cli assemble \
@@ -81,8 +81,9 @@ python -m arena.cli assemble \
 Each writes a `benchmark-<modality>-<dataset>-<lang>.json` with one entry per
 competitor, in the same shape as the committed files under
 `frontend-static/public/data/`. Read the `metrics` block for the competitor
-you ran — for the intent case, `metrics.accuracy`; for STT,
-`metrics.wer_mean` — along with `primary_metric_ci_lower` /
+you ran. For the intent case, read `metrics.accuracy`. On `snips`, which has
+one `test` bucket, it equals the ranked `generalization_accuracy`. For STT,
+read `metrics.wer_mean`. Read also `primary_metric_ci_lower` and
 `primary_metric_ci_upper`, the confidence interval computed from your sample
 count.
 
@@ -100,12 +101,14 @@ print(row['metrics']['accuracy'], row['samples'])
 "
 ```
 
-The published `padacioso-medium` row on `snips`/`en-US` scores 0.0164
+The numbers below are an example at one revision of the published data.
+The command above prints the live value. At that revision, the published
+`padacioso-medium` row on `snips`/`en-US` scored 0.0164
 accuracy over 1400 samples (95% CI 0.0107–0.0236). A 5-sample local run
-scored 0/5 = 0.0, well inside that interval — at a 1.6% true positive rate,
+scored 0/5 = 0.0, well inside that interval. At a 1.6% true positive rate,
 0 hits in 5 draws is the expected outcome most of the time, not a
 contradiction. The published `onnx-asr-parakeet-tdt-ctc-110m` row on
-`minds14-en-US` scores 0.3451 mean WER over 563 samples; a 20-sample local
+`minds14-en-US` scored 0.3451 mean WER over 563 samples. A 20-sample local
 run scored 0.2355, inside the local run's own CI (0.121–0.407) and
 consistent with the published value given the sample size.
 
@@ -133,7 +136,7 @@ board was built from, not whatever happens to be on `main` today.
 ## Caveats
 
 - **Sampling cap.** `--max-samples` trades statistical power for speed. A
-  5- or 20-sample run's confidence interval is wide; treat agreement as
+  5- or 20-sample run's confidence interval is wide. Treat agreement as
   "consistent with the published row," not as an independent re-measurement
   of the true score. Widen the cap if you want a tighter interval.
 - **Nondeterministic plugins.** Fighters with any learned component (fuzzy
@@ -142,7 +145,7 @@ board was built from, not whatever happens to be on `main` today.
   (template regex match, greedy ONNX decode), but not every fighter in the
   registry is.
 - **Model downloads.** The first STT run for a given model downloads and
-  caches it (over a gigabyte for `onnx-asr-parakeet-tdt-ctc-110m`); later runs
+  caches it (over a gigabyte for `onnx-asr-parakeet-tdt-ctc-110m`). Later runs
   reuse the cache. Budget for that on a slow connection.
 - **`assemble --predictions` path depth.** Every benchmark script writes to
   `predictions/<dataset>/<modality>/<lang>/<competitor>.jsonl`, but `assemble`
@@ -152,9 +155,9 @@ board was built from, not whatever happens to be on `main` today.
   the intent engine. Passing `assemble` the dataset-level directory the
   benchmark script's log line implies (as `docs/local-testing.md` step 5
   shows for a flat single-dataset case) silently assembles nothing for either
-  layout used here — no error, just `nothing to assemble for modality ...`.
+  layout used here. It gives no error, only `nothing to assemble for modality ...`.
   Use the paths in the commands above, or list the actual directory tree
   under `predictions/` before assembling.
 
 ---
-[← Runner](runner.md) · [Home](index.md) · [Leagues →](leagues.md)
+[← Datasets](datasets.md) · [Home](index.md) · [Benchmarks →](benchmarks.md)

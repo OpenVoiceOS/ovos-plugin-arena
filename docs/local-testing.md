@@ -45,11 +45,9 @@ python -m pytest tests/ -q
 benchmark engines (`runner/`) behave correctly, with no network or plugin
 calls.
 
-**Expected output shape:**
-
-```
-584 passed in 5.43s
-```
+**Expected output shape:** one line with the counts, such as
+`N passed, M skipped`, and exit code 0. The number of tests changes as the
+suite grows, so compare the exit code, not the count.
 
 If you installed only `.[test,hf]` (no `audio`), four `TestIntelligibility`
 cases in `tests/test_tts_bench.py` fail with `No module named 'soundfile'`, that's expected. They're audio-decode tests gated on the `audio` extra, not a
@@ -92,8 +90,11 @@ uses, just capped to 5 samples for one fighter.
 ```
 INFO  Fighter padacioso-medium [intent_online]
 INFO    training padacioso-medium for en-US (stages: ovos-padacioso-pipeline-plugin-medium)
-INFO    padacioso-medium/en-US: wrote 5 rows
+INFO    padacioso-medium/en-US: wrote 5 rows (0 errored)
 ```
+
+A second run of the same command prints `padacioso-medium/en-US: already
+complete` and writes nothing.
 
 No `--upload` flag was passed, so nothing is published to HuggingFace, the
 rows land locally at `predictions/<dataset>/<paradigm>/<lang>/<competitor>.jsonl`
@@ -137,20 +138,19 @@ benchmark script's output shape before publishing anything.
 **Expected output shape:**
 
 ```
-INFO  Loaded 5 rows from intent_template/en-US/padacioso-medium.jsonl
+INFO  Loaded 5 rows from en-US/padacioso-medium.jsonl
 INFO  Wrote /tmp/arena-assemble-test/benchmark-intent_online-snips-en-US.json
-INFO  Assembled 0 battles for intent_online/snips/en-US (0 pairs, 0 reference mismatches skipped)
-INFO  Wrote /tmp/arena-assemble-test/battles-intent_online-snips-en-US.json
-INFO  Wrote /tmp/arena-assemble-test/elo-seed-intent_online-en-US.json
-INFO  Wrote /tmp/arena-assemble-test/battles-intent_online-freeform-en-US.json
-INFO  Wrote /tmp/arena-assemble-test/leaderboard-intent_online-en-US.json
+INFO  intent_online/snips/en-US: 5 sample(s), under the 30 a board needs — no battles or ELO seed
+INFO  Wrote /tmp/arena-assemble-test/assemble-summary-intent_online.json
+INFO  Wrote /tmp/arena-assemble-test/vote-audit.json
 ```
 
-`0 battles` here is expected, not a bug: a battle is an A/B pair between two
-*different* competitors on the same sample, and this smoke run only predicted
-with one fighter (`padacioso-medium`). Point `--predictions` at a directory
-(or comma-separated HF repo ids) covering two or more competitors on the same
-dataset to see nonzero battle counts.
+No battle pool and no ELO seed is the expected result. Five rows are under
+the 30 that a board needs (`MIN_BOARD_SAMPLES`), so the entry on the board is
+unranked with the reason `too_few_samples`. A battle also needs two different
+fighters on the same sample. Point `--predictions` at a folder, or at
+comma-separated HF repo ids, that holds two or more fighters with 30 or more
+rows each to see battles.
 
 ## 6. Verify replay
 
@@ -171,10 +171,19 @@ runs on every push to `dev`.
 
 **Expected output:**
 
+Over the scratch folder of step 5, which has no ELO seed:
+
 ```
-INFO  Loaded 1 ELO seeds, 0 recorded vote issue(s) from /tmp/arena-assemble-test/votes.jsonl
+INFO  Loaded 0 ELO seeds, 0 recorded vote issue(s) from /tmp/arena-assemble-test/votes.jsonl
 INFO    → 0 counted vote(s), 0 discarded, 0 down-weighted
-INFO  verify-replay OK — 1 published board(s) reproduced exactly by replaying the vote log
+INFO  verify-replay OK — 0 published board(s) reproduced exactly by replaying the vote log
+```
+
+Over the committed data, the first lines name the number of seeds, recorded
+votes and boards, and the run ends with exit code 0:
+
+```
+INFO  verify-replay OK — <N> published board(s) reproduced exactly by replaying the vote log
 ```
 
 Any other exit code means a published board doesn't match what the vote
@@ -234,10 +243,10 @@ or Ctrl-C in the foreground terminal.
   hashes of `(modality, dataset, lang, sample, competitor pair)`, so
   re-assembling never invalidates an already-open vote
   ([`operations.md`](operations.md)).
-- **`tally`** always replays the *entire* vote issue history (open and
-  closed) from scratch on every run, it has no incremental state of its
-  own. `vote-audit.json` is fully regenerated, not appended to
+- **`tally`** appends each vote issue that is not yet recorded to
+  `votes.jsonl`, then replays the whole record on every run.
+  `vote-audit.json` is fully regenerated, not appended to
   ([`operations.md`](operations.md#auditing-discards)).
 
 ---
-[← Specification](SPECIFICATION.md) · [Home](index.md) · [Add a fighter →](add-a-fighter.md)
+[← Benchmarks](benchmarks.md) · [Home](index.md) · [Add a fighter →](add-a-fighter.md)

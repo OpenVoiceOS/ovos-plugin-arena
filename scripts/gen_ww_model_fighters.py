@@ -12,7 +12,8 @@
   skips what its head skips. The held-out ``test/`` sets of the localised
   repos are no model's training data. This field is rewritten in files that
   already exist.
-- ``precise-onnx-<model>``: the hey mycroft, hey robin, marvin and sheila models
+- ``precise-onnx-<model>``: the five models for hey mycroft (default and Mark 1),
+  hey robin, marvin and sheila
   in ``OpenVoiceOS/precise-lite-models``.
 - ``microwakeword-<word>[-v2]``: every model of the ESPHome
   ``micro-wake-word-models`` repository.

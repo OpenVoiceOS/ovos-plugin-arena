@@ -22,9 +22,11 @@ See [`methodology.md`](methodology.md) for *why* the rules exist and
    battle. It is never parsed.
 2. **Hourly tally.** `.github/workflows/tally.yml` runs at :17 past every
    hour (`cron: '17 * * * *'`, plus manual `workflow_dispatch`). It lists
-   every `vote`-labelled issue, open *and* closed, full history every time, parses titles, deduplicates, applies the anti-fraud rules
-   (`methodology.md` → "Vote fraud / dedup resistance"), replays the
-   surviving votes on top of the ELO seed, and writes
+   every `vote`-labelled issue, open and closed, and appends each issue that
+   is not yet in the vote record (`votes.jsonl`) to it. It then replays the
+   whole record on top of the ELO seed: it deduplicates to one vote per
+   author per battle in issue-number order, and applies the anti-fraud rules
+   (`methodology.md` → "Vote fraud / dedup resistance"). It writes
    `leaderboard-<modality>-<lang>.json`, `vote-audit.json` and
    `patch-notes.json` under `frontend-static/public/data/`. It then commits
    and pushes straight to `dev` (`[skip ci]`) and closes each processed
@@ -76,9 +78,9 @@ Work backwards from whichever of these you can see:
 ## Auditing discards
 
 Every tally run overwrites `vote-audit.json` with the complete, current
-picture, it is not an append-only log, it is regenerated fresh from the
-full vote history every time (consistent with `tally` always replaying
-every issue, open and closed):
+picture. It is not an append-only log. Each run regenerates it from a
+replay of the whole vote record (`votes.jsonl`), which holds every vote
+issue that a run has recorded:
 
 - `discarded`: every vote whose weight is zero, with the exact
   `discarded_reason` (`daily_vote_cap_exceeded` or `account_too_new`).
@@ -229,7 +231,7 @@ A dataset's registry `sample_policy` fixes how many rows (and which ones,
 deterministically) a sweep draws, but the sweep itself never records which
 rows those were. `.github/workflows/publish-sample-sets.yml` runs weekly
 (and on demand via `workflow_dispatch`, with an optional dataset id glob)
-and publishes a `sample_sets/<lang>.json` manifest — the exact set of
+and publishes a `sample_sets/<ll_RR>.json` manifest — the exact set of
 sample ids a policy-capped dataset selects — to every `role: eval` dataset
 that declares a `sample_policy` and doesn't already have a manifest for
 the current policy (`runner/publish_sample_set.py --skip-existing`).
@@ -291,4 +293,4 @@ the manifest hasn't landed yet — check the latest
   rather than assuming the hashing itself is unstable.
 
 ---
-[← Methodology](methodology.md) · [Home](index.md) · [Registry audit →](registry-audit.md)
+[← Runner](runner.md) · [Home](index.md) · [Specification →](SPECIFICATION.md)

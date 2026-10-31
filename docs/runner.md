@@ -1,11 +1,13 @@
-# Arena STT Prediction Runner
+# Prediction runners
 
-The prediction runner is an offline batch job that generates STT transcriptions
-for (plugin × dataset) pairs and appends the results to the corresponding
-HuggingFace benchmark dataset (`OpenVoiceOS/ovos-stt-bench-<lang>`).
-
-It runs 24/7 on the ser9 compute box (192.168.1.111, tailnet 100.77.120.109), cycling through the job
-queue and sleeping between cycles.
+This page covers two runners. The **queue daemon** (`python -m runner`) is an
+offline batch job that makes STT transcriptions for the (plugin × dataset)
+jobs of `runner/queue.yaml` and appends them to a Hugging Face benchmark
+dataset. It runs as a long-lived process on a runner host, works through the
+job queue and sleeps between cycles. The **fleet runner**
+(`python -m runner.autorun`, [below](#autonomous-mode-fleet-wide-registry-driven))
+reads the registry instead of a queue file and covers the STT, wake word, TTS
+and VAD leagues.
 
 ---
 
@@ -70,7 +72,7 @@ against it, one against a smaller ad hoc `--max-samples` — end up ranked
 together over different sample populations. `runner/publish_sample_set.py`
 closes that gap: it recomputes a dataset's policy-selected sample ids
 directly from the source corpus (no audio decoding, just the id-bearing
-columns) and publishes them as `sample_sets/<lang>.json` inside the
+columns) and publishes them as `sample_sets/<ll_RR>.json` inside the
 dataset's predictions repo, right next to `predictions/<lang>/*.jsonl`.
 A wake-word clip set has no parquet rows: its manifest is the clip
 selection the sweep draws, read from the repo file listings and the pooled
@@ -158,8 +160,7 @@ and paste in the entries you want.
 
 "Missing or incomplete" means one of three things: no
 `predictions/<competitor_id>.jsonl` file in the dataset's `predictions_hf`
-repo, a 0-byte file (this happens, for example
-`onnx-asr-parakeet-tdt-11b.jsonl` today), or fewer rows than `--min-rows`
+repo, a 0-byte file, or fewer rows than `--min-rows`
 (default 1). Dataset size is not tracked in the registry, so this is a
 heuristic, not an exact "smaller than the corpus" check. A fighter with an
 empty `langs` list is treated as compatible with every dataset language.
@@ -185,7 +186,7 @@ of a fighter with one or more already done. Without this, a fighter
 compatible with many datasets fills the front of the queue with its own
 entries while a fighter compatible with only one or two sits at the back,
 and a sweep run that doesn't drain the whole queue leaves most fighters at
-zero predictions — which is exactly what happened to the STT board.
+zero predictions.
 
 Within a tier, entries are ordered cheapest-engine-first (a static weight
 heuristic, e.g. `vosk`/`webrtc` before `whisper`/cloud STT), and among
@@ -219,16 +220,15 @@ jobs:
 
 ---
 
-## Deploy on ser9
+## Deploy on a runner host
 
-Stage the runner code from your laptop:
+Copy the runner code from a checkout of this repository to the host:
 
 ```bash
-scp -r /home/miro/AgentWorkspaces/ovos/web/ovos-plugin-arena/runner \
-    miro@192.168.1.111:/home/miro/arena-runner/runner
+scp -r runner <user>@<runner-host>:~/arena-runner/runner
 ```
 
-Run one-time setup on ser9 (already done):
+Set up the host once:
 
 ```bash
 python3.14 -m venv ~/venvs/arena-runner
@@ -241,12 +241,12 @@ python3.14 -m venv ~/venvs/arena-runner
 Start the daemon detached in tmux:
 
 ```bash
-ssh miro@192.168.1.111
+ssh <user>@<runner-host>
 tmux new -s arena-runner
 cd ~/arena-runner
 nice -n 15 ~/venvs/arena-runner/bin/python3.14 -m runner \
     --queue runner/queue.yaml \
-    --base-dir /home/miro/arena-runner \
+    --base-dir ~/arena-runner \
     --max-workers 4 \
     --ort-threads 1 \
     --timeout 60 \
@@ -254,23 +254,25 @@ nice -n 15 ~/venvs/arena-runner/bin/python3.14 -m runner \
 # Ctrl-B D to detach
 ```
 
-The runner writes logs to `/home/miro/arena-runner/runner.log`.
+The runner writes logs to `~/arena-runner/runner.log` on the host.
 
 ---
 
-## Monitor from the laptop
+## Monitor the runner
+
+Run these on the runner host:
 
 ```bash
 # Tail the log in real time
-tail -f /mnt/ser9/arena-runner/runner.log
+tail -f ~/arena-runner/runner.log
 
 # Count rows written in current output files
-wc -l /mnt/ser9/arena-runner/output/*.jsonl
+wc -l ~/arena-runner/output/*.jsonl
 
 # Check manifest state (how many samples done per job)
 python3 -c "
 import json, pathlib
-for p in pathlib.Path('/mnt/ser9/arena-runner').glob('manifest_*.json'):
+for p in (pathlib.Path.home() / 'arena-runner').glob('manifest_*.json'):
     d = json.loads(p.read_text())
     print(len(d['done_ids']), d['job_key'])
 "
@@ -291,14 +293,14 @@ To disable auto-publish (write JSONL only):
 python3.14 -m runner --no-publish ...
 ```
 
-To publish manually from the laptop:
+To publish an output file by hand:
 
 ```bash
 python3 - <<'EOF'
 from pathlib import Path
 from runner.publish import publish_output
 publish_output(
-    output_file=Path("/mnt/ser9/arena-runner/output/stt_pt-PT_ovos_stt_plugin_fasterwhisper_small.jsonl"),
+    output_file=Path.home() / "arena-runner/output/stt_pt-PT_ovos_stt_plugin_fasterwhisper_small.jsonl",
     hf_repo="OpenVoiceOS/ovos-stt-bench-pt-PT",
 )
 EOF
@@ -306,7 +308,7 @@ EOF
 
 ---
 
-## Plugins deployed on ser9
+## Plugins on the queue daemon host
 
 | plugin | model | py3.14 status |
 |---|---|---|
@@ -327,10 +329,11 @@ pair, and round-robins across them — 10 new samples per pair, then the next
 pair, forever. Add a fighter or dataset json to the registry and it joins
 the rotation on the next sweep, no restart needed.
 
-**Not covered**: the intent leagues. Those run through the separate
-`runner.intent_bench` train+eval flow (a different row shape from the
-audio benches) and are not wired into this scheduler. Autonomous, fleet-wide
-coverage for intent is a follow-up, not part of this tool yet.
+**Not covered**: the intent leagues and the `ww_stream` league. The intent
+leagues run through the separate `runner.intent_bench` train and eval flow,
+which has another row shape. `ww_stream` rows come from
+`benchmarks/ww_stream.py` or the wake word notebook. Neither is in this
+scheduler's modality list (`stt`, `wake_word`, `tts`, `vad`).
 
 Start one instance per host. Pick the flags for that host's class:
 
@@ -512,9 +515,12 @@ Each run:
    counted from the very start, so it also pays for the discovery walk in
    step 2 (each completeness check is itself deadline-bounded) and the
    fighter's model load, which happens inside this step;
-4. uploads the shard when `HF_TOKEN` is set in the environment (without it,
-   the run writes the local shard only), then — if more than 5 minutes of
-   the time budget remain — draws another random pair and repeats. With no
+4. uploads the shard only when the pair is complete in this run: the batch
+   wrote fewer rows than `--max-samples`, with no errors and before the
+   deadline. A run that stops at `--max-samples` or at the time budget leaves
+   its new rows in the local shard, and does not upload them. `--no-upload`
+   turns all uploads off. Then, if more than 5 minutes of the time budget
+   remain, the run draws another random pair and repeats. With no
    `--time-budget-secs`, exactly one pair runs;
 5. prints a `one-shot: pair=... written=... errored=... elapsed=...s
    upload=...` summary line per pair run, plus a totals line, and always
@@ -541,4 +547,4 @@ pool — e.g. `--include 'vosk-*' --datasets common-voice-*` populates a
 newly added fighter's or dataset's coverage.
 
 ---
-[← Benchmarks](benchmarks.md) · [Home](index.md) · [Reproduce a row →](reproduce-a-row.md)
+[← Add a fighter](add-a-fighter.md) · [Home](index.md) · [Operations →](operations.md)

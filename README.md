@@ -32,12 +32,17 @@ the arena:
 **Alpha: all modalities wired.** Every league has a reproducible benchmark
 script and registry fighters:
 
-| League | Benchmark | Ranking signal |
+| League | Benchmark | Board ranks on |
 |---|---|---|
-| `intent_zero_shot` · `intent_online` · `intent_offline` · `intent_keyword` | `benchmarks/intent_*.py` over [`intents-for-eval`](https://huggingface.co/datasets/OpenVoiceOS/intents-for-eval) (12 langs) + `massive-templates` (52 langs) | accuracy / macro-F1 / OOD-FPR / slot-EM → ELO seed |
-| `stt` | `benchmarks/stt_minds14.py` over MInDS-14 | WER → ELO seed |
-| `wake_word` | `benchmarks/ww_hey_mycroft.py` over [`synthetic-wakewords`](https://huggingface.co/datasets/OpenVoiceOS/synthetic-wakewords) | detection error / false-accept / false-reject → ELO seed |
-| `tts` | `benchmarks/tts_intents_prompts.py` | mean UTMOS, with STT round-trip intelligibility WER beside it → ELO seed |
+| `intent_zero_shot` · `intent_online` · `intent_offline` · `intent_keyword` | `benchmarks/intent_*.py` over [`intents-for-eval`](https://huggingface.co/datasets/OpenVoiceOS/intents-for-eval), `ovos-intents-v5`, `massive-templates` and public intent sets | `generalization_accuracy` |
+| `stt` | `benchmarks/stt_*.py` over MInDS-14, FLEURS, MLS and other corpora | `wer_mean` |
+| `wake_word` | `benchmarks/ww_*.py` over clip test sets such as [`synthetic-wakewords`](https://huggingface.co/datasets/OpenVoiceOS/synthetic-wakewords) | `error_rate` |
+| `ww_stream` | `benchmarks/ww_stream.py` over the `ww-negatives-<lang>` sets of [`ww-stream-bench`](https://huggingface.co/datasets/OpenVoiceOS/ww-stream-bench), hours of audio with no wake word | `fa_per_hour` |
+| `tts` | `benchmarks/tts_intents_prompts.py` | mean UTMOS, with STT round-trip intelligibility WER beside it |
+| `vad` | `benchmarks/vad_speech.py` over `speech-vs-nonspeech-<lang>` | `error_rate` |
+
+Each board's metric also seeds the ELO ladder of its league, except `ww_stream`, which has no wake word to battle on. The
+[docs](docs/index.md) define every metric.
 
 The intent leagues are fully populated with published predictions. STT, TTS
 and wake-word fighters and datasets are registered and runnable, and
@@ -62,7 +67,7 @@ registry/*.json ──┐
 benchmarks/<bench>.py        one script per benchmark: trains each fighter,
    │                         predicts the test split, publishes JSONL rows
    ▼
-HF repos (1 per modality)    predictions/<lang>/<competitor>.jsonl, split per lang
+HF repos (1 per dataset)     predictions/<lang>/<competitor>.jsonl, split per lang
    │
    ▼  assemble.yml (daily)
 frontend-static/public/data/ battles-*.json     blind A/B pools
@@ -73,14 +78,20 @@ frontend-static/public/data/ battles-*.json     blind A/B pools
    │
    ▼  Astro build → GitHub Pages
 voter picks A/B  →  prefilled GitHub issue  →  tally.yml (hourly)
-                                                parses, dedupes, replays ELO,
-                                                commits boards, closes issues
+                                                records new votes in votes.jsonl,
+                                                replays the record, commits
+                                                boards, closes issues
 ```
 
-**ELO seeding:** before any human vote exists, the ELO board is seeded by
-deterministic auto-battles derived from the benchmark metrics (one auto-battle
-per sample where exactly one fighter is correct, at ¼ K-factor). Human votes
-then move ratings at full weight on top of the seed.
+**ELO seeding:** before any human vote exists, deterministic auto-battles
+derived from the benchmark rows seed the ELO ladder of each battle group.
+The benchmark picks the winner of each sample: the correct answer for intent,
+wake word and VAD, the lower WER for STT, the higher composite score for
+TTS. An auto-battle carries a quarter of the weight of a human vote. A pair
+of fighters whose confidence intervals on the primary metric overlap gets no
+auto-battles, in every league. The auto-battle weight of one pair is capped
+at 5 human votes. Human votes then move ratings at full weight on top of the
+seed. [docs/rating.md](docs/rating.md) gives the maths.
 
 **Determinism (§P5):** battle ids are content hashes, so re-running `assemble`
 never invalidates open votes. Both the seed and the vote replay are fully
@@ -99,9 +110,11 @@ names:
 instantiate), architecture **types** (GOFAI, fuzzy-match, neural-net,
 ensemble, and others), a **size** class (micro to titan), and a
 procedurally generated sprite derived from their id hash. Browse the
-bestiary on the **Fighters** page or in `registry/competitors/`. All
-fighters run end-to-end through the real OPM pipeline plugins. The plugin
-owns its confidence thresholds; the arena owns none.
+bestiary on the **Fighters** page or in `registry/competitors/`. An intent
+fighter runs end-to-end through the real OVOS pipeline plugin classes,
+which the runner imports from `runner.intent_pipeline.ENGINE_REGISTRY`.
+Audio fighters load through OPM. The plugin owns its confidence thresholds,
+and the arena owns none.
 
 ## Running a benchmark
 
@@ -118,12 +131,15 @@ python benchmarks/tts_intents_prompts.py --langs en-US --max-samples 30
 python benchmarks/stt_minds14.py --upload                    # publish to HF
 ```
 
-Every benchmark, intent and audio, shares the same flags (`--competitors`,
-`--langs`, `--max-samples`, `--dataset`, `--upload`). Runs are resumable, and
+Every benchmark script takes `--competitors`, `--langs`, `--max-samples`,
+`--output-dir` and `--upload`. The audio scripts also take `--dataset`. An
+intent script runs one fixed dataset and has no `--dataset` flag; it takes
+`--train-timeout-secs`, `--train-max-rss-mb` and `--transcript-cache-dir`.
+[`docs/benchmarks.md`](docs/benchmarks.md) lists the flags per script. Runs are resumable, and
 rows carry the pinned dataset revision, plugin version, and runner version.
 Audio benchmarks instantiate the real OVOS STT/TTS/wake-word plugins
-offline. Uploading requires HF write access to the results repo. See
-[`docs/benchmarks.md`](docs/benchmarks.md) for per-modality details.
+offline. Uploading requires HF write access to the prediction repo of the
+dataset, `OpenVoiceOS/ovos-<modality>-bench-<dataset_id>`.
 
 ## Assembling the arena locally
 
@@ -132,7 +148,7 @@ pip install ".[hf]"
 python -m arena.cli assemble --predictions OpenVoiceOS/ovos-intent-bench-intents-for-eval
 python -m arena.cli export-bestiary
 python -m arena.cli export-index
-python -m arena.cli tally --keep-issues-open   # dry-run vote tally
+python -m arena.cli tally   # no --repo: replays the committed votes.jsonl and rewrites the boards
 
 cd frontend-static
 npm install
@@ -152,16 +168,28 @@ python -m pytest tests/ -q
 
 1. Fork this repo. Enable Actions, and set Settings → Pages → Source to
    "GitHub Actions" (public repo required for Pages).
-2. Set the `HF_PREDICTIONS` repo variable to your prediction dataset(s)
-   (comma-separated), and `ASTRO_SITE` / `ASTRO_BASE` to your Pages URL.
+2. Point each dataset file in `registry/datasets/` at your prediction repo
+   with its `predictions_hf` field. `assemble` reads those repos. Pass
+   `--hf-owner` to a benchmark script to upload to your own owner. Set the
+   `ASTRO_SITE` and `ASTRO_BASE` repo variables to your Pages URL.
 3. Drop your fighters and datasets as JSON files in `registry/`, add a
    benchmark script in `benchmarks/`, and publish predictions to HF.
 4. Run the `Assemble battles` workflow once. Voters take it from there.
 
 ## Documentation
 
-Full docs live in [`docs/`](docs/index.md). Start there for the specification,
-the local-testing guide, and the fighter walkthrough.
+Full docs live in [`docs/`](docs/index.md). The front page tells what the
+arena measures, how to read a board, how to reproduce a number and how to
+add a plugin. These pages give the details:
+
+- [Architecture](docs/architecture.md): the data flow from the registry to
+  the site, and every workflow.
+- [Rating](docs/rating.md): the board intervals, the auto-battles, the vote
+  rules and the Bradley-Terry ladder, with every parameter.
+- [Registry](docs/registry.md) and [Predictions](docs/predictions.md): the
+  fighter and dataset JSON fields, and the prediction row format.
+- [Add a fighter](docs/add-a-fighter.md), [FAQ](docs/faq.md) and
+  [Glossary](docs/glossary.md).
 
 ## Key files
 

@@ -93,4 +93,4 @@ gets its own fighter file rather than folding into an existing one's
 `langs` list.
 
 ---
-[← Operations](operations.md) · [Home](index.md) · [Dataset review →](dataset-review.md)
+[← Specification](SPECIFICATION.md) · [Home](index.md) · [Dataset review →](dataset-review.md)
