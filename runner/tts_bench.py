@@ -75,6 +75,21 @@ def _get_utmos_judge():
     return _utmos_judge
 
 
+class _NoSilenceCheck(Exception):
+    """Stands in for ``SilentAudioError`` on a speechonnxmetrics release that
+    has no silence check. Nothing raises it."""
+
+
+def _silent_audio_error() -> type[Exception]:
+    """The error a no-reference judge raises on digital silence — same
+    optional-dep contract as :func:`_get_utmos_judge`."""
+    try:
+        from speechonnxmetrics import SilentAudioError
+    except ImportError:
+        return _NoSilenceCheck
+    return SilentAudioError
+
+
 def _get_sigmos_judge():
     """Lazily import and cache the SIGMOS (P.804) judge — same optional-dep
     contract as :func:`_get_utmos_judge`."""
@@ -168,6 +183,31 @@ def _load_intelligibility_judge(model_id: str, revision: str) -> tuple[object, s
         model = onnx_asr.load_model(model_id)
         _intelligibility_judges[model_id] = (model, revision)
     return _intelligibility_judges[model_id]
+
+
+def _score_utmos(wav_path) -> dict:
+    """UTMOS naturalness of one rendered clip, with judge provenance (§4 R14).
+
+    A silent clip has no naturalness to rate. Its row keeps the clip and
+    marks it silent instead of letting the judge's error drop the row (see
+    the comment above ``get_tts`` in :meth:`TTSBench.predict`); ``score_tts``
+    leaves it out of the UTMOS mean, and the intelligibility judge still
+    scores it.
+    """
+    judge = _get_utmos_judge()
+    try:
+        # ``sr`` here is the *input's* sample rate, not the model's — for a
+        # path input it is ignored anyway (the loader reads the real rate
+        # from the wav header), so this value is only a placeholder.
+        score = judge(str(wav_path), judge.sample_rate)
+    except _silent_audio_error() as exc:
+        log.warning("silent clip %s: %s", wav_path, exc)
+        return {"silent_audio": True, "utmos_error": str(exc)}
+    return {
+        "utmos": round(float(score), 4),
+        "utmos_judge": UTMOS_JUDGE,
+        "utmos_judge_revision": UTMOS_JUDGE_REVISION,
+    }
 
 
 def _score_quality_dimensions(wav_path) -> dict:
@@ -375,17 +415,7 @@ class TTSBench(MediaBenchAdapter):
                        if before_rss is not None and after_rss is not None
                        else None)
 
-        judge = _get_utmos_judge()
-        # ``sr`` here is the *input's* sample rate, not the model's — for a
-        # path input it is ignored anyway (the loader reads the real rate
-        # from the wav header), so this value is only a placeholder.
-        score = judge(str(wav_path), judge.sample_rate)
-
-        extras = {
-            "utmos": round(float(score), 4),
-            "utmos_judge": UTMOS_JUDGE,
-            "utmos_judge_revision": UTMOS_JUDGE_REVISION,
-        }
+        extras = _score_utmos(wav_path)
         # SIGMOS/DNSMOS/NISQA quality dimensions ride alongside UTMOS (§4 R14
         # extension) — UTMOS stays the board's primary metric, these are
         # additional secondary columns. Warn-only on failure, same as

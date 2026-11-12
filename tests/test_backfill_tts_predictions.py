@@ -37,7 +37,6 @@ def _fake_judges(monkeypatch):
     fake_utmos = FakeJudge(4.37)
     monkeypatch.setattr(tts_bench, "_utmos_judge", None)
     monkeypatch.setattr(tts_bench, "_get_utmos_judge", lambda: fake_utmos)
-    monkeypatch.setattr(backfill, "_get_utmos_judge", lambda: fake_utmos)
 
     quality_extras = {"sigmos.ovrl": 4.1, "dnsmos.ovrl": 3.3, "nisqa.mos": 4.4}
     monkeypatch.setattr(tts_bench, "_score_quality_dimensions",
@@ -192,6 +191,34 @@ class TestBackfillPair:
         assert len(rows) == 1
         assert rows[0]["sample_id"] == "en-US/00000"
         assert rows[0]["input_text"] == text
+
+    def test_silent_clip_still_gets_a_row(
+            self, tmp_path, monkeypatch, dataset_def, competitor):
+        def silent_judge():
+            def judge(wav_path, sr):
+                try:
+                    from speechonnxmetrics import SilentAudioError
+                except ImportError:
+                    SilentAudioError = tts_bench._NoSilenceCheck
+                raise SilentAudioError("metric 'utmos' cannot rate digital silence")
+            judge.sample_rate = 16000
+            return judge
+
+        monkeypatch.setattr(tts_bench, "_get_utmos_judge", silent_judge)
+        monkeypatch.setattr(backfill, "load_competitor",
+                             lambda modality, cid: competitor)
+        texts = ["hello world", "silent prompt"]
+        audio_dir = tmp_path / "audio"
+        for text in texts:
+            _write_wav(audio_dir / f"{tts_bench._safe(text)}.wav")
+
+        rows = backfill.backfill_pair(dataset_def, "en-US", "fake-voice",
+                                       audio_dir, "deadbeef",
+                                       missing=list(enumerate(texts)))
+
+        assert [row["input_text"] for row in rows] == texts
+        assert all(row["extras"]["silent_audio"] is True for row in rows)
+        assert all("utmos" not in row["extras"] for row in rows)
 
     def test_row_schema_matches_live_bench_writer(
             self, tmp_path, monkeypatch, dataset_def, competitor):
