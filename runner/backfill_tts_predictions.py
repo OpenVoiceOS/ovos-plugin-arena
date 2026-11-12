@@ -60,14 +60,12 @@ from runner.dataset_cards import check_redistributable
 from runner.intent_bench import HF_OWNER, done_samples, resolve_revision, results_repo_for
 from runner.media_bench import make_row
 from runner.tts_bench import (
-    UTMOS_JUDGE,
-    UTMOS_JUDGE_REVISION,
     _clip_duration_secs,
-    _get_utmos_judge,
     _load_prompts,
     _safe,
     _score_intelligibility,
     _score_quality_dimensions,
+    _score_utmos,
     unjudgeable_intelligibility_extras,
 )
 
@@ -166,13 +164,7 @@ def backfill_pair(
         audio_url = (f"https://huggingface.co/datasets/{results_repo}"
                      f"/resolve/main/audio/{rel}")
 
-        judge = _get_utmos_judge()
-        utmos_score = judge(str(wav_path), judge.sample_rate)
-        extras = {
-            "utmos": round(float(utmos_score), 4),
-            "utmos_judge": UTMOS_JUDGE,
-            "utmos_judge_revision": UTMOS_JUDGE_REVISION,
-        }
+        extras = _score_utmos(wav_path)
         extras.update(_score_quality_dimensions(wav_path))
         if not judge_available(lang):
             extras.update(unjudgeable_intelligibility_extras())
