@@ -7,6 +7,8 @@ these tests run with no network and no model install, per §4 test policy
 """
 from __future__ import annotations
 
+import subprocess
+import sys
 from types import SimpleNamespace
 
 import pytest
@@ -110,11 +112,12 @@ class TestGetUtmosJudge:
         import types
         fake_mod = types.ModuleType("speechonnxmetrics.mos.utmos")
         fake_mod.UTMOS = factory
-        sys.modules["speechonnxmetrics.mos.utmos"] = fake_mod
-        sys.modules.setdefault(
-            "speechonnxmetrics", types.ModuleType("speechonnxmetrics"))
-        sys.modules.setdefault(
-            "speechonnxmetrics.mos", types.ModuleType("speechonnxmetrics.mos"))
+        # monkeypatch restores sys.modules after the test, so later tests
+        # import the real speechonnxmetrics and its real SilentAudioError
+        monkeypatch.setitem(sys.modules, "speechonnxmetrics.mos.utmos", fake_mod)
+        for name in ("speechonnxmetrics", "speechonnxmetrics.mos"):
+            monkeypatch.setitem(
+                sys.modules, name, sys.modules.get(name) or types.ModuleType(name))
 
         first = tts_bench._get_utmos_judge()
         second = tts_bench._get_utmos_judge()
@@ -285,6 +288,20 @@ class FakeSilentJudge(FakeJudge):
 class TestSilentClip:
     """A silent clip is a result of the run: its row stays on the board,
     marked silent and with no UTMOS, instead of being dropped."""
+
+    def test_catches_the_installed_silent_audio_error(self):
+        # A fresh interpreter says whether the installed speechonnxmetrics
+        # has a silence check, independent of this session's sys.modules.
+        probe = subprocess.run(
+            [sys.executable, "-c",
+             "import speechonnxmetrics; "
+             "print(hasattr(speechonnxmetrics, 'SilentAudioError'))"],
+            capture_output=True, text=True, check=True)
+        if probe.stdout.strip() == "True":
+            from speechonnxmetrics import SilentAudioError
+            assert tts_bench._silent_audio_error() is SilentAudioError
+        else:
+            assert tts_bench._silent_audio_error() is tts_bench._NoSilenceCheck
 
     def test_silent_clip_keeps_its_row(self, tmp_path, monkeypatch):
         monkeypatch.setattr(tts_bench, "_get_utmos_judge", FakeSilentJudge)

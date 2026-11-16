@@ -33,6 +33,11 @@ class TestNeedsRescoring:
     def test_no_extras_needs_rescoring(self):
         assert rescore_tts._needs_rescoring({})
 
+    def test_silent_row_is_done(self):
+        assert not rescore_tts._needs_rescoring(
+            {"extras": {"silent_audio": True,
+                        "utmos_error": "metric 'utmos' cannot rate digital silence"}})
+
 
 class TestResolveWavPath:
     def test_resolves_relative_path_under_audio_dir(self, tmp_path):
@@ -97,6 +102,28 @@ class TestRescoreFile:
         rescored, skipped = rescore_tts.rescore_file(jsonl_path, tmp_path)
         assert (rescored, skipped) == (0, 1)
         assert called == []
+
+    def test_silent_row_is_not_judged_again(self, tmp_path, monkeypatch):
+        wav = tmp_path / "audio" / "en-US" / "voice_a" / "abc.wav"
+        wav.parent.mkdir(parents=True)
+        wav.write_bytes(b"RIFF....WAVEfmt ")
+        url = ("https://huggingface.co/datasets/OpenVoiceOS/ovos-tts-bench-d"
+               "/resolve/main/audio/en-US/voice_a/abc.wav")
+        jsonl_path = tmp_path / "predictions" / "en-US" / "voice_a.jsonl"
+        row = {"sample_id": "s1", "competitor_id": "voice_a", "audio_url": url,
+               "extras": {"silent_audio": True,
+                          "utmos_error": "metric 'utmos' cannot rate digital silence"}}
+        _write_jsonl(jsonl_path, [row])
+        called = []
+        # every judge refuses the silent clip, so the scorer returns no keys
+        monkeypatch.setattr(
+            rescore_tts, "_score_quality_dimensions",
+            lambda p: called.append(p) or {})
+
+        for _ in range(2):
+            assert rescore_tts.rescore_file(jsonl_path, tmp_path) == (0, 1)
+        assert called == []
+        assert json.loads(jsonl_path.read_text()) == row
 
     def test_row_with_no_audio_url_is_skipped_not_fatal(self, tmp_path):
         jsonl_path = tmp_path / "predictions" / "en-US" / "voice_a.jsonl"
