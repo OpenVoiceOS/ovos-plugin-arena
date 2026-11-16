@@ -23,8 +23,9 @@ This script:
 4. on ``--upload``, re-uploads the updated ``predictions/`` folder.
 
 Rows that already carry ``sigmos.ovrl``, ``dnsmos.ovrl`` AND ``nisqa.mos``
-are skipped (idempotent re-runs), and rows with no ``audio_url`` (a failed
-synthesis) are left untouched — there is no clip to rescore.
+are skipped (idempotent re-runs). Rows with no ``audio_url`` (a failed
+synthesis) are left untouched, because there is no clip to rescore, and so are
+rows marked ``silent_audio``, whose clip no quality judge can rate.
 
 ``--rejudge-intelligibility`` additionally re-judges any row that predates
 #143's ROVER judge panel (no ``intelligibility_rover: true`` extra) by
@@ -72,6 +73,10 @@ _INTELLIGIBILITY_EXTRAS_KEYS = (
 
 def _needs_rescoring(row: dict) -> bool:
     extras = row.get("extras") or {}
+    if extras.get("silent_audio") is True:
+        # SIGMOS, DNSMOS and NISQA refuse digital silence the same way UTMOS
+        # did when the row was written: asking them again gets the same refusal.
+        return False
     return ("sigmos.ovrl" not in extras or "dnsmos.ovrl" not in extras
             or "nisqa.mos" not in extras)
 
