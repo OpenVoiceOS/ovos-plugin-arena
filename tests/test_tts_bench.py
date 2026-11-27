@@ -7,6 +7,8 @@ these tests run with no network and no model install, per §4 test policy
 """
 from __future__ import annotations
 
+import subprocess
+import sys
 from types import SimpleNamespace
 
 import pytest
@@ -110,11 +112,12 @@ class TestGetUtmosJudge:
         import types
         fake_mod = types.ModuleType("speechonnxmetrics.mos.utmos")
         fake_mod.UTMOS = factory
-        sys.modules["speechonnxmetrics.mos.utmos"] = fake_mod
-        sys.modules.setdefault(
-            "speechonnxmetrics", types.ModuleType("speechonnxmetrics"))
-        sys.modules.setdefault(
-            "speechonnxmetrics.mos", types.ModuleType("speechonnxmetrics.mos"))
+        # monkeypatch restores sys.modules after the test, so later tests
+        # import the real speechonnxmetrics and its real SilentAudioError
+        monkeypatch.setitem(sys.modules, "speechonnxmetrics.mos.utmos", fake_mod)
+        for name in ("speechonnxmetrics", "speechonnxmetrics.mos"):
+            monkeypatch.setitem(
+                sys.modules, name, sys.modules.get(name) or types.ModuleType(name))
 
         first = tts_bench._get_utmos_judge()
         second = tts_bench._get_utmos_judge()
@@ -267,6 +270,74 @@ class TestPredict:
         assert extras["dnsmos.ovrl"] == pytest.approx(3.0)
         assert "nisqa.mos" not in extras
         assert extras["utmos"] == pytest.approx(4.0)
+
+
+class FakeSilentJudge(FakeJudge):
+    """Stand-in for a UTMOS judge handed a digitally silent clip."""
+
+    def __call__(self, wav_path, sr):
+        self.calls.append((wav_path, sr))
+        try:
+            from speechonnxmetrics import SilentAudioError
+        except ImportError:
+            # a speechonnxmetrics without the silence check never raises
+            SilentAudioError = tts_bench._NoSilenceCheck
+        raise SilentAudioError("metric 'utmos' cannot rate digital silence")
+
+
+class TestSilentClip:
+    """A silent clip is a result of the run: its row stays on the board,
+    marked silent and with no UTMOS, instead of being dropped."""
+
+    def test_catches_the_installed_silent_audio_error(self):
+        # A fresh interpreter says whether the installed speechonnxmetrics
+        # has a silence check, independent of this session's sys.modules.
+        probe = subprocess.run(
+            [sys.executable, "-c",
+             "import speechonnxmetrics; "
+             "print(hasattr(speechonnxmetrics, 'SilentAudioError'))"],
+            capture_output=True, text=True, check=True)
+        if probe.stdout.strip() == "True":
+            from speechonnxmetrics import SilentAudioError
+            assert tts_bench._silent_audio_error() is SilentAudioError
+        else:
+            assert tts_bench._silent_audio_error() is tts_bench._NoSilenceCheck
+
+    def test_silent_clip_keeps_its_row(self, tmp_path, monkeypatch):
+        monkeypatch.setattr(tts_bench, "_get_utmos_judge", FakeSilentJudge)
+        fields = tts_bench.TTSBench().predict(
+            FakeEngine(), {"input_text": "hello"}, _ctx(tmp_path))
+
+        assert fields["prediction"].endswith(".wav")
+        assert fields["audio_url"] == fields["prediction"]
+        assert fields["extras"]["silent_audio"] is True
+        assert "digital silence" in fields["extras"]["utmos_error"]
+        assert "utmos" not in fields["extras"]
+
+    def test_silent_row_is_left_out_of_the_utmos_mean(self, tmp_path, monkeypatch):
+        import json
+
+        from arena.metrics import score_tts
+        from arena.models import PredictionRow
+        from registry.loaders import load_competitor
+        from runner.media_bench import make_row
+
+        competitor = load_competitor("tts", "coqui-ljspeech-vits")
+        ctx = _ctx(tmp_path, competitor_id=competitor.competitor_id)
+        ctx.competitor = competitor
+        rows = []
+        for i, (text, judge) in enumerate((("loud", lambda: FakeJudge(4.0)),
+                                           ("quiet", FakeSilentJudge))):
+            monkeypatch.setattr(tts_bench, "_get_utmos_judge", judge)
+            fields = tts_bench.TTSBench().predict(
+                FakeEngine(), {"input_text": text}, ctx)
+            row = make_row(competitor, "d", "en-US", f"en-US/{i:05d}", "rev", fields)
+            rows.append(PredictionRow(**json.loads(json.dumps(row))))
+
+        assert rows[1].extras["silent_audio"] is True
+        board = score_tts(rows)
+        assert board["n_scored"] == 1.0
+        assert board["utmos"] == pytest.approx(4.0)
 
 
 class TestPredictionRowRoundTrip:

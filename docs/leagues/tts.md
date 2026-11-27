@@ -52,6 +52,13 @@ A judge that fails on a rendered clip also gives 1.0, with
 `extras.intelligibility_error`. A failed SIGMOS, DNSMOS or NISQA judge only
 leaves its own keys out.
 
+**A silent clip still gives a row.** UTMOS, SIGMOS, DNSMOS and NISQA cannot
+rate a clip of digital silence, and they refuse it. The row then keeps
+`prediction` and `audio_url`, so a voter can hear the clip. It has
+`extras.silent_audio: true` and the refusal in `extras.utmos_error`. It
+carries no UTMOS score and no SIGMOS, DNSMOS or NISQA keys. The ASR judges
+score the clip as usual.
+
 ## Run it
 
 `benchmarks/tts_intents_prompts.py` runs the league. Its default dataset is
@@ -73,7 +80,8 @@ to `OpenVoiceOS/ovos-tts-bench-<dataset_id>`.
 `python -m runner.rescore_tts --dataset-id <id>` adds missing SIGMOS, DNSMOS
 and NISQA scores to published rows from the stored clips, with no new
 synthesis. With `--rejudge-intelligibility` it also runs the full judge panel
-on rows that a single judge scored. It skips a row with no `audio_url`.
+on rows that a single judge scored. It skips a row with no `audio_url`, and
+it adds no quality scores to a row with `silent_audio: true`.
 
 ## The judges
 
@@ -265,9 +273,10 @@ on naturalness alone, and the row says so.
 
 ## Known limits
 
-- **Failed renders leave the UTMOS mean.** A row with no clip has no UTMOS,
-  so `utmos` is the mean over the clips the fighter did render. Read
-  `n_scored` beside it. The intelligibility mean counts each failure as 1.0.
+- **Failed renders and silent clips leave the UTMOS mean.** A row with no
+  clip or with a silent clip has no UTMOS, so `utmos` is the mean over the
+  clips the judge could rate. Read `n_scored` beside it. The intelligibility
+  mean counts each failure as 1.0.
 - **UTMOS is a model.** It was trained on human ratings with their own
   language mix. A gap in UTMOS between voices of different languages says
   little. Boards are per language, so the board never compares them.
